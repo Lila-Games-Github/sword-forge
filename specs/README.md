@@ -7,7 +7,7 @@ Single source of truth (SSOT) for Sword Forge's design.
 - These specs describe the game **as implemented** in `index.html`, not aspirational design.
 - Any change to a mechanic, number, or system must update the relevant spec in the **same change** as the code.
 - When code and a spec disagree, that's a bug — reconcile them, don't ignore it.
-- The original design vision is preserved in `../Docs/Sword_Grid_Game_GDD.md` for history only. Specs here supersede it.
+- The original design vision is preserved in `../archive/Sword_Grid_Game_GDD.md` for history only. Specs here supersede it.
 
 ## Files
 

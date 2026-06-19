@@ -10,7 +10,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 - **`index.html`** — THE game. The latest, canonical, playable build. Always edit this.
 - **`specs/`** — Single source of truth (SSOT) for game design. See `specs/game-design.md`. Keep it in sync whenever mechanics change.
-- **`Docs/Sword_Grid_Game_GDD.md`** — The *original* design vision. Historical only; the build has drifted from it. Do not treat it as current — `specs/` supersedes it.
+- **`archive/Sword_Grid_Game_GDD.md`** — The *original* design vision. Historical only; the build has drifted from it. Do not treat it as current — `specs/` supersedes it.
 
 ## How to run / deploy
 

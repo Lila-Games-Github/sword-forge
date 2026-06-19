@@ -2,7 +2,7 @@
 
 **Single source of truth for game mechanics.** This describes the game *as actually implemented* in `index.html`. When code and this doc disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
 
-> The original design vision lives in `Docs/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
+> The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
 
 ---
 
