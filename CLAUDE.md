@@ -22,7 +22,14 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 - **Keep it single-file.** Do not split `index.html` into separate JS/CSS files or add a toolchain unless explicitly asked.
 - **Match the existing style.** The code uses terse, semicolon-dense vanilla JS with many statements per line, global mutable state, and direct DOM manipulation. Follow the surrounding idiom rather than refactoring to a framework.
 - **Update the spec with the code.** Any change to a mechanic, number, or system must be reflected in `specs/game-design.md` in the same change.
-- **Assets are loose in the repo root** (PNGs/JPGs referenced by relative path). When adding art, drop it in root and reference it relatively.
+- **Assets live in `assets/`** (PNGs/JPGs referenced by relative path from `index.html`). When adding art, place it in the correct sub-folder and reference it as `assets/<folder>/<file>`:
+  - `assets/backgrounds/` — scene panels, shop/forge backgrounds
+  - `assets/ui/` — buttons and UI chrome
+  - `assets/forge/` — forge props (bellow, bucket, pulley)
+  - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images
+  - `assets/map/` — grid tiles, minimap
+  - `assets/unused/` — files present but not currently referenced (review before adding more)
+- **`screenshots/`** — dev/marketing screenshots; not referenced by the game.
 - After a gameplay change, verify the full loop in a browser before pushing.
 
 ## Project tracking

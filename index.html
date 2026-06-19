@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -72,10 +72,10 @@
             z-index: 10;
         }
 
-        #scene1 { background-image: url('panel 1.png'); }
-        #scene2 { background-image: url('panel 2.png'); }
-        #scene3 { background-image: url('panel 3.png'); }
-        #scene4 { background-image: url('panel 4.png'); }
+        #scene1 { background-image: url('assets/backgrounds/panel 1.png'); }
+        #scene2 { background-image: url('assets/backgrounds/panel 2.png'); }
+        #scene3 { background-image: url('assets/backgrounds/panel 3.png'); }
+        #scene4 { background-image: url('assets/backgrounds/panel 4.png'); }
 
         .story-box {
             background: rgba(4, 4, 6, 0.85);
@@ -168,20 +168,20 @@
         .screen::-webkit-scrollbar { display: none; }
 
         #screen-0 { 
-            background-image: url('Shop_background_2.jpg'); 
+            background-image: url('assets/backgrounds/Shop_background_2.jpg'); 
             background-size: cover; 
             background-position: top center; 
             background-repeat: no-repeat; 
             background-attachment: local; 
         }
         #screen-1 { 
-            background-image: url('image_601c5b.jpg'); 
+            background-image: url('assets/backgrounds/image_601c5b.jpg'); 
             background-size: cover; 
             background-position: top center; 
             background-repeat: no-repeat; 
             background-attachment: local; 
         }
-        #screen-2 { display: flex; flex-direction: column; padding: 10px; background-image: url('2b64bc5e-a475-4868-ac35-3b751a16a749.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
+        #screen-2 { display: flex; flex-direction: column; padding: 10px; background-image: url('assets/backgrounds/2b64bc5e-a475-4868-ac35-3b751a16a749.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
 
         .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 15px 10px; z-index: 100; cursor: pointer; font-size: 20px; backdrop-filter: blur(2px); }
         #nav-left { left: 0; border-radius: 0 8px 8px 0; }
@@ -210,7 +210,7 @@
         #grid { display: grid; grid-template-columns: repeat(50, 22px); grid-template-rows: repeat(50, 22px); gap: 1px; background-color: #222; padding: 1px; transform-origin: top left; transition: transform 0.1s ease-out; }
         
         .cell { 
-            background-image: url('tile_normal.png');
+            background-image: url('assets/map/tile_normal.png');
             background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
@@ -228,7 +228,7 @@
             border: none; 
         }
         .hazard { 
-            background-image: url('tile_hazard.png') !important; 
+            background-image: url('assets/map/tile_hazard.png') !important; 
         }
         .mystery-trait { 
             background-color: #fcf3cf; 
@@ -238,7 +238,7 @@
         .damage-flash { background-color: #ff4444 !important; }
         
         .player-cell { 
-            background-image: url('tile_sword.png') !important; 
+            background-image: url('assets/map/tile_sword.png') !important; 
             background-size: 100% 100%;
             background-color: transparent; 
             border-radius: 4px; 
@@ -258,13 +258,13 @@
         button:active:not(:disabled) { opacity: 0.8; transform: scale(0.95); }
         button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-        .move-btn { padding: 0; width: 100%; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.4); background-image: url('buttonui.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; background-color: transparent !important; display: flex; flex-direction: column; justify-content: center; align-items: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
+        .move-btn { padding: 0; width: 100%; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.4); background-image: url('assets/ui/buttonui.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; background-color: transparent !important; display: flex; flex-direction: column; justify-content: center; align-items: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
         .move-empty { width: 100%; height: 100%; }
 
-        #btnSteel { color: #E0E0E0; background-image: url('buttonui_steel.png'); }    
-        #btnIron { color: #B0C4DE; background-image: url('buttonui_iron.png'); }  
-        #btnMagnesium { color: #FFFFFF; background-image: url('buttonui_magnesium.png'); } 
-        #btnBronze { color: #CD7F32; background-image: url('buttonui_bronze.png'); } 
+        #btnSteel { color: #E0E0E0; background-image: url('assets/ui/buttonui_steel.png'); }    
+        #btnIron { color: #B0C4DE; background-image: url('assets/ui/buttonui_iron.png'); }  
+        #btnMagnesium { color: #FFFFFF; background-image: url('assets/ui/buttonui_magnesium.png'); } 
+        #btnBronze { color: #CD7F32; background-image: url('assets/ui/buttonui_bronze.png'); } 
         #btnTitanium { color: #C0C0C0; }
         #btnAluminium { color: #F5F5F5; }
         #btnBlackIron { color: #A9A9A9; }
@@ -277,9 +277,9 @@
         .action-btn { flex: 1; font-size: 12px; display: flex; justify-content: center; align-items: center; padding: 0; border-radius: 6px; }
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
-        #btnHeat { background-image: url('buttonheat.png'); }
-        #btnForge { background-image: url('buttonforge.png'); }
-        #btnSaveRecipe { background-image: url('buttonsave.png'); }
+        #btnHeat { background-image: url('assets/ui/buttonheat.png'); }
+        #btnForge { background-image: url('assets/ui/buttonforge.png'); }
+        #btnSaveRecipe { background-image: url('assets/ui/buttonsave.png'); }
         #btnChart { background-color: #3498db; }
 
         .list-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px; text-align: left; }
@@ -558,7 +558,7 @@
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0; box-sizing: border-box;">
-                        <img id="bucket-img" src="bucket.png" alt="Bucket" style="width: 100px; height: 100px; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); transform-origin: bottom center;">
+                        <img id="bucket-img" src="assets/forge/bucket.png" alt="Bucket" style="width: 100px; height: 100px; object-fit: contain; border-radius: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); transform-origin: bottom center;">
                         
                         <div class="movement-grid" style="margin-bottom: 0;">
                             <button id="btnTitanium" class="move-btn"></button>
@@ -619,10 +619,10 @@
             <div class="modal-content" style="background: transparent; box-shadow: none; padding: 0;">
                 
                 <div class="forge-minigame-container">
-                    <img src="background_forge.jpg" class="forge-bg" alt="Forge Background">
-                    <img src="pulley_forge.png" id="forge-pulley" class="forge-pulley" onclick="handlePulleyClick()" alt="Pulley">
-                    <img src="bucket_forge.png" id="forge-bucket" class="forge-bucket" alt="Bucket">
-                    <img src="bellow_forge.png" id="forge-bellow" class="forge-bellow" onmousedown="handleBellowClick(event)" ontouchstart="handleBellowClick(event)" alt="Bellow">
+                    <img src="assets/backgrounds/background_forge.jpg" class="forge-bg" alt="Forge Background">
+                    <img src="assets/forge/pulley_forge.png" id="forge-pulley" class="forge-pulley" onclick="handlePulleyClick()" alt="Pulley">
+                    <img src="assets/forge/bucket_forge.png" id="forge-bucket" class="forge-bucket" alt="Bucket">
+                    <img src="assets/forge/bellow_forge.png" id="forge-bellow" class="forge-bellow" onmousedown="handleBellowClick(event)" ontouchstart="handleBellowClick(event)" alt="Bellow">
                     
                     <div class="interactive-heat-meter" id="forge-meter-container">
                         <div style="font-size: 11px; color: white; margin-bottom: 5px; text-shadow: 1px 1px 2px #000;">Keep heat in the <span style="color:#2ecc71; font-weight:bold;">Green Zone</span>!</div>
@@ -667,7 +667,7 @@
         <div id="chartModal" class="modal-overlay">
             <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
                 <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Reference Map</h3>
-                <img src="Minimap.png" alt="Map" style="width: 100%; height: auto; border-radius: 4px; border: 2px inset #a6957a;">
+                <img src="assets/map/Minimap.png" alt="Map" style="width: 100%; height: auto; border-radius: 4px; border: 2px inset #a6957a;">
                 <button class="cancel-btn" style="background-color: #3498db;" onclick="closeChartModal()">Close</button>
             </div>
         </div>
@@ -736,35 +736,35 @@
         /* --- DESIGN DESK (PAPER DOLL) LOGIC --- */
         const partsLibrary = {
             blade: [
-                { id: 'Shortsword', src: 'balanced_shortsword_blade.png' },
-                { id: 'Longsword', src: 'balanced_longsword_blade.png' },
-                { id: 'Broadsword', src: 'balanced_broadsword_blade.png' },
-                { id: 'Katana', src: 'balanced_shortsword_blade.png' }, 
-                { id: 'Rapier', src: 'balanced_shortsword_blade.png' }, 
-                { id: 'Cutlass', src: 'balanced_shortsword_blade.png' }, 
-                { id: 'Claymore', src: 'balanced_longsword_blade.png' }, 
-                { id: 'Saber', src: 'balanced_shortsword_blade.png' },   
-                { id: 'Scimitar', src: 'balanced_broadsword_blade.png' }, 
-                { id: 'Machete', src: 'balanced_shortsword_blade.png' }  
+                { id: 'Shortsword', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' },
+                { id: 'Longsword', src: 'assets/sword-parts/blades/balanced_longsword_blade.png' },
+                { id: 'Broadsword', src: 'assets/sword-parts/blades/balanced_broadsword_blade.png' },
+                { id: 'Katana', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
+                { id: 'Rapier', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
+                { id: 'Cutlass', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
+                { id: 'Claymore', src: 'assets/sword-parts/blades/balanced_longsword_blade.png' }, 
+                { id: 'Saber', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' },   
+                { id: 'Scimitar', src: 'assets/sword-parts/blades/balanced_broadsword_blade.png' }, 
+                { id: 'Machete', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }  
             ],
             grip: [
-                { id: 'Grip 1', src: 'grip1.png' },
-                { id: 'Grip 2', src: 'grip2.png' },
-                { id: 'Grip 3', src: 'grip3.png' },
-                { id: 'Grip 4', src: 'grip4.png' }
+                { id: 'Grip 1', src: 'assets/sword-parts/grips/grip1.png' },
+                { id: 'Grip 2', src: 'assets/sword-parts/grips/grip2.png' },
+                { id: 'Grip 3', src: 'assets/sword-parts/grips/grip3.png' },
+                { id: 'Grip 4', src: 'assets/sword-parts/grips/grip4.png' }
             ],
             guard: [
-                { id: 'Guard 1', src: 'guard1.png' },
-                { id: 'Guard 2', src: 'guard2.png' },
-                { id: 'Guard 3', src: 'guard3.png' },
-                { id: 'Guard 4', src: 'guard4.png' }
+                { id: 'Guard 1', src: 'assets/sword-parts/guards/guard1.png' },
+                { id: 'Guard 2', src: 'assets/sword-parts/guards/guard2.png' },
+                { id: 'Guard 3', src: 'assets/sword-parts/guards/guard3.png' },
+                { id: 'Guard 4', src: 'assets/sword-parts/guards/guard4.png' }
             ],
             pommel: [
-                { id: 'Pommel 1', src: 'pommel1.png' },
-                { id: 'Pommel 2', src: 'pommel2.png' },
-                { id: 'Pommel 3', src: 'pommel3.png' },
-                { id: 'Pommel 4', src: 'pommel4.png' },
-                { id: 'Pommel 5', src: 'pommel5.png' }
+                { id: 'Pommel 1', src: 'assets/sword-parts/pommels/pommel1.png' },
+                { id: 'Pommel 2', src: 'assets/sword-parts/pommels/pommel2.png' },
+                { id: 'Pommel 3', src: 'assets/sword-parts/pommels/pommel3.png' },
+                { id: 'Pommel 4', src: 'assets/sword-parts/pommels/pommel4.png' },
+                { id: 'Pommel 5', src: 'assets/sword-parts/pommels/pommel5.png' }
             ]
         };
 
