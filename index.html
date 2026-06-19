@@ -880,15 +880,10 @@
             { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
             { title: "Selecting the metals", text: "We need to add metals to the bucket to start the crafting process. Different metals will lead your swords to different traits, which you can determine by looking at the movement of the sword on the grid map.<br><br>Let's add 4 steel and one magnesium to the bucket.", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
-            { text: "Your location on the map is marked by the custom sword icon. To move, press the Metal Buttons in the 3x3 grid to choose your direction.", waitAction: null },
-            { text: "Hold down a movement button to charge up the Purify Dash meter. Release it on the matching color to determine your distance: Red = 1, Yellow = 2, Green = 3 spaces!", waitAction: null },
             { waitAction: 'reachTrait' },
             { title: "Heating", text: 'We have discovered a trait!<br><br>Now we need to lower the bucket into the forge and heat it.<br>Click on the heat button', waitAction: null },
-            { waitAction: 'heat' }, 
-            { text: 'If you manage to stabilize the bucket\'s temperature in the Green Zone, the trait will fuse to your sword!', waitAction: null },
-            { text: 'Once you have gathered your desired traits and spent some metals by walking, press the 🔨 Forge button.', waitAction: null },
-            { waitAction: 'forge' }, 
-            { text: 'Now that you have a sword, it is time to make some money. Swipe over to Screen 1 to deal with your customers.', waitAction: null }
+            { waitAction: 'heat' },
+            { waitAction: 'forge' },
         ];
 
         function playTutorialStep() {
@@ -975,7 +970,7 @@
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
         let unlockedMetals = { titanium: false, aluminium: false, blackIron: false, redIron: false };
-        let availableMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
+        let availableMetals = { titanium: 10, steel: 10, aluminium: 10, magnesium: 10, bronze: 10, blackIron: 10, iron: 10, redIron: 10 };
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
         let generationInterval = null; let shopInterval = null; let metalsPerTick = 1;
         let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
