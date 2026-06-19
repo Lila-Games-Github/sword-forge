@@ -324,6 +324,13 @@
         .dialogue-btn { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: transparent; border: none; color: #6b4c10; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 16px; letter-spacing: 0.5px; white-space: nowrap; }
         .dialogue-btn:hover { color: #c8a84b; }
 
+        /* Frame 2: metal-selection step. Buttons are baked into the art (lower-middle),
+           so lock the true image aspect ratio and confine text to the upper parchment. */
+        .dialogue-frame.frame2 { background-image: url('assets/ui/dialogue-frame2.png'); aspect-ratio: 979 / 1309; padding: 0; }
+        .dialogue-frame.frame2 .dialogue-title { position: absolute; top: 13%; left: 11%; right: 11%; margin: 0; font-size: 14px; }
+        .dialogue-frame.frame2 .dialogue-text { position: absolute; top: 20%; left: 11%; right: 11%; bottom: 42%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
+        .dialogue-frame.frame2 .dialogue-btn { bottom: 7%; }
+
         .cancel-btn { background-color: #e74c3c; width: 100%; padding: 10px; color: #fff; border: none; border-radius: 4px; font-weight: bold; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; }
 
         .purify-track { width: 100%; height: 100%; border-radius: 4px; overflow: hidden; position: relative; background: linear-gradient(to right, #e74c3c 0%, #e74c3c 25%, #f1c40f 25%, #f1c40f 40%, #2ecc71 40%, #2ecc71 60%, #f1c40f 60%, #f1c40f 75%, #e74c3c 75%, #e74c3c 100%); }
@@ -679,7 +686,7 @@
         </div>
 
         <div id="tutorialModal" class="modal-overlay">
-            <div class="dialogue-frame">
+            <div class="dialogue-frame" id="tutorialFrame">
                 <h3 id="tutorial-title" class="dialogue-title" style="display:none;"></h3>
                 <p id="tutorial-text" class="dialogue-text"></p>
                 <button id="btnTutorialOk" class="dialogue-btn">OK</button>
@@ -865,11 +872,11 @@
         let tutorialStep = 0; let hasShownShopTutorial = false; let hasShownRecipeTutorial = false;
         const tutorialFlow = [
             { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
-            { text: "Look at the Available Metals panel at the bottom of the screen. You passively generate 8 types of metals over time. You will need these to move around the map and craft your blade.", waitAction: null },
+            { title: "Selecting the metals", text: "We need to add metals to the bucket to start the crafting process. Different metals will lead your swords to different traits, which you can determine by looking at the movement of the sword on the grid map.<br><br>Let's add 4 steel and one magnesium to the bucket.", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
             { text: "Your location on the map is marked by the custom sword icon. To move, press the Metal Buttons in the 3x3 grid to choose your direction.", waitAction: null },
             { text: "Hold down a movement button to charge up the Purify Dash meter. Release it on the matching color to determine your distance: Red = 1, Yellow = 2, Green = 3 spaces!", waitAction: null },
-            { waitAction: 'move' }, 
+            { waitAction: 'reachTrait' },
             { text: 'As you move, the "Fog of War" clears. If you land on a square with a hidden trait \'❓\', press the 🔥 Heat button.', waitAction: null },
             { waitAction: 'heat' }, 
             { text: 'If you manage to stabilize the bucket\'s temperature in the Green Zone, the trait will fuse to your sword!', waitAction: null },
@@ -884,8 +891,11 @@
             if (step.onShow) step.onShow();
 
             if (step.text) {
-                if (tutorialStep === 0) { document.getElementById('tutorial-title').textContent = "Welcome to the Forge!"; document.getElementById('tutorial-title').style.display = 'block'; } 
-                else { document.getElementById('tutorial-title').style.display = 'none'; }
+                document.getElementById('tutorialFrame').classList.toggle('frame2', step.frame === 2);
+                const titleEl = document.getElementById('tutorial-title');
+                const title = step.title || (tutorialStep === 0 ? "Welcome to the Forge!" : null);
+                if (title) { titleEl.textContent = title; titleEl.style.display = 'block'; }
+                else { titleEl.style.display = 'none'; }
                 document.getElementById('tutorial-text').innerHTML = step.text;
                 document.getElementById('tutorialModal').style.display = 'flex';
             } else if (step.action === 'highlight') {
@@ -903,6 +913,7 @@
         function checkShopTutorial() {
             if (gold >= 50 && !hasShownShopTutorial) {
                 hasShownShopTutorial = true;
+                document.getElementById('tutorialFrame').classList.remove('frame2');
                 document.getElementById('tutorial-title').textContent = "Shop Unlocked!"; document.getElementById('tutorial-title').style.display = "block";
                 document.getElementById('tutorial-text').textContent = "Shop can now be opened. Swipe left to the shop and display swords for passive sale.";
                 document.getElementById('tutorialModal').style.display = 'flex';
@@ -917,6 +928,7 @@
         function checkRecipeTutorial() {
             if (totalSwordsCrafted === 5 && !hasShownRecipeTutorial) {
                 hasShownRecipeTutorial = true;
+                document.getElementById('tutorialFrame').classList.remove('frame2');
                 document.getElementById('tutorial-title').textContent = "Blacksmith Tip"; document.getElementById('tutorial-title').style.display = "block";
                 document.getElementById('tutorial-text').textContent = "You can also save recipes for quick craft. Find the most efficient path to the traits before you save it.";
                 document.getElementById('tutorialModal').style.display = 'flex';
@@ -959,7 +971,8 @@
         let unlockedMetals = { titanium: false, aluminium: false, blackIron: false, redIron: false };
         let availableMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
-        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1; 
+        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1;
+        let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
 
         let zoomLevel = 1.0; let isDragging = false; let startX, startY, startScrollLeft, startScrollTop;
         const viewportEl = document.getElementById('viewport'); const gridElement = document.getElementById('grid');
@@ -1033,6 +1046,8 @@
             for(let i = 0; i < hazardCount; i++) {
                 let x, y, idx; do { x = Math.floor(seededRandom() * gridSize); y = Math.floor(seededRandom() * gridSize); idx = y * gridSize + x; } while ((x === 25 && y === 25) || boardData[idx] !== ''); boardData[idx] = '💥';
             }
+            // Keep the guided tutorial path to the Balanced trait clear of hazards.
+            const guidedSafe = 23 * gridSize + 24; if (boardData[guidedSafe] === '💥') boardData[guidedSafe] = '';
         }
 
         function renderCell(index) {
@@ -1255,6 +1270,9 @@
             const bucket = document.getElementById('bucket-img');
             if (bucket) { bucket.classList.remove('wobble-anim'); void bucket.offsetWidth; bucket.classList.add('wobble-anim'); }
 
+            // Guided phase: slider locked -> each press adds 1 metal to the bucket and moves exactly 1 block.
+            if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; move(dx, dy, false); updateUI(); return; }
+
             pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1;
             document.getElementById('inline-purify-container').style.visibility = 'visible'; document.getElementById('purify-thumb').style.left = '0%';
             isPurifying = true; lastPurifyTime = performance.now(); purifyAnimationFrame = requestAnimationFrame(updatePurifyLoop);
@@ -1292,7 +1310,11 @@
                 }
 
                 centerCameraOnPlayer(); 
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
+                if (tutorialStep < tutorialFlow.length) {
+                    const wa = tutorialFlow[tutorialStep].waitAction;
+                    const onTrait = boardData[newIndex] !== '' && boardData[newIndex] !== '💥';
+                    if (wa === 'move' || (wa === 'reachTrait' && onTrait)) { tutorialStep++; setTimeout(playTutorialStep, 500); }
+                }
                 return true;
             }
             return false; 
@@ -1405,7 +1427,7 @@
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; updateUI(); showForgeResult(newSword); checkRecipeTutorial();
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword); checkRecipeTutorial();
             });
         }
 
@@ -1415,7 +1437,7 @@
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++;
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true;
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
@@ -1493,7 +1515,7 @@
             const autoDesign = { blade: matchingBladeIndex, grip: 0, guard: 0, pommel: 0 };
             const newSword = { shape: chosenShape, design: autoDesign, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
             
-            totalSwordsCrafted++; checkRecipeTutorial(); 
+            totalSwordsCrafted++; purifyEnabled = true; checkRecipeTutorial(); 
             isProcessingCustomer = true;
             
             let goldEarned = newSword.value; 
