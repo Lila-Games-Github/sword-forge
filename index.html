@@ -577,7 +577,7 @@
                 <div class="action-area">
                     <button class="action-btn" id="btnHeat">Heat</button>
                     <button class="action-btn" id="btnForge">Forge</button>
-                    <button class="action-btn" id="btnSaveRecipe">Save</button>
+                    <button class="action-btn" id="btnSaveRecipe">Save Recipe</button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
                 </div>
 
@@ -859,7 +859,7 @@
         let tutorialStep = 0; let hasShownShopTutorial = false; let hasShownRecipeTutorial = false;
         const tutorialFlow = [
             { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
-            { text: "Look at the Available Metals panel at the bottom of the screen. You passively generate 8 types of metals over time. You will need these to move around the map and craft your blade.", waitAction: null, onShow: () => { const content = document.getElementById('metals-content'); if (!content.classList.contains('expanded')) toggleMetals(); } },
+            { text: "Look at the Available Metals panel at the bottom of the screen. You passively generate 8 types of metals over time. You will need these to move around the map and craft your blade.", waitAction: null },
             { action: 'highlight', duration: 3000 },
             { text: "Your location on the map is marked by the custom sword icon. To move, press the Metal Buttons in the 3x3 grid to choose your direction.", waitAction: null },
             { text: "Hold down a movement button to charge up the Purify Dash meter. Release it on the matching color to determine your distance: Red = 1, Yellow = 2, Green = 3 spaces!", waitAction: null },
