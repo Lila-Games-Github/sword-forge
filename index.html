@@ -1409,7 +1409,12 @@
             
             pendingHeatTrait = null; pendingHeatIndex = -1; 
             
-            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'heat') { tutorialStep++; setTimeout(playTutorialStep, 800); }
+            // Completing the heat minigame advances to the post-heat dialogues — robust to the
+            // player heating before acknowledging the "Heating" prompt (shown on a 4s delay).
+            if (tutorialStep < tutorialFlow.length) {
+                const heatIdx = tutorialFlow.findIndex(s => s.waitAction === 'heat');
+                if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 800); }
+            }
         }
 
         function cancelHeat() { forgePhase = 'idle'; if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
