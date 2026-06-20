@@ -67,7 +67,7 @@ Triggered by the **Heat** button while standing on a discovered trait. Interacti
 2. **Bellows** — repeatedly tap to pump heat. Each pump `+16` heat; heat decays at `18`/sec.
 3. **Stabilize** — keep heat in the **green zone (40–70)** for a cumulative **2.0 seconds**. Above 70 = "Too Hot", below 40 = "Too Cold" (both bleed stabilization progress).
 
-On success the trait fuses onto the active blade.
+On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` trait acquired"** toast appears (game-wide, not tutorial-only). During the tutorial this toast shows first, then the post-heat dialogue follows after a short delay.
 
 > ⚠️ **Implementation note / known discrepancy:** quality is currently hardcoded to **Epic (+20 value bonus)** on every successful heat (`resolveInteractiveHeatMinigame`). The tiered Weak/Fine/Epic quality outcomes from the original GDD are not implemented. Decide whether to keep Epic-only or restore tiers.
 
@@ -120,8 +120,8 @@ On success the trait fuses onto the active blade.
 
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Save Recipe, 🗺️ Chart).
-- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (move → heat → forge), plus contextual tips at the Shop unlock (50g) and the 5th crafted sword (blueprints).
-- **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales.
+- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge), plus a contextual tip at the Shop unlock (50g).
+- **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts.
 - **Reference map:** static `Minimap.png` shown via the Chart modal.
 
 ## 9. Known discrepancies & open questions

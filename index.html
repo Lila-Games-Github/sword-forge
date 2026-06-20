@@ -875,7 +875,7 @@
             return null;
         }
 
-        let tutorialStep = 0; let hasShownShopTutorial = false; let hasShownRecipeTutorial = false;
+        let tutorialStep = 0; let hasShownShopTutorial = false;
         const tutorialFlow = [
             { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
             { title: "Selecting the metals", text: "We need to add metals to the bucket to start the crafting process. Different metals will lead your swords to different traits, which you can determine by looking at the movement of the sword on the grid map.<br><br>Let's add 4 steel and one magnesium to the bucket.", frame: 2, waitAction: null },
@@ -928,20 +928,6 @@
             }
         }
 
-        function checkRecipeTutorial() {
-            if (totalSwordsCrafted === 5 && !hasShownRecipeTutorial) {
-                hasShownRecipeTutorial = true;
-                document.getElementById('tutorialFrame').classList.remove('frame2');
-                document.getElementById('tutorial-title').textContent = "Blacksmith Tip"; document.getElementById('tutorial-title').style.display = "block";
-                document.getElementById('tutorial-text').textContent = "You can also save recipes for quick craft. Find the most efficient path to the traits before you save it.";
-                document.getElementById('tutorialModal').style.display = 'flex';
-                const btn = document.getElementById('btnTutorialOk'); const oldOnClick = btn.onclick;
-                btn.onclick = () => {
-                    document.getElementById('tutorialModal').style.display = 'none'; btn.onclick = oldOnClick; 
-                    if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].text && tutorialStep !== 0) playTutorialStep();
-                };
-            }
-        }
 
         let currentScreenIndex = 2; 
         function slideScreen(direction) {
@@ -1300,8 +1286,9 @@
         }
 
         let traitToastTimer = null;
-        function showTraitToast() {
+        function showTraitToast(msg) {
             const t = document.getElementById('traitToast');
+            t.textContent = msg || "✨ You've reached a trait";
             t.classList.add('show');
             if (traitToastTimer) clearTimeout(traitToastTimer);
             traitToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
@@ -1405,15 +1392,19 @@
             domCells[pendingHeatIndex].style.backgroundColor = '#f39c12'; 
             
             setTimeout(() => { domCells[pendingHeatIndex].style.backgroundColor = ''; renderCell(pendingHeatIndex); }, 200);
-            updateUI(); 
-            
-            pendingHeatTrait = null; pendingHeatIndex = -1; 
-            
+            updateUI();
+
+            // Game-wide: announce the trait just fused onto the blade.
+            showTraitToast(`${pendingHeatTrait.symbol} ${pendingHeatTrait.name} trait acquired`);
+
+            pendingHeatTrait = null; pendingHeatIndex = -1;
+
             // Completing the heat minigame advances to the post-heat dialogues — robust to the
             // player heating before acknowledging the "Heating" prompt (shown on a 4s delay).
+            // Delay so the "trait acquired" popup is seen before the dialogue appears.
             if (tutorialStep < tutorialFlow.length) {
                 const heatIdx = tutorialFlow.findIndex(s => s.waitAction === 'heat');
-                if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 800); }
+                if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 2500); }
             }
         }
 
@@ -1445,7 +1436,7 @@
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword); checkRecipeTutorial();
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
             });
         }
 
@@ -1459,7 +1450,7 @@
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
-                showForgeResult(newSword); checkRecipeTutorial();
+                showForgeResult(newSword);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') { tutorialStep++; setTimeout(playTutorialStep, 800); }
             });
         }
@@ -1533,7 +1524,7 @@
             const autoDesign = { blade: matchingBladeIndex, grip: 0, guard: 0, pommel: 0 };
             const newSword = { shape: chosenShape, design: autoDesign, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
             
-            totalSwordsCrafted++; purifyEnabled = true; checkRecipeTutorial(); 
+            totalSwordsCrafted++; purifyEnabled = true;
             isProcessingCustomer = true;
             
             let goldEarned = newSword.value; 
