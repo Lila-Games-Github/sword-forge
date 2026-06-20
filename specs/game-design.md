@@ -92,7 +92,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 ### NPC customers (active selling)
 - Requests are scripted then randomized:
   - **Request #1:** "any weapon" — any sword works; pays at least **15g**.
-  - **Request #2:** scripted **Floral** 🌸 trait request.
+  - **Request #2:** scripted **Flame** 🔥 trait request. (During the tutorial, this customer is held back until the player dismisses the post-sale dialogue, then summoned manually.)
   - **Request #3+:** random trait (from the 8 closest-to-center traits while `requestCount ≤ 10`, then from all 24). **10% chance** to also demand a specific shape.
 - **Payout** = sword value, modified by Reputation:
   - Rep < 0 → **×0.8** (min 1g)
@@ -120,7 +120,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Save Recipe, 🗺️ Chart).
-- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword), plus a contextual tip at the Shop unlock (50g).
+- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts.
 - **Reference map:** static `Minimap.png` shown via the Chart modal.
 

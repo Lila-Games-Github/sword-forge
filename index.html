@@ -891,6 +891,9 @@
             { text: "Find the sword in the inventory, or click on auto sell to automatically sell the sword the customer is looking for." },
             { waitAction: 'sell' },
             { text: "Most customers are direct about what they want. But some customers don't really know what they are looking for. It is our job as a master craftsman to figure out what they need!" },
+            { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
+            { text: "Oh! We have another customer and he wants a sword with fire trait.<br>Let's go back to our forge! Click on the right arrow." },
+            { waitAction: 'switchToForge' },
         ];
 
         function playTutorialStep() {
@@ -911,6 +914,9 @@
                 const btns = ['btnTitanium', 'btnSteel', 'btnAluminium', 'btnMagnesium', 'btnBronze', 'btnBlackIron', 'btnIron', 'btnRedIron'];
                 btns.forEach(id => document.getElementById(id).classList.add('highlight-glow'));
                 setTimeout(() => { btns.forEach(id => document.getElementById(id).classList.remove('highlight-glow')); tutorialStep++; playTutorialStep(); }, step.duration);
+            } else if (step.action === 'delay') {
+                document.getElementById('tutorialModal').style.display = 'none';
+                setTimeout(() => { tutorialStep++; playTutorialStep(); }, step.duration || 2000);
             } else if (step.waitAction) {
                 document.getElementById('tutorialModal').style.display = 'none';
             }
@@ -943,6 +949,7 @@
             document.getElementById('nav-right').style.display = currentScreenIndex === 2 ? 'none' : 'block';
             if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300);
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { tutorialStep++; setTimeout(playTutorialStep, 600); }
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { tutorialStep++; setTimeout(playTutorialStep, 600); }
         }
 
         function toggleRecipes() {
@@ -959,7 +966,7 @@
 
         const gridSize = 50; const totalCells = gridSize * gridSize; const visionRadius = 3.5; 
         let playerX = 25; let playerY = 25; let health = 100; let gold = 0; let reputation = 0;
-        let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; 
+        let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false;
         let activeTraits = []; let requestedTrait = null; let requestedShape = null; 
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
@@ -1104,7 +1111,7 @@
         function setRandomRequest() {
             requestCount++;
             if (requestCount === 1) { requestedTrait = null; requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; return; } 
-            else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'floral'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I heard you are good. I need a blade with the <strong>Floral</strong> 🌸 trait!`; return; }
+            else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; return; }
 
             let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
             requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
@@ -1471,10 +1478,13 @@
             try { updateUI(); } catch (e) { console.error("UI Update Error Before Timeout:", e); }
             
             setTimeout(() => {
-                try { setRandomRequest(); } catch (e) { console.error("Error setting new request:", e); }
-                
+                // During the tutorial the next customer is summoned manually (see the
+                // post-sell flow), so skip the automatic random request when suppressed.
+                if (suppressAutoRequest) { suppressAutoRequest = false; }
+                else { try { setRandomRequest(); } catch (e) { console.error("Error setting new request:", e); } }
+
                 isProcessingCustomer = false; // Always free the lock!
-                
+
                 try { updateUI(); } catch (e) { console.error("UI Update Error After Timeout:", e); }
             }, delay);
         }
@@ -1505,7 +1515,7 @@
                 gold += goldEarned; reputation++; craftedSwords.splice(index, 1); 
                 
                 processCustomerDeparture(`Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { tutorialStep++; setTimeout(playTutorialStep, 1600); }
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
             } else if (!hasRequestedTrait) {
                 alert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
