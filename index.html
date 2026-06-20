@@ -809,6 +809,7 @@
 
         function closeChartModal() {
             document.getElementById('chartModal').style.display = 'none';
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'chartClosed') { tutorialStep++; setTimeout(playTutorialStep, 400); }
         }
 
         function updateDesignPreview() {
@@ -894,6 +895,9 @@
             { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
             { text: "Oh! We have another customer and he wants a sword with fire trait.<br>Let's go back to our forge! Click on the right arrow." },
             { waitAction: 'switchToForge' },
+            { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
+            { waitAction: 'chartClosed' },
+            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding on the metal button. A slider will come up that will determine the number of blocks you move.<br>Hold magnesium and keep going west till you see a trait mark!" },
         ];
 
         function playTutorialStep() {

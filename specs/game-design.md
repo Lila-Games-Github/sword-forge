@@ -52,6 +52,8 @@ Holding a movement button charges a slider that bounces 0↔100 (speed `0.15`). 
 
 Cost: exactly **1 metal** of the direction's type (consumed once, regardless of dash distance). The dash stops early at the map edge or on death.
 
+The slider is **locked during the early guided tutorial** (moves are single-block) and unlocked when the tutorial reaches the chart/slider lesson (also unlocked on first craft as a fallback); once unlocked it stays available for the rest of the game.
+
 ## 4. Traits & heating
 
 - **24 base traits**, each at a fixed coordinate on the map (see `traitCoordinates` in code). Examples: Durable 🛡️, Cursed ☠️, Flame 🔥, Celestial ☄️, Dark 🌑.
@@ -120,7 +122,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Save Recipe, 🗺️ Chart).
-- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge), plus a contextual tip at the Shop unlock (50g).
+- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts.
 - **Reference map:** static `Minimap.png` shown via the Chart modal.
 
