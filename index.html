@@ -886,6 +886,11 @@
             { text: "Now that we have heated the mixture, it's time to select what shape we want for the blade. We know how to craft a shortsword, longsword and a broadsword.", waitAction: null },
             { text: "Maybe we will learn more later, but for now, let's craft one of the three we know.<br>Click on the forge button to move to the anvil and start hammering!", waitAction: null },
             { waitAction: 'forge' },
+            { text: "Let's see if we have any customers!<br>Click on the left arrow to go to the counter." },
+            { waitAction: 'switchToCounter' },
+            { text: "Find the sword in the inventory, or click on auto sell to automatically sell the sword the customer is looking for." },
+            { waitAction: 'sell' },
+            { text: "Most customers are direct about what they want. But some customers don't really know what they are looking for. It is our job as a master craftsman to figure out what they need!" },
         ];
 
         function playTutorialStep() {
@@ -936,7 +941,8 @@
             document.getElementById('screens-container').style.transform = `translateX(-${currentScreenIndex * 33.333}%)`;
             document.getElementById('nav-left').style.display = currentScreenIndex === 0 ? 'none' : 'block';
             document.getElementById('nav-right').style.display = currentScreenIndex === 2 ? 'none' : 'block';
-            if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300); 
+            if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300);
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { tutorialStep++; setTimeout(playTutorialStep, 600); }
         }
 
         function toggleRecipes() {
@@ -1015,7 +1021,7 @@
             document.getElementById('forgeResultModal').style.display = 'flex';
         }
 
-        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; }
+        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].text) setTimeout(playTutorialStep, 400); }
 
         function generateLayout() {
             boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false);
@@ -1451,7 +1457,9 @@
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
                 showForgeResult(newSword);
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') { tutorialStep++; setTimeout(playTutorialStep, 800); }
+                // Advance past the forge gate now, but show the next dialogue only when the
+                // forge-result modal is closed (closeForgeResultModal) so it doesn't cover the reveal.
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
             });
         }
 
@@ -1497,7 +1505,8 @@
                 gold += goldEarned; reputation++; craftedSwords.splice(index, 1); 
                 
                 processCustomerDeparture(`Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
-            } else if (!hasRequestedTrait) { 
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { tutorialStep++; setTimeout(playTutorialStep, 1600); }
+            } else if (!hasRequestedTrait) {
                 alert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
                 alert(`The customer refuses. "This is a ${sword.shape}! I specifically asked for a ${requestedShape}!"`); 
