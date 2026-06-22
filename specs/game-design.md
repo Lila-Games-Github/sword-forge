@@ -124,7 +124,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Record Mixture, 🗺️ Chart). ("Record Mixture" saves a Blueprint — see §6.)
 - **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Mixture" → record it → closing tip on reusing recorded mixtures → a bouncing arrow points to the Forge button to craft the sword → forge it → prompt to go sell it at the counter), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow.
-- **Reference map:** static `Minimap.png` shown via the Chart modal.
+- **Minimap (Chart modal):** a live canvas minimap of the 50×50 grid — fog for unexplored cells, tan for explored ground, gold for known traits, muted gold for explored-but-unheated traits, red-brown for hazards, and a pulsing blue marker for the player's position. (Replaces the old static `Minimap.png`, now unused.)
 
 ## 9. Known discrepancies & open questions
 
