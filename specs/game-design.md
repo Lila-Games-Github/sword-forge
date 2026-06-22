@@ -75,7 +75,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 ## 5. Forging & weapons
 
-- **Requirement:** must have spent ≥1 metal (by moving) to forge.
+- **Requirement:** at least one **heated trait** on the active blade — the Forge button is disabled until a heating minigame has fused a trait. Also requires ≥1 metal spent (by moving).
 - **Shapes (10):** Shortsword, Longsword, Broadsword, Katana, Rapier, Cutlass, Claymore, Saber, Scimitar, Machete. *(Original GDD listed 11 incl. Dagger — Dagger is not in the build.)*
 - **Design Desk:** customize the blade visually across 4 part categories — Blade, Grip, Guard, Pommel — each with selectable art. Purely cosmetic.
 - **Completion:** moves the finished sword (shape, design, traits, recipe of used metals, value) into the **Vault** (inventory), clears the active forge, and resets player to center with full HP.
@@ -123,7 +123,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Record Mixture, 🗺️ Chart). ("Record Mixture" saves a Blueprint — see §6.)
 - **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Mixture" → record it → closing tip on reusing recorded mixtures → a bouncing arrow points to the Forge button to craft the sword → forge it → prompt to go sell it at the counter), plus a contextual tip at the Shop unlock (50g).
-- **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts.
+- **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow.
 - **Reference map:** static `Minimap.png` shown via the Chart modal.
 
 ## 9. Known discrepancies & open questions

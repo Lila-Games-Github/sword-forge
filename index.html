@@ -275,6 +275,9 @@
 
         .action-area { display: flex; justify-content: space-between; gap: 5px; flex-shrink: 0; margin-bottom: 8px; height: 36px;}
         .action-btn { flex: 1; font-size: 12px; display: flex; justify-content: center; align-items: center; padding: 0; border-radius: 6px; }
+        .action-btn:disabled { opacity: 0.45; }
+        .btn-glow { animation: btnGlowPulse 1.3s ease-in-out infinite; }
+        @keyframes btnGlowPulse { 0%, 100% { box-shadow: 0 0 3px 1px rgba(241,196,15,0.45); } 50% { box-shadow: 0 0 13px 5px rgba(241,196,15,0.9); } }
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
         #btnHeat { background-image: url('assets/ui/buttonheat.png'); position: relative; }
@@ -1206,8 +1209,12 @@
             if (currentCellContent !== '' && currentCellContent !== '💥') {
                 const foundTrait = baseTraits.find(t => t.symbol === currentCellContent); if (foundTrait && !activeTraits.some(t => t.id === foundTrait.id)) { canHeat = true; }
             }
-            document.getElementById('btnHeat').disabled = !canHeat || isProcessingCustomer;
-            if (document.getElementById('btnHeat').disabled) hideHeatArrow(); // tutorial arrow only makes sense while Heat is clickable
+            const heatBtn = document.getElementById('btnHeat'); heatBtn.disabled = !canHeat || isProcessingCustomer;
+            if (heatBtn.disabled) hideHeatArrow(); // tutorial arrow only makes sense while Heat is clickable
+            heatBtn.classList.toggle('btn-glow', !heatBtn.disabled); // pulsate when standing on a trait (Heat available)
+            const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0; // Forge only after a heating minigame has fused a trait
+            if (forgeBtn.disabled) hideForgeArrow();
+            forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
 
             if (shopUnlocked) {
                 document.getElementById('shop-locked-view').style.display = 'none'; document.getElementById('shop-list').style.display = 'flex'; renderShop();
@@ -1478,6 +1485,7 @@
         }
 
         function forgeSword() {
+            if (activeTraits.length === 0) return; // Forge requires at least one heated trait (button is disabled until then)
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { alert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow();
