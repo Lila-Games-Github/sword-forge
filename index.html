@@ -323,15 +323,15 @@
         .dialogue-frame { position: relative; background: url('assets/ui/dialogue-frame.png') no-repeat center; background-size: 100% 100%; background-color: transparent; border: none; border-radius: 0; box-shadow: none; width: 82%; max-width: 300px; padding: 28px 36px 62px 36px; box-sizing: border-box; text-align: center; }
         .dialogue-title { font-family: 'Cinzel', serif; font-size: 15px; color: #4a3623; margin: 0 0 8px 0; font-weight: bold; }
         .dialogue-text { font-size: 13px; color: #3d2b1a; line-height: 1.55; margin: 0; }
-        .dialogue-btn { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: transparent; border: none; color: #6b4c10; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 16px; letter-spacing: 0.5px; white-space: nowrap; }
-        .dialogue-btn:hover { color: #c8a84b; }
+        .dialogue-btn { position: absolute; top: 91.5%; left: 50%; transform: translate(-50%, -50%); background: transparent; border: none; color: #000; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 16px; letter-spacing: 0.5px; white-space: nowrap; }
+        .dialogue-btn:hover { color: #000; text-shadow: 0 0 5px rgba(200,168,75,0.8); }
+        .dialogue-btn:active:not(:disabled) { transform: translate(-50%, -50%) scale(0.88); opacity: 1; }
 
         /* Frame 2: metal-selection step. Buttons are baked into the art (lower-middle),
            so lock the true image aspect ratio and confine text to the upper parchment. */
         .dialogue-frame.frame2 { background-image: url('assets/ui/dialogue-frame2.png'); aspect-ratio: 979 / 1309; padding: 0; }
         .dialogue-frame.frame2 .dialogue-title { position: absolute; top: 13%; left: 11%; right: 11%; margin: 0; font-size: 14px; }
         .dialogue-frame.frame2 .dialogue-text { position: absolute; top: 20%; left: 11%; right: 11%; bottom: 42%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
-        .dialogue-frame.frame2 .dialogue-btn { bottom: 7%; }
 
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
         #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
