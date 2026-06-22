@@ -903,6 +903,8 @@
             { waitAction: 'reachFlameTrait' },
             { waitAction: 'heatFlame' },
             { text: "Click on 'record mixture' to save the amount of metals we used to craft a sword with a specific trait." },
+            { waitAction: 'recordMixture' },
+            { text: "Once we have discovered a trait, we don't need to go through the grid again and again. But of course, if you feel the need to make your process more efficient, keep trying to find the most efficient path to a trait and record the metal mixture used!" },
         ];
 
         function playTutorialStep() {
@@ -1456,6 +1458,8 @@
             savedBlueprints.push({ name: traitNames + " Blade", traits: [...activeTraits], recipe: { ...usedMetals }, design: defaultDesign });
             showTraitToast(`📜 ${traitNames} mixture recorded`);
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
+            // Tutorial: after the "mixture recorded" toast is read (~2s), show the closing dialogue.
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { tutorialStep++; setTimeout(playTutorialStep, 2000); }
         }
 
         function quickCraft(index) {
