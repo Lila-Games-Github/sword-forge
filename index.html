@@ -1454,7 +1454,7 @@
             const defaultDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
 
             savedBlueprints.push({ name: traitNames + " Blade", traits: [...activeTraits], recipe: { ...usedMetals }, design: defaultDesign });
-            alert(`Recipe for ${traitNames} saved successfully!`);
+            showTraitToast(`📜 ${traitNames} mixture recorded`);
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
         }
 
