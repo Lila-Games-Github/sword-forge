@@ -596,7 +596,7 @@
                 <div class="action-area">
                     <button class="action-btn" id="btnHeat">Heat<span id="heatArrow">👇</span></button>
                     <button class="action-btn" id="btnForge">Forge</button>
-                    <button class="action-btn" id="btnSaveRecipe">Save Recipe</button>
+                    <button class="action-btn" id="btnSaveRecipe">Record Mixture</button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
                 </div>
 
@@ -901,6 +901,8 @@
             { waitAction: 'chartClosed' },
             { onShow: () => { purifyEnabled = true; }, text: "This time, try holding on the metal button. A slider will come up that will determine the number of blocks you move.<br>Hold magnesium and keep going west till you see a trait mark!" },
             { waitAction: 'reachFlameTrait' },
+            { waitAction: 'heatFlame' },
+            { text: "Click on 'record mixture' to save the amount of metals we used to craft a sword with a specific trait." },
         ];
 
         function playTutorialStep() {
@@ -1431,6 +1433,7 @@
             if (tutorialStep < tutorialFlow.length) {
                 const heatIdx = tutorialFlow.findIndex(s => s.waitAction === 'heat');
                 if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 2500); }
+                else if (tutorialFlow[tutorialStep].waitAction === 'heatFlame') { tutorialStep++; setTimeout(playTutorialStep, 2500); }
             }
         }
 
