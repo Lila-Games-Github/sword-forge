@@ -278,9 +278,9 @@
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
         #btnHeat { background-image: url('assets/ui/buttonheat.png'); position: relative; }
-        #heatArrow { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; font-size: 24px; line-height: 1; pointer-events: none; display: none; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: heatArrowBounce 0.7s infinite alternate; }
-        @keyframes heatArrowBounce { from { transform: translateX(-50%) translateY(0); } to { transform: translateX(-50%) translateY(6px); } }
-        #btnForge { background-image: url('assets/ui/buttonforge.png'); }
+        .tut-arrow { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; font-size: 24px; line-height: 1; pointer-events: none; display: none; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutArrowBounce 0.7s infinite alternate; }
+        @keyframes tutArrowBounce { from { transform: translateX(-50%) translateY(0); } to { transform: translateX(-50%) translateY(6px); } }
+        #btnForge { background-image: url('assets/ui/buttonforge.png'); position: relative; }
         #btnSaveRecipe { background-image: url('assets/ui/buttonsave.png'); }
         #btnChart { background-color: #3498db; }
 
@@ -594,8 +594,8 @@
                 </div>
 
                 <div class="action-area">
-                    <button class="action-btn" id="btnHeat">Heat<span id="heatArrow">👇</span></button>
-                    <button class="action-btn" id="btnForge">Forge</button>
+                    <button class="action-btn" id="btnHeat">Heat<span id="heatArrow" class="tut-arrow">👇</span></button>
+                    <button class="action-btn" id="btnForge">Forge<span id="forgeArrow" class="tut-arrow">👇</span></button>
                     <button class="action-btn" id="btnSaveRecipe">Record Mixture</button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
                 </div>
@@ -905,6 +905,7 @@
             { text: "Click on 'record mixture' to save the amount of metals we used to craft a sword with a specific trait." },
             { waitAction: 'recordMixture' },
             { text: "Once we have discovered a trait, we don't need to go through the grid again and again. But of course, if you feel the need to make your process more efficient, keep trying to find the most efficient path to a trait and record the metal mixture used!" },
+            { onShow: () => showForgeArrow(), waitAction: 'forge' },
         ];
 
         function playTutorialStep() {
@@ -1312,6 +1313,8 @@
 
         function showHeatArrow() { document.getElementById('heatArrow').style.display = 'inline-block'; }
         function hideHeatArrow() { const ha = document.getElementById('heatArrow'); if (ha) ha.style.display = 'none'; }
+        function showForgeArrow() { document.getElementById('forgeArrow').style.display = 'inline-block'; }
+        function hideForgeArrow() { const fa = document.getElementById('forgeArrow'); if (fa) fa.style.display = 'none'; }
 
         let traitToastTimer = null;
         function showTraitToast(msg) {
@@ -1476,6 +1479,7 @@
         function forgeSword() {
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { alert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
+            hideForgeArrow();
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
