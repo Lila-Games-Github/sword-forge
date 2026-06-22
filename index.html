@@ -689,13 +689,11 @@
         <div id="chartModal" class="modal-overlay">
             <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
                 <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
-                <canvas id="minimap-canvas" width="400" height="400" style="width: 100%; max-width: 340px; aspect-ratio: 1; display: block; margin: 0 auto; border-radius: 4px; border: 2px inset #a6957a; background: #0a0a0a;"></canvas>
+                <canvas id="minimap-canvas" width="500" height="500" style="width: 100%; max-width: 340px; aspect-ratio: 1; display: block; margin: 0 auto; border-radius: 4px; border: 2px inset #a6957a; background: #c9b690;"></canvas>
                 <div style="display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin-top:10px; font-size:11px; color:#4a3623; font-family:'Cinzel',serif;">
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3aa0ff;border:1px solid #fff;vertical-align:middle;"></span> You</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;background:#f1c40f;vertical-align:middle;"></span> Trait</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;background:#b8862b;vertical-align:middle;"></span> Unknown</span>
                     <span><span style="display:inline-block;width:10px;height:10px;background:#9b3b2f;vertical-align:middle;"></span> Hazard</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;background:#0a0a0a;border:1px solid #a6957a;vertical-align:middle;"></span> Unexplored</span>
+                    <span>Traits shown as icons</span>
                 </div>
                 <button class="cancel-btn" style="background-color: #3498db;" onclick="closeChartModal()">Close</button>
             </div>
@@ -815,30 +813,40 @@
             document.getElementById('designModal').style.display = 'none';
         }
 
-        let minimapAnim = null;
-        function renderMinimap(t) {
-            const canvas = document.getElementById('minimap-canvas'); if (!canvas) return;
-            const ctx = canvas.getContext('2d'); const N = gridSize; const s = canvas.width / N;
-            ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, canvas.width, canvas.height); // fog / unexplored
+        let minimapAnim = null, minimapStatic = null;
+        // Build the static layer once: full 50x50 terrain (no fog) + every trait icon.
+        function buildMinimapStatic() {
+            const src = document.getElementById('minimap-canvas'); if (!src) return;
+            const N = gridSize; const off = document.createElement('canvas'); off.width = src.width; off.height = src.height;
+            const ctx = off.getContext('2d'); const s = off.width / N;
             for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-                const idx = y * N + x; if (!exploredCells[idx]) continue;
-                const v = boardData[idx]; let c;
-                if (v === '💥') c = '#9b3b2f';                                   // hazard
-                else if (v !== '') c = discoveredTraits[idx] ? '#f1c40f' : '#b8862b'; // known trait / unknown trait
-                else c = '#c9b690';                                              // explored ground
-                ctx.fillStyle = c; ctx.fillRect(x * s, y * s, s, s);
+                const v = boardData[y * N + x];
+                ctx.fillStyle = (v === '💥') ? '#9b3b2f' : '#c9b690'; // hazard vs ground (trait cells get ground + icon on top)
+                ctx.fillRect(x * s, y * s, s, s);
             }
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = Math.round(s * 2.2) + 'px serif';
+            for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+                const v = boardData[y * N + x];
+                if (v !== '' && v !== '💥') ctx.fillText(v, x * s + s / 2, y * s + s / 2); // trait icon
+            }
+            minimapStatic = off;
+        }
+        function renderMinimap(t) {
+            const canvas = document.getElementById('minimap-canvas'); if (!canvas || !minimapStatic) return;
+            const ctx = canvas.getContext('2d'); const s = canvas.width / gridSize;
+            ctx.drawImage(minimapStatic, 0, 0); // full map (terrain + trait icons)
             // pulsing sword marker
             const pulse = 0.5 + 0.5 * Math.sin((t || 0) / 300);
             const cx = playerX * s + s / 2, cy = playerY * s + s / 2;
-            ctx.beginPath(); ctx.arc(cx, cy, s * (1.0 + 0.5 * pulse), 0, Math.PI * 2);
+            ctx.beginPath(); ctx.arc(cx, cy, s * (1.2 + 0.5 * pulse), 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(52,160,255,0.95)'; ctx.fill();
-            ctx.lineWidth = Math.max(1.5, s * 0.25); ctx.strokeStyle = '#fff'; ctx.stroke();
+            ctx.lineWidth = Math.max(1.5, s * 0.3); ctx.strokeStyle = '#fff'; ctx.stroke();
         }
         function minimapLoop(t) { renderMinimap(t); minimapAnim = requestAnimationFrame(minimapLoop); }
 
         function openChartModal() {
             document.getElementById('chartModal').style.display = 'flex';
+            buildMinimapStatic();
             if (minimapAnim) cancelAnimationFrame(minimapAnim);
             minimapLoop();
         }
