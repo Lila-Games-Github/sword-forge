@@ -277,7 +277,9 @@
         .action-btn { flex: 1; font-size: 12px; display: flex; justify-content: center; align-items: center; padding: 0; border-radius: 6px; }
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
-        #btnHeat { background-image: url('assets/ui/buttonheat.png'); }
+        #btnHeat { background-image: url('assets/ui/buttonheat.png'); position: relative; }
+        #heatArrow { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; font-size: 24px; line-height: 1; pointer-events: none; display: none; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: heatArrowBounce 0.7s infinite alternate; }
+        @keyframes heatArrowBounce { from { transform: translateX(-50%) translateY(0); } to { transform: translateX(-50%) translateY(6px); } }
         #btnForge { background-image: url('assets/ui/buttonforge.png'); }
         #btnSaveRecipe { background-image: url('assets/ui/buttonsave.png'); }
         #btnChart { background-color: #3498db; }
@@ -592,7 +594,7 @@
                 </div>
 
                 <div class="action-area">
-                    <button class="action-btn" id="btnHeat">Heat</button>
+                    <button class="action-btn" id="btnHeat">Heat<span id="heatArrow">👇</span></button>
                     <button class="action-btn" id="btnForge">Forge</button>
                     <button class="action-btn" id="btnSaveRecipe">Save Recipe</button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
@@ -898,6 +900,7 @@
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed' },
             { onShow: () => { purifyEnabled = true; }, text: "This time, try holding on the metal button. A slider will come up that will determine the number of blocks you move.<br>Hold magnesium and keep going west till you see a trait mark!" },
+            { waitAction: 'reachFlameTrait' },
         ];
 
         function playTutorialStep() {
@@ -1198,6 +1201,7 @@
                 const foundTrait = baseTraits.find(t => t.symbol === currentCellContent); if (foundTrait && !activeTraits.some(t => t.id === foundTrait.id)) { canHeat = true; }
             }
             document.getElementById('btnHeat').disabled = !canHeat || isProcessingCustomer;
+            if (document.getElementById('btnHeat').disabled) hideHeatArrow(); // tutorial arrow only makes sense while Heat is clickable
 
             if (shopUnlocked) {
                 document.getElementById('shop-locked-view').style.display = 'none'; document.getElementById('shop-list').style.display = 'flex'; renderShop();
@@ -1302,6 +1306,9 @@
             for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false) || health <= 0) break; } updateUI();
         }
 
+        function showHeatArrow() { document.getElementById('heatArrow').style.display = 'inline-block'; }
+        function hideHeatArrow() { const ha = document.getElementById('heatArrow'); if (ha) ha.style.display = 'none'; }
+
         let traitToastTimer = null;
         function showTraitToast(msg) {
             const t = document.getElementById('traitToast');
@@ -1331,6 +1338,7 @@
                     const wa = tutorialFlow[tutorialStep].waitAction;
                     if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
                     else if (wa === 'reachTrait' && onTrait) { tutorialStep++; setTimeout(playTutorialStep, 4000); }
+                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { tutorialStep++; showHeatArrow(); }
                 }
                 return true;
             }
@@ -1340,6 +1348,7 @@
         /* --- FIXED INTERACTIVE HEAT MINIGAME LOGIC --- */
         function initiateHeatSequence() {
             if (isProcessingCustomer || document.getElementById('btnHeat').disabled) return;
+            hideHeatArrow();
             const currentIndex = playerY * gridSize + playerX;
             if (boardData[currentIndex] !== '' && boardData[currentIndex] !== '💥') {
                 const foundTrait = baseTraits.find(t => t.symbol === boardData[currentIndex]);
