@@ -801,12 +801,38 @@
             ]
         };
 
+        // Trait-specific part art. A sword carrying one of these traits shows that trait's
+        // part images in the Design Desk and everywhere it is rendered.
+        const traitSkins = {
+            flame: {
+                blade: { Shortsword: 'assets/sword-parts/blades/flame_shortsword_blade.png', Longsword: 'assets/sword-parts/blades/flame_longsword_blade.png', Broadsword: 'assets/sword-parts/blades/flame_broadsword_blade.png' },
+                grip: ['assets/sword-parts/grips/flame_grip1.png', 'assets/sword-parts/grips/flame_grip2.png', 'assets/sword-parts/grips/flame_grip3.png'],
+                guard: ['assets/sword-parts/guards/flame_guard1.png', 'assets/sword-parts/guards/flame_guard2.png', 'assets/sword-parts/guards/flame_guard3.png', 'assets/sword-parts/guards/flame_guard4.png', 'assets/sword-parts/guards/flame_guard5.png'],
+                pommel: ['assets/sword-parts/pommels/flame_pommel1.png', 'assets/sword-parts/pommels/flame_pommel2.png']
+            }
+        };
+        function skinFor(traits) { if (!traits) return null; for (let i = 0; i < traits.length; i++) { if (traitSkins[traits[i].id]) return traitSkins[traits[i].id]; } return null; }
+        // The list of {id, src} parts for a category, given the sword's traits (falls back to the base library).
+        function partsFor(category, traits) {
+            const skin = skinFor(traits);
+            if (skin && skin[category]) {
+                if (category === 'blade') return Object.keys(skin.blade).map(shape => ({ id: shape, src: skin.blade[shape] }));
+                const label = category.charAt(0).toUpperCase() + category.slice(1);
+                return skin[category].map((src, i) => ({ id: `${label} ${i + 1}`, src }));
+            }
+            return partsLibrary[category];
+        }
+        // Resolve the image src for a stored design index in a category (clamps if out of range).
+        function designPartSrc(category, design, traits) { const arr = partsFor(category, traits); return (arr[design[category]] || arr[0]).src; }
+
         let currentDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
         let activeDesignTab = 'blade';
         let pendingForgeCallback = null;
+        let designTraits = [];
 
-        function openDesignModal(callback) {
+        function openDesignModal(callback, traits) {
             pendingForgeCallback = callback;
+            designTraits = traits || activeTraits; // which traits' part art to show
             document.getElementById('designModal').style.display = 'flex';
             currentDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
             updateDesignPreview();
@@ -863,10 +889,10 @@
         }
 
         function updateDesignPreview() {
-            document.getElementById('preview-blade').src = partsLibrary.blade[currentDesign.blade].src;
-            document.getElementById('preview-grip').src = partsLibrary.grip[currentDesign.grip].src;
-            document.getElementById('preview-guard').src = partsLibrary.guard[currentDesign.guard].src;
-            document.getElementById('preview-pommel').src = partsLibrary.pommel[currentDesign.pommel].src;
+            document.getElementById('preview-blade').src = designPartSrc('blade', currentDesign, designTraits);
+            document.getElementById('preview-grip').src = designPartSrc('grip', currentDesign, designTraits);
+            document.getElementById('preview-guard').src = designPartSrc('guard', currentDesign, designTraits);
+            document.getElementById('preview-pommel').src = designPartSrc('pommel', currentDesign, designTraits);
         }
 
         function switchDesignTab(category) {
@@ -880,7 +906,7 @@
             const grid = document.getElementById('parts-grid');
             grid.innerHTML = '';
             
-            partsLibrary[activeDesignTab].forEach((part, index) => {
+            partsFor(activeDesignTab, designTraits).forEach((part, index) => {
                 const div = document.createElement('div');
                 div.className = 'part-thumb';
                 if (currentDesign[activeDesignTab] === index) div.classList.add('selected');
@@ -897,7 +923,7 @@
 
         function confirmDesign() {
             try {
-                const bladeShapeName = partsLibrary.blade[currentDesign.blade].id;
+                const bladeShapeName = partsFor('blade', designTraits)[currentDesign.blade].id;
                 const finalDesignObj = { ...currentDesign }; 
                 
                 const callbackToRun = pendingForgeCallback;
@@ -1068,10 +1094,10 @@
         function showForgeResult(sword) {
             const imageHtml = `
                 <div style="width: 200px; height: 200px; position: relative; margin: 0 auto 15px auto; background: rgba(0,0,0,0.05); border-radius: 8px; border: 2px inset #ccc; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
-                    <img src="${partsLibrary.blade[sword.design.blade].src}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
-                    <img src="${partsLibrary.grip[sword.design.grip].src}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
-                    <img src="${partsLibrary.guard[sword.design.guard].src}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 3; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
-                    <img src="${partsLibrary.pommel[sword.design.pommel].src}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
+                    <img src="${designPartSrc('blade', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
+                    <img src="${designPartSrc('grip', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
+                    <img src="${designPartSrc('guard', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 3; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
+                    <img src="${designPartSrc('pommel', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
                 </div>
             `;
 
@@ -1554,7 +1580,7 @@
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
-            });
+            }, bp.traits);
         }
 
         function forgeSword() {
@@ -1643,7 +1669,7 @@
             metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
             
             const chosenShape = requestedShape || swordShapes[0]; 
-            let matchingBladeIndex = partsLibrary.blade.findIndex(b => b.id === chosenShape);
+            let matchingBladeIndex = partsFor('blade', bp.traits).findIndex(b => b.id === chosenShape);
             if (matchingBladeIndex === -1) matchingBladeIndex = 0;
 
             const autoDesign = { blade: matchingBladeIndex, grip: 0, guard: 0, pommel: 0 };
