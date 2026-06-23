@@ -278,6 +278,8 @@
         .action-btn:disabled { opacity: 0.45; }
         .btn-glow { animation: btnGlowPulse 1.3s ease-in-out infinite; }
         @keyframes btnGlowPulse { 0%, 100% { box-shadow: 0 0 3px 1px rgba(241,196,15,0.45); } 50% { box-shadow: 0 0 13px 5px rgba(241,196,15,0.9); } }
+        .tut-hand { position: absolute; z-index: 60; font-size: 26px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        @keyframes tutHandBob { from { transform: translateY(0) scale(1); } to { transform: translateY(4px) scale(1.1); } }
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
         #btnHeat { background-image: url('assets/ui/buttonheat.png'); position: relative; }
@@ -716,6 +718,8 @@
         </div>
 
         <div id="traitToast">✨ You've reached a trait</div>
+        <span id="tutHand1" class="tut-hand"></span>
+        <span id="tutHand2" class="tut-hand"></span>
     </div>
 
     <script>
@@ -846,6 +850,7 @@
 
         function openChartModal() {
             document.getElementById('chartModal').style.display = 'flex';
+            hideHands();
             buildMinimapStatic();
             if (minimapAnim) cancelAnimationFrame(minimapAnim);
             minimapLoop();
@@ -926,36 +931,38 @@
             { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
             { title: "Selecting the metals", text: "We need to add metals to the bucket to start the crafting process. Different metals will lead your swords to different traits, which you can determine by looking at the movement of the sword on the grid map.<br><br>Let's add 4 steel and one magnesium to the bucket.", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
-            { waitAction: 'reachTrait' },
+            { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
             { title: "Heating", text: 'We have discovered a trait!<br><br>Now we need to lower the bucket into the forge and heat it.<br>Click on the heat button', waitAction: null },
-            { waitAction: 'heat' },
+            { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
             { text: "Now that we have heated the mixture, it's time to select what shape we want for the blade. We know how to craft a shortsword, longsword and a broadsword.", waitAction: null },
             { text: "Maybe we will learn more later, but for now, let's craft one of the three we know.<br>Click on the forge button to move to the anvil and start hammering!", waitAction: null },
-            { waitAction: 'forge' },
+            { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Let's see if we have any customers!<br>Click on the left arrow to go to the counter." },
-            { waitAction: 'switchToCounter' },
+            { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
             { text: "Find the sword in the inventory, or click on auto sell to automatically sell the sword the customer is looking for." },
-            { waitAction: 'sell' },
+            { waitAction: 'sell', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { text: "Most customers are direct about what they want. But some customers don't really know what they are looking for. It is our job as a master craftsman to figure out what they need!" },
             { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
             { text: "Oh! We have another customer and he wants a sword with fire trait.<br>Let's go back to our forge! Click on the right arrow." },
-            { waitAction: 'switchToForge' },
+            { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
-            { waitAction: 'chartClosed' },
+            { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
             { onShow: () => { purifyEnabled = true; }, text: "This time, try holding on the metal button. A slider will come up that will determine the number of blocks you move.<br>Hold magnesium and keep going west till you see a trait mark!" },
-            { waitAction: 'reachFlameTrait' },
+            { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
             { text: "Click on 'record mixture' to save the amount of metals we used to craft a sword with a specific trait." },
-            { waitAction: 'recordMixture' },
+            { waitAction: 'recordMixture', hand: [{ sel: '#btnSaveRecipe', side: 'above' }] },
             { text: "Once we have discovered a trait, we don't need to go through the grid again and again. But of course, if you feel the need to make your process more efficient, keep trying to find the most efficient path to a trait and record the metal mixture used!" },
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
             { text: "Go to the counter and sell it!" },
         ];
 
         function playTutorialStep() {
+            hideHands();
             if (tutorialStep >= tutorialFlow.length) { document.getElementById('tutorialModal').style.display = 'none'; return; }
             const step = tutorialFlow[tutorialStep];
             if (step.onShow) step.onShow();
+            if (step.hand) setTimeout(() => { if (tutorialFlow[tutorialStep] === step) showHands(step.hand); }, 50);
 
             if (step.text) {
                 document.getElementById('tutorialFrame').classList.toggle('frame2', step.frame === 2);
@@ -1004,8 +1011,8 @@
             document.getElementById('nav-left').style.display = currentScreenIndex === 0 ? 'none' : 'block';
             document.getElementById('nav-right').style.display = currentScreenIndex === 2 ? 'none' : 'block';
             if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300);
-            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { tutorialStep++; setTimeout(playTutorialStep, 600); }
-            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { tutorialStep++; setTimeout(playTutorialStep, 600); }
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
         }
 
         function toggleRecipes() {
@@ -1364,6 +1371,28 @@
         function showForgeArrow() { document.getElementById('forgeArrow').style.display = 'inline-block'; }
         function hideForgeArrow() { const fa = document.getElementById('forgeArrow'); if (fa) fa.style.display = 'none'; }
 
+        // Tutorial hand pointers: place a bouncing hand next to a target element, pointing at it.
+        function placeHand(handEl, targetEl, side) {
+            if (!targetEl) { handEl.style.display = 'none'; return; }
+            const wrap = document.getElementById('mobile-wrapper'); const wr = wrap.getBoundingClientRect(); const tr = targetEl.getBoundingClientRect();
+            if (tr.width === 0 && tr.height === 0) { handEl.style.display = 'none'; return; }
+            const H = 28; let left, top, emoji;
+            const cx = tr.left - wr.left + tr.width / 2, cy = tr.top - wr.top + tr.height / 2;
+            if (side === 'below') { emoji = '👆'; left = cx - H / 2; top = (tr.bottom - wr.top) + 2; }
+            else if (side === 'leftOf') { emoji = '👉'; left = (tr.left - wr.left) - H - 2; top = cy - H / 2; }
+            else if (side === 'rightOf') { emoji = '👈'; left = (tr.right - wr.left) + 2; top = cy - H / 2; }
+            else { emoji = '👇'; left = cx - H / 2; top = (tr.top - wr.top) - H - 2; } // 'above'
+            handEl.textContent = emoji; handEl.style.left = Math.round(left) + 'px'; handEl.style.top = Math.round(top) + 'px'; handEl.style.display = 'block';
+        }
+        function showHands(spec) {
+            const h1 = document.getElementById('tutHand1'), h2 = document.getElementById('tutHand2');
+            h1.style.display = 'none'; h2.style.display = 'none';
+            if (!spec || !spec.length) return;
+            placeHand(h1, document.querySelector(spec[0].sel), spec[0].side);
+            if (spec[1]) placeHand(h2, document.querySelector(spec[1].sel), spec[1].side);
+        }
+        function hideHands() { document.getElementById('tutHand1').style.display = 'none'; document.getElementById('tutHand2').style.display = 'none'; }
+
         let traitToastTimer = null;
         function showTraitToast(msg) {
             const t = document.getElementById('traitToast');
@@ -1391,9 +1420,13 @@
                 if (onTrait) showTraitToast();
                 if (tutorialStep < tutorialFlow.length) {
                     const wa = tutorialFlow[tutorialStep].waitAction;
+                    // hide steel+magnesium hands once the guided recipe (4 steel + 1 magnesium) is added
+                    if (wa === 'reachTrait' && usedMetals.steel >= 4 && usedMetals.magnesium >= 1) hideHands();
+                    // hide the magnesium hand once the Flame trait is revealed on the map
+                    if (wa === 'reachFlameTrait') { const fi = boardData.indexOf('🔥'); if (fi !== -1 && exploredCells[fi]) hideHands(); }
                     if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
-                    else if (wa === 'reachTrait' && onTrait) { tutorialStep++; setTimeout(playTutorialStep, 4000); }
-                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { tutorialStep++; showHeatArrow(); }
+                    else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 4000); }
+                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); tutorialStep++; showHeatArrow(); }
                 }
                 return true;
             }
@@ -1403,7 +1436,7 @@
         /* --- FIXED INTERACTIVE HEAT MINIGAME LOGIC --- */
         function initiateHeatSequence() {
             if (isProcessingCustomer || document.getElementById('btnHeat').disabled) return;
-            hideHeatArrow();
+            hideHeatArrow(); hideHands();
             const currentIndex = playerY * gridSize + playerX;
             if (boardData[currentIndex] !== '' && boardData[currentIndex] !== '💥') {
                 const foundTrait = baseTraits.find(t => t.symbol === boardData[currentIndex]);
@@ -1510,7 +1543,7 @@
             showTraitToast(`📜 ${traitNames} mixture recorded`);
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
             // Tutorial: after the "mixture recorded" toast is read (~2s), show the closing dialogue.
-            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { tutorialStep++; setTimeout(playTutorialStep, 2000); }
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
         }
 
         function quickCraft(index) {
@@ -1528,7 +1561,7 @@
             if (activeTraits.length === 0) return; // Forge requires at least one heated trait (button is disabled until then)
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { alert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
-            hideForgeArrow();
+            hideForgeArrow(); hideHands();
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
@@ -1588,7 +1621,7 @@
                 gold += goldEarned; reputation++; craftedSwords.splice(index, 1); 
                 
                 processCustomerDeparture(`Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
             } else if (!hasRequestedTrait) {
                 alert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
