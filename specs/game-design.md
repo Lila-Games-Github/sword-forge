@@ -40,6 +40,8 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 
   The 4 cardinal metals are available from the start; the 4 diagonal metals must each be unlocked for **50 Gold** (click the locked grid button).
 
+  **First-craft tutorial lock:** the game starts with exactly **4 steel + 1 magnesium** and everything else gated — only Steel & Magnesium are usable, the other metal buttons, Record Mixture, Chart, and passive metal generation are all disabled. This lock lifts the moment the **first sword is forged** (`tutorialMetalLock`), after which generation resumes and all buttons unlock normally.
+
 ### Purify mini-game (movement)
 
 Holding a movement button charges a slider that bounces 0↔100 (speed `0.15`). Releasing resolves the dash distance by where the slider stops:
@@ -77,7 +79,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 - **Requirement:** at least one **heated trait** on the active blade — the Forge button is disabled until a heating minigame has fused a trait. Also requires ≥1 metal spent (by moving).
 - **Shapes (10):** Shortsword, Longsword, Broadsword, Katana, Rapier, Cutlass, Claymore, Saber, Scimitar, Machete. *(Original GDD listed 11 incl. Dagger — Dagger is not in the build.)* For the base (balanced) blade set, only **Shortsword, Longsword, Broadsword are free**; the other **7 are locked and unlock for 50 gold each** in the Design Desk (click the locked blade thumbnail). Trait-skinned blade sets (e.g. Flame) are not locked.
-- **Design Desk:** customize the blade visually across 4 part categories — Blade, Grip, Guard, Pommel — each with selectable art. Purely cosmetic.
+- **Design Desk:** customize the blade visually across 4 part categories — Blade, Grip, Guard, Pommel — each with selectable art. Purely cosmetic. An **info (i) button** in the header toggles a hint reminding the player that looks don't affect the sword's properties.
 - **Trait-specific part art:** a sword carrying a trait with a defined skin shows that trait's part images in the Design Desk and everywhere it's rendered (forge result, etc.). Defined in `traitSkins` and resolved via `partsFor`/`designPartSrc`. Currently the **Flame** trait has a full set: 3 blades (Shortsword/Longsword/Broadsword), 3 grips, 5 guards, 2 pommels (`assets/sword-parts/*/flame_*.png`). Traits without a skin fall back to the base library.
 - **Completion:** moves the finished sword (shape, design, traits, recipe of used metals, value) into the **Vault** (inventory), clears the active forge, and resets player to center with full HP.
 
@@ -101,7 +103,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
   - Rep < 0 → **×0.8** (min 1g)
   - Rep > 10 → **×1.2**
 - **Sale:** +1 Reputation. **Refuse:** −1 Reputation, new customer after ~1.2s.
-- Shortcuts: **Auto Sell** (fulfill from Vault) and **Craft & Sell** (auto-craft a matching blueprint then sell).
+- Shortcuts: **Search Inventory** (finds the sword in the Vault that matches the customer's request, then expands, highlights and scrolls to it — the player still taps **Give NPC** to sell; handy with a large inventory) and **Craft & Sell** (auto-craft a matching blueprint then sell).
 
 ### Passive shopfront
 - **Unlock:** 50 Gold.
@@ -125,7 +127,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Record Mixture, 🗺️ Chart). ("Record Mixture" saves a Blueprint — see §6.)
 - **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Mixture" → record it → closing tip on reusing recorded mixtures → a bouncing arrow points to the Forge button to craft the sword → forge it → prompt to go sell it at the counter), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow.
-- **Tutorial hand pointers:** at each guided step a bouncing 👆/👇/👈/👉 hand points to the element to use next — the Steel & Magnesium metal buttons (until the 4 steel + 1 magnesium recipe is added), Heat, Forge, the left/right screen arrows, Auto Sell, the Chart button, Magnesium again (until the Flame trait is revealed on the map), and Record Mixture. Each hand clears once its action is taken. Data-driven via a `hand` field on the relevant `tutorialFlow` gate steps.
+- **Tutorial hand pointers:** at each guided step a bouncing 👆/👇/👈/👉 hand points to the element to use next — the Steel & Magnesium metal buttons (until the 4 steel + 1 magnesium recipe is added), Heat, Forge, the left/right screen arrows, Search Inventory, the Chart button, Magnesium again (until the Flame trait is revealed on the map), and Record Mixture. Each hand clears once its action is taken. Data-driven via a `hand` field on the relevant `tutorialFlow` gate steps.
 - **Minimap (Chart modal):** a live canvas minimap of the full 50×50 grid (fully revealed — no fog) — tan ground, red-brown hazards, every trait drawn as its emoji icon at its location, and a pulsing blue marker for the player's position. (Replaces the old static `Minimap.png`, now unused.)
 
 ## 9. Known discrepancies & open questions

@@ -296,6 +296,7 @@
         .expandable-content.expanded { display: block; }
         .sword-list { display: flex; flex-direction: column; gap: 10px; }
         .sword-card { background: #f4f6f7; border: 1px solid #bdc3c7; border-radius: 6px; padding: 10px; }
+        .sword-card.search-highlight { border: 2px solid #f1c40f; box-shadow: 0 0 12px rgba(241,196,15,0.85); }
         .sword-card-title { font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50; }
         .sword-card-details { font-size: 12px; color: #555; line-height: 1.5; }
         .action-row { display: flex; gap: 5px; margin-top: 8px; }
@@ -414,8 +415,14 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            position: relative;
             box-shadow: inset 0 0 50px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8);
         }
+        .design-header { display: flex; align-items: center; justify-content: space-between; }
+        .design-info-btn { background: transparent; border: 2px solid #4a3623; color: #4a3623; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; font-weight: bold; font-family: 'Cinzel', serif; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1; flex: none; }
+        .design-info-btn:hover { background: #4a3623; color: #f0d8a0; }
+        .design-hint { display: none; position: absolute; top: 42px; left: 12px; right: 12px; z-index: 6; background: rgba(44,33,22,0.96); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 6px; padding: 9px 12px; font-size: 12px; font-family: 'Cinzel', serif; line-height: 1.4; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.45); }
+        .design-hint.show { display: block; }
         
         .preview-canvas {
             width: 100%;
@@ -545,7 +552,7 @@
                 </div>
                 
                 <div class="customer-actions">
-                    <button id="btnAutoSell" class="btn-craft" style="margin-top: 0; background-color: #27ae60; flex: 1; padding: 10px 2px; font-size: 11px;">💰 Auto Sell</button>
+                    <button id="btnAutoSell" class="btn-craft" style="margin-top: 0; background-color: #27ae60; flex: 1; padding: 10px 2px; font-size: 11px;">🔍 Search Inventory</button>
                     <button id="btnAutoCraftSell" class="btn-craft" style="margin-top: 0; background-color: #8e44ad; flex: 1; padding: 10px 2px; font-size: 11px;">⚡ Craft & Sell</button>
                     <button id="btnRefuse">🛑 Refuse</button>
                 </div>
@@ -665,8 +672,12 @@
 
         <div id="designModal" class="modal-overlay">
             <div class="design-modal-content">
-                <h3 style="margin-bottom: 0px; color: #4a3623; font-family: 'Cinzel', serif;">Design Desk</h3>
-                
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Design Desk</h3>
+                    <button class="design-info-btn" title="Hint" onclick="document.getElementById('designHint').classList.toggle('show')">i</button>
+                </div>
+                <div id="designHint" class="design-hint">The look of the sword does not affect its properties... Design freely!</div>
+
                 <div class="preview-canvas" id="preview-canvas">
                     <img id="preview-blade" src="" style="z-index: 1;">
                     <img id="preview-grip" src="" style="z-index: 2;">
@@ -972,25 +983,25 @@
             { title: "Selecting the metals", text: "We need to select which metals to use, and heat them well together to get a strong sword ingot for the blade. Let's start with 4 steel and 1 magnesium and see what we get!", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
-            { title: "Heating", text: 'We have discovered a trait!<br><br>Now we need to lower the bucket into the forge and heat it.<br>Click on the heat button', waitAction: null },
+            { title: "Heating", text: 'You have discovered a type of alloy! Heat the metals into an alloy to discover what it is!', waitAction: null },
             { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
             { text: "Now that we have heated the mixture, it's time to select what shape we want for the blade. We know how to craft a shortsword, longsword and a broadsword.", waitAction: null },
             { text: "Maybe we will learn more later, but for now, let's craft one of the three we know.<br>Click on the forge button to move to the anvil and start hammering!", waitAction: null },
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Let's see if we have any customers!<br>Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
-            { text: "Find the sword in the inventory, or click on auto sell to automatically sell the sword the customer is looking for." },
+            { text: "Find the sword in the inventory and give it to the customer. With lots of swords, tap Search Inventory to automatically find and highlight the one they want — then tap Give NPC to sell it!" },
             { waitAction: 'sell', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { text: "Most customers are direct about what they want. But some customers don't really know what they are looking for. It is our job as a master craftsman to figure out what they need!" },
             { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
-            { text: "Oh! We have another customer and he wants a sword with fire trait.<br>Let's go back to our forge! Click on the right arrow." },
+            { text: "Oh! We have another customer, and he wants a sword with the fire trait.<br>Let's go back to our forge! Click on the right arrow." },
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
-            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding on the metal button. A slider will come up that will determine the number of blocks you move.<br>Hold magnesium and keep going west till you see a trait mark!" },
+            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding down the metal button. A slider will come up that determines the number of blocks you move.<br>Hold magnesium and keep going west until you see a trait mark!" },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
-            { text: "Click on 'record mixture' to save the amount of metals we used to craft a sword with a specific trait." },
+            { text: "Click on 'record mixture' to save the metals we used to craft a sword with a specific trait." },
             { waitAction: 'recordMixture', hand: [{ sel: '#btnSaveRecipe', side: 'above' }] },
             { text: "Once we have discovered a trait, we don't need to go through the grid again and again. But of course, if you feel the need to make your process more efficient, keep trying to find the most efficient path to a trait and record the metal mixture used!" },
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
@@ -1074,7 +1085,11 @@
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
         let unlockedMetals = { titanium: false, aluminium: false, blackIron: false, redIron: false };
-        let availableMetals = { titanium: 10, steel: 10, aluminium: 10, magnesium: 10, bronze: 10, blackIron: 10, iron: 10, redIron: 10 };
+        // Tutorial first-craft: start with exactly 4 steel + 1 magnesium, everything else 0.
+        let availableMetals = { titanium: 0, steel: 4, aluminium: 0, magnesium: 1, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
+        // First-sword tutorial stage: only steel & magnesium usable; other metals, auto-generation,
+        // Record Mixture and Chart are locked until the first sword is forged.
+        let tutorialMetalLock = true;
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
         let generationInterval = null; let shopInterval = null; let metalsPerTick = 1;
         let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
@@ -1225,7 +1240,7 @@
 
         function startMetalGenerator() {
             if (generationInterval) clearInterval(generationInterval);
-            generationInterval = setInterval(() => { for (let i = 0; i < metalsPerTick; i++) { const randomMetal = metalsList[Math.floor(Math.random() * metalsList.length)]; availableMetals[randomMetal]++; } updateUI(); }, 1000); 
+            generationInterval = setInterval(() => { if (tutorialMetalLock) return; for (let i = 0; i < metalsPerTick; i++) { const randomMetal = metalsList[Math.floor(Math.random() * metalsList.length)]; availableMetals[randomMetal]++; } updateUI(); }, 1000);
         }
 
         function upgradeSmelter() { if (gold >= 50) { gold -= 50; metalsPerTick++; updateUI(); } else alert("You need 50 Gold to upgrade the smelter!"); }
@@ -1282,10 +1297,11 @@
                 document.getElementById(`avail-${m}`).textContent = `${getInitials(m)}: ${availableMetals[m]}`; document.getElementById(`used-${m}`).textContent = `${getInitials(m)}: ${usedMetals[m]}`;
                 const btnId = `btn${m.charAt(0).toUpperCase() + m.slice(1)}`; const btn = document.getElementById(btnId);
                 if (btn) {
+                    const lockedOut = tutorialMetalLock && m !== 'steel' && m !== 'magnesium'; // first-craft stage
                     if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(m) && !unlockedMetals[m]) {
-                        btn.disabled = false; btn.innerHTML = `<span style="font-size: 8px;">🔒 Unlock</span><span style="font-size: 10px; font-weight: bold; margin-top: 2px;">50g</span>`;
+                        btn.disabled = lockedOut; btn.innerHTML = `<span style="font-size: 8px;">🔒 Unlock</span><span style="font-size: 10px; font-weight: bold; margin-top: 2px;">50g</span>`;
                     } else {
-                        btn.disabled = availableMetals[m] <= 0 || isProcessingCustomer; btn.innerHTML = `<span style="font-size: 8px; line-height: 1.1;">${metalNames[m]}</span><span style="font-size: 12px; font-weight: bold; line-height: 1;">${availableMetals[m]}</span>`;
+                        btn.disabled = lockedOut || availableMetals[m] <= 0 || isProcessingCustomer; btn.innerHTML = `<span style="font-size: 8px; line-height: 1.1;">${metalNames[m]}</span><span style="font-size: 12px; font-weight: bold; line-height: 1;">${availableMetals[m]}</span>`;
                     }
                 }
             });
@@ -1302,6 +1318,9 @@
             const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0; // Forge only after a heating minigame has fused a trait
             if (forgeBtn.disabled) hideForgeArrow();
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
+            // First-craft stage: Record Mixture and Chart are locked until the first sword is forged.
+            document.getElementById('btnSaveRecipe').disabled = tutorialMetalLock;
+            document.getElementById('btnChart').disabled = tutorialMetalLock;
 
             if (shopUnlocked) {
                 document.getElementById('shop-locked-view').style.display = 'none'; document.getElementById('shop-list').style.display = 'flex'; renderShop();
@@ -1326,16 +1345,28 @@
             });
         }
 
+        let vaultHighlightIndex = -1;
+        // "Search Inventory": find the sword matching the current customer's request, expand,
+        // highlight and scroll to it (handy when the vault holds many swords).
+        function searchInventory() {
+            if (isProcessingCustomer) return;
+            const idx = findValidSwordIndex();
+            if (idx === -1) { alert("No sword in your inventory matches this customer's request."); return; }
+            vaultHighlightIndex = idx; renderVault(); hideHands();
+            const cards = document.getElementById('sword-list').querySelectorAll('.sword-card');
+            if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         function renderVault() {
             const listEl = document.getElementById('sword-list'); const openStates = [];
             listEl.querySelectorAll('.expandable-content').forEach(el => { openStates.push(el.classList.contains('expanded')); });
             listEl.innerHTML = ''; if (craftedSwords.length === 0) { listEl.innerHTML = '<div class="empty-list">Your inventory is empty.</div>'; return; }
 
             craftedSwords.forEach((sword, index) => {
-                const card = document.createElement('div'); card.className = 'sword-card'; card.style.padding = '10px';
+                const card = document.createElement('div'); card.className = 'sword-card' + (index === vaultHighlightIndex ? ' search-highlight' : ''); card.style.padding = '10px';
                 const emojis = sword.traits.length > 0 ? sword.traits.map(t => t.symbol).join('') : '🗡️';
                 let topQuality = "Weak"; if (sword.traits.some(t => t.quality === 'Epic')) topQuality = "Epic"; else if (sword.traits.some(t => t.quality === 'Fine')) topQuality = "Fine";
-                const expandedClass = openStates[index] ? 'expanded' : '';
+                const expandedClass = (openStates[index] || index === vaultHighlightIndex) ? 'expanded' : '';
                 const costString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]}${getInitials(m)}`).join(' | ');
 
                 card.innerHTML = `
@@ -1605,7 +1636,7 @@
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true;
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Mixture & Chart
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
@@ -1658,8 +1689,8 @@
                 let goldEarned = sword.value;
                 if (requestCount === 1) goldEarned = Math.max(15, goldEarned); 
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
-                gold += goldEarned; reputation++; craftedSwords.splice(index, 1); 
-                
+                gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1;
+
                 processCustomerDeparture(`Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
             } else if (!hasRequestedTrait) {
@@ -1669,10 +1700,7 @@
             }
         }
 
-        document.getElementById('btnAutoSell').onclick = () => { 
-            const idx = findValidSwordIndex(); 
-            if (idx !== -1) sellSword(idx); 
-        };
+        document.getElementById('btnAutoSell').onclick = searchInventory;
         
         document.getElementById('btnAutoCraftSell').onclick = () => {
             if (isProcessingCustomer) return; 
@@ -1700,11 +1728,12 @@
             processCustomerDeparture(`Ah! An auto-crafted masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
         };
 
-        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); updateUI(); }
+        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); }
 
         function handleMovementClick(d) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;
             const metal = getMetalForDir(d.dx, d.dy);
+            if (tutorialMetalLock && metal !== 'steel' && metal !== 'magnesium') return; // first-craft stage: only steel & magnesium
             if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) {
                 if (gold >= 50) { gold -= 50; unlockedMetals[metal] = true; updateUI(); } else { alert(`You need 50 Gold to unlock ${metal}!`); } return;
             }
@@ -1732,6 +1761,7 @@
 
             e.preventDefault(); if (isPurifying) return; 
             const metal = getMetalForDir(dx, dy);
+            if (tutorialMetalLock && metal !== 'steel' && metal !== 'magnesium') return; // first-craft stage: only steel & magnesium
             if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) { alert(`Click the locked button on the grid to unlock ${metal} for 50g first!`); return; }
             activeMoveKey = key; startInlinePurify(dx, dy);
         });
