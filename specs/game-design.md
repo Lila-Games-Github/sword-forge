@@ -76,7 +76,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 ## 5. Forging & weapons
 
 - **Requirement:** at least one **heated trait** on the active blade — the Forge button is disabled until a heating minigame has fused a trait. Also requires ≥1 metal spent (by moving).
-- **Shapes (10):** Shortsword, Longsword, Broadsword, Katana, Rapier, Cutlass, Claymore, Saber, Scimitar, Machete. *(Original GDD listed 11 incl. Dagger — Dagger is not in the build.)*
+- **Shapes (10):** Shortsword, Longsword, Broadsword, Katana, Rapier, Cutlass, Claymore, Saber, Scimitar, Machete. *(Original GDD listed 11 incl. Dagger — Dagger is not in the build.)* For the base (balanced) blade set, only **Shortsword, Longsword, Broadsword are free**; the other **7 are locked and unlock for 50 gold each** in the Design Desk (click the locked blade thumbnail). Trait-skinned blade sets (e.g. Flame) are not locked.
 - **Design Desk:** customize the blade visually across 4 part categories — Blade, Grip, Guard, Pommel — each with selectable art. Purely cosmetic.
 - **Trait-specific part art:** a sword carrying a trait with a defined skin shows that trait's part images in the Design Desk and everywhere it's rendered (forge result, etc.). Defined in `traitSkins` and resolved via `partsFor`/`designPartSrc`. Currently the **Flame** trait has a full set: 3 blades (Shortsword/Longsword/Broadsword), 3 grips, 5 guards, 2 pommels (`assets/sword-parts/*/flame_*.png`). Traits without a skin fall back to the base library.
 - **Completion:** moves the finished sword (shape, design, traits, recipe of used metals, value) into the **Vault** (inventory), clears the active forge, and resets player to center with full HP.

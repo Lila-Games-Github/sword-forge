@@ -471,6 +471,9 @@
         }
         .part-thumb.selected { border-color: #e67e22; background: #fff3e0; box-shadow: 0 0 8px rgba(230, 126, 34, 0.6); }
         .part-thumb img { width: 140%; height: 140%; object-fit: contain; }
+        .part-thumb.locked img { filter: grayscale(1) brightness(0.55); }
+        .part-lock { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.32); pointer-events: none; }
+        .part-lock .lock-ico { font-size: 16px; }
 
         .parts-grid::-webkit-scrollbar { width: 6px; }
         .parts-grid::-webkit-scrollbar-track { background: transparent; }
@@ -772,13 +775,13 @@
                 { id: 'Shortsword', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' },
                 { id: 'Longsword', src: 'assets/sword-parts/blades/balanced_longsword_blade.png' },
                 { id: 'Broadsword', src: 'assets/sword-parts/blades/balanced_broadsword_blade.png' },
-                { id: 'Katana', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
-                { id: 'Rapier', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
-                { id: 'Cutlass', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }, 
-                { id: 'Claymore', src: 'assets/sword-parts/blades/balanced_longsword_blade.png' }, 
-                { id: 'Saber', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' },   
-                { id: 'Scimitar', src: 'assets/sword-parts/blades/balanced_broadsword_blade.png' }, 
-                { id: 'Machete', src: 'assets/sword-parts/blades/balanced_shortsword_blade.png' }  
+                { id: 'Katana', src: 'assets/sword-parts/blades/balanced_katana_blade.png' },
+                { id: 'Rapier', src: 'assets/sword-parts/blades/balanced_rapier_blade.png' },
+                { id: 'Cutlass', src: 'assets/sword-parts/blades/balanced_cutlass_blade.png' },
+                { id: 'Claymore', src: 'assets/sword-parts/blades/balanced_claymore_blade.png' },
+                { id: 'Saber', src: 'assets/sword-parts/blades/balanced_saber_blade.png' },
+                { id: 'Scimitar', src: 'assets/sword-parts/blades/balanced_scimitar_blade.png' },
+                { id: 'Machete', src: 'assets/sword-parts/blades/balanced_machete_blade.png' }
             ],
             grip: [
                 { id: 'Grip 1', src: 'assets/sword-parts/grips/grip1.png' },
@@ -829,6 +832,9 @@
         let activeDesignTab = 'blade';
         let pendingForgeCallback = null;
         let designTraits = [];
+        // Base blade shapes: the first three are free; the rest unlock for 50 gold each in the Design Desk.
+        let bladeUnlocked = { Shortsword: true, Longsword: true, Broadsword: true };
+        const BLADE_UNLOCK_COST = 50;
 
         function openDesignModal(callback, traits) {
             pendingForgeCallback = callback;
@@ -909,16 +915,24 @@
             partsFor(activeDesignTab, designTraits).forEach((part, index) => {
                 const div = document.createElement('div');
                 div.className = 'part-thumb';
-                if (currentDesign[activeDesignTab] === index) div.classList.add('selected');
-                
-                div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
-                div.onclick = () => {
-                    currentDesign[activeDesignTab] = index;
-                    renderDesignGrid(); 
-                    updateDesignPreview(); 
-                };
+                const locked = activeDesignTab === 'blade' && !bladeUnlocked[part.id]; // only base blade shapes lock
+                if (locked) {
+                    div.classList.add('locked');
+                    div.innerHTML = `<img src="${part.src}" alt="${part.id}"><div class="part-lock"><span class="lock-ico">🔒</span>${BLADE_UNLOCK_COST}g</div>`;
+                    div.onclick = () => unlockBlade(index, part.id);
+                } else {
+                    if (currentDesign[activeDesignTab] === index) div.classList.add('selected');
+                    div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
+                    div.onclick = () => { currentDesign[activeDesignTab] = index; renderDesignGrid(); updateDesignPreview(); };
+                }
                 grid.appendChild(div);
             });
+        }
+
+        function unlockBlade(index, id) {
+            if (gold < BLADE_UNLOCK_COST) { alert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
+            gold -= BLADE_UNLOCK_COST; bladeUnlocked[id] = true; updateUI();
+            currentDesign.blade = index; renderDesignGrid(); updateDesignPreview();
         }
 
         function confirmDesign() {
