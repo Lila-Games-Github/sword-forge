@@ -968,7 +968,7 @@
 
         let tutorialStep = 0; let hasShownShopTutorial = false;
         const tutorialFlow = [
-            { text: "In this game, you are a master blacksmith tasked with exploring a dark grid to find magical traits, forging custom weapons, and running a profitable shop.", waitAction: null },
+            { text: "After a few days of cleaning and repairing the forge, it is now ready to craft powerful swords! Maybe some will even buy from your little shop? Let's see how to...", waitAction: null },
             { title: "Selecting the metals", text: "We need to add metals to the bucket to start the crafting process. Different metals will lead your swords to different traits, which you can determine by looking at the movement of the sword on the grid map.<br><br>Let's add 4 steel and one magnesium to the bucket.", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
