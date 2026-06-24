@@ -297,6 +297,8 @@
         .sword-list { display: flex; flex-direction: column; gap: 10px; }
         .sword-card { background: #f4f6f7; border: 1px solid #bdc3c7; border-radius: 6px; padding: 10px; }
         .sword-card.search-highlight { border: 2px solid #f1c40f; box-shadow: 0 0 12px rgba(241,196,15,0.85); }
+        .minimap-zoom-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #4a3623; background: rgba(44,33,22,0.85); color: #f0d8a0; font-size: 18px; font-weight: bold; line-height: 1; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+        .minimap-zoom-btn:hover { background: #4a3623; }
         .sword-card-title { font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50; }
         .sword-card-details { font-size: 12px; color: #555; line-height: 1.5; }
         .action-row { display: flex; gap: 5px; margin-top: 8px; }
@@ -383,6 +385,8 @@
             transform-origin: 100% 50%; transition: transform 0.1s ease-in-out; z-index: 5;
             filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.5));
         }
+        .forge-cue { animation: forgeCue 0.85s ease-in-out infinite alternate; }
+        @keyframes forgeCue { from { filter: drop-shadow(0 0 2px rgba(255,210,80,0.5)); } to { filter: drop-shadow(0 0 16px rgba(255,180,30,1)); } }
 
         .interactive-heat-meter {
             position: absolute; top: 10px; left: 10%; width: 80%; background: rgba(0,0,0,0.85);
@@ -705,11 +709,17 @@
         <div id="chartModal" class="modal-overlay">
             <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
                 <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
-                <canvas id="minimap-canvas" width="500" height="500" style="width: 100%; max-width: 340px; aspect-ratio: 1; display: block; margin: 0 auto; border-radius: 4px; border: 2px inset #a6957a; background: #c9b690;"></canvas>
+                <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto;">
+                    <canvas id="minimap-canvas" width="500" height="500" style="width: 100%; aspect-ratio: 1; display: block; border-radius: 4px; border: 2px inset #a6957a; background: #c9b690; touch-action: none; cursor: grab;"></canvas>
+                    <div style="position: absolute; bottom: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px;">
+                        <button class="minimap-zoom-btn" onclick="zoomMinimapAt(250,250,1.3)">+</button>
+                        <button class="minimap-zoom-btn" onclick="zoomMinimapAt(250,250,1/1.3)">−</button>
+                    </div>
+                </div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin-top:10px; font-size:11px; color:#4a3623; font-family:'Cinzel',serif;">
                     <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3aa0ff;border:1px solid #fff;vertical-align:middle;"></span> You</span>
-                    <span><span style="display:inline-block;width:10px;height:10px;background:#9b3b2f;vertical-align:middle;"></span> Hazard</span>
-                    <span>Traits shown as icons</span>
+                    <span>Traits shown as icons — tap one for its name</span>
+                    <span>Scroll / pinch to zoom · drag to pan</span>
                 </div>
                 <button class="cancel-btn" style="background-color: #3498db;" onclick="closeChartModal()">Close</button>
             </div>
@@ -734,6 +744,7 @@
         <div id="traitToast">✨ You've reached a trait</div>
         <span id="tutHand1" class="tut-hand"></span>
         <span id="tutHand2" class="tut-hand"></span>
+        <span id="heatHand" class="tut-hand" style="z-index: 1003;"></span>
     </div>
 
     <script>
@@ -861,39 +872,94 @@
         }
 
         let minimapAnim = null, minimapStatic = null;
-        // Build the static layer once: full 50x50 terrain (no fog) + every trait icon.
+        let minimapZoom = 1, minimapPanX = 0, minimapPanY = 0, selectedTraitCell = -1;
+
+        // Build the static layer once: full 50x50 ground + every trait icon (hazards are NOT shown).
         function buildMinimapStatic() {
             const src = document.getElementById('minimap-canvas'); if (!src) return;
             const N = gridSize; const off = document.createElement('canvas'); off.width = src.width; off.height = src.height;
             const ctx = off.getContext('2d'); const s = off.width / N;
-            for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-                const v = boardData[y * N + x];
-                ctx.fillStyle = (v === '💥') ? '#9b3b2f' : '#c9b690'; // hazard vs ground (trait cells get ground + icon on top)
-                ctx.fillRect(x * s, y * s, s, s);
-            }
+            ctx.fillStyle = '#c9b690'; ctx.fillRect(0, 0, off.width, off.height); // uniform ground, no hazards
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = Math.round(s * 2.2) + 'px serif';
             for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
                 const v = boardData[y * N + x];
-                if (v !== '' && v !== '💥') ctx.fillText(v, x * s + s / 2, y * s + s / 2); // trait icon
+                if (v !== '' && v !== '💥' && baseTraits.some(t => t.symbol === v)) ctx.fillText(v, x * s + s / 2, y * s + s / 2);
             }
             minimapStatic = off;
         }
+        function clampMinimapPan() {
+            const W = document.getElementById('minimap-canvas').width; const min = W - W * minimapZoom; // <= 0
+            minimapPanX = Math.min(0, Math.max(min, minimapPanX));
+            minimapPanY = Math.min(0, Math.max(min, minimapPanY));
+        }
+        // Zoom about a point given in internal-canvas coordinates.
+        function zoomMinimapAt(cx, cy, factor) {
+            const nz = Math.max(1, Math.min(6, minimapZoom * factor));
+            const mapX = (cx - minimapPanX) / minimapZoom, mapY = (cy - minimapPanY) / minimapZoom;
+            minimapZoom = nz; minimapPanX = cx - mapX * nz; minimapPanY = cy - mapY * nz; clampMinimapPan();
+        }
+        function roundRectPath(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
         function renderMinimap(t) {
             const canvas = document.getElementById('minimap-canvas'); if (!canvas || !minimapStatic) return;
             const ctx = canvas.getContext('2d'); const s = canvas.width / gridSize;
-            ctx.drawImage(minimapStatic, 0, 0); // full map (terrain + trait icons)
-            // pulsing sword marker
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = '#c9b690'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.setTransform(minimapZoom, 0, 0, minimapZoom, minimapPanX, minimapPanY);
+            ctx.drawImage(minimapStatic, 0, 0); // zoomed/panned map + icons
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // overlays in screen space (constant size)
+            // pulsing player marker
             const pulse = 0.5 + 0.5 * Math.sin((t || 0) / 300);
-            const cx = playerX * s + s / 2, cy = playerY * s + s / 2;
-            ctx.beginPath(); ctx.arc(cx, cy, s * (1.2 + 0.5 * pulse), 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(52,160,255,0.95)'; ctx.fill();
-            ctx.lineWidth = Math.max(1.5, s * 0.3); ctx.strokeStyle = '#fff'; ctx.stroke();
+            const px = (playerX * s + s / 2) * minimapZoom + minimapPanX, py = (playerY * s + s / 2) * minimapZoom + minimapPanY;
+            ctx.beginPath(); ctx.arc(px, py, 6 + 3 * pulse, 0, Math.PI * 2); ctx.fillStyle = 'rgba(52,160,255,0.95)'; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+            // selected trait name label, below the icon
+            if (selectedTraitCell >= 0) {
+                const trait = baseTraits.find(tt => tt.symbol === boardData[selectedTraitCell]);
+                if (!trait) { selectedTraitCell = -1; return; }
+                const gx = selectedTraitCell % gridSize, gy = Math.floor(selectedTraitCell / gridSize);
+                const sx = (gx * s + s / 2) * minimapZoom + minimapPanX, sy = (gy * s + s / 2) * minimapZoom + minimapPanY;
+                ctx.font = 'bold 12px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                const tw = ctx.measureText(trait.name).width, padX = 8, h = 18, boxY = sy + s * minimapZoom * 0.7 + 3;
+                ctx.fillStyle = 'rgba(44,33,22,0.95)'; roundRectPath(ctx, sx - tw / 2 - padX, boxY, tw + padX * 2, h, 5); ctx.fill();
+                ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.fillStyle = '#f0d8a0'; ctx.fillText(trait.name, sx, boxY + h / 2);
+            }
         }
         function minimapLoop(t) { renderMinimap(t); minimapAnim = requestAnimationFrame(minimapLoop); }
+
+        // Select the trait nearest to a tap (within ~1.3 cells), given client coordinates.
+        function minimapSelectAt(clientX, clientY) {
+            const canvas = document.getElementById('minimap-canvas'); const rect = canvas.getBoundingClientRect(); const s = canvas.width / gridSize;
+            const cx = (clientX - rect.left) * (canvas.width / rect.width), cy = (clientY - rect.top) * (canvas.height / rect.height);
+            const mapX = (cx - minimapPanX) / minimapZoom, mapY = (cy - minimapPanY) / minimapZoom;
+            let best = -1, bestD = (1.3 * s) * (1.3 * s);
+            for (let i = 0; i < boardData.length; i++) {
+                const v = boardData[i]; if (v === '' || v === '💥' || !baseTraits.some(t => t.symbol === v)) continue;
+                const gx = i % gridSize, gy = Math.floor(i / gridSize);
+                const dx = (gx * s + s / 2) - mapX, dy = (gy * s + s / 2) - mapY, d = dx * dx + dy * dy;
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            selectedTraitCell = best;
+        }
+
+        (function setupMinimapInput() {
+            const canvas = document.getElementById('minimap-canvas'); if (!canvas) return;
+            let dragging = false, moved = false, lastX = 0, lastY = 0, downX = 0, downY = 0, pinchDist = 0;
+            const scaleOf = () => canvas.width / canvas.getBoundingClientRect().width;
+            canvas.addEventListener('wheel', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(), sc = canvas.width / r.width; zoomMinimapAt((e.clientX - r.left) * sc, (e.clientY - r.top) * sc, e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+            canvas.addEventListener('mousedown', e => { dragging = true; moved = false; lastX = downX = e.clientX; lastY = downY = e.clientY; });
+            window.addEventListener('mousemove', e => { if (!dragging) return; const sc = scaleOf(); minimapPanX += (e.clientX - lastX) * sc; minimapPanY += (e.clientY - lastY) * sc; lastX = e.clientX; lastY = e.clientY; if (Math.hypot(e.clientX - downX, e.clientY - downY) > 4) moved = true; clampMinimapPan(); });
+            window.addEventListener('mouseup', () => { if (!dragging) return; dragging = false; if (!moved) minimapSelectAt(downX, downY); });
+            canvas.addEventListener('touchstart', e => { if (e.touches.length === 1) { dragging = true; moved = false; lastX = downX = e.touches[0].clientX; lastY = downY = e.touches[0].clientY; } else if (e.touches.length === 2) { dragging = false; pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } }, { passive: false });
+            canvas.addEventListener('touchmove', e => { e.preventDefault(); if (e.touches.length === 1 && dragging) { const sc = scaleOf(); minimapPanX += (e.touches[0].clientX - lastX) * sc; minimapPanY += (e.touches[0].clientY - lastY) * sc; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; if (Math.hypot(e.touches[0].clientX - downX, e.touches[0].clientY - downY) > 4) moved = true; clampMinimapPan(); } else if (e.touches.length === 2) { const r = canvas.getBoundingClientRect(), sc = canvas.width / r.width; const mx = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left) * sc, my = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top) * sc; const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pinchDist > 0) zoomMinimapAt(mx, my, d / pinchDist); pinchDist = d; } }, { passive: false });
+            canvas.addEventListener('touchend', e => { if (dragging && !moved && e.changedTouches.length) minimapSelectAt(e.changedTouches[0].clientX, e.changedTouches[0].clientY); dragging = false; pinchDist = 0; });
+        })();
 
         function openChartModal() {
             document.getElementById('chartModal').style.display = 'flex';
             hideHands();
+            minimapZoom = 1; minimapPanX = 0; minimapPanY = 0; selectedTraitCell = -1; // reset view each open
             buildMinimapStatic();
             if (minimapAnim) cancelAnimationFrame(minimapAnim);
             minimapLoop();
@@ -1505,6 +1571,18 @@
         }
 
         /* --- FIXED INTERACTIVE HEAT MINIGAME LOGIC --- */
+        // Heat minigame cues: glow the part to click and point a hand at it (pulley first, bellow next).
+        function clearHeatCues() {
+            document.getElementById('heatHand').style.display = 'none';
+            document.getElementById('forge-pulley').classList.remove('forge-cue');
+            document.getElementById('forge-bellow').classList.remove('forge-cue');
+        }
+        function cueHeat(targetSel, side) {
+            clearHeatCues();
+            const el = document.querySelector(targetSel); el.classList.add('forge-cue');
+            setTimeout(() => { if (el.classList.contains('forge-cue')) placeHand(document.getElementById('heatHand'), el, side); }, 60);
+        }
+
         function initiateHeatSequence() {
             if (isProcessingCustomer || document.getElementById('btnHeat').disabled) return;
             hideHeatArrow(); hideHands();
@@ -1519,6 +1597,7 @@
                     document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
                     document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
                     document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
+                    cueHeat('#forge-pulley', 'leftOf'); // point/glow the pulley first
                 }
             } else alert("There is no hidden trait to heat on this square!");
         }
@@ -1526,11 +1605,13 @@
         function handlePulleyClick() {
             if (forgePhase !== 'pulley') return;
             forgePhase = 'lowering'; document.getElementById('forge-instructions').textContent = 'Lowering bucket...';
-            document.getElementById('forge-pulley').style.transform = 'rotate(720deg)'; document.getElementById('forge-bucket').style.top = '18%'; 
-            
+            clearHeatCues(); // pulley done; bucket lowering
+            document.getElementById('forge-pulley').style.transform = 'rotate(720deg)'; document.getElementById('forge-bucket').style.top = '18%';
+
             setTimeout(() => {
                 forgePhase = 'heating'; document.getElementById('forge-instructions').textContent = 'Pump Bellows! Keep heat in Green!';
                 document.getElementById('forge-meter-container').style.display = 'block'; lastHeatTime = performance.now();
+                cueHeat('#forge-bellow', 'above'); // now point/glow the bellow
                 heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
             }, 2000);
         }
@@ -1562,14 +1643,14 @@
             } else if (heatScore > 70) {
                 heatCompletion -= dt * 0.5; if (heatCompletion < 0) heatCompletion = 0; document.getElementById('forge-instructions').textContent = 'Too Hot! Slow down!';
             } else {
-                heatCompletion -= dt * 0.5; if (heatCompletion < 0) heatCompletion = 0; document.getElementById('forge-instructions').textContent = 'Too Cold! Pump faster!';
+                heatCompletion -= dt * 0.5; if (heatCompletion < 0) heatCompletion = 0; document.getElementById('forge-instructions').textContent = 'Use the bellow to heat the furnace.';
             }
             heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
         }
 
         function resolveInteractiveHeatMinigame() {
-            document.getElementById('heatModal').style.display = 'none'; 
-            forgePhase = 'idle';
+            document.getElementById('heatModal').style.display = 'none';
+            forgePhase = 'idle'; clearHeatCues();
 
             const quality = 'Epic'; const qualityBonus = 20; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
             if (!discoveredTraits[pendingHeatIndex]) { discoveredTraits[pendingHeatIndex] = true; renderCell(pendingHeatIndex); }
@@ -1594,7 +1675,7 @@
             }
         }
 
-        function cancelHeat() { forgePhase = 'idle'; if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
+        function cancelHeat() { forgePhase = 'idle'; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
 
         function handleDeath() {
             alert("Your active blade shattered! You lost the materials and traits inside it.");

@@ -69,7 +69,9 @@ Triggered by the **Heat** button while standing on a discovered trait. Interacti
 
 1. **Pulley** — tap to lower the bucket (2s animation).
 2. **Bellows** — repeatedly tap to pump heat. Each pump `+16` heat; heat decays at `18`/sec.
-3. **Stabilize** — keep heat in the **green zone (40–70)** for a cumulative **2.0 seconds**. Above 70 = "Too Hot", below 40 = "Too Cold" (both bleed stabilization progress).
+3. **Stabilize** — keep heat in the **green zone (40–70)** for a cumulative **2.0 seconds**. Above 70 = "Too Hot", below 40 shows "Use the bellow to heat the furnace." (both bleed stabilization progress).
+
+**Guidance cues:** the part to act on pulses with a glow and a bouncing hand points to it — the pulley first, then (after the bucket lowers) the bellows.
 
 On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` trait acquired"** toast appears (game-wide, not tutorial-only). During the tutorial this toast shows first, then the post-heat dialogue follows after a short delay.
 
@@ -128,7 +130,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 - **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Mixture" → record it → closing tip on reusing recorded mixtures → a bouncing arrow points to the Forge button to craft the sword → forge it → prompt to go sell it at the counter), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow.
 - **Tutorial hand pointers:** at each guided step a bouncing 👆/👇/👈/👉 hand points to the element to use next — the Steel & Magnesium metal buttons (until the 4 steel + 1 magnesium recipe is added), Heat, Forge, the left/right screen arrows, Search Inventory, the Chart button, Magnesium again (until the Flame trait is revealed on the map), and Record Mixture. Each hand clears once its action is taken. Data-driven via a `hand` field on the relevant `tutorialFlow` gate steps.
-- **Minimap (Chart modal):** a live canvas minimap of the full 50×50 grid (fully revealed — no fog) — tan ground, red-brown hazards, every trait drawn as its emoji icon at its location, and a pulsing blue marker for the player's position. (Replaces the old static `Minimap.png`, now unused.)
+- **Minimap (Chart modal):** a live canvas minimap of the full 50×50 grid (fully revealed — no fog) — uniform tan ground (hazards are **not** shown), every trait drawn as its emoji icon at its location, and a pulsing blue marker for the player's position. Supports **zoom** (scroll / pinch / on-screen +/− buttons, 1×–6×) and **pan** (drag), clamped to the map. **Tapping a trait icon** shows a small label with that trait's name below it. (Replaces the old static `Minimap.png`, now unused.)
 
 ## 9. Known discrepancies & open questions
 
