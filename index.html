@@ -174,13 +174,25 @@
             background-repeat: no-repeat; 
             background-attachment: local; 
         }
-        #screen-1 { 
-            background-image: url('assets/backgrounds/image_601c5b.jpg'); 
-            background-size: cover; 
-            background-position: top center; 
-            background-repeat: no-repeat; 
-            background-attachment: local; 
+        #screen-1 {
+            background-image: url('assets/backgrounds/Screen1bg.png');
+            background-size: cover;
+            background-position: top center;
+            background-repeat: no-repeat;
+            background-attachment: local;
+            display: flex;
+            flex-direction: column;
         }
+        /* Counter (screen 1) layout */
+        .counter-topbar { display: flex; justify-content: center; margin-bottom: 10px; flex-shrink: 0; }
+        #screen-1 #gold-text { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: none; }
+        #screen-1 #rep-text { color: inherit; background: none; border: none; padding: 0; }
+        .customer-stage { position: relative; width: 100%; flex: 1 1 auto; min-height: 360px; margin-bottom: 10px; }
+        .customer-img { position: absolute; left: -8px; bottom: 0; height: 100%; max-height: 480px; width: auto; object-fit: contain; object-position: bottom left; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
+        .customer-img.slide-in { animation: customerSlideIn 0.55s ease-out; }
+        @keyframes customerSlideIn { from { transform: translateX(-130%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .customer-panel { position: absolute; right: 0; top: 0; width: 56%; z-index: 2; }
+        .customer-panel .dialogue-bubble { width: 100%; box-sizing: border-box; flex-grow: 0; }
         #screen-2 { display: flex; flex-direction: column; padding: 10px; background-image: url('assets/backgrounds/2b64bc5e-a475-4868-ac35-3b751a16a749.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
 
         .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 15px 10px; z-index: 100; cursor: pointer; font-size: 20px; backdrop-filter: blur(2px); }
@@ -193,8 +205,11 @@
         .dialogue-bubble { background-color: #fff; padding: 12px; border-radius: 10px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-grow: 1; border: 1px solid #ccc; font-size: 14px; }
         .dialogue-bubble::after { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid #fff; }
 
-        .customer-actions { display: flex; gap: 5px; margin-bottom: 15px; }
-        #btnRefuse { background-color: #e74c3c; padding: 10px 5px; font-size: 11px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; }
+        .customer-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+        .customer-actions .btn-craft { margin-top: 0; width: 100%; padding: 9px 4px; font-size: 12px; }
+        #btnAutoSell { background-color: #27ae60; }
+        #btnAutoCraftSell { background-color: #8e44ad; }
+        #btnRefuse { background-color: #e74c3c; padding: 9px 4px; font-size: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         #btnRefuse:hover:not(:disabled) { background-color: #c0392b; }
 
         .status-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
@@ -261,6 +276,8 @@
 
         .move-btn { padding: 0; width: 100%; height: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.4); background-image: url('assets/ui/buttonui.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; background-color: transparent !important; display: flex; flex-direction: column; justify-content: center; align-items: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
         .move-empty { width: 100%; height: 100%; }
+        .move-cancel { background-image: url('assets/ui/buttoncancel.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; cursor: pointer; visibility: hidden; }
+        .move-cancel.show-cancel { visibility: visible; }
 
         #btnSteel { color: #E0E0E0; background-image: url('assets/ui/buttonui_steel.png'); }    
         #btnIron { color: #B0C4DE; background-image: url('assets/ui/buttonui_iron.png'); }  
@@ -547,25 +564,28 @@
             </div>
 
             <div class="screen" id="screen-1">
-                <div class="status-panel" style="padding: 15px 10px;">
-                    <div id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: inherit; background: none; border: none; padding: 0;">0</span></div>
+                <div class="counter-topbar">
+                    <span id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text">0</span></span>
                 </div>
 
-                <div class="npc-container">
-                    <div class="npc-emoji">🧔‍♂️</div>
-                    <div class="dialogue-bubble" id="dialogue-text">Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!</div>
-                </div>
-                
-                <div class="customer-actions">
-                    <button id="btnAutoSell" class="btn-craft" style="margin-top: 0; background-color: #27ae60; flex: 1; padding: 10px 2px; font-size: 11px;">🔍 Search Inventory</button>
-                    <button id="btnAutoCraftSell" class="btn-craft" style="margin-top: 0; background-color: #8e44ad; flex: 1; padding: 10px 2px; font-size: 11px;">⚡ Craft & Sell</button>
-                    <button id="btnRefuse">🛑 Refuse</button>
+                <div class="customer-stage">
+                    <img id="customer-img" class="customer-img" src="assets/customer/man2.png" alt="Customer">
+                    <div class="customer-panel">
+                        <div class="dialogue-bubble" id="dialogue-text">Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!</div>
+                        <div class="customer-actions">
+                            <button id="btnAutoSell" class="btn-craft">🔍 Search Inventory</button>
+                            <button id="btnAutoCraftSell" class="btn-craft">⚡ Craft &amp; Sell</button>
+                            <button id="btnRefuse">🛑 Refuse</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="list-panel">
-                    <h3>🛡️ Inventory (Vault)</h3>
-                    <div class="sword-list" id="sword-list">
-                        <div class="empty-list">Your inventory is empty. Forge a blade to store it here!</div>
+                    <h3 class="expandable-header" id="vault-header" onclick="toggleVault()">🛡️ Inventory (Vault) <span id="vault-arrow">▼</span></h3>
+                    <div class="expandable-content" id="vault-content">
+                        <div class="sword-list" id="sword-list">
+                            <div class="empty-list">Your inventory is empty. Forge a blade to store it here!</div>
+                        </div>
                     </div>
                 </div>
 
@@ -604,7 +624,7 @@
                             <button id="btnSteel" class="move-btn"></button>
                             <button id="btnAluminium" class="move-btn"></button>
                             <button id="btnMagnesium" class="move-btn"></button>
-                            <div class="move-empty"></div>
+                            <div id="btnCancelMove" class="move-empty move-cancel">✕</div>
                             <button id="btnBronze" class="move-btn"></button>
                             <button id="btnBlackIron" class="move-btn"></button>
                             <button id="btnIron" class="move-btn"></button>
@@ -1065,7 +1085,7 @@
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
-            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding down the metal button. A slider will come up that determines the number of blocks you move.<br>Hold magnesium and keep going west until you see a trait mark!" },
+            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding down the metal button. A slider will come up that determines the number of blocks you move. If you time it correctly, you can move up to 3 blocks while using only one metal piece. Plan your steps carefully and avoid the impure zones.<br>Hold magnesium and keep going west until you see a trait mark!" },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
             { text: "Click on 'record mixture' to save the metals we used to craft a sword with a specific trait." },
@@ -1129,15 +1149,27 @@
             document.getElementById('nav-left').style.display = currentScreenIndex === 0 ? 'none' : 'block';
             document.getElementById('nav-right').style.display = currentScreenIndex === 2 ? 'none' : 'block';
             if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300);
+            if (currentScreenIndex === 1) slideInCustomer(); // replay the slide-in when arriving at the counter
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
         }
 
         function toggleRecipes() {
             const content = document.getElementById('recipe-content'); const arrow = document.getElementById('recipe-arrow');
-            if (content.classList.contains('expanded')) { content.classList.remove('expanded'); arrow.textContent = '▼'; } 
+            if (content.classList.contains('expanded')) { content.classList.remove('expanded'); arrow.textContent = '▼'; }
             else { content.classList.add('expanded'); arrow.textContent = '▲'; }
         }
+        function toggleVault() {
+            const content = document.getElementById('vault-content'); const arrow = document.getElementById('vault-arrow');
+            if (content.classList.contains('expanded')) { content.classList.remove('expanded'); arrow.textContent = '▼'; }
+            else { content.classList.add('expanded'); arrow.textContent = '▲'; }
+        }
+        function openVault() { document.getElementById('vault-content').classList.add('expanded'); document.getElementById('vault-arrow').textContent = '▲'; }
+        // Customer portraits, on rotation. man2 is the first customer.
+        const customerImages = ['assets/customer/man2.png', 'assets/customer/man1.png', 'assets/customer/woman1.png'];
+        function setCustomerImage() { const img = document.getElementById('customer-img'); if (!img) return; img.src = customerImages[(Math.max(1, requestCount) - 1) % customerImages.length]; }
+        // Replay the customer's slide-in from the left.
+        function slideInCustomer() { const img = document.getElementById('customer-img'); if (!img) return; img.classList.remove('slide-in'); void img.offsetWidth; img.classList.add('slide-in'); }
 
         function toggleMetals() {
             const content = document.getElementById('metals-content'); const arrow = document.getElementById('metals-arrow');
@@ -1296,6 +1328,7 @@
 
         function setRandomRequest() {
             requestCount++;
+            setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
             if (requestCount === 1) { requestedTrait = null; requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; return; } 
             else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; return; }
 
@@ -1420,6 +1453,7 @@
             if (isProcessingCustomer) return;
             const idx = findValidSwordIndex();
             if (idx === -1) { alert("No sword in your inventory matches this customer's request."); return; }
+            openVault(); // make sure the Inventory panel is expanded so the match is visible
             vaultHighlightIndex = idx; renderVault(); hideHands();
             const cards = document.getElementById('sword-list').querySelectorAll('.sword-card');
             if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1484,6 +1518,7 @@
 
             pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1; lastPreviewSteps = 0;
             document.getElementById('inline-purify-container').style.visibility = 'visible'; document.getElementById('purify-thumb').style.left = '0%';
+            document.getElementById('btnCancelMove').classList.add('show-cancel'); // cancel target in the grid centre
             isPurifying = true; lastPurifyTime = performance.now(); purifyAnimationFrame = requestAnimationFrame(updatePurifyLoop);
         }
 
@@ -1513,7 +1548,16 @@
         function stopInlinePurify() {
             if (!isPurifying) return; isPurifying = false; cancelAnimationFrame(purifyAnimationFrame);
             document.getElementById('inline-purify-container').style.visibility = 'hidden';
+            document.getElementById('btnCancelMove').classList.remove('show-cancel');
             clearMovePreview(); resolvePurifyMinigame();
+        }
+
+        // Abort a hold without moving or spending metal (drag onto the centre button, or right-click).
+        function cancelInlinePurify() {
+            if (!isPurifying) return; isPurifying = false; cancelAnimationFrame(purifyAnimationFrame); activeMoveKey = null;
+            document.getElementById('inline-purify-container').style.visibility = 'hidden';
+            document.getElementById('btnCancelMove').classList.remove('show-cancel');
+            clearMovePreview();
         }
 
         function resolvePurifyMinigame() {
@@ -1849,6 +1893,18 @@
 
         window.addEventListener('mouseup', () => { if (isPurifying && !activeMoveKey) stopInlinePurify(); });
         window.addEventListener('touchend', () => { if (isPurifying && !activeMoveKey) stopInlinePurify(); });
+
+        // Cancel a held move: drag the cursor onto the centre cancel button, slide a finger over it, or right-click.
+        (function setupMoveCancel() {
+            const cancelBtn = document.getElementById('btnCancelMove'); if (!cancelBtn) return;
+            cancelBtn.addEventListener('mouseenter', () => { if (isPurifying) cancelInlinePurify(); });
+            window.addEventListener('touchmove', (e) => {
+                if (!isPurifying || !e.touches.length) return;
+                const r = cancelBtn.getBoundingClientRect(), t = e.touches[0];
+                if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) cancelInlinePurify();
+            }, { passive: true });
+            document.addEventListener('contextmenu', (e) => { if (isPurifying) { e.preventDefault(); cancelInlinePurify(); } });
+        })();
 
         document.addEventListener('keydown', (e) => {
             if(isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;

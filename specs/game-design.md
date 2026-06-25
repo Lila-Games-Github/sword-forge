@@ -56,6 +56,8 @@ Cost: exactly **1 metal** of the direction's type (consumed once, regardless of 
 
 While the button is held, a **live path preview** (the green `tile_move.png`) highlights the cells the sword would travel into — 1, 2 or 3 tiles in the move direction — updating in sync with the slider's current zone, and clamped at the map edge. It clears on release, and the actual dash matches the previewed distance.
 
+**Cancel a held move** (no movement, no metal spent) by dragging the cursor onto the **cancel button** that appears in the centre of the 3×3 movement grid while holding, sliding a finger over it, or **right-clicking**.
+
 The slider is **locked during the early guided tutorial** (moves are single-block) and unlocked when the tutorial reaches the chart/slider lesson (also unlocked on first craft as a fallback); once unlocked it stays available for the rest of the game.
 
 ## 4. Traits & heating
@@ -128,6 +130,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 ## 8. UI / UX
 
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
+- **Counter (Customers) screen:** a slim gold/reputation pill at the top; the customer rendered as an **image** anchored bottom-left that **slides in from the left** on each new customer, **rotating** through `assets/customer/man2.png` (always the first customer) → `man1.png` → `woman1.png`; the request speech bubble (tail pointing to the customer) with **Search Inventory / Craft & Sell / Refuse** stacked beside it; and the expandable **Inventory (Vault)** then **Saved Recipes** panels at the bottom. Background: `Screen1bg.png`.
 - **Forge screen:** status panel (health bar, rep, gold, active traits), draggable/zoomable 50×50 viewport, 3×3 movement grid, action buttons (Heat, Forge, Record Mixture, 🗺️ Chart). ("Record Mixture" saves a Blueprint — see §6.)
 - **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart → learn the Purify-dash slider → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Mixture" → record it → closing tip on reusing recorded mixtures → a bouncing arrow points to the Forge button to craft the sword → forge it → prompt to go sell it at the counter), plus a contextual tip at the Shop unlock (50g).
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow.
