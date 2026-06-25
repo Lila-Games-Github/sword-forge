@@ -246,6 +246,7 @@
             z-index: 10; 
         }
 
+        .move-preview { background-image: url('assets/map/tile_move.png') !important; background-color: transparent !important; background-size: 100% 100% !important; }
         .glow-trait { animation: traitPulse 1s infinite alternate !important; box-shadow: 0 0 15px 5px #f39c12 !important; background-color: #fff3e0 !important; z-index: 15; border-radius: 4px; }
         @keyframes traitPulse { from { box-shadow: 0 0 8px #f1c40f; } to { box-shadow: 0 0 18px 6px #e67e22; } }
 
@@ -1165,6 +1166,7 @@
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
         let isPurifying = false; let purifyProgress = 0; let purifyDirection = 1; let purifyAnimationFrame = null; let lastPurifyTime = 0; let pendingMove = {dx: 0, dy: 0}; let activeMoveKey = null;
+        let movePreviewCells = []; let lastPreviewSteps = 0;
 
         const swordShapes = [ 'Shortsword', 'Longsword', 'Broadsword', 'Katana', 'Rapier', 'Cutlass', 'Claymore', 'Saber', 'Scimitar', 'Machete' ];
         
@@ -1480,25 +1482,42 @@
             // Guided phase: slider locked -> each press adds 1 metal to the bucket and moves exactly 1 block.
             if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; move(dx, dy, false); updateUI(); return; }
 
-            pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1;
+            pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1; lastPreviewSteps = 0;
             document.getElementById('inline-purify-container').style.visibility = 'visible'; document.getElementById('purify-thumb').style.left = '0%';
             isPurifying = true; lastPurifyTime = performance.now(); purifyAnimationFrame = requestAnimationFrame(updatePurifyLoop);
+        }
+
+        // Slider distance: center (40-60)=3, mid (25-75)=2, else 1 block.
+        function stepsFromProgress(p) { return (p >= 40 && p <= 60) ? 3 : (p > 25 && p < 75) ? 2 : 1; }
+        function clearMovePreview() { movePreviewCells.forEach(i => renderCell(i)); movePreviewCells = []; }
+        function showMovePreview(steps) {
+            clearMovePreview();
+            for (let i = 1; i <= steps; i++) {
+                const nx = playerX + pendingMove.dx * i, ny = playerY + pendingMove.dy * i;
+                if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) break; // dash stops at the map edge
+                const idx = ny * gridSize + nx; const cell = domCells[idx];
+                cell.classList.add('move-preview'); cell.textContent = ''; movePreviewCells.push(idx);
+            }
         }
 
         function updatePurifyLoop(time) {
             if (!isPurifying) return; const dt = time - lastPurifyTime; lastPurifyTime = time;
             purifyProgress += 0.15 * dt * purifyDirection;
             if (purifyProgress >= 100) { purifyProgress = 100; purifyDirection = -1; } else if (purifyProgress <= 0) { purifyProgress = 0; purifyDirection = 1; }
-            document.getElementById('purify-thumb').style.left = purifyProgress + '%'; purifyAnimationFrame = requestAnimationFrame(updatePurifyLoop);
+            document.getElementById('purify-thumb').style.left = purifyProgress + '%';
+            const steps = stepsFromProgress(purifyProgress); // live path preview, in sync with the slider
+            if (steps !== lastPreviewSteps) { lastPreviewSteps = steps; showMovePreview(steps); }
+            purifyAnimationFrame = requestAnimationFrame(updatePurifyLoop);
         }
 
         function stopInlinePurify() {
             if (!isPurifying) return; isPurifying = false; cancelAnimationFrame(purifyAnimationFrame);
-            document.getElementById('inline-purify-container').style.visibility = 'hidden'; resolvePurifyMinigame();
+            document.getElementById('inline-purify-container').style.visibility = 'hidden';
+            clearMovePreview(); resolvePurifyMinigame();
         }
 
         function resolvePurifyMinigame() {
-            let totalSteps = (purifyProgress >= 40 && purifyProgress <= 60) ? 3 : (purifyProgress > 25 && purifyProgress < 75) ? 2 : 1; 
+            let totalSteps = stepsFromProgress(purifyProgress);
             const metal = getMetalForDir(pendingMove.dx, pendingMove.dy); availableMetals[metal]--; usedMetals[metal]++;
             for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false) || health <= 0) break; } updateUI();
         }

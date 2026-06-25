@@ -54,6 +54,8 @@ Holding a movement button charges a slider that bounces 0↔100 (speed `0.15`). 
 
 Cost: exactly **1 metal** of the direction's type (consumed once, regardless of dash distance). The dash stops early at the map edge or on death.
 
+While the button is held, a **live path preview** (the green `tile_move.png`) highlights the cells the sword would travel into — 1, 2 or 3 tiles in the move direction — updating in sync with the slider's current zone, and clamped at the map edge. It clears on release, and the actual dash matches the previewed distance.
+
 The slider is **locked during the early guided tutorial** (moves are single-block) and unlocked when the tutorial reaches the chart/slider lesson (also unlocked on first craft as a fallback); once unlocked it stays available for the rest of the game.
 
 ## 4. Traits & heating
