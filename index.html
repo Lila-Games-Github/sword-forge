@@ -211,6 +211,7 @@
         #btnAutoCraftSell { background-color: #8e44ad; }
         #btnRefuse { background-color: #e74c3c; padding: 9px 4px; font-size: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         #btnRefuse:hover:not(:disabled) { background-color: #c0392b; }
+        #btnRefuse:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .status-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
         .status-header { display: flex; justify-content: space-between; align-items: center; }
@@ -362,6 +363,8 @@
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
         #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
         #traitToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #flameHintBanner { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-14px); width: 88%; max-width: 310px; box-sizing: border-box; background: rgba(44, 33, 22, 0.96); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 14px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; line-height: 1.35; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1002; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; }
+        #flameHintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         .cancel-btn { background-color: #e74c3c; width: 100%; padding: 10px; color: #fff; border: none; border-radius: 4px; font-weight: bold; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; }
 
@@ -574,7 +577,6 @@
                         <div class="dialogue-bubble" id="dialogue-text">Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!</div>
                         <div class="customer-actions">
                             <button id="btnAutoSell" class="btn-craft">🔍 Search Inventory</button>
-                            <button id="btnAutoCraftSell" class="btn-craft">⚡ Craft &amp; Sell</button>
                             <button id="btnRefuse">🛑 Refuse</button>
                         </div>
                     </div>
@@ -763,6 +765,7 @@
         </div>
 
         <div id="traitToast">✨ You've reached a trait</div>
+        <div id="flameHintBanner">See the trait mark ❓… add some iron to go down to it.</div>
         <span id="tutHand1" class="tut-hand"></span>
         <span id="tutHand2" class="tut-hand"></span>
         <span id="heatHand" class="tut-hand" style="z-index: 1003;"></span>
@@ -1066,33 +1069,37 @@
 
         let tutorialStep = 0; let hasShownShopTutorial = false;
         const tutorialFlow = [
-            { text: "After a few days of cleaning and repairing the forge, it is now ready to craft powerful swords! Maybe some will even buy from your little shop? Let's see how to...", waitAction: null },
-            { title: "Selecting the metals", text: "We need to select which metals to use, and heat them well together to get a strong sword ingot for the blade. Let's start with 4 steel and 1 magnesium and see what we get!", frame: 2, waitAction: null },
+            { text: "After a few days of cleaning and repairing the forge, it is now ready! Let's craft your first sword and see if customers stop by!", waitAction: null },
+            { title: "Selecting the metals", text: "Every sword starts with the right metals. Add 4 Steel and 1 Magnesium to the bucket to begin forging.", frame: 2, waitAction: null },
             { action: 'highlight', duration: 3000 },
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
             { title: "Heating", text: 'You have discovered a type of alloy! Heat the metals into an alloy to discover what it is!', waitAction: null },
             { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
-            { text: "Now that we have heated the mixture, it's time to select what shape we want for the blade. We know how to craft a shortsword, longsword and a broadsword.", waitAction: null },
-            { text: "Maybe we will learn more later, but for now, let's craft one of the three we know.<br>Click on the forge button to move to the anvil and start hammering!", waitAction: null },
+            { text: "The ingot is ready. Click on the forge button then choose one of the three blades you know: Shortsword, Longsword, or Broadsword.", waitAction: null },
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
-            { text: "Let's see if we have any customers!<br>Click on the left arrow to go to the counter." },
+            { text: "Beautiful! Let's see if you have any customers! Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
-            { text: "Find the sword in the inventory and give it to the customer. With lots of swords, tap Search Inventory to automatically find and highlight the one they want — then tap Give NPC to sell it!" },
+            { text: "Find the customer's sword in your inventory. Use Search Inventory if you need help, then tap Give NPC to sell it." },
             { waitAction: 'sell', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
-            { text: "Most customers are direct about what they want. But some customers don't really know what they are looking for. It is our job as a master craftsman to figure out what they need!" },
             { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
-            { text: "Oh! We have another customer, and he wants a sword with the fire trait.<br>Let's go back to our forge! Click on the right arrow." },
+            { text: "Oh! You have another customer, and he wants a sword with the fire trait. Let's go back to the forge! Click on the right arrow." },
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
-            { onShow: () => { purifyEnabled = true; }, text: "This time, try holding down the metal button. A slider will come up that determines the number of blocks you move. If you time it correctly, you can move up to 3 blocks while using only one metal piece. Plan your steps carefully and avoid the impure zones.<br>Hold magnesium and keep going west until you see a trait mark!" },
+            { onShow: () => { purifyEnabled = true; }, text: "Hold a metal button to use the slider and move up to 3 blocks with just one metal. Plan your path and avoid impure zones. Now hold Magnesium and move west for a fiery sword!" },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
             { text: "Click on 'record mixture' to save the metals we used to craft a sword with a specific trait." },
             { waitAction: 'recordMixture', hand: [{ sel: '#btnSaveRecipe', side: 'above' }] },
-            { text: "Once we have discovered a trait, we don't need to go through the grid again and again. But of course, if you feel the need to make your process more efficient, keep trying to find the most efficient path to a trait and record the metal mixture used!" },
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
             { text: "Go to the counter and sell it!" },
+            { waitAction: 'sellFlame' },
+            { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'delay', duration: 4000 },
+            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); }, text: "You know how to craft a flame sword! Open your Saved Recipes below, tap Auto-Craft to forge one, then give it to the customer." },
+            { waitAction: 'craftFlameRecipe', hand: [{ sel: '#blueprints-list .btn-craft', side: 'above' }] },
+            { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
+            { action: 'delay', duration: 4000 },
+            { onShow: () => { setRandomRequest(); updateUI(); }, text: "Great work! Some customers know exactly what they want. Others need your expert advice. Help them find the perfect sword!" },
         ];
 
         function playTutorialStep() {
@@ -1179,7 +1186,7 @@
 
         const gridSize = 50; const totalCells = gridSize * gridSize; const visionRadius = 3.5; 
         let playerX = 25; let playerY = 25; let health = 100; let gold = 0; let reputation = 0;
-        let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false;
+        let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false; let lastForgedMixture = null; let forgeLockedForRecord = false;
         let activeTraits = []; let requestedTrait = null; let requestedShape = null; 
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
@@ -1246,7 +1253,7 @@
             document.getElementById('forgeResultModal').style.display = 'flex';
         }
 
-        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].text) setTimeout(playTutorialStep, 400); }
+        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && (tutorialFlow[tutorialStep].text || tutorialFlow[tutorialStep].hand)) setTimeout(playTutorialStep, 400); }
 
         function generateLayout() {
             boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false);
@@ -1331,6 +1338,7 @@
             setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
             if (requestCount === 1) { requestedTrait = null; requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; return; } 
             else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; return; }
+            else if (requestCount === 3) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Do you have a good sword? I am going to fight an ice dragon — I heard they are weak to heat.`; return; }
 
             let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
             requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
@@ -1384,11 +1392,11 @@
             const goldText = document.getElementById('gold-text');
             if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${reputation < 0 ? '#e74c3c' : reputation > 10 ? '#27ae60' : '#2980b9'};">${reputation}</span>`; }
 
-            const btnAutoSell = document.getElementById('btnAutoSell'); const btnAutoCraftSell = document.getElementById('btnAutoCraftSell');
-            if (isProcessingCustomer) { 
-                btnAutoSell.disabled = true; btnAutoCraftSell.disabled = true; 
-            } else { 
-                btnAutoSell.disabled = findValidSwordIndex() === -1; btnAutoCraftSell.disabled = findValidBlueprintIndex() === -1; 
+            const btnAutoSell = document.getElementById('btnAutoSell');
+            if (isProcessingCustomer) {
+                btnAutoSell.disabled = true;
+            } else {
+                btnAutoSell.disabled = findValidSwordIndex() === -1;
             }
 
             const inventory = document.getElementById('inventory');
@@ -1407,7 +1415,7 @@
                 }
             });
 
-            document.getElementById('mining-text').textContent = `⚒️ Smelting ${metalsPerTick} Metal/Sec...`; document.getElementById('btnUpgradeSmelter').disabled = gold < 50; document.getElementById('btnRefuse').disabled = isProcessingCustomer;
+            document.getElementById('mining-text').textContent = `⚒️ Smelting ${metalsPerTick} Metal/Sec...`; document.getElementById('btnUpgradeSmelter').disabled = gold < 50; document.getElementById('btnRefuse').disabled = isProcessingCustomer || requestCount <= 3;
             
             const currentIndex = playerY * gridSize + playerX; const currentCellContent = boardData[currentIndex]; let canHeat = false;
             if (currentCellContent !== '' && currentCellContent !== '💥') {
@@ -1416,11 +1424,12 @@
             const heatBtn = document.getElementById('btnHeat'); heatBtn.disabled = !canHeat || isProcessingCustomer;
             if (heatBtn.disabled) hideHeatArrow(); // tutorial arrow only makes sense while Heat is clickable
             heatBtn.classList.toggle('btn-glow', !heatBtn.disabled); // pulsate when standing on a trait (Heat available)
-            const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0; // Forge only after a heating minigame has fused a trait
+            const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0 || forgeLockedForRecord; // Forge only after a heating minigame has fused a trait; locked until the mixture is recorded during the guided record step
             if (forgeBtn.disabled) hideForgeArrow();
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
             // First-craft stage: Record Mixture and Chart are locked until the first sword is forged.
-            document.getElementById('btnSaveRecipe').disabled = tutorialMetalLock;
+            const saveBtn = document.getElementById('btnSaveRecipe'); saveBtn.disabled = tutorialMetalLock;
+            saveBtn.textContent = (activeTraits.length === 0 && lastForgedMixture) ? 'Record Last Mixture' : 'Record Mixture';
             document.getElementById('btnChart').disabled = tutorialMetalLock;
 
             if (shopUnlocked) {
@@ -1601,6 +1610,9 @@
             if (traitToastTimer) clearTimeout(traitToastTimer);
             traitToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
         }
+        // Persistent top banner shown while the Flame trait's ❓ is revealed but not yet reached (tutorial guidance).
+        function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
+        function hideFlameHint() { document.getElementById('flameHintBanner').classList.remove('show'); }
 
         function move(dx, dy, consumeMetal = true) {
             const metal = getMetalForDir(dx, dy); if (consumeMetal && availableMetals[metal] <= 0) return false;
@@ -1623,10 +1635,10 @@
                     // hide steel+magnesium hands once the guided recipe (4 steel + 1 magnesium) is added
                     if (wa === 'reachTrait' && usedMetals.steel >= 4 && usedMetals.magnesium >= 1) hideHands();
                     // hide the magnesium hand once the Flame trait is revealed on the map
-                    if (wa === 'reachFlameTrait') { const fi = boardData.indexOf('🔥'); if (fi !== -1 && exploredCells[fi]) hideHands(); }
+                    if (wa === 'reachFlameTrait') { const fi = boardData.indexOf('🔥'); if (fi !== -1 && exploredCells[fi]) { hideHands(); showFlameHint(); } }
                     if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
                     else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 4000); }
-                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); tutorialStep++; showHeatArrow(); }
+                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); hideFlameHint(); tutorialStep++; showHeatArrow(); }
                 }
                 return true;
             }
@@ -1734,7 +1746,7 @@
             if (tutorialStep < tutorialFlow.length) {
                 const heatIdx = tutorialFlow.findIndex(s => s.waitAction === 'heat');
                 if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 2500); }
-                else if (tutorialFlow[tutorialStep].waitAction === 'heatFlame') { tutorialStep++; setTimeout(playTutorialStep, 2500); }
+                else if (tutorialFlow[tutorialStep].waitAction === 'heatFlame') { forgeLockedForRecord = true; updateUI(); tutorialStep++; setTimeout(playTutorialStep, 2500); }
             }
         }
 
@@ -1742,20 +1754,27 @@
 
         function handleDeath() {
             alert("Your active blade shattered! You lost the materials and traits inside it.");
-            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
+            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false;
             const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25;
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
         }
 
         function saveRecipe() {
-            if (activeTraits.length === 0) { alert("You need at least one heated trait to save a recipe!"); return; }
-            const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0); if (totalUsed === 0) { alert("You haven't used any metals yet!"); return; }
-            const traitNames = activeTraits.map(t => `${t.quality} ${t.name}`).join(' & ');
-            
+            // Record the active blade's mixture, or — when nothing is active (e.g. right after forging) — the last forged mixture.
+            let traits, recipe;
+            if (activeTraits.length > 0) {
+                const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0); if (totalUsed === 0) { alert("You haven't used any metals yet!"); return; }
+                traits = activeTraits; recipe = usedMetals;
+            } else if (lastForgedMixture) {
+                traits = lastForgedMixture.traits; recipe = lastForgedMixture.recipe;
+            } else { alert("You need at least one heated trait to save a recipe!"); return; }
+            const traitNames = traits.map(t => `${t.quality} ${t.name}`).join(' & ');
+
             const defaultDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
 
-            savedBlueprints.push({ name: traitNames + " Blade", traits: [...activeTraits], recipe: { ...usedMetals }, design: defaultDesign });
+            savedBlueprints.push({ name: traitNames + " Blade", traits: [...traits], recipe: { ...recipe }, design: defaultDesign });
             showTraitToast(`📜 ${traitNames} mixture recorded`);
+            forgeLockedForRecord = false; // recording done — Forge is available again
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
             // Tutorial: after the "mixture recorded" toast is read (~2s), show the closing dialogue.
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
@@ -1769,6 +1788,7 @@
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
             }, bp.traits);
         }
 
@@ -1781,6 +1801,7 @@
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Mixture & Chart
+                lastForgedMixture = { traits: [...activeTraits], recipe: { ...usedMetals } }; // enables "Record Last Mixture" after forging
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
@@ -1835,8 +1856,11 @@
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
                 gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1;
 
-                processCustomerDeparture(`Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
+                const isFlame2 = tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sellFlame2';
+                processCustomerDeparture(isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
+                else if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sellFlame') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
+                else if (isFlame2) { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
             } else if (!hasRequestedTrait) {
                 alert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
@@ -1845,32 +1869,6 @@
         }
 
         document.getElementById('btnAutoSell').onclick = searchInventory;
-        
-        document.getElementById('btnAutoCraftSell').onclick = () => {
-            if (isProcessingCustomer) return; 
-            const bpIdx = findValidBlueprintIndex(); 
-            if (bpIdx === -1) return;
-            
-            const bp = savedBlueprints[bpIdx]; 
-            metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
-            
-            const chosenShape = requestedShape || swordShapes[0]; 
-            let matchingBladeIndex = partsFor('blade', bp.traits).findIndex(b => b.id === chosenShape);
-            if (matchingBladeIndex === -1) matchingBladeIndex = 0;
-
-            const autoDesign = { blade: matchingBladeIndex, grip: 0, guard: 0, pommel: 0 };
-            const newSword = { shape: chosenShape, design: autoDesign, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
-            
-            totalSwordsCrafted++; purifyEnabled = true;
-            isProcessingCustomer = true;
-            
-            let goldEarned = newSword.value; 
-            if (requestCount === 1) goldEarned = Math.max(15, goldEarned); 
-            if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
-            gold += goldEarned; reputation++; 
-            
-            processCustomerDeparture(`Ah! An auto-crafted masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
-        };
 
         function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); }
 
