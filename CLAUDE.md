@@ -26,11 +26,18 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
   - `assets/backgrounds/` — scene panels, shop/forge backgrounds
   - `assets/ui/` — buttons and UI chrome
   - `assets/forge/` — forge props (bellow, bucket, pulley)
-  - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images
-  - `assets/map/` — grid tiles, minimap
+  - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images (base `balanced_*` set + trait skins like `flame_*`)
+  - `assets/map/` — grid tiles (`tile_normal/hazard/sword/move`), minimap
+  - `assets/customer/` — counter customer portraits (`man1`, `man2`, `woman1`), rotated per customer
   - `assets/unused/` — files present but not currently referenced (review before adding more)
 - **`screenshots/`** — dev/marketing screenshots; not referenced by the game.
-- After a gameplay change, verify the full loop in a browser before pushing.
+- After a gameplay change, verify the affected behavior before pushing.
+
+## Verifying changes
+
+- The browser **screenshot tool times out on this game** — a continuous ember/`requestAnimationFrame` loop keeps the page from ever going idle. Don't rely on screenshots.
+- Instead verify with the Claude Preview tools via `.claude/launch.json` (`preview_start` → Node static server on port 5678) and `preview_eval`: drive functions directly, read `getBoundingClientRect`/computed styles/canvas pixels, and check `preview_console_logs` for errors. Resize to mobile (375px) before measuring layout, since the headless viewport otherwise reports width 0.
+- The **tutorial is a data-driven `tutorialFlow` array**: each step is a dialogue (`text`/`title`/`frame`), an `action`, or a `waitAction` gate; gates also carry an optional `hand` spec for the on-screen pointer. Gameplay functions advance it by checking `tutorialFlow[tutorialStep].waitAction`.
 
 ## Project tracking
 
