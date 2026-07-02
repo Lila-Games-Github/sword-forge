@@ -325,6 +325,12 @@
         .btn-sell { background: #3498db; }
         .btn-shop { background: #9b59b6; }
         .empty-list { color: #888; font-size: 12px; font-style: italic; text-align: center; width: 100%; padding: 5px 0; }
+        /* Recorded Compositions: compact 5-per-row tiles showing just the trait icon; tap one to reveal its details below. */
+        .recipe-tile-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .recipe-tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #f4f6f7; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; font-size: 20px; line-height: 1; user-select: none; }
+        .recipe-tile:hover { border-color: #95a5a6; }
+        .recipe-tile.selected { border: 2px solid #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.75); }
+        #recipe-detail:empty { display: none; }
         .btn-craft { background: #27ae60; color: white; border: none; padding: 8px 10px; border-radius: 4px; margin-top: 8px; width: 100%; font-weight: bold; font-size: 12px; }
         .btn-craft:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.6; }
 
@@ -359,6 +365,11 @@
         .dialogue-frame.frame2 { background-image: url('assets/ui/dialogue-frame2.png'); aspect-ratio: 979 / 1309; padding: 0; }
         .dialogue-frame.frame2 .dialogue-title { position: absolute; top: 13%; left: 11%; right: 11%; margin: 0; font-size: 14px; }
         .dialogue-frame.frame2 .dialogue-text { position: absolute; top: 20%; left: 11%; right: 11%; bottom: 42%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
+        /* Frames 9 & 10: Purify-slider lesson. Art (tap/hold, avoid-hazards) is baked into the lower half, so text sits in the upper parchment. */
+        .dialogue-frame.frame9, .dialogue-frame.frame10 { aspect-ratio: 979 / 1309; padding: 0; }
+        .dialogue-frame.frame9 { background-image: url('assets/ui/dialogue-frame9.png'); }
+        .dialogue-frame.frame10 { background-image: url('assets/ui/dialogue-frame10.png'); }
+        .dialogue-frame.frame9 .dialogue-text, .dialogue-frame.frame10 .dialogue-text { position: absolute; top: 14%; left: 11%; right: 11%; bottom: 50%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
 
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
         #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
@@ -593,7 +604,7 @@
 
                 <div class="list-panel">
                     <h3 class="expandable-header" id="recipe-header" onclick="toggleRecipes()">
-                        📜 Saved Recipes <span id="recipe-arrow">▼</span>
+                        📜 Recorded Compositions <span id="recipe-arrow">▼</span>
                     </h3>
                     <div class="expandable-content" id="recipe-content">
                         <div class="sword-list" id="blueprints-list">
@@ -638,7 +649,7 @@
                 <div class="action-area">
                     <button class="action-btn" id="btnHeat">Heat<span id="heatArrow" class="tut-arrow">👇</span></button>
                     <button class="action-btn" id="btnForge">Forge<span id="forgeArrow" class="tut-arrow">👇</span></button>
-                    <button class="action-btn" id="btnSaveRecipe">Record Mixture</button>
+                    <button class="action-btn" id="btnSaveRecipe">Record Composition</button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
                 </div>
 
@@ -738,9 +749,13 @@
                         <button class="minimap-zoom-btn" onclick="zoomMinimapAt(250,250,1.3)">+</button>
                         <button class="minimap-zoom-btn" onclick="zoomMinimapAt(250,250,1/1.3)">−</button>
                     </div>
+                    <div id="chartHint" style="display:none; position:absolute; left:0; top:0; transform:translate(-50%,-100%); pointer-events:none; z-index:5; text-align:center;">
+                        <div id="chartHintLabel" style="background:rgba(44,33,22,0.96); color:#f0d8a0; border:1px solid #c8a84b; border-radius:10px; padding:3px 9px; font-family:'Cinzel',serif; font-size:11px; font-weight:bold; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); margin-bottom:1px;">Your location</div>
+                        <div style="font-size:26px; line-height:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.75)); animation:tutHandBob 0.7s ease-in-out infinite alternate;">👇</div>
+                    </div>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin-top:10px; font-size:11px; color:#4a3623; font-family:'Cinzel',serif;">
-                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3aa0ff;border:1px solid #fff;vertical-align:middle;"></span> You</span>
+                    <span><img src="assets/map/tile_sword.png" style="width:16px;height:16px;vertical-align:middle;object-fit:contain;"> You</span>
                     <span>Traits shown as icons — tap one for its name</span>
                     <span>Scroll / pinch to zoom · drag to pan</span>
                 </div>
@@ -896,7 +911,9 @@
         }
 
         let minimapAnim = null, minimapStatic = null;
+        const minimapSwordImg = new Image(); minimapSwordImg.src = 'assets/map/tile_sword.png'; // same player icon as the grid map
         let minimapZoom = 1, minimapPanX = 0, minimapPanY = 0, selectedTraitCell = -1;
+        let chartHintTarget = null, chartHintTimer = null; // tutorial: alternating "Your location" / "Flame trait" pointer on the minimap
 
         // Build the static layer once: full 50x50 ground + every trait icon (hazards are NOT shown).
         function buildMinimapStatic() {
@@ -935,18 +952,39 @@
             // pulsing player marker
             const pulse = 0.5 + 0.5 * Math.sin((t || 0) / 300);
             const px = (playerX * s + s / 2) * minimapZoom + minimapPanX, py = (playerY * s + s / 2) * minimapZoom + minimapPanY;
-            ctx.beginPath(); ctx.arc(px, py, 6 + 3 * pulse, 0, Math.PI * 2); ctx.fillStyle = 'rgba(52,160,255,0.95)'; ctx.fill();
-            ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+            if (minimapSwordImg.complete && minimapSwordImg.naturalWidth) {
+                // same sword icon as the grid map, with a pulsing blue glow to mark the player
+                const sz = 28; ctx.save(); ctx.shadowColor = 'rgba(52,160,255,0.9)'; ctx.shadowBlur = 5 + 6 * pulse;
+                ctx.drawImage(minimapSwordImg, px - sz / 2, py - sz / 2, sz, sz); ctx.restore();
+            } else {
+                ctx.beginPath(); ctx.arc(px, py, 6 + 3 * pulse, 0, Math.PI * 2); ctx.fillStyle = 'rgba(52,160,255,0.95)'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+            }
+            // Tutorial: alternating pointer over the player marker / Flame icon (tracks zoom & pan).
+            if (chartHintTarget) {
+                const hint = document.getElementById('chartHint');
+                let gx = playerX, gy = playerY, label = 'Your location';
+                if (chartHintTarget === 'flame') { const fi = boardData.indexOf('🔥'); if (fi !== -1) { gx = fi % gridSize; gy = Math.floor(fi / gridSize); label = 'Flame trait'; } }
+                const hx = (gx * s + s / 2) * minimapZoom + minimapPanX, hy = (gy * s + s / 2) * minimapZoom + minimapPanY;
+                if (hx < 0 || hy < 0 || hx > canvas.width || hy > canvas.height) { hint.style.display = 'none'; }
+                else {
+                    const disp = canvas.clientWidth / canvas.width;
+                    hint.style.left = Math.round(hx * disp) + 'px'; hint.style.top = Math.round(hy * disp - 6) + 'px';
+                    document.getElementById('chartHintLabel').textContent = label; hint.style.display = 'block';
+                }
+            }
             // selected trait name label, below the icon
             if (selectedTraitCell >= 0) {
                 const trait = baseTraits.find(tt => tt.symbol === boardData[selectedTraitCell]);
                 if (!trait) { selectedTraitCell = -1; return; }
                 const gx = selectedTraitCell % gridSize, gy = Math.floor(selectedTraitCell / gridSize);
                 const sx = (gx * s + s / 2) * minimapZoom + minimapPanX, sy = (gy * s + s / 2) * minimapZoom + minimapPanY;
-                ctx.font = 'bold 12px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                const tw = ctx.measureText(trait.name).width, padX = 8, h = 18, boxY = sy + s * minimapZoom * 0.7 + 3;
-                ctx.fillStyle = 'rgba(44,33,22,0.95)'; roundRectPath(ctx, sx - tw / 2 - padX, boxY, tw + padX * 2, h, 5); ctx.fill();
-                ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 1; ctx.stroke();
+                // The 500px canvas is displayed much smaller, so scale the label up by that ratio to keep it readable.
+                const k = canvas.width / (canvas.clientWidth || canvas.width);
+                ctx.font = 'bold ' + Math.round(13 * k) + 'px Cinzel, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                const tw = ctx.measureText(trait.name).width, padX = 8 * k, h = 20 * k, boxY = sy + s * minimapZoom * 0.7 + 4 * k;
+                ctx.fillStyle = 'rgba(44,33,22,0.95)'; roundRectPath(ctx, sx - tw / 2 - padX, boxY, tw + padX * 2, h, 6 * k); ctx.fill();
+                ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 1.5 * k; ctx.stroke();
                 ctx.fillStyle = '#f0d8a0'; ctx.fillText(trait.name, sx, boxY + h / 2);
             }
         }
@@ -980,6 +1018,18 @@
             canvas.addEventListener('touchend', e => { if (dragging && !moved && e.changedTouches.length) minimapSelectAt(e.changedTouches[0].clientX, e.changedTouches[0].clientY); dragging = false; pinchDist = 0; });
         })();
 
+        // Tutorial: point at the player's location, then the Flame trait, alternating every 3s until the chart closes.
+        function startChartHint() {
+            chartHintTarget = 'player';
+            if (chartHintTimer) clearInterval(chartHintTimer);
+            chartHintTimer = setInterval(() => { chartHintTarget = (chartHintTarget === 'player') ? 'flame' : 'player'; }, 3000);
+        }
+        function stopChartHint() {
+            chartHintTarget = null;
+            if (chartHintTimer) { clearInterval(chartHintTimer); chartHintTimer = null; }
+            const h = document.getElementById('chartHint'); if (h) h.style.display = 'none';
+        }
+
         function openChartModal() {
             document.getElementById('chartModal').style.display = 'flex';
             hideHands();
@@ -987,10 +1037,13 @@
             buildMinimapStatic();
             if (minimapAnim) cancelAnimationFrame(minimapAnim);
             minimapLoop();
+            // Guide the player during the tutorial chart step (you → flame, repeating).
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'chartClosed') startChartHint(); else stopChartHint();
         }
 
         function closeChartModal() {
             document.getElementById('chartModal').style.display = 'none';
+            stopChartHint();
             if (minimapAnim) { cancelAnimationFrame(minimapAnim); minimapAnim = null; }
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'chartClosed') { tutorialStep++; setTimeout(playTutorialStep, 400); }
         }
@@ -1086,17 +1139,18 @@
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
-            { onShow: () => { purifyEnabled = true; }, text: "Hold a metal button to use the slider and move up to 3 blocks with just one metal. Plan your path and avoid impure zones. Now hold Magnesium and move west for a fiery sword!" },
+            { onShow: () => { purifyEnabled = true; }, frame: 9, text: "Hold a metal button to use the slider and move up to 3 blocks with just one metal." },
+            { frame: 10, text: "Plan your path and avoid impure zones. Now hold Magnesium and move west for a fiery sword!" },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
-            { text: "Click on 'record mixture' to save the metals we used to craft a sword with a specific trait." },
+            { text: "Click on 'Record Composition' to save the metals we used to craft a sword with a specific trait." },
             { waitAction: 'recordMixture', hand: [{ sel: '#btnSaveRecipe', side: 'above' }] },
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
             { text: "Go to the counter and sell it!" },
             { waitAction: 'sellFlame' },
             { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'delay', duration: 4000 },
-            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); }, text: "You know how to craft a flame sword! Open your Saved Recipes below, tap Auto-Craft to forge one, then give it to the customer." },
-            { waitAction: 'craftFlameRecipe', hand: [{ sel: '#blueprints-list .btn-craft', side: 'above' }] },
+            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft to forge one from the flame composition, then give it to the customer." },
+            { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 4000 },
             { onShow: () => { setRandomRequest(); updateUI(); }, text: "Great work! Some customers know exactly what they want. Others need your expert advice. Help them find the perfect sword!" },
@@ -1110,7 +1164,7 @@
             if (step.hand) setTimeout(() => { if (tutorialFlow[tutorialStep] === step) showHands(step.hand); }, 50);
 
             if (step.text) {
-                document.getElementById('tutorialFrame').classList.toggle('frame2', step.frame === 2);
+                const frameEl = document.getElementById('tutorialFrame'); frameEl.classList.remove('frame2', 'frame9', 'frame10'); if (step.frame) frameEl.classList.add('frame' + step.frame);
                 const titleEl = document.getElementById('tutorial-title');
                 const title = step.title || (tutorialStep === 0 ? "Welcome to the Forge!" : null);
                 if (title) { titleEl.textContent = title; titleEl.style.display = 'block'; }
@@ -1135,7 +1189,7 @@
         function checkShopTutorial() {
             if (gold >= 50 && !hasShownShopTutorial) {
                 hasShownShopTutorial = true;
-                document.getElementById('tutorialFrame').classList.remove('frame2');
+                document.getElementById('tutorialFrame').classList.remove('frame2', 'frame9', 'frame10');
                 document.getElementById('tutorial-title').textContent = "Shop Unlocked!"; document.getElementById('tutorial-title').style.display = "block";
                 document.getElementById('tutorial-text').textContent = "Shop can now be opened. Swipe left to the shop and display swords for passive sale.";
                 document.getElementById('tutorialModal').style.display = 'flex';
@@ -1429,7 +1483,7 @@
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
             // First-craft stage: Record Mixture and Chart are locked until the first sword is forged.
             const saveBtn = document.getElementById('btnSaveRecipe'); saveBtn.disabled = tutorialMetalLock;
-            saveBtn.textContent = (activeTraits.length === 0 && lastForgedMixture) ? 'Record Last Mixture' : 'Record Mixture';
+            saveBtn.textContent = (activeTraits.length === 0 && lastForgedMixture) ? 'Record Last Composition' : 'Record Composition';
             document.getElementById('btnChart').disabled = tutorialMetalLock;
 
             if (shopUnlocked) {
@@ -1443,16 +1497,31 @@
             renderBlueprints(); renderVault(); checkShopTutorial();
         }
 
+        let selectedBlueprintIndex = -1;
+        function selectBlueprint(index) { selectedBlueprintIndex = (selectedBlueprintIndex === index) ? -1 : index; renderBlueprints(); }
         function renderBlueprints() {
             const listEl = document.getElementById('blueprints-list'); listEl.innerHTML = '';
-            if (savedBlueprints.length === 0) { listEl.innerHTML = '<div class="empty-list">No recipes saved yet.</div>'; return; }
+            if (savedBlueprints.length === 0) { listEl.innerHTML = '<div class="empty-list">No compositions recorded yet.</div>'; selectedBlueprintIndex = -1; return; }
+            if (selectedBlueprintIndex >= savedBlueprints.length) selectedBlueprintIndex = -1;
+            // Compact tile grid: each tile shows only the trait icon(s).
+            const grid = document.createElement('div'); grid.className = 'recipe-tile-grid';
             savedBlueprints.forEach((bp, index) => {
-                const card = document.createElement('div'); card.className = 'sword-card';
-                const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
-                const costString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
-                card.innerHTML = `<div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Cost:</strong> ${costString}</div><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${index})">⚡ Auto-Craft</button>`;
-                listEl.appendChild(card);
+                const tile = document.createElement('div'); tile.className = 'recipe-tile' + (index === selectedBlueprintIndex ? ' selected' : '');
+                tile.title = bp.name; tile.onclick = () => selectBlueprint(index);
+                tile.textContent = bp.traits.length ? bp.traits.map(t => t.symbol).join('') : '🗡️';
+                grid.appendChild(tile);
             });
+            listEl.appendChild(grid);
+            // Detail panel for the selected tile: Tier, Traits, Value, Composition + Auto-Craft.
+            const detail = document.createElement('div'); detail.id = 'recipe-detail';
+            if (selectedBlueprintIndex >= 0) {
+                const bp = savedBlueprints[selectedBlueprintIndex];
+                const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
+                const compString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
+                detail.className = 'sword-card'; detail.style.marginTop = '8px';
+                detail.innerHTML = `<div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>`;
+            }
+            listEl.appendChild(detail);
         }
 
         let vaultHighlightIndex = -1;
@@ -1770,10 +1839,14 @@
             } else { alert("You need at least one heated trait to save a recipe!"); return; }
             const traitNames = traits.map(t => `${t.quality} ${t.name}`).join(' & ');
 
+            // Block re-recording an identical composition (same trait set + same metals).
+            const dup = savedBlueprints.some(bp => bp.traits.length === traits.length && traits.every(t => bp.traits.some(bt => bt.id === t.id)) && metalsList.every(m => bp.recipe[m] === recipe[m]));
+            if (dup) { const plain = traits.map(t => t.name).join(' & '); alert(`You have already recorded this composition for the ${plain} trait${traits.length > 1 ? 's' : ''}!`); return; }
+
             const defaultDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
 
             savedBlueprints.push({ name: traitNames + " Blade", traits: [...traits], recipe: { ...recipe }, design: defaultDesign });
-            showTraitToast(`📜 ${traitNames} mixture recorded`);
+            showTraitToast(`📜 ${traitNames} composition recorded`);
             forgeLockedForRecord = false; // recording done — Forge is available again
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
             // Tutorial: after the "mixture recorded" toast is read (~2s), show the closing dialogue.
