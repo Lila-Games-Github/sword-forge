@@ -210,10 +210,13 @@
         .dialogue-bubble::after { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid #fff; }
 
         .customer-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
-        .customer-actions .btn-craft { margin-top: 0; width: 100%; padding: 9px 4px; font-size: 12px; }
+        .customer-actions.responses-hidden { opacity: 0; pointer-events: none; }
+        .customer-actions.responses-shown { animation: responsesFadeIn 0.35s ease-out; }
+        @keyframes responsesFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .customer-actions .btn-craft { margin-top: 0; width: 100%; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; }
         #btnAutoSell { background-color: #27ae60; }
         #btnAutoCraftSell { background-color: #8e44ad; }
-        #btnRefuse { background-color: #e74c3c; padding: 9px 4px; font-size: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        #btnRefuse { background-color: #e74c3c; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         #btnRefuse:hover:not(:disabled) { background-color: #c0392b; }
         #btnRefuse:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -598,10 +601,10 @@
                 <div class="customer-stage">
                     <img id="customer-img" class="customer-img" src="assets/customer/man2.png" alt="Customer">
                     <div class="customer-panel">
-                        <div class="dialogue-bubble" id="dialogue-text">Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!</div>
-                        <div class="customer-actions">
-                            <button id="btnAutoSell" class="btn-craft">🔍 Search Inventory</button>
-                            <button id="btnRefuse">🛑 Refuse</button>
+                        <div class="dialogue-bubble" id="dialogue-text"></div>
+                        <div class="customer-actions responses-hidden" id="customer-actions">
+                            <button id="btnAutoSell" class="btn-craft">I have something for you.</button>
+                            <button id="btnRefuse">I don't have what you need.</button>
                         </div>
                     </div>
                 </div>
@@ -1184,10 +1187,9 @@
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Beautiful! Let's see if you have any customers! Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
-            { text: "Find the customer's sword in your inventory. Use Search Inventory if you need help, then tap Give NPC to sell it." },
+            { text: "This customer needs any weapon. Tap \"I have something for you.\" to spotlight the match in your inventory, then tap Give NPC to sell it.", afterCustomer: 2000 },
             { waitAction: 'sell', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
-            { onShow: () => { setRandomRequest(); updateUI(); }, action: 'delay', duration: 2000 },
-            { text: "Oh! You have another customer, and he wants a sword with the fire trait. Let's go back to the forge! Click on the right arrow." },
+            { onShow: () => { setRandomRequest(); updateUI(); }, text: "Oh! You have another customer, and he wants a sword with the fire trait. Let's go back to the forge! Click on the right arrow.", afterCustomer: 2000 },
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
@@ -1200,12 +1202,14 @@
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
             { text: "Go to the counter and sell it!" },
             { waitAction: 'sellFlame' },
-            { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'delay', duration: 4000 },
+            // Ice-dragon (customer #3) arrives; wait for the whole line to type out (+2s) before the lesson box.
+            { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'afterCustomer', read: 2000 },
+            // Lesson box + expand the recipe panel together (the modal covers the panel, so Auto-Craft can't be tapped before the box is dismissed).
             { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft to forge one from the flame composition, then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 4000 },
-            { onShow: () => { setRandomRequest(); updateUI(); }, text: "Great work! Some customers know exactly what they want. Others need your expert advice. Help them find the perfect sword!" },
+            { onShow: () => { setRandomRequest(); updateUI(); }, text: "Great work! Some customers know exactly what they want. Others need your expert advice. Help them find the perfect sword!", afterCustomer: 2000 },
         ];
 
         function playTutorialStep() {
@@ -1216,13 +1220,14 @@
             if (step.hand) setTimeout(() => { if (tutorialFlow[tutorialStep] === step) showHands(step.hand); }, 50);
 
             if (step.text) {
-                const frameEl = document.getElementById('tutorialFrame'); frameEl.classList.remove('frame2', 'frame9', 'frame10'); if (step.frame) frameEl.classList.add('frame' + step.frame);
-                const titleEl = document.getElementById('tutorial-title');
-                const title = step.title || (tutorialStep === 0 ? "Welcome to the Forge!" : null);
-                if (title) { titleEl.textContent = title; titleEl.style.display = 'block'; }
-                else { titleEl.style.display = 'none'; }
-                document.getElementById('tutorial-text').innerHTML = step.text;
-                document.getElementById('tutorialModal').style.display = 'flex';
+                // Steps flagged afterCustomer wait until the customer's line has fully typed out
+                // (+ a read pause) before their box appears, so tutorial boxes never overlap it.
+                if (step.afterCustomer != null) {
+                    document.getElementById('tutorialModal').style.display = 'none';
+                    afterCustomerDialogue(step.afterCustomer, () => { if (tutorialFlow[tutorialStep] === step) renderTutorialTextBox(step); });
+                    return;
+                }
+                renderTutorialTextBox(step);
             } else if (step.action === 'highlight') {
                 document.getElementById('tutorialModal').style.display = 'none';
                 const btns = ['btnTitanium', 'btnSteel', 'btnAluminium', 'btnMagnesium', 'btnBronze', 'btnBlackIron', 'btnIron', 'btnRedIron'];
@@ -1231,9 +1236,25 @@
             } else if (step.action === 'delay') {
                 document.getElementById('tutorialModal').style.display = 'none';
                 setTimeout(() => { tutorialStep++; playTutorialStep(); }, step.duration || 2000);
+            } else if (step.action === 'afterCustomer') {
+                // Advance only after the current customer's line has fully typed out (+ a read pause),
+                // so the following step never lands mid-speech. onShow (which summons the customer) has
+                // already run above; the guard stops a stale callback from double-advancing.
+                document.getElementById('tutorialModal').style.display = 'none';
+                afterCustomerDialogue(step.read != null ? step.read : 2000, () => { if (tutorialFlow[tutorialStep] === step) { tutorialStep++; playTutorialStep(); } });
             } else if (step.waitAction) {
                 document.getElementById('tutorialModal').style.display = 'none';
             }
+        }
+
+        function renderTutorialTextBox(step) {
+            const frameEl = document.getElementById('tutorialFrame'); frameEl.classList.remove('frame2', 'frame9', 'frame10'); if (step.frame) frameEl.classList.add('frame' + step.frame);
+            const titleEl = document.getElementById('tutorial-title');
+            const title = step.title || (tutorialStep === 0 ? "Welcome to the Forge!" : null);
+            if (title) { titleEl.textContent = title; titleEl.style.display = 'block'; }
+            else { titleEl.style.display = 'none'; }
+            document.getElementById('tutorial-text').innerHTML = step.text;
+            document.getElementById('tutorialModal').style.display = 'flex';
         }
 
         document.getElementById('btnTutorialOk').onclick = () => { tutorialStep++; playTutorialStep(); };
@@ -1262,7 +1283,7 @@
             document.getElementById('nav-left').style.display = currentScreenIndex === 0 ? 'none' : 'block';
             document.getElementById('nav-right').style.display = currentScreenIndex === 2 ? 'none' : 'block';
             if (currentScreenIndex === 2) setTimeout(centerCameraOnPlayer, 300);
-            if (currentScreenIndex === 1) slideInCustomer(); // replay the slide-in when arriving at the counter
+            if (currentScreenIndex === 1) { slideInCustomer(); beginCustomerTyping(); } // replay the slide-in + reveal the line on arrival
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
         }
@@ -1486,15 +1507,59 @@
         function setRandomRequest() {
             requestCount++;
             setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
-            if (requestCount === 1) { requestedTrait = null; requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; return; } 
-            else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; return; }
-            else if (requestCount === 3) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; document.getElementById('dialogue-text').innerHTML = `Do you have a good sword? I am going to fight an ice dragon — I heard they are weak to heat.`; return; }
+            let line;
+            if (requestCount === 1) { requestedTrait = null; requestedShape = null; line = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; }
+            else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; }
+            else if (requestCount === 3) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Do you have a good sword? I am going to fight an ice dragon — I heard they are weak to heat.`; }
+            else {
+                let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
+                requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
+                requestedShape = Math.random() <= 0.10 ? swordShapes[Math.floor(Math.random() * swordShapes.length)] : null;
+                const shapeText = requestedShape ? `<strong>${requestedShape}</strong>` : "blade";
+                line = `Blacksmith! I need a ${shapeText} with the <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol} trait!`;
+            }
+            presentCustomerDialogue(line);
+        }
 
-            let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
-            requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
-            requestedShape = Math.random() <= 0.10 ? swordShapes[Math.floor(Math.random() * swordShapes.length)] : null;
-            const shapeText = requestedShape ? `<strong>${requestedShape}</strong>` : "blade";
-            document.getElementById('dialogue-text').innerHTML = `Blacksmith! I need a ${shapeText} with the <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol} trait!`;
+        // --- Customer dialogue: reveal word-by-word, then show the player's two response options. ---
+        const CUSTOMER_WORD_MS = 110;
+        let customerTyping = false, customerDialogueRevealed = true, customerTypeTimer = null, currentCustomerHTML = '';
+        const afterCustomerQueue = [];
+        // Set the current customer's line but don't reveal it until the counter is on screen.
+        function presentCustomerDialogue(html) {
+            currentCustomerHTML = html; customerDialogueRevealed = false; customerTyping = false;
+            if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
+            document.getElementById('dialogue-text').innerHTML = '';
+            setResponseOptionsVisible(false);
+            if (currentScreenIndex === 1) beginCustomerTyping();
+        }
+        // Type the current line out one word at a time (tags/emoji stay intact — no line splits a tag).
+        function beginCustomerTyping() {
+            if (customerDialogueRevealed || customerTyping) return;
+            const el = document.getElementById('dialogue-text'); const tokens = currentCustomerHTML.split(' '); let i = 0;
+            el.innerHTML = ''; customerTyping = true; setResponseOptionsVisible(false);
+            customerTypeTimer = setInterval(() => {
+                i++; el.innerHTML = tokens.slice(0, i).join(' ');
+                if (i >= tokens.length) finishCustomerTyping();
+            }, CUSTOMER_WORD_MS);
+        }
+        function finishCustomerTyping() {
+            if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
+            customerTyping = false; customerDialogueRevealed = true;
+            document.getElementById('dialogue-text').innerHTML = currentCustomerHTML;
+            setResponseOptionsVisible(true);
+            try { updateUI(); } catch (e) {}
+            const cbs = afterCustomerQueue.splice(0); cbs.forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
+        }
+        function setResponseOptionsVisible(show) {
+            const el = document.getElementById('customer-actions'); if (!el) return;
+            if (show) { el.classList.remove('responses-hidden'); el.classList.remove('responses-shown'); void el.offsetWidth; el.classList.add('responses-shown'); }
+            else { el.classList.add('responses-hidden'); el.classList.remove('responses-shown'); }
+        }
+        // Run cb once the current customer's line has fully typed out, then after a read pause (ms).
+        function afterCustomerDialogue(readMs, cb) {
+            if (customerDialogueRevealed && !customerTyping) setTimeout(cb, readMs);
+            else afterCustomerQueue.push(() => setTimeout(cb, readMs));
         }
 
         function startMetalGenerator() {
@@ -2062,8 +2127,11 @@
         /* --- FAILSAFE CUSTOMER PROCESSING --- */
         // Consolidated safely wrapped function for processing customer departures 
         function processCustomerDeparture(successText, delay) {
+            if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
+            customerTyping = false; customerDialogueRevealed = true;
             document.getElementById('dialogue-text').innerHTML = successText;
-            
+            setResponseOptionsVisible(false); // hide the player responses while the customer leaves
+
             try { updateUI(); } catch (e) { console.error("UI Update Error Before Timeout:", e); }
             
             setTimeout(() => {
@@ -2116,6 +2184,8 @@
         }
 
         document.getElementById('btnAutoSell').onclick = searchInventory;
+        // Tap the customer's speech bubble to skip the word-by-word reveal.
+        document.getElementById('dialogue-text').addEventListener('click', () => { if (customerTyping) finishCustomerTyping(); });
 
         function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); }
 

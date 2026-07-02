@@ -46,7 +46,8 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [x] **Grid viewport** — drag-to-pan (fixed edge-lock bug), **mouse-wheel zoom centred on the cursor**, **📷 free-camera toggle** (stop following the sword)
 - [x] **Blade Traits status bar** — the forge status row shows the heated traits (removed the "100/100" health text; bar still shows HP)
 - [x] **Styled `gameAlert` popups** — all warnings/errors use a parchment popup (no native `alert()`)
-- [x] **Counter (screen 1)** — gold/rep pill; rotating customer portraits sliding in from the left; speech bubble; Search Inventory / Refuse; expandable Inventory + Recorded Compositions
+- [x] **Counter (screen 1)** — gold/rep pill; rotating customer portraits sliding in from the left; speech bubble; expandable Inventory + Recorded Compositions
+- [x] **Word-by-word customer dialogue + response options** — the customer's request types out one word at a time (tap the bubble to skip); once the line finishes, the player's two responses fade in: **"I have something for you."** (Search Inventory) and **"I don't have what you need."** (Refuse, still disabled for the first three scripted customers). Tutorial boxes tied to a customer are gated to appear only after that customer's line fully types + a ~2s read pause, so they never overlap the speech
 - [x] Heat/Forge glow cues; grammar pass; 3-screen swipe layout; GitHub Pages auto-deploy CI
 - [x] **+100 Metals cheat button** (window bottom-right, whole session)
 
