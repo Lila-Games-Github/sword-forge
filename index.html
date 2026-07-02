@@ -195,9 +195,13 @@
         .customer-panel .dialogue-bubble { width: 100%; box-sizing: border-box; flex-grow: 0; }
         #screen-2 { display: flex; flex-direction: column; padding: 10px; background-image: url('assets/backgrounds/2b64bc5e-a475-4868-ac35-3b751a16a749.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
 
-        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 15px 10px; z-index: 100; cursor: pointer; font-size: 20px; backdrop-filter: blur(2px); }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 24px 12px; z-index: 900; cursor: pointer; font-size: 20px; }
         #nav-left { left: 0; border-radius: 0 8px 8px 0; }
         #nav-right { right: 0; border-radius: 8px 0 0 8px; }
+        .corner-btn { position: fixed; right: 16px; z-index: 2000; background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 8px; padding: 9px 15px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
+        .corner-btn:hover { background: #4a3623; }
+        #btnSkipTutorial { bottom: 16px; }
+        #btnCheatMetals { bottom: 60px; }
 
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
         .npc-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -220,10 +224,13 @@
         .health-text { font-weight: bold; font-size: 12px; width: 100%; text-align: center; }
         #gold-text { font-weight: bold; font-size: 14px; padding: 6px 10px; border-radius: 5px; color: #d4af37; background-color: #fcf8e3; border: 1px solid #faebcc; width: 100%; text-align: center; box-sizing: border-box;}
 
-        .grid-viewport { flex: 1; overflow: hidden; border: 3px solid #333; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; position: relative; cursor: grab; margin-bottom: 8px; }
+        .viewport-wrap { position: relative; flex: 1; display: flex; min-height: 0; margin-bottom: 8px; }
+        .grid-viewport { flex: 1; overflow: hidden; border: 3px solid #333; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; position: relative; cursor: grab; }
+        .camera-lock-btn { position: absolute; bottom: 10px; right: 10px; z-index: 5; width: 34px; height: 34px; border-radius: 8px; border: 1px solid #4a3623; background: rgba(44,33,22,0.85); color: #f0d8a0; font-size: 16px; line-height: 1; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+        .camera-lock-btn.active { background: #c8a84b; color: #2c2013; box-shadow: 0 0 8px #c8a84b; }
         .grid-viewport:active { cursor: grabbing; }
 
-        #grid { display: grid; grid-template-columns: repeat(50, 22px); grid-template-rows: repeat(50, 22px); gap: 1px; background-color: #222; padding: 1px; transform-origin: top left; transition: transform 0.1s ease-out; }
+        #grid { display: grid; grid-template-columns: repeat(50, 22px); grid-template-rows: repeat(50, 22px); gap: 1px; background-color: #222; padding: 1px; transform-origin: top left; }
         
         .cell { 
             background-image: url('assets/map/tile_normal.png');
@@ -626,8 +633,11 @@
                     <div class="status-header" style="justify-content: center;"><div class="health-text" id="blade-traits-text"><strong>Blade Traits:</strong> None</div></div>
                 </div>
 
-                <div class="grid-viewport" id="viewport">
-                    <div id="grid"></div>
+                <div class="viewport-wrap">
+                    <div class="grid-viewport" id="viewport">
+                        <div id="grid"></div>
+                    </div>
+                    <button id="btnCameraLock" class="camera-lock-btn" title="Free camera — stop the view from following the sword">📷</button>
                 </div>
 
                 <div class="controls">
@@ -808,6 +818,9 @@
         <span id="heatHand" class="tut-hand" style="z-index: 1003;"></span>
     </div>
 
+    <button id="btnCheatMetals" class="corner-btn" onclick="addCheatMetals()" style="display:none;">+100 Metals ⛏️</button>
+    <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
+
     <script>
         /* --- INTRO SEQUENCE LOGIC --- */
         let currentScene = 1;
@@ -849,7 +862,24 @@
         function launchCoreGame() {
             document.getElementById('intro-container').style.display = 'none';
             document.getElementById('mobile-wrapper').style.display = 'block';
+            document.getElementById('btnSkipTutorial').style.display = 'block'; // show Skip while the tutorial runs
+            document.getElementById('btnCheatMetals').style.display = 'block'; // cheat: stays available throughout
             initializeMainGame();
+        }
+
+        // Cheat: instantly add 100 of every metal.
+        function addCheatMetals() { metalsList.forEach(m => availableMetals[m] += 100); updateUI(); }
+
+        // End the tutorial immediately and unlock everything for normal play.
+        function skipTutorial() {
+            tutorialStep = tutorialFlow.length;   // stop the guided flow
+            tutorialMetalLock = false;            // unlock all metals, passive generation, Record Composition & Chart
+            purifyEnabled = true;                 // unlock the Purify-dash slider
+            suppressAutoRequest = false;          // resume normal auto-summon of the next customer
+            document.getElementById('tutorialModal').style.display = 'none';
+            hideHands(); hideHeatArrow(); hideForgeArrow(); hideFlameHint(); stopChartHint();
+            document.getElementById('btnSkipTutorial').style.display = 'none';
+            updateUI();
         }
 
         /* --- DESIGN DESK (PAPER DOLL) LOGIC --- */
@@ -1180,7 +1210,7 @@
 
         function playTutorialStep() {
             hideHands();
-            if (tutorialStep >= tutorialFlow.length) { document.getElementById('tutorialModal').style.display = 'none'; return; }
+            if (tutorialStep >= tutorialFlow.length) { document.getElementById('tutorialModal').style.display = 'none'; const sk = document.getElementById('btnSkipTutorial'); if (sk) sk.style.display = 'none'; return; }
             const step = tutorialFlow[tutorialStep];
             if (step.onShow) step.onShow();
             if (step.hand) setTimeout(() => { if (tutorialFlow[tutorialStep] === step) showHands(step.hand); }, 50);
@@ -1277,9 +1307,52 @@
         let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
 
         let zoomLevel = 1.0; let isDragging = false; let startX, startY, startScrollLeft, startScrollTop;
+        let cameraUnlocked = false; // free-camera mode: when on, moving the sword doesn't recentre the view
         const viewportEl = document.getElementById('viewport'); const gridElement = document.getElementById('grid');
+        function toggleCameraLock() {
+            cameraUnlocked = !cameraUnlocked;
+            document.getElementById('btnCameraLock').classList.toggle('active', cameraUnlocked); // 📷 stays; gold highlight = free camera on
+            if (!cameraUnlocked) centerCameraOnPlayer(); // re-locking snaps back to the sword
+        }
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
+        let bellowHeld = false; const BELLOW_HOLD_RATE = 40; // holding the bellow raises heat by this much per second (net of decay)
+        // Heating-minigame tuning. Green band = [lo,hi]; decay = drop/sec; stabilize = seconds in band to win;
+        // pump = +heat per tap; hold = +heat/sec while held; overheatBleed = completion drained/sec when too hot; blood = decay grows with heat.
+        const DEFAULT_HEAT = { lo: 40, hi: 70, decay: 18, stabilize: 2.0, pump: 16, hold: BELLOW_HOLD_RATE, overheatBleed: 0.5, blood: false };
+        // Tier-A per-trait variants (pure parameters). Unlisted traits use DEFAULT_HEAT. Only the differing fields are given.
+        const heatConfigs = {
+            flame:     { lo: 70, hi: 90 },                                            // keep it blazing (high band)
+            ice:       { lo: 8,  hi: 28, decay: 10, pump: 8,  hold: 22, overheatBleed: 3.0 }, // cold forge — never overheat
+            floral:    { lo: 24, hi: 44, decay: 13, pump: 10, hold: 28, overheatBleed: 2.5 }, // delicate, gentle heat
+            sharp:     { lo: 50, hi: 62, pump: 11, hold: 32 },                         // very narrow band
+            balanced:  { lo: 44, hi: 56, pump: 11, hold: 32 },                         // dead-centre narrow band
+            fury:      { decay: 30, stabilize: 1.2, hold: 46 },                        // fast decay, quick stabilize
+            durable:   { lo: 34, hi: 76, decay: 16, stabilize: 3.5 },                  // wide band, long hold
+            endurance: { lo: 38, hi: 68, decay: 10, stabilize: 4.5, pump: 14, hold: 30 }, // marathon
+            heavy:     { decay: 9, pump: 8, hold: 20, stabilize: 2.5 },                // sluggish
+            cruel:     { lo: 60, hi: 72, pump: 11, hold: 32, overheatBleed: 3.0 },     // razor's edge near overheat
+            grace:     { lo: 48, hi: 60, stabilize: 1.0, pump: 11, hold: 32 },         // narrow, quick
+            blood:     { decay: 14, blood: true },                                     // bleeds faster when hot
+            // Tier B — dynamic / random bands & noise
+            water:     { motion: 'oscillate', mCenter: 42, mAmp: 16, mSpeed: 1.2, halfWidth: 9 },  // flowing band
+            celestial: { motion: 'oscillate', mCenter: 62, mAmp: 20, mSpeed: 0.6, halfWidth: 10 }, // slow high arc
+            flexible:  { motion: 'oscillate', mCenter: 50, mAmp: 22, mSpeed: 1.9, halfWidth: 9 },  // fast swing
+            storm:     { lo: 36, hi: 72, gust: 14, gustEvery: 0.8 },                    // random gusts shove the heat
+            savage:    { motion: 'jitter', jCenter: 52, jAmp: 14, jEvery: 0.7, halfWidth: 12, decay: 20 }, // band hops around
+            luck:      { multiBand: 2, halfWidth: 8 },                                  // two random bands — hit either
+            accurate:  { jump: 1, jEvery: 3.0, halfWidth: 7 },                          // narrow band, repositions once
+            cursed:    { jump: 3, jEvery: 2.2, halfWidth: 13, gust: 16, gustEvery: 1.0 }, // band jumps + heat spikes
+            // Tier C — sequential stages / hidden
+            noble:     { stageBands: [[24, 44], [60, 80]], stabilize: 1.5, pump: 13, hold: 34 }, // low then high
+            honor:     { stageBands: [[46, 64], [46, 64]], stabilize: 1.5, pump: 13, hold: 34 }, // same band twice
+            lightning: { stageBands: [[52, 64], [52, 64]], stabilize: 0.8, decay: 26, pump: 12, hold: 38 }, // fast two-strike
+            dark:      { lo: 40, hi: 70, hidden: true, hideEvery: 1.1 },                // thumb flickers hidden
+        };
+        let heatCfg = DEFAULT_HEAT;
+        // Runtime state for the dynamic heating variants (reset each heat by initHeatDynamics).
+        let heatElapsed = 0, heatStage = 0, jumpsDone = 0, hideOn = false, nextGust = 0, nextJitter = 0, nextJump = 0, nextHide = 0, curCenter = 50, lastHeatGradient = '';
+        let heatBands = [[40, 70]];
         let knownTraitIds = new Set(); // trait IDs heated at least once this session (for the "New Trait Discovered!" box)
         let isPurifying = false; let purifyProgress = 0; let purifyDirection = 1; let purifyAnimationFrame = null; let lastPurifyTime = 0; let pendingMove = {dx: 0, dy: 0}; let activeMoveKey = null;
         let movePreviewCells = []; let lastPreviewSteps = 0;
@@ -1599,8 +1672,19 @@
             });
         }
 
-        viewportEl.addEventListener('wheel', (e) => { e.preventDefault(); zoomLevel = Math.max(0.4, Math.min(2.0, zoomLevel + (e.deltaY < 0 ? 0.1 : -0.1))); gridElement.style.transform = `scale(${zoomLevel})`; });
-        const startDrag = (x, y) => { isDragging = true; startX = x - viewportEl.offsetLeft; startY = y - viewportEl.offsetTop; startScrollLeft = viewportEl.scrollLeft; startScrollTop = viewportEl.scrollTop; };
+        viewportEl.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = viewportEl.getBoundingClientRect();
+            const cx = e.clientX - rect.left, cy = e.clientY - rect.top; // cursor position within the viewport
+            const prev = zoomLevel;
+            // grid layout point currently under the cursor (visualX = X*zoom - scrollLeft)
+            const contentX = (cx + viewportEl.scrollLeft) / prev, contentY = (cy + viewportEl.scrollTop) / prev;
+            zoomLevel = Math.max(0.4, Math.min(2.0, zoomLevel + (e.deltaY < 0 ? 0.1 : -0.1)));
+            gridElement.style.transform = `scale(${zoomLevel})`;
+            // keep that same point under the cursor after zooming
+            viewportEl.scrollLeft = contentX * zoomLevel - cx; viewportEl.scrollTop = contentY * zoomLevel - cy;
+        });
+        const startDrag = (x, y) => { isDragging = true; startX = x; startY = y; startScrollLeft = viewportEl.scrollLeft; startScrollTop = viewportEl.scrollTop; };
         const doDrag = (x, y) => { if(!isDragging) return; viewportEl.scrollLeft = startScrollLeft - (x - startX); viewportEl.scrollTop = startScrollTop - (y - startY); };
         
         viewportEl.addEventListener('mousedown', (e) => startDrag(e.pageX, e.pageY)); viewportEl.addEventListener('touchstart', (e) => { if(e.touches.length === 1) startDrag(e.touches[0].pageX, e.touches[0].pageY); });
@@ -1734,7 +1818,7 @@
                     if (health <= 0) { handleDeath(); return false; }
                 }
 
-                centerCameraOnPlayer();
+                if (!cameraUnlocked) centerCameraOnPlayer(); // free-camera mode: don't follow the sword
                 const onTrait = boardData[newIndex] !== '' && boardData[newIndex] !== '💥';
                 if (onTrait) showTraitToast();
                 if (tutorialStep < tutorialFlow.length) {
@@ -1775,6 +1859,9 @@
                     if (activeTraits.some(t => t.id === foundTrait.id)) { gameAlert("This trait is already heated into your active blade!"); return; }
                     
                     pendingHeatTrait = foundTrait; pendingHeatIndex = currentIndex; forgePhase = 'pulley'; heatScore = 0; heatCompletion = 0;
+                    // Per-trait heating variant (Tier A). Tutorial heats stay on the default band so onboarding isn't harder.
+                    heatCfg = (tutorialStep < tutorialFlow.length) ? Object.assign({}, DEFAULT_HEAT) : Object.assign({}, DEFAULT_HEAT, heatConfigs[foundTrait.id]);
+                    initHeatDynamics(); // resets timers/stages, generates random bands, draws the initial green band(s)
                     
                     document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
                     document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
@@ -1800,39 +1887,83 @@
 
         function handleBellowClick(e) {
             if (e) e.preventDefault(); if (forgePhase !== 'heating') return;
+            bellowHeld = true; // press-and-hold keeps heating gradually (see the loop); a quick tap still gives the +16 bump below
             const bellow = document.getElementById('forge-bellow'); bellow.style.transform = 'scaleY(0.6)'; setTimeout(() => { bellow.style.transform = 'scaleY(1)'; }, 100);
-            heatScore += 16; if (heatScore > 100) heatScore = 100;
+            heatScore += heatCfg.pump; if (heatScore > 100) heatScore = 100;
+        }
+        // Release the bellow (mouse/touch up, or pointer leaving it) stops the gradual heating.
+        ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(ev => document.getElementById('forge-bellow').addEventListener(ev, () => { bellowHeld = false; }));
+        window.addEventListener('mouseup', () => { bellowHeld = false; }); window.addEventListener('touchend', () => { bellowHeld = false; });
+
+        // Dynamic-band helpers (Tier B/C). Traits with no dynamic fields just yield the static [lo,hi].
+        function clampBand(center, hw) { return [Math.max(0, center - hw), Math.min(100, center + hw)]; }
+        function heatGradient(bands) {
+            const s = bands.slice().sort((a, b) => a[0] - b[0]); const parts = []; let pos = 0;
+            s.forEach(b => { const lo = Math.max(0, Math.min(100, b[0])), hi = Math.max(0, Math.min(100, b[1])); parts.push(`#3498db ${pos}%`, `#3498db ${lo}%`, `#2ecc71 ${lo}%`, `#2ecc71 ${hi}%`); pos = hi; });
+            parts.push(`#e74c3c ${pos}%`, `#e74c3c 100%`);
+            return `linear-gradient(to right, ${parts.join(', ')})`;
+        }
+        function updateHeatBands() {
+            if (heatCfg.stageBands) { heatBands = [heatCfg.stageBands[heatStage]]; return; }
+            if (heatCfg.multiBand) { heatBands = heatCfg.activeBands; return; }
+            if (heatCfg.motion === 'oscillate') { const c = heatCfg.mCenter + heatCfg.mAmp * Math.sin(heatCfg.mSpeed * heatElapsed); heatBands = [clampBand(c, heatCfg.halfWidth)]; return; }
+            if (heatCfg.motion === 'jitter') { if (heatElapsed >= nextJitter) { curCenter = heatCfg.jCenter + (Math.random() * 2 - 1) * heatCfg.jAmp; nextJitter = heatElapsed + heatCfg.jEvery; } heatBands = [clampBand(curCenter, heatCfg.halfWidth)]; return; }
+            if (heatCfg.jump) { if (jumpsDone < heatCfg.jump && heatElapsed >= nextJump) { curCenter = 15 + Math.random() * 70; jumpsDone++; nextJump = heatElapsed + heatCfg.jEvery; } heatBands = [clampBand(curCenter, heatCfg.halfWidth)]; return; }
+            heatBands = [[heatCfg.lo, heatCfg.hi]];
+        }
+        function initHeatDynamics() {
+            heatElapsed = 0; heatStage = 0; jumpsDone = 0; hideOn = false; lastHeatGradient = '';
+            nextGust = heatCfg.gustEvery || 0.8; nextJitter = heatCfg.jEvery || 0.7; nextJump = heatCfg.jEvery || 3; nextHide = heatCfg.hideEvery || 1.1;
+            curCenter = (heatCfg.motion === 'jitter') ? heatCfg.jCenter : (15 + Math.random() * 70);
+            if (heatCfg.multiBand) { const hw = heatCfg.halfWidth; heatCfg.activeBands = [clampBand(15 + Math.random() * 25, hw), clampBand(58 + Math.random() * 27, hw)]; }
+            const thumb = document.getElementById('interactive-heat-thumb'); if (thumb) thumb.style.opacity = '1';
+            updateHeatBands();
+            const track = document.querySelector('.interactive-heat-track'); if (track) { lastHeatGradient = heatGradient(heatBands); track.style.background = lastHeatGradient; }
         }
 
         function updateInteractiveHeatLoop(time) {
             if (forgePhase !== 'heating') return;
-            const dt = (time - lastHeatTime) / 1000; lastHeatTime = time;
-            heatScore -= heatDecay * dt; if (heatScore < 0) heatScore = 0;
-            document.getElementById('interactive-heat-thumb').style.left = heatScore + '%';
-            
-            if (heatScore >= 40 && heatScore <= 70) {
-                heatCompletion += dt; document.getElementById('forge-instructions').textContent = `Stabilizing... ${(2.0 - heatCompletion).toFixed(1)}s`;
-                if (heatCompletion >= 2.0) {
-                    forgePhase = 'done'; 
-                    cancelAnimationFrame(heatAnimationFrame); 
-                    document.getElementById('forge-instructions').textContent = 'Forged!'; 
-                    
-                    setTimeout(() => {
-                        resolveInteractiveHeatMinigame();
-                    }, 600);
-                    return; 
+            const dt = (time - lastHeatTime) / 1000; lastHeatTime = time; heatElapsed += dt;
+            heatScore -= heatCfg.decay * dt;
+            if (heatCfg.blood) heatScore -= heatScore * 0.15 * dt; // Blood: bleeds faster the hotter it is
+            if (bellowHeld) heatScore += heatCfg.hold * dt; // holding the bellow raises heat gradually
+            if (heatCfg.gust && heatElapsed >= nextGust) { heatScore += (Math.random() * 2 - 1) * heatCfg.gust; nextGust = heatElapsed + (heatCfg.gustEvery || 0.8); } // Storm/Cursed gusts
+            if (heatScore < 0) heatScore = 0; if (heatScore > 100) heatScore = 100;
+
+            updateHeatBands(); // recompute the current band(s) for moving/random/staged variants
+            const thumb = document.getElementById('interactive-heat-thumb'); thumb.style.left = heatScore + '%';
+            if (heatCfg.hidden) { if (heatElapsed >= nextHide) { hideOn = !hideOn; nextHide = heatElapsed + (heatCfg.hideEvery || 1.1); } thumb.style.opacity = hideOn ? '0' : '1'; } // Dark: flicker the marker
+            const grad = heatGradient(heatBands); if (grad !== lastHeatGradient) { document.querySelector('.interactive-heat-track').style.background = grad; lastHeatGradient = grad; }
+
+            const inBand = heatBands.some(b => heatScore >= b[0] && heatScore <= b[1]);
+            if (inBand) {
+                heatCompletion += dt;
+                const stageMsg = heatCfg.stageBands ? ` [${heatStage + 1}/${heatCfg.stageBands.length}]` : '';
+                document.getElementById('forge-instructions').textContent = `Stabilizing... ${(heatCfg.stabilize - heatCompletion).toFixed(1)}s${stageMsg}`;
+                if (heatCompletion >= heatCfg.stabilize) {
+                    if (heatCfg.stageBands && heatStage < heatCfg.stageBands.length - 1) {
+                        heatStage++; heatCompletion = 0; // advance to the next stage
+                        heatScore = Math.max(0, heatCfg.stageBands[heatStage][0] - 25); // knock heat down so the next stage is re-earned
+                        document.getElementById('forge-instructions').textContent = 'Good — next!';
+                    } else {
+                        forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
+                        document.getElementById('forge-instructions').textContent = 'Forged!';
+                        setTimeout(() => { resolveInteractiveHeatMinigame(); }, 600);
+                        return;
+                    }
                 }
-            } else if (heatScore > 70) {
-                heatCompletion -= dt * 0.5; if (heatCompletion < 0) heatCompletion = 0; document.getElementById('forge-instructions').textContent = 'Too Hot! Slow down!';
             } else {
-                heatCompletion -= dt * 0.5; if (heatCompletion < 0) heatCompletion = 0; document.getElementById('forge-instructions').textContent = 'Use the bellow to heat the furnace.';
+                const topHi = Math.max.apply(null, heatBands.map(b => b[1]));
+                const tooHot = heatScore > topHi;
+                heatCompletion -= dt * (tooHot ? heatCfg.overheatBleed : 0.5); if (heatCompletion < 0) heatCompletion = 0;
+                document.getElementById('forge-instructions').textContent = tooHot ? 'Too Hot! Slow down!' : 'Use the bellow to heat the furnace.';
             }
             heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
         }
 
         function resolveInteractiveHeatMinigame() {
             document.getElementById('heatModal').style.display = 'none';
-            forgePhase = 'idle'; clearHeatCues();
+            forgePhase = 'idle'; bellowHeld = false; clearHeatCues();
 
             const quality = 'Epic'; const qualityBonus = 20; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
             if (!discoveredTraits[pendingHeatIndex]) { discoveredTraits[pendingHeatIndex] = true; renderCell(pendingHeatIndex); }
@@ -1862,7 +1993,7 @@
             }
         }
 
-        function cancelHeat() { forgePhase = 'idle'; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
+        function cancelHeat() { forgePhase = 'idle'; bellowHeld = false; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
 
         function handleDeath() {
             gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
@@ -2041,6 +2172,7 @@
         document.getElementById('btnHeat').onclick = initiateHeatSequence; document.getElementById('btnForge').onclick = forgeSword;
         document.getElementById('btnSaveRecipe').onclick = saveRecipe; document.getElementById('btnChart').onclick = openChartModal;
         document.getElementById('btnRefuse').onclick = refuseCustomer; document.getElementById('btnUpgradeSmelter').onclick = upgradeSmelter;
+        document.getElementById('btnCameraLock').onclick = toggleCameraLock;
 
         function initializeMainGame() {
             slideScreen(0); 
