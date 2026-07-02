@@ -331,6 +331,10 @@
         .recipe-tile:hover { border-color: #95a5a6; }
         .recipe-tile.selected { border: 2px solid #f1c40f; box-shadow: 0 0 8px rgba(241,196,15,0.75); }
         #recipe-detail:empty { display: none; }
+        .recipe-actions { display: flex; gap: 6px; margin-top: 8px; }
+        .recipe-actions .btn-craft { flex: 1; width: auto; margin-top: 0; }
+        .recipe-delete-btn { flex: 0 0 auto; background: #e74c3c; color: #fff; border: none; border-radius: 4px; padding: 8px 12px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        .recipe-delete-btn:hover { background: #c0392b; }
         .btn-craft { background: #27ae60; color: white; border: none; padding: 8px 10px; border-radius: 4px; margin-top: 8px; width: 100%; font-weight: bold; font-size: 12px; }
         .btn-craft:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.6; }
 
@@ -352,6 +356,8 @@
         #forgeResultModal { z-index: 1008; } 
         #tutorialModal { z-index: 1010; } 
         #chartModal { z-index: 1015; }
+        #newTraitModal { z-index: 1012; }
+        #gameAlertModal { z-index: 1020; }
 
         .dialogue-frame { position: relative; background: url('assets/ui/dialogue-frame.png') no-repeat center; background-size: 100% 100%; background-color: transparent; border: none; border-radius: 0; box-shadow: none; width: 82%; max-width: 300px; padding: 28px 36px 62px 36px; box-sizing: border-box; text-align: center; }
         .dialogue-title { font-family: 'Cinzel', serif; font-size: 15px; color: #4a3623; margin: 0 0 8px 0; font-weight: bold; }
@@ -617,7 +623,7 @@
             <div class="screen" id="screen-2">
                 <div class="status-panel" style="margin-bottom: 8px;">
                     <div class="health-container"><div id="health-bar"></div></div>
-                    <div class="status-header" style="justify-content: center;"><div class="health-text" id="health-text">100 / 100</div></div>
+                    <div class="status-header" style="justify-content: center;"><div class="health-text" id="blade-traits-text"><strong>Blade Traits:</strong> None</div></div>
                 </div>
 
                 <div class="grid-viewport" id="viewport">
@@ -771,11 +777,27 @@
             </div>
         </div>
 
+        <div id="gameAlertModal" class="modal-overlay">
+            <div class="dialogue-frame">
+                <p id="gameAlertText" class="dialogue-text"></p>
+                <button class="dialogue-btn" onclick="closeGameAlert()">OK</button>
+            </div>
+        </div>
+
         <div id="forgeResultModal" class="modal-overlay">
             <div class="modal-content" style="border: 4px solid #2980b9; background: #fdfdfd;">
                 <h3 style="color: #2980b9; font-family: 'Cinzel', serif; font-size: 22px;">🗡️ Forging Complete!</h3>
                 <div id="forgeResultDetails" style="font-size: 14px; text-align: left; margin-bottom: 15px; line-height: 1.6;"></div>
                 <button class="btn-craft" style="background-color: #3498db; width: 100%; font-size: 16px; padding: 12px;" onclick="closeForgeResultModal()">Add to Vault</button>
+            </div>
+        </div>
+
+        <div id="newTraitModal" class="modal-overlay">
+            <div class="modal-content" style="border: 4px solid #c8a84b; background: #fdfdfd;">
+                <h3 style="color: #c8a84b; font-family: 'Cinzel', serif; font-size: 20px; margin-bottom: 6px;">✨ New Trait Discovered!</h3>
+                <div id="newTraitIcon" style="font-size: 60px; line-height: 1.3; margin: 6px 0;"></div>
+                <div id="newTraitName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 14px;"></div>
+                <button class="btn-craft" style="background-color: #c8a84b; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
             </div>
         </div>
 
@@ -1084,7 +1106,7 @@
         }
 
         function unlockBlade(index, id) {
-            if (gold < BLADE_UNLOCK_COST) { alert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
+            if (gold < BLADE_UNLOCK_COST) { gameAlert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
             gold -= BLADE_UNLOCK_COST; bladeUnlocked[id] = true; updateUI();
             currentDesign.blade = index; renderDesignGrid(); updateDesignPreview();
         }
@@ -1258,6 +1280,7 @@
         const viewportEl = document.getElementById('viewport'); const gridElement = document.getElementById('grid');
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
+        let knownTraitIds = new Set(); // trait IDs heated at least once this session (for the "New Trait Discovered!" box)
         let isPurifying = false; let purifyProgress = 0; let purifyDirection = 1; let purifyAnimationFrame = null; let lastPurifyTime = 0; let pendingMove = {dx: 0, dy: 0}; let activeMoveKey = null;
         let movePreviewCells = []; let lastPreviewSteps = 0;
 
@@ -1406,7 +1429,7 @@
             generationInterval = setInterval(() => { if (tutorialMetalLock) return; for (let i = 0; i < metalsPerTick; i++) { const randomMetal = metalsList[Math.floor(Math.random() * metalsList.length)]; availableMetals[randomMetal]++; } updateUI(); }, 1000);
         }
 
-        function upgradeSmelter() { if (gold >= 50) { gold -= 50; metalsPerTick++; updateUI(); } else alert("You need 50 Gold to upgrade the smelter!"); }
+        function upgradeSmelter() { if (gold >= 50) { gold -= 50; metalsPerTick++; updateUI(); } else gameAlert("You need 50 Gold to upgrade the smelter!"); }
 
         function startShopLoop() {
             if (shopInterval) clearInterval(shopInterval);
@@ -1423,7 +1446,7 @@
             }, 10000); 
         }
 
-        function unlockShop() { if (gold >= 50) { gold -= 50; shopUnlocked = true; updateUI(); } else alert("You need 50 Gold to unlock the shop!"); }
+        function unlockShop() { if (gold >= 50) { gold -= 50; shopUnlocked = true; updateUI(); } else gameAlert("You need 50 Gold to unlock the shop!"); }
 
         function findValidSwordIndex() {
             try {
@@ -1442,7 +1465,8 @@
         }
 
         function updateUI() {
-            const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%'; healthBar.style.backgroundColor = health > 50 ? '#2ecc71' : health > 20 ? '#f1c40f' : '#e74c3c'; document.getElementById('health-text').textContent = `${Math.max(0, health)} / 100`;
+            const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%'; healthBar.style.backgroundColor = health > 50 ? '#2ecc71' : health > 20 ? '#f1c40f' : '#e74c3c';
+            document.getElementById('blade-traits-text').innerHTML = activeTraits.length === 0 ? '<strong>Blade Traits:</strong> None' : '<strong>Blade Traits:</strong> ' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', ');
             const goldText = document.getElementById('gold-text');
             if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${reputation < 0 ? '#e74c3c' : reputation > 10 ? '#27ae60' : '#2980b9'};">${reputation}</span>`; }
 
@@ -1499,6 +1523,11 @@
 
         let selectedBlueprintIndex = -1;
         function selectBlueprint(index) { selectedBlueprintIndex = (selectedBlueprintIndex === index) ? -1 : index; renderBlueprints(); }
+        function deleteBlueprint(index) {
+            savedBlueprints.splice(index, 1);
+            if (selectedBlueprintIndex === index) selectedBlueprintIndex = -1; else if (selectedBlueprintIndex > index) selectedBlueprintIndex--;
+            renderBlueprints();
+        }
         function renderBlueprints() {
             const listEl = document.getElementById('blueprints-list'); listEl.innerHTML = '';
             if (savedBlueprints.length === 0) { listEl.innerHTML = '<div class="empty-list">No compositions recorded yet.</div>'; selectedBlueprintIndex = -1; return; }
@@ -1519,7 +1548,8 @@
                 const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
                 const compString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
                 detail.className = 'sword-card'; detail.style.marginTop = '8px';
-                detail.innerHTML = `<div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>`;
+                const delBtn = tutorialStep < tutorialFlow.length ? '' : `<button class="recipe-delete-btn" onclick="deleteBlueprint(${selectedBlueprintIndex})">🗑️ Delete</button>`;
+                detail.innerHTML = `<div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>${delBtn}</div>`;
             }
             listEl.appendChild(detail);
         }
@@ -1530,7 +1560,7 @@
         function searchInventory() {
             if (isProcessingCustomer) return;
             const idx = findValidSwordIndex();
-            if (idx === -1) { alert("No sword in your inventory matches this customer's request."); return; }
+            if (idx === -1) { gameAlert("No sword in your inventory matches this customer's request."); return; }
             openVault(); // make sure the Inventory panel is expanded so the match is visible
             vaultHighlightIndex = idx; renderVault(); hideHands();
             const cards = document.getElementById('sword-list').querySelectorAll('.sword-card');
@@ -1679,6 +1709,14 @@
             if (traitToastTimer) clearTimeout(traitToastTimer);
             traitToastTimer = setTimeout(() => t.classList.remove('show'), 3000);
         }
+        // Game-styled replacement for native alert() — a parchment dialogue popup matching the rest of the UI.
+        function gameAlert(msg) { document.getElementById('gameAlertText').innerHTML = msg; document.getElementById('gameAlertModal').style.display = 'flex'; }
+        function closeGameAlert() { document.getElementById('gameAlertModal').style.display = 'none'; }
+
+        // Celebratory box shown the first time a given trait is heated (see resolveInteractiveHeatMinigame).
+        function showNewTraitModal(trait) { document.getElementById('newTraitIcon').textContent = trait.symbol; document.getElementById('newTraitName').textContent = trait.name; document.getElementById('newTraitModal').style.display = 'flex'; }
+        function closeNewTraitModal() { document.getElementById('newTraitModal').style.display = 'none'; }
+
         // Persistent top banner shown while the Flame trait's ❓ is revealed but not yet reached (tutorial guidance).
         function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
         function hideFlameHint() { document.getElementById('flameHintBanner').classList.remove('show'); }
@@ -1734,7 +1772,7 @@
             if (boardData[currentIndex] !== '' && boardData[currentIndex] !== '💥') {
                 const foundTrait = baseTraits.find(t => t.symbol === boardData[currentIndex]);
                 if (foundTrait) {
-                    if (activeTraits.some(t => t.id === foundTrait.id)) { alert("This trait is already heated into your active blade!"); return; }
+                    if (activeTraits.some(t => t.id === foundTrait.id)) { gameAlert("This trait is already heated into your active blade!"); return; }
                     
                     pendingHeatTrait = foundTrait; pendingHeatIndex = currentIndex; forgePhase = 'pulley'; heatScore = 0; heatCompletion = 0;
                     
@@ -1743,7 +1781,7 @@
                     document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
                     cueHeat('#forge-pulley', 'leftOf'); // point/glow the pulley first
                 }
-            } else alert("There is no hidden trait to heat on this square!");
+            } else gameAlert("There is no hidden trait to heat on this square!");
         }
 
         function handlePulleyClick() {
@@ -1804,8 +1842,13 @@
             setTimeout(() => { domCells[pendingHeatIndex].style.backgroundColor = ''; renderCell(pendingHeatIndex); }, 200);
             updateUI();
 
-            // Game-wide: announce the trait just fused onto the blade.
-            showTraitToast(`${pendingHeatTrait.symbol} ${pendingHeatTrait.name} trait acquired`);
+            // First time a trait is heated → celebratory "New Trait Discovered!" box (layered above any
+            // tutorial dialogue); repeat heats of an already-known trait show the "trait acquired" toast.
+            const heatedTrait = pendingHeatTrait;
+            const isNewTrait = !knownTraitIds.has(heatedTrait.id);
+            if (isNewTrait) knownTraitIds.add(heatedTrait.id);
+            if (isNewTrait) showNewTraitModal(heatedTrait);
+            else showTraitToast(`${heatedTrait.symbol} ${heatedTrait.name} trait acquired`);
 
             pendingHeatTrait = null; pendingHeatIndex = -1;
 
@@ -1822,7 +1865,7 @@
         function cancelHeat() { forgePhase = 'idle'; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
 
         function handleDeath() {
-            alert("Your active blade shattered! You lost the materials and traits inside it.");
+            gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
             health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false;
             const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25;
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
@@ -1832,16 +1875,16 @@
             // Record the active blade's mixture, or — when nothing is active (e.g. right after forging) — the last forged mixture.
             let traits, recipe;
             if (activeTraits.length > 0) {
-                const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0); if (totalUsed === 0) { alert("You haven't used any metals yet!"); return; }
+                const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0); if (totalUsed === 0) { gameAlert("You haven't used any metals yet!"); return; }
                 traits = activeTraits; recipe = usedMetals;
             } else if (lastForgedMixture) {
                 traits = lastForgedMixture.traits; recipe = lastForgedMixture.recipe;
-            } else { alert("You need at least one heated trait to save a recipe!"); return; }
+            } else { gameAlert("You need at least one heated trait to save a recipe!"); return; }
             const traitNames = traits.map(t => `${t.quality} ${t.name}`).join(' & ');
 
             // Block re-recording an identical composition (same trait set + same metals).
             const dup = savedBlueprints.some(bp => bp.traits.length === traits.length && traits.every(t => bp.traits.some(bt => bt.id === t.id)) && metalsList.every(m => bp.recipe[m] === recipe[m]));
-            if (dup) { const plain = traits.map(t => t.name).join(' & '); alert(`You have already recorded this composition for the ${plain} trait${traits.length > 1 ? 's' : ''}!`); return; }
+            if (dup) { const plain = traits.map(t => t.name).join(' & '); gameAlert(`You have already recorded this composition for the ${plain} trait${traits.length > 1 ? 's' : ''}!`); return; }
 
             const defaultDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
 
@@ -1855,7 +1898,7 @@
 
         function quickCraft(index) {
             if (isProcessingCustomer) return; const bp = savedBlueprints[index];
-            if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { alert("Not enough available metals to craft this recipe!"); return; }
+            if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
@@ -1868,7 +1911,7 @@
         function forgeSword() {
             if (activeTraits.length === 0) return; // Forge requires at least one heated trait (button is disabled until then)
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
-            if (totalUsed === 0) { alert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
+            if (totalUsed === 0) { gameAlert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow(); hideHands();
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
@@ -1935,9 +1978,9 @@
                 else if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sellFlame') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
                 else if (isFlame2) { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
             } else if (!hasRequestedTrait) {
-                alert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
+                gameAlert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
-                alert(`The customer refuses. "This is a ${sword.shape}! I specifically asked for a ${requestedShape}!"`); 
+                gameAlert(`The customer refuses. "This is a ${sword.shape}! I specifically asked for a ${requestedShape}!"`); 
             }
         }
 
@@ -1950,7 +1993,7 @@
             const metal = getMetalForDir(d.dx, d.dy);
             if (tutorialMetalLock && metal !== 'steel' && metal !== 'magnesium') return; // first-craft stage: only steel & magnesium
             if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) {
-                if (gold >= 50) { gold -= 50; unlockedMetals[metal] = true; updateUI(); } else { alert(`You need 50 Gold to unlock ${metal}!`); } return;
+                if (gold >= 50) { gold -= 50; unlockedMetals[metal] = true; updateUI(); } else { gameAlert(`You need 50 Gold to unlock ${metal}!`); } return;
             }
             startInlinePurify(d.dx, d.dy);
         }
@@ -1989,7 +2032,7 @@
             e.preventDefault(); if (isPurifying) return; 
             const metal = getMetalForDir(dx, dy);
             if (tutorialMetalLock && metal !== 'steel' && metal !== 'magnesium') return; // first-craft stage: only steel & magnesium
-            if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) { alert(`Click the locked button on the grid to unlock ${metal} for 50g first!`); return; }
+            if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) { gameAlert(`Click the locked button on the grid to unlock ${metal} for 50g first!`); return; }
             activeMoveKey = key; startInlinePurify(dx, dy);
         });
 
