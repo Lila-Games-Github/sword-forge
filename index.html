@@ -1300,7 +1300,7 @@
         // Tutorial first-craft: start with exactly 4 steel + 1 magnesium, everything else 0.
         let availableMetals = { titanium: 0, steel: 4, aluminium: 0, magnesium: 1, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
         // First-sword tutorial stage: only steel & magnesium usable; other metals, auto-generation,
-        // Record Mixture and Chart are locked until the first sword is forged.
+        // Record Composition and Chart are locked until the first sword is forged.
         let tutorialMetalLock = true;
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
         let generationInterval = null; let shopInterval = null; let metalsPerTick = 1;
@@ -1578,7 +1578,7 @@
             const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0 || forgeLockedForRecord; // Forge only after a heating minigame has fused a trait; locked until the mixture is recorded during the guided record step
             if (forgeBtn.disabled) hideForgeArrow();
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
-            // First-craft stage: Record Mixture and Chart are locked until the first sword is forged.
+            // First-craft stage: Record Composition and Chart are locked until the first sword is forged.
             const saveBtn = document.getElementById('btnSaveRecipe'); saveBtn.disabled = tutorialMetalLock;
             saveBtn.textContent = (activeTraits.length === 0 && lastForgedMixture) ? 'Record Last Composition' : 'Record Composition';
             document.getElementById('btnChart').disabled = tutorialMetalLock;
@@ -2023,7 +2023,7 @@
             showTraitToast(`📜 ${traitNames} composition recorded`);
             forgeLockedForRecord = false; // recording done — Forge is available again
             const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
-            // Tutorial: after the "mixture recorded" toast is read (~2s), show the closing dialogue.
+            // Tutorial: after the "composition recorded" toast is read (~2s), show the closing dialogue.
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
         }
 
@@ -2047,7 +2047,7 @@
             
             openDesignModal((selectedShapeName, finalDesignObj) => {
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Mixture & Chart
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
                 lastForgedMixture = { traits: [...activeTraits], recipe: { ...usedMetals } }; // enables "Record Last Mixture" after forging
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
