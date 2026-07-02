@@ -214,6 +214,8 @@
         .customer-actions.responses-shown { animation: responsesFadeIn 0.35s ease-out; }
         @keyframes responsesFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .customer-actions .btn-craft { margin-top: 0; width: 100%; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; }
+        #btnNextCustomer { width: 100%; margin-top: 10px; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; animation: responsesFadeIn 0.35s ease-out; }
+        #btnNextCustomer:hover { background-color: #219150; }
         #btnAutoSell { background-color: #27ae60; }
         #btnAutoCraftSell { background-color: #8e44ad; }
         #btnRefuse { background-color: #e74c3c; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
@@ -606,6 +608,7 @@
                             <button id="btnAutoSell" class="btn-craft">I have something for you.</button>
                             <button id="btnRefuse">I don't have what you need.</button>
                         </div>
+                        <button id="btnNextCustomer" style="display:none;">Thank you</button>
                     </div>
                 </div>
 
@@ -1208,7 +1211,7 @@
             { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft to forge one from the flame composition, then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
-            { action: 'delay', duration: 4000 },
+            { action: 'delay', duration: 800 },
             { onShow: () => { setRandomRequest(); updateUI(); }, text: "Great work! Some customers know exactly what they want. Others need your expert advice. Help them find the perfect sword!", afterCustomer: 2000 },
         ];
 
@@ -1389,6 +1392,27 @@
             { id: 'flame', name: 'Flame', symbol: '🔥' }, { id: 'water', name: 'Water', symbol: '💧' }, { id: 'lightning', name: 'Lightning', symbol: '⚡' }, { id: 'dark', name: 'Dark', symbol: '🌑' }
         ];
 
+        // Customer reactions shown after a sale. Prioritize the trait the customer asked for, then the
+        // sword's first trait, then a random generic line (also used for trait-less swords).
+        const traitFeedback = {
+            flame: 'Oh! Hot!', floral: 'So pretty! You craft the most beautiful swords!', ice: "Brrr — it's freezing to the touch!",
+            water: 'Smooth as a flowing river!', lightning: 'Zap! It crackles with power!', dark: 'Shadows cling to the steel...',
+            celestial: 'It shines like the stars!', storm: 'I can hear the thunder in it!', durable: 'This blade will outlast me!',
+            heavy: "Oof! Now that's got some weight!", balanced: 'Perfectly balanced in my hand!', flexible: 'It bends but never breaks!',
+            sharp: 'Careful — it could split a hair!', accurate: 'It strikes exactly where I aim!', grace: 'It practically dances in my hand!',
+            noble: 'Fit for a king!', honor: 'A blade worthy of a true warrior!', endurance: "This one won't tire before I do!",
+            luck: 'I feel luckier already!', fury: 'I can feel its rage!', savage: "It's downright feral!",
+            cruel: 'My enemies will suffer with this one.', blood: 'It thirsts for battle!', cursed: 'I can feel the darkness in it... perfect.'
+        };
+        const genericFeedback = ['Amazing sword!', 'Just what I needed — thank you!', 'Fine craftsmanship, blacksmith!', 'A deal well made!', 'You never disappoint!'];
+        function customerFeedbackLine(sword) {
+            let trait = null;
+            if (requestedTrait && sword.traits.some(t => t.id === requestedTrait.id)) trait = requestedTrait; // the trait the customer asked for
+            else if (sword.traits.length > 0) trait = sword.traits[0];                                        // otherwise the sword's first trait
+            if (trait && traitFeedback[trait.id]) return traitFeedback[trait.id];
+            return genericFeedback[Math.floor(Math.random() * genericFeedback.length)];                       // trait-less sword / fallback
+        }
+
         let boardData = new Array(totalCells).fill(''); let exploredCells = new Array(totalCells).fill(false); let discoveredTraits = new Array(totalCells).fill(false); 
         let domCells = []; let closest8Traits = []; 
 
@@ -1530,6 +1554,7 @@
             currentCustomerHTML = html; customerDialogueRevealed = false; customerTyping = false;
             if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
             document.getElementById('dialogue-text').innerHTML = '';
+            const nb = document.getElementById('btnNextCustomer'); if (nb) nb.style.display = 'none';
             setResponseOptionsVisible(false);
             if (currentScreenIndex === 1) beginCustomerTyping();
         }
@@ -1560,6 +1585,30 @@
         function afterCustomerDialogue(readMs, cb) {
             if (customerDialogueRevealed && !customerTyping) setTimeout(cb, readMs);
             else afterCustomerQueue.push(() => setTimeout(cb, readMs));
+        }
+
+        // After a sale the customer stays at the counter, showing their reaction, until the player taps a
+        // response button ("Thank you" / …). Tapping it runs advanceFn, which brings the next customer.
+        const saleResponses = ['Thank you', 'Glad you liked it', 'Take care'];
+        let pendingSaleAdvance = null;
+        function showSaleFeedback(text, advanceFn) {
+            if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
+            customerTyping = false; customerDialogueRevealed = true;
+            document.getElementById('dialogue-text').innerHTML = text;
+            setResponseOptionsVisible(false);          // hide the two request-responses while they leave
+            pendingSaleAdvance = advanceFn;
+            const btn = document.getElementById('btnNextCustomer');
+            btn.textContent = saleResponses[Math.floor(Math.random() * saleResponses.length)];
+            btn.style.display = 'block'; btn.style.animation = 'none'; void btn.offsetWidth; btn.style.animation = '';
+            try { updateUI(); } catch (e) {}
+        }
+        function onSaleResponseClick() {
+            if (!pendingSaleAdvance) return;
+            const fn = pendingSaleAdvance; pendingSaleAdvance = null;
+            document.getElementById('btnNextCustomer').style.display = 'none';
+            isProcessingCustomer = false;              // release the lock, then bring the next customer
+            try { fn(); } catch (e) { console.error('Sale advance error:', e); }
+            try { updateUI(); } catch (e) {}
         }
 
         function startMetalGenerator() {
@@ -2171,11 +2220,15 @@
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
                 gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1;
 
-                const isFlame2 = tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sellFlame2';
-                processCustomerDeparture(isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `Ah! A masterpiece! Thank you, blacksmith. Here is your <strong>${goldEarned} gold</strong>.`, 1200);
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sell') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
-                else if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'sellFlame') { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
-                else if (isFlame2) { hideHands(); tutorialStep++; suppressAutoRequest = true; setTimeout(playTutorialStep, 1600); }
+                const wa = tutorialStep < tutorialFlow.length ? tutorialFlow[tutorialStep].waitAction : null;
+                const isFlame2 = wa === 'sellFlame2';
+                const isTutorialSale = wa === 'sell' || wa === 'sellFlame' || isFlame2;
+                const feedback = customerFeedbackLine(sword);
+                const departureText = isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `${feedback} Here's your <strong>${goldEarned} gold</strong>.`;
+                // Customer waits at the counter showing their reaction; tapping the player's response
+                // brings the next customer (tutorial advances to its next step, else a random request).
+                if (isTutorialSale) hideHands();
+                showSaleFeedback(departureText, isTutorialSale ? () => { tutorialStep++; playTutorialStep(); } : () => { setRandomRequest(); });
             } else if (!hasRequestedTrait) {
                 gameAlert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
@@ -2184,6 +2237,7 @@
         }
 
         document.getElementById('btnAutoSell').onclick = searchInventory;
+        document.getElementById('btnNextCustomer').onclick = onSaleResponseClick;
         // Tap the customer's speech bubble to skip the word-by-word reveal.
         document.getElementById('dialogue-text').addEventListener('click', () => { if (customerTyping) finishCustomerTyping(); });
 
