@@ -943,6 +943,18 @@
                 grip: ['assets/sword-parts/grips/flame_grip1.png', 'assets/sword-parts/grips/flame_grip2.png', 'assets/sword-parts/grips/flame_grip3.png'],
                 guard: ['assets/sword-parts/guards/flame_guard1.png', 'assets/sword-parts/guards/flame_guard2.png', 'assets/sword-parts/guards/flame_guard3.png', 'assets/sword-parts/guards/flame_guard4.png', 'assets/sword-parts/guards/flame_guard5.png'],
                 pommel: ['assets/sword-parts/pommels/flame_pommel1.png', 'assets/sword-parts/pommels/flame_pommel2.png']
+            },
+            ice: {
+                blade: { Longsword: 'assets/sword-parts/blades/ice_longsword_blade.png' },
+                grip: ['assets/sword-parts/grips/ice_grip1.png'],
+                guard: ['assets/sword-parts/guards/ice_guard1.png'],
+                pommel: ['assets/sword-parts/pommels/ice_pommel1.png']
+            },
+            water: {
+                blade: { Longsword: 'assets/sword-parts/blades/water_longsword_blade.png' },
+                grip: ['assets/sword-parts/grips/water_grip1.png'],
+                guard: ['assets/sword-parts/guards/water_guard1.png'],
+                pommel: ['assets/sword-parts/pommels/water_pommel1.png']
             }
         };
         function skinFor(traits) { if (!traits) return null; for (let i = 0; i < traits.length; i++) { if (traitSkins[traits[i].id]) return traitSkins[traits[i].id]; } return null; }
