@@ -49,7 +49,7 @@ Global mutable state near the top of the `<script>`; functions below. Key system
 - **Economy:** smelter (`startMetalGenerator`, gated by `tutorialMetalLock`), customers (`setRandomRequest` — scripted #1 any / #2 Flame / #3 ice-dragon, random #4+), `sellSword` (Give NPC), `searchInventory`, passive shop (`startShopLoop`), map reset. **Refuse disabled for `requestCount ≤ 3`.** Reputation multipliers on payout.
 - **Tutorial:** data-driven `tutorialFlow` array (`playTutorialStep`). Steps are dialogues (`text`/`title`/`frame`), `action`s, or `waitAction` gates; gates carry a `hand` spec (`showHands`). Gameplay functions advance it by checking `tutorialFlow[tutorialStep].waitAction`. First-craft is locked to 4 steel + 1 magnesium (`tutorialMetalLock`) until the first forge. **Skip Tutorial** (`skipTutorial`) ends the flow and unlocks everything.
 - **Screens & UI:** 3 swipeable screens (`slideScreen`): Shop (0), Customers (1), Forge/Map (2). Counter rotates customer portraits sliding in from the left. Forge status row shows **"Blade Traits:"** (the heated traits; the HP bar has no numeric text). **Minimap** (`renderMinimap`) is a live canvas with zoom/pan, trait emoji icons, the player drawn as `tile_sword.png` + glow, tap-a-trait name label, and a tutorial "Your location / Flame trait" pointer. All warnings use `gameAlert` (styled parchment popup), not native `alert()`.
-- **Dev/cheat buttons** (fixed, window bottom-right, `.corner-btn`): **Skip Tutorial** (`skipTutorial`, tutorial-only) and **+100 Metals** (`addCheatMetals`, whole session). ⚠️ The cheat currently ships to players.
+- **Dev/cheat buttons** (fixed, window bottom-right, `.corner-btn`): **Skip Intro** (`launchCoreGame`, during the intro only), **Skip Tutorial** (`skipTutorial`, tutorial-only), **+100 Metals** (`addCheatMetals`, whole session) and **+100 Gold** (`addCheatGold`, whole session). ⚠️ Skip Intro and both cheats currently ship to players.
 
 ## 7. Current state & recent work
 Core loop is complete with a full guided tutorial and a lot of polish. Recent work: per-trait heating minigames (Tier A static tweaks + Tier B dynamic bands + Tier C stages/hidden), bellow tap-and-hold, grid camera fixes (pan-lock, cursor-centred zoom, free-camera toggle), Recorded Compositions redesign (tiles + delete + duplicate guard + record-after-forge), styled `gameAlert` popups, "New Trait Discovered!" box, "Blade Traits" status bar, minimap sword-icon marker + readable labels, illustrated slider lesson, ice-dragon 3rd customer, and the Skip Tutorial + +100 Metals buttons.
@@ -58,9 +58,9 @@ Core loop is complete with a full guided tutorial and a lot of polish. Recent wo
 - No **save/load** — nothing persists across reload (biggest functional gap).
 - Only 3 customer portraits; no audio.
 - Per-trait heat numbers are **first-pass** — needs a balance pass (Dark/Cursed/Lightning likeliest to be too hard).
-- The **+100 Metals cheat is player-visible** — gate or remove before a real release.
+- The **+100 Metals / +100 Gold cheats and the Skip Intro button are player-visible** — gate or remove before a real release.
 - Spec open questions (`specs/game-design.md §9`): heat **quality** is Epic-only; map seed is fixed; the GDD's **Dagger** shape is absent.
 - `assets/unused/` stragglers; `Chart_background.png` is committed but unreferenced.
 
 ## First task suggestion
-Read `specs/game-design.md` end-to-end, open `index.html` in the preview (`preview_start` → `launchCoreGame()` → play a bit), and use the **Skip Tutorial** + **+100 Metals** buttons to jump straight into the sandbox and exercise the systems before changing anything.
+Read `specs/game-design.md` end-to-end, open `index.html` in the preview (`preview_start` → `launchCoreGame()` → play a bit), and use the **Skip Intro** / **Skip Tutorial** + **+100 Metals** / **+100 Gold** buttons to jump straight into the sandbox and exercise the systems before changing anything.

@@ -202,6 +202,8 @@
         .corner-btn:hover { background: #4a3623; }
         #btnSkipTutorial { bottom: 16px; }
         #btnCheatMetals { bottom: 60px; }
+        #btnCheatGold { bottom: 104px; }
+        #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
 
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
         .npc-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -589,7 +591,7 @@
                     <p style="font-size: 12px; color: #666;">Passively sells your swords over time.</p>
                     <div id="shop-locked-view" style="text-align: center;">
                         <div class="empty-list">The shop is currently closed.</div>
-                        <button id="btnUnlockShop" class="btn-craft" style="background:#e67e22; margin-top: 10px;" onclick="unlockShop()">Unlock Shop (50 Gold)</button>
+                        <button id="btnUnlockShop" class="btn-craft" style="background:#e67e22; margin-top: 10px;" onclick="unlockShop()">Unlock Shop (500 Gold)</button>
                     </div>
                     <div class="sword-list" id="shop-list" style="display: none;"></div>
                 </div>
@@ -824,6 +826,8 @@
         <span id="heatHand" class="tut-hand" style="z-index: 1003;"></span>
     </div>
 
+    <button id="btnSkipIntro" class="corner-btn" onclick="launchCoreGame()">Skip Intro ⏭</button>
+    <button id="btnCheatGold" class="corner-btn" onclick="addCheatGold()" style="display:none;">+100 Gold 💰</button>
     <button id="btnCheatMetals" class="corner-btn" onclick="addCheatMetals()" style="display:none;">+100 Metals ⛏️</button>
     <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
 
@@ -865,16 +869,24 @@
 
         document.querySelectorAll('.scene').forEach((scene) => { scene.addEventListener('click', advanceScene); });
 
+        let coreGameLaunched = false;
         function launchCoreGame() {
+            if (coreGameLaunched) return;        // guard: intro-finish and Skip Intro both call this
+            coreGameLaunched = true;
             document.getElementById('intro-container').style.display = 'none';
             document.getElementById('mobile-wrapper').style.display = 'block';
+            document.getElementById('btnSkipIntro').style.display = 'none';   // intro is done
             document.getElementById('btnSkipTutorial').style.display = 'block'; // show Skip while the tutorial runs
             document.getElementById('btnCheatMetals').style.display = 'block'; // cheat: stays available throughout
+            document.getElementById('btnCheatGold').style.display = 'block';  // cheat: stays available throughout
             initializeMainGame();
         }
 
         // Cheat: instantly add 100 of every metal.
         function addCheatMetals() { metalsList.forEach(m => availableMetals[m] += 100); updateUI(); }
+
+        // Cheat: instantly add 100 gold.
+        function addCheatGold() { gold += 100; updateUI(); }
 
         // End the tutorial immediately and unlock everything for normal play.
         function skipTutorial() {
@@ -1263,22 +1275,92 @@
         document.getElementById('btnTutorialOk').onclick = () => { tutorialStep++; playTutorialStep(); };
 
         function checkShopTutorial() {
-            if (gold >= 50 && !hasShownShopTutorial) {
+            if (gold >= 500 && !hasShownShopTutorial) {
                 hasShownShopTutorial = true;
                 document.getElementById('tutorialFrame').classList.remove('frame2', 'frame9', 'frame10');
-                document.getElementById('tutorial-title').textContent = "Shop Unlocked!"; document.getElementById('tutorial-title').style.display = "block";
-                document.getElementById('tutorial-text').textContent = "Shop can now be opened. Swipe left to the shop and display swords for passive sale.";
+                document.getElementById('tutorial-title').textContent = "Shop Available!"; document.getElementById('tutorial-title').style.display = "block";
+                document.getElementById('tutorial-text').textContent = "The Shop can now be unlocked! Swipe left to the shop and unlock it to display swords for passive sale.";
                 document.getElementById('tutorialModal').style.display = 'flex';
                 const btn = document.getElementById('btnTutorialOk'); const oldOnClick = btn.onclick;
                 btn.onclick = () => {
-                    document.getElementById('tutorialModal').style.display = 'none'; btn.onclick = oldOnClick; 
-                    if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].text && tutorialStep !== 0) playTutorialStep();
+                    document.getElementById('tutorialModal').style.display = 'none'; btn.onclick = oldOnClick;
+                    const tutorialOver = tutorialStep >= tutorialFlow.length;
+                    if (!tutorialOver && tutorialFlow[tutorialStep].text && tutorialStep !== 0) playTutorialStep();
+                    // Guide the player to the Shop, then the Unlock button (only once the main tutorial is done,
+                    // so its hands don't clash with these).
+                    else if (tutorialOver && !shopUnlocked) { shopGuideActive = true; setTimeout(updateShopGuideHand, 300); }
                 };
             }
         }
 
+        // Points to the left arrow until the player reaches the Shop screen, then to the Unlock Shop button.
+        let shopGuideActive = false;
+        function updateShopGuideHand() {
+            if (!shopGuideActive || shopUnlocked) return;
+            if (currentScreenIndex === 0) showHands([{ sel: '#btnUnlockShop', side: 'above' }]);
+            else showHands([{ sel: '#nav-left', side: 'rightOf' }]);
+        }
 
-        let currentScreenIndex = 2; 
+        // ---- Post-unlock shop-selling guide: craft a flame sword from the recorded composition,
+        //      send it to the shop, then explain the shop. Runs once, right after the shop is unlocked. ----
+        let shopSellPhase = null; // null | 'craft' | 'toShop' | 'shopBox' | 'shopBoxShown'
+
+        // A one-off guide dialogue reusing the tutorial modal (saves/restores the OK handler).
+        function showGuideBox(title, text, onOk) {
+            document.getElementById('tutorialFrame').classList.remove('frame2', 'frame9', 'frame10');
+            const titleEl = document.getElementById('tutorial-title');
+            if (title) { titleEl.textContent = title; titleEl.style.display = 'block'; } else titleEl.style.display = 'none';
+            document.getElementById('tutorial-text').textContent = text;
+            document.getElementById('tutorialModal').style.display = 'flex';
+            const btn = document.getElementById('btnTutorialOk'); const old = btn.onclick;
+            btn.onclick = () => { document.getElementById('tutorialModal').style.display = 'none'; btn.onclick = old; if (onOk) onOk(); };
+        }
+        // Point the hand at the arrow that moves toward a target screen index.
+        function pointToScreen(target) {
+            if (currentScreenIndex < target) showHands([{ sel: '#nav-right', side: 'leftOf' }]);
+            else if (currentScreenIndex > target) showHands([{ sel: '#nav-left', side: 'rightOf' }]);
+        }
+        function startShopSellGuide() {
+            const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame'));
+            if (!bp) return; // no recorded flame composition -> nothing to guide
+            metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); // ensure Auto-Craft is affordable
+            updateUI();
+            showGuideBox("Stock Your Shop", "Craft a flame sword and add it to your shop for sale.", () => {
+                shopSellPhase = 'craft'; setTimeout(updateShopSellHand, 300);
+            });
+        }
+        function updateShopSellHand() {
+            if (shopSellPhase === 'craft') {
+                if (currentScreenIndex !== 1) return pointToScreen(1);
+                const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes();
+                const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame'));
+                if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); }
+                const detail = document.getElementById('recipe-detail'); if (detail) detail.scrollIntoView({ block: 'center' });
+                setTimeout(() => { if (shopSellPhase === 'craft') showHands([{ sel: '#recipe-detail .btn-craft', side: 'above' }]); }, 250);
+            } else if (shopSellPhase === 'toShop') {
+                if (currentScreenIndex !== 1) return pointToScreen(1);
+                const idx = craftedSwords.findIndex(s => s.traits.some(t => t.id === 'flame'));
+                if (idx === -1) { hideHands(); return; }
+                vaultHighlightIndex = idx; openVault(); renderVault();
+                const cards = document.querySelectorAll('#sword-list .sword-card'); if (cards[idx]) cards[idx].scrollIntoView({ block: 'center' });
+                setTimeout(() => { if (shopSellPhase === 'toShop') showHands([{ sel: '#sword-list .search-highlight .btn-shop', side: 'above' }]); }, 250);
+            } else if (shopSellPhase === 'shopBox') {
+                if (currentScreenIndex !== 0) return pointToScreen(0);
+                hideHands(); showShopIntroBoxes();
+            }
+        }
+        function showShopIntroBoxes() {
+            if (shopSellPhase !== 'shopBox') return;
+            shopSellPhase = 'shopBoxShown'; // guard against re-trigger while on the shop screen
+            showGuideBox("Your Shop", "This is where you display your best swords and possibly earn even more gold!", () => {
+                showGuideBox("Your Shop", "Or if you have too many swords lying in your inventory, better send them to the shop for sale.", () => {
+                    shopSellPhase = null; // guide complete
+                });
+            });
+        }
+
+
+        let currentScreenIndex = 2;
         function slideScreen(direction) {
             currentScreenIndex += direction;
             if(currentScreenIndex < 0) currentScreenIndex = 0; if(currentScreenIndex > 2) currentScreenIndex = 2;
@@ -1289,6 +1371,8 @@
             if (currentScreenIndex === 1) { slideInCustomer(); beginCustomerTyping(); } // replay the slide-in + reveal the line on arrival
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToCounter' && currentScreenIndex === 1) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
+            if (shopGuideActive && !shopUnlocked) { hideHands(); setTimeout(updateShopGuideHand, 400); } // re-point the shop-unlock guide after the slide
+            if (shopSellPhase) { hideHands(); setTimeout(updateShopSellHand, 400); } // re-point the shop-selling guide after the slide
         }
 
         function toggleRecipes() {
@@ -1448,7 +1532,7 @@
             document.getElementById('forgeResultModal').style.display = 'flex';
         }
 
-        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && (tutorialFlow[tutorialStep].text || tutorialFlow[tutorialStep].hand)) setTimeout(playTutorialStep, 400); }
+        function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && (tutorialFlow[tutorialStep].text || tutorialFlow[tutorialStep].hand)) setTimeout(playTutorialStep, 400); if (shopSellPhase === 'toShop') setTimeout(updateShopSellHand, 400); }
 
         function generateLayout() {
             boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false);
@@ -1633,7 +1717,7 @@
             }, 10000); 
         }
 
-        function unlockShop() { if (gold >= 50) { gold -= 50; shopUnlocked = true; updateUI(); } else gameAlert("You need 50 Gold to unlock the shop!"); }
+        function unlockShop() { if (gold >= 500) { gold -= 500; shopUnlocked = true; shopGuideActive = false; hideHands(); updateUI(); startShopSellGuide(); } else gameAlert("You need 500 Gold to unlock the shop!"); }
 
         function findValidSwordIndex() {
             try {
@@ -1702,8 +1786,8 @@
             } else {
                 document.getElementById('shop-locked-view').style.display = 'block'; document.getElementById('shop-list').style.display = 'none';
                 const btnUnlock = document.getElementById('btnUnlockShop');
-                if (gold >= 50) { btnUnlock.disabled = false; btnUnlock.style.background = '#e67e22'; btnUnlock.textContent = "Unlock Shop (50 Gold)"; } 
-                else { btnUnlock.disabled = true; btnUnlock.style.background = '#999'; btnUnlock.textContent = "Need 50 Gold to Unlock"; }
+                if (gold >= 500) { btnUnlock.disabled = false; btnUnlock.style.background = '#e67e22'; btnUnlock.textContent = "Unlock Shop (500 Gold)"; }
+                else { btnUnlock.disabled = true; btnUnlock.style.background = '#999'; btnUnlock.textContent = "Need 500 Gold to Unlock"; }
             }
             renderBlueprints(); renderVault(); checkShopTutorial();
         }
@@ -2150,6 +2234,7 @@
                 const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
+                if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
             }, bp.traits);
         }
 
@@ -2241,7 +2326,7 @@
         // Tap the customer's speech bubble to skip the word-by-word reveal.
         document.getElementById('dialogue-text').addEventListener('click', () => { if (customerTyping) finishCustomerTyping(); });
 
-        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); }
+        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); if (shopSellPhase === 'toShop') { hideHands(); shopSellPhase = 'shopBox'; setTimeout(updateShopSellHand, 300); } } // shop-sell guide: now head to the shop
 
         function handleMovementClick(d) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;

@@ -25,7 +25,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [x] Scripted customers #1 (any) → #2 (Flame) → #3 (ice-dragon, "weak to heat" = Flame); random from #4
 - [x] **Refuse disabled for the first three (scripted) customers**
 - [x] **Search Inventory** shortcut (finds + highlights the matching sword). *(The old one-tap "Craft & Sell" button was removed — craft from a recorded composition's Auto-Craft instead.)*
-- [x] Passive shopfront (50g unlock); map reset (retains gold/metals/rep/vault/compositions/upgrades)
+- [x] Passive shopfront (500g unlock; "Shop Available!" tip at 500g → hand-guides the player to the Shop screen then the Unlock Shop button; after unlocking, a "stock the shop" guide walks them through Auto-Crafting a flame sword, sending it To Shop, then explains the shop with two boxes); map reset (retains gold/metals/rep/vault/compositions/upgrades)
 
 ### Recorded Compositions (formerly "Saved Recipes" / "Blueprints")
 - [x] **Record Composition** button (was "Record Mixture"); **Record Last Composition** records the last forged sword after forging (no active blade needed)
@@ -50,7 +50,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [x] **Word-by-word customer dialogue + response options** — the customer's request types out one word at a time (tap the bubble to skip); once the line finishes, the player's two responses fade in: **"I have something for you."** (Search Inventory) and **"I don't have what you need."** (Refuse, still disabled for the first three scripted customers). Tutorial boxes tied to a customer are gated to appear only after that customer's line fully types + a ~2s read pause, so they never overlap the speech
 - [x] **Post-sale customer feedback + response gate** — on a sale the customer reacts with a short line before the gold (e.g. "Oh! Hot! Here's your 25 gold."), chosen by the trait the customer asked for → sword's first trait → random generic (per-trait line for all 24 traits plus 5 generic lines). The customer then **stays at the counter until the player taps a response button** ("Thank you" / "Glad you liked it" / "Take care"), which brings the next customer. Refuse still auto-advances
 - [x] Heat/Forge glow cues; grammar pass; 3-screen swipe layout; GitHub Pages auto-deploy CI
-- [x] **+100 Metals cheat button** (window bottom-right, whole session)
+- [x] **+100 Metals** and **+100 Gold** cheat buttons (window bottom-right, whole session); **Skip Intro** button (bottom-right, during the intro → `launchCoreGame`)
 
 ---
 
@@ -63,7 +63,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] Clean up `assets/unused/` (unreferenced files); note `Chart_background.png` is committed but not yet referenced in-game
 
 ## ⚠️ Known / decisions to make
-- [ ] **`+100 Metals` cheat is visible to players** on the live site — gate it (key combo / `?cheats` URL flag) before a "real" release, or remove it
+- [ ] **`+100 Metals`, `+100 Gold`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
 - [ ] Heat **quality** is hardcoded **Epic-only** (`resolveInteractiveHeatMinigame`) — restore Weak/Fine/Epic tiers, or keep? (separate from the per-trait *minigame* variety, which is done)
 - [ ] Map seed fixed (`1337`) — should reset randomize the layout?
 - [ ] Original GDD's **Dagger** shape is absent (10 shapes vs 11)
