@@ -11,11 +11,14 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 ### Core gameplay
 - [x] 50×50 grid, fog of war, seeded layout (seed `1337`); 8-direction movement with 8 metals
 - [x] **Purify-dash slider** — hold a direction to charge; release in the red/yellow/green zone = 1/2/3-block dash (1 metal regardless of distance); live green `tile_move.png` path preview; cancel via centre button / slide-off / right-click
-- [x] Hazards (~20% of map), health (−20/hit), death shatters the active blade
+- [x] Hazards (~20% of map), health (−20 on **landing**; crossing over a hazard mid-dash is safe), death shatters the active blade
 - [x] 24 traits hidden on the map; value scales with distance from centre; one fuse per trait per blade
 - [x] **Heating minigame** — pulley → bellows → stabilize; glow + hand cues guide pulley-then-bellows
 - [x] **Bellow tap *and* hold** — a tap adds +16; holding raises heat gradually (~+22/sec net)
 - [x] **Per-trait heating variants** — every trait has a unique minigame via the `heatConfigs` table (band position/width, decay, stabilize, pump, hold, overheat; plus dynamic bands: oscillate/gust/jitter/multi-band/jump/stages/hidden). Tutorial heats stay on the default band. Fully reversible (delete a config → default).
+- [x] **Heat timer → quality** — a per-trait countdown (`heatTimers`; ⏱ readout in the heat modal, safe 45s in the tutorial). Stabilize in time → `Epic`; timer runs out → the trait still fuses at `Fine`. Quality tiers **Weak +0 / Fine +10 / Epic +20** value bonus.
+- [x] **Blade HP → quality** — at forge, low HP caps quality (≥80 Epic, 40–79 Fine, <40 Weak; `min(heat outcome, HP cap)`).
+- [x] **Quality overlays** — forge result layers a **crack** overlay on Weak swords and **sparkling stars** on Epic (`assets/sword-parts/overlays/`).
 - [x] **"New Trait Discovered!" box** on the first heat of each trait (icon + name), including during the tutorial
 - [x] **Design Desk** — blade/grip/guard/pommel art; trait-specific part art (Flame skin) via `traitSkins`; 7 unlockable balanced blade shapes (50g each); info-hint button
 - [x] **Forge** — 10 shapes; forge-result reveal; resets player to centre
@@ -64,7 +67,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## ⚠️ Known / decisions to make
 - [ ] **`+100 Metals`, `+100 Gold`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
-- [ ] Heat **quality** is hardcoded **Epic-only** (`resolveInteractiveHeatMinigame`) — restore Weak/Fine/Epic tiers, or keep? (separate from the per-trait *minigame* variety, which is done)
+- [x] ~~Heat **quality** is hardcoded **Epic-only**~~ — **done:** Weak/Fine/Epic driven by the heat timer + blade-HP cap, with crack/sparkle overlays
 - [ ] Map seed fixed (`1337`) — should reset randomize the layout?
 - [ ] Original GDD's **Dagger** shape is absent (10 shapes vs 11)
 

@@ -373,7 +373,7 @@
         #newTraitModal { z-index: 1012; }
         #gameAlertModal { z-index: 1020; }
 
-        .dialogue-frame { position: relative; background: url('assets/ui/dialogue-frame.png') no-repeat center; background-size: 100% 100%; background-color: transparent; border: none; border-radius: 0; box-shadow: none; width: 82%; max-width: 300px; padding: 28px 36px 62px 36px; box-sizing: border-box; text-align: center; }
+        .dialogue-frame { position: relative; background: url('assets/ui/dialogue-frame.png') no-repeat center; background-size: 100% 100%; background-color: transparent; border: none; border-radius: 0; box-shadow: none; width: 82%; max-width: 300px; padding: 46px 36px 62px 36px; box-sizing: border-box; text-align: center; }
         .dialogue-title { font-family: 'Cinzel', serif; font-size: 15px; color: #4a3623; margin: 0 0 8px 0; font-weight: bold; }
         .dialogue-text { font-size: 13px; color: #3d2b1a; line-height: 1.55; margin: 0; }
         .dialogue-btn { position: absolute; top: 91.5%; left: 50%; transform: translate(-50%, -50%); background: transparent; border: none; color: #000; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; padding: 4px 16px; letter-spacing: 0.5px; white-space: nowrap; }
@@ -384,12 +384,13 @@
            so lock the true image aspect ratio and confine text to the upper parchment. */
         .dialogue-frame.frame2 { background-image: url('assets/ui/dialogue-frame2.png'); aspect-ratio: 979 / 1309; padding: 0; }
         .dialogue-frame.frame2 .dialogue-title { position: absolute; top: 13%; left: 11%; right: 11%; margin: 0; font-size: 14px; }
-        .dialogue-frame.frame2 .dialogue-text { position: absolute; top: 20%; left: 11%; right: 11%; bottom: 42%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
+        .dialogue-frame.frame2 .dialogue-text { position: absolute; top: 24%; left: 11%; right: 11%; bottom: 46%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
         /* Frames 9 & 10: Purify-slider lesson. Art (tap/hold, avoid-hazards) is baked into the lower half, so text sits in the upper parchment. */
         .dialogue-frame.frame9, .dialogue-frame.frame10 { aspect-ratio: 979 / 1309; padding: 0; }
         .dialogue-frame.frame9 { background-image: url('assets/ui/dialogue-frame9.png'); }
         .dialogue-frame.frame10 { background-image: url('assets/ui/dialogue-frame10.png'); }
-        .dialogue-frame.frame9 .dialogue-text, .dialogue-frame.frame10 .dialogue-text { position: absolute; top: 14%; left: 11%; right: 11%; bottom: 50%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
+        .dialogue-frame.frame9 .dialogue-text, .dialogue-frame.frame10 .dialogue-text { position: absolute; top: 14%; left: 11%; right: 11%; bottom: 50%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; font-size: 11px; line-height: 1.4; }
+        .dialogue-frame.frame10 .dialogue-text { top: 22%; bottom: 44%; } /* frame10's diagram sits lower, so its text drops further */
 
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
         #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
@@ -727,6 +728,7 @@
                         </div>
                     </div>
                     <div id="forge-instructions" class="forge-instructions">Tap Pulley to Lower Bucket</div>
+                    <div id="heat-timer" style="position: absolute; top: 8px; left: 8px; font-size: 13px; font-weight: bold; color: #ffd27f; background: rgba(0,0,0,0.6); padding: 3px 9px; border-radius: 6px; z-index: 10; display: none;"></div>
                 </div>
                 <button class="cancel-btn" onclick="cancelHeat()">Cancel Forging</button>
             </div>
@@ -745,6 +747,7 @@
                     <img id="preview-grip" src="" style="z-index: 2;">
                     <img id="preview-guard" src="" style="z-index: 3;">
                     <img id="preview-pommel" src="" style="z-index: 4;">
+                    <img id="preview-overlay" src="" style="z-index: 5; display: none;">
                 </div>
                 
                 <div class="tab-container">
@@ -979,9 +982,11 @@
         let bladeUnlocked = { Shortsword: true, Longsword: true, Broadsword: true };
         const BLADE_UNLOCK_COST = 50;
 
-        function openDesignModal(callback, traits) {
+        let designQuality = null; // projected quality of the sword being designed → drives the crack/sparkle preview overlay
+        function openDesignModal(callback, traits, quality) {
             pendingForgeCallback = callback;
             designTraits = traits || activeTraits; // which traits' part art to show
+            designQuality = quality || swordQuality({ traits: designTraits });
             document.getElementById('designModal').style.display = 'flex';
             currentDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
             updateDesignPreview();
@@ -1135,6 +1140,10 @@
             document.getElementById('preview-grip').src = designPartSrc('grip', currentDesign, designTraits);
             document.getElementById('preview-guard').src = designPartSrc('guard', currentDesign, designTraits);
             document.getElementById('preview-pommel').src = designPartSrc('pommel', currentDesign, designTraits);
+            // Quality overlay preview: cracks on Weak, sparkles on Epic (matches the forge-result render).
+            const ov = document.getElementById('preview-overlay');
+            const ovSrc = designQuality === 'Weak' ? 'assets/sword-parts/overlays/crack.png' : designQuality === 'Epic' ? 'assets/sword-parts/overlays/sparkle.png' : '';
+            if (ovSrc) { ov.src = ovSrc; ov.style.display = 'block'; } else { ov.style.display = 'none'; }
         }
 
         function switchDesignTab(category) {
@@ -1220,8 +1229,8 @@
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
             { text: "Open the chart to get an idea of what metals we need to use to craft a flame sword." },
             { waitAction: 'chartClosed', hand: [{ sel: '#btnChart', side: 'above' }] },
-            { onShow: () => { purifyEnabled = true; }, frame: 9, text: "Hold a metal button to use the slider and move up to 3 blocks with just one metal." },
-            { frame: 10, text: "Plan your path and avoid impure zones. Now hold Magnesium and move west for a fiery sword!" },
+            { onShow: () => { purifyEnabled = true; }, frame: 9, text: "Hold a metal button to use the slider and move up to 3 blocks with just one metal. That way you can craft swords without using too much of your resources." },
+            { frame: 10, text: "Plan your path and avoid impure zones. You can also hold the button to jump over the hazard zone! Hold Magnesium and move west." },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
             { text: "Click on 'Record Composition' to save the metals we used to craft a sword with a specific trait." },
@@ -1469,6 +1478,31 @@
             lightning: { stageBands: [[52, 64], [52, 64]], stabilize: 0.8, decay: 26, pump: 12, hold: 38 }, // fast two-strike
             dark:      { lo: 40, hi: 70, hidden: true, hideEvery: 1.1 },                // thumb flickers hidden
         };
+        // Quality tiers (low→high) and the value bonus each adds to a trait's distance-based base value.
+        const QUALITY_ORDER = ['Weak', 'Fine', 'Epic'];
+        const QUALITY_BONUS = { Weak: 0, Fine: 10, Epic: 20 };
+        // Per-trait heat timer: seconds of heating-phase time before the heat "rushes" (quality drops to Fine).
+        // Generous first pass; tutorial heats get a safe long timer. Unlisted traits use DEFAULT_HEAT_TIMER.
+        const heatTimers = {
+            grace: 7.5, fury: 8, lightning: 8.5,
+            noble: 10.5, honor: 10.5, dark: 10.5,
+            water: 11, celestial: 11, flexible: 11, storm: 11, savage: 11, luck: 11, accurate: 11, cursed: 11,
+            durable: 11.5, endurance: 14
+        };
+        const DEFAULT_HEAT_TIMER = 9, TUTORIAL_HEAT_TIMER = 45;
+        // A battered blade caps quality at forge time: HP≥80 → Epic, 40–79 → Fine, <40 → Weak.
+        function healthQualityCap() { return health >= 80 ? 'Epic' : health >= 40 ? 'Fine' : 'Weak'; }
+        // Copy a trait with its quality capped at `cap` and its value recomputed for the resulting tier.
+        function applyQualityCap(t, cap) {
+            const q = QUALITY_ORDER[Math.min(QUALITY_ORDER.indexOf(t.quality), QUALITY_ORDER.indexOf(cap))];
+            const base = (t.baseValue != null) ? t.baseValue : ((t.value || 0) - (QUALITY_BONUS[t.quality] || 0));
+            return Object.assign({}, t, { quality: q, baseValue: base, value: base + QUALITY_BONUS[q] });
+        }
+        // The sword's overall quality = its highest-tier trait (drives the crack/sparkle overlay).
+        function swordQuality(sword) {
+            if (!sword.traits || !sword.traits.length) return null;
+            return sword.traits.reduce((best, t) => QUALITY_ORDER.indexOf(t.quality) > QUALITY_ORDER.indexOf(best) ? t.quality : best, 'Weak');
+        }
         let heatCfg = DEFAULT_HEAT;
         // Runtime state for the dynamic heating variants (reset each heat by initHeatDynamics).
         let heatElapsed = 0, heatStage = 0, jumpsDone = 0, hideOn = false, nextGust = 0, nextJitter = 0, nextJump = 0, nextHide = 0, curCenter = 50, lastHeatGradient = '';
@@ -1519,23 +1553,31 @@
         function calculateSwordValue(traits) { return (!traits || traits.length === 0) ? 5 : traits.reduce((sum, t) => sum + (t.value || 0), 0); }
 
         function showForgeResult(sword) {
+            // Quality overlay: cracks on a Weak sword, sparkling stars on an Epic one (Fine gets neither).
+            const q = swordQuality(sword);
+            const overlaySrc = q === 'Weak' ? 'assets/sword-parts/overlays/crack.png' : q === 'Epic' ? 'assets/sword-parts/overlays/sparkle.png' : '';
+            const overlayHtml = overlaySrc ? `<img src="${overlaySrc}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none;">` : '';
             const imageHtml = `
                 <div style="width: 200px; height: 200px; position: relative; margin: 0 auto 15px auto; background: rgba(0,0,0,0.05); border-radius: 8px; border: 2px inset #ccc; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
                     <img src="${designPartSrc('blade', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
                     <img src="${designPartSrc('grip', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
                     <img src="${designPartSrc('guard', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 3; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
                     <img src="${designPartSrc('pommel', sword.design, sword.traits)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4));">
+                    ${overlayHtml}
                 </div>
             `;
 
             const traitString = sword.traits.length > 0 ? sword.traits.map(t => `<span style="background:#e8f4f8; padding: 2px 6px; border-radius:4px; border:1px solid #bdc3c7; display:inline-block; margin:2px;">${t.quality} ${t.symbol} ${t.name}</span>`).join(' ') : 'None';
             const metalsString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]} ${getInitials(m)}`).join(' | ');
-            
+            // Big, bold quality headline shown right under the sword (Epic purple / Fine blue / Weak grey).
+            const qColor = q === 'Epic' ? '#8e44ad' : q === 'Fine' ? '#2980b9' : '#7f8c8d';
+            const qualityHtml = q ? `<div style="text-align:center; font-size:26px; font-weight:bold; color:${qColor}; letter-spacing:1px; margin:-4px 0 14px 0;">${q}</div>` : '';
+
             document.getElementById('forgeResultDetails').innerHTML = `
                 ${imageHtml}
+                ${qualityHtml}
                 <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Shape:</strong> <span>${sword.shape}</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Tier:</strong> <span style="color:#8e44ad; font-weight:bold;">${getSwordTier(sword)}</span></div>
                     <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Value:</strong> <span style="color:#d35400; font-weight:bold;">${sword.value}g</span></div>
                     <div style="margin-bottom: 5px;"><strong>Metals Used:</strong><br><span style="font-size:12px; color:#555;">${metalsString}</span></div>
                     <div><strong>Active Traits:</strong><br><div style="margin-top:4px;">${traitString}</div></div>
@@ -1965,7 +2007,9 @@
         function resolvePurifyMinigame() {
             let totalSteps = stepsFromProgress(purifyProgress);
             const metal = getMetalForDir(pendingMove.dx, pendingMove.dy); availableMetals[metal]--; usedMetals[metal]++;
-            for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false) || health <= 0) break; } updateUI();
+            // Dash steps pass over hazards harmlessly (applyHazard=false); only the final landing cell is checked.
+            for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false, false)) break; }
+            applyHazardAtCurrent(); updateUI();
         }
 
         function showHeatArrow() { document.getElementById('heatArrow').style.display = 'inline-block'; }
@@ -2015,15 +2059,28 @@
         function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
         function hideFlameHint() { document.getElementById('flameHintBanner').classList.remove('show'); }
 
-        function move(dx, dy, consumeMetal = true) {
+        // Apply hazard damage for the cell the sword is currently on (used on landing). Crossing a
+        // hazard mid-dash is harmless — damage is only checked where the sword lands.
+        function applyHazardAtCurrent() {
+            const idx = playerY * gridSize + playerX;
+            if (boardData[idx] === '💥') {
+                health -= 20; domCells[idx].classList.add('damage-flash'); setTimeout(() => domCells[idx].classList.remove('damage-flash'), 200);
+                if (health <= 0) { handleDeath(); return false; }
+            }
+            return true;
+        }
+
+        // applyHazard=false lets the sword pass over a hazard without taking damage (dash steps do this;
+        // the dash checks the final landing cell once, see resolvePurifyMinigame).
+        function move(dx, dy, consumeMetal = true, applyHazard = true) {
             const metal = getMetalForDir(dx, dy); if (consumeMetal && availableMetals[metal] <= 0) return false;
             const newX = playerX + dx, newY = playerY + dy;
             if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
                 if (consumeMetal) { availableMetals[metal]--; usedMetals[metal]++; }
                 const oldIndex = playerY * gridSize + playerX, newIndex = newY * gridSize + newX; playerX = newX; playerY = newY;
-                updateVision(); renderCell(oldIndex); renderCell(newIndex); 
+                updateVision(); renderCell(oldIndex); renderCell(newIndex);
 
-                if (boardData[newIndex] === '💥') {
+                if (applyHazard && boardData[newIndex] === '💥') {
                     health -= 20; domCells[newIndex].classList.add('damage-flash'); setTimeout(() => domCells[newIndex].classList.remove('damage-flash'), 200);
                     if (health <= 0) { handleDeath(); return false; }
                 }
@@ -2071,11 +2128,13 @@
                     pendingHeatTrait = foundTrait; pendingHeatIndex = currentIndex; forgePhase = 'pulley'; heatScore = 0; heatCompletion = 0;
                     // Per-trait heating variant (Tier A). Tutorial heats stay on the default band so onboarding isn't harder.
                     heatCfg = (tutorialStep < tutorialFlow.length) ? Object.assign({}, DEFAULT_HEAT) : Object.assign({}, DEFAULT_HEAT, heatConfigs[foundTrait.id]);
+                    heatCfg.timer = (tutorialStep < tutorialFlow.length) ? TUTORIAL_HEAT_TIMER : (heatTimers[foundTrait.id] || DEFAULT_HEAT_TIMER);
                     initHeatDynamics(); // resets timers/stages, generates random bands, draws the initial green band(s)
                     
                     document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
                     document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
                     document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
+                    { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; } // timer shows only once heating starts
                     cueHeat('#forge-pulley', 'leftOf'); // point/glow the pulley first
                 }
             } else gameAlert("There is no hidden trait to heat on this square!");
@@ -2089,6 +2148,7 @@
 
             setTimeout(() => {
                 forgePhase = 'heating'; document.getElementById('forge-instructions').textContent = 'Pump Bellows! Keep heat in Green!';
+                { const ht = document.getElementById('heat-timer'); ht.textContent = '⏱ ' + heatCfg.timer.toFixed(1) + 's'; ht.style.display = 'block'; }
                 document.getElementById('forge-meter-container').style.display = 'block'; lastHeatTime = performance.now();
                 cueHeat('#forge-bellow', 'above'); // now point/glow the bellow
                 heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
@@ -2134,6 +2194,7 @@
         function updateInteractiveHeatLoop(time) {
             if (forgePhase !== 'heating') return;
             const dt = (time - lastHeatTime) / 1000; lastHeatTime = time; heatElapsed += dt;
+            const htEl = document.getElementById('heat-timer'); if (htEl) htEl.textContent = '⏱ ' + Math.max(0, heatCfg.timer - heatElapsed).toFixed(1) + 's';
             heatScore -= heatCfg.decay * dt;
             if (heatCfg.blood) heatScore -= heatScore * 0.15 * dt; // Blood: bleeds faster the hotter it is
             if (bellowHeld) heatScore += heatCfg.hold * dt; // holding the bellow raises heat gradually
@@ -2158,7 +2219,7 @@
                     } else {
                         forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
                         document.getElementById('forge-instructions').textContent = 'Forged!';
-                        setTimeout(() => { resolveInteractiveHeatMinigame(); }, 600);
+                        setTimeout(() => { resolveInteractiveHeatMinigame('Epic'); }, 600);
                         return;
                     }
                 }
@@ -2168,16 +2229,24 @@
                 heatCompletion -= dt * (tooHot ? heatCfg.overheatBleed : 0.5); if (heatCompletion < 0) heatCompletion = 0;
                 document.getElementById('forge-instructions').textContent = tooHot ? 'Too Hot! Slow down!' : 'Use the bellow to heat the furnace.';
             }
+            // Timer ran out before the heat stabilized → forge anyway, but at reduced (Fine) quality.
+            if (heatElapsed >= heatCfg.timer) {
+                forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
+                document.getElementById('heat-timer').textContent = '⏱ 0.0s';
+                document.getElementById('forge-instructions').textContent = "Time's up — rushed forge!";
+                setTimeout(() => { resolveInteractiveHeatMinigame('Fine'); }, 600);
+                return;
+            }
             heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
         }
 
-        function resolveInteractiveHeatMinigame() {
+        function resolveInteractiveHeatMinigame(heatQuality) {
             document.getElementById('heatModal').style.display = 'none';
             forgePhase = 'idle'; bellowHeld = false; clearHeatCues();
 
-            const quality = 'Epic'; const qualityBonus = 20; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
+            const quality = heatQuality || 'Epic'; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
             if (!discoveredTraits[pendingHeatIndex]) { discoveredTraits[pendingHeatIndex] = true; renderCell(pendingHeatIndex); }
-            activeTraits.push({ ...pendingHeatTrait, quality: quality, value: baseVal + qualityBonus });
+            activeTraits.push(Object.assign({}, pendingHeatTrait, { quality: quality, baseValue: baseVal, value: baseVal + QUALITY_BONUS[quality] }));
             domCells[pendingHeatIndex].style.backgroundColor = '#f39c12'; 
             
             setTimeout(() => { domCells[pendingHeatIndex].style.backgroundColor = ''; renderCell(pendingHeatIndex); }, 200);
@@ -2247,7 +2316,7 @@
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
                 if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
-            }, bp.traits);
+            }, bp.traits, swordQuality({ traits: bp.traits })); // auto-craft keeps the recorded quality (no HP cap)
         }
 
         function forgeSword() {
@@ -2255,11 +2324,15 @@
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { gameAlert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow(); hideHands();
-            
+            // Projected quality (HP cap applied now, before HP resets in the callback) drives the design-desk overlay.
+            const projectedQ = swordQuality({ traits: activeTraits.map(t => applyQualityCap(t, healthQualityCap())) });
             openDesignModal((selectedShapeName, finalDesignObj) => {
-                const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...activeTraits], recipe: { ...usedMetals }, value: calculateSwordValue(activeTraits) };
+                // A battered blade (low HP from hazard landings) caps the final quality — computed before HP resets below.
+                const cap = healthQualityCap();
+                const finalTraits = activeTraits.map(t => applyQualityCap(t, cap));
+                const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits) };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
-                lastForgedMixture = { traits: [...activeTraits], recipe: { ...usedMetals } }; // enables "Record Last Mixture" after forging
+                lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Mixture" after forging
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
                 health = 100; playerX = 25; playerY = 25; 
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
@@ -2267,7 +2340,7 @@
                 // Advance past the forge gate now, but show the next dialogue only when the
                 // forge-result modal is closed (closeForgeResultModal) so it doesn't cover the reveal.
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
-            });
+            }, activeTraits, projectedQ);
         }
 
         /* --- FAILSAFE CUSTOMER PROCESSING --- */

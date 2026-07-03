@@ -23,7 +23,7 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 
 - **Grid:** 50×50 (2500 cells). Player starts at center **(25, 25)**.
 - **Vision:** radius 3.5; fog clears in a circle around the player as they move.
-- **Hazards:** 20% of cells are explosions (💥), placed by seeded RNG (seed `1337`), never on the center start. Hitting one costs **−20 HP** (max 100). Reaching 0 HP triggers death.
+- **Hazards:** 20% of cells are explosions (💥), placed by seeded RNG (seed `1337`), never on the center start. **Landing** on one costs **−20 HP** (max 100). Damage is only applied to the cell the sword **lands on** — **crossing over** a hazard mid-dash (a 2- or 3-block Purify dash) is harmless, even over multiple hazards in a row. Reaching 0 HP triggers death. A low HP total also **caps the forged sword's quality** (see §4): a battered blade forges a lower-quality sword.
 - **Death:** shatters the active blade — clears active traits and used metals, restores HP to 100, and resets the player to center. Crafted swords, gold, etc. are kept.
 - **8-direction movement**, each direction costs 1 unit of a specific metal:
 
@@ -52,7 +52,7 @@ Holding a movement button charges a slider that bounces 0↔100 (speed `0.15`). 
 | 25–75 (mid)    | 2 blocks |
 | else (edges)   | 1 block |
 
-Cost: exactly **1 metal** of the direction's type (consumed once, regardless of dash distance). The dash stops early at the map edge or on death.
+Cost: exactly **1 metal** of the direction's type (consumed once, regardless of dash distance). The dash stops early at the map edge. Hazards along the way are passed over harmlessly; only the **final landing cell** is checked for hazard damage (and can trigger death).
 
 While the button is held, a **live path preview** (the green `tile_move.png`) highlights the cells the sword would travel into — 1, 2 or 3 tiles in the move direction — updating in sync with the slider's current zone, and clamped at the map edge. It clears on release, and the actual dash matches the previewed distance.
 
@@ -85,7 +85,11 @@ Triggered by the **Heat** button while standing on a discovered trait. Interacti
 
 On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` trait acquired"** toast appears (game-wide, not tutorial-only). During the tutorial this toast shows first, then the post-heat dialogue follows after a short delay.
 
-> ⚠️ **Implementation note / known discrepancy:** quality is currently hardcoded to **Epic (+20 value bonus)** on every successful heat (`resolveInteractiveHeatMinigame`). The tiered Weak/Fine/Epic quality outcomes from the original GDD are not implemented. Decide whether to keep Epic-only or restore tiers.
+**Heat timer → quality.** A countdown runs during the heating (bellows) phase, its length **per trait** (`heatTimers`; e.g. Grace 7.5s, most static traits 9s, dynamic/staged ~11s, Durable 11.5s, Endurance 14s; **tutorial heats get a safe 45s**). **Stabilize before the timer ends → the trait fuses at `Epic`.** If the timer runs out first, the trait still fuses but at `Fine` (one tier down) — no hard failure. The remaining time is shown as a `⏱` readout in the heat modal.
+
+### Quality tiers
+
+Three tiers, low→high: **`Weak` (+0) · `Fine` (+10) · `Epic` (+20)** value bonus (added to the trait's distance-based base value; each trait stores `baseValue` + `quality`). A trait's heat outcome (Epic/Fine above) is then **capped at forge time by the blade's HP** (see §3): HP ≥ 80 → Epic allowed, 40–79 → capped at Fine, < 40 → Weak. Final quality = `min(heat outcome, HP cap)`; Weak is the floor. The forged sword's overall quality = its highest-tier trait, which drives the quality overlay (see §5).
 
 ## 5. Forging & weapons
 
@@ -97,8 +101,9 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 ### Sword value & tiers
 
-- **Value** = sum of fused trait values (base distance value + quality bonus). A sword with **zero traits = 5g** base.
-- **Tiers** by value: I Common (<30), II Uncommon (<60), III Rare (<90), IV Epic (<120), V Legendary (≥120).
+- **Value** = sum of fused trait values (base distance value + quality bonus — see §4). A sword with **zero traits = 5g** base.
+- **Tiers** by value: I Common (<30), II Uncommon (<60), III Rare (<90), IV Epic (<120), V Legendary (≥120). *(Value tier is distinct from trait **quality** Weak/Fine/Epic.)*
+- **Quality overlay:** both the **Design Desk preview** and the **forge-result** render layer a transparent overlay over the sword based on its overall quality — **cracks** (`overlays/crack.png`, hugging the blade) on a **Weak** sword, **sparkling stars** (`overlays/sparkle.png`) on an **Epic** one; **Fine** gets neither. In the Design Desk the overlay reflects the *projected* quality (heat outcome + the HP cap for a manual forge; the recorded quality for an Auto-Craft).
 
 ## 6. Economy
 
@@ -154,7 +159,7 @@ On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` tr
 
 ## 9. Known discrepancies & open questions
 
-- Heat quality is Epic-only (see §4) — restore tiers or keep?
+- ~~Heat quality is Epic-only~~ — **resolved:** quality is now Weak/Fine/Epic, set by the heat timer and capped by blade HP (see §4).
 - Map seed is fixed (see §7) — should reset randomize the layout?
 - Dagger shape from original GDD is absent (see §5).
 - Metals expanded 4 → 8 vs the original GDD.
