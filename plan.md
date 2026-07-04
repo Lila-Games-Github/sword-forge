@@ -20,7 +20,9 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [x] **Blade HP → quality** — at forge, low HP caps quality (≥80 Epic, 40–79 Fine, <40 Weak; `min(heat outcome, HP cap)`).
 - [x] **Quality overlays** — forge result layers a **crack** overlay on Weak swords and **sparkling stars** on Epic (`assets/sword-parts/overlays/`).
 - [x] **"New Trait Discovered!" box** on the first heat of each trait (icon + name), including during the tutorial
-- [x] **Design Desk** — blade/grip/guard/pommel art; trait-specific part art (Flame skin) via `traitSkins`; 7 unlockable balanced blade shapes (50g each); info-hint button
+- [x] **Multi-step forge pipeline** — **shape select** (10 shapes, 3 free + 7 unlockable at 50g) → **hammering mini-game** (shrinking-ring targets over ingot→mid→final art in `assets/hammer/`; 6 targets/2 stages; misses cost quality) → **quench** (feel-only cooling beat: tap to dip the blade in water, 3s soak, steam/glow; `assets/forge/water_bucket.png` on `assets/backgrounds/forge_bg.png`; **skipped when the last-acquired trait is `flame`**) → **Design Desk** (fittings only; blade fixed from step 1, Blade tab removed). Manual forge + Auto-Craft both run it (Auto-Craft prepends a detached heat mini-game).
+- [x] **Hammer → quality** — −1 quality tier per 2 misses, applied after heat + HP cap (`heat → HP cap → hammer penalty`); Design Desk preview shows the final projected quality
+- [x] **Design Desk** — grip/guard/pommel art; trait-specific part art (Flame/Ice/Water skins) via `traitSkins`; info-hint button
 - [x] **Forge** — 10 shapes; forge-result reveal; resets player to centre
 
 ### Economy & progression
@@ -63,6 +65,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] **More customer art / variety** — named customers, archetypes, more dialogue; only 3 portraits so far
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
 - [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel
+- [ ] **Hammer mini-game art polish** — only Shortsword/Longsword/Broadsword have mid-forge art; the other 7 shapes reuse the Longsword mid as a placeholder. Add per-shape mid art (and optionally top-down final art) when ready. Target positions in `HAMMER_POINTS` are approximate — tune to the real art.
 - [ ] Clean up `assets/unused/` (unreferenced files); `Chart_background.png` committed but unreferenced; `assets/sword-parts/pommels/sparkle.png` is an untracked stray (unreferenced — real overlay is `overlays/sparkle.png`)
 
 ## ⚠️ Known / decisions to make

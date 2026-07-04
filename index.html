@@ -365,9 +365,12 @@
         .modal-content { background: #fff; padding: 15px; border-radius: 8px; width: 85%; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
         .modal-content h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #2c3e50; }
         
-        #heatModal { z-index: 1001; } 
+        #heatModal { z-index: 1001; }
+        #shapeModal { z-index: 1005; }
         #designModal { z-index: 1006; }
-        #forgeResultModal { z-index: 1008; } 
+        #hammerModal { z-index: 1007; }
+        #coolModal { z-index: 1007; }
+        #forgeResultModal { z-index: 1008; }
         #tutorialModal { z-index: 1010; } 
         #chartModal { z-index: 1015; }
         #newTraitModal { z-index: 1012; }
@@ -542,6 +545,39 @@
         .parts-grid::-webkit-scrollbar { width: 6px; }
         .parts-grid::-webkit-scrollbar-track { background: transparent; }
         .parts-grid::-webkit-scrollbar-thumb { background-color: #a6957a; border-radius: 3px; }
+
+        /* =========================================
+           HAMMER MINIGAME (Part 2 of forging)
+           ========================================= */
+        .hammer-stage { position: relative; width: 100%; aspect-ratio: 1; margin: 0 auto; background: rgba(0,0,0,0.10); border-radius: 6px; border: 2px inset #a6957a; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+        .hammer-stage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
+        #hammer-targets { position: absolute; inset: 0; }
+        .hammer-target { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .hammer-ring { position: absolute; width: 78px; height: 78px; border: 4px solid #ffd27f; border-radius: 50%; box-shadow: 0 0 12px rgba(255,180,30,0.9); pointer-events: none; }
+        .hammer-dot { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, #ff9b30); box-shadow: 0 0 10px #ffb733; pointer-events: none; }
+        .hammer-target.hit .hammer-dot { animation: hammerPop 0.2s ease-out forwards; }
+        .hammer-target.hit .hammer-ring { border-color: #7CFC00; opacity: 0; transition: opacity 0.15s; }
+        .hammer-target.miss .hammer-dot { background: radial-gradient(circle, #999, #555); box-shadow: none; }
+        .hammer-target.miss .hammer-ring { border-color: #c0392b; opacity: 0; transition: opacity 0.15s; }
+        @keyframes hammerShrink { from { transform: scale(2.6); } to { transform: scale(0.42); } }
+        @keyframes hammerPop { from { transform: scale(1); } to { transform: scale(2.2); opacity: 0; } }
+
+        /* =========================================
+           QUENCH / COOLING (feel-only step after hammering, non-fire blades)
+           ========================================= */
+        .cool-bucket { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); width: 46%; z-index: 4; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+        .cool-blade { position: absolute; left: 50%; top: 2%; width: 42%; z-index: 3; pointer-events: none; transform: translateX(-50%) rotate(215deg); transform-origin: 50% 50%; transition: top 0.7s ease-in-out, filter 0.6s ease; }
+        .cool-blade.hot { filter: brightness(1.12) sepia(0.65) saturate(5) hue-rotate(-20deg) drop-shadow(0 0 12px rgba(255,140,0,0.95)); }
+        .cool-blade.cool { filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.5)); }
+        .cool-blade.dipped { top: 30%; }
+        .cool-steam { position: absolute; bottom: 33%; left: 50%; transform: translateX(-50%); width: 46%; height: 32%; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
+        .steam-puff { position: absolute; bottom: 0; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.85), rgba(255,255,255,0)); animation: steamRise 1.8s ease-in infinite; }
+        .steam-puff:nth-child(1) { left: 16%; animation-delay: 0s; }
+        .steam-puff:nth-child(2) { left: 42%; animation-delay: 0.5s; }
+        .steam-puff:nth-child(3) { left: 66%; animation-delay: 0.9s; }
+        .steam-puff:nth-child(4) { left: 34%; animation-delay: 1.3s; }
+        @keyframes steamRise { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 25% { opacity: 0.85; } 100% { transform: translateY(-95px) scale(1.7); opacity: 0; } }
+        .cool-hand { position: absolute; z-index: 6; left: 60%; top: 8%; font-size: 30px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
     </style>
 </head>
 <body>
@@ -751,8 +787,7 @@
                 </div>
                 
                 <div class="tab-container">
-                    <button class="tab-btn active" onclick="switchDesignTab('blade')" id="tab-blade">Blade</button>
-                    <button class="tab-btn" onclick="switchDesignTab('grip')" id="tab-grip">Grip</button>
+                    <button class="tab-btn active" onclick="switchDesignTab('grip')" id="tab-grip">Grip</button>
                     <button class="tab-btn" onclick="switchDesignTab('guard')" id="tab-guard">Guard</button>
                     <button class="tab-btn" onclick="switchDesignTab('pommel')" id="tab-pommel">Pommel</button>
                 </div>
@@ -761,9 +796,55 @@
                     </div>
                 
                 <div style="display: flex; gap: 8px;">
-                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeDesignModal()">Cancel</button>
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
                     <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmDesign()">Finalize Sword</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="shapeModal" class="modal-overlay">
+            <div class="design-modal-content">
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Choose a Blade</h3>
+                </div>
+                <p id="shape-subtitle" style="margin: 0; font-size: 12px; color: #5c4a33; text-align: center;">Pick the shape to forge, then hammer it into form.</p>
+                <div class="parts-grid" id="shape-grid"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                    <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmShape()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="hammerModal" class="modal-overlay">
+            <div class="design-modal-content">
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Hammer the Blade</h3>
+                </div>
+                <div class="hammer-stage" id="hammer-stage">
+                    <img id="hammer-img" src="" alt="Forging blade">
+                    <div id="hammer-targets"></div>
+                </div>
+                <div id="hammer-instructions" style="text-align: center; font-weight: bold; color: #4a3623; font-family: 'Cinzel', serif; font-size: 13px;">Strike the glowing marks before they fade!</div>
+                <div id="hammer-misses" style="text-align: center; font-size: 12px; color: #8a5a2b; min-height: 16px;"></div>
+                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="coolModal" class="modal-overlay">
+            <div class="design-modal-content">
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Quench the Blade</h3>
+                </div>
+                <div class="forge-minigame-container" style="cursor: pointer;" onclick="dipBlade()">
+                    <img src="assets/backgrounds/forge_bg.png" class="forge-bg" alt="Forge">
+                    <img id="cool-blade" class="cool-blade hot" src="" alt="Blade">
+                    <img src="assets/forge/water_bucket.png" class="cool-bucket" alt="Water bucket">
+                    <div class="cool-steam" id="cool-steam"><div class="steam-puff"></div><div class="steam-puff"></div><div class="steam-puff"></div><div class="steam-puff"></div></div>
+                    <span class="cool-hand" id="cool-hand">👈</span>
+                    <div id="cool-instructions" class="forge-instructions">Tap the blade to quench it</div>
+                </div>
+                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
             </div>
         </div>
 
@@ -975,26 +1056,172 @@
         function designPartSrc(category, design, traits) { const arr = partsFor(category, traits); return (arr[design[category]] || arr[0]).src; }
 
         let currentDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
-        let activeDesignTab = 'blade';
-        let pendingForgeCallback = null;
+        let activeDesignTab = 'grip';
         let designTraits = [];
-        // Base blade shapes: the first three are free; the rest unlock for 50 gold each in the Design Desk.
+        // Base blade shapes: the first three are free; the rest unlock for 50 gold each (in the shape-select step).
         let bladeUnlocked = { Shortsword: true, Longsword: true, Broadsword: true };
         const BLADE_UNLOCK_COST = 50;
-
         let designQuality = null; // projected quality of the sword being designed → drives the crack/sparkle preview overlay
-        function openDesignModal(callback, traits, quality) {
-            pendingForgeCallback = callback;
-            designTraits = traits || activeTraits; // which traits' part art to show
-            designQuality = quality || swordQuality({ traits: designTraits });
-            document.getElementById('designModal').style.display = 'flex';
-            currentDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
-            updateDesignPreview();
-            switchDesignTab('blade');
+
+        /* --- FORGE PIPELINE: shape select → hammer minigame → design (fittings) ---
+           forgeCtx carries the in-progress forge across the three modals.
+             mode 'manual' — traits were heated on the map; forge them as-is.
+             mode 'auto'   — Auto-Craft from a recorded composition; a heat minigame runs first. */
+        let forgeCtx = null;
+        let forgeShapeIndex = 0;
+
+        function cancelForge() {
+            forgeCtx = null; clearHammerTimers(); clearCoolTimers();
+            ['shapeModal', 'hammerModal', 'coolModal', 'designModal'].forEach(id => document.getElementById(id).style.display = 'none');
         }
 
-        function closeDesignModal() {
-            document.getElementById('designModal').style.display = 'none';
+        // --- Part 1: choose the blade shape (3 free, 7 unlockable at 50g) ---
+        function openShapeModal() {
+            designTraits = forgeCtx.traits;
+            const parts = partsFor('blade', designTraits);
+            const firstUnlocked = parts.findIndex(p => bladeUnlocked[p.id]); forgeShapeIndex = firstUnlocked >= 0 ? firstUnlocked : 0;
+            document.getElementById('shapeModal').style.display = 'flex';
+            renderShapeGrid();
+        }
+        function renderShapeGrid() {
+            const grid = document.getElementById('shape-grid'); grid.innerHTML = '';
+            partsFor('blade', designTraits).forEach((part, index) => {
+                const div = document.createElement('div'); div.className = 'part-thumb';
+                if (!bladeUnlocked[part.id]) {
+                    div.classList.add('locked');
+                    div.innerHTML = `<img src="${part.src}" alt="${part.id}"><div class="part-lock"><span class="lock-ico">🔒</span>${BLADE_UNLOCK_COST}g</div>`;
+                    div.onclick = () => unlockForgeShape(index, part.id);
+                } else {
+                    if (forgeShapeIndex === index) div.classList.add('selected');
+                    div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
+                    div.onclick = () => { forgeShapeIndex = index; renderShapeGrid(); };
+                }
+                grid.appendChild(div);
+            });
+        }
+        function unlockForgeShape(index, id) {
+            if (gold < BLADE_UNLOCK_COST) { gameAlert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
+            gold -= BLADE_UNLOCK_COST; bladeUnlocked[id] = true; updateUI(); forgeShapeIndex = index; renderShapeGrid();
+        }
+        function confirmShape() {
+            forgeCtx.shape = partsFor('blade', designTraits)[forgeShapeIndex].id;
+            document.getElementById('shapeModal').style.display = 'none';
+            openHammerModal();
+        }
+
+        // --- Part 2: hammer the ingot into shape (miss = ring faded before a click) ---
+        // Target positions (% of the square stage) per visual stage: 0 = ingot, 1 = mid blade.
+        const HAMMER_POINTS = {
+            0: [{ x: 37, y: 60 }, { x: 47, y: 52 }, { x: 57, y: 44 }],
+            1: [{ x: 72, y: 28 }, { x: 52, y: 48 }, { x: 41, y: 61 }]
+        };
+        const HAMMER_RING_MS = 1400, HAMMER_RING_MS_TUTORIAL = 2600, HAMMER_GAP_MS = 380;
+        let hammerStage = 0, hammerPointIdx = 0, hammerTimers = [];
+        function hTimeout(fn, ms) { const id = setTimeout(fn, ms); hammerTimers.push(id); return id; }
+        function clearHammerTimers() { hammerTimers.forEach(clearTimeout); hammerTimers = []; const l = document.getElementById('hammer-targets'); if (l) l.innerHTML = ''; }
+        function hammerMidSrc(shape) { const has = { Shortsword: 1, Longsword: 1, Broadsword: 1 }; const s = (has[shape] ? shape : 'Longsword').toLowerCase(); return `assets/hammer/balanced_${s}_midblade.png`; }
+        function bladeSrcForShape(shape, traits) { const arr = partsFor('blade', traits); const p = arr.find(x => x.id === shape) || arr[0]; return p.src; }
+        function openHammerModal() {
+            forgeCtx.hammerMisses = 0; hammerStage = 0; hammerPointIdx = 0; clearHammerTimers();
+            document.getElementById('hammer-img').src = 'assets/hammer/ingot.png';
+            document.getElementById('hammer-instructions').textContent = 'Strike the glowing marks before they fade!';
+            document.getElementById('hammer-misses').textContent = '';
+            document.getElementById('hammerModal').style.display = 'flex';
+            hTimeout(spawnHammerTarget, 550);
+        }
+        function spawnHammerTarget() {
+            const pts = HAMMER_POINTS[hammerStage];
+            if (hammerPointIdx >= pts.length) { advanceHammerStage(); return; }
+            const p = pts[hammerPointIdx];
+            const el = document.createElement('div'); el.className = 'hammer-target';
+            el.style.left = p.x + '%'; el.style.top = p.y + '%';
+            el.innerHTML = '<div class="hammer-ring"></div><div class="hammer-dot"></div>';
+            const dur = (tutorialStep < tutorialFlow.length) ? HAMMER_RING_MS_TUTORIAL : HAMMER_RING_MS;
+            el.querySelector('.hammer-ring').style.animation = `hammerShrink ${dur}ms linear forwards`;
+            let resolved = false;
+            const onHit = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (resolved) return; resolved = true; resolveHammerTarget(el, true); };
+            el.addEventListener('mousedown', onHit); el.addEventListener('touchstart', onHit, { passive: false });
+            el._missId = hTimeout(() => { if (resolved) return; resolved = true; resolveHammerTarget(el, false); }, dur);
+            document.getElementById('hammer-targets').appendChild(el);
+        }
+        function resolveHammerTarget(el, success) {
+            if (el._missId) clearTimeout(el._missId);
+            if (!success) forgeCtx.hammerMisses++;
+            el.classList.add(success ? 'hit' : 'miss');
+            const m = forgeCtx.hammerMisses; document.getElementById('hammer-misses').textContent = m > 0 ? `Misses: ${m}` : '';
+            hTimeout(() => { el.remove(); hammerPointIdx++; hTimeout(spawnHammerTarget, HAMMER_GAP_MS); }, 200);
+        }
+        function advanceHammerStage() {
+            if (hammerStage === 0) {
+                hammerStage = 1; hammerPointIdx = 0;
+                document.getElementById('hammer-img').src = hammerMidSrc(forgeCtx.shape);
+                hTimeout(spawnHammerTarget, 550);
+            } else {
+                document.getElementById('hammer-img').src = bladeSrcForShape(forgeCtx.shape, forgeCtx.traits);
+                document.getElementById('hammer-instructions').textContent = 'Blade shaped!';
+                hTimeout(() => {
+                    document.getElementById('hammerModal').style.display = 'none'; clearHammerTimers();
+                    // Quench (feel-only) unless the last-acquired trait is Flame — a fire blade isn't cooled.
+                    const last = forgeCtx.traits[forgeCtx.traits.length - 1];
+                    if (last && last.id === 'flame') openForgeDesign(); else openCoolModal();
+                }, 950);
+            }
+        }
+
+        // --- Part 2.5: quench the blade in water (feel-only; no quality effect; skipped for fire) ---
+        let coolTimers = [], coolDipped = false;
+        function cTimeout(fn, ms) { const id = setTimeout(fn, ms); coolTimers.push(id); return id; }
+        function clearCoolTimers() { coolTimers.forEach(clearTimeout); coolTimers = []; }
+        function openCoolModal() {
+            coolDipped = false; clearCoolTimers();
+            const blade = document.getElementById('cool-blade');
+            blade.src = bladeSrcForShape(forgeCtx.shape, forgeCtx.traits);
+            blade.classList.remove('dipped', 'cool'); blade.classList.add('hot');
+            document.getElementById('cool-steam').style.opacity = '0';
+            document.getElementById('cool-instructions').textContent = 'Tap the blade to quench it';
+            document.getElementById('cool-hand').style.display = (tutorialStep < tutorialFlow.length) ? 'block' : 'none';
+            document.getElementById('coolModal').style.display = 'flex';
+        }
+        function dipBlade() {
+            if (coolDipped) return; coolDipped = true;
+            document.getElementById('cool-hand').style.display = 'none';
+            const blade = document.getElementById('cool-blade');
+            blade.classList.add('dipped'); // slides down behind the bucket (submerged)
+            document.getElementById('cool-instructions').textContent = 'Cooling...';
+            // after the dip-in (~0.5s): glow fades hot→steel and steam rises
+            cTimeout(() => { blade.classList.remove('hot'); blade.classList.add('cool'); document.getElementById('cool-steam').style.opacity = '1'; }, 500);
+            // soak 3s, then raise the blade back out
+            cTimeout(() => { document.getElementById('cool-steam').style.opacity = '0'; blade.classList.remove('dipped'); document.getElementById('cool-instructions').textContent = 'Quenched!'; }, 3500);
+            // after it rises out (~0.8s), continue to the Design Desk
+            cTimeout(finishQuench, 4300);
+        }
+        function finishQuench() {
+            clearCoolTimers();
+            document.getElementById('coolModal').style.display = 'none';
+            openForgeDesign();
+        }
+
+        // --- Part 3: design the fittings (blade is fixed from Part 1; not editable here) ---
+        function openForgeDesign() {
+            designTraits = forgeCtx.traits;
+            designQuality = projectedForgeQuality();
+            const arr = partsFor('blade', designTraits); let bi = arr.findIndex(p => p.id === forgeCtx.shape); if (bi < 0) bi = 0;
+            currentDesign = { blade: bi, grip: 0, guard: 0, pommel: 0 };
+            document.getElementById('designModal').style.display = 'flex';
+            updateDesignPreview();
+            switchDesignTab('grip');
+        }
+        function closeDesignModal() { document.getElementById('designModal').style.display = 'none'; }
+
+        // --- Quality: heat outcome → HP cap (manual only) → hammer penalty (−1 tier per 2 misses) ---
+        function dropTiers(quality, n) { return QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(quality) - n)]; }
+        function hammerPenaltyTiers() { return forgeCtx ? Math.floor(forgeCtx.hammerMisses / 2) : 0; }
+        function setTraitQuality(t, q) { const base = (t.baseValue != null) ? t.baseValue : ((t.value || 0) - (QUALITY_BONUS[t.quality] || 0)); return Object.assign({}, t, { quality: q, baseValue: base, value: base + QUALITY_BONUS[q] }); }
+        function projectedForgeQuality() {
+            const tiers = hammerPenaltyTiers();
+            if (forgeCtx.mode === 'auto') return dropTiers(forgeCtx.heatQuality || 'Fine', tiers);
+            const capped = swordQuality({ traits: forgeCtx.traits.map(t => applyQualityCap(t, healthQualityCap())) });
+            return dropTiers(capped, tiers);
         }
 
         let minimapAnim = null, minimapStatic = null;
@@ -1148,7 +1375,7 @@
 
         function switchDesignTab(category) {
             activeDesignTab = category;
-            ['blade', 'grip', 'guard', 'pommel'].forEach(cat => { document.getElementById('tab-' + cat).classList.remove('active'); });
+            ['grip', 'guard', 'pommel'].forEach(cat => { document.getElementById('tab-' + cat).classList.remove('active'); });
             document.getElementById('tab-' + category).classList.add('active');
             renderDesignGrid();
         }
@@ -1156,45 +1383,55 @@
         function renderDesignGrid() {
             const grid = document.getElementById('parts-grid');
             grid.innerHTML = '';
-            
+            // Blade is chosen in Part 1 (shape select); this grid only edits the fittings (grip/guard/pommel).
             partsFor(activeDesignTab, designTraits).forEach((part, index) => {
                 const div = document.createElement('div');
                 div.className = 'part-thumb';
-                const locked = activeDesignTab === 'blade' && !bladeUnlocked[part.id]; // only base blade shapes lock
-                if (locked) {
-                    div.classList.add('locked');
-                    div.innerHTML = `<img src="${part.src}" alt="${part.id}"><div class="part-lock"><span class="lock-ico">🔒</span>${BLADE_UNLOCK_COST}g</div>`;
-                    div.onclick = () => unlockBlade(index, part.id);
-                } else {
-                    if (currentDesign[activeDesignTab] === index) div.classList.add('selected');
-                    div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
-                    div.onclick = () => { currentDesign[activeDesignTab] = index; renderDesignGrid(); updateDesignPreview(); };
-                }
+                if (currentDesign[activeDesignTab] === index) div.classList.add('selected');
+                div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
+                div.onclick = () => { currentDesign[activeDesignTab] = index; renderDesignGrid(); updateDesignPreview(); };
                 grid.appendChild(div);
             });
         }
 
-        function unlockBlade(index, id) {
-            if (gold < BLADE_UNLOCK_COST) { gameAlert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
-            gold -= BLADE_UNLOCK_COST; bladeUnlocked[id] = true; updateUI();
-            currentDesign.blade = index; renderDesignGrid(); updateDesignPreview();
-        }
-
         function confirmDesign() {
             try {
-                const bladeShapeName = partsFor('blade', designTraits)[currentDesign.blade].id;
-                const finalDesignObj = { ...currentDesign }; 
-                
-                const callbackToRun = pendingForgeCallback;
-                pendingForgeCallback = null;
+                const finalDesignObj = { ...currentDesign };
                 document.getElementById('designModal').style.display = 'none';
-                
-                if (callbackToRun) {
-                    setTimeout(() => callbackToRun(bladeShapeName, finalDesignObj), 50);
-                }
-            } catch(e) {
+                setTimeout(() => completeForge(finalDesignObj), 50);
+            } catch (e) {
                 console.error("Design Confirmation Error:", e);
-                document.getElementById('designModal').style.display = 'none';
+                document.getElementById('designModal').style.display = 'none'; forgeCtx = null;
+            }
+        }
+
+        // Finalize the pipeline: build the sword, apply the quality chain, drop it in the Vault.
+        function completeForge(finalDesignObj) {
+            const ctx = forgeCtx; if (!ctx) return; forgeCtx = null;
+            const tiers = Math.floor(ctx.hammerMisses / 2); // −1 quality tier per 2 hammer misses
+            const shape = ctx.shape;
+            if (ctx.mode === 'auto') {
+                // Auto-Craft: one heat + one hammer performance sets a uniform quality (no HP cap — no exploration).
+                const bp = savedBlueprints[ctx.bpIndex];
+                metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
+                const q = QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(ctx.heatQuality || 'Fine') - tiers)];
+                const finalTraits = ctx.traits.map(t => setTraitQuality(t, q));
+                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...bp.recipe }, value: calculateSwordValue(finalTraits) };
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
+                if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
+            } else {
+                // Manual: each trait keeps its heated quality, capped by blade HP, then dropped by the hammer penalty.
+                const cap = healthQualityCap();
+                const finalTraits = ctx.traits.map(t => { let qi = Math.min(QUALITY_ORDER.indexOf(t.quality), QUALITY_ORDER.indexOf(cap)); qi = Math.max(0, qi - tiers); return setTraitQuality(t, QUALITY_ORDER[qi]); });
+                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits) };
+                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
+                lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Composition" after forging
+                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
+                health = 100; playerX = 25; playerY = 25;
+                updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
+                showForgeResult(newSword);
+                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
             }
         }
 
@@ -1219,7 +1456,7 @@
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
             { title: "Heating", text: 'You have discovered a type of alloy! Heat the metals into an alloy to discover what it is!', waitAction: null },
             { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
-            { text: "The ingot is ready. Click on the forge button then choose one of the three blades you know: Shortsword, Longsword, or Broadsword.", waitAction: null },
+            { text: "The alloy is ready! Tap the Forge button, choose one of the three blades you know (Shortsword, Longsword, or Broadsword), hammer the glowing marks to shape it, then quench it in the water.", waitAction: null },
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Beautiful! Let's see if you have any customers! Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
@@ -1241,7 +1478,7 @@
             // Ice-dragon (customer #3) arrives; wait for the whole line to type out (+2s) before the lesson box.
             { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'afterCustomer', read: 2000 },
             // Lesson box + expand the recipe panel together (the modal covers the panel, so Auto-Craft can't be tapped before the box is dismissed).
-            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft to forge one from the flame composition, then give it to the customer." },
+            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 800 },
@@ -1445,6 +1682,7 @@
         }
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
+        let heatOutcomeCb = null; // when set, the heat minigame is "detached" (Auto-Craft): resolve reports the quality via this callback instead of fusing a map trait
         let bellowHeld = false; const BELLOW_HOLD_RATE = 40; // holding the bellow adds this much heat/sec (gross; decay is applied separately, so net ≈ +22/sec at default decay)
         // Heating-minigame tuning. Green band = [lo,hi]; decay = drop/sec; stabilize = seconds in band to win;
         // pump = +heat per tap; hold = +heat/sec while held; overheatBleed = completion drained/sec when too hot; blood = decay grows with heat.
@@ -2140,6 +2378,22 @@
             } else gameAlert("There is no hidden trait to heat on this square!");
         }
 
+        // Detached heat for Auto-Craft: run the heating minigame for a given trait (no map cell, no fuse),
+        // reporting the quality outcome ('Epic'/'Fine') via cb. Tutorial heats stay on the easy default band.
+        function startDetachedHeat(trait, cb) {
+            heatOutcomeCb = cb;
+            pendingHeatTrait = trait; pendingHeatIndex = -1; forgePhase = 'pulley'; heatScore = 0; heatCompletion = 0;
+            const inTut = tutorialStep < tutorialFlow.length;
+            heatCfg = inTut ? Object.assign({}, DEFAULT_HEAT) : Object.assign({}, DEFAULT_HEAT, heatConfigs[trait.id]);
+            heatCfg.timer = inTut ? TUTORIAL_HEAT_TIMER : (heatTimers[trait.id] || DEFAULT_HEAT_TIMER);
+            initHeatDynamics();
+            document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
+            document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
+            document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
+            { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; }
+            cueHeat('#forge-pulley', 'leftOf');
+        }
+
         function handlePulleyClick() {
             if (forgePhase !== 'pulley') return;
             forgePhase = 'lowering'; document.getElementById('forge-instructions').textContent = 'Lowering bucket...';
@@ -2244,6 +2498,9 @@
             document.getElementById('heatModal').style.display = 'none';
             forgePhase = 'idle'; bellowHeld = false; clearHeatCues();
 
+            // Detached (Auto-Craft) heat: report the quality and hand back to the forge pipeline; don't fuse a map trait.
+            if (heatOutcomeCb) { const cb = heatOutcomeCb; heatOutcomeCb = null; pendingHeatTrait = null; pendingHeatIndex = -1; cb(heatQuality || 'Epic'); return; }
+
             const quality = heatQuality || 'Epic'; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
             if (!discoveredTraits[pendingHeatIndex]) { discoveredTraits[pendingHeatIndex] = true; renderCell(pendingHeatIndex); }
             activeTraits.push(Object.assign({}, pendingHeatTrait, { quality: quality, baseValue: baseVal, value: baseVal + QUALITY_BONUS[quality] }));
@@ -2272,7 +2529,7 @@
             }
         }
 
-        function cancelHeat() { forgePhase = 'idle'; bellowHeld = false; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; }
+        function cancelHeat() { forgePhase = 'idle'; bellowHeld = false; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; if (heatOutcomeCb) { heatOutcomeCb = null; forgeCtx = null; } } // cancelling a detached (Auto-Craft) heat aborts the forge pipeline
 
         function handleDeath() {
             gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
@@ -2309,14 +2566,11 @@
         function quickCraft(index) {
             if (isProcessingCustomer) return; const bp = savedBlueprints[index];
             if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
-            
-            openDesignModal((selectedShapeName, finalDesignObj) => {
-                metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
-                const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: [...bp.traits], recipe: { ...bp.recipe }, value: calculateSwordValue(bp.traits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
-                if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
-            }, bp.traits, swordQuality({ traits: bp.traits })); // auto-craft keeps the recorded quality (no HP cap)
+            hideHands();
+            forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, heatQuality: null };
+            // Auto-Craft runs the full pipeline: re-heat (last-acquired trait) → shape → hammer → design.
+            const heatTrait = bp.traits[bp.traits.length - 1];
+            startDetachedHeat(heatTrait, (q) => { if (!forgeCtx) return; forgeCtx.heatQuality = q; openShapeModal(); });
         }
 
         function forgeSword() {
@@ -2324,23 +2578,9 @@
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { gameAlert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow(); hideHands();
-            // Projected quality (HP cap applied now, before HP resets in the callback) drives the design-desk overlay.
-            const projectedQ = swordQuality({ traits: activeTraits.map(t => applyQualityCap(t, healthQualityCap())) });
-            openDesignModal((selectedShapeName, finalDesignObj) => {
-                // A battered blade (low HP from hazard landings) caps the final quality — computed before HP resets below.
-                const cap = healthQualityCap();
-                const finalTraits = activeTraits.map(t => applyQualityCap(t, cap));
-                const newSword = { shape: selectedShapeName, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits) };
-                craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
-                lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Mixture" after forging
-                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
-                health = 100; playerX = 25; playerY = 25; 
-                updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer(); 
-                showForgeResult(newSword);
-                // Advance past the forge gate now, but show the next dialogue only when the
-                // forge-result modal is closed (closeForgeResultModal) so it doesn't cover the reveal.
-                if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
-            }, activeTraits, projectedQ);
+            // Manual forge: traits were already heated on the map. Start the pipeline at shape select.
+            forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, heatQuality: null };
+            openShapeModal();
         }
 
         /* --- FAILSAFE CUSTOMER PROCESSING --- */
