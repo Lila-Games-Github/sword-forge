@@ -19,6 +19,7 @@ Select metals → move across the **50×50** fog-of-war grid (each move spends o
 | `index.html` | The entire game (markup + CSS + JS). **Always edit this.** |
 | `specs/game-design.md` | Single source of truth for mechanics, kept in sync with the code. |
 | `specs/README.md` | SSOT policy. |
+| `ONBOARDING.md` | Zero-context handoff — read this first if you're new to the project. |
 | `CLAUDE.md` | Working conventions for contributors / agents. |
 | `plan.md` | Done / next-up tracker. |
 | `assets/` | Art: `backgrounds/`, `ui/`, `forge/`, `sword-parts/`, `map/`, `customer/`, `unused/`. |

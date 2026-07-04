@@ -62,8 +62,8 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap)
 - [ ] **More customer art / variety** — named customers, archetypes, more dialogue; only 3 portraits so far
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
-- [ ] **Balance pass on per-trait heating** — current `heatConfigs` numbers are first-pass; Dark (hidden), Cursed (jumps), Lightning (fast two-strike) are the likeliest to need softening
-- [ ] Clean up `assets/unused/` (unreferenced files); note `Chart_background.png` is committed but not yet referenced in-game
+- [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel
+- [ ] Clean up `assets/unused/` (unreferenced files); `Chart_background.png` committed but unreferenced; `assets/sword-parts/pommels/sparkle.png` is an untracked stray (unreferenced — real overlay is `overlays/sparkle.png`)
 
 ## ⚠️ Known / decisions to make
 - [ ] **`+100 Metals`, `+100 Gold`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats

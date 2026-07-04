@@ -1445,7 +1445,7 @@
         }
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
-        let bellowHeld = false; const BELLOW_HOLD_RATE = 40; // holding the bellow raises heat by this much per second (net of decay)
+        let bellowHeld = false; const BELLOW_HOLD_RATE = 40; // holding the bellow adds this much heat/sec (gross; decay is applied separately, so net ≈ +22/sec at default decay)
         // Heating-minigame tuning. Green band = [lo,hi]; decay = drop/sec; stabilize = seconds in band to win;
         // pump = +heat per tap; hold = +heat/sec while held; overheatBleed = completion drained/sec when too hot; blood = decay grows with heat.
         const DEFAULT_HEAT = { lo: 40, hi: 70, decay: 18, stabilize: 2.0, pump: 16, hold: BELLOW_HOLD_RATE, overheatBleed: 0.5, blood: false };
