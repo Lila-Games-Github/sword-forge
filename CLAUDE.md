@@ -25,11 +25,11 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 - **Assets live in `assets/`** (PNGs/JPGs referenced by relative path from `index.html`). When adding art, place it in the correct sub-folder and reference it as `assets/<folder>/<file>`:
   - `assets/backgrounds/` — scene panels, shop/forge backgrounds
   - `assets/ui/` — buttons and UI chrome
-  - `assets/forge/` — forge props (bellow, bucket, pulley; `water_bucket.png` for the quench step)
+  - `assets/forge/` — forge props (bellow, bucket, pulley; `water_bucket.png` for the quench step; `Metal.png` = ore chunk flung into the bucket when a metal is spent)
   - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images (base `balanced_*` set + trait skins `flame_*`, `ice_*`, `water_*`)
   - `assets/sword-parts/overlays/` — quality overlays layered over the forged sword (`crack.png` = Weak, `sparkle.png` = Epic)
   - `assets/hammer/` — Hammering mini-game art (`ingot.png` + `balanced_<shape>_midblade.png` mid-forge stages; only Shortsword/Longsword/Broadsword have mid art so far)
-  - `assets/map/` — grid tiles (`tile_normal/hazard/sword/move`), minimap
+  - `assets/map/` — grid tiles (`tile_normal/hazard/sword/move`; `tile_centre` = spawn cell, `tile_centre2` = the 8 cells around spawn, `tile_path` = trail of cells the active sword has landed on), minimap
   - `assets/customer/` — counter customer portraits (`man1`, `man2`, `woman1`), rotated per customer
   - `assets/unused/` — files present but not currently referenced (review before adding more)
 - **`screenshots/`** — dev/marketing screenshots; not referenced by the game.

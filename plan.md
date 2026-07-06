@@ -49,6 +49,9 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 ### UI
 - [x] **Minimap (Chart)** — live canvas, full reveal, trait emoji icons, **player shown with the grid sword icon** (`tile_sword.png`) + blue glow, zoom + pan, tap-a-trait name label (readable, scaled to display); tutorial pointer alternating "Your location" / "Flame trait"
 - [x] **Grid viewport** — drag-to-pan (fixed edge-lock bug), **mouse-wheel zoom centred on the cursor**, **📷 free-camera toggle** (stop following the sword)
+- [x] **Grid tiles** — `tile_centre` (spawn) + `tile_centre2` (8 around spawn) home tiles; `tile_path` trail of cells the active sword lands on (dashes mark only the endpoint; never overwrites hazard/trait/home; resets with the active blade on forge/death)
+- [x] **Metal-toss juice** — spending a metal flings `Metal.png` from the pressed button into the bucket in an arc, wobbling the bucket on landing (`tossMetalToBucket`; on actual spend only)
+- [x] **UI polish** — heat ⏱ timer moved to right below the heat slider; chart tutorial pointer is now a text label + pulsing glow (hand removed, amber glow on the Flame target); all metal-button counts white; all cancel/refuse/close buttons grey (was red/blue)
 - [x] **Blade Traits status bar** — the forge status row shows the heated traits (removed the "100/100" health text; bar still shows HP)
 - [x] **Styled `gameAlert` popups** — all warnings/errors use a parchment popup (no native `alert()`)
 - [x] **Counter (screen 1)** — gold/rep pill; rotating customer portraits sliding in from the left; speech bubble; expandable Inventory + Recorded Compositions

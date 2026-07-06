@@ -220,8 +220,8 @@
         #btnNextCustomer:hover { background-color: #219150; }
         #btnAutoSell { background-color: #27ae60; }
         #btnAutoCraftSell { background-color: #8e44ad; }
-        #btnRefuse { background-color: #e74c3c; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
-        #btnRefuse:hover:not(:disabled) { background-color: #c0392b; }
+        #btnRefuse { background-color: #95a5a6; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        #btnRefuse:hover:not(:disabled) { background-color: #7f8c8d; }
         #btnRefuse:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .status-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
@@ -277,11 +277,15 @@
         }
 
         .move-preview { background-image: url('assets/map/tile_move.png') !important; background-color: transparent !important; background-size: 100% 100% !important; }
+        .center-tile { background-image: url('assets/map/tile_centre.png') !important; }
+        .center2-tile { background-image: url('assets/map/tile_centre2.png') !important; }
+        .path-tile { background-image: url('assets/map/tile_path.png') !important; }
         .glow-trait { animation: traitPulse 1s infinite alternate !important; box-shadow: 0 0 15px 5px #f39c12 !important; background-color: #fff3e0 !important; z-index: 15; border-radius: 4px; }
         @keyframes traitPulse { from { box-shadow: 0 0 8px #f1c40f; } to { box-shadow: 0 0 18px 6px #e67e22; } }
 
         @keyframes wobble { 0% { transform: rotate(0deg); } 15% { transform: rotate(-12deg); } 30% { transform: rotate(10deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(-4deg); } 100% { transform: rotate(0deg); } }
         .wobble-anim { animation: wobble 0.4s ease-in-out; }
+        .metal-toss { position: absolute; width: 34px; height: 34px; object-fit: contain; pointer-events: none; z-index: 900; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.55)); will-change: transform; }
 
         .controls { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; flex-shrink: 0; width: 100%; }
         .movement-grid { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 40px); gap: 4px; justify-content: center; margin-bottom: 4px; }
@@ -294,14 +298,14 @@
         .move-cancel { background-image: url('assets/ui/buttoncancel.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px #000; cursor: pointer; visibility: hidden; }
         .move-cancel.show-cancel { visibility: visible; }
 
-        #btnSteel { color: #E0E0E0; background-image: url('assets/ui/buttonui_steel.png'); }    
-        #btnIron { color: #B0C4DE; background-image: url('assets/ui/buttonui_iron.png'); }  
-        #btnMagnesium { color: #FFFFFF; background-image: url('assets/ui/buttonui_magnesium.png'); } 
-        #btnBronze { color: #CD7F32; background-image: url('assets/ui/buttonui_bronze.png'); } 
-        #btnTitanium { color: #C0C0C0; }
-        #btnAluminium { color: #F5F5F5; }
-        #btnBlackIron { color: #A9A9A9; }
-        #btnRedIron { color: #FA8072; }
+        #btnSteel { color: #fff; background-image: url('assets/ui/buttonui_steel.png'); }
+        #btnIron { color: #fff; background-image: url('assets/ui/buttonui_iron.png'); }
+        #btnMagnesium { color: #fff; background-image: url('assets/ui/buttonui_magnesium.png'); }
+        #btnBronze { color: #fff; background-image: url('assets/ui/buttonui_bronze.png'); }
+        #btnTitanium { color: #fff; }
+        #btnAluminium { color: #fff; }
+        #btnBlackIron { color: #fff; }
+        #btnRedIron { color: #fff; }
         
         .highlight-glow { animation: glow 1s infinite alternate; box-shadow: 0 0 10px 4px #f1c40f !important; z-index: 20; position: relative; }
         @keyframes glow { from { box-shadow: 0 0 5px #f1c40f; } to { box-shadow: 0 0 15px #f39c12, 0 0 20px #e67e22; } }
@@ -401,7 +405,7 @@
         #flameHintBanner { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-14px); width: 88%; max-width: 310px; box-sizing: border-box; background: rgba(44, 33, 22, 0.96); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 14px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; line-height: 1.35; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1002; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; }
         #flameHintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        .cancel-btn { background-color: #e74c3c; width: 100%; padding: 10px; color: #fff; border: none; border-radius: 4px; font-weight: bold; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; }
+        .cancel-btn { background-color: #95a5a6; width: 100%; padding: 10px; color: #fff; border: none; border-radius: 4px; font-weight: bold; margin-top: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; }
 
         .purify-track { width: 100%; height: 100%; border-radius: 4px; overflow: hidden; position: relative; background: linear-gradient(to right, #e74c3c 0%, #e74c3c 25%, #f1c40f 25%, #f1c40f 40%, #2ecc71 40%, #2ecc71 60%, #f1c40f 60%, #f1c40f 75%, #e74c3c 75%, #e74c3c 100%); }
         .heat-thumb { width: 6px; height: 100%; background: #fff; border: 1px solid #000; position: absolute; top: 0; left: 0; }
@@ -566,11 +570,11 @@
            QUENCH / COOLING (feel-only step after hammering, non-fire blades)
            ========================================= */
         .cool-bucket { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); width: 46%; z-index: 4; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
-        .cool-blade { position: absolute; left: 50%; top: 2%; width: 42%; z-index: 3; pointer-events: none; transform: translateX(-50%) rotate(215deg); transform-origin: 50% 50%; transition: top 0.7s ease-in-out, filter 0.6s ease; }
+        .cool-blade { position: absolute; left: 50%; top: 16%; width: 46%; z-index: 3; pointer-events: none; transform: translateX(-50%) rotate(135deg); transform-origin: 50% 50%; transition: top 0.7s ease-in-out, filter 0.6s ease; }
         .cool-blade.hot { filter: brightness(1.12) sepia(0.65) saturate(5) hue-rotate(-20deg) drop-shadow(0 0 12px rgba(255,140,0,0.95)); }
         .cool-blade.cool { filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.5)); }
-        .cool-blade.dipped { top: 30%; }
-        .cool-steam { position: absolute; bottom: 33%; left: 50%; transform: translateX(-50%); width: 46%; height: 32%; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
+        .cool-blade.dipped { top: 44%; }
+        .cool-steam { position: absolute; bottom: 40%; left: 50%; transform: translateX(-50%); width: 46%; height: 28%; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
         .steam-puff { position: absolute; bottom: 0; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.85), rgba(255,255,255,0)); animation: steamRise 1.8s ease-in infinite; }
         .steam-puff:nth-child(1) { left: 16%; animation-delay: 0s; }
         .steam-puff:nth-child(2) { left: 42%; animation-delay: 0.5s; }
@@ -762,9 +766,9 @@
                         <div class="interactive-heat-track">
                             <div class="interactive-heat-thumb" id="interactive-heat-thumb"></div>
                         </div>
+                        <div id="heat-timer" style="text-align: center; margin-top: 6px; font-size: 13px; font-weight: bold; color: #ffd27f; display: none;"></div>
                     </div>
                     <div id="forge-instructions" class="forge-instructions">Tap Pulley to Lower Bucket</div>
-                    <div id="heat-timer" style="position: absolute; top: 8px; left: 8px; font-size: 13px; font-weight: bold; color: #ffd27f; background: rgba(0,0,0,0.6); padding: 3px 9px; border-radius: 6px; z-index: 10; display: none;"></div>
                 </div>
                 <button class="cancel-btn" onclick="cancelHeat()">Cancel Forging</button>
             </div>
@@ -859,7 +863,6 @@
                     </div>
                     <div id="chartHint" style="display:none; position:absolute; left:0; top:0; transform:translate(-50%,-100%); pointer-events:none; z-index:5; text-align:center;">
                         <div id="chartHintLabel" style="background:rgba(44,33,22,0.96); color:#f0d8a0; border:1px solid #c8a84b; border-radius:10px; padding:3px 9px; font-family:'Cinzel',serif; font-size:11px; font-weight:bold; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); margin-bottom:1px;">Your location</div>
-                        <div style="font-size:26px; line-height:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.75)); animation:tutHandBob 0.7s ease-in-out infinite alternate;">👇</div>
                     </div>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin-top:10px; font-size:11px; color:#4a3623; font-family:'Cinzel',serif;">
@@ -867,7 +870,7 @@
                     <span>Traits shown as icons — tap one for its name</span>
                     <span>Scroll / pinch to zoom · drag to pan</span>
                 </div>
-                <button class="cancel-btn" style="background-color: #3498db;" onclick="closeChartModal()">Close</button>
+                <button class="cancel-btn" onclick="closeChartModal()">Close</button>
             </div>
         </div>
 
@@ -1282,6 +1285,8 @@
                 const hx = (gx * s + s / 2) * minimapZoom + minimapPanX, hy = (gy * s + s / 2) * minimapZoom + minimapPanY;
                 if (hx < 0 || hy < 0 || hx > canvas.width || hy > canvas.height) { hint.style.display = 'none'; }
                 else {
+                    // The player marker already pulses; give the Flame target its own pulsing glow so the label always sits over a glow.
+                    if (chartHintTarget === 'flame') { ctx.save(); ctx.beginPath(); ctx.arc(hx, hy, 11 + 4 * pulse, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(243,156,18,' + (0.55 + 0.4 * pulse) + ')'; ctx.lineWidth = 3; ctx.shadowColor = 'rgba(243,156,18,0.9)'; ctx.shadowBlur = 8 + 6 * pulse; ctx.stroke(); ctx.restore(); }
                     const disp = canvas.clientWidth / canvas.width;
                     hint.style.left = Math.round(hx * disp) + 'px'; hint.style.top = Math.round(hy * disp - 6) + 'px';
                     document.getElementById('chartHintLabel').textContent = label; hint.style.display = 'block';
@@ -1428,7 +1433,7 @@
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
                 lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Composition" after forging
                 const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
-                health = 100; playerX = 25; playerY = 25;
+                health = 100; playerX = 25; playerY = 25; clearPath(); // new blade → fresh trail
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
                 showForgeResult(newSword);
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
@@ -1781,7 +1786,7 @@
             return genericFeedback[Math.floor(Math.random() * genericFeedback.length)];                       // trait-less sword / fallback
         }
 
-        let boardData = new Array(totalCells).fill(''); let exploredCells = new Array(totalCells).fill(false); let discoveredTraits = new Array(totalCells).fill(false); 
+        let boardData = new Array(totalCells).fill(''); let exploredCells = new Array(totalCells).fill(false); let discoveredTraits = new Array(totalCells).fill(false); let pathCells = new Array(totalCells).fill(false); // cells the active sword has landed on (dashes mark only the endpoint)
         let domCells = []; let closest8Traits = []; 
 
         function getSwordTier(sword) {
@@ -1827,7 +1832,7 @@
         function closeForgeResultModal() { document.getElementById('forgeResultModal').style.display = 'none'; if (tutorialStep < tutorialFlow.length && (tutorialFlow[tutorialStep].text || tutorialFlow[tutorialStep].hand)) setTimeout(playTutorialStep, 400); if (shopSellPhase === 'toShop') setTimeout(updateShopSellHand, 400); }
 
         function generateLayout() {
-            boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false);
+            boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false); pathCells.fill(false);
             let seed = 1337; 
             function seededRandom() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 
@@ -1862,15 +1867,22 @@
                 cell.classList.add('hazard'); 
                 cell.textContent = ''; 
             } 
-            else if (boardData[index] !== '') { 
+            else if (boardData[index] !== '') {
                 if (discoveredTraits[index]) {
-                    cell.textContent = boardData[index]; 
-                } else { 
-                    cell.classList.add('mystery-trait'); 
-                    cell.textContent = '❓'; 
-                } 
-            } else { 
-                cell.textContent = ''; 
+                    cell.textContent = boardData[index];
+                } else {
+                    cell.classList.add('mystery-trait');
+                    cell.textContent = '❓';
+                }
+            } else {
+                cell.textContent = '';
+                // Home-base + travelled-path tiles on plain ground (below the sword; skipped while it stands here).
+                if (index !== playerY * gridSize + playerX) {
+                    const cx = index % gridSize, cy = Math.floor(index / gridSize);
+                    if (cx === 25 && cy === 25) cell.classList.add('center-tile');
+                    else if (Math.abs(cx - 25) <= 1 && Math.abs(cy - 25) <= 1) cell.classList.add('center2-tile');
+                    else if (pathCells[index]) cell.classList.add('path-tile');
+                }
             }
             
             if (index === playerY * gridSize + playerX) { 
@@ -1897,6 +1909,17 @@
                 }
             }
         }
+
+        // Mark the cell the active sword just LANDED on. Dashes call this once (endpoint only), so
+        // jumped-over cells stay blank. Never marks the home 9 or hazards — those keep their own tiles.
+        function markPath(index) {
+            const cx = index % gridSize, cy = Math.floor(index / gridSize);
+            if (Math.abs(cx - 25) <= 1 && Math.abs(cy - 25) <= 1) return;
+            if (boardData[index] === '💥') return;
+            if (!pathCells[index]) { pathCells[index] = true; renderCell(index); }
+        }
+        // Wipe the trail (new blade: after a forge or on death).
+        function clearPath() { for (let i = 0; i < totalCells; i++) { if (pathCells[i]) { pathCells[i] = false; renderCell(i); } } }
 
         function initDOMGrid() {
             gridElement.innerHTML = ''; domCells = [];
@@ -2187,16 +2210,36 @@
             viewportEl.scrollTop = scaledTop - (viewportEl.clientHeight / 2) + scaledHalfCell; viewportEl.scrollLeft = scaledLeft - (viewportEl.clientWidth / 2) + scaledHalfCell;
         }
 
+        // The movement button element for a direction (used to spawn the metal toss at the pressed button).
+        function btnForDir(dx, dy) { const d = dirBtns.find(b => b.dx === dx && b.dy === dy); return d ? document.getElementById(d.id) : null; }
+        // Fling a piece of metal from the pressed button into the bucket in an arc; wobble the bucket on landing.
+        function tossMetalToBucket(btnEl) {
+            const wrap = document.getElementById('mobile-wrapper'), bucket = document.getElementById('bucket-img');
+            if (!wrap || !bucket || !btnEl) return;
+            const wr = wrap.getBoundingClientRect(), br = btnEl.getBoundingClientRect(), kr = bucket.getBoundingClientRect();
+            const bx = br.left - wr.left + br.width / 2, by = br.top - wr.top + br.height / 2;
+            const kx = kr.left - wr.left + kr.width / 2, ky = kr.top - wr.top + kr.height * 0.4; // aim at the bucket mouth
+            const m = document.createElement('img'); m.src = 'assets/forge/Metal.png'; m.className = 'metal-toss';
+            m.style.left = bx + 'px'; m.style.top = by + 'px'; wrap.appendChild(m);
+            const dX = kx - bx, dY = ky - by;
+            const landWobble = () => { if (!m.parentNode) return; m.remove(); bucket.classList.remove('wobble-anim'); void bucket.offsetWidth; bucket.classList.add('wobble-anim'); };
+            if (m.animate) {
+                const anim = m.animate([
+                    { transform: 'translate(-50%,-50%) translate(0px,0px) rotate(0deg) scale(1)' },
+                    { transform: `translate(-50%,-50%) translate(${dX * 0.5}px, ${dY * 0.5 - 55}px) rotate(200deg) scale(1.12)`, offset: 0.5 },
+                    { transform: `translate(-50%,-50%) translate(${dX}px, ${dY}px) rotate(390deg) scale(0.8)`, opacity: 0.85 }
+                ], { duration: 480, easing: 'cubic-bezier(.4,.02,.68,1)' });
+                anim.onfinish = landWobble; setTimeout(landWobble, 700); // safety cleanup if onfinish never fires
+            } else landWobble();
+        }
+
         function startInlinePurify(dx, dy) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;
             if (playerX + dx < 0 || playerX + dx >= gridSize || playerY + dy < 0 || playerY + dy >= gridSize) return;
             const metal = getMetalForDir(dx, dy); if (availableMetals[metal] <= 0) return;
 
-            const bucket = document.getElementById('bucket-img');
-            if (bucket) { bucket.classList.remove('wobble-anim'); void bucket.offsetWidth; bucket.classList.add('wobble-anim'); }
-
             // Guided phase: slider locked -> each press adds 1 metal to the bucket and moves exactly 1 block.
-            if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; move(dx, dy, false); updateUI(); return; }
+            if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(dx, dy)); move(dx, dy, false); markPath(playerY * gridSize + playerX); updateUI(); return; }
 
             pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1; lastPreviewSteps = 0;
             document.getElementById('inline-purify-container').style.visibility = 'visible'; document.getElementById('purify-thumb').style.left = '0%';
@@ -2244,10 +2287,10 @@
 
         function resolvePurifyMinigame() {
             let totalSteps = stepsFromProgress(purifyProgress);
-            const metal = getMetalForDir(pendingMove.dx, pendingMove.dy); availableMetals[metal]--; usedMetals[metal]++;
+            const metal = getMetalForDir(pendingMove.dx, pendingMove.dy); availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(pendingMove.dx, pendingMove.dy));
             // Dash steps pass over hazards harmlessly (applyHazard=false); only the final landing cell is checked.
             for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false, false)) break; }
-            applyHazardAtCurrent(); updateUI();
+            applyHazardAtCurrent(); markPath(playerY * gridSize + playerX); updateUI();
         }
 
         function showHeatArrow() { document.getElementById('heatArrow').style.display = 'inline-block'; }
@@ -2534,7 +2577,7 @@
         function handleDeath() {
             gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
             health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false;
-            const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25;
+            const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25; clearPath(); // blade shattered → fresh trail
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
         }
 
