@@ -4,16 +4,16 @@ You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. Thi
 
 ## 1. What it is
 - A browser game: explore a fog-of-war grid to find magical traits, heat them onto your blade (a timed minigame that sets quality), forge custom swords, and sell them to customers — or list them in a passive shop.
-- **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~2480 lines.)
+- **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~2770 lines.)
 - **No persistence yet** — nothing is saved; every reload restarts from the intro/tutorial. This is the biggest functional gap.
 - Live build: https://lila-games-github.github.io/sword-forge/
 
 ## 2. Run & verify
 - **Run:** open `index.html` in a browser — no server needed.
-- **Verify changes:** use the Claude Preview tools. `.claude/launch.json` defines a Node static server (`.claude/serve.js`, port 5678) started via `preview_start` (config name `sword-forge`). Drive the game with `preview_eval` (call functions directly, read the DOM / `getBoundingClientRect` / computed styles / canvas pixels) and check `preview_console_logs` for errors after every change.
+- **Verify changes:** use the Claude Preview tools. `.claude/launch.json` defines a Node static server (`.claude/serve.js`, port 5678) started via `preview_start` (config name `sword-forge`). ⚠️ `launch.json` hard-codes the node path `C:\Program Files\nodejs\node.exe` — adjust it if node lives elsewhere on your machine. Drive the game with `preview_eval` (call functions directly, read the DOM / `getBoundingClientRect` / computed styles / canvas pixels) and check `preview_console_logs` for errors after every change.
 - ⚠️ **The screenshot tool times out on this game** — a continuous ember/`requestAnimationFrame` loop keeps the page from ever going idle. Do not depend on screenshots; verify functionally via `preview_eval` and measurements. (To judge art/layout, composite or measure with `getBoundingClientRect`; to check rendered text position use a `Range` over the text node, not the element rect — flex containers report the region, not the glyphs.)
 - ⚠️ In the headless preview the viewport may report width 0 — `preview_resize` to mobile (375×812) before measuring horizontal layout.
-- ⚠️ **The game boots into a 4-scene intro, and `#mobile-wrapper` starts `display:none`.** To reach gameplay in a headless eval, run `launchCoreGame()` (hides the intro, shows the wrapper, calls `initializeMainGame`; guarded so it only runs once). To render the grid, call **both** (independent functions): `generateLayout()` populates `boardData` with traits + hazards, then `initDOMGrid()` builds the cell DOM. `skipTutorial()` ends the guided flow and unlocks everything — handy for sandbox testing.
+- ⚠️ **The game boots into a 4-scene intro, and `#mobile-wrapper` starts `display:none`.** To reach gameplay in a headless eval, run `launchCoreGame()` — it hides the intro, shows the wrapper, and calls `initializeMainGame()`, which **already** generates the layout (`generateLayout`), builds the grid (`initDOMGrid`), starts the smelter/shop loops, and kicks off the tutorial. Then call `skipTutorial()` to end the guided flow and unlock everything for sandbox testing. (`launchCoreGame` is guarded to run once.) **Do not** re-call `generateLayout()`/`initDOMGrid()` afterward unless you deliberately want to **rebuild** the board — doing so re-seeds `boardData` and rebuilds every cell, wiping fog/path/player state.
 - ⚠️ `Date.now()`/`Math.random()` are fine in the game. `confirmDesign()` runs its callback on a **50ms `setTimeout`**, and the heat/pulley/customer flows use timeouts — split evals across calls when testing forge/quick-craft/heat/customer results.
 
 ## 3. Deploy
@@ -36,7 +36,7 @@ You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. Thi
 - `CLAUDE.md` — working conventions (overlaps with this doc).
 - `plan.md` — done / next-up / known-issues tracker.
 - `archive/Sword_Grid_Game_GDD.md` — original design vision; **historical only**, superseded by `specs/`.
-- `assets/` — `backgrounds/` (incl. `forge_bg.png` for the quench scene), `ui/` (buttons + `dialogue-frame*.png` tutorial/dialogue art), `forge/` (pulley/bucket/bellow + `water_bucket.png` for the quench + `Metal.png` ore chunk flung into the bucket on a spend), `sword-parts/blades|grips|guards|pommels/` (base `balanced_*` + trait skins `flame_*`/`ice_*`/`water_*`) plus `sword-parts/overlays/` (`crack.png`, `sparkle.png` quality overlays), `hammer/` (`ingot.png` + `balanced_<shape>_midblade.png` for the hammering mini-game), `map/` (tiles incl. `tile_sword.png`, `tile_move.png`), `customer/` (portraits), `unused/`.
+- `assets/` — `backgrounds/` (incl. `forge_bg.png` for the quench scene), `ui/` (buttons + `dialogue-frame*.png` tutorial/dialogue art), `forge/` (pulley/bucket/bellow + `water_bucket.png` for the quench + `Metal.png` ore chunk flung into the bucket on a spend), `sword-parts/blades|grips|guards|pommels/` (base `balanced_*` + trait skins `flame_*`/`ice_*`/`water_*`) plus `sword-parts/overlays/` (`crack.png`, `sparkle.png` quality overlays), `hammer/` (`ingot.png` + `balanced_<shape>_midblade.png` for the hammering mini-game), `map/` (tiles incl. `tile_sword.png`, `tile_move.png`, `tile_centre/centre2/path.png`), `customer/` (portraits), `unused/`.
 
 ## 6. Architecture (all in `index.html`)
 Global mutable state near the top of the `<script>`; functions below. Key systems and entry points:
@@ -63,7 +63,7 @@ Core loop complete with a full guided tutorial and heavy polish. Recent (latest 
 - **Customer variety** — only 3 portraits; add named customers / more dialogue.
 - ⚠️ **Cheats ship to players** (`+100 Metals`, `+100 Gold`, `Skip Intro`) — gate behind a `?cheats` flag / key combo or remove before a real release.
 - Open questions (`specs/game-design.md §9`): map seed fixed (`1337`) — should reset randomize?; original GDD's **Dagger** shape absent (10 vs 11).
-- Housekeeping: `assets/sword-parts/pommels/sparkle.png` is an **untracked stray** (unreferenced; the real sparkle overlay is `overlays/sparkle.png`) — delete or ignore; `assets/unused/` stragglers; `assets/ui/Chart_background.png` is committed but unreferenced (grep count 0).
+- Housekeeping (all **committed but unreferenced** — safe to delete): `assets/sword-parts/pommels/sparkle.png` (a stray duplicate; the real sparkle overlay is `overlays/sparkle.png`), `assets/ui/Chart_background.png` (grep count 0), and the `assets/unused/` folder. (Run `git status` for the current working-tree state.)
 
 ## First task suggestion
-Read `specs/game-design.md` end-to-end, open the preview (`preview_start` → `launchCoreGame()` → `generateLayout()` → `initDOMGrid()` → `skipTutorial()`), and use the **+100 Gold / +100 Metals** buttons to sandbox: forge a few swords, take hazard damage, and watch a heat time out to see the Weak/Fine/Epic quality + crack/sparkle overlays before changing anything.
+Read `specs/game-design.md` end-to-end, open the preview (`preview_start` → `launchCoreGame()` → `skipTutorial()`), and use the **+100 Gold / +100 Metals** buttons to sandbox: forge a few swords, take hazard damage, and watch a heat time out to see the Weak/Fine/Epic quality + crack/sparkle overlays before changing anything.

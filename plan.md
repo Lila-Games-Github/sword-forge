@@ -69,7 +69,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
 - [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel
 - [ ] **Hammer mini-game art polish** — only Shortsword/Longsword/Broadsword have mid-forge art; the other 7 shapes reuse the Longsword mid as a placeholder. Add per-shape mid art (and optionally top-down final art) when ready. Target positions in `HAMMER_POINTS` are approximate — tune to the real art.
-- [ ] Clean up `assets/unused/` (unreferenced files); `Chart_background.png` committed but unreferenced; `assets/sword-parts/pommels/sparkle.png` is an untracked stray (unreferenced — real overlay is `overlays/sparkle.png`)
+- [ ] Clean up **committed-but-unreferenced** files (all safe to delete): `assets/unused/` folder, `assets/ui/Chart_background.png` (grep count 0), and `assets/sword-parts/pommels/sparkle.png` (stray duplicate — the real overlay is `overlays/sparkle.png`)
 
 ## ⚠️ Known / decisions to make
 - [ ] **`+100 Metals`, `+100 Gold`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
