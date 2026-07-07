@@ -315,7 +315,7 @@
         .action-btn:disabled { opacity: 0.45; }
         .btn-glow { animation: btnGlowPulse 1.3s ease-in-out infinite; }
         @keyframes btnGlowPulse { 0%, 100% { box-shadow: 0 0 3px 1px rgba(241,196,15,0.45); } 50% { box-shadow: 0 0 13px 5px rgba(241,196,15,0.9); } }
-        .tut-hand { position: absolute; z-index: 60; font-size: 26px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        .tut-hand { position: absolute; z-index: 1009; font-size: 26px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
         @keyframes tutHandBob { from { transform: translateY(0) scale(1); } to { transform: translateY(4px) scale(1.1); } }
 
         #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
@@ -364,6 +364,26 @@
         .res-br { color: #CD7F32; } .res-bi { color: #1A1A1A; } .res-ir { color: #434b4d; } .res-ri { color: #A52A2A; }
         #inventory { font-size: 11px; text-align: center; background: #f8f9fa; padding: 6px; border-radius: 4px; border: 1px dashed #ccc; margin-top: 8px; }
 
+        /* Counter-screen buttons that open the Inventory / Recorded Compositions modals. */
+        .counter-panel-buttons { display: flex; gap: 8px; margin-top: 8px; }
+        .panel-open-btn { flex: 1; padding: 12px 8px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-family: 'Cinzel', serif; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .panel-open-btn:hover { background: #cbb894; }
+        /* Inventory / Compositions modal: own box with an internal scroll + drill-in detail view. */
+        .list-modal-content { background: #d9cbb3; width: 90%; max-width: 460px; height: 82%; max-height: 640px; border-radius: 8px; border: 3px solid #4a3623; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8); }
+        .list-modal-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #cbb894; border-bottom: 2px solid #4a3623; flex: 0 0 auto; }
+        .list-modal-header h3 { margin: 0; flex: 1; text-align: center; color: #4a3623; font-family: 'Cinzel', serif; font-size: 15px; }
+        .list-nav-btn { background: #95a5a6; color: #fff; border: none; border-radius: 6px; width: 34px; height: 34px; font-size: 16px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+        .list-modal-body { flex: 1 1 auto; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
+        .vault-tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .vault-tile { background: #f4f6f7; border: 1px solid #bdc3c7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .vault-tile:hover { border-color: #95a5a6; }
+        .vault-tile.search-highlight { border: 2px solid #f1c40f; box-shadow: 0 0 12px rgba(241,196,15,0.85); }
+        .vault-tile-img { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+        .vault-tile-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+        .vault-tile-cap { font-size: 10px; font-weight: bold; color: #2c3e50; text-align: center; line-height: 1.25; }
+        .detail-img { position: relative; width: 180px; height: 180px; margin: 0 auto 12px auto; background: rgba(0,0,0,0.05); border-radius: 8px; border: 2px inset #ccc; }
+        .detail-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.4)); }
+
         /* MODAL Z-INDEX FIXES */
         .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; }
         .modal-content { background: #fff; padding: 15px; border-radius: 8px; width: 85%; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
@@ -375,7 +395,8 @@
         #hammerModal { z-index: 1007; }
         #coolModal { z-index: 1007; }
         #forgeResultModal { z-index: 1008; }
-        #tutorialModal { z-index: 1010; } 
+        #inventoryModal, #compositionsModal { z-index: 1006; }
+        #tutorialModal { z-index: 1010; }
         #chartModal { z-index: 1015; }
         #newTraitModal { z-index: 1012; }
         #gameAlertModal { z-index: 1020; }
@@ -582,6 +603,27 @@
         .steam-puff:nth-child(4) { left: 34%; animation-delay: 1.3s; }
         @keyframes steamRise { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 25% { opacity: 0.85; } 100% { transform: translateY(-95px) scale(1.7); opacity: 0; } }
         .cool-hand { position: absolute; z-index: 6; left: 60%; top: 8%; font-size: 30px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+
+        /* =========================================
+           SHARPEN (grindstone step after design; over-honing costs quality)
+           ========================================= */
+        .sharpen-stone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 3; pointer-events: none; }
+        .sharpen-spin { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; pointer-events: none; opacity: 0; will-change: transform; }
+        .sharpen-sword { position: absolute; left: 50%; top: 42%; height: 70%; aspect-ratio: 1 / 1; z-index: 5; pointer-events: none; transform: translate(-50%, -50%) rotate(-135deg); transform-origin: 50% 50%; will-change: transform; }
+        .sharpen-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 5px rgba(0,0,0,0.55)); }
+        .sharpen-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 9; width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.85); background: rgba(0,0,0,0.55); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; touch-action: none; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+        .sharpen-arrow:active { background: rgba(243,156,18,0.85); }
+        .sharpen-sparks { position: absolute; left: 50%; top: 42%; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 6; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
+        .sharpen-sparks.active { opacity: 1; }
+        .sharpen-spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: #ffd24d; box-shadow: 0 0 6px 2px rgba(255,180,30,0.9); animation: sharpenSparkFly 0.5s linear infinite; }
+        @keyframes sharpenSparkFly { 0% { opacity: 0; transform: translate(0,0) scale(0.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0.2); } }
+        .sharpen-hand { position: absolute; z-index: 7; left: 50%; top: 56%; font-size: 30px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: sharpenHandSlide 0.9s ease-in-out infinite alternate; }
+        @keyframes sharpenHandSlide { from { transform: translateX(-45px); } to { transform: translateX(45px); } }
+        .sharpen-meter { position: absolute; top: 10px; left: 8%; width: 84%; background: rgba(0,0,0,0.85); padding: 8px 10px 10px; border-radius: 8px; z-index: 10; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none; }
+        .sharpen-track { position: relative; width: 100%; height: 18px; border-radius: 9px; overflow: hidden; border: 2px solid #222; background: #2b2b2b; }
+        .sharpen-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #8a97a5; transition: width 0.05s linear, background 0.2s ease; }
+        .sharpen-tick { position: absolute; top: -2px; width: 2px; height: calc(100% + 4px); background: rgba(255,255,255,0.7); z-index: 2; }
+        .sharpen-readout { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: #fff; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -655,24 +697,9 @@
                     </div>
                 </div>
 
-                <div class="list-panel">
-                    <h3 class="expandable-header" id="vault-header" onclick="toggleVault()">🛡️ Inventory (Vault) <span id="vault-arrow">▼</span></h3>
-                    <div class="expandable-content" id="vault-content">
-                        <div class="sword-list" id="sword-list">
-                            <div class="empty-list">Your inventory is empty. Forge a blade to store it here!</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="list-panel">
-                    <h3 class="expandable-header" id="recipe-header" onclick="toggleRecipes()">
-                        📜 Recorded Compositions <span id="recipe-arrow">▼</span>
-                    </h3>
-                    <div class="expandable-content" id="recipe-content">
-                        <div class="sword-list" id="blueprints-list">
-                            <div class="empty-list">No recipes saved yet.</div>
-                        </div>
-                    </div>
+                <div class="counter-panel-buttons">
+                    <button class="panel-open-btn" onclick="openInventoryModal()">🛡️ Inventory</button>
+                    <button class="panel-open-btn" onclick="openCompositionsModal()">📜 Recorded Compositions</button>
                 </div>
             </div>
 
@@ -801,7 +828,7 @@
                 
                 <div style="display: flex; gap: 8px;">
                     <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
-                    <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmDesign()">Finalize Sword</button>
+                    <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmDesign()">Sharpen</button>
                 </div>
             </div>
         </div>
@@ -849,6 +876,71 @@
                     <div id="cool-instructions" class="forge-instructions">Tap the blade to quench it</div>
                 </div>
                 <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="sharpenModal" class="modal-overlay">
+            <div class="design-modal-content">
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Sharpen the Blade</h3>
+                </div>
+                <div class="forge-minigame-container" id="sharpen-stage" style="touch-action: none; cursor: ew-resize;">
+                    <img src="assets/backgrounds/sharpen_bg.png" class="forge-bg" alt="Forge floor">
+                    <img src="assets/forge/grindstone.png" class="sharpen-stone" alt="Grindstone">
+                    <img src="assets/forge/grindstone_spin.png" class="sharpen-spin" id="sharpen-spin" alt="">
+                    <div class="sharpen-sword" id="sharpen-sword">
+                        <img class="sharpen-part" id="sharpen-blade" src="" alt="Blade">
+                        <img class="sharpen-part" id="sharpen-grip" src="" alt="">
+                        <img class="sharpen-part" id="sharpen-guard" src="" alt="">
+                        <img class="sharpen-part" id="sharpen-pommel" src="" alt="">
+                    </div>
+                    <button class="sharpen-arrow" id="sharpen-left" style="left: 8px;">◀</button>
+                    <button class="sharpen-arrow" id="sharpen-right" style="right: 8px;">▶</button>
+                    <div class="sharpen-sparks" id="sharpen-sparks">
+                        <span class="sharpen-spark" style="--sx:-26px;--sy:-16px;animation-delay:0s;"></span>
+                        <span class="sharpen-spark" style="--sx:24px;--sy:-20px;animation-delay:0.08s;"></span>
+                        <span class="sharpen-spark" style="--sx:-30px;--sy:6px;animation-delay:0.16s;"></span>
+                        <span class="sharpen-spark" style="--sx:28px;--sy:10px;animation-delay:0.24s;"></span>
+                        <span class="sharpen-spark" style="--sx:-14px;--sy:-26px;animation-delay:0.32s;"></span>
+                        <span class="sharpen-spark" style="--sx:14px;--sy:24px;animation-delay:0.4s;"></span>
+                    </div>
+                    <span class="sharpen-hand" id="sharpen-hand">👈</span>
+                    <div class="sharpen-meter">
+                        <div class="sharpen-track">
+                            <div class="sharpen-fill" id="sharpen-fill"></div>
+                            <div class="sharpen-tick" style="left: 75%;"></div>
+                            <div class="sharpen-tick" style="left: 91.67%;"></div>
+                        </div>
+                        <div class="sharpen-readout"><span id="sharpen-pct">0%</span><span id="sharpen-note"></span></div>
+                    </div>
+                    <div id="sharpen-instructions" class="forge-instructions">Turning the wheel...</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                    <button class="btn-craft" id="sharpen-finish-btn" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="finishSharpen()" disabled>Finish Sharpening</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="inventoryModal" class="modal-overlay">
+            <div class="list-modal-content">
+                <div class="list-modal-header">
+                    <button class="list-nav-btn" id="inv-back" onclick="showVaultGrid()" style="visibility: hidden;">←</button>
+                    <h3 id="inv-title">🛡️ Inventory (Vault)</h3>
+                    <button class="list-nav-btn" onclick="closeInventoryModal()">✕</button>
+                </div>
+                <div class="list-modal-body" id="inv-body"></div>
+            </div>
+        </div>
+
+        <div id="compositionsModal" class="modal-overlay">
+            <div class="list-modal-content">
+                <div class="list-modal-header">
+                    <button class="list-nav-btn" id="comp-back" onclick="showCompositionGrid()" style="visibility: hidden;">←</button>
+                    <h3 id="comp-title">📜 Recorded Compositions</h3>
+                    <button class="list-nav-btn" onclick="closeCompositionsModal()">✕</button>
+                </div>
+                <div class="list-modal-body" id="comp-body"></div>
             </div>
         </div>
 
@@ -1074,8 +1166,8 @@
         let forgeShapeIndex = 0;
 
         function cancelForge() {
-            forgeCtx = null; clearHammerTimers(); clearCoolTimers();
-            ['shapeModal', 'hammerModal', 'coolModal', 'designModal'].forEach(id => document.getElementById(id).style.display = 'none');
+            forgeCtx = null; clearHammerTimers(); clearCoolTimers(); clearSharpenTimers(); sharpenActive = false;
+            ['shapeModal', 'hammerModal', 'coolModal', 'designModal', 'sharpenModal'].forEach(id => document.getElementById(id).style.display = 'none');
         }
 
         // --- Part 1: choose the blade shape (3 free, 7 unlockable at 50g) ---
@@ -1215,6 +1307,96 @@
             switchDesignTab('grip');
         }
         function closeDesignModal() { document.getElementById('designModal').style.display = 'none'; }
+
+        // --- Part 4: sharpen the blade on the grindstone ---
+        // Slide the blade across the spinning stone to fill 0→~120%. Finish anywhere in the 90–110% "keen" window
+        // for no penalty; grinding past 110% over-hones the blade → −1 quality tier per 10% over (see completeForge).
+        const SHARP_MIN = 90, SHARP_MAX = 110, SHARP_BAR_MAX = 120, SHARP_RATE = 55; // SHARP_RATE: a full container-width swipe adds ~55%
+        let sharpenTimers = [], sharpenPct = 0, sharpenActive = false, sharpenSpinInt = null, sharpenBladeX = 0, sharpenBound = false, sharpenHoldInt = null;
+        function sTimeout(fn, ms) { const id = setTimeout(fn, ms); sharpenTimers.push(id); return id; }
+        function clearSharpenTimers() { sharpenTimers.forEach(clearTimeout); sharpenTimers = []; if (sharpenSpinInt) { clearInterval(sharpenSpinInt); sharpenSpinInt = null; } stopSharpenHold(); }
+        function startSharpenHold(dir) { if (!sharpenActive) return; stopSharpenHold(); sharpenGrind(dir * 16); sharpenHoldInt = setInterval(() => sharpenGrind(dir * 16), 55); } // hold an arrow to keep sliding
+        function stopSharpenHold() { if (sharpenHoldInt) { clearInterval(sharpenHoldInt); sharpenHoldInt = null; } }
+        function sharpenTiersFor(pct) { return pct <= SHARP_MAX ? 0 : Math.ceil((pct - SHARP_MAX) / 10); } // 110–120% → −1, 120–130% → −2 …
+        function openSharpenModal() {
+            bindSharpen(); clearSharpenTimers();
+            sharpenPct = 0; sharpenActive = false; sharpenBladeX = 0;
+            const d = forgeCtx.design || { blade: 0, grip: 0, guard: 0, pommel: 0 }; // show the full sword as designed
+            document.getElementById('sharpen-blade').src = designPartSrc('blade', d, forgeCtx.traits);
+            document.getElementById('sharpen-grip').src = designPartSrc('grip', d, forgeCtx.traits);
+            document.getElementById('sharpen-guard').src = designPartSrc('guard', d, forgeCtx.traits);
+            document.getElementById('sharpen-pommel').src = designPartSrc('pommel', d, forgeCtx.traits);
+            document.getElementById('sharpen-sword').style.transform = 'translate(-50%, -50%) rotate(-135deg)';
+            document.getElementById('sharpen-spin').style.opacity = '0';
+            document.getElementById('sharpen-sparks').classList.remove('active');
+            document.getElementById('sharpen-hand').style.display = 'none';
+            document.getElementById('sharpen-instructions').textContent = 'Turning the wheel...';
+            updateSharpenMeter();
+            document.getElementById('sharpenModal').style.display = 'flex';
+            sTimeout(startSharpenSpin, 2000); // the wheel starts spinning after 2s and never stops until finish
+        }
+        function startSharpenSpin() {
+            sharpenActive = true;
+            const spin = document.getElementById('sharpen-spin'); spin.style.opacity = '1';
+            sharpenSpinInt = setInterval(() => { // jitter the motion frame in place so the stone reads as spinning
+                const jx = Math.random() * 4 - 2, jy = Math.random() * 4 - 2, jr = Math.random() - 0.5;
+                spin.style.transform = `translate(${jx}px, ${jy}px) rotate(${jr}deg)`;
+            }, 40);
+            document.getElementById('sharpen-instructions').textContent = 'Slide the blade across the stone to sharpen it.';
+            document.getElementById('sharpen-hand').style.display = (tutorialStep < tutorialFlow.length) ? 'block' : 'none';
+        }
+        function sharpenGrind(dxPx) {
+            if (!sharpenActive) return;
+            const stage = document.getElementById('sharpen-stage'); const w = stage.clientWidth || 300;
+            const adx = Math.abs(dxPx); if (adx < 0.5) return;
+            sharpenPct = Math.min(SHARP_BAR_MAX + 8, sharpenPct + adx / w * SHARP_RATE);
+            sharpenBladeX = Math.max(-w * 0.12, Math.min(w * 0.12, sharpenBladeX + dxPx * 0.5)); // slide the blade with the drag, clamped
+            document.getElementById('sharpen-sword').style.transform = `translate(calc(-50% + ${sharpenBladeX}px), -50%) rotate(-135deg)`;
+            const sp = document.getElementById('sharpen-sparks'); sp.classList.add('active');
+            if (sp._off) clearTimeout(sp._off); sp._off = setTimeout(() => sp.classList.remove('active'), 160);
+            document.getElementById('sharpen-hand').style.display = 'none';
+            updateSharpenMeter();
+        }
+        function updateSharpenMeter() {
+            const pct = sharpenPct;
+            const fill = document.getElementById('sharpen-fill');
+            fill.style.width = Math.min(100, pct / SHARP_BAR_MAX * 100) + '%';
+            fill.style.background = pct < SHARP_MIN ? '#8a97a5' : pct <= SHARP_MAX ? '#2ecc71' : '#e74c3c';
+            document.getElementById('sharpen-pct').textContent = Math.round(pct) + '%';
+            const note = document.getElementById('sharpen-note');
+            if (pct < SHARP_MIN) { note.textContent = 'Keep sharpening'; note.style.color = '#bdc3c7'; }
+            else if (pct <= SHARP_MAX) { note.textContent = 'Keen edge — finish anytime'; note.style.color = '#2ecc71'; }
+            else { note.textContent = `Over-honed! −${sharpenTiersFor(pct)} quality`; note.style.color = '#e74c3c'; }
+            const fb = document.getElementById('sharpen-finish-btn');
+            fb.disabled = pct < SHARP_MIN; fb.style.opacity = pct < SHARP_MIN ? '0.5' : '1';
+        }
+        function finishSharpen() {
+            if (sharpenPct < SHARP_MIN) return;
+            forgeCtx.sharpenTiers = sharpenTiersFor(sharpenPct);
+            clearSharpenTimers(); sharpenActive = false;
+            const finalDesignObj = forgeCtx.design;
+            document.getElementById('sharpenModal').style.display = 'none';
+            completeForge(finalDesignObj);
+        }
+        function bindSharpen() {
+            if (sharpenBound) return; sharpenBound = true;
+            const stage = document.getElementById('sharpen-stage'); let down = false, lastX = null;
+            stage.addEventListener('pointerdown', e => { down = true; lastX = e.clientX; if (stage.setPointerCapture) stage.setPointerCapture(e.pointerId); });
+            stage.addEventListener('pointermove', e => { if (!down || lastX == null) return; const dx = e.clientX - lastX; lastX = e.clientX; sharpenGrind(dx); });
+            const up = () => { down = false; lastX = null; };
+            stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+            window.addEventListener('keydown', e => {
+                if (document.getElementById('sharpenModal').style.display !== 'flex' || !sharpenActive) return;
+                if (e.key === 'ArrowLeft') { sharpenGrind(-18); e.preventDefault(); }
+                else if (e.key === 'ArrowRight') { sharpenGrind(18); e.preventDefault(); }
+            });
+            const holdBtn = (id, dir) => {
+                const b = document.getElementById(id);
+                b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); startSharpenHold(dir); });
+                ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stopSharpenHold));
+            };
+            holdBtn('sharpen-left', -1); holdBtn('sharpen-right', 1);
+        }
 
         // --- Quality: heat outcome → HP cap (manual only) → hammer penalty (−1 tier per 2 misses) ---
         function dropTiers(quality, n) { return QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(quality) - n)]; }
@@ -1401,9 +1583,9 @@
 
         function confirmDesign() {
             try {
-                const finalDesignObj = { ...currentDesign };
+                forgeCtx.design = { ...currentDesign }; // carried through the sharpen step into completeForge
                 document.getElementById('designModal').style.display = 'none';
-                setTimeout(() => completeForge(finalDesignObj), 50);
+                setTimeout(openSharpenModal, 50);
             } catch (e) {
                 console.error("Design Confirmation Error:", e);
                 document.getElementById('designModal').style.display = 'none'; forgeCtx = null;
@@ -1413,7 +1595,7 @@
         // Finalize the pipeline: build the sword, apply the quality chain, drop it in the Vault.
         function completeForge(finalDesignObj) {
             const ctx = forgeCtx; if (!ctx) return; forgeCtx = null;
-            const tiers = Math.floor(ctx.hammerMisses / 2); // −1 quality tier per 2 hammer misses
+            const tiers = Math.floor(ctx.hammerMisses / 2) + (ctx.sharpenTiers || 0); // −1 tier per 2 hammer misses, plus over-honing penalty
             const shape = ctx.shape;
             if (ctx.mode === 'auto') {
                 // Auto-Craft: one heat + one hammer performance sets a uniform quality (no HP cap — no exploration).
@@ -1461,7 +1643,7 @@
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
             { title: "Heating", text: 'You have discovered a type of alloy! Heat the metals into an alloy to discover what it is!', waitAction: null },
             { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
-            { text: "The alloy is ready! Tap the Forge button, choose one of the three blades you know (Shortsword, Longsword, or Broadsword), hammer the glowing marks to shape it, then quench it in the water.", waitAction: null },
+            { text: "The alloy is ready! Tap the Forge button, choose one of the three blades you know (Shortsword, Longsword, or Broadsword), hammer the glowing marks to shape it, quench it in the water, then sharpen it on the grindstone.", waitAction: null },
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Beautiful! Let's see if you have any customers! Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
@@ -1483,7 +1665,7 @@
             // Ice-dragon (customer #3) arrives; wait for the whole line to type out (+2s) before the lesson box.
             { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'afterCustomer', read: 2000 },
             // Lesson box + expand the recipe panel together (the modal covers the panel, so Auto-Craft can't be tapped before the box is dismissed).
-            { onShow: () => { const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions below, tap Auto-Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
+            { onShow: () => { openCompositionsModal(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions, tap Auto-Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 800 },
@@ -1595,18 +1777,17 @@
         function updateShopSellHand() {
             if (shopSellPhase === 'craft') {
                 if (currentScreenIndex !== 1) return pointToScreen(1);
-                const c = document.getElementById('recipe-content'); if (c && !c.classList.contains('expanded')) toggleRecipes();
+                openCompositionsModal();
                 const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame'));
                 if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); }
-                const detail = document.getElementById('recipe-detail'); if (detail) detail.scrollIntoView({ block: 'center' });
                 setTimeout(() => { if (shopSellPhase === 'craft') showHands([{ sel: '#recipe-detail .btn-craft', side: 'above' }]); }, 250);
             } else if (shopSellPhase === 'toShop') {
                 if (currentScreenIndex !== 1) return pointToScreen(1);
                 const idx = craftedSwords.findIndex(s => s.traits.some(t => t.id === 'flame'));
                 if (idx === -1) { hideHands(); return; }
-                vaultHighlightIndex = idx; openVault(); renderVault();
-                const cards = document.querySelectorAll('#sword-list .sword-card'); if (cards[idx]) cards[idx].scrollIntoView({ block: 'center' });
-                setTimeout(() => { if (shopSellPhase === 'toShop') showHands([{ sel: '#sword-list .search-highlight .btn-shop', side: 'above' }]); }, 250);
+                closeCompositionsModal(); vaultHighlightIndex = idx; vaultDetailIndex = idx;
+                document.getElementById('inventoryModal').style.display = 'flex'; renderVault();
+                setTimeout(() => { if (shopSellPhase === 'toShop') showHands([{ sel: '#inv-body .btn-shop', side: 'above' }]); }, 250);
             } else if (shopSellPhase === 'shopBox') {
                 if (currentScreenIndex !== 0) return pointToScreen(0);
                 hideHands(); showShopIntroBoxes();
@@ -1638,17 +1819,6 @@
             if (shopSellPhase) { hideHands(); setTimeout(updateShopSellHand, 400); } // re-point the shop-selling guide after the slide
         }
 
-        function toggleRecipes() {
-            const content = document.getElementById('recipe-content'); const arrow = document.getElementById('recipe-arrow');
-            if (content.classList.contains('expanded')) { content.classList.remove('expanded'); arrow.textContent = '▼'; }
-            else { content.classList.add('expanded'); arrow.textContent = '▲'; }
-        }
-        function toggleVault() {
-            const content = document.getElementById('vault-content'); const arrow = document.getElementById('vault-arrow');
-            if (content.classList.contains('expanded')) { content.classList.remove('expanded'); arrow.textContent = '▼'; }
-            else { content.classList.add('expanded'); arrow.textContent = '▲'; }
-        }
-        function openVault() { document.getElementById('vault-content').classList.add('expanded'); document.getElementById('vault-arrow').textContent = '▲'; }
         // Customer portraits, on rotation. man2 is the first customer.
         const customerImages = ['assets/customer/man2.png', 'assets/customer/man1.png', 'assets/customer/woman1.png'];
         function setCustomerImage() { const img = document.getElementById('customer-img'); if (!img) return; img.src = customerImages[(Math.max(1, requestCount) - 1) % customerImages.length]; }
@@ -2107,73 +2277,88 @@
             renderBlueprints(); renderVault(); checkShopTutorial();
         }
 
+        // ---- Recorded Compositions modal: icon-tile grid → drill in to a detail view ----
         let selectedBlueprintIndex = -1;
-        function selectBlueprint(index) { selectedBlueprintIndex = (selectedBlueprintIndex === index) ? -1 : index; renderBlueprints(); }
-        function deleteBlueprint(index) {
-            savedBlueprints.splice(index, 1);
-            if (selectedBlueprintIndex === index) selectedBlueprintIndex = -1; else if (selectedBlueprintIndex > index) selectedBlueprintIndex--;
-            renderBlueprints();
-        }
+        function openCompositionsModal() { selectedBlueprintIndex = -1; document.getElementById('compositionsModal').style.display = 'flex'; renderBlueprints(); }
+        function closeCompositionsModal() { document.getElementById('compositionsModal').style.display = 'none'; }
+        function showCompositionGrid() { selectedBlueprintIndex = -1; renderBlueprints(); }
+        function selectBlueprint(index) { selectedBlueprintIndex = index; renderBlueprints(); } // drill in to the detail view
+        function deleteBlueprint(index) { savedBlueprints.splice(index, 1); selectedBlueprintIndex = -1; renderBlueprints(); } // back to the grid after delete
         function renderBlueprints() {
-            const listEl = document.getElementById('blueprints-list'); listEl.innerHTML = '';
-            if (savedBlueprints.length === 0) { listEl.innerHTML = '<div class="empty-list">No compositions recorded yet.</div>'; selectedBlueprintIndex = -1; return; }
+            const body = document.getElementById('comp-body'); if (!body) return;
+            const back = document.getElementById('comp-back'), title = document.getElementById('comp-title');
             if (selectedBlueprintIndex >= savedBlueprints.length) selectedBlueprintIndex = -1;
-            // Compact tile grid: each tile shows only the trait icon(s).
-            const grid = document.createElement('div'); grid.className = 'recipe-tile-grid';
-            savedBlueprints.forEach((bp, index) => {
-                const tile = document.createElement('div'); tile.className = 'recipe-tile' + (index === selectedBlueprintIndex ? ' selected' : '');
-                tile.title = bp.name; tile.onclick = () => selectBlueprint(index);
-                tile.textContent = bp.traits.length ? bp.traits.map(t => t.symbol).join('') : '🗡️';
-                grid.appendChild(tile);
-            });
-            listEl.appendChild(grid);
-            // Detail panel for the selected tile: Tier, Traits, Value, Composition + Auto-Craft.
-            const detail = document.createElement('div'); detail.id = 'recipe-detail';
             if (selectedBlueprintIndex >= 0) {
+                // Detail view: Tier / Traits / Value / Composition + Auto-Craft (+ Delete outside the tutorial).
+                back.style.visibility = 'visible'; title.textContent = '📜 Composition Details';
                 const bp = savedBlueprints[selectedBlueprintIndex];
                 const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
                 const compString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
-                detail.className = 'sword-card'; detail.style.marginTop = '8px';
                 const delBtn = tutorialStep < tutorialFlow.length ? '' : `<button class="recipe-delete-btn" onclick="deleteBlueprint(${selectedBlueprintIndex})">🗑️ Delete</button>`;
-                detail.innerHTML = `<div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>${delBtn}</div>`;
+                body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>${delBtn}</div></div>`;
+            } else {
+                // Grid view: one trait-icon tile per composition.
+                back.style.visibility = 'hidden'; title.textContent = '📜 Recorded Compositions';
+                if (savedBlueprints.length === 0) { body.innerHTML = '<div class="empty-list">No compositions recorded yet.</div>'; return; }
+                const grid = document.createElement('div'); grid.className = 'recipe-tile-grid';
+                savedBlueprints.forEach((bp, index) => {
+                    const tile = document.createElement('div'); tile.className = 'recipe-tile';
+                    tile.title = bp.name; tile.onclick = () => selectBlueprint(index);
+                    tile.textContent = bp.traits.length ? bp.traits.map(t => t.symbol).join('') : '🗡️';
+                    grid.appendChild(tile);
+                });
+                body.innerHTML = ''; body.appendChild(grid);
             }
-            listEl.appendChild(detail);
         }
 
-        let vaultHighlightIndex = -1;
-        // "Search Inventory": find the sword matching the current customer's request, expand,
-        // highlight and scroll to it (handy when the vault holds many swords).
+        // ---- Inventory (Vault) modal: sword-image tile grid → drill in to a detail view ----
+        let vaultHighlightIndex = -1, vaultDetailIndex = -1;
+        function openInventoryModal() { vaultDetailIndex = -1; document.getElementById('inventoryModal').style.display = 'flex'; renderVault(); }
+        function closeInventoryModal() { document.getElementById('inventoryModal').style.display = 'none'; vaultDetailIndex = -1; vaultHighlightIndex = -1; }
+        function showVaultGrid() { vaultDetailIndex = -1; vaultHighlightIndex = -1; renderVault(); }
+        function showVaultDetail(index) { vaultDetailIndex = index; renderVault(); }
+        // "Search Inventory" (the "I have something for you." response): open the vault straight to the
+        // sword matching the current customer's request, so Give NPC is right there.
         function searchInventory() {
             if (isProcessingCustomer) return;
             const idx = findValidSwordIndex();
             if (idx === -1) { gameAlert("No sword in your inventory matches this customer's request."); return; }
-            openVault(); // make sure the Inventory panel is expanded so the match is visible
-            vaultHighlightIndex = idx; renderVault(); hideHands();
-            const cards = document.getElementById('sword-list').querySelectorAll('.sword-card');
-            if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            hideHands(); vaultHighlightIndex = idx; vaultDetailIndex = idx;
+            document.getElementById('inventoryModal').style.display = 'flex'; renderVault();
         }
-
+        // Layered sword image (blade + grip + guard + pommel), with the quality overlay when requested.
+        function vaultPartsHtml(sword, withOverlay) {
+            const parts = ['blade', 'grip', 'guard', 'pommel'].map(p => `<img src="${designPartSrc(p, sword.design, sword.traits)}">`).join('');
+            if (!withOverlay) return parts;
+            const q = swordQuality(sword);
+            const ov = q === 'Weak' ? 'assets/sword-parts/overlays/crack.png' : q === 'Epic' ? 'assets/sword-parts/overlays/sparkle.png' : '';
+            return parts + (ov ? `<img src="${ov}">` : '');
+        }
         function renderVault() {
-            const listEl = document.getElementById('sword-list'); const openStates = [];
-            listEl.querySelectorAll('.expandable-content').forEach(el => { openStates.push(el.classList.contains('expanded')); });
-            listEl.innerHTML = ''; if (craftedSwords.length === 0) { listEl.innerHTML = '<div class="empty-list">Your inventory is empty.</div>'; return; }
-
-            craftedSwords.forEach((sword, index) => {
-                const card = document.createElement('div'); card.className = 'sword-card' + (index === vaultHighlightIndex ? ' search-highlight' : ''); card.style.padding = '10px';
-                const emojis = sword.traits.length > 0 ? sword.traits.map(t => t.symbol).join('') : '🗡️';
-                let topQuality = "Weak"; if (sword.traits.some(t => t.quality === 'Epic')) topQuality = "Epic"; else if (sword.traits.some(t => t.quality === 'Fine')) topQuality = "Fine";
-                const expandedClass = (openStates[index] || index === vaultHighlightIndex) ? 'expanded' : '';
+            const body = document.getElementById('inv-body'); if (!body) return;
+            const back = document.getElementById('inv-back'), title = document.getElementById('inv-title');
+            if (vaultDetailIndex >= craftedSwords.length) vaultDetailIndex = -1;
+            if (vaultDetailIndex >= 0) {
+                // Detail view: big sword image + stats + Give NPC / To Shop.
+                back.style.visibility = 'visible'; title.textContent = '🛡️ Sword Details';
+                const sword = craftedSwords[vaultDetailIndex], index = vaultDetailIndex;
                 const costString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]}${getInitials(m)}`).join(' | ');
-
-                card.innerHTML = `
-                    <div class="expandable-header" onclick="this.nextElementSibling.classList.toggle('expanded')" style="font-size: 13px; color: #2c3e50;"><span>${emojis} | ${topQuality} | ${sword.value}g</span><span style="font-size: 10px;">▼</span></div>
-                    <div class="expandable-content ${expandedClass}" style="padding-top: 10px; margin-top: 8px; border-top: 1px solid #bdc3c7;">
-                        <div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div>
-                        <div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Recipe:</strong> ${costString}</div>
-                        <div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Give NPC</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div>
-                    </div>`;
-                listEl.appendChild(card);
-            });
+                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Give NPC</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
+            } else {
+                // Grid view: one sword-image tile per crafted sword.
+                back.style.visibility = 'hidden'; title.textContent = '🛡️ Inventory (Vault)';
+                if (craftedSwords.length === 0) { body.innerHTML = '<div class="empty-list">Your inventory is empty. Forge a blade to store it here!</div>'; return; }
+                const grid = document.createElement('div'); grid.className = 'vault-tile-grid';
+                craftedSwords.forEach((sword, index) => {
+                    const tile = document.createElement('div'); tile.className = 'vault-tile' + (index === vaultHighlightIndex ? ' search-highlight' : '');
+                    tile.onclick = () => showVaultDetail(index);
+                    let topQuality = 'Weak'; if (sword.traits.some(t => t.quality === 'Epic')) topQuality = 'Epic'; else if (sword.traits.some(t => t.quality === 'Fine')) topQuality = 'Fine';
+                    const emojis = sword.traits.length > 0 ? sword.traits.map(t => t.symbol).join('') : '🗡️';
+                    tile.innerHTML = `<div class="vault-tile-img">${vaultPartsHtml(sword, false)}</div><div class="vault-tile-cap">${emojis} ${topQuality}<br>${sword.value}g</div>`;
+                    grid.appendChild(tile);
+                });
+                body.innerHTML = ''; body.appendChild(grid);
+            }
         }
 
         function renderShop() {
@@ -2601,7 +2786,7 @@
             savedBlueprints.push({ name: traitNames + " Blade", traits: [...traits], recipe: { ...recipe }, design: defaultDesign });
             showTraitToast(`📜 ${traitNames} composition recorded`);
             forgeLockedForRecord = false; // recording done — Forge is available again
-            const content = document.getElementById('recipe-content'); if(!content.classList.contains('expanded')) toggleRecipes(); updateUI();
+            updateUI();
             // Tutorial: after the "composition recorded" toast is read (~2s), show the closing dialogue.
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
         }
@@ -2609,7 +2794,7 @@
         function quickCraft(index) {
             if (isProcessingCustomer) return; const bp = savedBlueprints[index];
             if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
-            hideHands();
+            hideHands(); closeCompositionsModal(); closeInventoryModal(); // clear the list modals so the forge pipeline shows cleanly
             forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, heatQuality: null };
             // Auto-Craft runs the full pipeline: re-heat (last-acquired trait) → shape → hammer → design.
             const heatTrait = bp.traits[bp.traits.length - 1];
@@ -2671,7 +2856,7 @@
                 let goldEarned = sword.value;
                 if (requestCount === 1) goldEarned = Math.max(15, goldEarned); 
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
-                gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1;
+                gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal();
 
                 const wa = tutorialStep < tutorialFlow.length ? tutorialFlow[tutorialStep].waitAction : null;
                 const isFlame2 = wa === 'sellFlame2';
@@ -2694,7 +2879,7 @@
         // Tap the customer's speech bubble to skip the word-by-word reveal.
         document.getElementById('dialogue-text').addEventListener('click', () => { if (customerTyping) finishCustomerTyping(); });
 
-        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; updateUI(); if (shopSellPhase === 'toShop') { hideHands(); shopSellPhase = 'shopBox'; setTimeout(updateShopSellHand, 300); } } // shop-sell guide: now head to the shop
+        function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; closeInventoryModal(); updateUI(); if (shopSellPhase === 'toShop') { hideHands(); shopSellPhase = 'shopBox'; setTimeout(updateShopSellHand, 300); } } // shop-sell guide: now head to the shop
 
         function handleMovementClick(d) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;

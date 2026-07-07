@@ -23,9 +23,9 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 - **Match the existing style.** The code uses terse, semicolon-dense vanilla JS with many statements per line, global mutable state, and direct DOM manipulation. Follow the surrounding idiom rather than refactoring to a framework.
 - **Update the spec with the code.** Any change to a mechanic, number, or system must be reflected in `specs/game-design.md` in the same change.
 - **Assets live in `assets/`** (PNGs/JPGs referenced by relative path from `index.html`). When adding art, place it in the correct sub-folder and reference it as `assets/<folder>/<file>`:
-  - `assets/backgrounds/` — scene panels, shop/forge backgrounds
+  - `assets/backgrounds/` — scene panels, shop/forge backgrounds (`forge_bg.png` = quench scene; `sharpen_bg.png` = stone-floor scene for the sharpening step)
   - `assets/ui/` — buttons and UI chrome
-  - `assets/forge/` — forge props (bellow, bucket, pulley; `water_bucket.png` for the quench step; `Metal.png` = ore chunk flung into the bucket when a metal is spent)
+  - `assets/forge/` — forge props (bellow, bucket, pulley; `water_bucket.png` for the quench step; `Metal.png` = ore chunk flung into the bucket when a metal is spent; `grindstone.png` + `grindstone_spin.png` = still/motion frames for the sharpening step, both on the same 1701×1536 canvas so the motion frame overlays the still one 1:1)
   - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images (base `balanced_*` set + trait skins `flame_*`, `ice_*`, `water_*`)
   - `assets/sword-parts/overlays/` — quality overlays layered over the forged sword (`crack.png` = Weak, `sparkle.png` = Epic)
   - `assets/hammer/` — Hammering mini-game art (`ingot.png` + `balanced_<shape>_midblade.png` mid-forge stages; only Shortsword/Longsword/Broadsword have mid art so far)
