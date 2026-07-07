@@ -35,8 +35,8 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ### Recorded Compositions (formerly "Saved Recipes" / "Blueprints")
 - [x] **Record Composition** button (was "Record Mixture"); **Record Last Composition** records the last forged sword after forging (no active blade needed)
-- [x] **Duplicate guard** — recording an identical composition (same traits + metals) is blocked with an alert
-- [x] **Recorded Compositions modal** — a button opens a modal (own box, internal scroll) with a trait-icon tile grid; tap a tile → drill-in detail (Tier/Traits/Value/**Composition**) + **Auto-Craft** + **Delete** (delete hidden during the tutorial) + ← Back
+- [x] **Record confirmation box** (`#recordModal`) — recording opens a box first: a **new** trait set shows the trait + metals with a **Record** button; an **already-recorded** trait set shows a **before/after metal comparison** and an **Update** button (replaces the entry, so re-recording the same trait updates it rather than duplicating; notes "identical" when unchanged)
+- [x] **Recorded Compositions modal** — a button opens a modal (own box, internal scroll) with a trait-icon tile grid; tap a tile → drill-in detail (Tier/Traits/Value/**Composition**) + **⚡ Craft** + **Delete** (delete hidden during the tutorial) + ← Back
 
 ### Tutorial (data-driven `tutorialFlow`)
 - [x] Full guided flow, incl. a 3rd (ice-dragon) customer teaching Auto-Craft from a recorded composition
@@ -59,7 +59,11 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [x] **Word-by-word customer dialogue + response options** — the customer's request types out one word at a time (tap the bubble to skip); once the line finishes, the player's two responses fade in: **"I have something for you."** (Search Inventory) and **"I don't have what you need."** (Refuse, still disabled for the first three scripted customers). Tutorial boxes tied to a customer are gated to appear only after that customer's line fully types + a ~2s read pause, so they never overlap the speech
 - [x] **Post-sale customer feedback + response gate** — on a sale the customer reacts with a short line before the gold (e.g. "Oh! Hot! Here's your 25 gold."), chosen by the trait the customer asked for → sword's first trait → random generic (per-trait line for all 24 traits plus 5 generic lines). The customer then **stays at the counter until the player taps a response button** ("Thank you" / "Glad you liked it" / "Take care"), which brings the next customer. Refuse still auto-advances
 - [x] Heat/Forge glow cues; grammar pass; 3-screen swipe layout; GitHub Pages auto-deploy CI
-- [x] **+100 Metals** and **+100 Gold** cheat buttons (window bottom-right, whole session); **Skip Intro** button (bottom-right, during the intro → `launchCoreGame`)
+- [x] **+100 Metals**, **+100 Gold**, and **Skip Stage** (skips the open forge minigame → next stage) cheat buttons (window bottom-right, whole session); **Skip Intro** button (bottom-right, during the intro → `launchCoreGame`)
+- [x] **Tutorial dialogue review** — ℹ️ button (below the health bar, left of the gold/rep pill) re-opens past tutorial boxes in their own dialogue frames with ◀ Prev / Next ▶ / Close; stays available after the tutorial
+- [x] **Screen 2 gold/rep pill** — the Forge screen mirrors screen 1's `💰 Gold | ⭐ Rep` pill above the Blade Traits line
+- [x] **Shape select polish** — available-gold shown on top of the "Choose a Blade" window; blade **names shown below each shape tile**
+- [x] **Record confirmation box** — recording opens a box (trait + metals for a new one; before/after metal comparison + Update for an existing trait set)
 
 ---
 
@@ -73,7 +77,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] Clean up **committed-but-unreferenced** files (all safe to delete): `assets/unused/` folder, `assets/ui/Chart_background.png` (grep count 0), and `assets/sword-parts/pommels/sparkle.png` (stray duplicate — the real overlay is `overlays/sparkle.png`)
 
 ## ⚠️ Known / decisions to make
-- [ ] **`+100 Metals`, `+100 Gold`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
+- [ ] **`+100 Metals`, `+100 Gold`, `Skip Stage`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
 - [x] ~~Heat **quality** is hardcoded **Epic-only**~~ — **done:** Weak/Fine/Epic driven by the heat timer + blade-HP cap, with crack/sparkle overlays
 - [ ] Map seed fixed (`1337`) — should reset randomize the layout?
 - [ ] Original GDD's **Dagger** shape is absent (10 shapes vs 11)

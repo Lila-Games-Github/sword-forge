@@ -187,6 +187,7 @@
         .counter-topbar { display: flex; justify-content: center; margin-bottom: 10px; flex-shrink: 0; }
         #screen-1 #gold-text { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: none; }
         #screen-1 #rep-text { color: inherit; background: none; border: none; padding: 0; }
+        #screen-2 #gold-text-2 { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .customer-stage { position: relative; width: 100%; flex: 1 1 auto; min-height: 360px; margin-bottom: 10px; }
         .customer-img { position: absolute; left: -8px; bottom: 0; height: 100%; max-height: 480px; width: auto; object-fit: contain; object-position: bottom left; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
         .customer-img.slide-in { animation: customerSlideIn 0.55s ease-out; }
@@ -203,6 +204,7 @@
         #btnSkipTutorial { bottom: 16px; }
         #btnCheatMetals { bottom: 60px; }
         #btnCheatGold { bottom: 104px; }
+        #btnCheatSkip { bottom: 148px; }
         #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
 
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
@@ -396,7 +398,9 @@
         #coolModal { z-index: 1007; }
         #forgeResultModal { z-index: 1008; }
         #inventoryModal, #compositionsModal { z-index: 1006; }
+        #recordModal { z-index: 1007; }
         #tutorialModal { z-index: 1010; }
+        #tutorialReviewModal { z-index: 1011; }
         #chartModal { z-index: 1015; }
         #newTraitModal { z-index: 1012; }
         #gameAlertModal { z-index: 1020; }
@@ -564,6 +568,10 @@
         .part-thumb.selected { border-color: #e67e22; background: #fff3e0; box-shadow: 0 0 8px rgba(230, 126, 34, 0.6); }
         .part-thumb img { width: 140%; height: 140%; object-fit: contain; }
         .part-thumb.locked img { filter: grayscale(1) brightness(0.55); }
+        /* Shape-select cell: square blade thumb with its name below. */
+        .shape-cell { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+        .shape-name { font-size: 9px; font-weight: bold; text-align: center; color: #4a3623; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .shape-cell.selected-cell .shape-name { color: #e67e22; }
         .part-lock { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; background: rgba(0,0,0,0.32); pointer-events: none; }
         .part-lock .lock-ico { font-size: 16px; }
 
@@ -706,7 +714,11 @@
             <div class="screen" id="screen-2">
                 <div class="status-panel" style="margin-bottom: 8px;">
                     <div class="health-container"><div id="health-bar"></div></div>
-                    <div class="status-header" style="justify-content: center;"><div class="health-text" id="blade-traits-text"><strong>Blade Traits:</strong> None</div></div>
+                    <div class="status-header" style="justify-content: center; gap: 8px;">
+                        <button id="btnTutorialInfo" onclick="openTutorialReview()" title="Review tutorial tips" style="display: none; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; font-size: 12px; line-height: 1; padding: 0; cursor: pointer;">ℹ️</button>
+                        <span id="gold-text-2">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text-2">0</span></span>
+                    </div>
+                    <div class="health-text" id="blade-traits-text" style="margin-top: 6px;"><strong>Blade Traits:</strong> None</div>
                 </div>
 
                 <div class="viewport-wrap">
@@ -837,6 +849,7 @@
             <div class="design-modal-content">
                 <div class="design-header">
                     <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Choose a Blade</h3>
+                    <span id="shape-gold" style="color: #b8860b; font-weight: bold; font-size: 14px; white-space: nowrap;">💰 0g</span>
                 </div>
                 <p id="shape-subtitle" style="margin: 0; font-size: 12px; color: #5c4a33; text-align: center;">Pick the shape to forge, then hammer it into form.</p>
                 <div class="parts-grid" id="shape-grid"></div>
@@ -944,6 +957,32 @@
             </div>
         </div>
 
+        <div id="tutorialReviewModal" class="modal-overlay" style="flex-direction: column;">
+            <div class="dialogue-frame" id="review-frame">
+                <h3 id="review-title" class="dialogue-title" style="display:none;"></h3>
+                <p id="review-text" class="dialogue-text"></p>
+            </div>
+            <div style="width: 82%; max-width: 300px; margin-top: 12px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="cancel-btn" id="review-prev" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="reviewNav(-1)">◀ Prev</button>
+                    <span id="review-count" style="font-size: 12px; color: #f0e6d2; flex: 0 0 auto; font-weight: bold;">1/1</span>
+                    <button class="cancel-btn" id="review-next" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="reviewNav(1)">Next ▶</button>
+                </div>
+                <button class="btn-craft" style="margin-top: 8px; width: 100%; background: #27ae60;" onclick="closeTutorialReview()">Close</button>
+            </div>
+        </div>
+
+        <div id="recordModal" class="modal-overlay">
+            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; max-width: 360px;">
+                <h3 id="record-title" style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;">Record Composition</h3>
+                <div id="record-body" style="font-size: 13px; text-align: left; color: #4a3623; line-height: 1.5; margin: 10px 0 14px;"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeRecordModal()">Cancel</button>
+                    <button class="btn-craft" id="record-confirm-btn" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmRecord()">Record</button>
+                </div>
+            </div>
+        </div>
+
         <div id="chartModal" class="modal-overlay">
             <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
                 <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
@@ -1006,6 +1045,7 @@
     </div>
 
     <button id="btnSkipIntro" class="corner-btn" onclick="launchCoreGame()">Skip Intro ⏭</button>
+    <button id="btnCheatSkip" class="corner-btn" onclick="cheatSkipStage()" style="display:none;">Skip Stage ⏭</button>
     <button id="btnCheatGold" class="corner-btn" onclick="addCheatGold()" style="display:none;">+100 Gold 💰</button>
     <button id="btnCheatMetals" class="corner-btn" onclick="addCheatMetals()" style="display:none;">+100 Metals ⛏️</button>
     <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
@@ -1058,6 +1098,7 @@
             document.getElementById('btnSkipTutorial').style.display = 'block'; // show Skip while the tutorial runs
             document.getElementById('btnCheatMetals').style.display = 'block'; // cheat: stays available throughout
             document.getElementById('btnCheatGold').style.display = 'block';  // cheat: stays available throughout
+            document.getElementById('btnCheatSkip').style.display = 'block';  // cheat: skip the current forge minigame
             initializeMainGame();
         }
 
@@ -1066,6 +1107,27 @@
 
         // Cheat: instantly add 100 gold.
         function addCheatGold() { gold += 100; updateUI(); }
+
+        // Cheat: skip whichever forge minigame is open and proceed to the next stage.
+        function cheatSkipStage() {
+            const shown = id => document.getElementById(id).style.display === 'flex';
+            if (shown('heatModal')) { resolveInteractiveHeatMinigame('Epic'); return; }
+            if (shown('shapeModal')) { confirmShape(); return; }
+            if (shown('hammerModal')) {
+                clearHammerTimers(); document.getElementById('hammerModal').style.display = 'none';
+                const last = forgeCtx.traits[forgeCtx.traits.length - 1];
+                if (last && last.id === 'flame') openForgeDesign(); else openCoolModal(); // same handoff as advanceHammerStage
+                return;
+            }
+            if (shown('coolModal')) { finishQuench(); return; }
+            if (shown('designModal')) { confirmDesign(); return; }
+            if (shown('sharpenModal')) {
+                forgeCtx.sharpenTiers = 0; clearSharpenTimers(); sharpenActive = false;
+                const d = forgeCtx.design; document.getElementById('sharpenModal').style.display = 'none'; completeForge(d);
+                return;
+            }
+            gameAlert('No minigame open to skip.');
+        }
 
         // End the tutorial immediately and unlock everything for normal play.
         function skipTutorial() {
@@ -1076,6 +1138,7 @@
             document.getElementById('tutorialModal').style.display = 'none';
             hideHands(); hideHeatArrow(); hideForgeArrow(); hideFlameHint(); stopChartHint();
             document.getElementById('btnSkipTutorial').style.display = 'none';
+            closeTutorialReview(); updateTutorialInfoBtn();
             updateUI();
         }
 
@@ -1179,19 +1242,23 @@
             renderShapeGrid();
         }
         function renderShapeGrid() {
+            document.getElementById('shape-gold').textContent = `💰 ${gold}g`;
             const grid = document.getElementById('shape-grid'); grid.innerHTML = '';
             partsFor('blade', designTraits).forEach((part, index) => {
-                const div = document.createElement('div'); div.className = 'part-thumb';
+                const cell = document.createElement('div'); cell.className = 'shape-cell';
+                const thumb = document.createElement('div'); thumb.className = 'part-thumb';
                 if (!bladeUnlocked[part.id]) {
-                    div.classList.add('locked');
-                    div.innerHTML = `<img src="${part.src}" alt="${part.id}"><div class="part-lock"><span class="lock-ico">🔒</span>${BLADE_UNLOCK_COST}g</div>`;
-                    div.onclick = () => unlockForgeShape(index, part.id);
+                    thumb.classList.add('locked');
+                    thumb.innerHTML = `<img src="${part.src}" alt="${part.id}"><div class="part-lock"><span class="lock-ico">🔒</span>${BLADE_UNLOCK_COST}g</div>`;
+                    cell.onclick = () => unlockForgeShape(index, part.id);
                 } else {
-                    if (forgeShapeIndex === index) div.classList.add('selected');
-                    div.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
-                    div.onclick = () => { forgeShapeIndex = index; renderShapeGrid(); };
+                    if (forgeShapeIndex === index) { thumb.classList.add('selected'); cell.classList.add('selected-cell'); }
+                    thumb.innerHTML = `<img src="${part.src}" alt="${part.id}">`;
+                    cell.onclick = () => { forgeShapeIndex = index; renderShapeGrid(); };
                 }
-                grid.appendChild(div);
+                const name = document.createElement('div'); name.className = 'shape-name'; name.textContent = part.id;
+                cell.appendChild(thumb); cell.appendChild(name);
+                grid.appendChild(cell);
             });
         }
         function unlockForgeShape(index, id) {
@@ -1311,7 +1378,7 @@
         // --- Part 4: sharpen the blade on the grindstone ---
         // Slide the blade across the spinning stone to fill 0→~120%. Finish anywhere in the 90–110% "keen" window
         // for no penalty; grinding past 110% over-hones the blade → −1 quality tier per 10% over (see completeForge).
-        const SHARP_MIN = 90, SHARP_MAX = 110, SHARP_BAR_MAX = 120, SHARP_RATE = 55; // SHARP_RATE: a full container-width swipe adds ~55%
+        const SHARP_MIN = 90, SHARP_MAX = 110, SHARP_BAR_MAX = 120, SHARP_RATE = 27.5; // SHARP_RATE: a full container-width swipe adds ~27.5% (grinding pace)
         let sharpenTimers = [], sharpenPct = 0, sharpenActive = false, sharpenSpinInt = null, sharpenBladeX = 0, sharpenBound = false, sharpenHoldInt = null;
         function sTimeout(fn, ms) { const id = setTimeout(fn, ms); sharpenTimers.push(id); return id; }
         function clearSharpenTimers() { sharpenTimers.forEach(clearTimeout); sharpenTimers = []; if (sharpenSpinInt) { clearInterval(sharpenSpinInt); sharpenSpinInt = null; } stopSharpenHold(); }
@@ -1639,15 +1706,14 @@
         const tutorialFlow = [
             { text: "After a few days of cleaning and repairing the forge, it is now ready! Let's craft your first sword and see if customers stop by!", waitAction: null },
             { title: "Selecting the metals", text: "Every sword starts with the right metals. Add 4 Steel and 1 Magnesium to the bucket to begin forging.", frame: 2, waitAction: null },
-            { action: 'highlight', duration: 3000 },
             { waitAction: 'reachTrait', hand: [{ sel: '#btnSteel', side: 'above' }, { sel: '#btnMagnesium', side: 'above' }] },
             { title: "Heating", text: 'You have discovered a type of alloy! Heat the metals into an alloy to discover what it is!', waitAction: null },
             { waitAction: 'heat', hand: [{ sel: '#btnHeat', side: 'above' }] },
-            { text: "The alloy is ready! Tap the Forge button, choose one of the three blades you know (Shortsword, Longsword, or Broadsword), hammer the glowing marks to shape it, quench it in the water, then sharpen it on the grindstone.", waitAction: null },
+            { text: "The alloy is ready! Tap the forge button and choose a shape for your blade.", waitAction: null },
             { waitAction: 'forge', hand: [{ sel: '#btnForge', side: 'above' }] },
             { text: "Beautiful! Let's see if you have any customers! Click on the left arrow to go to the counter." },
             { waitAction: 'switchToCounter', hand: [{ sel: '#nav-left', side: 'rightOf' }] },
-            { text: "This customer needs any weapon. Tap \"I have something for you.\" to spotlight the match in your inventory, then tap Give NPC to sell it.", afterCustomer: 2000 },
+            { text: "This customer needs any weapon. Tap \"I have something for you.\" to spotlight the match in your inventory, then tap Sell.", afterCustomer: 2000 },
             { waitAction: 'sell', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { onShow: () => { setRandomRequest(); updateUI(); }, text: "Oh! You have another customer, and he wants a sword with the fire trait. Let's go back to the forge! Click on the right arrow.", afterCustomer: 2000 },
             { waitAction: 'switchToForge', hand: [{ sel: '#nav-right', side: 'leftOf' }] },
@@ -1665,7 +1731,7 @@
             // Ice-dragon (customer #3) arrives; wait for the whole line to type out (+2s) before the lesson box.
             { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'afterCustomer', read: 2000 },
             // Lesson box + expand the recipe panel together (the modal covers the panel, so Auto-Craft can't be tapped before the box is dismissed).
-            { onShow: () => { openCompositionsModal(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions, tap Auto-Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
+            { onShow: () => { openCompositionsModal(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions, tap Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 800 },
@@ -1674,9 +1740,10 @@
 
         function playTutorialStep() {
             hideHands();
-            if (tutorialStep >= tutorialFlow.length) { document.getElementById('tutorialModal').style.display = 'none'; const sk = document.getElementById('btnSkipTutorial'); if (sk) sk.style.display = 'none'; return; }
+            if (tutorialStep >= tutorialFlow.length) { document.getElementById('tutorialModal').style.display = 'none'; const sk = document.getElementById('btnSkipTutorial'); if (sk) sk.style.display = 'none'; updateTutorialInfoBtn(); return; }
             const step = tutorialFlow[tutorialStep];
             if (step.onShow) step.onShow();
+            try { updateUI(); } catch (e) {} // refresh button states for the new step (e.g. enable "I have something for you." on a sell step)
             if (step.hand) setTimeout(() => { if (tutorialFlow[tutorialStep] === step) showHands(step.hand); }, 50);
 
             if (step.text) {
@@ -1715,6 +1782,39 @@
             else { titleEl.style.display = 'none'; }
             document.getElementById('tutorial-text').innerHTML = step.text;
             document.getElementById('tutorialModal').style.display = 'flex';
+            recordDialogue(title, step.text, step.frame);
+        }
+
+        // ---- Tutorial dialogue history: the ℹ️ button re-opens past tutorial boxes; Prev/Next steps through them. ----
+        let dialogueHistory = [], reviewIndex = 0;
+        function recordDialogue(title, text, frame) {
+            const last = dialogueHistory[dialogueHistory.length - 1];
+            if (last && last.text === text && last.title === (title || '')) return; // dedup a re-render of the same box
+            dialogueHistory.push({ title: title || '', text: text || '', frame: frame || 0 });
+            updateTutorialInfoBtn();
+        }
+        function updateTutorialInfoBtn() {
+            const b = document.getElementById('btnTutorialInfo'); if (!b) return;
+            b.style.display = (dialogueHistory.length > 0) ? 'flex' : 'none'; // stays available after the tutorial too
+        }
+        function openTutorialReview() {
+            if (!dialogueHistory.length) return;
+            reviewIndex = dialogueHistory.length - 1; // start on the last box opened
+            renderReview();
+            document.getElementById('tutorialReviewModal').style.display = 'flex';
+        }
+        function closeTutorialReview() { document.getElementById('tutorialReviewModal').style.display = 'none'; }
+        function reviewNav(dir) { reviewIndex = Math.max(0, Math.min(dialogueHistory.length - 1, reviewIndex + dir)); renderReview(); }
+        function renderReview() {
+            const d = dialogueHistory[reviewIndex]; if (!d) return;
+            document.getElementById('review-frame').className = 'dialogue-frame' + (d.frame ? ' frame' + d.frame : ''); // show the box in its own dialogue frame
+            const titleEl = document.getElementById('review-title');
+            if (d.title) { titleEl.textContent = d.title; titleEl.style.display = 'block'; } else { titleEl.style.display = 'none'; }
+            document.getElementById('review-text').innerHTML = d.text;
+            document.getElementById('review-count').textContent = `${reviewIndex + 1}/${dialogueHistory.length}`;
+            const prev = document.getElementById('review-prev'), next = document.getElementById('review-next');
+            prev.disabled = reviewIndex === 0; prev.style.opacity = prev.disabled ? '0.45' : '1';
+            next.disabled = reviewIndex === dialogueHistory.length - 1; next.style.opacity = next.disabled ? '0.45' : '1';
         }
 
         document.getElementById('btnTutorialOk').onclick = () => { tutorialStep++; playTutorialStep(); };
@@ -2223,11 +2323,18 @@
         function updateUI() {
             const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%'; healthBar.style.backgroundColor = health > 50 ? '#2ecc71' : health > 20 ? '#f1c40f' : '#e74c3c';
             document.getElementById('blade-traits-text').innerHTML = activeTraits.length === 0 ? '<strong>Blade Traits:</strong> None' : '<strong>Blade Traits:</strong> ' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', ');
+            const repColor = reputation < 0 ? '#e74c3c' : reputation > 10 ? '#27ae60' : '#2980b9';
             const goldText = document.getElementById('gold-text');
-            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${reputation < 0 ? '#e74c3c' : reputation > 10 ? '#27ae60' : '#2980b9'};">${reputation}</span>`; }
+            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
+            const goldText2 = document.getElementById('gold-text-2'); // screen 2 mirror of the gold/rep pill
+            if (goldText2) goldText2.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
 
             const btnAutoSell = document.getElementById('btnAutoSell');
-            if (isProcessingCustomer) {
+            // During the tutorial, keep "I have something for you." disabled until the step's guiding box has
+            // been reached (a sell-type step), so the player can't click it before the dialogue box appears.
+            const tutActive = tutorialStep < tutorialFlow.length;
+            const tutSellStep = tutActive && ['sell', 'sellFlame', 'sellFlame2'].includes(tutorialFlow[tutorialStep].waitAction);
+            if (isProcessingCustomer || (tutActive && !tutSellStep)) {
                 btnAutoSell.disabled = true;
             } else {
                 btnAutoSell.disabled = findValidSwordIndex() === -1;
@@ -2295,7 +2402,7 @@
                 const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
                 const compString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
                 const delBtn = tutorialStep < tutorialFlow.length ? '' : `<button class="recipe-delete-btn" onclick="deleteBlueprint(${selectedBlueprintIndex})">🗑️ Delete</button>`;
-                body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Auto-Craft</button>${delBtn}</div></div>`;
+                body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Craft</button>${delBtn}</div></div>`;
             } else {
                 // Grid view: one trait-icon tile per composition.
                 back.style.visibility = 'hidden'; title.textContent = '📜 Recorded Compositions';
@@ -2318,13 +2425,18 @@
         function showVaultGrid() { vaultDetailIndex = -1; vaultHighlightIndex = -1; renderVault(); }
         function showVaultDetail(index) { vaultDetailIndex = index; renderVault(); }
         // "Search Inventory" (the "I have something for you." response): open the vault straight to the
-        // sword matching the current customer's request, so Give NPC is right there.
+        // sword matching the current customer's request, so Sell is right there.
         function searchInventory() {
             if (isProcessingCustomer) return;
             const idx = findValidSwordIndex();
             if (idx === -1) { gameAlert("No sword in your inventory matches this customer's request."); return; }
             hideHands(); vaultHighlightIndex = idx; vaultDetailIndex = idx;
             document.getElementById('inventoryModal').style.display = 'flex'; renderVault();
+            // Tutorial: point to the Sell button now that the matching sword's detail view is up.
+            if (tutorialStep < tutorialFlow.length) {
+                const wa = tutorialFlow[tutorialStep].waitAction;
+                if (wa === 'sell' || wa === 'sellFlame' || wa === 'sellFlame2') showHands([{ sel: '#inv-body .btn-sell', side: 'above' }]);
+            }
         }
         // Layered sword image (blade + grip + guard + pommel), with the quality overlay when requested.
         function vaultPartsHtml(sword, withOverlay) {
@@ -2343,7 +2455,7 @@
                 back.style.visibility = 'visible'; title.textContent = '🛡️ Sword Details';
                 const sword = craftedSwords[vaultDetailIndex], index = vaultDetailIndex;
                 const costString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]}${getInitials(m)}`).join(' | ');
-                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Give NPC</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
+                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Sell</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
             } else {
                 // Grid view: one sword-image tile per crafted sword.
                 back.style.visibility = 'hidden'; title.textContent = '🛡️ Inventory (Vault)';
@@ -2561,7 +2673,7 @@
                     // hide the magnesium hand once the Flame trait is revealed on the map
                     if (wa === 'reachFlameTrait') { const fi = boardData.indexOf('🔥'); if (fi !== -1 && exploredCells[fi]) { hideHands(); showFlameHint(); } }
                     if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
-                    else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 4000); }
+                    else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 3000); }
                     else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); hideFlameHint(); tutorialStep++; showHeatArrow(); }
                 }
                 return true;
@@ -2766,6 +2878,7 @@
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
         }
 
+        let pendingRecord = null;
         function saveRecipe() {
             // Record the active blade's mixture, or — when nothing is active (e.g. right after forging) — the last forged mixture.
             let traits, recipe;
@@ -2775,19 +2888,57 @@
             } else if (lastForgedMixture) {
                 traits = lastForgedMixture.traits; recipe = lastForgedMixture.recipe;
             } else { gameAlert("You need at least one heated trait to save a recipe!"); return; }
-            const traitNames = traits.map(t => `${t.quality} ${t.name}`).join(' & ');
-
-            // Block re-recording an identical composition (same trait set + same metals).
-            const dup = savedBlueprints.some(bp => bp.traits.length === traits.length && traits.every(t => bp.traits.some(bt => bt.id === t.id)) && metalsList.every(m => bp.recipe[m] === recipe[m]));
-            if (dup) { const plain = traits.map(t => t.name).join(' & '); gameAlert(`You have already recorded this composition for the ${plain} trait${traits.length > 1 ? 's' : ''}!`); return; }
-
-            const defaultDesign = { blade: 0, grip: 0, guard: 0, pommel: 0 };
-
-            savedBlueprints.push({ name: traitNames + " Blade", traits: [...traits], recipe: { ...recipe }, design: defaultDesign });
-            showTraitToast(`📜 ${traitNames} composition recorded`);
+            // A composition is keyed by its trait set. Re-recording the same trait(s) updates that entry (with a before/after comparison).
+            const existingIndex = savedBlueprints.findIndex(bp => bp.traits.length === traits.length && traits.every(t => bp.traits.some(bt => bt.id === t.id)));
+            pendingRecord = { traits: traits.map(t => ({ ...t })), recipe: { ...recipe }, existingIndex };
+            openRecordModal();
+        }
+        function metalsSummary(recipe) { return metalsList.filter(m => recipe[m] > 0).map(m => `${recipe[m]} ${metalNames[m]}`).join(', ') || 'no metals'; }
+        function openRecordModal() {
+            const pr = pendingRecord; if (!pr) return;
+            const traitLabel = pr.traits.map(t => `${t.symbol} ${t.name}`).join(' & ');
+            const title = document.getElementById('record-title'), body = document.getElementById('record-body'), btn = document.getElementById('record-confirm-btn');
+            if (pr.existingIndex >= 0) {
+                // Existing composition for this trait set → show a before/after metal comparison and ask to replace it.
+                const old = savedBlueprints[pr.existingIndex].recipe;
+                const identical = metalsList.every(m => old[m] === pr.recipe[m]);
+                title.textContent = 'Update Composition';
+                body.innerHTML = `You already recorded a composition for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
+                    + `<div style="display:flex; gap:10px; margin-top:10px;"><div style="flex:1; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>Recorded</strong><br>${metalsSummary(old)}</div>`
+                    + `<div style="flex:1; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>New</strong><br>${metalsSummary(pr.recipe)}</div></div>`
+                    + (identical ? `<div style="margin-top:10px;"><em>These are identical.</em></div>` : ``)
+                    + `<div style="margin-top:10px;">Replace the recorded composition with the new one?</div>`;
+                btn.textContent = 'Update';
+            } else {
+                // New trait set → summary of what's being saved.
+                title.textContent = 'Record Composition';
+                body.innerHTML = `Save a new composition for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
+                    + `<div style="margin-top:10px; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>Metals used:</strong> ${metalsSummary(pr.recipe)}</div>`;
+                btn.textContent = 'Record';
+            }
+            document.getElementById('recordModal').style.display = 'flex';
+            hideHands();
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') setTimeout(() => showHands([{ sel: '#record-confirm-btn', side: 'above' }]), 60);
+        }
+        function closeRecordModal() {
+            document.getElementById('recordModal').style.display = 'none'; pendingRecord = null;
+            if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') setTimeout(() => showHands([{ sel: '#btnSaveRecipe', side: 'above' }]), 60);
+        }
+        function confirmRecord() {
+            const pr = pendingRecord; if (!pr) return; pendingRecord = null;
+            const traitNames = pr.traits.map(t => `${t.quality} ${t.name}`).join(' & ');
+            if (pr.existingIndex >= 0) {
+                const bp = savedBlueprints[pr.existingIndex];
+                bp.traits = pr.traits.map(t => ({ ...t })); bp.recipe = { ...pr.recipe }; bp.name = traitNames + " Blade";
+                showTraitToast(`📜 ${traitNames} composition updated`);
+            } else {
+                savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
+                showTraitToast(`📜 ${traitNames} composition recorded`);
+            }
+            document.getElementById('recordModal').style.display = 'none';
             forgeLockedForRecord = false; // recording done — Forge is available again
             updateUI();
-            // Tutorial: after the "composition recorded" toast is read (~2s), show the closing dialogue.
+            // Tutorial: after the toast is read (~2s), show the closing dialogue.
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
         }
 
