@@ -159,7 +159,65 @@ Progression is driven by **gold funding a tiered Alchemy Machine** plus **sequen
 
 Sources: [Fandom: Alchemy Machine](https://potion-craft.fandom.com/wiki/Alchemy_Machine), [Attack of the Fanboy upgrade guide](https://attackofthefanboy.com/guides/potion-craft-alchemy-machine-upgrade-guide/). Machine cost tiers verified **3-0**; the exact legendary-recipe sequence/gating verified **2-1** (the Fandom page returned HTTP 402 on direct fetch, so recipe order relied on search snippets + secondary guides).
 
-> **Open question — "talents".** No separate **talent/skill-tree** system distinct from Alchemy Machine upgrades + recipe discovery was confirmable. If Sword Forge wants a talent tree, Potion Craft is *not* precedent for one.
+> **Talents (corrected).** Follow-up research confirms Potion Craft **does** have a talent system: completing **Alchemist's Path** objectives grants XP → **Talent Points**, and "learn a talent" is a Chapter I objective — *distinct* from Alchemy Machine tiers and recipe discovery. (My first pass couldn't confirm this and flagged it as unknown; this corrects it.) Details in [§5.1](#51--early-game-arc--d1d14-retention). Source: [Fandom — The Alchemist's Path](https://potion-craft.fandom.com/wiki/The_Alchemist's_Path).
+
+---
+
+## 5.1 · Early-game arc & D1–D14 retention
+
+> **Framing.** Two "day" concepts get conflated in this question. **In-game days** = the play/progression arc. **D1–D14 retention** = the analytics metric (% of installers returning N days after install). They are addressed separately below.
+
+### Progression is milestone-gated, not day-scripted
+Potion Craft has **no story clock**. Days are only a resource-refresh cycle (garden regrows, merchants rotate); customers wait all day and nothing forces you forward. Progress runs on **"The Alchemist's Path"**, a 10-chapter objective track gated by:
+- **Popularity levels** — 1,000 pts each; higher-quality sales give more, and **haggling *reduces* the gain**. Chapter gates: Ch I → lvl 2, Ch II → lvl 4, Ch III → lvl 5.
+- **Gold thresholds** — notably 2,000g for the Alchemy Machine repair.
+- **Merchant RNG** — the Fellow Alchemist (who sells the repair kit) appears ~every 5 days.
+- **Objective checklists** — discover effect X, perform action Y.
+
+So a rigid "Day 1 = X, Day 2 = Y" script would misrepresent the game. Day numbers below are **approximate** — structure/order are well-sourced; the day mapping is an estimate.
+
+### Representative arc (Day 1 → ~14)
+
+| Approx. day | What the player does | Milestone / unlock |
+|---|---|---|
+| **D1 (tutorial)** | Guided first brew (grind → cauldron → stir → heat); watch the marker cross the map to **Healing**; first customer; **first sale → first gold** | Core loop taught; Chapter I begins |
+| **~D1–4** | ~8–10 customers/day; visit all rooms; harvest garden each morning; buy from merchants; earn first **Talent Point**; learn tier I/II/III (center the marker); discover **Poison, Fire, Frost** | **Chapter I complete** @ popularity **2** |
+| **~D4–9** | Learn the **ladle** + combine 2 effects; push to **tier II**; save recipes; begin **haggling**; **good/evil reputation** becomes salient (accept helpful requests, refuse malicious) | **Chapter II complete** @ popularity **4** — ⚠️ **mobile free→paid paywall** |
+| **~D9–14+** | Stockpile 2,000g; wait for the Fellow Alchemist; **repair the Alchemy Machine**; reach **tier III** + combine 3 effects; **customize bottle/label/name** | **Chapter III** in progress @ popularity 5 → **Nigredo** (first legendary) becomes craftable |
+
+**Corrections to common assumptions:** "2 chapters free" is the **mobile** monetization model (paywall at end of Ch II), not Steam; and **salts are *not* early-game** — they're crafted *after* Nigredo, past day 14. First machine repair + first Nigredo typically land **~day 14–20**, gated by accumulating 2,000g + merchant RNG more than by the calendar (*low confidence on exact day*).
+
+### The "aha" moment
+Lands **fast — within the first 15–30 min**, during the guided brews: the realization that brewing *is* a map-exploration puzzle. Reviewers call it the "most innovative, creative, riveting" part. Landing the hook in session one is what drives **D1 retention**.
+
+### D1–D14 retention: the metric doesn't apply — and that *is* the finding
+D1/D7/D14 retention is a **free-to-play** metric. Potion Craft is a **premium, buy-once** game whose mobile build is a **brand-new soft-launch** (0 ratings, <5k downloads, "2 free chapters + one-time unlock"). Live app-analytics pulls (2026-07-10) returned **no retention data and no active users** for the app — and none even for a large comparable (the API key lacks retention entitlement). Premium titles are judged on **Steam playtime / review velocity / refund rate**, not F2P retention curves.
+
+### Where the early game meets the retention curve
+The early-game friction points *are* the retention killers:
+
+| Retention window | Risk in Potion Craft's early game |
+|---|---|
+| **D0 → D1** | If the map "aha" doesn't land in session 1, nothing else holds the player (single-mechanic game) |
+| **D1 → D3** | **Haggling tedious ~2h in**; **blind map exploration** frustrates players who don't look up recipes |
+| **~D7** | **Chapter II paywall** (mobile) — the monetization moment *is* the churn moment |
+| **D7 → D14** | First *big* reward (repair → Nigredo) sits **~D14–20**, gated by grind + RNG — slow players stall before it |
+
+### Benchmark targets for Sword Forge (general industry ranges — *not* Potion Craft data)
+
+| Metric | Weak | OK | Strong |
+|---|---|---|---|
+| **D1** | <25% | 30–35% | 40%+ |
+| **D7** | <7% | 10–12% | 15%+ |
+| **D14** | <4% | 6–8% | 10%+ |
+| **D30** | <2% | 3–4% | 5%+ |
+
+### → Lessons for Sword Forge
+1. **Land the grid "aha" in session 1** — it's the whole D1 game.
+2. **Pull your first big reward earlier and make it deterministic** — don't gate D7–D14 retention behind a ~day-14–20 RNG grind.
+3. **Kill blind guesswork + economy tedium early** — haggling tedium and recipe-less exploration are cited D1–D3 churn drivers.
+
+Sources: [Fandom — The Alchemist's Path](https://potion-craft.fandom.com/wiki/The_Alchemist's_Path), [Popularity](https://potion-craft.fandom.com/wiki/Popularity), [Reputation](https://potion-craft.fandom.com/wiki/Reputation), [Alchemy Machine](https://potion-craft.fandom.com/wiki/Alchemy_Machine), [Nigredo](https://potion-craft.fandom.com/wiki/Nigredo), [gamerant beginner tips](https://gamerant.com/beginner-tips-potion-craft/), [techraptor beginner guide](https://techraptor.net/gaming/guides/potion-craft-alchemist-simulator-beginners-guide), [qweertygamers review](https://www.qweertygamers.org/news/review-potion-craft-early-access), [tinyBuild new-player tips](https://tinybuild.theymes.com/hc/en/potion-craft-alchemist-simulator/articles/tips-for-new-players-16). Live retention/active-user pulls (2026-07-10) returned no data.
 
 ---
 

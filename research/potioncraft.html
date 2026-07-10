@@ -182,6 +182,17 @@
 
   .two{display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:start}
 
+  /* retention windows + benchmark */
+  .rwin{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  .rwin .w{border-radius:14px; padding:14px; background:var(--panel2); border:1px solid var(--line2)}
+  .rwin .w .d{font-family:var(--serif); font-size:1.1rem; color:var(--ink)}
+  .rwin .w .risk{font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin:5px 0 4px}
+  .rwin .w p{margin:0; font-size:.83rem; color:var(--muted)}
+  .rwin .w.g{border-left:4px solid var(--green)} .rwin .w.g .risk{color:var(--green)}
+  .rwin .w.a{border-left:4px solid var(--gold)} .rwin .w.a .risk{color:var(--gold)}
+  .rwin .w.r{border-left:4px solid var(--red)} .rwin .w.r .risk{color:var(--red)}
+  table.bench td.w{color:var(--red); font-weight:600} table.bench td.o{color:var(--gold2); font-weight:600} table.bench td.s{color:var(--green); font-weight:600}
+  @media(max-width:860px){ .rwin{grid-template-columns:1fr 1fr} }
   footer{padding:40px 0 60px; color:var(--faint); font-size:.86rem}
   footer .wrap{display:grid; gap:6px}
   .srcgrid{columns:2; column-gap:28px; margin-top:10px}
@@ -208,6 +219,7 @@
     <li><a href="#map">Alchemy Map</a></li>
     <li><a href="#economy">Economy</a></li>
     <li><a href="#progression">Progression</a></li>
+    <li><a href="#earlygame">Early game</a></li>
     <li><a href="#reception">Reception</a></li>
     <li><a href="#shots">Screens</a></li>
     <li><a href="#lessons">Lessons</a></li>
@@ -525,12 +537,122 @@
     <span class="r final">✦ Philosopher's Stone</span>
   </div>
   <p class="tag-src" style="text-align:center; margin-top:14px">Each legendary recipe is discovered by crafting the previous one. Recipe/effect discovery otherwise happens by <b>exploring the fogged map</b>. Sources: <a href="https://potion-craft.fandom.com/wiki/Alchemy_Machine">Fandom — Alchemy Machine</a>, <a href="https://attackofthefanboy.com/guides/potion-craft-alchemy-machine-upgrade-guide/">Attack of the Fanboy</a>. Costs 3-0; recipe order 2-1 (corroborated).</p>
-  <div class="keyfact">⚠️ <b>No separate “talent tree” was found.</b> Progression = machine tiers + recipe discovery. If Sword Forge wants a skill tree, Potion Craft is not precedent for one.</div>
+  <div class="keyfact">🌳 <b>Talents exist (corrected).</b> Follow-up research confirms a talent system: completing <b>Alchemist's Path</b> objectives grants XP → <b>Talent Points</b>, and “learn a talent” is a Chapter I objective — <em>distinct</em> from machine tiers and recipe discovery. (An earlier pass couldn't confirm this; see §Early game.)</div>
+</div></section>
+
+<!-- EARLY GAME / RETENTION -->
+<section id="earlygame"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">06</div><h2>Early-game arc &amp; D1–D14 retention</h2></div>
+  <p class="sec-sub">What a new player does in the first ~14 in-game days — and how it maps to retention. <b>Two different “days” live here:</b> in-game <em>play</em> days, and D1–D14 <em>retention</em> (the analytics metric). Both below.</p>
+
+  <div class="keyfact">🧭 <b>There is no day clock.</b> Days are just a resource-refresh cycle (garden regrows, merchants rotate) — customers wait all day; nothing forces you forward. Progress runs on <b>“The Alchemist's Path”</b> (a 10-chapter objective track) gated by <b>popularity levels</b> (1,000 pts each; haggling <i>lowers</i> the gain), <b>gold thresholds</b>, <b>merchant RNG</b>, and objective checklists. <b>So the day numbers below are approximate</b> — structure &amp; order are sourced; the calendar is an estimate.</div>
+
+  <!-- TIMELINE -->
+  <div class="fig-frame"><figure>
+  <svg viewBox="0 0 720 230" role="img" aria-label="Timeline of the first fourteen in-game days across chapters one to three">
+    <defs>
+      <linearGradient id="ch3" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="rgba(180,138,214,.5)"/><stop offset="100%" stop-color="rgba(180,138,214,.1)"/>
+      </linearGradient>
+      <marker id="axend" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b7a689"/></marker>
+    </defs>
+
+    <!-- popularity pills -->
+    <g font-family="system-ui,sans-serif" font-size="11" font-weight="700" text-anchor="middle">
+      <rect x="176" y="44" width="30" height="17" rx="8" fill="#14100d" stroke="#6cc0d0"/><text x="191" y="56" fill="#6cc0d0">★2</text>
+      <rect x="371" y="44" width="30" height="17" rx="8" fill="#14100d" stroke="#e6b24d"/><text x="386" y="56" fill="#e6b24d">★4</text>
+      <rect x="620" y="44" width="30" height="17" rx="8" fill="#14100d" stroke="#b48ad6"/><text x="635" y="56" fill="#b48ad6">★5</text>
+    </g>
+
+    <!-- chapter bands -->
+    <g font-family="Georgia,serif" text-anchor="middle">
+      <rect x="90" y="70" width="117" height="34" rx="8" fill="rgba(108,192,208,.42)" stroke="#6cc0d0"/><text x="148" y="92" font-size="13" fill="#08181b">Chapter I</text>
+      <rect x="207" y="70" width="195" height="34" rx="8" fill="rgba(230,178,77,.42)" stroke="#e6b24d"/><text x="304" y="92" font-size="13" fill="#221803">Chapter II</text>
+      <rect x="402" y="70" width="250" height="34" rx="8" fill="url(#ch3)" stroke="#b48ad6"/><text x="515" y="92" font-size="13" fill="#f3e9d8">Chapter III →</text>
+    </g>
+
+    <!-- guide lines -->
+    <g stroke="#f3cd72" stroke-opacity=".35" stroke-width="1" stroke-dasharray="3 4">
+      <line x1="90" y1="98" x2="90" y2="146"/><line x1="300" y1="98" x2="300" y2="146"/><line x1="597" y1="98" x2="597" y2="146"/>
+    </g>
+    <!-- milestone dots -->
+    <g font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#15110d" text-anchor="middle">
+      <circle cx="90" cy="87" r="10" fill="#f3cd72"/><text x="90" y="91">1</text>
+      <circle cx="300" cy="87" r="10" fill="#f3cd72"/><text x="300" y="91">2</text>
+      <circle cx="597" cy="87" r="10" fill="#f3cd72"/><text x="597" y="91">3</text>
+    </g>
+
+    <!-- paywall marker -->
+    <line x1="402" y1="66" x2="402" y2="182" stroke="#d9584f" stroke-width="2.4" stroke-dasharray="6 5"/>
+    <text x="402" y="200" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11.5" font-weight="700" fill="#d9584f">⛔ mobile paywall (Ch II ends)</text>
+
+    <!-- axis -->
+    <line x1="70" y1="150" x2="668" y2="150" stroke="#b7a689" stroke-width="1.5" marker-end="url(#axend)"/>
+    <g stroke="#b7a689" stroke-width="1">
+      <line x1="90" y1="146" x2="90" y2="154"/><line x1="207" y1="146" x2="207" y2="154"/><line x1="324" y1="146" x2="324" y2="154"/><line x1="441" y1="146" x2="441" y2="154"/><line x1="597" y1="146" x2="597" y2="154"/>
+    </g>
+    <g font-family="system-ui,sans-serif" font-size="11" fill="#b7a689" text-anchor="middle">
+      <text x="90" y="168">D1</text><text x="207" y="168">D4</text><text x="324" y="168">D7</text><text x="441" y="168">D10</text><text x="597" y="168">D14</text><text x="652" y="168">14+</text>
+    </g>
+  </svg>
+  <figcaption>
+    <b>①</b> First brew &amp; first sale (D1 tutorial) &nbsp;·&nbsp; <b>②</b> Ladle + combine 2 effects + tier II (mid Ch II) &nbsp;·&nbsp; <b>③</b> Repair machine → Nigredo, the first legendary (~D14–20).<br>
+    Order is sourced; day numbers are estimates — the arc is milestone-gated, not day-scripted.
+  </figcaption>
+  </figure></div>
+
+  <!-- CHAPTER GATES -->
+  <div class="ladder" style="margin-top:20px">
+    <div class="rung"><div class="tier">Chapter I · ~D1–4</div><div class="cost">★ pop 2</div><ul><li>Tutorial: grind → stir → heat; first sale</li><li>Discover Healing, Poison, Fire, Frost</li><li>Visit all rooms; earn first <b>Talent Point</b></li></ul></div>
+    <div class="rung" style="border-color:rgba(217,88,79,.5)"><div class="tier" style="color:var(--red)">Chapter II · ~D4–9 · ⛔ paywall</div><div class="cost">★ pop 4</div><ul><li>Ladle; combine 2 effects; tier II</li><li>Save recipes; start haggling</li><li>Good/evil reputation gets salient</li></ul></div>
+    <div class="rung"><div class="tier">Chapter III · ~D9–14+</div><div class="cost">★ pop 5</div><ul><li>Repair Alchemy Machine (2,000g)</li><li>Tier III; combine 3 effects; customize</li><li>→ unlock <b>Nigredo</b> (first legendary)</li></ul></div>
+  </div>
+  <div class="keyfact" style="margin-top:14px">📌 <b>Two corrections to common assumptions:</b> “2 chapters free” is the <b>mobile</b> monetization model (paywall at end of Ch II), <em>not</em> Steam; and <b>salts are not early-game</b> — they're crafted <em>after</em> Nigredo, well past day 14.</div>
+
+  <!-- RETENTION WINDOWS -->
+  <h3 style="font-family:var(--serif); color:var(--ink); margin:32px 0 6px">Where the early game meets the retention curve</h3>
+  <p class="sec-sub" style="margin-bottom:16px">This is where your two questions meet: the early-game friction points <b>are</b> the retention killers.</p>
+  <div class="rwin">
+    <div class="w g"><div class="d">D0 → D1</div><div class="risk">The whole D1 game</div><p>The map “aha” must land in session 1 — and it does, in ~15–30 min. There's nothing else holding a new player.</p></div>
+    <div class="w a"><div class="d">D1 → D3</div><div class="risk">Early churn</div><p>Haggling turns tedious ~2h in; blind map exploration frustrates players who don't look up recipes.</p></div>
+    <div class="w r"><div class="d">~D7</div><div class="risk">Paywall + churn</div><p>Chapter II ends → the mobile free→paid gate. The monetization moment <em>is</em> the churn moment.</p></div>
+    <div class="w a"><div class="d">D7 → D14</div><div class="risk">Reward too far</div><p>First big payoff (repair → Nigredo) sits ~D14–20, gated by grind + merchant RNG. Slow players stall before it.</p></div>
+  </div>
+
+  <!-- DATA REALITY + BENCHMARK -->
+  <div class="grid2" style="margin-top:22px">
+    <div class="callout avoid" style="margin:0">
+      <h4>⛔ PotionCraft has no D1–D14 data — and that's the finding</h4>
+      <p style="margin:0; color:var(--ink); font-size:.92rem">D1/D7/D14 retention is a <b>free-to-play</b> metric. PotionCraft is a <b>premium, buy-once</b> game whose mobile build is a <b>brand-new soft-launch</b> (0 ratings, &lt;5k downloads). Live pulls (2026-07-10) returned <b>no retention and no active-user data</b> — none even for a large comparable. Premium titles are judged on Steam playtime / review velocity / refunds instead.</p>
+    </div>
+    <div class="card" style="margin:0">
+      <h3 style="color:var(--gold2); font-size:1.05rem; margin-bottom:8px">Benchmark targets for Sword Forge</h3>
+      <table class="bench">
+        <tr><th>Metric</th><th>Weak</th><th>OK</th><th>Strong</th></tr>
+        <tr><td><b>D1</b></td><td class="w">&lt;25%</td><td class="o">30–35%</td><td class="s">40%+</td></tr>
+        <tr><td><b>D7</b></td><td class="w">&lt;7%</td><td class="o">10–12%</td><td class="s">15%+</td></tr>
+        <tr><td><b>D14</b></td><td class="w">&lt;4%</td><td class="o">6–8%</td><td class="s">10%+</td></tr>
+        <tr><td><b>D30</b></td><td class="w">&lt;2%</td><td class="o">3–4%</td><td class="s">5%+</td></tr>
+      </table>
+      <p class="tag-src" style="margin-top:8px">General mobile casual/sim benchmark ranges (industry knowledge) — <b>not</b> PotionCraft data.</p>
+    </div>
+  </div>
+
+  <div class="callout borrow">
+    <h4>✅ What this means for Sword Forge</h4>
+    <ol>
+      <li><b>Land the grid “aha” in session 1.</b> <span>It's the whole D1 game — PotionCraft's hook lands in 15–30 min.</span></li>
+      <li><b>Pull your first big reward earlier &amp; make it deterministic.</b> <span>PotionCraft's first legendary sits ~D14–20 behind grind + RNG — don't gate D7–D14 retention that far out.</span></li>
+      <li><b>Kill blind guesswork &amp; economy tedium early.</b> <span>Haggling tedium + recipe-less exploration are cited D1–D3 churn drivers.</span></li>
+    </ol>
+  </div>
+
+  <p class="tag-src">Sources: <a href="https://potion-craft.fandom.com/wiki/The_Alchemist's_Path">Fandom — The Alchemist's Path</a>, <a href="https://potion-craft.fandom.com/wiki/Popularity">Popularity</a>, <a href="https://gamerant.com/beginner-tips-potion-craft/">gamerant beginner tips</a>, <a href="https://techraptor.net/gaming/guides/potion-craft-alchemist-simulator-beginners-guide">techraptor guide</a>, <a href="https://www.qweertygamers.org/news/review-potion-craft-early-access">qweertygamers review</a>, <a href="https://tinybuild.theymes.com/hc/en/potion-craft-alchemist-simulator/articles/tips-for-new-players-16">tinyBuild new-player tips</a>. Live retention/active-user pulls (2026-07-10) returned no data.</p>
 </div></section>
 
 <!-- ART / FEEL -->
 <section id="feel"><div class="wrap">
-  <div class="sec-head"><div class="sec-num">06</div><h2>Game feel &amp; art direction</h2></div>
+  <div class="sec-head"><div class="sec-num">07</div><h2>Game feel &amp; art direction</h2></div>
   <div class="grid3">
     <div class="card"><div style="font-size:1.6rem">📜</div><h3 style="color:var(--gold2); font-size:1.1rem; margin:8px 0">Alchemy-manual look</h3><p style="color:var(--muted); font-size:.9rem; margin:0">Hand-drawn, parchment-and-ink aesthetic. The UI is frequently praised as <i>lovingly crafted</i> — the map literally reads as an illustrated notebook.</p></div>
     <div class="card"><div style="font-size:1.6rem">✋</div><h3 style="color:var(--gold2); font-size:1.1rem; margin:8px 0">Tactile inputs</h3><p style="color:var(--muted); font-size:.9rem; margin:0">Every action is a physical verb — grind, stir, pump — not a menu click. Manipulation <i>feel</i> is the design pillar.</p></div>
@@ -540,7 +662,7 @@
 
 <!-- RECEPTION -->
 <section id="reception"><div class="wrap">
-  <div class="sec-head"><div class="sec-num">07</div><h2>Reception — respected, but divisive</h2></div>
+  <div class="sec-head"><div class="sec-num">08</div><h2>Reception — respected, but divisive</h2></div>
   <p class="sec-sub">The critic split behind the 74 Metascore: <b>7 positive · 6 mixed · 0 negative</b> (13 reviews). Loved for the mechanic; dinged for depth.</p>
 
   <div class="fig-frame" style="margin-bottom:22px"><figure>
@@ -581,7 +703,7 @@
 
 <!-- SCREENSHOTS -->
 <section id="shots"><div class="wrap">
-  <div class="sec-head"><div class="sec-num">08</div><h2>Screenshots</h2></div>
+  <div class="sec-head"><div class="sec-num">09</div><h2>Screenshots</h2></div>
   <p class="sec-sub">Official assets from the game's mobile store listing. (Requires an internet connection to load.)</p>
   <div class="shots">
     <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 1" src="https://play-lh.googleusercontent.com/6kOo26uSxyeQGbLzGqqqfarH3ZiTeW5h0Cgfo5Pxko278aFWzcgSCDbfcfdE9x-ecRAlOHTMW4RAwHuD2ZphXg">
@@ -598,7 +720,7 @@
 
 <!-- LESSONS -->
 <section id="lessons"><div class="wrap">
-  <div class="sec-head"><div class="sec-num">09</div><h2>→ Lessons for Sword Forge</h2></div>
+  <div class="sec-head"><div class="sec-num">10</div><h2>→ Lessons for Sword Forge</h2></div>
   <p class="sec-sub">The payoff. What maps across, what to steal, and what to avoid.</p>
 
   <div class="card">
@@ -640,7 +762,7 @@
 
 <!-- SOURCES -->
 <section id="sources"><div class="wrap">
-  <div class="sec-head"><div class="sec-num">10</div><h2>Sources &amp; method</h2></div>
+  <div class="sec-head"><div class="sec-num">11</div><h2>Sources &amp; method</h2></div>
   <p class="sec-sub">Deep research: fan-out web search → source fetch → 3-vote adversarial verification. 25 claims verified, 25 confirmed, synthesised to 14 findings. Plus a live app-analytics pull for the mobile figures. Full write-up in <code>research/potioncraft.md</code>.</p>
   <div class="grid3">
     <div class="card">
