@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potion Craft — Reference Study for Sword Forge</title>
+<style>
+  :root{
+    --bg:#15110d; --bg2:#1e1812; --panel:#241d16; --panel2:#2b2318;
+    --ink:#f3e9d8; --muted:#b7a689; --faint:#8a7a60;
+    --gold:#e6b24d; --gold2:#f3cd72; --ember:#e2703a;
+    --parch:#e9dcbf; --parch-ink:#3a2f1e; --parch-line:#c9b48a;
+    --green:#6fbf73; --red:#d9584f; --teal:#6cc0d0; --violet:#b48ad6;
+    --line:rgba(230,178,77,.18); --line2:rgba(230,178,77,.32);
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 70% -10%, rgba(226,112,58,.10), transparent 60%),
+      radial-gradient(1000px 500px at 0% 0%, rgba(230,178,77,.07), transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:var(--sans); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--gold2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3{font-family:var(--serif); line-height:1.2; margin:0}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+  .eyebrow{font-family:var(--sans); letter-spacing:.18em; text-transform:uppercase;
+    font-size:.72rem; color:var(--gold); font-weight:700}
+
+  /* NAV */
+  nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+    background:rgba(21,17,13,.82); border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex; align-items:center; gap:16px; height:56px; overflow-x:auto}
+  nav .brand{font-family:var(--serif); font-weight:700; color:var(--gold2); white-space:nowrap; font-size:1.02rem}
+  nav .brand small{display:block; font-family:var(--sans); font-weight:600; color:var(--faint); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase}
+  nav ul{display:flex; gap:4px; list-style:none; margin:0 0 0 auto; padding:0}
+  nav a{color:var(--muted); font-size:.82rem; padding:6px 10px; border-radius:8px; white-space:nowrap}
+  nav a:hover{color:var(--ink); background:rgba(230,178,77,.10); text-decoration:none}
+
+  /* HERO */
+  header.hero{position:relative; overflow:hidden; border-bottom:1px solid var(--line)}
+  .hero-bg{position:absolute; inset:0;
+    background:linear-gradient(90deg, var(--bg) 8%, rgba(21,17,13,.55) 45%, rgba(21,17,13,.35) 100%),
+      url("https://play-lh.googleusercontent.com/cPBKQl1HSQfrpOdQwl04Dp-zcBv9x8K2-fM9-bQiMrwfIFPapq1g_YoABnmw86UIDrA_x8lbAHPxlTBekHn1Go8");
+    background-size:cover; background-position:center right; filter:saturate(1.05)}
+  .hero-bg::after{content:""; position:absolute; inset:0; background:linear-gradient(0deg, var(--bg), transparent 55%)}
+  .hero .wrap{position:relative; padding:64px 22px 54px}
+  .hero-inner{max-width:760px}
+  .hero h1{font-size:clamp(2rem,4.4vw,3.3rem); margin:.35em 0 .2em; text-shadow:0 2px 20px rgba(0,0,0,.6)}
+  .hero h1 .accent{color:var(--gold2)}
+  .hero .lede{font-size:clamp(1.02rem,1.6vw,1.22rem); color:#efe6d6; max-width:640px; text-shadow:0 1px 12px rgba(0,0,0,.7)}
+  .badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px}
+  .badge{display:inline-flex; align-items:center; gap:7px; background:rgba(36,29,22,.85);
+    border:1px solid var(--line2); padding:7px 12px; border-radius:999px; font-size:.82rem; color:var(--ink)}
+  .badge b{color:var(--gold2)}
+
+  .ssot-strip{background:linear-gradient(90deg, rgba(226,112,58,.14), rgba(230,178,77,.10));
+    border:1px solid var(--line2); border-radius:14px; padding:14px 18px; margin:26px auto 0; max-width:var(--maxw);
+    display:flex; gap:14px; align-items:flex-start}
+  .ssot-strip .ic{font-size:1.4rem; line-height:1}
+  .ssot-strip p{margin:0; font-size:.92rem; color:var(--muted)}
+  .ssot-strip b{color:var(--ink)}
+
+  /* STAT TILES */
+  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:30px auto}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 14px; text-align:center}
+  .stat .n{font-family:var(--serif); font-size:1.7rem; color:var(--gold2); line-height:1}
+  .stat .l{font-size:.72rem; color:var(--muted); margin-top:6px; letter-spacing:.04em}
+
+  /* SECTIONS */
+  section{padding:52px 0; border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:none}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; flex-wrap:wrap}
+  .sec-head h2{font-size:clamp(1.5rem,3vw,2.1rem)}
+  .sec-num{font-family:var(--serif); font-size:1.1rem; color:var(--ember); border:1px solid var(--line2);
+    width:38px; height:38px; display:grid; place-items:center; border-radius:10px; flex:none}
+  .sec-sub{color:var(--muted); max-width:760px; margin:6px 0 26px; font-size:1.02rem}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:var(--shadow)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  figure{margin:0}
+  figcaption{color:var(--faint); font-size:.82rem; margin-top:10px; text-align:center; font-style:italic}
+  .fig-frame{background:radial-gradient(120% 120% at 50% 0%, var(--panel2), var(--panel));
+    border:1px solid var(--line); border-radius:16px; padding:18px}
+  svg{max-width:100%; height:auto; display:block}
+
+  /* CORE LOOP */
+  .loop{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; justify-content:center}
+  .loop .step{flex:1 1 150px; min-width:140px; background:var(--panel2); border:1px solid var(--line2);
+    border-radius:14px; padding:16px 14px; text-align:center; position:relative}
+  .loop .step .ic{font-size:1.8rem}
+  .loop .step h4{font-family:var(--serif); margin:8px 0 4px; color:var(--gold2); font-size:1.05rem}
+  .loop .step p{margin:0; font-size:.82rem; color:var(--muted)}
+  .loop .arrow{align-self:center; color:var(--ember); font-size:1.4rem; flex:none}
+  .loop-return{text-align:center; margin-top:14px; color:var(--faint); font-size:.85rem}
+  .loop-return b{color:var(--ember)}
+
+  /* VERB TABLE */
+  table{width:100%; border-collapse:collapse; font-size:.92rem}
+  th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:var(--gold); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase}
+  td b{color:var(--ink)}
+  .verb-ic{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:7px;
+    background:rgba(230,178,77,.14); border:1px solid var(--line2); margin-right:6px; font-size:.9rem}
+
+  /* REQUEST CARD */
+  .req{max-width:420px; margin:0 auto; background:var(--parch); color:var(--parch-ink);
+    border:2px solid var(--parch-line); border-radius:16px; padding:20px 22px; font-family:var(--serif);
+    box-shadow:var(--shadow); position:relative}
+  .req::before{content:"✦"; position:absolute; top:10px; right:16px; color:#b08a4a; opacity:.6}
+  .req h4{font-size:1.15rem; margin-bottom:4px}
+  .req .who{font-family:var(--sans); font-size:.8rem; color:#7a6742; margin-bottom:14px}
+  .req .cond{font-family:var(--sans); display:flex; gap:9px; align-items:flex-start; padding:8px 10px; border-radius:9px; margin:7px 0; font-size:.86rem}
+  .req .cond.opt{background:rgba(111,191,115,.18); border-left:4px solid var(--green)}
+  .req .cond.req{background:rgba(217,88,79,.16); border-left:4px solid var(--red)}
+  .req .cond .tag{font-weight:700; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; padding:2px 6px; border-radius:5px; white-space:nowrap; margin-top:1px}
+  .req .cond.opt .tag{background:var(--green); color:#0d2a0f}
+  .req .cond.req .tag{background:var(--red); color:#2a0b09}
+  .legend-note{font-size:.85rem; color:var(--muted)}
+  .legend-note .g{color:var(--green); font-weight:700}
+  .legend-note .r{color:var(--red); font-weight:700}
+
+  /* PROGRESSION LADDER */
+  .ladder{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .rung{background:var(--panel2); border:1px solid var(--line2); border-radius:14px; padding:16px; position:relative}
+  .rung .cost{font-family:var(--serif); font-size:1.5rem; color:var(--gold2)}
+  .rung .tier{font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ember); font-weight:700}
+  .rung ul{margin:10px 0 0; padding-left:18px; font-size:.85rem; color:var(--muted)}
+  .chain{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:20px; justify-content:center}
+  .chain .r{background:linear-gradient(180deg,var(--panel2),var(--panel)); border:1px solid var(--line2);
+    padding:8px 14px; border-radius:999px; font-family:var(--serif); font-size:.9rem; color:var(--ink)}
+  .chain .r.final{border-color:var(--gold); color:var(--gold2); box-shadow:0 0 18px rgba(230,178,77,.25)}
+  .chain .sep{color:var(--ember)}
+
+  /* PILL LISTS */
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  .praise,.gripe{border-radius:16px; padding:20px; border:1px solid var(--line)}
+  .praise{background:linear-gradient(180deg, rgba(111,191,115,.10), transparent)}
+  .gripe{background:linear-gradient(180deg, rgba(217,88,79,.10), transparent)}
+  .praise h3{color:var(--green)} .gripe h3{color:var(--red)}
+  .qt{margin:12px 0; padding-left:14px; border-left:3px solid var(--line2); font-size:.9rem; color:var(--ink)}
+  .qt cite{display:block; color:var(--faint); font-style:normal; font-size:.78rem; margin-top:3px}
+
+  /* MAPPING */
+  .map-row{display:grid; grid-template-columns:1fr 42px 1fr; align-items:center; gap:10px;
+    padding:12px 0; border-bottom:1px dashed var(--line)}
+  .map-row:last-child{border-bottom:none}
+  .map-row .pc{text-align:right; color:var(--muted); font-size:.92rem}
+  .map-row .sf{color:var(--ink); font-size:.92rem}
+  .map-row .pc b,.map-row .sf b{color:var(--gold2)}
+  .map-row .link{color:var(--ember); text-align:center; font-size:1.1rem}
+  .col-heads{display:grid; grid-template-columns:1fr 42px 1fr; gap:10px; margin-bottom:6px}
+  .col-heads .h{font-family:var(--serif); font-size:.95rem}
+  .col-heads .pc{text-align:right; color:var(--violet)}
+  .col-heads .sf{color:var(--ember)}
+
+  .callout{border-radius:14px; padding:16px 18px; margin-top:16px; font-size:.95rem}
+  .callout.borrow{background:rgba(111,191,115,.10); border:1px solid rgba(111,191,115,.35)}
+  .callout.avoid{background:rgba(217,88,79,.10); border:1px solid rgba(217,88,79,.35)}
+  .callout h4{font-family:var(--sans); margin:0 0 8px; font-size:.95rem; letter-spacing:.02em}
+  .callout.borrow h4{color:var(--green)} .callout.avoid h4{color:var(--red)}
+  .callout ol{margin:0; padding-left:20px} .callout li{margin:5px 0; color:var(--ink)}
+  .callout li span{color:var(--muted)}
+
+  /* SCREENSHOTS */
+  .shots{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  .shots img{width:100%; border-radius:12px; border:1px solid var(--line2); background:var(--panel2); aspect-ratio:16/9; object-fit:cover; box-shadow:var(--shadow)}
+  .shot-note{font-size:.82rem; color:var(--faint); margin-top:12px}
+
+  .keyfact{background:rgba(230,178,77,.08); border:1px solid var(--line2); border-radius:12px; padding:14px 16px; margin:16px 0; font-size:.92rem}
+  .keyfact b{color:var(--gold2)}
+  .tag-src{font-size:.76rem; color:var(--faint)}
+  .tag-src a{color:var(--muted)}
+
+  .two{display:grid; grid-template-columns:1.15fr .85fr; gap:24px; align-items:start}
+
+  footer{padding:40px 0 60px; color:var(--faint); font-size:.86rem}
+  footer .wrap{display:grid; gap:6px}
+  .srcgrid{columns:2; column-gap:28px; margin-top:10px}
+  .srcgrid a{display:block; margin:4px 0; font-size:.86rem}
+
+  @media(max-width:860px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .grid2,.split,.two{grid-template-columns:1fr}
+    .ladder{grid-template-columns:1fr}
+    .shots{grid-template-columns:repeat(2,1fr)}
+    .grid3{grid-template-columns:1fr}
+    .srcgrid{columns:1}
+    nav ul{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand">Potion Craft <small>Sword Forge · Research SSOT</small></div>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#loop">Loop</a></li>
+    <li><a href="#map">Alchemy Map</a></li>
+    <li><a href="#economy">Economy</a></li>
+    <li><a href="#progression">Progression</a></li>
+    <li><a href="#reception">Reception</a></li>
+    <li><a href="#shots">Screens</a></li>
+    <li><a href="#lessons">Lessons</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ul>
+</div></nav>
+
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="wrap"><div class="hero-inner">
+    <div class="eyebrow">Reference-Game Study · compiled 2026-07-10</div>
+    <h1>Potion Craft: <span class="accent">Alchemist Simulator</span></h1>
+    <p class="lede">A visual teardown of the game Sword Forge is modelled on — with emphasis on its signature <b>spatial-crafting</b> mechanic and the design lessons it holds for a grid-based blacksmith game.</p>
+    <div class="badges">
+      <span class="badge">🏗️ <b>niceplay games</b></span>
+      <span class="badge">📦 Publisher <b>tinyBuild</b></span>
+      <span class="badge">📅 Full release <b>13 Dec 2022</b></span>
+      <span class="badge">🖥️ PC · Console · Mobile</span>
+      <span class="badge">🎯 Metacritic <b>74</b></span>
+    </div>
+  </div></div>
+</header>
+
+<div class="wrap">
+  <div class="ssot-strip">
+    <div class="ic">🧭</div>
+    <p><b>How to read this.</b> This is a <b>reference study</b>, not Sword Forge's own design (that lives in <code>specs/game-design.md</code>). The through-line: Potion Craft turns crafting into <b>navigation on a 2D surface</b> — the direct design analogue to Sword Forge's grid. <b>Caveat:</b> Potion Craft's surface is a <i>freeform continuous plane</i>, not a discrete grid, so every parallel below is a design analogy, not a literal one. Findings were multi-source, adversarially verified (25/25 claims confirmed).</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">74</div><div class="l">Metacritic (PC)</div></div>
+    <div class="stat"><div class="n">7.1</div><div class="l">User score / 114</div></div>
+    <div class="stat"><div class="n">~83</div><div class="l">OpenCritic</div></div>
+    <div class="stat"><div class="n">2021</div><div class="l">Early Access</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Effect slots / potion</div></div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<section id="overview"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">01</div><h2>The one-sentence thesis</h2></div>
+  <p class="sec-sub">Everything in Potion Craft hangs off a single idea, executed with unusual polish.</p>
+  <div class="card" style="font-size:1.15rem; font-family:var(--serif); line-height:1.5">
+    You don't pick a recipe from a list — you <span style="color:var(--gold2)">steer a potion marker across a fogged 2D map</span>,
+    plotting paths with ingredients and locking in effects by aligning the marker over target zones. The whole game lives or dies on
+    <span style="color:var(--ember)">how good that navigation <i>feels</i></span>.
+  </div>
+  <div class="keyfact">💡 <b>The developer said it outright.</b> Niceplay CEO Mikhail Chuprakov (DevGAMM 2024): <i>“If I couldn't make the control perfect, the game would never work.”</i> <span class="tag-src">— <a href="https://www.gamereactor.eu/potion-craft-creator-if-i-couldnt-make-the-control-perfect-the-game-would-never-work-1459873/">Gamereactor</a></span></div>
+</div></section>
+
+<!-- CORE LOOP -->
+<section id="loop"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">02</div><h2>The core loop</h2></div>
+  <p class="sec-sub">A cozy, low-stress daily cycle. Ingredients in → potions out → gold → bigger tools → repeat.</p>
+  <div class="fig-frame">
+    <div class="loop">
+      <div class="step"><div class="ic">🌿</div><h4>Gather</h4><p>Buy from travelling merchants (haggle) or grow your own in a garden.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic">⚗️</div><h4>Grind</h4><p>Mortar &amp; pestle. Grind amount sets how far the marker will travel.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic">🫧</div><h4>Brew</h4><p>Add to the cauldron over a base, heat the coals, boil &amp; stir.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic">🪙</div><h4>Sell</h4><p>Customers arrive daily with requests. Choose who to serve.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="ic">🔧</div><h4>Upgrade</h4><p>Spend gold on the Alchemy Machine, salts &amp; new recipes.</p></div>
+    </div>
+    <div class="loop-return">↺ &nbsp;<b>Next day</b> — reputation shifts which customers walk through the door</div>
+  </div>
+  <p class="tag-src">Sources: <a href="https://store.steampowered.com/app/1210320/Potion_Craft_Alchemist_Simulator/">Steam store page</a> (primary), <a href="https://potion-craft.fandom.com/wiki/Potion_Craft">Fandom</a>. Verified 3-0.</p>
+</div></section>
+
+<!-- ALCHEMY MAP -->
+<section id="map"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">03</div><h2>⭐ The Alchemy Map — the signature mechanic</h2></div>
+  <p class="sec-sub">This is <em>why</em> Potion Craft is the reference. Crafting is a spatial puzzle: navigate a marker toward effect zones by plotting and manipulating a path. Below: the anatomy of one brew.</p>
+
+  <div class="fig-frame">
+  <figure>
+  <svg viewBox="0 0 720 520" role="img" aria-label="Annotated diagram of the Potion Craft alchemy map">
+    <defs>
+      <radialGradient id="parch" cx="45%" cy="42%" r="75%">
+        <stop offset="0%" stop-color="#efe2c4"/><stop offset="70%" stop-color="#e2d2ae"/><stop offset="100%" stop-color="#cdb98c"/>
+      </radialGradient>
+      <radialGradient id="fog" cx="45%" cy="42%" r="62%">
+        <stop offset="55%" stop-color="rgba(30,24,18,0)"/><stop offset="100%" stop-color="rgba(24,19,14,.72)"/>
+      </radialGradient>
+      <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#e2703a"/>
+      </marker>
+      <marker id="ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#e6b24d"/>
+      </marker>
+      <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+
+    <!-- map -->
+    <rect x="150" y="50" width="420" height="420" rx="16" fill="url(#parch)" stroke="#b79a63" stroke-width="2"/>
+    <rect x="150" y="50" width="420" height="420" rx="16" fill="url(#fog)"/>
+    <!-- faint grid lines to read as a chart -->
+    <g stroke="#b79a63" stroke-opacity=".28" stroke-width="1">
+      <line x1="360" y1="60" x2="360" y2="460"/><line x1="160" y1="260" x2="560" y2="260"/>
+    </g>
+
+    <!-- origin -->
+    <circle cx="360" cy="260" r="7" fill="#8a6f3d"/>
+    <text x="360" y="288" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#5a4a2c">Origin</text>
+
+    <!-- unknown effect zones (question marks) -->
+    <g font-family="Georgia,serif" font-size="20" fill="#8a6f3d" text-anchor="middle">
+      <g transform="translate(235,150)"><path d="M-9,-14 h18 v6 l-4,4 v14 a5,5 0 0 1 -10,0 v-14 l-4,-4 z" fill="none" stroke="#8a6f3d" stroke-width="1.6"/><text y="6">?</text></g>
+      <g transform="translate(250,392)"><path d="M-9,-14 h18 v6 l-4,4 v14 a5,5 0 0 1 -10,0 v-14 l-4,-4 z" fill="none" stroke="#8a6f3d" stroke-width="1.6"/><text y="6">?</text></g>
+      <g transform="translate(470,400)"><path d="M-9,-14 h18 v6 l-4,4 v14 a5,5 0 0 1 -10,0 v-14 l-4,-4 z" fill="none" stroke="#8a6f3d" stroke-width="1.6"/><text y="6">?</text></g>
+    </g>
+
+    <!-- plotted path (traveled) -->
+    <path d="M360,260 Q405,215 445,198 T520,150" fill="none" stroke="#e6b24d" stroke-width="4.5" marker-end="url(#ahg)"/>
+    <!-- ladle pull-back (dashed straight to origin) -->
+    <path d="M516,156 L372,254" fill="none" stroke="#e2703a" stroke-width="2.4" stroke-dasharray="7 6" marker-end="url(#ah)"/>
+
+    <!-- aligned effect zone (highlight) -->
+    <g transform="translate(524,146)" filter="url(#glow)">
+      <path d="M-11,-17 h22 v7 l-5,5 v17 a6,6 0 0 1 -12,0 v-17 l-5,-5 z" fill="rgba(226,112,58,.35)" stroke="#e2703a" stroke-width="2"/>
+    </g>
+    <!-- marker (potion) -->
+    <g transform="translate(520,150)">
+      <path d="M-8,-13 h16 v6 l-4,4 v12 a4.5,4.5 0 0 1 -8,0 v-12 l-4,-4 z" fill="#c9463b" stroke="#7a241d" stroke-width="1.5"/>
+    </g>
+
+    <!-- inline labels -->
+    <text x="300" y="235" font-family="Georgia,serif" font-size="12.5" fill="#5a4a2c" transform="rotate(-30 300 235)">grind → path length</text>
+    <text x="586" y="150" font-family="var(--sans),sans-serif" font-size="12" fill="#e2703a" font-weight="700">marker</text>
+    <text x="596" y="122" font-family="Georgia,serif" font-size="12" fill="#e6b24d">effect zone</text>
+    <text x="596" y="137" font-family="Georgia,serif" font-size="11" fill="#b7a689">aligned → Tier III</text>
+
+    <!-- rotation arc near marker (salts) -->
+    <path d="M556,196 a26,26 0 1 1 -20,-30" fill="none" stroke="#b48ad6" stroke-width="2.4" marker-end="url(#ah)" style="marker-end:none"/>
+    <path d="M556,196 a26,26 0 1 1 -20,-30" fill="none" stroke="#b48ad6" stroke-width="2.4"/>
+    <polygon points="536,166 548,160 545,174" fill="#b48ad6"/>
+    <text x="560" y="215" font-family="Georgia,serif" font-size="11.5" fill="#8a5fb0">salt → rotate</text>
+
+    <!-- fog label -->
+    <text x="175" y="452" font-family="Georgia,serif" font-size="12" fill="#7a6742" font-style="italic">fog hides the unexplored</text>
+
+    <!-- RIGHT-SIDE VERB KEY -->
+    <g font-family="var(--sans),sans-serif">
+      <text x="600" y="250" font-size="12" fill="#e6b24d" font-weight="700">READ THE MOVES</text>
+      <g font-size="12" fill="#f3e9d8">
+        <text x="600" y="274">① grind — set distance</text>
+        <text x="600" y="298">② add — plot a path</text>
+        <text x="600" y="322">③ stir — advance marker</text>
+        <text x="600" y="346">④ base — pull to origin</text>
+        <text x="600" y="370">⑤ bellows — lock effect</text>
+        <text x="600" y="394">⑥ salt — rotate / erase</text>
+      </g>
+    </g>
+  </svg>
+  <figcaption>Anatomy of a brew — gold = the plotted &amp; travelled path, red = the potion marker, orange dashes = a base “pull” back toward origin, violet = salt rotation.</figcaption>
+  </figure>
+  </div>
+
+  <div class="two" style="margin-top:22px">
+    <div class="card">
+      <h3 style="color:var(--gold2); margin-bottom:12px">The six tool verbs</h3>
+      <table>
+        <tr><th>Action</th><th>What it does to the map</th></tr>
+        <tr><td><span class="verb-ic">⚗️</span><b>Grind</b></td><td>Sets <b>how far</b> the marker travels along the ingredient's vector. More grinding = farther.</td></tr>
+        <tr><td><span class="verb-ic">🌿</span><b>Add ingredient</b></td><td><b>Plots a path</b> in a fixed direction, appended from the marker's current spot.</td></tr>
+        <tr><td><span class="verb-ic">🥄</span><b>Stir</b></td><td><b>Irreversibly</b> advances the marker forward along the plotted path.</td></tr>
+        <tr><td><span class="verb-ic">💧</span><b>Ladle / base</b></td><td>Pulls the marker <b>straight back to origin</b> (not a retrace). Dilution.</td></tr>
+        <tr><td><span class="verb-ic">🔥</span><b>Bellows</b></td><td><b>Locks in an effect</b> while the marker overlaps an effect zone.</td></tr>
+        <tr><td><span class="verb-ic">🧂</span><b>Salts</b></td><td>Rotate the path (Sun ↻ / Moon ↺), <b>erase</b> it (Void), or <b>pull</b> toward an effect (Philosopher's).</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold2); margin-bottom:12px">Why it's satisfying</h3>
+      <ul style="padding-left:18px; color:var(--muted); margin:0">
+        <li><b style="color:var(--ink)">Multiple routes</b> reach the same effect — designed deliberately for player expression.</li>
+        <li><b style="color:var(--ink)">Discovery = exploration.</b> Fog hides effect zones (shown as “?”); new ingredients reveal new regions. No recipe list to memorise.</li>
+        <li><b style="color:var(--ink)">Failure is cheap.</b> Almost no punishment for a “wrong” brew — experimentation is the point.</li>
+        <li><b style="color:var(--ink)">Two-axis navigation.</b> Position <em>and</em> rotation both matter for alignment.</li>
+        <li><b style="color:var(--ink)">Bases swap the whole board</b> — water, oil (adds slowing “swamp” terrain), and wine each have their own map.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- EFFECT TIER DIAGRAM -->
+  <h3 style="font-family:var(--serif); color:var(--ink); margin:34px 0 6px">Alignment precision → effect tier</h3>
+  <p class="sec-sub" style="margin-bottom:16px">Pump the bellows while the marker overlaps an effect zone. <b>The closer the overlap, the higher the tier</b> (I → III), filling more of the potion's 5 effect slots.</p>
+  <div class="fig-frame"><figure>
+  <svg viewBox="0 0 720 250" role="img" aria-label="Three levels of marker-to-effect overlap producing tiers one two and three">
+    <defs>
+      <radialGradient id="ez" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#f0c674"/><stop offset="100%" stop-color="#c98b34"/></radialGradient>
+    </defs>
+    <!-- three columns -->
+    <g font-family="var(--sans),sans-serif" text-anchor="middle">
+      <!-- col1 Tier I : slight overlap -->
+      <g transform="translate(120,90)">
+        <circle cx="18" cy="0" r="34" fill="rgba(240,198,116,.16)" stroke="#c98b34" stroke-width="2"/>
+        <circle cx="-18" cy="0" r="30" fill="rgba(201,70,59,.5)" stroke="#7a241d" stroke-width="2"/>
+        <text y="72" font-size="15" font-weight="700" fill="#e6b24d">Tier I</text>
+        <text y="92" font-size="11.5" fill="#b7a689">slight overlap</text>
+        <!-- slots -->
+        <g transform="translate(-45,108)">
+          <rect width="16" height="16" rx="3" fill="#e6b24d"/>
+          <rect x="19" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="38" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="57" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="76" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+        </g>
+      </g>
+      <!-- col2 Tier II : partial -->
+      <g transform="translate(360,90)">
+        <circle cx="12" cy="0" r="34" fill="rgba(240,198,116,.16)" stroke="#c98b34" stroke-width="2"/>
+        <circle cx="-12" cy="0" r="30" fill="rgba(201,70,59,.5)" stroke="#7a241d" stroke-width="2"/>
+        <text y="72" font-size="15" font-weight="700" fill="#e6b24d">Tier II</text>
+        <text y="92" font-size="11.5" fill="#b7a689">partial overlap</text>
+        <g transform="translate(-45,108)">
+          <rect width="16" height="16" rx="3" fill="#e6b24d"/>
+          <rect x="19" width="16" height="16" rx="3" fill="#e6b24d"/>
+          <rect x="38" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="57" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="76" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+        </g>
+      </g>
+      <!-- col3 Tier III : near-full -->
+      <g transform="translate(600,90)">
+        <circle cx="4" cy="0" r="34" fill="rgba(240,198,116,.16)" stroke="#c98b34" stroke-width="2"/>
+        <circle cx="-4" cy="0" r="30" fill="rgba(201,70,59,.55)" stroke="#7a241d" stroke-width="2"/>
+        <text y="72" font-size="15" font-weight="700" fill="#f3cd72">Tier III</text>
+        <text y="92" font-size="11.5" fill="#b7a689">near-perfect overlap</text>
+        <g transform="translate(-45,108)">
+          <rect width="16" height="16" rx="3" fill="#f3cd72"/>
+          <rect x="19" width="16" height="16" rx="3" fill="#f3cd72"/>
+          <rect x="38" width="16" height="16" rx="3" fill="#f3cd72"/>
+          <rect x="57" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+          <rect x="76" width="16" height="16" rx="3" fill="none" stroke="#8a7a60"/>
+        </g>
+      </g>
+    </g>
+    <text x="360" y="235" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="12" fill="#8a7a60">red = potion marker · gold ring = effect zone · squares = the potion's 5 effect slots</text>
+  </svg>
+  </figure></div>
+  <p class="tag-src">Sources: <a href="https://potion-craft.fandom.com/wiki/Alchemy_Map">Fandom — Alchemy Map</a>, <a href="https://potion-craft.fandom.com/wiki/Ladle">Ladle</a>, <a href="https://grokipedia.com/page/Potion_Craft">Grokipedia</a>. Verified 3-0.</p>
+</div></section>
+
+<!-- ECONOMY -->
+<section id="economy"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">04</div><h2>Economy &amp; customers</h2></div>
+  <p class="sec-sub">The “sell” half of the loop is a moral choice engine, not a vending machine.</p>
+
+  <div class="grid2">
+    <figure class="fig-frame">
+      <div class="req">
+        <h4>“I need something to soothe a fever…”</h4>
+        <div class="who">— a worried villager · desired effect: <b>Healing</b></div>
+        <div class="cond opt"><span class="tag">Optional</span><span><b>Include honey.</b> Pays a premium if you do.</span></div>
+        <div class="cond opt"><span class="tag">Optional</span><span><b>Keep it a single effect.</b> Bonus to price.</span></div>
+        <div class="cond req"><span class="tag">Required</span><span><b>No poison.</b> Won't buy anything toxic.</span></div>
+      </div>
+      <figcaption>A stylised request card (illustrative). Conditions are colour-coded.</figcaption>
+    </figure>
+    <div class="card">
+      <h3 style="color:var(--gold2); margin-bottom:10px">Requests</h3>
+      <p class="legend-note"><span class="g">■ Green = optional.</span> Meeting it makes the customer <b>pay more</b> (a price multiplier).<br>
+        <span class="r">■ Red = mandatory.</span> Fail it and the customer <b>walks</b> — no sale.</p>
+      <p style="color:var(--muted); font-size:.9rem">Requests are often vague and may add up to ~2 optional + ~2 mandatory conditions: ingredients to include/exclude, base/salt limits, ingredient counts, or required qualities.</p>
+      <hr style="border:none; border-top:1px solid var(--line); margin:16px 0">
+      <h3 style="color:var(--gold2); margin-bottom:10px">Haggling &amp; buying</h3>
+      <p style="color:var(--muted); font-size:.9rem">Ingredients are bought from travelling merchants — successful <b>haggling</b> saves coin — or grown in a garden. Reviewers repeatedly call the haggling <b>shallow</b>.</p>
+    </div>
+  </div>
+
+  <!-- REPUTATION GAUGE -->
+  <h3 style="font-family:var(--serif); color:var(--ink); margin:30px 0 6px">Reputation is a two-sided moral scale</h3>
+  <p class="sec-sub" style="margin-bottom:16px">Bounded <b>−100 → +100</b>. You gain “good” standing both by <b>helping</b> honest customers <em>and</em> by <b>refusing</b> malicious requests. Your position <b>changes who walks in the door.</b></p>
+  <div class="fig-frame"><figure>
+  <svg viewBox="0 0 720 170" role="img" aria-label="Reputation gauge from minus one hundred evil to plus one hundred good">
+    <defs>
+      <linearGradient id="rep" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#d9584f"/><stop offset="50%" stop-color="#5a4a3a"/><stop offset="100%" stop-color="#6cc0d0"/>
+      </linearGradient>
+    </defs>
+    <rect x="60" y="70" width="600" height="26" rx="13" fill="url(#rep)" stroke="rgba(0,0,0,.3)"/>
+    <!-- ticks -->
+    <g font-family="var(--sans),sans-serif" font-size="12" fill="#b7a689" text-anchor="middle">
+      <text x="60" y="122">−100</text><text x="360" y="122">0</text><text x="660" y="122">+100</text>
+      <text x="120" y="50" fill="#d9584f" font-weight="700">☠ EVIL customers</text>
+      <text x="600" y="50" fill="#6cc0d0" font-weight="700">☺ GOOD customers</text>
+    </g>
+    <!-- needle -->
+    <g transform="translate(486,83)">
+      <polygon points="0,-26 8,-6 -8,-6" fill="#e6b24d"/>
+      <circle cx="0" cy="0" r="6" fill="#f3cd72" stroke="#7a5a20"/>
+    </g>
+    <text x="486" y="150" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="12" fill="#8a7a60">the more “good” you lean, the more virtuous requests arrive (and vice-versa)</text>
+  </svg>
+  </figure></div>
+  <p class="tag-src">Sources: <a href="https://potion-craft.fandom.com/wiki/Requests">Fandom — Requests</a>, <a href="https://potion-craft.fandom.com/wiki/Reputation">Reputation</a>, <a href="https://www.thegamer.com/potion-craft-alchemist-simulator-reputation-guide-increase-decrease-consequences/">TheGamer</a>. Verified 3-0. <b>Note:</b> “popularity” is a separate track from reputation.</p>
+</div></section>
+
+<!-- PROGRESSION -->
+<section id="progression"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">05</div><h2>Progression</h2></div>
+  <p class="sec-sub">Gold funds a tiered <b>Alchemy Machine</b> (20,000g total) that gates salts and a chain of legendary recipes.</p>
+  <div class="ladder">
+    <div class="rung"><div class="tier">Tier 1 · Repair kit</div><div class="cost">2,000g</div><ul><li>Basic machine online</li><li>Unlocks <b>Nigredo</b></li></ul></div>
+    <div class="rung"><div class="tier">Tier 2 · Upgrade kit</div><div class="cost">6,000g</div><ul><li>Enables the machine's left side</li><li>Unlocks <b>Albedo</b>, <b>Citrinitas</b></li></ul></div>
+    <div class="rung"><div class="tier">Tier 3 · Advanced</div><div class="cost">12,000g</div><ul><li>Full unlock</li><li>Unlocks <b>Rubedo</b> &amp; the <b>Philosopher's Stone</b></li></ul></div>
+  </div>
+  <div class="chain">
+    <span class="r">Nigredo</span><span class="sep">→</span>
+    <span class="r">Albedo</span><span class="sep">→</span>
+    <span class="r">Citrinitas</span><span class="sep">→</span>
+    <span class="r">Rubedo</span><span class="sep">→</span>
+    <span class="r final">✦ Philosopher's Stone</span>
+  </div>
+  <p class="tag-src" style="text-align:center; margin-top:14px">Each legendary recipe is discovered by crafting the previous one. Recipe/effect discovery otherwise happens by <b>exploring the fogged map</b>. Sources: <a href="https://potion-craft.fandom.com/wiki/Alchemy_Machine">Fandom — Alchemy Machine</a>, <a href="https://attackofthefanboy.com/guides/potion-craft-alchemy-machine-upgrade-guide/">Attack of the Fanboy</a>. Costs 3-0; recipe order 2-1 (corroborated).</p>
+  <div class="keyfact">⚠️ <b>No separate “talent tree” was found.</b> Progression = machine tiers + recipe discovery. If Sword Forge wants a skill tree, Potion Craft is not precedent for one.</div>
+</div></section>
+
+<!-- ART / FEEL -->
+<section id="feel"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">06</div><h2>Game feel &amp; art direction</h2></div>
+  <div class="grid3">
+    <div class="card"><div style="font-size:1.6rem">📜</div><h3 style="color:var(--gold2); font-size:1.1rem; margin:8px 0">Alchemy-manual look</h3><p style="color:var(--muted); font-size:.9rem; margin:0">Hand-drawn, parchment-and-ink aesthetic. The UI is frequently praised as <i>lovingly crafted</i> — the map literally reads as an illustrated notebook.</p></div>
+    <div class="card"><div style="font-size:1.6rem">✋</div><h3 style="color:var(--gold2); font-size:1.1rem; margin:8px 0">Tactile inputs</h3><p style="color:var(--muted); font-size:.9rem; margin:0">Every action is a physical verb — grind, stir, pump — not a menu click. Manipulation <i>feel</i> is the design pillar.</p></div>
+    <div class="card"><div style="font-size:1.6rem">🌙</div><h3 style="color:var(--gold2); font-size:1.1rem; margin:8px 0">Cozy, low-stress</h3><p style="color:var(--muted); font-size:.9rem; margin:0">Unhurried, ambient. “No punishment for failure” is a <i>tone</i> as much as a mechanic.</p></div>
+  </div>
+</div></section>
+
+<!-- RECEPTION -->
+<section id="reception"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">07</div><h2>Reception — respected, but divisive</h2></div>
+  <p class="sec-sub">The critic split behind the 74 Metascore: <b>7 positive · 6 mixed · 0 negative</b> (13 reviews). Loved for the mechanic; dinged for depth.</p>
+
+  <div class="fig-frame" style="margin-bottom:22px"><figure>
+  <svg viewBox="0 0 720 120" role="img" aria-label="Critic review split: 7 positive, 6 mixed, 0 negative">
+    <g font-family="var(--sans),sans-serif" font-size="13" fill="#f3e9d8">
+      <!-- positive -->
+      <text x="60" y="34">Positive</text>
+      <rect x="150" y="20" width="404" height="20" rx="10" fill="#6fbf73"/>
+      <text x="566" y="35" fill="#6fbf73" font-weight="700">7</text>
+      <!-- mixed -->
+      <text x="60" y="68">Mixed</text>
+      <rect x="150" y="54" width="346" height="20" rx="10" fill="#e6b24d"/>
+      <text x="510" y="69" fill="#e6b24d" font-weight="700">6</text>
+      <!-- negative -->
+      <text x="60" y="102">Negative</text>
+      <rect x="150" y="88" width="6" height="20" rx="3" fill="#d9584f"/>
+      <text x="168" y="103" fill="#d9584f" font-weight="700">0</text>
+    </g>
+  </svg>
+  </figure></div>
+
+  <div class="split">
+    <div class="praise">
+      <h3>👏 Praised</h3>
+      <blockquote class="qt">“The unique crafting system of navigating potions through a sea of recipes is fun and enticing.”<cite>Hardcore Gamer — 90</cite></blockquote>
+      <blockquote class="qt">“One of the cleverest games on a mechanics level.”<cite>Hey Poor Player — 80</cite></blockquote>
+      <blockquote class="qt">“Failure is a feature, not a bug… rewards players that experiment.”<cite>GameGrin — 9/10</cite></blockquote>
+    </div>
+    <div class="gripe">
+      <h3>👎 Criticised</h3>
+      <blockquote class="qt">“It feels less like a full game and more like a mechanic in search of a game.”<cite>KeenGamer — 65</cite></blockquote>
+      <blockquote class="qt">“The charm of those inventive crafting mechanics can wear off… later stages stretched thin.”<cite>Edge — 70</cite></blockquote>
+      <blockquote class="qt">“An uninspired endgame relying on grinding.”<cite>The Games Machine — 78</cite></blockquote>
+    </div>
+  </div>
+  <p class="tag-src" style="margin-top:14px">Sources: <a href="https://www.metacritic.com/game/potion-craft-alchemist-simulator/critic-reviews/">Metacritic critic reviews</a>, <a href="https://opencritic.com/game/14152/potion-craft-alchemist-simulator">OpenCritic</a>. Verified 3-0.</p>
+</div></section>
+
+<!-- SCREENSHOTS -->
+<section id="shots"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">08</div><h2>Screenshots</h2></div>
+  <p class="sec-sub">Official assets from the game's mobile store listing. (Requires an internet connection to load.)</p>
+  <div class="shots">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 1" src="https://play-lh.googleusercontent.com/6kOo26uSxyeQGbLzGqqqfarH3ZiTeW5h0Cgfo5Pxko278aFWzcgSCDbfcfdE9x-ecRAlOHTMW4RAwHuD2ZphXg">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 2" src="https://play-lh.googleusercontent.com/8e_Gk053PqFLQU6pLO6kcJGjXpQlCeuWpeV7E-m1lOAyHK-m3UmGj5oc9Mey_bmAVdt9ZOkIHQj2q2K7ulCGTQ">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 3" src="https://play-lh.googleusercontent.com/9o6lWjcZla1kRbMl9zp3Newtm6xDqfCYh4GS4fZy8hcYJ8NaBUVhIRN5xjYF8NrUh4II5WP62EOijHgePOCMT9U">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 4" src="https://play-lh.googleusercontent.com/2upLMFi47TL0S_UfBZmW0zRrsid0C0DR5cy6UG9m0SODEnkGDCIGvDdXMoFikS6JfnWQtJsEmieCtvgYs721EA">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 5" src="https://play-lh.googleusercontent.com/ulIcSmCv-uxcPUDa0dnSeCq91wD_5XXwtuAUie89gRJ_AxpoLSF30zV6FmFVJ0U8tMAqJFs_E5p08dxabj19Tw">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 6" src="https://play-lh.googleusercontent.com/V2eZHdk5EZ_SMryEYo89SiH6YqahICLefreqL52IJ4PcgECOpZgEN-Sd8F6hGvUjvfMogbmVcr7g35Di3RQ3">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 7" src="https://play-lh.googleusercontent.com/MnNwhA-ezsHf9Btu5OhXCo1O7GO69bycc_TRhLGAiq7dzjV5ThkbUKzkVmV7Gn7IfD8wkKBzq5QWxxocD365XA">
+    <img loading="lazy" referrerpolicy="no-referrer" alt="Potion Craft official store screenshot 8" src="https://play-lh.googleusercontent.com/KE0wPxv3y7PlU8NZNmx_dP9ZgYdHVR-7xGkBaoCme2YJSb-O7vegEAZjjqRfsZl5k8w4U_Mpqt2i8FdSiejUgfo">
+  </div>
+  <div class="keyfact" style="margin-top:20px">📱 <b>Mobile market snapshot (2026-07-10).</b> The Android listing (<code>com.niceplaygames.PotionCraft</code>, tinyBuild) is <b>brand-new / soft-launch</b>: 0 ratings, <b>&lt; 5k downloads</b>, <b>&lt; $5k</b> last month, freemium (<i>2 free chapters + one-time unlock</i>). No genuine iOS listing found. <b>Takeaway:</b> the commercial success is <b>PC / console</b> — Potion Craft is a design reference, <b>not</b> a proven free-to-play mobile performer.</div>
+</div></section>
+
+<!-- LESSONS -->
+<section id="lessons"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">09</div><h2>→ Lessons for Sword Forge</h2></div>
+  <p class="sec-sub">The payoff. What maps across, what to steal, and what to avoid.</p>
+
+  <div class="card">
+    <div class="col-heads">
+      <div class="h pc">Potion Craft</div><div class="h" style="text-align:center">↔</div><div class="h sf">Sword Forge</div>
+    </div>
+    <div class="map-row"><div class="pc"><b>Alchemy Map</b> (continuous plane)</div><div class="link">↔</div><div class="sf">Crafting <b>grid</b> (discrete tiles) — more legible &amp; tappable on mobile</div></div>
+    <div class="map-row"><div class="pc">Marker traverses plotted paths</div><div class="link">↔</div><div class="sf">Sword moves across tiles (<code>tile_path</code> already shows the trail)</div></div>
+    <div class="map-row"><div class="pc">Grind amount = path distance</div><div class="link">↔</div><div class="sf">Tie a <b>physical action's intensity</b> to movement magnitude (hammering?)</div></div>
+    <div class="map-row"><div class="pc">Alignment precision → tier I/II/III</div><div class="link">↔</div><div class="sf"><b>Quality tiers</b> (Weak <code>crack</code> … Epic <code>sparkle</code>) — tie to spatial precision</div></div>
+    <div class="map-row"><div class="pc">Salts rotate / erase / pull the path</div><div class="link">↔</div><div class="sf">Grid <b>modifier tiles</b> — lean into <code>tile_hazard</code> as a “salts” analogue</div></div>
+    <div class="map-row"><div class="pc">Fog reveal = discovery</div><div class="link">↔</div><div class="sf">Fogged / locked grid regions unlocked by traversal</div></div>
+    <div class="map-row"><div class="pc">Requests: green (optional) / red (required)</div><div class="link">↔</div><div class="sf"><b>Counter-customer orders</b> — steal this risk/reward model near-verbatim</div></div>
+    <div class="map-row"><div class="pc">±100 reputation shifts customer mix</div><div class="link">↔</div><div class="sf">Screen-2 reputation should <b>steer who walks in</b>, not just gate a number</div></div>
+    <div class="map-row"><div class="pc">Tiered machine gates unlocks</div><div class="link">↔</div><div class="sf">Gold-gated upgrade ladder</div></div>
+  </div>
+
+  <div class="callout borrow">
+    <h4>✅ Borrow</h4>
+    <ol>
+      <li><b>Obsess over control feel of the grid.</b> <span>The dev says the game only worked because manipulation felt perfect. This is lesson #1 — the tap/drag/hammer feel must be the highest-polish thing in the build.</span></li>
+      <li><b>Multiple routes to the same result.</b> <span>Reachability-by-different-paths is what made experimentation fun and gave replay value.</span></li>
+      <li><b>“Failure is a feature.”</b> <span>Cheap, low-punishment experimentation lowers the floor while keeping a high ceiling.</span></li>
+      <li><b>Green/red order conditions</b> <span>— an elegant, self-teaching risk/reward + price-multiplier system.</span></li>
+      <li><b>Precision → quality tier</b> <span>as the core reward mapping.</span></li>
+    </ol>
+  </div>
+
+  <div class="callout avoid">
+    <h4>⛔ Avoid (learn from its criticism)</h4>
+    <ol>
+      <li><b>The “one clever mechanic wears thin” trap.</b> <span>Potion Craft's single biggest critique. A novel grid mechanic is not a full game — budget real design time for the back half: variety, escalating goals, a non-grindy endgame.</span></li>
+      <li><b>Endgame that collapses into grinding.</b> <span>Keep new verbs / tiles / modifiers coming, not just bigger gold numbers.</span></li>
+      <li><b>A shallow economy.</b> <span>“Weak haggling” was a recurring ding — give selling real decisions.</span></li>
+      <li><b>Assuming the mobile economy is solved.</b> <span>Potion Craft is premium PC/console; its mobile monetization is unproven. Sword Forge's is its own problem.</span></li>
+    </ol>
+  </div>
+</div></section>
+
+<!-- SOURCES -->
+<section id="sources"><div class="wrap">
+  <div class="sec-head"><div class="sec-num">10</div><h2>Sources &amp; method</h2></div>
+  <p class="sec-sub">Deep research: fan-out web search → source fetch → 3-vote adversarial verification. 25 claims verified, 25 confirmed, synthesised to 14 findings. Plus a live app-analytics pull for the mobile figures. Full write-up in <code>research/potioncraft.md</code>.</p>
+  <div class="grid3">
+    <div class="card">
+      <h3 style="color:var(--gold2); font-size:1rem; margin-bottom:8px">Primary</h3>
+      <div class="srcgrid" style="columns:1">
+        <a href="https://store.steampowered.com/app/1210320/Potion_Craft_Alchemist_Simulator/">Steam store page</a>
+        <a href="https://www.gamereactor.eu/potion-craft-creator-if-i-couldnt-make-the-control-perfect-the-game-would-never-work-1459873/">Gamereactor — DevGAMM 2024 dev interview</a>
+        <a href="https://play.google.com/store/apps/details?id=com.niceplaygames.PotionCraft&hl=en_US">Google Play listing</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold2); font-size:1rem; margin-bottom:8px">Reference</h3>
+      <div class="srcgrid" style="columns:1">
+        <a href="https://en.wikipedia.org/wiki/Potion_Craft">Wikipedia</a>
+        <a href="https://potion-craft.fandom.com/wiki/Alchemy_Map">Fandom — Alchemy Map</a>
+        <a href="https://potion-craft.fandom.com/wiki/Requests">Fandom — Requests</a>
+        <a href="https://potion-craft.fandom.com/wiki/Reputation">Fandom — Reputation</a>
+        <a href="https://potion-craft.fandom.com/wiki/Alchemy_Machine">Fandom — Alchemy Machine</a>
+        <a href="https://attackofthefanboy.com/guides/potion-craft-alchemy-machine-upgrade-guide/">Attack of the Fanboy</a>
+        <a href="https://www.thegamer.com/potion-craft-alchemist-simulator-reputation-guide-increase-decrease-consequences/">TheGamer</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold2); font-size:1rem; margin-bottom:8px">Reception</h3>
+      <div class="srcgrid" style="columns:1">
+        <a href="https://www.metacritic.com/game/potion-craft-alchemist-simulator/">Metacritic</a>
+        <a href="https://www.metacritic.com/game/potion-craft-alchemist-simulator/critic-reviews/">Metacritic — critic reviews</a>
+        <a href="https://opencritic.com/game/14152/potion-craft-alchemist-simulator">OpenCritic</a>
+      </div>
+    </div>
+  </div>
+  <div class="keyfact" style="margin-top:18px">🔎 <b>Caveats.</b> Map is a <b>freeform continuous plane, not a grid</b> (analogy only). Detailed mechanics lean on the Fandom wiki + guides (secondary, multiply corroborated). Reception numbers are <b>PC-specific &amp; time-sensitive</b>. Hard sales/player numbers were not confirmable.</div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>Potion Craft: Alchemist Simulator — reference study for <b>Sword Forge</b>. Companion to <code>research/potioncraft.md</code>.</div>
+  <div>Compiled 2026-07-10 · This document is research reference only and does not supersede <code>specs/game-design.md</code>.</div>
+</div></footer>
+
+</body>
+</html>
