@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sword Forge — Chalk Map Test</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; background: #1c1712; overflow: hidden; font-family: 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; }
+    #wrap { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    #stage { position: relative; touch-action: none; box-shadow: 0 0 40px rgba(0,0,0,0.8); border: 3px solid #4a3623; border-radius: 6px; overflow: hidden; background: #d8c48f; }
+    #map, #fog { position: absolute; top: 0; left: 0; display: block; }
+    #fog { pointer-events: none; }
+
+    /* HUD */
+    #hud { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: min(92vw, 520px); display: flex; flex-direction: column; gap: 6px; z-index: 10; pointer-events: none; }
+    .bar-row { display: flex; align-items: center; gap: 8px; }
+    .bar-label { width: 54px; font-size: 12px; font-weight: bold; color: #f0e6d2; text-shadow: 0 1px 2px #000; }
+    .bar-track { flex: 1; height: 14px; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 100%; transition: width 0.08s linear; }
+    #hp-fill { background: linear-gradient(90deg,#e74c3c,#ff7a6b); }
+    #chalk-fill { background: linear-gradient(90deg,#dfe6e9,#ffffff); }
+
+    #topbar { position: absolute; top: 10px; left: 12px; z-index: 10; color: #f0e6d2; font-size: 13px; font-weight: bold; text-shadow: 0 1px 2px #000; }
+    #endday { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10; background: #4a3623; color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 10px; padding: 12px 26px; font-family: 'Segoe UI', sans-serif; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
+    #endday:active { transform: translateX(-50%) scale(0.96); }
+    #hint { position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%); z-index: 10; color: #f0e6d2; font-size: 12px; opacity: 0.75; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+    #toast { position: absolute; top: 74px; left: 50%; transform: translateX(-50%) translateY(-8px); z-index: 20; background: rgba(44,33,22,0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 18px; padding: 8px 18px; font-size: 14px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="wrap">
+    <div id="stage">
+        <canvas id="map"></canvas>
+        <canvas id="fog"></canvas>
+    </div>
+    <div id="topbar">Day <span id="day-num">1</span> &nbsp;·&nbsp; Traits <span id="found-num">0</span>/<span id="total-num">0</span></div>
+    <div id="hud">
+        <div class="bar-row"><span class="bar-label">❤️ HP</span><div class="bar-track"><div id="hp-fill" class="bar-fill"></div></div></div>
+        <div class="bar-row"><span class="bar-label">✏️ Chalk</span><div class="bar-track"><div id="chalk-fill" class="bar-fill"></div></div></div>
+    </div>
+    <div id="hint">Drag to draw your path — the smith follows your chalk</div>
+    <button id="endday">🌙 End Day</button>
+    <div id="toast"></div>
+</div>
+
+<script>
+// ---- Tuning ----
+const MAP_SRC = 'map_test.png';
+const SWORD_SRC = '../assets/map/tile_sword.png';
+const WORLD = 1890;                 // native map size (square)
+const SPAWN = { x: 945, y: 945 };   // centre of the chart
+const SWORD_PX = 30;                // sword icon display size (CSS px)
+const MARKER_FONT = 22;             // emoji size (CSS px)
+const MOVE_SPEED = 9;               // world px the smith advances toward the finger per frame
+const CHALK_MAX = 5200;             // daily distance budget (world px)
+const FOG_REVEAL = 60;              // fog clear radius (CSS px)
+const VISION_WORLD = 95;            // discovery/vision radius (world px)
+const DISCOVER_R = 55;              // reach this close to a ❓ to discover it (world px)
+const HAZ_LUM = 175;                // tan terrain darker than this = hazard (bg≈200, dark squiggle≈150)
+const HAZ_DMG = 32;                 // HP drained per second while in a hazard
+const N_MARKERS = 12;
+const TRAIT_EMOJI = ['🔥','❄️','⚡','🌊','☠️','🛡️','☄️','🌑','🌸','💀','🩸','⚖️','🌿','⭐','🗡️'];
+
+// ---- State ----
+let stageEl, mapCanvas, mapCtx, fogCanvas, fogCtx, disp = 0, S = 1, dpr = 1;
+let pix = null;                     // native RGBA pixel data of the map (for hazard sampling)
+const sword = { x: SPAWN.x, y: SPAWN.y };
+let finger = null, drawing = false;
+let health = 100, chalk = CHALK_MAX, day = 1;
+let markers = [], trail = [];
+let mapImg = new Image(), swordImg = new Image();
+let lastT = 0, hazardFlash = 0;
+
+// ---- Seeded RNG (deterministic marker layout) ----
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- Hazard test ----
+// The terrain is warm tan (light bg ≈ lum 200, dark squiggle ≈ 150); the ❓/dots are other hues.
+// Sample a kernel, average luminance over the *tan* pixels only, and call it hazard when that's dark.
+function isTan(r, g, b) { return b <= r && b <= g && (r - b) > 20 && Math.abs(r - g) < 45 && !(g > r + 15); }
+function isHazard(wx, wy) {
+    wx = Math.round(wx); wy = Math.round(wy);
+    let sum = 0, n = 0;
+    for (let dy = -6; dy <= 6; dy += 2) for (let dx = -6; dx <= 6; dx += 2) {
+        const x = wx + dx, y = wy + dy; if (x < 0 || y < 0 || x >= WORLD || y >= WORLD) continue;
+        const i = (y * WORLD + x) * 4, r = pix[i], g = pix[i+1], b = pix[i+2];
+        if (!isTan(r, g, b)) continue;                // a coloured marker dot, not terrain
+        sum += 0.3*r + 0.59*g + 0.11*b; n++;
+    }
+    return n > 0 && (sum / n) < HAZ_LUM;
+}
+// Nearest walkable point to a target (keeps the smith from waking up inside the dark zone).
+function findSpawn(cx, cy) {
+    if (!isHazard(cx, cy)) return { x: cx, y: cy };
+    for (let r = 20; r < 900; r += 20) for (let a = 0; a < 360; a += 15) {
+        const x = cx + Math.cos(a*Math.PI/180)*r, y = cy + Math.sin(a*Math.PI/180)*r;
+        if (x > 60 && y > 60 && x < WORLD-60 && y < WORLD-60 && !isHazard(x, y)) return { x: Math.round(x), y: Math.round(y) };
+    }
+    return { x: cx, y: cy };
+}
+
+function placeMarkers() {
+    const rng = mulberry32(20240714); markers = [];
+    let guard = 0;
+    while (markers.length < N_MARKERS && guard < 5000) {
+        guard++;
+        const x = 120 + rng() * (WORLD - 240), y = 120 + rng() * (WORLD - 240);
+        if (isHazard(x, y)) continue;
+        if (Math.hypot(x - SPAWN.x, y - SPAWN.y) < 260) continue;          // not on top of spawn
+        if (markers.some(m => Math.hypot(m.x - x, m.y - y) < 220)) continue; // spread out
+        markers.push({ x, y, emoji: TRAIT_EMOJI[Math.floor(rng()*TRAIT_EMOJI.length)], found: false });
+    }
+    document.getElementById('total-num').textContent = markers.length;
+}
+
+// ---- Layout / sizing ----
+function layout() {
+    const pad = 12;
+    disp = Math.min(window.innerWidth - pad*2, window.innerHeight - pad*2, 760);
+    S = disp / WORLD;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    stageEl.style.width = disp + 'px'; stageEl.style.height = disp + 'px';
+    [mapCanvas, fogCanvas].forEach(c => { c.style.width = disp + 'px'; c.style.height = disp + 'px'; c.width = Math.round(disp*dpr); c.height = Math.round(disp*dpr); });
+    mapCtx.setTransform(dpr,0,0,dpr,0,0);
+    fogCtx.setTransform(dpr,0,0,dpr,0,0);
+    resetFog();
+}
+function resetFog() {
+    fogCtx.setTransform(dpr,0,0,dpr,0,0);
+    fogCtx.globalCompositeOperation = 'source-over';
+    fogCtx.fillStyle = 'rgba(14,10,7,0.92)';
+    fogCtx.fillRect(0,0,disp,disp);
+    // re-reveal everything already explored (the trail) so End-Day / resize keeps discoveries
+    trail.forEach(p => revealAt(p.x, p.y, false));
+    revealAt(sword.x, sword.y, false);
+}
+function revealAt(wx, wy) {
+    fogCtx.globalCompositeOperation = 'destination-out';
+    fogCtx.beginPath();
+    fogCtx.arc(wx*S, wy*S, FOG_REVEAL, 0, Math.PI*2);
+    fogCtx.fill();
+    fogCtx.globalCompositeOperation = 'source-over';
+}
+
+// ---- Input (pointer = mouse + touch) ----
+function toWorld(e) {
+    const r = stageEl.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(WORLD, (e.clientX - r.left)/S)), y: Math.max(0, Math.min(WORLD, (e.clientY - r.top)/S)) };
+}
+function initInput() {
+    stageEl.addEventListener('pointerdown', e => { e.preventDefault(); drawing = true; finger = toWorld(e); stageEl.setPointerCapture && stageEl.setPointerCapture(e.pointerId); });
+    stageEl.addEventListener('pointermove', e => { if (drawing) { e.preventDefault(); finger = toWorld(e); } });
+    const up = () => { drawing = false; finger = null; };
+    stageEl.addEventListener('pointerup', up); stageEl.addEventListener('pointercancel', up);
+}
+
+function toast(msg) {
+    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function endDay() {
+    day++; chalk = CHALK_MAX; health = 100;
+    sword.x = SPAWN.x; sword.y = SPAWN.y; finger = null; drawing = false;
+    document.getElementById('day-num').textContent = day;
+    resetFog();
+    toast('☀️ A new day — fresh chalk');
+}
+
+// ---- Main loop ----
+function tick(t) {
+    const dt = Math.min(0.05, (t - lastT) / 1000 || 0); lastT = t;
+
+    // Move the smith toward the finger, spending chalk on distance covered.
+    if (drawing && finger && chalk > 0) {
+        const dx = finger.x - sword.x, dy = finger.y - sword.y, d = Math.hypot(dx, dy);
+        if (d > 1) {
+            const step = Math.min(MOVE_SPEED, d, chalk);
+            const nx = sword.x + dx/d*step, ny = sword.y + dy/d*step;
+            // reveal fog along the segment so fast drags don't leave gaps
+            const steps = Math.ceil(step / 12);
+            for (let i = 1; i <= steps; i++) revealAt(sword.x + (nx-sword.x)*i/steps, sword.y + (ny-sword.y)*i/steps);
+            sword.x = nx; sword.y = ny; chalk -= step;
+            trail.push({ x: sword.x, y: sword.y });
+        }
+    }
+
+    // Hazard damage
+    if (isHazard(sword.x, sword.y)) {
+        health -= HAZ_DMG * dt; hazardFlash = 1;
+        if (health <= 0) { health = 100; sword.x = SPAWN.x; sword.y = SPAWN.y; trail.push({x:SPAWN.x,y:SPAWN.y}); revealAt(SPAWN.x, SPAWN.y); toast('💥 The smith fled home!'); }
+    }
+    hazardFlash = Math.max(0, hazardFlash - dt*3);
+
+    // Discover traits within reach
+    let found = 0;
+    markers.forEach(m => {
+        if (!m.found && Math.hypot(m.x - sword.x, m.y - sword.y) < DISCOVER_R) { m.found = true; toast(m.emoji + ' Trait discovered!'); }
+        if (m.found) found++;
+    });
+    document.getElementById('found-num').textContent = found;
+
+    render();
+    document.getElementById('hp-fill').style.width = Math.max(0, health) + '%';
+    document.getElementById('chalk-fill').style.width = (chalk / CHALK_MAX * 100) + '%';
+    requestAnimationFrame(tick);
+}
+
+function render() {
+    mapCtx.setTransform(dpr,0,0,dpr,0,0);
+    mapCtx.clearRect(0,0,disp,disp);
+    mapCtx.drawImage(mapImg, 0, 0, disp, disp);
+
+    // chalk trail
+    if (trail.length > 1) {
+        mapCtx.save(); mapCtx.strokeStyle = 'rgba(255,255,255,0.72)'; mapCtx.lineWidth = 4; mapCtx.lineJoin = 'round'; mapCtx.lineCap = 'round';
+        mapCtx.beginPath(); mapCtx.moveTo(trail[0].x*S, trail[0].y*S);
+        for (let i = 1; i < trail.length; i++) mapCtx.lineTo(trail[i].x*S, trail[i].y*S);
+        mapCtx.stroke(); mapCtx.restore();
+    }
+
+    // markers (hidden ❓ until discovered → trait emoji). Drawn before fog, so unexplored ones stay hidden.
+    mapCtx.textAlign = 'center'; mapCtx.textBaseline = 'middle'; mapCtx.font = MARKER_FONT + 'px serif';
+    markers.forEach(m => { mapCtx.fillText(m.found ? m.emoji : '❓', m.x*S, m.y*S); });
+
+    // hazard damage flash
+    if (hazardFlash > 0) { mapCtx.fillStyle = 'rgba(231,76,60,' + (0.28*hazardFlash) + ')'; mapCtx.fillRect(0,0,disp,disp); }
+
+    // fog on top (explored areas already erased)
+    mapCtx.drawImage(fogCanvas, 0, 0, disp, disp);
+
+    // sword on top of the fog (always visible)
+    if (swordImg.complete && swordImg.naturalWidth) {
+        mapCtx.save(); mapCtx.shadowColor = 'rgba(52,160,255,0.9)'; mapCtx.shadowBlur = 8;
+        mapCtx.drawImage(swordImg, sword.x*S - SWORD_PX/2, sword.y*S - SWORD_PX/2, SWORD_PX, SWORD_PX);
+        mapCtx.restore();
+    }
+}
+
+// ---- Boot ----
+function boot() {
+    stageEl = document.getElementById('stage');
+    mapCanvas = document.getElementById('map'); mapCtx = mapCanvas.getContext('2d');
+    fogCanvas = document.getElementById('fog'); fogCtx = fogCanvas.getContext('2d');
+    document.getElementById('endday').addEventListener('click', endDay);
+    window.addEventListener('resize', layout);
+    initInput();
+
+    let loaded = 0;
+    const ready = () => { if (++loaded < 2) return; init(); };
+    mapImg.onload = ready; swordImg.onload = ready;
+    mapImg.src = MAP_SRC; swordImg.src = SWORD_SRC;
+}
+function init() {
+    // native pixel buffer for hazard sampling
+    const off = document.createElement('canvas'); off.width = WORLD; off.height = WORLD;
+    const octx = off.getContext('2d', { willReadFrequently: true });
+    octx.drawImage(mapImg, 0, 0, WORLD, WORLD);
+    pix = octx.getImageData(0, 0, WORLD, WORLD).data;
+    const sp = findSpawn(SPAWN.x, SPAWN.y); SPAWN.x = sp.x; SPAWN.y = sp.y; sword.x = sp.x; sword.y = sp.y; // wake up on walkable ground
+    placeMarkers();
+    layout();
+    trail.push({ x: sword.x, y: sword.y }); revealAt(sword.x, sword.y);
+    requestAnimationFrame(t => { lastT = t; requestAnimationFrame(tick); });
+}
+boot();
+// expose for headless testing
+window._t = { get sword(){return sword;}, get health(){return health;}, get chalk(){return chalk;}, get markers(){return markers;}, get pix(){return pix;}, isHazard, endDay };
+</script>
+</body>
+</html>
