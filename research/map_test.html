@@ -58,7 +58,7 @@ const WORLD = 1890;                 // native map size (square)
 const SPAWN = { x: 945, y: 945 };
 const CHALK_DISP_H = 140;           // chalk sprite height on screen (px)
 const CHALK_ASPECT = 1065/1397;     // chalk.png w/h
-const CHALK_TIP = { fx: 0.84, fy: 0.87 }; // writing tip as a fraction of the chalk image (lower-right)
+const CHALK_TIP = { fx: 0.10, fy: 0.08 }; // writing tip = the chalk's upper (top-left) end
 const MARKER_FONT = 24;             // trait emoji size (base css px, scales with zoom)
 const MOVE_SPEED = 10;              // world px the tip advances toward the finger per frame
 const CHALK_MAX = 2600;             // daily distance budget (world px) — halved
@@ -77,7 +77,7 @@ let stageEl, mapCanvas, ctx, disp = 0, S = 1, dpr = 1;
 let pix = null, fogCanvas, fogCtx;
 const sword = { x: SPAWN.x, y: SPAWN.y };   // the chalk tip / path position
 const cam = { zoom: 1, panX: 0, panY: 0 };
-let finger = null, health = 100, chalk = CHALK_MAX, day = 1, parts = 0;
+let grabOffset = { x: 0, y: 0 }, health = 100, chalk = CHALK_MAX, day = 1, parts = 0;
 let traits = [], greens = [], trail = [];
 let mapImg = new Image(), chalkImg = new Image();
 let lastT = 0, hazardFlash = 0;
@@ -168,6 +168,15 @@ function revealAt(wx, wy) {
     fogCtx.beginPath(); fogCtx.arc(wx*S, wy*S, FOG_REVEAL, 0, Math.PI*2); fogCtx.fill();
     fogCtx.globalCompositeOperation='source-over';
 }
+// Move the tip toward a target (finger + grab offset); draws only while moving, limited by remaining chalk.
+function advanceTip(tx, ty) {
+    tx = Math.max(0, Math.min(WORLD, tx)); ty = Math.max(0, Math.min(WORLD, ty));
+    const dx = tx-sword.x, dy = ty-sword.y, d = Math.hypot(dx, dy);
+    if (d < 0.5 || chalk <= 0) return;
+    const step = Math.min(d, chalk), nx = sword.x+dx/d*step, ny = sword.y+dy/d*step, steps = Math.max(1, Math.ceil(step/12));
+    for (let i=1;i<=steps;i++) revealAt(sword.x+(nx-sword.x)*i/steps, sword.y+(ny-sword.y)*i/steps);
+    sword.x = nx; sword.y = ny; chalk -= step; trail.push({ x:sword.x, y:sword.y });
+}
 
 // ---- Chalk sprite / grab ----
 function chalkRect(ss){ const h=CHALK_DISP_H, w=h*CHALK_ASPECT; return { x: ss.x - CHALK_TIP.fx*w, y: ss.y - CHALK_TIP.fy*h, w, h }; }
@@ -188,36 +197,28 @@ function initInput() {
     stageEl.addEventListener('pointerdown', e => {
         e.preventDefault(); const p=screenPt(e); pointers.set(e.pointerId,p);
         try { stageEl.setPointerCapture(e.pointerId); } catch(_){}
-        if (pointers.size===1) { if (onChalk(p)) { mode='sword'; finger=ptToWorld(p); } else { mode='pan'; lastPan=p; } }
+        if (pointers.size===1) { if (onChalk(p)) { const fw=ptToWorld(p); grabOffset={ x:sword.x-fw.x, y:sword.y-fw.y }; mode='sword'; } else { mode='pan'; lastPan=p; } } // grab: remember tip↔finger offset; don't move yet
         else if (pointers.size===2) { mode='pinch'; startPinch(); }
     });
     stageEl.addEventListener('pointermove', e => {
         if (!pointers.has(e.pointerId)) return; e.preventDefault();
         const p=screenPt(e); pointers.set(e.pointerId,p);
-        if (mode==='sword') finger=ptToWorld(p);
+        if (mode==='sword') { const fw=ptToWorld(p); advanceTip(fw.x+grabOffset.x, fw.y+grabOffset.y); }
         else if (mode==='pan') { cam.panX+=p.x-lastPan.x; cam.panY+=p.y-lastPan.y; lastPan=p; clampCam(); }
         else if (mode==='pinch') updatePinch();
     });
-    const up = e => { pointers.delete(e.pointerId); if (pointers.size===0){ mode='none'; finger=null; } else if (pointers.size===1){ mode='pan'; lastPan=[...pointers.values()][0]; } };
+    const up = e => { pointers.delete(e.pointerId); if (pointers.size===0){ mode='none'; } else if (pointers.size===1){ mode='pan'; lastPan=[...pointers.values()][0]; } };
     stageEl.addEventListener('pointerup', up); stageEl.addEventListener('pointercancel', up);
     document.getElementById('zoomin').addEventListener('click', ()=>zoomBy(1.4));
     document.getElementById('zoomout').addEventListener('click', ()=>zoomBy(1/1.4));
 }
 
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1600); }
-function endDay(){ day++; chalk=CHALK_MAX; health=100; sword.x=SPAWN.x; sword.y=SPAWN.y; finger=null; mode='none'; pointers.clear(); document.getElementById('day-num').textContent=day; resetFog(); toast('☀️ A new day — fresh chalk'); }
+function endDay(){ day++; chalk=CHALK_MAX; health=100; sword.x=SPAWN.x; sword.y=SPAWN.y; mode='none'; pointers.clear(); document.getElementById('day-num').textContent=day; resetFog(); toast('☀️ A new day — fresh chalk'); }
 
 // ---- Loop ----
 function tick(t) {
     const dt = Math.min(0.05, (t-lastT)/1000 || 0); lastT = t;
-    if (mode==='sword' && finger && chalk>0) {
-        const dx=finger.x-sword.x, dy=finger.y-sword.y, d=Math.hypot(dx,dy);
-        if (d>1) {
-            const step=Math.min(MOVE_SPEED,d,chalk), nx=sword.x+dx/d*step, ny=sword.y+dy/d*step, steps=Math.ceil(step/12);
-            for (let i=1;i<=steps;i++) revealAt(sword.x+(nx-sword.x)*i/steps, sword.y+(ny-sword.y)*i/steps);
-            sword.x=nx; sword.y=ny; chalk-=step; trail.push({x:sword.x,y:sword.y});
-        }
-    }
     if (isHazard(sword.x, sword.y)) {
         health -= HAZ_DMG*dt; hazardFlash=1;
         if (health<=0){ health=100; sword.x=SPAWN.x; sword.y=SPAWN.y; trail.push({x:SPAWN.x,y:SPAWN.y}); revealAt(SPAWN.x,SPAWN.y); toast('💥 The smith fled home!'); }
