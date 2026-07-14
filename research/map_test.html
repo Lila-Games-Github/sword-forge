@@ -41,8 +41,7 @@
     </div>
     <div id="stage">
         <canvas id="map"></canvas>
-        <canvas id="fog"></canvas>
-        <div id="hint">Touch the sword and drag to draw · pinch or ± to zoom</div>
+        <div id="hint">Drag from the chalk tip to draw · pinch or ± to zoom</div>
         <div id="toast"></div>
     </div>
     <div id="controls">
@@ -248,25 +247,21 @@ function render() {
 
     if (hazardFlash > 0) { mapCtx.fillStyle = 'rgba(231,76,60,'+(0.28*hazardFlash)+')'; mapCtx.fillRect(0,0,disp,disp); }
 
-    const ss = worldToScreen(sword.x, sword.y); // sword drawn in screen space at a constant size
-    if (swordImg.complete && swordImg.naturalWidth) {
-        mapCtx.save(); mapCtx.shadowColor='rgba(52,160,255,0.95)'; mapCtx.shadowBlur=10;
-        mapCtx.drawImage(swordImg, ss.x-SWORD_PX/2, ss.y-SWORD_PX/2, SWORD_PX, SWORD_PX); mapCtx.restore();
-        // subtle grab ring so the player knows what to touch
-        mapCtx.beginPath(); mapCtx.arc(ss.x, ss.y, SWORD_PX*0.75, 0, Math.PI*2); mapCtx.strokeStyle='rgba(52,160,255,0.5)'; mapCtx.lineWidth=2; mapCtx.stroke();
-    }
+    // chalk tip — the point you drag to keep drawing (no sword sprite; just the path)
+    const ss = worldToScreen(sword.x, sword.y);
+    mapCtx.beginPath(); mapCtx.arc(ss.x, ss.y, 5, 0, Math.PI*2); mapCtx.fillStyle='rgba(255,255,255,0.95)'; mapCtx.fill();
+    mapCtx.beginPath(); mapCtx.arc(ss.x, ss.y, 9, 0, Math.PI*2); mapCtx.strokeStyle='rgba(255,255,255,0.4)'; mapCtx.lineWidth=2; mapCtx.stroke();
 }
 
 // ---- Boot ----
 function boot() {
     stageEl = document.getElementById('stage');
     mapCanvas = document.getElementById('map'); mapCtx = mapCanvas.getContext('2d');
-    fogCanvas = document.getElementById('fog'); fogCtx = fogCanvas.getContext('2d');
+    fogCanvas = document.createElement('canvas'); fogCtx = fogCanvas.getContext('2d'); // offscreen: composited into the map with the camera so it follows zoom/pan
     document.getElementById('endday').addEventListener('click', endDay);
     window.addEventListener('resize', layout);
     initInput();
-    let loaded = 0; const ready = () => { if (++loaded >= 2) init(); };
-    mapImg.onload = ready; swordImg.onload = ready; mapImg.src = MAP_SRC; swordImg.src = SWORD_SRC;
+    mapImg.onload = init; mapImg.src = MAP_SRC;
 }
 function init() {
     const off = document.createElement('canvas'); off.width=WORLD; off.height=WORLD;
