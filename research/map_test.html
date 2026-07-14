@@ -63,8 +63,8 @@ const CHALK_ASPECT = 1065/1397;     // chalk.png w/h
 const CHALK_TIP = { fx: 0.10, fy: 0.08 }; // writing tip = the chalk's upper (top-left) end
 const MARKER_FONT = 8;              // trait emoji size (base css px, scales with zoom) — 3x smaller
 const MOVE_SPEED = 10;              // world px the tip advances toward the finger per frame
-const CHALK_MAX = 2600;             // daily distance budget (world px) — halved
-const FOG_REVEAL = 60;              // fog clear radius (base css px)
+const CHALK_MAX = 1300;             // daily distance budget (world px) — halved again
+const FOG_REVEAL = 20;              // fog clear radius (base css px) — 3x smaller
 const DISCOVER_R = 55;              // reach this close to a trait to gather it (world px)
 const DOT_R = 46;                   // reach this close to a green/purple dot to collect it (world px)
 const GREEN_PART_CHANCE = 0.05;     // green dot → sword-part design
@@ -265,9 +265,9 @@ function render() {
     ctx.save(); ctx.translate(cam.panX, cam.panY); ctx.scale(cam.zoom, cam.zoom); // base coords (world*S)
     ctx.drawImage(mapImg, 0, 0, disp, disp);
 
-    // green dots (collected → erased with a tan patch)
-    const rDot = 15*S, rErase = 22*S;
-    greens.forEach(g => { const bx=g.x*S, by=g.y*S; if (g.got) disc(bx,by,rErase,TAN); else { disc(bx,by,rDot,'#4b9e5f'); } });
+    // green dots — half size: cover the baked dot with a tan patch, then draw our own smaller one
+    const rDot = 15*S, rErase = 22*S, rGreen = 7.5*S;
+    greens.forEach(g => { const bx=g.x*S, by=g.y*S; disc(bx,by,rErase,TAN); if (!g.got) disc(bx,by,rGreen,'#4b9e5f'); });
 
     // traits + their 3 unlock marks
     ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=MARKER_FONT+'px serif';
