@@ -23,6 +23,7 @@ Select metals → move across the **50×50** fog-of-war grid (each move spends o
 | `CLAUDE.md` | Working conventions for contributors / agents. |
 | `plan.md` | Done / next-up tracker. |
 | `assets/` | Art: `backgrounds/`, `ui/`, `forge/`, `sword-parts/`, `map/`, `customer/`, `unused/`. |
+| `research/` | Experiments (not shipped): the **chalk-map redesign** prototype (`map_test.html` + `chalk-map-design.md`), potioncraft reference. |
 | `archive/Sword_Grid_Game_GDD.md` | Original design vision (historical; superseded by `specs/`). |
 | `.github/workflows/deploy.yml` | GitHub Pages deploy on push to `main`. |
 | `screenshots/` | Dev/marketing screenshots (not referenced by the game). |

@@ -65,5 +65,23 @@ Core loop complete with a full guided tutorial and heavy polish. Recent (latest 
 - Open questions (`specs/game-design.md §9`): map seed fixed (`1337`) — should reset randomize?; original GDD's **Dagger** shape absent (10 vs 11).
 - Housekeeping (all **committed but unreferenced** — safe to delete): `assets/sword-parts/pommels/sparkle.png` (a stray duplicate; the real sparkle overlay is `overlays/sparkle.png`), `assets/ui/Chart_background.png` (grep count 0), and the `assets/unused/` folder. (Run `git status` for the current working-tree state.)
 
+## 9. Active exploration — chalk-map redesign (prototype only, NOT in `index.html`)
+The most recent work is **not** in the shipped game — it's a **standalone prototype** exploring a redesign of
+the exploration half. Instead of the metal-fuelled 50×50 grid, the smith **draws chalk lines on a chart** to
+discover traits, paced by a **day/night reset** (one chalk = a daily distance budget; an **End Day** button
+ends the day). Planned systems: **ores gathered from caves** → smelted (heating minigame) into **ingots**;
+**green dots = XP** (5% → a sword-part design); the **3 purple dots around each trait** must be gathered to
+unlock it; **dark zones = hazard** (HP-depletion → the smith rests 10s in place, no reset); a **main chart of
+24 traits** + **24 per-trait shape charts**; and an **XP skill tree** (TBD).
+- **Prototype:** `research/map_test.html` — self-contained, **canvas-based** (Pointer Events, offscreen fog
+  composited under a zoom/pan camera, pixel-mask hazard detection, colour-cluster marker detection from the
+  baked-in art). Art: `research/map_test.png` (1890² chart), `research/chalk.png`.
+- **Full design notes, current tuning, and open questions:** `research/chalk-map-design.md` — **read this**
+  before touching the redesign.
+- **Caveats:** serve it (not `file://`, or `getImageData` taints); `requestAnimationFrame` is throttled in a
+  headless/background tab (~1 fps) so movement can't be driven via automation — test feel in a real tab/phone.
+- **Nothing here is ported to `index.html`.** Open decisions before a port: the ore→ingot material system
+  (replacing the 8 metals; migrating recorded compositions) and the skill-tree nodes.
+
 ## First task suggestion
 Read `specs/game-design.md` end-to-end, open the preview (`preview_start` → `launchCoreGame()` → `skipTutorial()`), and use the **+100 Gold / +100 Metals** buttons to sandbox: forge a few swords, take hazard damage, and watch a heat time out to see the Weak/Fine/Epic quality + crack/sparkle overlays before changing anything.

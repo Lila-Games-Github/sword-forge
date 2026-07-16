@@ -82,5 +82,18 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 - [ ] Map seed fixed (`1337`) — should reset randomize the layout?
 - [ ] Original GDD's **Dagger** shape is absent (10 shapes vs 11)
 
+## 🔬 Active exploration — chalk-map redesign (prototype only)
+A redesign of the exploration half is being prototyped **outside** the shipped game. Instead of the
+metal-fuelled grid, the smith **draws chalk lines on a chart** to discover traits; a **day/night reset**
+(one chalk = daily distance budget, ended by an **End Day** button) paces it; **ores are gathered from
+caves** and smelted (heating minigame) into ingots; **green dots = XP** (5% → a sword-part design); the
+**3 purple dots around each trait** must be gathered to unlock it; **dark zones = hazard** (HP-depletion →
+rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-trait shape charts**, and an
+**XP skill tree** (TBD).
+- Prototype: [`research/map_test.html`](research/map_test.html) (canvas + pointer-draw, offscreen fog,
+  pixel-mask hazards, colour-cluster marker detection), art `research/map_test.png` + `research/chalk.png`.
+- Full design notes + open questions: [`research/chalk-map-design.md`](research/chalk-map-design.md).
+- **Not ported to `index.html`.** Next: decide the ore→ingot material system + skill-tree nodes, then plan the port.
+
 ## Open questions
 - Target platform — web-only, or a mobile wrapper later?
