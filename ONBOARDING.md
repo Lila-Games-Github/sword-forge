@@ -4,7 +4,7 @@ You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. Thi
 
 ## 1. What it is
 - A browser game: explore a fog-of-war grid to find magical traits, heat them onto your blade (a timed minigame that sets quality), forge custom swords, and sell them to customers — or list them in a passive shop.
-- **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~2770 lines.)
+- **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~3,100 lines.)
 - **No persistence yet** — nothing is saved; every reload restarts from the intro/tutorial. This is the biggest functional gap.
 - Live build: https://lila-games-github.github.io/sword-forge/
 
@@ -21,7 +21,7 @@ You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. Thi
 - ⚠️ **Push auth quirk:** the remote is HTTPS with Git Credential Manager. `git push` sometimes hangs on a GUI credential prompt that headless shells can't answer; it usually succeeds on a retry, and the commit lands regardless. Reads (`git fetch`/`ls-remote`) work fine.
 
 ## 4. Critical working rules
-- **ASK BEFORE EXECUTING.** The owner's standing rule: confirm before any state-changing action (editing files, running commands, committing, pushing, deploying). Brainstorming / planning / read-only investigation is exempt. Commits — and especially pushes, which auto-deploy to the live site — need an explicit go-ahead.
+- **ASK BEFORE EXECUTING.** The owner's standing rule (stated in chat, broader than the checked-in `CLAUDE.md` rule of "commit/push only when asked"): confirm before any state-changing action (editing files, running commands, committing, pushing, deploying). Brainstorming / planning / read-only investigation is exempt. Commits — and especially pushes, which auto-deploy to the live site — need an explicit go-ahead.
 - **Keep it single-file.** Don't split `index.html` or add tooling unless asked.
 - **Match the existing style** — terse, semicolon-dense vanilla JS, many statements per line, globals. Don't refactor to a framework.
 - **Update `specs/game-design.md` in the SAME change** as any mechanic/number/system change. It's the SSOT.
@@ -82,6 +82,8 @@ unlock it; **dark zones = hazard** (HP-depletion → the smith rests 10s in plac
   headless/background tab (~1 fps) so movement can't be driven via automation — test feel in a real tab/phone.
 - **Nothing here is ported to `index.html`.** Open decisions before a port: the ore→ingot material system
   (replacing the 8 metals; migrating recorded compositions) and the skill-tree nodes.
+- (`research/` also holds an older `potioncraft.html`/`potioncraft.md` crafting-minigame exploration —
+  unrelated to the chalk-map work.)
 
 ## First task suggestion
 Read `specs/game-design.md` end-to-end, open the preview (`preview_start` → `launchCoreGame()` → `skipTutorial()`), and use the **+100 Gold / +100 Metals** buttons to sandbox: forge a few swords, take hazard damage, and watch a heat time out to see the Weak/Fine/Epic quality + crack/sparkle overlays before changing anything.
