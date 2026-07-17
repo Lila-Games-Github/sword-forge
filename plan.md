@@ -8,6 +8,14 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## ✅ Done
 
+### Session 2026-07-17 — smelter tuning, map-preview polish, compositions, day system
+- [x] **Metal generation reworked** — base rate **1 metal / 10s** post-tutorial (`METAL_TICK_MS`); **lowest-first priority** (feeds the lowest-count metal until all pooled metals are ≥5, then uniform random; `METAL_FLOOR`); **only unlocked metals are generated** (locked diagonals no longer accumulate). Smelter readout shows the true cadence.
+- [x] **Hover directional hint** — hovering a movement button lights up the cells it would move the sword into with `assets/map/tile_movepath.png` (1 tile before the Purify dash unlocks, 3 after; all 8 buttons incl. locked diagonals; desktop mouse-only). `.move-hover-path` + `showHoverPreview`/`clearHoverPreview`.
+- [x] **Translucent move previews** — the held-move (`tile_move`) and hover (`tile_movepath`) previews now render as ~50%-opacity `::after` overlays over the cell's real tile (hazard/home/path/trait glyph show through) instead of replacing the background.
+- [x] **Recorded Compositions "Keep Both"** — the *Update Composition* box (existing trait set) now offers **Keep Both** (save the new mix as a separate entry) alongside **Update**; prompt reworded to "Replace the old record or keep both?"; Keep Both hidden when the recipes are identical. (`keepBothRecord`.)
+- [x] **Post-tutorial record reminder** — the first heating minigame completed after the tutorial pops a one-off box ("Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve.") + a hand pointer to Record Composition (once per session, `hasShownRecordReminder`; deferred behind the "New Trait" box). **Customer #4 never requests Flame.**
+- [x] **Day system** — **7 customers/day** (sales *and* refusals count); after 7, no more arrive until the player taps **🌙 End Day** (button next to the Available Metals header on the Forge screen). Day 1 End Day unlocks only at 7 (+ a "Good work! Let's end the day here and go to bed!" box and a hand pointer); day 2+ unlocks at 3 with an "…end the day so soon?" confirm (a plain "End the day and go to bed?" once all 7 are served). Confirming runs a **black fade-out → "Day N" → fade-in** transition (`runDayTransition`) that advances the day, resets the count, and summons the new day's first customer. A **Day N** badge sits left of the gold/rep pill on both screens. (`currentDay`/`customersToday`; `maybeSummonNextCustomer`/`onDayFull`/`requestEndDay`/`confirmEndDay`.)
+
 ### Core gameplay
 - [x] 50×50 grid, fog of war, seeded layout (seed `1337`); 8-direction movement with 8 metals
 - [x] **Purify-dash slider** — hold a direction to charge; release in the red/yellow/green zone = 1/2/3-block dash (1 metal regardless of distance); live green `tile_move.png` path preview; cancel via centre button / slide-off / right-click
@@ -69,7 +77,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## 🔜 Next up
 
-- [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap)
+- [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Now also needs to persist **day state** (`currentDay`, `customersToday`) alongside gold/vault/metals/compositions/upgrades/tutorial progress.
 - [ ] **More customer art / variety** — named customers, archetypes, more dialogue; only 3 portraits so far
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
 - [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel

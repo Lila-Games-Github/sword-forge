@@ -184,7 +184,7 @@
             flex-direction: column;
         }
         /* Counter (screen 1) layout */
-        .counter-topbar { display: flex; justify-content: center; margin-bottom: 10px; flex-shrink: 0; }
+        .counter-topbar { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
         #screen-1 #gold-text { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: none; }
         #screen-1 #rep-text { color: inherit; background: none; border: none; padding: 0; }
         #screen-2 #gold-text-2 { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
@@ -278,10 +278,14 @@
             z-index: 10; 
         }
 
-        .move-preview { background-image: url('assets/map/tile_move.png') !important; background-color: transparent !important; background-size: 100% 100% !important; }
         .center-tile { background-image: url('assets/map/tile_centre.png') !important; }
         .center2-tile { background-image: url('assets/map/tile_centre2.png') !important; }
         .path-tile { background-image: url('assets/map/tile_path.png') !important; }
+        /* Held-move (tile_move) + hover (tile_movepath) previews are translucent overlays, so the tile underneath (hazard, home, path, trait) shows through at ~50%. */
+        .move-preview, .move-hover-path { position: relative; }
+        .move-preview::after, .move-hover-path::after { content: ''; position: absolute; inset: 0; background-size: 100% 100%; background-repeat: no-repeat; opacity: 0.5; pointer-events: none; }
+        .move-preview::after { background-image: url('assets/map/tile_move.png'); }
+        .move-hover-path::after { background-image: url('assets/map/tile_movepath.png'); }
         .glow-trait { animation: traitPulse 1s infinite alternate !important; box-shadow: 0 0 15px 5px #f39c12 !important; background-color: #fff3e0 !important; z-index: 15; border-radius: 4px; }
         @keyframes traitPulse { from { box-shadow: 0 0 8px #f1c40f; } to { box-shadow: 0 0 18px 6px #e67e22; } }
 
@@ -390,6 +394,14 @@
         .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; }
         .modal-content { background: #fff; padding: 15px; border-radius: 8px; width: 85%; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
         .modal-content h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: #2c3e50; }
+        /* Day system: day badge, End Day button, confirm modal, and the black day-transition overlay. */
+        .day-badge { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 12px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); white-space: nowrap; }
+        #btnEndDay { background: #34495e; color: #fceeb5; border: 1px solid #4a3623; border-radius: 6px; padding: 6px 12px; font-weight: bold; font-size: 13px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        #btnEndDay:disabled { background: #95a5a6; opacity: 0.55; cursor: not-allowed; }
+        #endDayModal { z-index: 1015; }
+        #dayTransition { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 4000; display: flex; justify-content: center; align-items: center; }
+        #dayTransitionText { color: #fceeb5; font-family: 'Cinzel', serif; font-size: 34px; font-weight: bold; letter-spacing: 1px; opacity: 0; transition: opacity 0.4s ease; }
+        #dayTransition.show-text #dayTransitionText { opacity: 1; }
         
         #heatModal { z-index: 1001; }
         #shapeModal { z-index: 1005; }
@@ -690,6 +702,7 @@
 
             <div class="screen" id="screen-1">
                 <div class="counter-topbar">
+                    <span id="day-text" class="day-badge">Day 1</span>
                     <span id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text">0</span></span>
                 </div>
 
@@ -716,6 +729,7 @@
                     <div class="health-container"><div id="health-bar"></div></div>
                     <div class="status-header" style="justify-content: center; gap: 8px;">
                         <button id="btnTutorialInfo" onclick="openTutorialReview()" title="Review tutorial tips" style="display: none; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; font-size: 12px; line-height: 1; padding: 0; cursor: pointer;">ℹ️</button>
+                        <span id="day-text-2" class="day-badge">Day 1</span>
                         <span id="gold-text-2">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text-2">0</span></span>
                     </div>
                     <div class="health-text" id="blade-traits-text" style="margin-top: 6px;"><strong>Blade Traits:</strong> None</div>
@@ -758,9 +772,12 @@
                 </div>
 
                 <div class="list-panel" style="margin-top: auto; margin-bottom: 0;">
-                    <h3 class="expandable-header" id="metals-header" onclick="toggleMetals()">
-                        📦 Available Metals <span id="metals-arrow">▼</span>
-                    </h3>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <h3 class="expandable-header" id="metals-header" onclick="toggleMetals()" style="flex: 1;">
+                            📦 Available Metals <span id="metals-arrow">▼</span>
+                        </h3>
+                        <button id="btnEndDay" onclick="requestEndDay()">🌙 End Day</button>
+                    </div>
                     <div class="expandable-content" id="metals-content">
                         <div class="mining-indicator" id="mining-text">⚒️ Smelting 1 Metal/Sec...</div>
                         <button id="btnUpgradeSmelter" class="btn-craft" style="background-color: #d35400; margin-bottom: 10px; margin-top: 0;">Upgrade Rate (50g)</button>
@@ -978,6 +995,7 @@
                 <div id="record-body" style="font-size: 13px; text-align: left; color: #4a3623; line-height: 1.5; margin: 10px 0 14px;"></div>
                 <div style="display: flex; gap: 8px;">
                     <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeRecordModal()">Cancel</button>
+                    <button class="btn-craft" id="record-keepboth-btn" style="flex: 1.5; margin-top: 0; background: #2980b9; display: none;" onclick="keepBothRecord()">Keep Both</button>
                     <button class="btn-craft" id="record-confirm-btn" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmRecord()">Record</button>
                 </div>
             </div>
@@ -1036,6 +1054,18 @@
                 <button class="btn-craft" style="background-color: #c8a84b; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
             </div>
         </div>
+
+        <div id="endDayModal" class="modal-overlay">
+            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; max-width: 330px;">
+                <h3 style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;">End Day</h3>
+                <div id="endday-text" style="font-size: 14px; color: #4a3623; line-height: 1.5; margin: 10px 0 16px;"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeEndDayModal()">No</button>
+                    <button class="btn-craft" style="flex: 1; margin-top: 0; background: #27ae60;" onclick="confirmEndDay()">Yes</button>
+                </div>
+            </div>
+        </div>
+        <div id="dayTransition"><div id="dayTransitionText"></div></div>
 
         <div id="traitToast">✨ You've reached a trait</div>
         <div id="flameHintBanner">See the trait mark ❓… add some iron to go down to it.</div>
@@ -1702,7 +1732,7 @@
             return null;
         }
 
-        let tutorialStep = 0; let hasShownShopTutorial = false;
+        let tutorialStep = 0; let hasShownShopTutorial = false; let hasShownRecordReminder = false; let recordReminderPending = false;
         const tutorialFlow = [
             { text: "After a few days of cleaning and repairing the forge, it is now ready! Let's craft your first sword and see if customers stop by!", waitAction: null },
             { title: "Selecting the metals", text: "Every sword starts with the right metals. Add 4 Steel and 1 Magnesium to the bucket to begin forging.", frame: 2, waitAction: null },
@@ -1917,6 +1947,7 @@
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'switchToForge' && currentScreenIndex === 2) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 600); }
             if (shopGuideActive && !shopUnlocked) { hideHands(); setTimeout(updateShopGuideHand, 400); } // re-point the shop-unlock guide after the slide
             if (shopSellPhase) { hideHands(); setTimeout(updateShopSellHand, 400); } // re-point the shop-selling guide after the slide
+            if (endDayGuideActive) { hideHands(); setTimeout(updateEndDayGuideHand, 400); } // re-point the day-1 End Day guide after the slide
         }
 
         // Customer portraits, on rotation. man2 is the first customer.
@@ -1934,6 +1965,8 @@
         const gridSize = 50; const totalCells = gridSize * gridSize; const visionRadius = 3.5; 
         let playerX = 25; let playerY = 25; let health = 100; let gold = 0; let reputation = 0;
         let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false; let lastForgedMixture = null; let forgeLockedForRecord = false;
+        // Day system: 7 customers/day; End Day advances to the next day.
+        let currentDay = 1; let customersToday = 0; const CUSTOMERS_PER_DAY = 7; const EARLY_END_MIN = 3; let endDayGuideActive = false; let shownDay1EndBox = false; let dayTransitioning = false;
         let activeTraits = []; let requestedTrait = null; let requestedShape = null; 
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
@@ -1944,7 +1977,7 @@
         // Record Composition and Chart are locked until the first sword is forged.
         let tutorialMetalLock = true;
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
-        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1;
+        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1; const METAL_TICK_MS = 10000, METAL_FLOOR = 5;
         let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
 
         let zoomLevel = 1.0; let isDragging = false; let startX, startY, startScrollLeft, startScrollTop;
@@ -2022,7 +2055,7 @@
         let heatBands = [[40, 70]];
         let knownTraitIds = new Set(); // trait IDs heated at least once this session (for the "New Trait Discovered!" box)
         let isPurifying = false; let purifyProgress = 0; let purifyDirection = 1; let purifyAnimationFrame = null; let lastPurifyTime = 0; let pendingMove = {dx: 0, dy: 0}; let activeMoveKey = null;
-        let movePreviewCells = []; let lastPreviewSteps = 0;
+        let movePreviewCells = []; let lastPreviewSteps = 0; let hoverPreviewCells = [];
 
         const swordShapes = [ 'Shortsword', 'Longsword', 'Broadsword', 'Katana', 'Rapier', 'Cutlass', 'Claymore', 'Saber', 'Scimitar', 'Machete' ];
         
@@ -2206,6 +2239,7 @@
             else if (requestCount === 3) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Do you have a good sword? I am going to fight an ice dragon — I heard they are weak to heat.`; }
             else {
                 let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
+                if (requestCount === 4) availablePool = availablePool.filter(t => t.id !== 'flame'); // 4th customer avoids Flame so the record reminder points to a fresh trait
                 requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
                 requestedShape = Math.random() <= 0.10 ? swordShapes[Math.floor(Math.random() * swordShapes.length)] : null;
                 const shapeText = requestedShape ? `<strong>${requestedShape}</strong>` : "blade";
@@ -2276,13 +2310,79 @@
             const fn = pendingSaleAdvance; pendingSaleAdvance = null;
             document.getElementById('btnNextCustomer').style.display = 'none';
             isProcessingCustomer = false;              // release the lock, then bring the next customer
+            customersToday++;                          // this customer has been handled (a sale)
             try { fn(); } catch (e) { console.error('Sale advance error:', e); }
             try { updateUI(); } catch (e) {}
         }
 
+        // ===== Day system: 7 customers/day, then End Day fades to the next day. =====
+        function maybeSummonNextCustomer() {
+            if (customersToday >= CUSTOMERS_PER_DAY) { onDayFull(); return; }
+            setRandomRequest();
+        }
+        function onDayFull() {
+            const rest = "You've helped everyone today. Rest up — tap 🌙 End Day when you're ready.";
+            currentCustomerHTML = rest; customerDialogueRevealed = true; customerTyping = false;
+            const dt = document.getElementById('dialogue-text'); if (dt) dt.innerHTML = rest;
+            setResponseOptionsVisible(false);
+            const nb = document.getElementById('btnNextCustomer'); if (nb) nb.style.display = 'none';
+            updateUI();
+            if (currentDay === 1 && !shownDay1EndBox) { // day-1 only: guide the player to bed
+                shownDay1EndBox = true;
+                showGuideBox(null, "Good work! Let's end the day here and go to bed!", () => { endDayGuideActive = true; updateEndDayGuideHand(); });
+            }
+        }
+        function requestEndDay() {
+            if (document.getElementById('btnEndDay').disabled) return;
+            endDayGuideActive = false; hideHands();
+            const early = customersToday < CUSTOMERS_PER_DAY;
+            document.getElementById('endday-text').textContent = early ? "Are you sure you want to end the day so soon?" : "End the day and go to bed?";
+            document.getElementById('endDayModal').style.display = 'flex';
+        }
+        function closeEndDayModal() {
+            document.getElementById('endDayModal').style.display = 'none';
+            if (currentDay === 1 && customersToday >= CUSTOMERS_PER_DAY) { endDayGuideActive = true; updateEndDayGuideHand(); } // restore the day-1 nudge if they backed out
+        }
+        function confirmEndDay() { document.getElementById('endDayModal').style.display = 'none'; runDayTransition(); }
+        function runDayTransition() {
+            if (dayTransitioning) return; dayTransitioning = true;
+            endDayGuideActive = false; hideHands();
+            const ov = document.getElementById('dayTransition');
+            ov.style.pointerEvents = 'auto'; ov.style.opacity = '1'; // fade to black
+            setTimeout(() => {
+                currentDay++; customersToday = 0;
+                document.getElementById('dayTransitionText').textContent = 'Day ' + currentDay;
+                ov.classList.add('show-text');
+                isProcessingCustomer = false; suppressAutoRequest = false;
+                setRandomRequest(); // first customer of the new day
+                updateUI();
+                setTimeout(() => { ov.classList.remove('show-text'); ov.style.opacity = '0'; ov.style.pointerEvents = 'none'; dayTransitioning = false; }, 900);
+            }, 650);
+        }
+        function updateEndDayUI() {
+            const btn = document.getElementById('btnEndDay');
+            if (btn) btn.disabled = (currentDay === 1) ? (customersToday < CUSTOMERS_PER_DAY) : (customersToday < EARLY_END_MIN);
+            const d1 = document.getElementById('day-text'); if (d1) d1.textContent = 'Day ' + currentDay;
+            const d2 = document.getElementById('day-text-2'); if (d2) d2.textContent = 'Day ' + currentDay;
+        }
+        function updateEndDayGuideHand() {
+            if (!endDayGuideActive) return;
+            if (currentScreenIndex === 2) showHands([{ sel: '#btnEndDay', side: 'above' }]);
+            else showHands([{ sel: '#nav-right', side: 'leftOf' }]); // End Day lives on the forge screen
+        }
+
         function startMetalGenerator() {
             if (generationInterval) clearInterval(generationInterval);
-            generationInterval = setInterval(() => { if (tutorialMetalLock) return; for (let i = 0; i < metalsPerTick; i++) { const randomMetal = metalsList[Math.floor(Math.random() * metalsList.length)]; availableMetals[randomMetal]++; } updateUI(); }, 1000);
+            generationInterval = setInterval(() => {
+                if (tutorialMetalLock) return;
+                const pool = metalsList.filter(m => !(['titanium', 'aluminium', 'blackIron', 'redIron'].includes(m) && !unlockedMetals[m]));
+                for (let i = 0; i < metalsPerTick; i++) {
+                    const min = Math.min(...pool.map(m => availableMetals[m]));
+                    const choices = min < METAL_FLOOR ? pool.filter(m => availableMetals[m] === min) : pool;
+                    availableMetals[choices[Math.floor(Math.random() * choices.length)]]++;
+                }
+                updateUI();
+            }, METAL_TICK_MS);
         }
 
         function upgradeSmelter() { if (gold >= 50) { gold -= 50; metalsPerTick++; updateUI(); } else gameAlert("You need 50 Gold to upgrade the smelter!"); }
@@ -2328,6 +2428,7 @@
             if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
             const goldText2 = document.getElementById('gold-text-2'); // screen 2 mirror of the gold/rep pill
             if (goldText2) goldText2.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
+            updateEndDayUI(); // day counter + End Day button state
 
             const btnAutoSell = document.getElementById('btnAutoSell');
             // During the tutorial, keep "I have something for you." disabled until the step's guiding box has
@@ -2356,7 +2457,7 @@
                 }
             });
 
-            document.getElementById('mining-text').textContent = `⚒️ Smelting ${metalsPerTick} Metal/Sec...`; document.getElementById('btnUpgradeSmelter').disabled = gold < 50; document.getElementById('btnRefuse').disabled = isProcessingCustomer || requestCount <= 3;
+            document.getElementById('mining-text').textContent = `⚒️ Smelting ${metalsPerTick} Metal${metalsPerTick > 1 ? 's' : ''} / ${METAL_TICK_MS / 1000} Sec...`; document.getElementById('btnUpgradeSmelter').disabled = gold < 50; document.getElementById('btnRefuse').disabled = isProcessingCustomer || requestCount <= 3;
             
             const currentIndex = playerY * gridSize + playerX; const currentCellContent = boardData[currentIndex]; let canHeat = false;
             if (currentCellContent !== '' && currentCellContent !== '💥') {
@@ -2534,6 +2635,7 @@
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;
             if (playerX + dx < 0 || playerX + dx >= gridSize || playerY + dy < 0 || playerY + dy >= gridSize) return;
             const metal = getMetalForDir(dx, dy); if (availableMetals[metal] <= 0) return;
+            clearHoverPreview(); // a move is starting; drop the directional hint
 
             // Guided phase: slider locked -> each press adds 1 metal to the bucket and moves exactly 1 block.
             if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(dx, dy)); move(dx, dy, false); markPath(playerY * gridSize + playerX); updateUI(); return; }
@@ -2553,7 +2655,20 @@
                 const nx = playerX + pendingMove.dx * i, ny = playerY + pendingMove.dy * i;
                 if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) break; // dash stops at the map edge
                 const idx = ny * gridSize + nx; const cell = domCells[idx];
-                cell.classList.add('move-preview'); cell.textContent = ''; movePreviewCells.push(idx);
+                cell.classList.add('move-preview'); movePreviewCells.push(idx);
+            }
+        }
+
+        // Mouse-hover directional hint: highlight the cells a metal button would move the sword into.
+        function clearHoverPreview() { hoverPreviewCells.forEach(i => renderCell(i)); hoverPreviewCells = []; }
+        function showHoverPreview(dx, dy) {
+            clearHoverPreview();
+            if (isPurifying) return; // the held-move preview owns the grid while dashing
+            const steps = purifyEnabled ? 3 : 1; // 1 block before the dash is unlocked, 3 (max dash) after
+            for (let i = 1; i <= steps; i++) {
+                const nx = playerX + dx * i, ny = playerY + dy * i;
+                if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) break; // clamp at the map edge
+                const idx = ny * gridSize + nx; domCells[idx].classList.add('move-hover-path'); hoverPreviewCells.push(idx);
             }
         }
 
@@ -2631,7 +2746,7 @@
 
         // Celebratory box shown the first time a given trait is heated (see resolveInteractiveHeatMinigame).
         function showNewTraitModal(trait) { document.getElementById('newTraitIcon').textContent = trait.symbol; document.getElementById('newTraitName').textContent = trait.name; document.getElementById('newTraitModal').style.display = 'flex'; }
-        function closeNewTraitModal() { document.getElementById('newTraitModal').style.display = 'none'; }
+        function closeNewTraitModal() { document.getElementById('newTraitModal').style.display = 'none'; if (recordReminderPending) setTimeout(triggerRecordReminder, 400); }
 
         // Persistent top banner shown while the Flame trait's ❓ is revealed but not yet reached (tutorial guidance).
         function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
@@ -2866,7 +2981,17 @@
                 const heatIdx = tutorialFlow.findIndex(s => s.waitAction === 'heat');
                 if (heatIdx !== -1 && tutorialStep <= heatIdx) { tutorialStep = heatIdx + 1; setTimeout(playTutorialStep, 2500); }
                 else if (tutorialFlow[tutorialStep].waitAction === 'heatFlame') { forgeLockedForRecord = true; updateUI(); tutorialStep++; setTimeout(playTutorialStep, 2500); }
+            } else if (!hasShownRecordReminder) {
+                // First manual heat after the tutorial ends (the 4th customer's trait): remind the player to record it.
+                recordReminderPending = true;
+                if (!isNewTrait) setTimeout(triggerRecordReminder, 1600); // no "New Trait" box to wait on; else fire when it's closed
             }
+        }
+        // One-off post-tutorial nudge: box + a hand pointing at the Record Composition button.
+        function triggerRecordReminder() {
+            if (!recordReminderPending || hasShownRecordReminder) return;
+            recordReminderPending = false; hasShownRecordReminder = true;
+            showGuideBox(null, "Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve.", () => showHands([{ sel: '#btnSaveRecipe', side: 'above' }]));
         }
 
         function cancelHeat() { forgePhase = 'idle'; bellowHeld = false; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; if (heatOutcomeCb) { heatOutcomeCb = null; forgeCtx = null; } } // cancelling a detached (Auto-Craft) heat aborts the forge pipeline
@@ -2903,18 +3028,19 @@
                 const old = savedBlueprints[pr.existingIndex].recipe;
                 const identical = metalsList.every(m => old[m] === pr.recipe[m]);
                 title.textContent = 'Update Composition';
-                body.innerHTML = `You already recorded a composition for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
+                body.innerHTML = `Replace the old record or keep both?`
                     + `<div style="display:flex; gap:10px; margin-top:10px;"><div style="flex:1; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>Recorded</strong><br>${metalsSummary(old)}</div>`
                     + `<div style="flex:1; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>New</strong><br>${metalsSummary(pr.recipe)}</div></div>`
-                    + (identical ? `<div style="margin-top:10px;"><em>These are identical.</em></div>` : ``)
-                    + `<div style="margin-top:10px;">Replace the recorded composition with the new one?</div>`;
+                    + (identical ? `<div style="margin-top:10px;"><em>These are identical.</em></div>` : ``);
                 btn.textContent = 'Update';
+                document.getElementById('record-keepboth-btn').style.display = identical ? 'none' : ''; // no point duplicating an identical composition
             } else {
                 // New trait set → summary of what's being saved.
                 title.textContent = 'Record Composition';
                 body.innerHTML = `Save a new composition for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
                     + `<div style="margin-top:10px; background:#f4f6f7; border:1px solid #bdc3c7; border-radius:6px; padding:8px;"><strong>Metals used:</strong> ${metalsSummary(pr.recipe)}</div>`;
                 btn.textContent = 'Record';
+                document.getElementById('record-keepboth-btn').style.display = 'none';
             }
             document.getElementById('recordModal').style.display = 'flex';
             hideHands();
@@ -2940,6 +3066,16 @@
             updateUI();
             // Tutorial: after the toast is read (~2s), show the closing dialogue.
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'recordMixture') { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 2000); }
+        }
+        // "Keep Both": save the new composition alongside the existing one (two entries can share a trait set with different metals).
+        function keepBothRecord() {
+            const pr = pendingRecord; if (!pr) return; pendingRecord = null;
+            const traitNames = pr.traits.map(t => `${t.quality} ${t.name}`).join(' & ');
+            savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
+            showTraitToast(`📜 ${traitNames} composition recorded`);
+            document.getElementById('recordModal').style.display = 'none';
+            forgeLockedForRecord = false; // recording done — Forge is available again
+            updateUI();
         }
 
         function quickCraft(index) {
@@ -2976,7 +3112,7 @@
                 // During the tutorial the next customer is summoned manually (see the
                 // post-sell flow), so skip the automatic random request when suppressed.
                 if (suppressAutoRequest) { suppressAutoRequest = false; }
-                else { try { setRandomRequest(); } catch (e) { console.error("Error setting new request:", e); } }
+                else { try { maybeSummonNextCustomer(); } catch (e) { console.error("Error setting new request:", e); } }
 
                 isProcessingCustomer = false; // Always free the lock!
 
@@ -2985,9 +3121,10 @@
         }
 
         function refuseCustomer() {
-            if (isProcessingCustomer) return; 
-            isProcessingCustomer = true; 
-            reputation--; 
+            if (isProcessingCustomer) return;
+            isProcessingCustomer = true;
+            reputation--;
+            customersToday++;              // a refused customer still counts toward the day's total
             processCustomerDeparture(`<em>"Hmph! A terrible blacksmith indeed. I'll take my coin elsewhere!"</em>`, 1200);
         }
 
@@ -3017,7 +3154,7 @@
                 // Customer waits at the counter showing their reaction; tapping the player's response
                 // brings the next customer (tutorial advances to its next step, else a random request).
                 if (isTutorialSale) hideHands();
-                showSaleFeedback(departureText, isTutorialSale ? () => { tutorialStep++; playTutorialStep(); } : () => { setRandomRequest(); });
+                showSaleFeedback(departureText, isTutorialSale ? () => { tutorialStep++; playTutorialStep(); } : () => { maybeSummonNextCustomer(); });
             } else if (!hasRequestedTrait) {
                 gameAlert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
             } else if (!hasRequestedShape) { 
@@ -3047,6 +3184,8 @@
             const btn = document.getElementById(d.id);
             btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleMovementClick(d); });
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleMovementClick(d); }, {passive: false});
+            btn.addEventListener('mouseenter', () => showHoverPreview(d.dx, d.dy)); // desktop directional hint
+            btn.addEventListener('mouseleave', clearHoverPreview);
         });
 
         window.addEventListener('mouseup', () => { if (isPurifying && !activeMoveKey) stopInlinePurify(); });

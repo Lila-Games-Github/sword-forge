@@ -10,7 +10,7 @@ Open `index.html` in any modern browser — no server or install required. (A ze
 
 ## Core loop
 
-Select metals → move across the **50×50** fog-of-war grid (each move spends one metal; hold a direction for the Purify-dash slider to move 1–3 blocks) to land on a hidden **trait** → play the **heating** minigame (each trait has its own variant) to fuse the trait onto your active blade → **forge** the sword through a multi-step pipeline (pick a blade shape → hammer it into form → quench it in water → design the fittings → sharpen it on the grindstone) → **sell** it to a customer at the counter (or list it in the passive shop). Reinvest gold into the smelter, metal unlocks, the shop, and recorded compositions.
+Select metals → move across the **50×50** fog-of-war grid (each move spends one metal; hold a direction for the Purify-dash slider to move 1–3 blocks) to land on a hidden **trait** → play the **heating** minigame (each trait has its own variant) to fuse the trait onto your active blade → **forge** the sword through a multi-step pipeline (pick a blade shape → hammer it into form → quench it in water → design the fittings → sharpen it on the grindstone) → **sell** it to a customer at the counter (or list it in the passive shop). Each day brings **7 customers**; once you've served them, tap **End Day** to sleep and advance to the next day. Reinvest gold into the smelter, metal unlocks, the shop, and recorded compositions.
 
 ## Project layout
 

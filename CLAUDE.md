@@ -29,7 +29,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
   - `assets/sword-parts/blades|grips|guards|pommels/` — Design Desk part images (base `balanced_*` set + trait skins `flame_*`, `ice_*`, `water_*`)
   - `assets/sword-parts/overlays/` — quality overlays layered over the forged sword (`crack.png` = Weak, `sparkle.png` = Epic)
   - `assets/hammer/` — Hammering mini-game art (`ingot.png` + `balanced_<shape>_midblade.png` mid-forge stages; only Shortsword/Longsword/Broadsword have mid art so far)
-  - `assets/map/` — grid tiles (`tile_normal/hazard/sword/move`; `tile_centre` = spawn cell, `tile_centre2` = the 8 cells around spawn, `tile_path` = trail of cells the active sword has landed on), minimap
+  - `assets/map/` — grid tiles (`tile_normal/hazard/sword/move`; `tile_movepath` = hover directional hint drawn as a ~50% overlay on the cells a metal button would move into; `tile_centre` = spawn cell, `tile_centre2` = the 8 cells around spawn, `tile_path` = trail of cells the active sword has landed on), minimap
   - `assets/customer/` — counter customer portraits (`man1`, `man2`, `woman1`), rotated per customer
   - `assets/unused/` — files present but not currently referenced (review before adding more)
 - **`screenshots/`** — dev/marketing screenshots; not referenced by the game.
