@@ -237,8 +237,8 @@
         #btnNextCustomer:hover, #btnContinueDialogue:hover { background-color: #219150; }
         #btnAutoSell { background-color: #27ae60; }
         #btnAutoCraftSell { background-color: #8e44ad; }
-        #btnRefuse { background-color: #95a5a6; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
-        #btnRefuse:hover:not(:disabled) { background-color: #7f8c8d; }
+        #btnRefuse, #btnCosplay { background-color: #95a5a6; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        #btnRefuse:hover:not(:disabled), #btnCosplay:hover { background-color: #7f8c8d; }
         #btnRefuse:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .status-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
@@ -689,7 +689,7 @@
         .sharpen-meter { position: absolute; top: 10px; left: 8%; width: 84%; background: rgba(0,0,0,0.85); padding: 8px 10px 10px; border-radius: 8px; z-index: 10; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none; }
         .sharpen-track { position: relative; width: 100%; height: 18px; border-radius: 9px; overflow: hidden; border: 2px solid #222; background: #2b2b2b; }
         .sharpen-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #8a97a5; transition: width 0.05s linear, background 0.2s ease; }
-        .sharpen-goldzone { position: absolute; top: 0; left: 79.17%; width: 8.33%; height: 100%; background: #f1c40f; z-index: 1; box-shadow: 0 0 6px rgba(241,196,15,0.75); } /* the 95–105% "perfect" (+3 gold) band */
+        .sharpen-goldzone { position: absolute; top: 0; left: 79.17%; width: 8.33%; height: 100%; background: #f1c40f; opacity: 0.5; z-index: 1; box-shadow: 0 0 6px rgba(241,196,15,0.75); } /* the 95–105% "perfect" (+3 gold) band, half-opacity so the fill shows through */
         .sharpen-tick { position: absolute; top: -2px; width: 2px; height: calc(100% + 4px); background: rgba(255,255,255,0.7); z-index: 2; }
         .sharpen-readout { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: #fff; font-size: 12px; font-weight: bold; }
     </style>
@@ -765,6 +765,7 @@
                         <div class="customer-actions responses-hidden" id="customer-actions">
                             <button id="btnAutoSell" class="btn-craft">I have something for you.</button>
                             <button id="btnRefuse">I don't have what you need.</button>
+                            <button id="btnCosplay" style="display:none;">I don't make swords for cosplay.</button>
                         </div>
                         <button id="btnNextCustomer" style="display:none;">Thank you</button>
                         <button id="btnContinueDialogue" style="display:none;">Continue ▶</button>
@@ -2087,6 +2088,8 @@
             img.style.display = ''; // a new customer arrived → un-hide the portrait (cleared by onDayFull)
             if (customersToday === 0 && currentDay === 1) img.src = 'assets/customer/Bram.png';       // Day 1 opener → Bram
             else if (customersToday === 0 && currentDay === 2) img.src = 'assets/customer/BramD2.png'; // Day 2 opener → Bram returns
+            else if (customersToday === 6 && currentDay === 1) img.src = 'assets/customer/June.png';   // Day 1 final customer → June
+            else if (customersToday === 2 && currentDay === 2) img.src = 'assets/customer/Roland.png'; // Day 2 3rd customer → Roland
             else img.src = randomCustomerImg();
         }
         // Replay the customer's slide-in from the left.
@@ -2369,7 +2372,19 @@
 
         function setRandomRequest() {
             requestCount++;
+            showCosplayOption = false; // reset the Roland-only extra option each customer
             setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
+            if (currentDay === 1 && customersToday === 6) { // June — Day 1's final customer, avenging her husband
+                requestedTrait = baseTraits.find(t => t.id === 'sharp'); requestedShape = null; // wants a Sharp 🔪 sword (any shape)
+                presentCustomerDialogue(`Give me the <strong>sharpest</strong> blade you have! I must END the monsters who took my husband away from me!`);
+                return;
+            }
+            if (currentDay === 2 && customersToday === 2) { // Roland — Day 2's 3rd customer, the performer
+                requestedTrait = baseTraits.find(t => t.id === 'noble'); requestedShape = null; // wants a Noble 👑 sword (any shape)
+                showCosplayOption = true; // offer the extra "I don't make swords for cosplay" response
+                presentCustomerDialogue(`Do you have something that looks <strong>Noble</strong>? I need it for a very important performance.`);
+                return;
+            }
             if (currentDay === 2 && customersToday === 0) { // Bram returns on Day 2 — a three-beat story, then his ask
                 requestedTrait = baseTraits.find(t => t.id === 'durable'); requestedShape = null; // "won't break so easy" → the Durable 🛡️ trait (the player must infer it; his dialogue never names it)
                 presentCustomerDialogueSequence([
@@ -2399,6 +2414,7 @@
         const CUSTOMER_WORD_MS = 110, DIALOGUE_GAP_MS = 800;
         let customerTyping = false, customerDialogueRevealed = true, customerTypeTimer = null, currentCustomerHTML = '';
         let customerLineQueue = []; // beats still to come after the current one
+        let showCosplayOption = false; // Roland-only extra response ("I don't make swords for cosplay")
         const afterCustomerQueue = [];
         // Low-level: set the current beat and (once the counter is on screen) type it out. Does NOT touch customerLineQueue.
         function showCustomerLine(html) {
@@ -2416,6 +2432,8 @@
         function presentCustomerDialogueSequence(lines) { customerLineQueue = lines.slice(1); showCustomerLine(lines[0]); }
         // Continue button → reveal the next beat.
         function advanceCustomerDialogue() { if (customerLineQueue.length) showCustomerLine(customerLineQueue.shift()); }
+        // Roland's "I don't make swords for cosplay" retort: one-shot, then his Noble request still stands.
+        function onCosplayClick() { showCosplayOption = false; presentCustomerDialogue(`Ah, just give me one! A real sword is best suited for... extreme performances anyways.`); }
         // Type the current line out one word at a time (tags/emoji stay intact — no line splits a tag).
         function beginCustomerTyping() {
             if (customerDialogueRevealed || customerTyping) return;
@@ -2441,6 +2459,7 @@
         }
         function setResponseOptionsVisible(show) {
             const el = document.getElementById('customer-actions'); if (!el) return;
+            const cosplay = document.getElementById('btnCosplay'); if (cosplay) cosplay.style.display = (show && showCosplayOption) ? '' : 'none'; // Roland-only extra option
             if (show) { el.classList.remove('responses-hidden'); el.classList.remove('responses-shown'); void el.offsetWidth; el.classList.add('responses-shown'); }
             else { el.classList.add('responses-hidden'); el.classList.remove('responses-shown'); }
         }
@@ -3467,6 +3486,7 @@
         document.getElementById('btnHeat').onclick = initiateHeatSequence; document.getElementById('btnForge').onclick = forgeSword;
         document.getElementById('btnSaveRecipe').onclick = saveRecipe; document.getElementById('btnChart').onclick = openChartModal;
         document.getElementById('btnRefuse').onclick = refuseCustomer; document.getElementById('btnUpgradeSmelter').onclick = upgradeSmelter;
+        document.getElementById('btnCosplay').onclick = onCosplayClick;
         document.getElementById('btnCameraLock').onclick = toggleCameraLock;
 
         function initializeMainGame() {
