@@ -185,11 +185,24 @@
             position: relative;
         }
         /* Quest tracker (screen 1, top-left) */
-        #questToggle { position: absolute; top: 8px; left: 8px; z-index: 30; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4a3623; background: rgba(0,0,0,0.55); color: #fceeb5; font-size: 19px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
-        #questToggle:hover { background: rgba(0,0,0,0.78); }
-        #questPanel { position: absolute; top: 54px; left: 8px; z-index: 29; width: 258px; max-width: calc(100% - 16px); max-height: 62%; overflow-y: auto; background: rgba(28,19,11,0.95); border: 2px solid #4a3623; border-radius: 10px; padding: 10px 12px 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.55); display: none; }
-        #questPanel.open { display: block; }
-        #questPanel h4 { margin: 0 0 8px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 15px; text-align: center; }
+        #questToggle, #diaryToggle { position: absolute; left: 8px; z-index: 30; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4a3623; background: rgba(0,0,0,0.55); color: #fceeb5; font-size: 19px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+        #questToggle { top: 8px; }
+        #diaryToggle { top: 56px; }
+        #questToggle:hover, #diaryToggle:hover { background: rgba(0,0,0,0.78); }
+        #questPanel, #diaryPanel { position: absolute; top: 104px; left: 8px; z-index: 29; width: 258px; max-width: calc(100% - 16px); max-height: 58%; overflow-y: auto; background: rgba(28,19,11,0.95); border: 2px solid #4a3623; border-radius: 10px; padding: 10px 12px 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.55); display: none; }
+        #questPanel.open, #diaryPanel.open { display: block; }
+        #questPanel h4, #diaryPanel h4 { margin: 0 0 8px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 15px; text-align: center; }
+        .diary-portrait { display: block; width: 84px; height: 84px; object-fit: contain; margin: 0 auto 8px; border-radius: 8px; background: rgba(0,0,0,0.3); }
+        .diary-desc { color: #f0e6d2; font-size: 13px; line-height: 1.45; font-style: italic; text-align: center; margin: 0 0 10px; }
+        .diary-given-h { color: #c8a84b; font-size: 12px; font-weight: bold; margin: 8px 0 4px; border-top: 1px solid rgba(255,255,255,0.14); padding-top: 8px; }
+        .diary-given { color: #d8ccb4; font-size: 12px; line-height: 1.5; }
+        .diary-given .none { color: #877b68; font-style: italic; }
+        .diary-locked { text-align: center; padding: 14px 0 6px; }
+        .diary-lock-ico { font-size: 48px; margin-bottom: 10px; opacity: 0.85; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .diary-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+        .diary-nav button { width: 40px; height: 30px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .diary-nav button:hover { background: #cbb894; }
+        .diary-nav span { color: #bfa980; font-size: 12px; }
         .quest-row { padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
         .quest-row:last-child { border-bottom: none; }
         .quest-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -753,6 +766,8 @@
             <div class="screen" id="screen-1">
                 <button id="questToggle" onclick="toggleQuests()" title="Quests">📋</button>
                 <div id="questPanel"><div id="quest-list"></div></div>
+                <button id="diaryToggle" onclick="toggleDiary()" title="Diary">📖</button>
+                <div id="diaryPanel"><div id="diary-content"></div></div>
                 <div class="counter-topbar">
                     <span id="day-text" class="day-badge">Day 1</span>
                     <span id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text">0</span></span>
@@ -2373,6 +2388,9 @@
         function setRandomRequest() {
             requestCount++;
             showCosplayOption = false; // reset the Roland-only extra option each customer
+            currentCustomerId = ((currentDay === 1 || currentDay === 2) && customersToday === 0) ? 'bram'
+                : (currentDay === 1 && customersToday === 6) ? 'june'
+                : (currentDay === 2 && customersToday === 2) ? 'roland' : null; // tag named story customers for the Diary
             setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
             if (currentDay === 1 && customersToday === 6) { // June — Day 1's final customer, avenging her husband
                 requestedTrait = baseTraits.find(t => t.id === 'sharp'); requestedShape = null; // wants a Sharp 🔪 sword (any shape)
@@ -2571,13 +2589,44 @@
             if (q.progress >= q.goal) { q.done = true; gold += QUEST_REWARD; showTraitToast(`✅ Quest complete: ${q.label}  +${QUEST_REWARD}g`); try { updateUI(); } catch (e) {} }
             renderQuests();
         }
-        function toggleQuests() { const p = document.getElementById('questPanel'); if (!p) return; p.classList.toggle('open'); if (p.classList.contains('open')) renderQuests(); }
+        function toggleQuests() { const p = document.getElementById('questPanel'); if (!p) return; document.getElementById('diaryPanel').classList.remove('open'); p.classList.toggle('open'); if (p.classList.contains('open')) renderQuests(); }
         function renderQuests() {
             const list = document.getElementById('quest-list'); if (!list) return;
             list.innerHTML = '<h4>📋 Quests</h4>' + quests.map(q => {
                 const prog = q.done ? 'Reward claimed' : (q.goal > 1 ? `${q.progress} / ${q.goal}` : 'Not started');
                 return `<div class="quest-row${q.done ? ' done' : ''}"><div class="quest-top"><span class="quest-label">${q.done ? '✅ ' : ''}${q.label}</span><span class="quest-reward">🪙 +${QUEST_REWARD}g</span></div><div class="quest-progress">${prog}</div></div>`;
             }).join('');
+        }
+
+        // --- Diary: a paged book of the counter's named story customers (Bram, June, Roland). ---
+        const diaryCustomers = [
+            { id: 'bram', name: 'Bram', portrait: 'assets/customer/Bram.png', desc: 'A man once came, desperate, and begging, for any sword.' },
+            { id: 'june', name: 'June', portrait: 'assets/customer/June.png', desc: 'Someone murdered her husband. She is on a dangerous path.' },
+            { id: 'roland', name: 'Roland', portrait: 'assets/customer/Roland.png', desc: 'He looks like a moron. Someone should teach him not to play with swords.' }
+        ];
+        let diaryGiven = { bram: [], june: [], roland: [] }; // labels of swords sold to each
+        let diaryPage = 0;
+        let currentCustomerId = null; // identity of the active counter customer (named story customers only)
+        function toggleDiary() {
+            const p = document.getElementById('diaryPanel'); if (!p) return;
+            document.getElementById('questPanel').classList.remove('open'); // mutually exclusive with Quests
+            p.classList.toggle('open'); if (p.classList.contains('open')) renderDiary();
+        }
+        function diaryFlip(dir) { diaryPage = (diaryPage + dir + diaryCustomers.length) % diaryCustomers.length; renderDiary(); }
+        function renderDiary() {
+            const el = document.getElementById('diary-content'); if (!el) return;
+            const c = diaryCustomers[diaryPage], given = diaryGiven[c.id] || [];
+            const nav = `<div class="diary-nav"><button onclick="diaryFlip(-1)">◀</button><span>${diaryPage + 1} / ${diaryCustomers.length}</span><button onclick="diaryFlip(1)">▶</button></div>`;
+            if (!given.length) { // the page stays locked (identity hidden) until this customer has been sold to
+                el.innerHTML = `<h4>📖 Diary</h4><div class="diary-locked"><div class="diary-lock-ico">🔒</div><p class="diary-desc">A page not yet written.<br>Sell to this customer to unlock their story.</p></div>` + nav;
+                return;
+            }
+            const givenHtml = given.map(s => `• ${s}`).join('<br>');
+            el.innerHTML = `<h4>📖 ${c.name}</h4>`
+                + `<img class="diary-portrait" src="${c.portrait}" alt="${c.name}">`
+                + `<p class="diary-desc">${c.desc}</p>`
+                + `<div class="diary-given-h">Swords crafted for them</div><div class="diary-given">${givenHtml}</div>`
+                + nav;
         }
 
         function startMetalGenerator() {
@@ -3404,6 +3453,7 @@
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
                 const craftBonus = sword.craftBonus || 0, hazardLoss = sword.hazardLoss || 0; // craft bonus adds; hazard impurities subtract — both settled at sale (flat, not rep-scaled)
                 const total = Math.max(1, goldEarned + craftBonus - hazardLoss); // final price the customer pays (min 1g)
+                if (currentCustomerId && diaryGiven[currentCustomerId]) { const tr = sword.traits.length ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'plain'; diaryGiven[currentCustomerId].push(`${tr} ${sword.shape}`); } // log the sale to the customer's Diary page
                 if (requestCount === 1) topUpMetalsAfterFirstSale(); // starter stock once the tutorial's first sale lands
                 gold += total; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal();
 
