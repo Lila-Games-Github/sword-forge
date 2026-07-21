@@ -1,0 +1,473 @@
+<title>Bram — One More Sunrise · A Sword Forge Story</title>
+<style>
+  /* A committed single-world deck: a story projected in a dark forge. */
+  :root{
+    --bg:#14100c; --bg-2:#1b1611; --surface:#221c16; --surface-2:#2a231b;
+    --line:#3a3126; --line-2:#4a3f30;
+    --ink:#ece3d4; --ink-2:#b8ac98; --ink-3:#877b68;
+    --ember:#e0632a; --ember-bright:#f6a93b; --steel:#8fb0c6;
+    --epic:#f2b441; --fine:#79a2bc; --weak:#c8493c;
+    --epic-soft:rgba(242,180,65,.12); --weak-soft:rgba(200,73,60,.12);
+    --serif-display:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+    --serif-body:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --chrome-top:54px; --chrome-bot:66px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--serif-body); line-height:1.6; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--serif-display); font-weight:700; line-height:1.08; text-wrap:balance; margin:0}
+  p{margin:0}
+  :focus-visible{outline:2px solid var(--ember-bright); outline-offset:3px; border-radius:4px}
+
+  #embers{position:fixed; inset:0; z-index:0; pointer-events:none}
+  .vignette{position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(120% 80% at 50% 120%, rgba(224,99,42,.16), transparent 55%),
+               radial-gradient(100% 100% at 50% 50%, transparent 60%, rgba(0,0,0,.5));}
+
+  /* ---------- CHROME ---------- */
+  .chrome-top{position:fixed; top:0; left:0; right:0; height:var(--chrome-top); z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(1rem,3vw,1.8rem); border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(20,16,12,.92),rgba(20,16,12,.55)); backdrop-filter:blur(4px)}
+  .brand{font-family:var(--mono); font-size:.7rem; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-2); display:flex; align-items:center; gap:.6rem}
+  .brand b{color:var(--ember)}
+  .counter{font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
+  .chrome-bot{position:fixed; bottom:0; left:0; right:0; height:var(--chrome-bot); z-index:30;
+    display:flex; align-items:center; justify-content:center; gap:1.1rem;
+    padding:0 clamp(1rem,3vw,1.8rem); border-top:1px solid var(--line);
+    background:linear-gradient(0deg,rgba(20,16,12,.92),rgba(20,16,12,.5)); backdrop-filter:blur(4px)}
+  .navbtn{font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink); background:var(--surface); border:1px solid var(--line-2); border-radius:100px;
+    padding:.55rem 1.1rem; cursor:pointer; transition:border-color .2s, color .2s, background .2s}
+  .navbtn:hover:not(:disabled){border-color:var(--ember); color:var(--ember-bright)}
+  .navbtn:disabled{opacity:.32; cursor:default}
+  .dots{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; justify-content:center; max-width:44vw}
+  .dot{width:9px; height:9px; padding:0; border-radius:50%; border:1px solid var(--line-2); background:transparent; cursor:pointer; transition:all .2s}
+  .dot[aria-current="true"]{background:var(--ember); border-color:var(--ember); transform:scale(1.25)}
+  .fsbtn{position:fixed; right:clamp(1rem,3vw,1.8rem); bottom:calc(var(--chrome-bot) + 14px); z-index:31;
+    font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+    background:transparent; border:1px solid var(--line); border-radius:6px; padding:.35rem .6rem; cursor:pointer}
+  .fsbtn:hover{color:var(--ember)}
+  .vh{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+  /* ---------- DECK / SLIDES ---------- */
+  .deck{position:fixed; inset:0; z-index:10; padding-top:var(--chrome-top); padding-bottom:var(--chrome-bot)}
+  .slide{position:absolute; inset:0; overflow-y:auto; overflow-x:hidden;
+    opacity:0; visibility:hidden; transform:translateY(14px);
+    transition:opacity .55s ease, transform .55s ease}
+  .slide.is-active{opacity:1; visibility:visible; transform:none}
+  .slide-inner{min-height:100%; display:flex; flex-direction:column; justify-content:center;
+    gap:1.1rem; max-width:1020px; margin-inline:auto; padding:clamp(1.3rem,4vw,2.8rem)}
+  .eyebrow{font-family:var(--mono); font-size:.68rem; letter-spacing:.28em; text-transform:uppercase; color:var(--ember);
+    display:flex; align-items:center; gap:.7rem; margin:0}
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--ember); opacity:.7}
+
+  /* ---------- TITLE SLIDE ---------- */
+  .title-slide .slide-inner{gap:1.4rem}
+  .kicker{font-family:var(--mono); font-size:.72rem; letter-spacing:.34em; text-transform:uppercase; color:var(--ink-3)}
+  .title-slide h1{font-size:clamp(3rem,10vw,6.4rem); letter-spacing:-.01em; line-height:.94;
+    background:linear-gradient(176deg,var(--ink) 34%,var(--ember-bright)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .title-slide .sub{font-style:italic; font-size:clamp(1.1rem,2.6vw,1.5rem); color:var(--ink-2); max-width:40ch}
+  .inscription{display:inline-flex; align-items:center; gap:.7rem; margin-top:.4rem;
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--steel);
+    border:1px solid var(--line-2); border-radius:3px; padding:.55rem .9rem; background:rgba(0,0,0,.25); width:max-content; max-width:100%}
+  .inscription b{color:var(--ink)}
+
+  /* ---------- HEADINGS ---------- */
+  .slide h2.big{font-size:clamp(1.9rem,4.6vw,3rem)}
+  .lead{font-size:clamp(1.05rem,2.3vw,1.35rem); color:var(--ink-2); max-width:60ch}
+
+  /* ---------- RULE SLIDE ---------- */
+  .rule-cards{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.4rem}
+  .rule-card{border:1px solid var(--line); border-radius:8px; padding:1.2rem 1.3rem; background:var(--surface); position:relative; overflow:hidden}
+  .rule-card::before{content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--rc)}
+  .rule-card.live{--rc:var(--epic)} .rule-card.die{--rc:var(--weak)}
+  .rule-card h3{font-size:1.2rem; margin-bottom:.35rem; display:flex; gap:.5rem; align-items:baseline}
+  .rule-card h3 span{font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--rc)}
+  .rule-card p{color:var(--ink-2); font-size:.98rem}
+  .motifs{display:flex; gap:1.4rem; flex-wrap:wrap; margin-top:.7rem; color:var(--ink-3); font-size:.95rem}
+  .motifs b{color:var(--ember-bright); font-weight:700}
+
+  /* ---------- LADDER SLIDE ---------- */
+  .ladder{display:grid; gap:.6rem; margin-top:.5rem}
+  .rung-row{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:1rem;
+    border:1px solid var(--line); border-radius:8px; padding:.85rem 1.1rem; background:var(--surface);
+    position:relative}
+  .rung-row .rn{font-family:var(--serif-display); font-weight:700; font-size:1.5rem; color:var(--ember); width:1.4em; text-align:center}
+  .rung-row .st{font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+  .rung-row .nm{font-size:1.15rem; font-family:var(--serif-display); font-weight:700}
+  .rung-row .tr{font-family:var(--mono); font-size:.82rem; color:var(--ink); border:1px solid var(--line-2); border-radius:100px; padding:.28rem .75rem; white-space:nowrap; background:var(--epic-soft)}
+  .rung-row:nth-child(1){--g:1} .rung-row{margin-left:calc((var(--step,0)) * 2.2%)}
+
+  /* ---------- RUNG DETAIL SLIDE ---------- */
+  .rung-head{display:grid; grid-template-columns:auto 1fr auto; gap:1.1rem; align-items:center;
+    border-bottom:1px solid var(--line); padding-bottom:1rem}
+  .rung-head .numeral{font-family:var(--serif-display); font-weight:700; font-size:clamp(2.6rem,7vw,4rem); color:var(--ember); line-height:.8}
+  .rung-head .station{font-family:var(--mono); font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin-bottom:.2rem}
+  .rung-head h2{font-size:clamp(1.5rem,3.6vw,2.2rem)}
+  .trait-pill{font-family:var(--mono); font-size:.9rem; letter-spacing:.03em; color:var(--ink);
+    border:1px solid var(--ember); border-radius:100px; padding:.4rem .95rem; background:var(--epic-soft); white-space:nowrap; justify-self:end}
+  .req-line{font-family:var(--serif-body); font-style:italic; font-size:clamp(1.05rem,2.2vw,1.3rem); color:var(--ink);
+    border-left:3px solid var(--ember); padding:.4rem 0 .4rem 1.1rem; margin:.2rem 0}
+  .req-line .tag{display:block; font-family:var(--mono); font-style:normal; font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ember); margin-bottom:.45rem}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+  .col{border:1px solid var(--line); border-radius:8px; padding:1.1rem 1.2rem; background:var(--surface); position:relative; overflow:hidden}
+  .col::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--cc)}
+  .col.climb{--cc:var(--epic)} .col.fall{--cc:var(--weak)}
+  .col h3{font-size:.82rem; font-family:var(--mono); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--cc); margin-bottom:.55rem}
+  .col p{color:var(--ink-2); font-size:.96rem; margin-bottom:.6rem}
+  .col p.messenger{font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:.4rem}
+  blockquote{margin:0; font-style:italic; font-size:.98rem; color:var(--ink)}
+  blockquote.epic{color:var(--ink)} blockquote.weak{color:var(--ink-2)}
+
+  /* ---------- FINALE ---------- */
+  .finale-pair{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+  .finale{border:1px solid var(--line-2); border-radius:10px; padding:1.3rem 1.4rem; background:linear-gradient(160deg,var(--surface-2),var(--bg)); position:relative}
+  .finale .kind{font-family:var(--mono); font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; margin-bottom:.4rem; color:var(--fk)}
+  .finale.legend{--fk:var(--epic)} .finale.scarred{--fk:var(--fine)}
+  .finale h3{font-size:1.35rem; margin-bottom:.2rem}
+  .finale .cond{font-family:var(--mono); font-size:.68rem; color:var(--ink-3); margin-bottom:.6rem}
+  .finale p{color:var(--ink-2); font-size:.95rem}
+  .fall-solo{border:1px dashed var(--line-2); border-left:4px solid var(--weak); border-radius:10px; padding:1.4rem 1.5rem; background:var(--surface)}
+  .fall-solo .messenger{font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--weak); margin-bottom:.6rem}
+  .fall-solo blockquote{font-size:1.05rem; color:var(--ink); line-height:1.7}
+
+  /* ---------- CLOSING ---------- */
+  .recap{display:flex; gap:1rem; flex-wrap:wrap; margin-top:.4rem}
+  .recap .r{flex:1 1 200px; border:1px solid var(--line); border-radius:8px; padding:1rem 1.15rem; background:var(--surface)}
+  .recap .r .h{font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; margin-bottom:.35rem; color:var(--rk)}
+  .recap .r.a{--rk:var(--epic)} .recap .r.b{--rk:var(--fine)} .recap .r.c{--rk:var(--weak)}
+  .recap .r p{color:var(--ink-2); font-size:.92rem}
+  .nextstep{font-family:var(--mono); font-size:.8rem; letter-spacing:.02em; color:var(--ink-3); border-top:1px solid var(--line); padding-top:1.1rem; margin-top:.6rem; max-width:70ch; line-height:1.7}
+
+  /* ---------- MOTION / RESPONSIVE ---------- */
+  @keyframes flick{0%,100%{opacity:.8}50%{opacity:1}}
+  .flame{animation:flick 3.6s ease-in-out infinite}
+  @media (prefers-reduced-motion: reduce){
+    .slide{transition:opacity .001s}
+    .slide:not(.is-active){transform:none}
+    #embers{display:none} .flame{animation:none}
+  }
+  @media (max-width:720px){
+    .rule-cards,.two-col,.finale-pair{grid-template-columns:1fr}
+    .rung-head{grid-template-columns:auto 1fr; gap:.8rem}
+    .trait-pill{grid-column:1 / -1; justify-self:start}
+    .rung-row{margin-left:0 !important}
+    .dots{max-width:40vw}
+    .rung-row{grid-template-columns:auto 1fr; gap:.7rem}
+    .rung-row .tr{grid-column:1 / -1; justify-self:start}
+  }
+</style>
+
+<canvas id="embers" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="chrome-top">
+  <p class="brand"><b>The Last Ember</b> · Bram — One More Sunrise</p>
+  <p class="counter" id="counter">01 / 10</p>
+</header>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide title-slide is-active" aria-roledescription="slide" aria-label="Title">
+    <div class="slide-inner">
+      <p class="kicker">A Sword Forge Story · One Regular · Five Blades</p>
+      <h1>One More<br>Sunrise</h1>
+      <p class="sub">The tale of Bram — a beggar you either forge into a legend, or bury one bad blade at a time.</p>
+      <div class="inscription flame">⚒ &nbsp;Carved above the forge door: <b>Mind whose hand it fills.</b></div>
+    </div>
+  </section>
+
+  <!-- 2 · THE RULE -->
+  <section class="slide" aria-roledescription="slide" aria-label="The rule">
+    <div class="slide-inner">
+      <p class="eyebrow">How his life is written</p>
+      <h2 class="big">Every blade is a verdict.</h2>
+      <p class="lead">Bram returns to your counter five times, climbing one rung of a life with each visit — but only if your steel keeps him alive to climb it.</p>
+      <div class="rule-cards">
+        <div class="rule-card live">
+          <h3>He lives, and rises <span>Fine · Epic</span></h3>
+          <p>A good sword carries him to the next station — and he comes back grander, asking for a blade to match. <em>Epic</em> lifts him gloriously; <em>Fine</em> lets him survive, scarred.</p>
+        </div>
+        <div class="rule-card die">
+          <h3>He dies, and the book shuts <span>Weak</span></h3>
+          <p>A failed blade kills him where he stands. Someone who loved him walks in once — not to buy, but to tell you how it ended.</p>
+        </div>
+      </div>
+      <div class="motifs">
+        <span>Two threads run the whole climb:</span>
+        <span>☀ <b>Sunrises</b> — all he thinks he's buying is one more.</span>
+        <span>⚖ <b>The debt</b> — he can't pay at first, and always, always pays what he owes.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · THE LADDER -->
+  <section class="slide" aria-roledescription="slide" aria-label="The ladder of his life">
+    <div class="slide-inner">
+      <p class="eyebrow">The ladder of his life</p>
+      <h2 class="big">Beggar to legend, in five swords.</h2>
+      <div class="ladder">
+        <div class="rung-row" style="--step:0"><span class="rn">I</span><span><span class="st">The Desperate Man</span><br><span class="nm">"Anything that holds."</span></span><span class="tr">🛡️ Durable</span></div>
+        <div class="rung-row" style="--step:1"><span class="rn">II</span><span><span class="st">The Raw Recruit</span><br><span class="nm">A true soldier's blade</span></span><span class="tr">⚖️ Balanced</span></div>
+        <div class="rung-row" style="--step:2"><span class="rn">III</span><span><span class="st">The Named Fighter</span><br><span class="nm">An edge for his name</span></span><span class="tr">⚔️ Sharp</span></div>
+        <div class="rung-row" style="--step:3"><span class="rn">IV</span><span><span class="st">The Captain</span><br><span class="nm">A blade to lead a charge</span></span><span class="tr">🌩️ Storm</span></div>
+        <div class="rung-row" style="--step:4"><span class="rn">V</span><span><span class="st">The Legend</span><br><span class="nm">The sword the songs need</span></span><span class="tr">☄️ Celestial</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · RUNG I -->
+  <section class="slide" aria-roledescription="slide" aria-label="Rung one, the desperate man">
+    <div class="slide-inner">
+      <div class="rung-head">
+        <span class="numeral">I</span>
+        <div><p class="station">Rung I · Day 1</p><h2>The Desperate Man</h2></div>
+        <span class="trait-pill">🛡️ Durable</span>
+      </div>
+      <p class="req-line"><span class="tag">He asks —</span> "I'm not a fighting man, I'll not pretend it. I just need — anything. Something that won't shatter first swing. I've a woman and a boy behind me and I only need to hold the dark off till sunrise. One more sunrise. I can't pay today. But I pay what I owe."</p>
+      <div class="two-col">
+        <div class="col climb">
+          <h3>If the steel holds → he lives</h3>
+          <p>He holds the ravine mouth long enough for Nessa and the boy Tomkin to get clear. A retreating muster sees his face — and takes him.</p>
+          <blockquote class="epic">"It held. Gods, it HELD — I hit a thing twice my size and the blade laughed at it. I felt like somebody. I've not felt like somebody in a long while."</blockquote>
+        </div>
+        <div class="col fall">
+          <h3>If the steel fails → he dies</h3>
+          <p class="messenger">Closure · Nessa, the widow</p>
+          <blockquote class="weak">"He held the ravine with the broken half till we were over the ridge. This whetstone was his father's — all he had that wasn't borrowed. He said you were an honest hand. It cost him everything to be right about you."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · RUNG II -->
+  <section class="slide" aria-roledescription="slide" aria-label="Rung two, the raw recruit">
+    <div class="slide-inner">
+      <div class="rung-head">
+        <span class="numeral">II</span>
+        <div><p class="station">Rung II · Day 2</p><h2>The Raw Recruit</h2></div>
+        <span class="trait-pill">⚖️ Balanced</span>
+      </div>
+      <p class="req-line"><span class="tag">He returns — washed, fed, taller somehow —</span> "Look at me, eh? They took me. Actual muster, actual pay. The woman and the boy have a roof now, a real one. But that scrap's no soldier's blade, and I'm a soldier now. Give me something honest and even. Balanced. Something that does what I tell it — since half the time I've no idea what I'm doing."</p>
+      <div class="two-col">
+        <div class="col climb">
+          <h3>If the steel holds → he rises</h3>
+          <p>He survives his first true muster and doesn't run. Lads stand alive beside him because of it, and a sergeant marks him.</p>
+          <blockquote class="epic">"I didn't run. That's the whole miracle, I didn't run — and there were lads alive next to me on account of it. On account of you. I'm keeping a tally, smith. What I owe. It's getting long."</blockquote>
+        </div>
+        <div class="col fall">
+          <h3>If the steel fails → he dies</h3>
+          <p class="messenger">Closure · Odgar, his file-mate</p>
+          <blockquote class="weak">"Recruit Bram. My file. Blade folded at the muster and he — they say it was quick. He talked about you. Said the smith at the Ember was the only clean thing left in the Pass. The widow couldn't stand in here again. So they sent me."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · RUNG III -->
+  <section class="slide" aria-roledescription="slide" aria-label="Rung three, the named fighter">
+    <div class="slide-inner">
+      <div class="rung-head">
+        <span class="numeral">III</span>
+        <div><p class="station">Rung III · Day 3</p><h2>The Named Fighter</h2></div>
+        <span class="trait-pill">⚔️ Sharp</span>
+      </div>
+      <p class="req-line"><span class="tag">There's a swagger in him now — but he still sets his coin down first —</span> "They've a name for me down the line. I'll not repeat it, it'll go to my head. But a man with a name needs an edge worth the name — proper Sharp, the kind that parts a thing before it knows it's parted. You gave me the arm, back when I was a beggar bleeding on your floor. I remember it every single day."</p>
+      <div class="two-col">
+        <div class="col climb">
+          <h3>If the steel holds → he climbs</h3>
+          <p>He becomes the man they put where the line's about to break — a fixture of the front, and officers begin to watch him.</p>
+          <blockquote class="epic">"It's an extension of the thinking, this one. I don't swing it, I just decide, and it's already done. That's not a sword, smith — that's a conversation. Best one I have all week."</blockquote>
+        </div>
+        <div class="col fall">
+          <h3>If the steel fails → he dies</h3>
+          <p class="messenger">Closure · Tomkin, the widow's boy</p>
+          <blockquote class="weak">"They call'd him the Sharp. Like there was only one. His sword broke — he's the best there ever was and his SWORD broke. Mam said you'd want to know. She said you were family, near enough, since you're the one kept making him. He'd want you paid."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · RUNG IV -->
+  <section class="slide" aria-roledescription="slide" aria-label="Rung four, the captain">
+    <div class="slide-inner">
+      <div class="rung-head">
+        <span class="numeral">IV</span>
+        <div><p class="station">Rung IV · Day 4</p><h2>The Captain</h2></div>
+        <span class="trait-pill">🌩️ Storm</span>
+      </div>
+      <p class="req-line"><span class="tag">He fills the doorway now, a captain's sash, grey at the temples —</span> "They gave me a company. Me — with lads looking at me the way I once looked at men who could actually fight. I don't need an edge for one man anymore. I need a blade a hundred can SEE, up at the front in the worst of it, so they follow it into the storm instead of breaking. Give me a Storm of my own."</p>
+      <div class="two-col">
+        <div class="col climb">
+          <h3>If the steel holds → he leads</h3>
+          <p>His company holds where others rout. His name becomes the thing that steadies the whole Pass — and, at his best, moves the line forward.</p>
+          <blockquote class="epic">"We took GROUND. Off the Gray — nobody takes ground off the Gray. Stood at dusk on dirt that was theirs at dawn, every man of mine alive on it. I keep thinking of the ravine. You've sold me a thousand sunrises now."</blockquote>
+        </div>
+        <div class="col fall">
+          <h3>If the steel fails → he dies</h3>
+          <p class="messenger">Closure · Sergeant Halla, his second</p>
+          <blockquote class="weak">"Captain went down where a captain's meant to be. Blade failed him — and he still got the company clear on foot, roaring at us to run while he didn't. The boy Tomkin's outside. He won't come in. Says the door's too full of him."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · RUNG V + VICTORY -->
+  <section class="slide" aria-roledescription="slide" aria-label="Rung five, the legend, and its victories">
+    <div class="slide-inner">
+      <div class="rung-head">
+        <span class="numeral">V</span>
+        <div><p class="station">Rung V · Day 5 · The Reckoning</p><h2>The Legend</h2></div>
+        <span class="trait-pill">☄️ Celestial</span>
+      </div>
+      <p class="req-line"><span class="tag">He comes at dawn, alone, quiet as a held breath —</span> "Last one, smith. They want me to break the Gray's own line at Coldwater, and a thing like that needs a blade the songs can carry — Celestial, if you've ever had it in you. You armed a beggar who couldn't hold a hoe. Look what you built. So build the end of it too. It's not enough coin. It was never going to be enough. But I pay what I owe — you taught me that."</p>
+      <div class="finale-pair">
+        <div class="finale legend">
+          <p class="kind">If it's Epic — the legend</p>
+          <h3>The Dawnward</h3>
+          <p class="cond">Mostly Epic all the way up</p>
+          <p>He comes back down the road at sunrise and the Gray does not come with him. He hangs your first cheap Durable blade — the beggar's blade — on your forge wall himself. He grows old. Tomkin names his own boy Bram. When you finally close the forge, the whole Pass turns out — everyone in it alive on a sunrise you once sold a dead man on credit.</p>
+        </div>
+        <div class="finale scarred">
+          <p class="kind">If it's Fine — the cost</p>
+          <h3>The Scarred Victory</h3>
+          <p class="cond">Survived, but on lesser steel</p>
+          <p>He breaks the line — and it breaks him doing it. The Gray recedes, doesn't die. He comes home grey and quiet, sits by Nessa's fire and flinches at dusk. He still visits, still pays what he owes. "We did it," he says, and means it, and never quite smiles again. It was enough. It had to be.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · RUNG V FALL -->
+  <section class="slide" aria-roledescription="slide" aria-label="If the last blade fails">
+    <div class="slide-inner">
+      <p class="eyebrow">Rung V · If the last blade fails</p>
+      <h2 class="big">He dies at the threshold of winning.</h2>
+      <p class="lead">No one person can carry this closure, so the Pass sends a girl who's been paid to learn his song.</p>
+      <div class="fall-solo">
+        <p class="messenger">Closure · a fiddler in the square</p>
+        <blockquote>"I'm to sing it tonight, and they told me the last verse happens here, so I've come to get it right. They say he broke the Gray's line and it cost him the last blow — sword gave at the very end, and he finished it with his hands. Won the war and didn't live an hour past it."<br><br>She lifts the fiddle, then lowers it. "The song calls you 'the honest hand that made him.' Is that a good verse, or an unkind one? I couldn't tell, writing it."</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · CLOSING -->
+  <section class="slide" aria-roledescription="slide" aria-label="The rule, closing">
+    <div class="slide-inner">
+      <p class="eyebrow">The whole life, in one law</p>
+      <h2 class="big">You are the hand that fills.</h2>
+      <div class="recap">
+        <div class="r a"><p class="h">Epic</p><p>He climbs, gloriously. Push for these and he ends a shining legend — <em>the Dawnward.</em></p></div>
+        <div class="r b"><p class="h">Fine</p><p>He climbs, scarred. All-Fine still wins the war, but he ends a tired, quiet man.</p></div>
+        <div class="r c"><p class="h">Weak</p><p>He dies. One closure scene plays, and his book shuts for good.</p></div>
+      </div>
+      <p class="nextstep">Maps onto Sword Forge with zero new mechanics — a scripted <b>regular</b> whose next visit is gated on <b>sword quality ≥ Fine</b>, with the five death-closures as one-off dialogue vignettes. · Next: who's the second regular? Then the roster becomes a gallery of these ladders. · <b>Mind whose hand it fills.</b></p>
+    </div>
+  </section>
+
+</div>
+
+<button class="fsbtn" id="fsbtn" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
+<footer class="chrome-bot">
+  <button class="navbtn" id="prev" aria-label="Previous slide">← Prev</button>
+  <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+  <button class="navbtn" id="next" aria-label="Next slide">Next →</button>
+</footer>
+<div class="vh" id="live" aria-live="polite"></div>
+
+<script>
+  (function(){
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var counter = document.getElementById('counter');
+    var dotsWrap = document.getElementById('dots');
+    var live = document.getElementById('live');
+    var prevBtn = document.getElementById('prev');
+    var nextBtn = document.getElementById('next');
+    var fsBtn = document.getElementById('fsbtn');
+    var i = 0;
+
+    slides.forEach(function(s, idx){
+      var d = document.createElement('button');
+      d.className = 'dot'; d.setAttribute('role','tab');
+      d.setAttribute('aria-label', 'Go to slide ' + (idx+1));
+      d.addEventListener('click', function(){ go(idx); });
+      dotsWrap.appendChild(d);
+    });
+    var dots = Array.prototype.slice.call(dotsWrap.children);
+
+    function pad(n){ return (n<10?'0':'') + n; }
+    function update(){
+      counter.textContent = pad(i+1) + ' / ' + pad(slides.length);
+      dots.forEach(function(d, idx){ d.setAttribute('aria-current', idx===i ? 'true':'false'); });
+      prevBtn.disabled = (i===0); nextBtn.disabled = (i===slides.length-1);
+      live.textContent = 'Slide ' + (i+1) + ' of ' + slides.length;
+    }
+    function go(n){
+      i = Math.max(0, Math.min(slides.length-1, n));
+      slides.forEach(function(s, idx){ s.classList.toggle('is-active', idx===i); });
+      var active = slides[i]; if(active) active.scrollTop = 0;
+      update();
+    }
+    function next(){ go(i+1); }
+    function prev(){ go(i-1); }
+
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+    document.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight' || e.key==='PageDown'){ next(); e.preventDefault(); }
+      else if(e.key==='ArrowLeft' || e.key==='PageUp'){ prev(); e.preventDefault(); }
+      else if(e.key===' ' && !(e.target && e.target.closest && e.target.closest('button'))){ next(); e.preventDefault(); }
+      else if(e.key==='Home'){ go(0); e.preventDefault(); }
+      else if(e.key==='End'){ go(slides.length-1); e.preventDefault(); }
+    });
+    fsBtn.addEventListener('click', function(){
+      try{
+        if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if(document.exitFullscreen){ document.exitFullscreen(); }
+      }catch(err){}
+    });
+
+    // touch swipe
+    var x0 = null;
+    document.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if(x0===null) return; var dx = e.changedTouches[0].clientX - x0;
+      if(Math.abs(dx) > 55){ dx < 0 ? next() : prev(); } x0 = null;
+    }, {passive:true});
+
+    update();
+
+    // ambient embers
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var c = document.getElementById('embers');
+    if(c && !still){
+      var ctx = c.getContext('2d'), sparks = [], raf;
+      function rnd(a,b){ return a + Math.random()*(b-a); }
+      function size(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+      function mk(){ return { x:rnd(0,c.width), y:c.height+rnd(0,30), r:rnd(.5,2), v:rnd(.2,.75), d:rnd(-.2,.2), life:rnd(0,1) }; }
+      function seed(){ sparks = []; var n = Math.min(54, Math.floor(c.width/24)); for(var k=0;k<n;k++){ var s=mk(); s.y=rnd(0,c.height); sparks.push(s);} }
+      function frame(){
+        ctx.clearRect(0,0,c.width,c.height);
+        for(var k=0;k<sparks.length;k++){
+          var s=sparks[k]; s.y-=s.v; s.x+=s.d; s.life+=0.005;
+          if(s.y<-6 || s.life>1.4){ sparks[k]=mk(); continue; }
+          var a = 0.5*Math.max(0,1-s.life*0.7)*(0.6+0.4*Math.sin(s.life*8));
+          ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283);
+          ctx.fillStyle='rgba(246,169,59,'+a.toFixed(3)+')'; ctx.fill();
+        }
+        raf = requestAnimationFrame(frame);
+      }
+      function start(){ size(); seed(); cancelAnimationFrame(raf); frame(); }
+      window.addEventListener('resize', start, {passive:true});
+      start();
+    }
+  })();
+</script>

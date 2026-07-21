@@ -182,7 +182,22 @@
             background-attachment: local;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
+        /* Quest tracker (screen 1, top-left) */
+        #questToggle { position: absolute; top: 8px; left: 8px; z-index: 30; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4a3623; background: rgba(0,0,0,0.55); color: #fceeb5; font-size: 19px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+        #questToggle:hover { background: rgba(0,0,0,0.78); }
+        #questPanel { position: absolute; top: 54px; left: 8px; z-index: 29; width: 258px; max-width: calc(100% - 16px); max-height: 62%; overflow-y: auto; background: rgba(28,19,11,0.95); border: 2px solid #4a3623; border-radius: 10px; padding: 10px 12px 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.55); display: none; }
+        #questPanel.open { display: block; }
+        #questPanel h4 { margin: 0 0 8px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 15px; text-align: center; }
+        .quest-row { padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .quest-row:last-child { border-bottom: none; }
+        .quest-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+        .quest-label { color: #f0e6d2; font-size: 12.5px; font-weight: bold; line-height: 1.25; }
+        .quest-reward { color: #f1c40f; font-size: 11.5px; font-weight: bold; white-space: nowrap; }
+        .quest-progress { color: #bfa980; font-size: 11px; margin-top: 3px; }
+        .quest-row.done .quest-label { color: #2ecc71; text-decoration: line-through; }
+        .quest-row.done .quest-progress { color: #2ecc71; text-decoration: none; }
         /* Counter (screen 1) layout */
         .counter-topbar { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
         #screen-1 #gold-text { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: none; }
@@ -218,8 +233,8 @@
         .customer-actions.responses-shown { animation: responsesFadeIn 0.35s ease-out; }
         @keyframes responsesFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .customer-actions .btn-craft { margin-top: 0; width: 100%; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; }
-        #btnNextCustomer { width: 100%; margin-top: 10px; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; animation: responsesFadeIn 0.35s ease-out; }
-        #btnNextCustomer:hover { background-color: #219150; }
+        #btnNextCustomer, #btnContinueDialogue { width: 100%; margin-top: 10px; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; animation: responsesFadeIn 0.35s ease-out; }
+        #btnNextCustomer:hover, #btnContinueDialogue:hover { background-color: #219150; }
         #btnAutoSell { background-color: #27ae60; }
         #btnAutoCraftSell { background-color: #8e44ad; }
         #btnRefuse { background-color: #95a5a6; padding: 10px 8px; font-size: 12.5px; line-height: 1.2; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
@@ -344,6 +359,10 @@
         .minimap-zoom-btn:hover { background: #4a3623; }
         .sword-card-title { font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50; }
         .sword-card-details { font-size: 12px; color: #555; line-height: 1.5; }
+        /* Shop card sword image: the composited blade laid flat/horizontal (same −135° as the sharpen step). */
+        .shop-sword-img { position: relative; width: 100%; height: 74px; overflow: hidden; margin-bottom: 6px; }
+        .shop-sword-inner { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; transform: rotate(-135deg); }
+        .shop-sword-inner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35)); }
         .action-row { display: flex; gap: 5px; margin-top: 8px; }
         .btn-action { flex: 1; padding: 8px; border-radius: 4px; color: white; border: none; font-size: 11px; font-weight: bold; }
         .btn-sell { background: #3498db; }
@@ -380,6 +399,19 @@
         .list-modal-header h3 { margin: 0; flex: 1; text-align: center; color: #4a3623; font-family: 'Cinzel', serif; font-size: 15px; }
         .list-nav-btn { background: #95a5a6; color: #fff; border: none; border-radius: 6px; width: 34px; height: 34px; font-size: 16px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
         .list-modal-body { flex: 1 1 auto; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
+        /* Sales Ledger: scrollable day tabs + per-day sold-sword list. */
+        #ledgerModal { z-index: 1014; }
+        .ledger-tabs { display: flex; gap: 6px; padding: 8px 10px; background: #cbb894; border-bottom: 2px solid #4a3623; overflow-x: auto; flex: 0 0 auto; -webkit-overflow-scrolling: touch; }
+        .ledger-tab { flex: 0 0 auto; padding: 6px 12px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-family: 'Cinzel', serif; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .ledger-tab.active { background: #4a3623; color: #f0d8a0; }
+        .ledger-total { text-align: right; font-weight: bold; color: #4a3623; font-size: 13px; padding: 2px 4px 8px; border-bottom: 1px solid rgba(74,54,35,0.3); margin-bottom: 6px; }
+        .ledger-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid rgba(74,54,35,0.2); }
+        .ledger-row:last-child { border-bottom: none; }
+        .ledger-row-img { position: relative; width: 56px; height: 40px; flex: 0 0 auto; overflow: hidden; }
+        .ledger-sword { position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; transform: rotate(-135deg); }
+        .ledger-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+        .ledger-row-info { flex: 1; font-size: 12px; color: #4a3623; line-height: 1.35; }
+        .ledger-row-gold { font-weight: bold; color: #2e7d32; font-size: 13px; white-space: nowrap; }
         .vault-tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .vault-tile { background: #f4f6f7; border: 1px solid #bdc3c7; border-radius: 8px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .vault-tile:hover { border-color: #95a5a6; }
@@ -415,6 +447,8 @@
         #tutorialReviewModal { z-index: 1011; }
         #chartModal { z-index: 1015; }
         #newTraitModal { z-index: 1012; }
+        #newShapeModal { z-index: 1013; } /* above #shapeModal (1005) so it layers over the shape-select step */
+        #newShapeImg img { max-height: 96px; max-width: 78%; object-fit: contain; }
         #gameAlertModal { z-index: 1020; }
 
         .dialogue-frame { position: relative; background: url('assets/ui/dialogue-frame.png') no-repeat center; background-size: 100% 100%; background-color: transparent; border: none; border-radius: 0; box-shadow: none; width: 82%; max-width: 300px; padding: 46px 36px 62px 36px; box-sizing: border-box; text-align: center; }
@@ -439,6 +473,10 @@
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
         #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
         #traitToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        /* Passive shop sale popup (screen 0): flashes the gold gained when a sword auto-sells. */
+        #screen-0 { position: relative; }
+        #shop-sale-popup { position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-8px); background: rgba(39,174,96,0.96); color: #fff; border: 1px solid #2ecc71; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.45); z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
+        #shop-sale-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         #flameHintBanner { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-14px); width: 88%; max-width: 310px; box-sizing: border-box; background: rgba(44, 33, 22, 0.96); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 14px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; line-height: 1.35; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1002; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; }
         #flameHintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -597,14 +635,22 @@
         .hammer-stage { position: relative; width: 100%; aspect-ratio: 1; margin: 0 auto; background: rgba(0,0,0,0.10); border-radius: 6px; border: 2px inset #a6957a; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
         .hammer-stage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
         #hammer-targets { position: absolute; inset: 0; }
-        .hammer-target { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .hammer-ring { position: absolute; width: 78px; height: 78px; border: 4px solid #ffd27f; border-radius: 50%; box-shadow: 0 0 12px rgba(255,180,30,0.9); pointer-events: none; }
-        .hammer-dot { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, #ff9b30); box-shadow: 0 0 10px #ffb733; pointer-events: none; }
+        .hammer-target { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .hammer-ring { position: absolute; width: 26px; height: 26px; border: 2px solid #ffd27f; border-radius: 50%; box-shadow: 0 0 5px rgba(255,180,30,0.9); pointer-events: none; }
+        .hammer-dot { width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, #ff9b30); box-shadow: 0 0 4px #ffb733; pointer-events: none; }
         .hammer-target.hit .hammer-dot { animation: hammerPop 0.2s ease-out forwards; }
         .hammer-target.hit .hammer-ring { border-color: #7CFC00; opacity: 0; transition: opacity 0.15s; }
         .hammer-target.miss .hammer-dot { background: radial-gradient(circle, #999, #555); box-shadow: none; }
         .hammer-target.miss .hammer-ring { border-color: #c0392b; opacity: 0; transition: opacity 0.15s; }
         @keyframes hammerShrink { from { transform: scale(2.6); } to { transform: scale(0.42); } }
+        /* "Perfect!" pops at the hit point and is flung out of the stage in a fading arc. */
+        .hammer-perfect { position: absolute; --hx: 90px; transform: translate(-50%, -50%); color: #6dff5b; font-family: 'Cinzel', serif; font-weight: bold; font-size: 18px; text-shadow: 0 0 6px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.8); pointer-events: none; white-space: nowrap; z-index: 6; animation: hammerPerfect 0.9s ease-out forwards; }
+        @keyframes hammerPerfect {
+            0%   { transform: translate(-50%, -50%) translate(0, 0) scale(0.5); opacity: 0; }
+            15%  { transform: translate(-50%, -50%) translate(0, -6px) scale(1.25); opacity: 1; }
+            55%  { transform: translate(-50%, -50%) translate(calc(var(--hx) * 0.55), -48px) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) translate(var(--hx), 18px) scale(0.85); opacity: 0; }
+        }
         @keyframes hammerPop { from { transform: scale(1); } to { transform: scale(2.2); opacity: 0; } }
 
         /* =========================================
@@ -631,8 +677,9 @@
         .sharpen-spin { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; pointer-events: none; opacity: 0; will-change: transform; }
         .sharpen-sword { position: absolute; left: 50%; top: 42%; height: 70%; aspect-ratio: 1 / 1; z-index: 5; pointer-events: none; transform: translate(-50%, -50%) rotate(-135deg); transform-origin: 50% 50%; will-change: transform; }
         .sharpen-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 5px rgba(0,0,0,0.55)); }
-        .sharpen-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 9; width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.85); background: rgba(0,0,0,0.55); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; touch-action: none; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
-        .sharpen-arrow:active { background: rgba(243,156,18,0.85); }
+        .sharpen-joystick { position: relative; width: 160px; height: 58px; margin: 12px auto 6px; border-radius: 29px; background: linear-gradient(#3a3226, #211b12); border: 2px solid #5a4a34; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); touch-action: none; }
+        .sharpen-knob { position: absolute; top: 50%; left: 50%; margin: -24px 0 0 -24px; width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f5d98a, #c8912f); border: 2px solid #4a3623; box-shadow: 0 3px 6px rgba(0,0,0,0.55); cursor: grab; transition: transform 0.12s ease; touch-action: none; }
+        .sharpen-knob.dragging { cursor: grabbing; transition: none; }
         .sharpen-sparks { position: absolute; left: 50%; top: 42%; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 6; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
         .sharpen-sparks.active { opacity: 1; }
         .sharpen-spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: #ffd24d; box-shadow: 0 0 6px 2px rgba(255,180,30,0.9); animation: sharpenSparkFly 0.5s linear infinite; }
@@ -642,6 +689,7 @@
         .sharpen-meter { position: absolute; top: 10px; left: 8%; width: 84%; background: rgba(0,0,0,0.85); padding: 8px 10px 10px; border-radius: 8px; z-index: 10; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none; }
         .sharpen-track { position: relative; width: 100%; height: 18px; border-radius: 9px; overflow: hidden; border: 2px solid #222; background: #2b2b2b; }
         .sharpen-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #8a97a5; transition: width 0.05s linear, background 0.2s ease; }
+        .sharpen-goldzone { position: absolute; top: 0; left: 79.17%; width: 8.33%; height: 100%; background: #f1c40f; z-index: 1; box-shadow: 0 0 6px rgba(241,196,15,0.75); } /* the 95–105% "perfect" (+3 gold) band */
         .sharpen-tick { position: absolute; top: -2px; width: 2px; height: calc(100% + 4px); background: rgba(255,255,255,0.7); z-index: 2; }
         .sharpen-readout { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: #fff; font-size: 12px; font-weight: bold; }
     </style>
@@ -689,9 +737,11 @@
 
         <div id="screens-container">
             <div class="screen" id="screen-0">
+                <div id="shop-sale-popup"></div>
                 <div class="list-panel" id="shop-panel-container">
                     <h3>🏪 Shop Front</h3>
                     <p style="font-size: 12px; color: #666;">Passively sells your swords over time.</p>
+                    <button id="btnLedger" class="panel-open-btn" style="width: 100%; margin-bottom: 8px; flex: none;" onclick="openLedger()">📒 Ledger</button>
                     <div id="shop-locked-view" style="text-align: center;">
                         <div class="empty-list">The shop is currently closed.</div>
                         <button id="btnUnlockShop" class="btn-craft" style="background:#e67e22; margin-top: 10px;" onclick="unlockShop()">Unlock Shop (500 Gold)</button>
@@ -701,13 +751,15 @@
             </div>
 
             <div class="screen" id="screen-1">
+                <button id="questToggle" onclick="toggleQuests()" title="Quests">📋</button>
+                <div id="questPanel"><div id="quest-list"></div></div>
                 <div class="counter-topbar">
                     <span id="day-text" class="day-badge">Day 1</span>
                     <span id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text">0</span></span>
                 </div>
 
                 <div class="customer-stage">
-                    <img id="customer-img" class="customer-img" src="assets/customer/man2.png" alt="Customer">
+                    <img id="customer-img" class="customer-img" src="assets/customer/Bram.png" alt="Customer">
                     <div class="customer-panel">
                         <div class="dialogue-bubble" id="dialogue-text"></div>
                         <div class="customer-actions responses-hidden" id="customer-actions">
@@ -715,6 +767,7 @@
                             <button id="btnRefuse">I don't have what you need.</button>
                         </div>
                         <button id="btnNextCustomer" style="display:none;">Thank you</button>
+                        <button id="btnContinueDialogue" style="display:none;">Continue ▶</button>
                     </div>
                 </div>
 
@@ -856,7 +909,7 @@
                     </div>
                 
                 <div style="display: flex; gap: 8px;">
-                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeForge()">Close</button>
                     <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmDesign()">Sharpen</button>
                 </div>
             </div>
@@ -871,7 +924,7 @@
                 <p id="shape-subtitle" style="margin: 0; font-size: 12px; color: #5c4a33; text-align: center;">Pick the shape to forge, then hammer it into form.</p>
                 <div class="parts-grid" id="shape-grid"></div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeForge()">Close</button>
                     <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmShape()">Continue</button>
                 </div>
             </div>
@@ -888,7 +941,7 @@
                 </div>
                 <div id="hammer-instructions" style="text-align: center; font-weight: bold; color: #4a3623; font-family: 'Cinzel', serif; font-size: 13px;">Strike the glowing marks before they fade!</div>
                 <div id="hammer-misses" style="text-align: center; font-size: 12px; color: #8a5a2b; min-height: 16px;"></div>
-                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="closeForge()">Close</button>
             </div>
         </div>
 
@@ -905,7 +958,7 @@
                     <span class="cool-hand" id="cool-hand">👈</span>
                     <div id="cool-instructions" class="forge-instructions">Tap the blade to quench it</div>
                 </div>
-                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                <button class="cancel-btn" style="margin-top: 0; background: #95a5a6;" onclick="closeForge()">Close</button>
             </div>
         </div>
 
@@ -924,8 +977,6 @@
                         <img class="sharpen-part" id="sharpen-guard" src="" alt="">
                         <img class="sharpen-part" id="sharpen-pommel" src="" alt="">
                     </div>
-                    <button class="sharpen-arrow" id="sharpen-left" style="left: 8px;">◀</button>
-                    <button class="sharpen-arrow" id="sharpen-right" style="right: 8px;">▶</button>
                     <div class="sharpen-sparks" id="sharpen-sparks">
                         <span class="sharpen-spark" style="--sx:-26px;--sy:-16px;animation-delay:0s;"></span>
                         <span class="sharpen-spark" style="--sx:24px;--sy:-20px;animation-delay:0.08s;"></span>
@@ -938,6 +989,7 @@
                     <div class="sharpen-meter">
                         <div class="sharpen-track">
                             <div class="sharpen-fill" id="sharpen-fill"></div>
+                            <div class="sharpen-goldzone"></div>
                             <div class="sharpen-tick" style="left: 75%;"></div>
                             <div class="sharpen-tick" style="left: 91.67%;"></div>
                         </div>
@@ -945,8 +997,9 @@
                     </div>
                     <div id="sharpen-instructions" class="forge-instructions">Turning the wheel...</div>
                 </div>
+                <div id="sharpen-joystick" class="sharpen-joystick"><div id="sharpen-knob" class="sharpen-knob"></div></div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="cancelForge()">Cancel</button>
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeForge()">Close</button>
                     <button class="btn-craft" id="sharpen-finish-btn" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="finishSharpen()" disabled>Finish Sharpening</button>
                 </div>
             </div>
@@ -960,6 +1013,18 @@
                     <button class="list-nav-btn" onclick="closeInventoryModal()">✕</button>
                 </div>
                 <div class="list-modal-body" id="inv-body"></div>
+            </div>
+        </div>
+
+        <div id="ledgerModal" class="modal-overlay">
+            <div class="list-modal-content">
+                <div class="list-modal-header">
+                    <button class="list-nav-btn" style="visibility: hidden;">←</button>
+                    <h3>📒 Sales Ledger</h3>
+                    <button class="list-nav-btn" onclick="closeLedger()">✕</button>
+                </div>
+                <div class="ledger-tabs" id="ledger-tabs"></div>
+                <div class="list-modal-body" id="ledger-body"></div>
             </div>
         </div>
 
@@ -1052,6 +1117,15 @@
                 <div id="newTraitIcon" style="font-size: 60px; line-height: 1.3; margin: 6px 0;"></div>
                 <div id="newTraitName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 14px;"></div>
                 <button class="btn-craft" style="background-color: #c8a84b; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
+            </div>
+        </div>
+
+        <div id="newShapeModal" class="modal-overlay">
+            <div class="modal-content" style="border: 4px solid #c8a84b; background: #fdfdfd;">
+                <h3 style="color: #c8a84b; font-family: 'Cinzel', serif; font-size: 20px; margin-bottom: 6px;">🗡️ New Blade!</h3>
+                <div id="newShapeImg" style="height: 96px; display: flex; align-items: center; justify-content: center; margin: 6px 0;"></div>
+                <div id="newShapeName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 14px;"></div>
+                <button class="btn-craft" style="background-color: #c8a84b; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewShapeModal()">Continue</button>
             </div>
         </div>
 
@@ -1258,16 +1332,38 @@
         let forgeCtx = null;
         let forgeShapeIndex = 0;
 
-        function cancelForge() {
-            forgeCtx = null; clearHammerTimers(); clearCoolTimers(); clearSharpenTimers(); sharpenActive = false;
+        // Close the forge WITHOUT discarding it: snapshot the active stage's progress into forgeCtx, pause its timers,
+        // hide the modals, but keep forgeCtx alive so the Forge button drops the player back in where they left off.
+        function closeForge() {
+            if (forgeCtx) {
+                if (forgeCtx.stage === 'shape') forgeCtx.shapeIndex = forgeShapeIndex;
+                else if (forgeCtx.stage === 'hammer') { forgeCtx.hammerStage = hammerStage; forgeCtx.hammerPointIdx = hammerPointIdx; }
+                else if (forgeCtx.stage === 'design') forgeCtx.designDraft = { ...currentDesign };
+                else if (forgeCtx.stage === 'sharpen') forgeCtx.sharpenPct = sharpenPct;
+            }
+            clearHammerTimers(); clearCoolTimers(); clearSharpenTimers(); sharpenActive = false;
             ['shapeModal', 'hammerModal', 'coolModal', 'designModal', 'sharpenModal'].forEach(id => document.getElementById(id).style.display = 'none');
+            updateUI(); // keep the Forge button live so it can resume the paused pipeline
+        }
+        // Reopen a paused forge at the stage it was closed on (Forge button re-entry).
+        function resumeForge() {
+            hideForgeArrow(); hideHands();
+            switch (forgeCtx.stage) {
+                case 'hammer': openHammerModal(true); break;
+                case 'cool': openCoolModal(); break;
+                case 'design': openForgeDesign(); break;
+                case 'sharpen': openSharpenModal(); break;
+                default: openShapeModal();
+            }
         }
 
         // --- Part 1: choose the blade shape (3 free, 7 unlockable at 50g) ---
         function openShapeModal() {
+            forgeCtx.stage = 'shape';
             designTraits = forgeCtx.traits;
             const parts = partsFor('blade', designTraits);
-            const firstUnlocked = parts.findIndex(p => bladeUnlocked[p.id]); forgeShapeIndex = firstUnlocked >= 0 ? firstUnlocked : 0;
+            const firstUnlocked = parts.findIndex(p => bladeUnlocked[p.id]);
+            forgeShapeIndex = (forgeCtx.shapeIndex != null) ? forgeCtx.shapeIndex : (firstUnlocked >= 0 ? firstUnlocked : 0); // restore a tentative pick on resume
             document.getElementById('shapeModal').style.display = 'flex';
             renderShapeGrid();
         }
@@ -1294,6 +1390,7 @@
         function unlockForgeShape(index, id) {
             if (gold < BLADE_UNLOCK_COST) { gameAlert(`You need ${BLADE_UNLOCK_COST} Gold to unlock this blade!`); return; }
             gold -= BLADE_UNLOCK_COST; bladeUnlocked[id] = true; updateUI(); forgeShapeIndex = index; renderShapeGrid();
+            const part = partsFor('blade', designTraits)[index]; showNewShapeModal(id, part ? part.src : ''); // "<shape> unlocked" celebration
         }
         function confirmShape() {
             forgeCtx.shape = partsFor('blade', designTraits)[forgeShapeIndex].id;
@@ -1307,17 +1404,20 @@
             0: [{ x: 37, y: 60 }, { x: 47, y: 52 }, { x: 57, y: 44 }],
             1: [{ x: 72, y: 28 }, { x: 52, y: 48 }, { x: 41, y: 61 }]
         };
-        const HAMMER_RING_MS = 1400, HAMMER_RING_MS_TUTORIAL = 2600, HAMMER_GAP_MS = 380;
+        const HAMMER_RING_MS = 650, HAMMER_RING_MS_TUTORIAL = 2600, HAMMER_GAP_MS = 380;
         let hammerStage = 0, hammerPointIdx = 0, hammerTimers = [];
         function hTimeout(fn, ms) { const id = setTimeout(fn, ms); hammerTimers.push(id); return id; }
         function clearHammerTimers() { hammerTimers.forEach(clearTimeout); hammerTimers = []; const l = document.getElementById('hammer-targets'); if (l) l.innerHTML = ''; }
         function hammerMidSrc(shape) { const has = { Shortsword: 1, Longsword: 1, Broadsword: 1 }; const s = (has[shape] ? shape : 'Longsword').toLowerCase(); return `assets/hammer/balanced_${s}_midblade.png`; }
         function bladeSrcForShape(shape, traits) { const arr = partsFor('blade', traits); const p = arr.find(x => x.id === shape) || arr[0]; return p.src; }
-        function openHammerModal() {
-            forgeCtx.hammerMisses = 0; hammerStage = 0; hammerPointIdx = 0; clearHammerTimers();
-            document.getElementById('hammer-img').src = 'assets/hammer/ingot.png';
+        function openHammerModal(resume) {
+            forgeCtx.stage = 'hammer';
+            if (resume) { hammerStage = forgeCtx.hammerStage || 0; hammerPointIdx = forgeCtx.hammerPointIdx || 0; } // pick the sequence back up (misses kept)
+            else { forgeCtx.hammerMisses = 0; forgeCtx.hammerHits = 0; hammerStage = 0; hammerPointIdx = 0; }
+            clearHammerTimers();
+            document.getElementById('hammer-img').src = hammerStage === 0 ? 'assets/hammer/ingot.png' : hammerMidSrc(forgeCtx.shape);
             document.getElementById('hammer-instructions').textContent = 'Strike the glowing marks before they fade!';
-            document.getElementById('hammer-misses').textContent = '';
+            const m = forgeCtx.hammerMisses; document.getElementById('hammer-misses').textContent = m > 0 ? `Misses: ${m}` : '';
             document.getElementById('hammerModal').style.display = 'flex';
             hTimeout(spawnHammerTarget, 550);
         }
@@ -1338,10 +1438,19 @@
         }
         function resolveHammerTarget(el, success) {
             if (el._missId) clearTimeout(el._missId);
-            if (!success) forgeCtx.hammerMisses++;
+            if (!success) forgeCtx.hammerMisses++; else forgeCtx.hammerHits++; // +1 gold per hit at sale (craftBonus)
             el.classList.add(success ? 'hit' : 'miss');
+            if (success) spawnPerfectText(el.style.left, el.style.top);
             const m = forgeCtx.hammerMisses; document.getElementById('hammer-misses').textContent = m > 0 ? `Misses: ${m}` : '';
             hTimeout(() => { el.remove(); hammerPointIdx++; hTimeout(spawnHammerTarget, HAMMER_GAP_MS); }, 200);
+        }
+        // Green "Perfect!" that pops at the hit point and arcs out of the stage while fading (random left/right launch).
+        function spawnPerfectText(left, top) {
+            const layer = document.getElementById('hammer-targets'); if (!layer) return;
+            const t = document.createElement('div'); t.className = 'hammer-perfect'; t.textContent = 'Perfect!';
+            t.style.left = left; t.style.top = top;
+            const hx = (60 + Math.random() * 80) * (Math.random() < 0.5 ? -1 : 1); t.style.setProperty('--hx', hx + 'px');
+            layer.appendChild(t); setTimeout(() => t.remove(), 950);
         }
         function advanceHammerStage() {
             if (hammerStage === 0) {
@@ -1365,6 +1474,7 @@
         function cTimeout(fn, ms) { const id = setTimeout(fn, ms); coolTimers.push(id); return id; }
         function clearCoolTimers() { coolTimers.forEach(clearTimeout); coolTimers = []; }
         function openCoolModal() {
+            forgeCtx.stage = 'cool';
             coolDipped = false; clearCoolTimers();
             const blade = document.getElementById('cool-blade');
             blade.src = bladeSrcForShape(forgeCtx.shape, forgeCtx.traits);
@@ -1395,10 +1505,11 @@
 
         // --- Part 3: design the fittings (blade is fixed from Part 1; not editable here) ---
         function openForgeDesign() {
+            forgeCtx.stage = 'design';
             designTraits = forgeCtx.traits;
             designQuality = projectedForgeQuality();
             const arr = partsFor('blade', designTraits); let bi = arr.findIndex(p => p.id === forgeCtx.shape); if (bi < 0) bi = 0;
-            currentDesign = { blade: bi, grip: 0, guard: 0, pommel: 0 };
+            currentDesign = forgeCtx.designDraft ? { ...forgeCtx.designDraft } : { blade: bi, grip: 0, guard: 0, pommel: 0 }; // restore in-progress fittings on resume
             document.getElementById('designModal').style.display = 'flex';
             updateDesignPreview();
             switchDesignTab('grip');
@@ -1408,16 +1519,17 @@
         // --- Part 4: sharpen the blade on the grindstone ---
         // Slide the blade across the spinning stone to fill 0→~120%. Finish anywhere in the 90–110% "keen" window
         // for no penalty; grinding past 110% over-hones the blade → −1 quality tier per 10% over (see completeForge).
-        const SHARP_MIN = 90, SHARP_MAX = 110, SHARP_BAR_MAX = 120, SHARP_RATE = 27.5; // SHARP_RATE: a full container-width swipe adds ~27.5% (grinding pace)
-        let sharpenTimers = [], sharpenPct = 0, sharpenActive = false, sharpenSpinInt = null, sharpenBladeX = 0, sharpenBound = false, sharpenHoldInt = null;
+        const SHARP_MIN = 90, SHARP_MAX = 110, SHARP_BAR_MAX = 120, SHARP_RATE = 27.5, SHARP_TRAVEL = 0.42; // SHARP_RATE: a full container-width swipe adds ~27.5% (grinding pace). SHARP_TRAVEL: how far the blade slides each way (fraction of stage width)
+        let sharpenTimers = [], sharpenPct = 0, sharpenActive = false, sharpenSpinInt = null, sharpenBladeX = 0, sharpenBound = false, sharpenHoldInt = null, sharpenJoyNorm = 0;
         function sTimeout(fn, ms) { const id = setTimeout(fn, ms); sharpenTimers.push(id); return id; }
         function clearSharpenTimers() { sharpenTimers.forEach(clearTimeout); sharpenTimers = []; if (sharpenSpinInt) { clearInterval(sharpenSpinInt); sharpenSpinInt = null; } stopSharpenHold(); }
-        function startSharpenHold(dir) { if (!sharpenActive) return; stopSharpenHold(); sharpenGrind(dir * 16); sharpenHoldInt = setInterval(() => sharpenGrind(dir * 16), 55); } // hold an arrow to keep sliding
         function stopSharpenHold() { if (sharpenHoldInt) { clearInterval(sharpenHoldInt); sharpenHoldInt = null; } }
         function sharpenTiersFor(pct) { return pct <= SHARP_MAX ? 0 : Math.ceil((pct - SHARP_MAX) / 10); } // 110–120% → −1, 120–130% → −2 …
+        function sharpenGoldBonus(pct) { return (pct >= 95 && pct <= 105) ? 3 : (pct >= 90 && pct <= 110) ? 2 : 0; } // craftsmanship gold: dead-centre → +3, near-centre → +2, over-honed → +0
         function openSharpenModal() {
+            forgeCtx.stage = 'sharpen';
             bindSharpen(); clearSharpenTimers();
-            sharpenPct = 0; sharpenActive = false; sharpenBladeX = 0;
+            sharpenPct = forgeCtx.sharpenPct || 0; sharpenActive = false; sharpenBladeX = 0; // restore grind progress on resume
             const d = forgeCtx.design || { blade: 0, grip: 0, guard: 0, pommel: 0 }; // show the full sword as designed
             document.getElementById('sharpen-blade').src = designPartSrc('blade', d, forgeCtx.traits);
             document.getElementById('sharpen-grip').src = designPartSrc('grip', d, forgeCtx.traits);
@@ -1439,7 +1551,7 @@
                 const jx = Math.random() * 4 - 2, jy = Math.random() * 4 - 2, jr = Math.random() - 0.5;
                 spin.style.transform = `translate(${jx}px, ${jy}px) rotate(${jr}deg)`;
             }, 40);
-            document.getElementById('sharpen-instructions').textContent = 'Slide the blade across the stone to sharpen it.';
+            document.getElementById('sharpen-instructions').textContent = 'Work the joystick to slide the blade across the stone.';
             document.getElementById('sharpen-hand').style.display = (tutorialStep < tutorialFlow.length) ? 'block' : 'none';
         }
         function sharpenGrind(dxPx) {
@@ -1447,7 +1559,7 @@
             const stage = document.getElementById('sharpen-stage'); const w = stage.clientWidth || 300;
             const adx = Math.abs(dxPx); if (adx < 0.5) return;
             sharpenPct = Math.min(SHARP_BAR_MAX + 8, sharpenPct + adx / w * SHARP_RATE);
-            sharpenBladeX = Math.max(-w * 0.12, Math.min(w * 0.12, sharpenBladeX + dxPx * 0.5)); // slide the blade with the drag, clamped
+            sharpenBladeX = Math.max(-w * SHARP_TRAVEL, Math.min(w * SHARP_TRAVEL, sharpenBladeX + dxPx * 0.5)); // slide the blade with the drag, clamped to a near-full-width sweep
             document.getElementById('sharpen-sword').style.transform = `translate(calc(-50% + ${sharpenBladeX}px), -50%) rotate(-135deg)`;
             const sp = document.getElementById('sharpen-sparks'); sp.classList.add('active');
             if (sp._off) clearTimeout(sp._off); sp._off = setTimeout(() => sp.classList.remove('active'), 160);
@@ -1470,6 +1582,7 @@
         function finishSharpen() {
             if (sharpenPct < SHARP_MIN) return;
             forgeCtx.sharpenTiers = sharpenTiersFor(sharpenPct);
+            forgeCtx.sharpenBonus = sharpenGoldBonus(sharpenPct); // craftsmanship gold from sharpen accuracy
             clearSharpenTimers(); sharpenActive = false;
             const finalDesignObj = forgeCtx.design;
             document.getElementById('sharpenModal').style.display = 'none';
@@ -1487,12 +1600,23 @@
                 if (e.key === 'ArrowLeft') { sharpenGrind(-18); e.preventDefault(); }
                 else if (e.key === 'ArrowRight') { sharpenGrind(18); e.preventDefault(); }
             });
-            const holdBtn = (id, dir) => {
-                const b = document.getElementById(id);
-                b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); startSharpenHold(dir); });
-                ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stopSharpenHold));
-            };
-            holdBtn('sharpen-left', -1); holdBtn('sharpen-right', 1);
+            // Joystick: drag the knob left/right to grind continuously in that direction (analog — the further from centre, the faster).
+            const joy = document.getElementById('sharpen-joystick'), knob = document.getElementById('sharpen-knob');
+            let joyMax = 1;
+            const joyStop = () => { sharpenJoyNorm = 0; knob.classList.remove('dragging'); knob.style.transform = 'translateX(0)'; stopSharpenHold(); };
+            knob.addEventListener('pointerdown', e => {
+                e.preventDefault(); e.stopPropagation(); knob.classList.add('dragging');
+                joyMax = joy.offsetWidth / 2 - knob.offsetWidth / 2; // knob's max travel from centre
+                if (knob.setPointerCapture) knob.setPointerCapture(e.pointerId);
+                stopSharpenHold(); sharpenHoldInt = setInterval(() => { if (sharpenActive) sharpenGrind(sharpenJoyNorm * 16); }, 55);
+            });
+            knob.addEventListener('pointermove', e => {
+                if (!knob.classList.contains('dragging')) return;
+                const cx = joy.getBoundingClientRect().left + joy.offsetWidth / 2;
+                const dx = Math.max(-joyMax, Math.min(joyMax, e.clientX - cx));
+                knob.style.transform = `translateX(${dx}px)`; sharpenJoyNorm = joyMax ? dx / joyMax : 0;
+            });
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => knob.addEventListener(ev, joyStop));
         }
 
         // --- Quality: heat outcome → HP cap (manual only) → hammer penalty (−1 tier per 2 misses) ---
@@ -1693,6 +1817,7 @@
         function completeForge(finalDesignObj) {
             const ctx = forgeCtx; if (!ctx) return; forgeCtx = null;
             const tiers = Math.floor(ctx.hammerMisses / 2) + (ctx.sharpenTiers || 0); // −1 tier per 2 hammer misses, plus over-honing penalty
+            const craftBonus = (ctx.hammerHits || 0) + (ctx.sharpenBonus || 0); // craftsmanship gold: +1 per hammer hit + sharpen-accuracy bonus (flat, paid on sale)
             const shape = ctx.shape;
             if (ctx.mode === 'auto') {
                 // Auto-Craft: one heat + one hammer performance sets a uniform quality (no HP cap — no exploration).
@@ -1700,21 +1825,23 @@
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
                 const q = QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(ctx.heatQuality || 'Fine') - tiers)];
                 const finalTraits = ctx.traits.map(t => setTraitQuality(t, q));
-                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...bp.recipe }, value: calculateSwordValue(finalTraits) };
+                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...bp.recipe }, value: calculateSwordValue(finalTraits), craftBonus, hazardLoss: 0 };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
+                if (swordQuality(newSword) === 'Epic') bumpQuest('epic5');
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
                 if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
             } else {
                 // Manual: each trait keeps its heated quality, capped by blade HP, then dropped by the hammer penalty.
                 const cap = healthQualityCap();
                 const finalTraits = ctx.traits.map(t => { let qi = Math.min(QUALITY_ORDER.indexOf(t.quality), QUALITY_ORDER.indexOf(cap)); qi = Math.max(0, qi - tiers); return setTraitQuality(t, QUALITY_ORDER[qi]); });
-                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits) };
+                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits), craftBonus, hazardLoss: hazardGoldLost };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
                 lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Composition" after forging
-                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
+                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; hazardGoldLost = 0; // new blade starts fresh
                 health = 100; playerX = 25; playerY = 25; clearPath(); // new blade → fresh trail
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
                 showForgeResult(newSword);
+                if (swordQuality(newSword) === 'Epic') bumpQuest('epic5');
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
             }
         }
@@ -1950,9 +2077,18 @@
             if (endDayGuideActive) { hideHands(); setTimeout(updateEndDayGuideHand, 400); } // re-point the day-1 End Day guide after the slide
         }
 
-        // Customer portraits, on rotation. man2 is the first customer.
-        const customerImages = ['assets/customer/man2.png', 'assets/customer/man1.png', 'assets/customer/woman1.png'];
-        function setCustomerImage() { const img = document.getElementById('customer-img'); if (!img) return; img.src = customerImages[(Math.max(1, requestCount) - 1) % customerImages.length]; }
+        // Customer portraits. Bram is the tutorial's very first customer (Day 1 opener); he returns as BramD2 for Day 2's opener.
+        // Every other customer draws randomly from the human pool, never repeating the previous portrait back-to-back.
+        const customerPool = ['assets/customer/man1.png', 'assets/customer/man2.png', 'assets/customer/man3.png', 'assets/customer/man4.png', 'assets/customer/woman1.png', 'assets/customer/woman2.png', 'assets/customer/woman3.png'];
+        let lastCustomerImg = null;
+        function randomCustomerImg() { let p; do { p = customerPool[Math.floor(Math.random() * customerPool.length)]; } while (p === lastCustomerImg && customerPool.length > 1); lastCustomerImg = p; return p; }
+        function setCustomerImage() {
+            const img = document.getElementById('customer-img'); if (!img) return;
+            img.style.display = ''; // a new customer arrived → un-hide the portrait (cleared by onDayFull)
+            if (customersToday === 0 && currentDay === 1) img.src = 'assets/customer/Bram.png';       // Day 1 opener → Bram
+            else if (customersToday === 0 && currentDay === 2) img.src = 'assets/customer/BramD2.png'; // Day 2 opener → Bram returns
+            else img.src = randomCustomerImg();
+        }
         // Replay the customer's slide-in from the left.
         function slideInCustomer() { const img = document.getElementById('customer-img'); if (!img) return; img.classList.remove('slide-in'); void img.offsetWidth; img.classList.add('slide-in'); }
 
@@ -1965,8 +2101,9 @@
         const gridSize = 50; const totalCells = gridSize * gridSize; const visionRadius = 3.5; 
         let playerX = 25; let playerY = 25; let health = 100; let gold = 0; let reputation = 0;
         let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false; let lastForgedMixture = null; let forgeLockedForRecord = false;
+        let hazardGoldLost = 0; // gold lost to hazard zones while building the current blade (stamped onto the forged sword)
         // Day system: 7 customers/day; End Day advances to the next day.
-        let currentDay = 1; let customersToday = 0; const CUSTOMERS_PER_DAY = 7; const EARLY_END_MIN = 3; let endDayGuideActive = false; let shownDay1EndBox = false; let dayTransitioning = false;
+        let currentDay = 1; let customersToday = 0; const CUSTOMERS_PER_DAY = 7; const EARLY_END_MIN = 3; let endDayGuideActive = false; let shownDay1EndBox = false; let dayTransitioning = false; let refusalsToday = 0;
         let activeTraits = []; let requestedTrait = null; let requestedShape = null; 
         let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
         
@@ -1977,7 +2114,7 @@
         // Record Composition and Chart are locked until the first sword is forged.
         let tutorialMetalLock = true;
         let usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 };
-        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1; const METAL_TICK_MS = 10000, METAL_FLOOR = 5;
+        let generationInterval = null; let shopInterval = null; let metalsPerTick = 1; const METAL_TICK_MS = 10000, METAL_FLOOR = 5, DAY_METAL_BONUS = 7;
         let purifyEnabled = false; // Purify-dash slider is locked until the first sword is crafted (guided tutorial uses single-block moves).
 
         let zoomLevel = 1.0; let isDragging = false; let startX, startY, startScrollLeft, startScrollTop;
@@ -2124,7 +2261,7 @@
                 ${qualityHtml}
                 <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Shape:</strong> <span>${sword.shape}</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Value:</strong> <span style="color:#d35400; font-weight:bold;">${sword.value}g</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Value:</strong> <span style="color:#d35400; font-weight:bold;">${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32;">+${sword.craftBonus} craft</span>` : ''}${(sword.hazardLoss||0) > 0 ? ` <span style="color:#c0392b;">−${sword.hazardLoss} hazard</span>` : ''}</span></div>
                     <div style="margin-bottom: 5px;"><strong>Metals Used:</strong><br><span style="font-size:12px; color:#555;">${metalsString}</span></div>
                     <div><strong>Active Traits:</strong><br><div style="margin-top:4px;">${traitString}</div></div>
                 </div>
@@ -2233,6 +2370,15 @@
         function setRandomRequest() {
             requestCount++;
             setCustomerImage(); slideInCustomer(); // rotate to the next customer portrait + slide it in
+            if (currentDay === 2 && customersToday === 0) { // Bram returns on Day 2 — a three-beat story, then his ask
+                requestedTrait = baseTraits.find(t => t.id === 'durable'); requestedShape = null; // "won't break so easy" → the Durable 🛡️ trait (the player must infer it; his dialogue never names it)
+                presentCustomerDialogueSequence([
+                    `Thanks to your sword, I was able to defeat the bandits! I fought so hard, the sword broke.`,
+                    `But my talent was spotted and I got recruited as a soldier!`,
+                    `Can you get me something that won't break so easy-eh?`
+                ]);
+                return;
+            }
             let line;
             if (requestCount === 1) { requestedTrait = null; requestedShape = null; line = `Blacksmith! I am defenseless. I just need <strong>ANY</strong> weapon to protect myself. I don't care about traits or shape!`; }
             else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; }
@@ -2249,18 +2395,27 @@
         }
 
         // --- Customer dialogue: reveal word-by-word, then show the player's two response options. ---
-        const CUSTOMER_WORD_MS = 110;
+        // Some customers speak several beats: all but the last are click-through "Continue" lines; the last carries the request + responses.
+        const CUSTOMER_WORD_MS = 110, DIALOGUE_GAP_MS = 800;
         let customerTyping = false, customerDialogueRevealed = true, customerTypeTimer = null, currentCustomerHTML = '';
+        let customerLineQueue = []; // beats still to come after the current one
         const afterCustomerQueue = [];
-        // Set the current customer's line but don't reveal it until the counter is on screen.
-        function presentCustomerDialogue(html) {
+        // Low-level: set the current beat and (once the counter is on screen) type it out. Does NOT touch customerLineQueue.
+        function showCustomerLine(html) {
             currentCustomerHTML = html; customerDialogueRevealed = false; customerTyping = false;
             if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
-            document.getElementById('dialogue-text').innerHTML = '';
+            const dt = document.getElementById('dialogue-text'); dt.style.display = ''; dt.innerHTML = ''; // un-hide the bubble (cleared by onDayFull)
             const nb = document.getElementById('btnNextCustomer'); if (nb) nb.style.display = 'none';
+            const cb = document.getElementById('btnContinueDialogue'); if (cb) cb.style.display = 'none';
             setResponseOptionsVisible(false);
             if (currentScreenIndex === 1) beginCustomerTyping();
         }
+        // Single-line customer: set the line but don't reveal it until the counter is on screen.
+        function presentCustomerDialogue(html) { customerLineQueue = []; showCustomerLine(html); }
+        // Multi-beat customer: click Continue through the leading beats; the last beat carries the request + responses.
+        function presentCustomerDialogueSequence(lines) { customerLineQueue = lines.slice(1); showCustomerLine(lines[0]); }
+        // Continue button → reveal the next beat.
+        function advanceCustomerDialogue() { if (customerLineQueue.length) showCustomerLine(customerLineQueue.shift()); }
         // Type the current line out one word at a time (tags/emoji stay intact — no line splits a tag).
         function beginCustomerTyping() {
             if (customerDialogueRevealed || customerTyping) return;
@@ -2273,8 +2428,13 @@
         }
         function finishCustomerTyping() {
             if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
-            customerTyping = false; customerDialogueRevealed = true;
+            customerTyping = false; customerDialogueRevealed = customerLineQueue.length === 0; // only "revealed" once the final beat is out
             document.getElementById('dialogue-text').innerHTML = currentCustomerHTML;
+            if (customerLineQueue.length) { // more beats to come → hold the responses, offer a Continue button after a read gap
+                setResponseOptionsVisible(false);
+                setTimeout(() => { if (customerLineQueue.length) { const cb = document.getElementById('btnContinueDialogue'); cb.style.display = 'block'; cb.style.animation = 'none'; void cb.offsetWidth; cb.style.animation = ''; } }, DIALOGUE_GAP_MS);
+                return; // don't flush the after-dialogue queue mid-sequence
+            }
             setResponseOptionsVisible(true);
             try { updateUI(); } catch (e) {}
             const cbs = afterCustomerQueue.splice(0); cbs.forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
@@ -2321,13 +2481,16 @@
             setRandomRequest();
         }
         function onDayFull() {
-            const rest = "You've helped everyone today. Rest up — tap 🌙 End Day when you're ready.";
-            currentCustomerHTML = rest; customerDialogueRevealed = true; customerTyping = false;
-            const dt = document.getElementById('dialogue-text'); if (dt) dt.innerHTML = rest;
+            // The day's 7 customers are done — clear the counter completely: no portrait, no dialogue box.
+            const img = document.getElementById('customer-img'); if (img) img.style.display = 'none';
+            const dt = document.getElementById('dialogue-text'); if (dt) { dt.innerHTML = ''; dt.style.display = 'none'; }
+            currentCustomerHTML = ''; customerDialogueRevealed = true; customerTyping = false;
+            if (customerTypeTimer) { clearInterval(customerTypeTimer); customerTypeTimer = null; }
             setResponseOptionsVisible(false);
             const nb = document.getElementById('btnNextCustomer'); if (nb) nb.style.display = 'none';
+            const cb = document.getElementById('btnContinueDialogue'); if (cb) cb.style.display = 'none';
             updateUI();
-            if (currentDay === 1 && !shownDay1EndBox) { // day-1 only: guide the player to bed
+            if (currentDay === 1 && !shownDay1EndBox) { // day-1 only: a one-off guide box nudging the player to bed
                 shownDay1EndBox = true;
                 showGuideBox(null, "Good work! Let's end the day here and go to bed!", () => { endDayGuideActive = true; updateEndDayGuideHand(); });
             }
@@ -2346,17 +2509,19 @@
         function confirmEndDay() { document.getElementById('endDayModal').style.display = 'none'; runDayTransition(); }
         function runDayTransition() {
             if (dayTransitioning) return; dayTransitioning = true;
+            const cleanDay = (refusalsToday === 0); refusalsToday = 0; // "no turn-aways" quest: judged on the day now ending
             endDayGuideActive = false; hideHands();
             const ov = document.getElementById('dayTransition');
             ov.style.pointerEvents = 'auto'; ov.style.opacity = '1'; // fade to black
             setTimeout(() => {
                 currentDay++; customersToday = 0;
+                metalsList.filter(m => !(['titanium', 'aluminium', 'blackIron', 'redIron'].includes(m) && !unlockedMetals[m])).forEach(m => availableMetals[m] += DAY_METAL_BONUS); // fresh-day restock
                 document.getElementById('dayTransitionText').textContent = 'Day ' + currentDay;
                 ov.classList.add('show-text');
                 isProcessingCustomer = false; suppressAutoRequest = false;
                 setRandomRequest(); // first customer of the new day
                 updateUI();
-                setTimeout(() => { ov.classList.remove('show-text'); ov.style.opacity = '0'; ov.style.pointerEvents = 'none'; dayTransitioning = false; }, 900);
+                setTimeout(() => { ov.classList.remove('show-text'); ov.style.opacity = '0'; ov.style.pointerEvents = 'none'; dayTransitioning = false; if (cleanDay) bumpQuest('noRefuseDay'); }, 900);
             }, 650);
         }
         function updateEndDayUI() {
@@ -2369,6 +2534,31 @@
             if (!endDayGuideActive) return;
             if (currentScreenIndex === 2) showHands([{ sel: '#btnEndDay', side: 'above' }]);
             else showHands([{ sel: '#nav-right', side: 'leftOf' }]); // End Day lives on the forge screen
+        }
+
+        // --- Quests: five one-off goals on the counter, each worth QUEST_REWARD gold on completion. ---
+        const QUEST_REWARD = 20;
+        const quests = [
+            { id: 'epic5', label: 'Craft 5 Epic swords', goal: 5, progress: 0, done: false },
+            { id: 'noRefuseDay', label: 'Survive a day without turning any customer away', goal: 1, progress: 0, done: false },
+            { id: 'discover3', label: 'Discover 3 new traits', goal: 3, progress: 0, done: false },
+            { id: 'update3', label: 'Update 3 recorded compositions', goal: 3, progress: 0, done: false },
+            { id: 'openShop', label: 'Open the shop front', goal: 1, progress: 0, done: false }
+        ];
+        // Advance a quest by `amount`; award gold + toast when it hits its goal. No-op once done.
+        function bumpQuest(id, amount = 1) {
+            const q = quests.find(x => x.id === id); if (!q || q.done) return;
+            q.progress = Math.min(q.goal, q.progress + amount);
+            if (q.progress >= q.goal) { q.done = true; gold += QUEST_REWARD; showTraitToast(`✅ Quest complete: ${q.label}  +${QUEST_REWARD}g`); try { updateUI(); } catch (e) {} }
+            renderQuests();
+        }
+        function toggleQuests() { const p = document.getElementById('questPanel'); if (!p) return; p.classList.toggle('open'); if (p.classList.contains('open')) renderQuests(); }
+        function renderQuests() {
+            const list = document.getElementById('quest-list'); if (!list) return;
+            list.innerHTML = '<h4>📋 Quests</h4>' + quests.map(q => {
+                const prog = q.done ? 'Reward claimed' : (q.goal > 1 ? `${q.progress} / ${q.goal}` : 'Not started');
+                return `<div class="quest-row${q.done ? ' done' : ''}"><div class="quest-top"><span class="quest-label">${q.done ? '✅ ' : ''}${q.label}</span><span class="quest-reward">🪙 +${QUEST_REWARD}g</span></div><div class="quest-progress">${prog}</div></div>`;
+            }).join('');
         }
 
         function startMetalGenerator() {
@@ -2387,22 +2577,59 @@
 
         function upgradeSmelter() { if (gold >= 50) { gold -= 50; metalsPerTick++; updateUI(); } else gameAlert("You need 50 Gold to upgrade the smelter!"); }
 
+        let shopPopupTimer = null;
+        // Small green popup on the Shop screen (0) announcing a passive sale + the gold gained.
+        function showShopSalePopup(amount, count) {
+            const p = document.getElementById('shop-sale-popup'); if (!p) return;
+            p.textContent = `🏪 ${count > 1 ? count + ' swords sold' : 'Sword sold'}!  +${amount}g`;
+            p.classList.add('show');
+            if (shopPopupTimer) clearTimeout(shopPopupTimer);
+            shopPopupTimer = setTimeout(() => p.classList.remove('show'), 2500);
+        }
         function startShopLoop() {
             if (shopInterval) clearInterval(shopInterval);
             shopInterval = setInterval(() => {
                 if (!shopUnlocked || shopSwords.length === 0) return;
-                let soldAny = false, soldTotal = 0;
+                let soldAny = false, soldTotal = 0, soldCount = 0;
                 for (let i = shopSwords.length - 1; i >= 0; i--) {
-                    if (Math.random() < 0.05) { const soldSword = shopSwords.splice(i, 1)[0]; gold += soldSword.value; soldTotal += soldSword.value; soldAny = true; }
+                    if (Math.random() < 0.05) { const soldSword = shopSwords.splice(i, 1)[0]; const sv = Math.max(1, soldSword.value + (soldSword.craftBonus || 0) - (soldSword.hazardLoss || 0)); gold += sv; soldTotal += sv; soldCount++; soldAny = true; recordLedgerSale(soldSword, sv); }
                 }
                 if (soldAny) {
+                    showShopSalePopup(soldTotal, soldCount);
                     const goldText = document.getElementById('gold-text'); goldText.style.backgroundColor = '#2ecc71'; goldText.style.color = 'white'; goldText.innerHTML = `+ ${soldTotal}g`;
                     setTimeout(() => { goldText.style.backgroundColor = '#fcf8e3'; goldText.style.color = '#d4af37'; goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: inherit;">${reputation}</span>`; updateUI(); }, 800); updateUI();
                 }
-            }, 10000); 
+            }, 10000);
         }
 
-        function unlockShop() { if (gold >= 500) { gold -= 500; shopUnlocked = true; shopGuideActive = false; hideHands(); updateUI(); startShopSellGuide(); } else gameAlert("You need 500 Gold to unlock the shop!"); }
+        // --- Sales Ledger: passive-shop sales grouped by day, keeping only the last LEDGER_MAX_DAYS days. ---
+        const LEDGER_MAX_DAYS = 5;
+        let shopLedger = {}; // { dayNumber: [ { shape, design, traits, gold } ] }
+        let ledgerSelectedDay = null;
+        function recordLedgerSale(soldSword, sv) {
+            if (!shopLedger[currentDay]) shopLedger[currentDay] = [];
+            shopLedger[currentDay].push({ shape: soldSword.shape, design: { ...soldSword.design }, traits: soldSword.traits.map(t => ({ ...t })), gold: sv });
+            const days = Object.keys(shopLedger).map(Number).sort((a, b) => a - b);
+            while (days.length > LEDGER_MAX_DAYS) delete shopLedger[days.shift()]; // drop the oldest day
+        }
+        function openLedger() { renderLedger(); document.getElementById('ledgerModal').style.display = 'flex'; }
+        function closeLedger() { document.getElementById('ledgerModal').style.display = 'none'; }
+        function selectLedgerDay(day) { ledgerSelectedDay = day; renderLedger(); }
+        function renderLedger() {
+            const tabsEl = document.getElementById('ledger-tabs'), body = document.getElementById('ledger-body');
+            const days = Object.keys(shopLedger).map(Number).sort((a, b) => b - a); // most recent first
+            if (!days.length) { tabsEl.innerHTML = ''; body.innerHTML = '<div class="empty-list">No shop sales recorded yet.</div>'; return; }
+            if (ledgerSelectedDay == null || !shopLedger[ledgerSelectedDay]) ledgerSelectedDay = days[0];
+            tabsEl.innerHTML = days.map(d => `<button class="ledger-tab${d === ledgerSelectedDay ? ' active' : ''}" onclick="selectLedgerDay(${d})">Day ${d}</button>`).join('');
+            const sales = shopLedger[ledgerSelectedDay] || [];
+            const total = sales.reduce((s, x) => s + x.gold, 0);
+            body.innerHTML = `<div class="ledger-total">${sales.length} sold · +${total}g</div>` + sales.map(sale => {
+                const traitStr = sale.traits.length ? sale.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'No traits';
+                return `<div class="ledger-row"><div class="ledger-row-img"><div class="ledger-sword">${vaultPartsHtml(sale, false)}</div></div><div class="ledger-row-info"><strong>${sale.shape}</strong><br>${traitStr}</div><div class="ledger-row-gold">+${sale.gold}g</div></div>`;
+            }).join('');
+        }
+
+        function unlockShop() { if (gold >= 500) { gold -= 500; shopUnlocked = true; bumpQuest('openShop'); shopGuideActive = false; hideHands(); updateUI(); startShopSellGuide(); } else gameAlert("You need 500 Gold to unlock the shop!"); }
 
         function findValidSwordIndex() {
             try {
@@ -2466,7 +2693,7 @@
             const heatBtn = document.getElementById('btnHeat'); heatBtn.disabled = !canHeat || isProcessingCustomer;
             if (heatBtn.disabled) hideHeatArrow(); // tutorial arrow only makes sense while Heat is clickable
             heatBtn.classList.toggle('btn-glow', !heatBtn.disabled); // pulsate when standing on a trait (Heat available)
-            const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = activeTraits.length === 0 || forgeLockedForRecord; // Forge only after a heating minigame has fused a trait; locked until the mixture is recorded during the guided record step
+            const forgeBtn = document.getElementById('btnForge'); forgeBtn.disabled = forgeCtx ? false : (activeTraits.length === 0 || forgeLockedForRecord); // a paused forge always keeps Forge live (to resume); otherwise Forge unlocks only after a heat fused a trait, and is locked during the guided record step
             if (forgeBtn.disabled) hideForgeArrow();
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
             // First-craft stage: Record Composition and Chart are locked until the first sword is forged.
@@ -2556,7 +2783,7 @@
                 back.style.visibility = 'visible'; title.textContent = '🛡️ Sword Details';
                 const sword = craftedSwords[vaultDetailIndex], index = vaultDetailIndex;
                 const costString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]}${getInitials(m)}`).join(' | ');
-                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Sell</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
+                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32; font-weight:bold;">+${sword.craftBonus} craft</span>` : ''}${(sword.hazardLoss||0) > 0 ? ` <span style="color:#c0392b; font-weight:bold;">−${sword.hazardLoss} hazard</span>` : ''}<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Sell</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
             } else {
                 // Grid view: one sword-image tile per crafted sword.
                 back.style.visibility = 'hidden'; title.textContent = '🛡️ Inventory (Vault)';
@@ -2578,7 +2805,7 @@
             const listEl = document.getElementById('shop-list'); listEl.innerHTML = ''; if (shopSwords.length === 0) { listEl.innerHTML = '<div class="empty-list">No swords in the shop.</div>'; return; }
             shopSwords.forEach(sword => {
                 const card = document.createElement('div'); card.className = 'sword-card';
-                card.innerHTML = `<div class="sword-card-title">🏪 Shop ${sword.shape}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><em>Waiting for buyer... (${sword.value}g)</em></div>`;
+                card.innerHTML = `<div class="shop-sword-img"><div class="shop-sword-inner">${vaultPartsHtml(sword, true)}</div></div><div class="sword-card-title">🏪 Shop ${sword.shape}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><em>Waiting for buyer... (${sword.value}g)</em></div>`;
                 listEl.appendChild(card);
             });
         }
@@ -2747,19 +2974,30 @@
         // Celebratory box shown the first time a given trait is heated (see resolveInteractiveHeatMinigame).
         function showNewTraitModal(trait) { document.getElementById('newTraitIcon').textContent = trait.symbol; document.getElementById('newTraitName').textContent = trait.name; document.getElementById('newTraitModal').style.display = 'flex'; }
         function closeNewTraitModal() { document.getElementById('newTraitModal').style.display = 'none'; if (recordReminderPending) setTimeout(triggerRecordReminder, 400); }
+        // Celebratory "<shape> unlocked" box shown when a new blade shape is bought in the shape-select step.
+        function showNewShapeModal(shape, src) { document.getElementById('newShapeImg').innerHTML = src ? `<img src="${src}" alt="${shape}">` : ''; document.getElementById('newShapeName').textContent = `${shape} unlocked`; document.getElementById('newShapeModal').style.display = 'flex'; }
+        function closeNewShapeModal() { document.getElementById('newShapeModal').style.display = 'none'; }
 
         // Persistent top banner shown while the Flame trait's ❓ is revealed but not yet reached (tutorial guidance).
         function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
         function hideFlameHint() { document.getElementById('flameHintBanner').classList.remove('show'); }
 
+        // Stepping onto a hazard zone: −25 HP, −4 gold (floored at 0), a red flash + a warning toast. Returns false if it was fatal.
+        function hitHazard(idx) {
+            health -= 25; hazardGoldLost += 4; // impurities: −4 is subtracted from this blade's sale price (not from current gold)
+            domCells[idx].classList.add('damage-flash'); setTimeout(() => domCells[idx].classList.remove('damage-flash'), 200);
+            gameAlert("Avoid the hazard zones! You don't want impurities in your alloy.");
+            updateUI();
+            if (health <= 0) { handleDeath(); return false; }
+            return true;
+        }
+        // Give the player a starter stock of every usable metal after the tutorial's first sale (locked diagonals untouched).
+        function topUpMetalsAfterFirstSale() { metalsList.forEach(m => { if (!(['titanium', 'aluminium', 'blackIron', 'redIron'].includes(m) && !unlockedMetals[m])) availableMetals[m] = Math.max(5, availableMetals[m]); }); }
         // Apply hazard damage for the cell the sword is currently on (used on landing). Crossing a
         // hazard mid-dash is harmless — damage is only checked where the sword lands.
         function applyHazardAtCurrent() {
             const idx = playerY * gridSize + playerX;
-            if (boardData[idx] === '💥') {
-                health -= 20; domCells[idx].classList.add('damage-flash'); setTimeout(() => domCells[idx].classList.remove('damage-flash'), 200);
-                if (health <= 0) { handleDeath(); return false; }
-            }
+            if (boardData[idx] === '💥' && !hitHazard(idx)) return false;
             return true;
         }
 
@@ -2773,10 +3011,7 @@
                 const oldIndex = playerY * gridSize + playerX, newIndex = newY * gridSize + newX; playerX = newX; playerY = newY;
                 updateVision(); renderCell(oldIndex); renderCell(newIndex);
 
-                if (applyHazard && boardData[newIndex] === '💥') {
-                    health -= 20; domCells[newIndex].classList.add('damage-flash'); setTimeout(() => domCells[newIndex].classList.remove('damage-flash'), 200);
-                    if (health <= 0) { handleDeath(); return false; }
-                }
+                if (applyHazard && boardData[newIndex] === '💥' && !hitHazard(newIndex)) return false;
 
                 if (!cameraUnlocked) centerCameraOnPlayer(); // free-camera mode: don't follow the sword
                 const onTrait = boardData[newIndex] !== '' && boardData[newIndex] !== '💥';
@@ -2969,6 +3204,7 @@
             const heatedTrait = pendingHeatTrait;
             const isNewTrait = !knownTraitIds.has(heatedTrait.id);
             if (isNewTrait) knownTraitIds.add(heatedTrait.id);
+            if (isNewTrait) bumpQuest('discover3');
             if (isNewTrait) showNewTraitModal(heatedTrait);
             else showTraitToast(`${heatedTrait.symbol} ${heatedTrait.name} trait acquired`);
 
@@ -2998,7 +3234,7 @@
 
         function handleDeath() {
             gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
-            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false;
+            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false; hazardGoldLost = 0;
             const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25; clearPath(); // blade shattered → fresh trail
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
         }
@@ -3057,6 +3293,7 @@
                 const bp = savedBlueprints[pr.existingIndex];
                 bp.traits = pr.traits.map(t => ({ ...t })); bp.recipe = { ...pr.recipe }; bp.name = traitNames + " Blade";
                 showTraitToast(`📜 ${traitNames} composition updated`);
+                bumpQuest('update3');
             } else {
                 savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
                 showTraitToast(`📜 ${traitNames} composition recorded`);
@@ -3082,19 +3319,20 @@
             if (isProcessingCustomer) return; const bp = savedBlueprints[index];
             if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
             hideHands(); closeCompositionsModal(); closeInventoryModal(); // clear the list modals so the forge pipeline shows cleanly
-            forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, heatQuality: null };
+            forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, hammerHits: 0, heatQuality: null };
             // Auto-Craft runs the full pipeline: re-heat (last-acquired trait) → shape → hammer → design.
             const heatTrait = bp.traits[bp.traits.length - 1];
             startDetachedHeat(heatTrait, (q) => { if (!forgeCtx) return; forgeCtx.heatQuality = q; openShapeModal(); });
         }
 
         function forgeSword() {
+            if (forgeCtx) { resumeForge(); return; } // a paused forge exists → drop back into it instead of starting fresh
             if (activeTraits.length === 0) return; // Forge requires at least one heated trait (button is disabled until then)
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { gameAlert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow(); hideHands();
             // Manual forge: traits were already heated on the map. Start the pipeline at shape select.
-            forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, heatQuality: null };
+            forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, hammerHits: 0, heatQuality: null };
             openShapeModal();
         }
 
@@ -3125,6 +3363,7 @@
             isProcessingCustomer = true;
             reputation--;
             customersToday++;              // a refused customer still counts toward the day's total
+            refusalsToday++;               // breaks the "no turn-aways" quest for the current day
             processCustomerDeparture(`<em>"Hmph! A terrible blacksmith indeed. I'll take my coin elsewhere!"</em>`, 1200);
         }
 
@@ -3144,13 +3383,16 @@
                 let goldEarned = sword.value;
                 if (requestCount === 1) goldEarned = Math.max(15, goldEarned); 
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
-                gold += goldEarned; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal();
+                const craftBonus = sword.craftBonus || 0, hazardLoss = sword.hazardLoss || 0; // craft bonus adds; hazard impurities subtract — both settled at sale (flat, not rep-scaled)
+                const total = Math.max(1, goldEarned + craftBonus - hazardLoss); // final price the customer pays (min 1g)
+                if (requestCount === 1) topUpMetalsAfterFirstSale(); // starter stock once the tutorial's first sale lands
+                gold += total; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal();
 
                 const wa = tutorialStep < tutorialFlow.length ? tutorialFlow[tutorialStep].waitAction : null;
                 const isFlame2 = wa === 'sellFlame2';
                 const isTutorialSale = wa === 'sell' || wa === 'sellFlame' || isFlame2;
                 const feedback = customerFeedbackLine(sword);
-                const departureText = isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `${feedback} Here's your <strong>${goldEarned} gold</strong>.`;
+                const departureText = isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `${feedback} Here's your <strong>${total} gold</strong>.`; // net total only — the +craft/−hazard breakdown lives in the sword details, not the dialogue
                 // Customer waits at the counter showing their reaction; tapping the player's response
                 // brings the next customer (tutorial advances to its next step, else a random request).
                 if (isTutorialSale) hideHands();
@@ -3164,6 +3406,7 @@
 
         document.getElementById('btnAutoSell').onclick = searchInventory;
         document.getElementById('btnNextCustomer').onclick = onSaleResponseClick;
+        document.getElementById('btnContinueDialogue').onclick = advanceCustomerDialogue;
         // Tap the customer's speech bubble to skip the word-by-word reveal.
         document.getElementById('dialogue-text').addEventListener('click', () => { if (customerTyping) finishCustomerTyping(); });
 
