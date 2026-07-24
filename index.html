@@ -232,7 +232,7 @@
         #btnSkipTutorial { bottom: 16px; }
         #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
         /* Collapsible dev-cheat box (small, top-right). */
-        #cheatBox { position: fixed; top: 8px; right: 8px; z-index: 2500; display: none; flex-direction: column; align-items: flex-end; gap: 5px; }
+        #cheatBox { position: absolute; top: 8px; right: 8px; z-index: 2500; display: none; flex-direction: column; align-items: flex-end; gap: 5px; }
         #cheatToggle { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #c8a84b; background: rgba(44,33,22,0.92); color: #f0d8a0; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
         #cheatToggle:hover { background: #4a3623; }
         #cheatPanel { display: none; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -1167,18 +1167,18 @@
         <span id="tutHand1" class="tut-hand"></span>
         <span id="tutHand2" class="tut-hand"></span>
         <span id="heatHand" class="tut-hand" style="z-index: 1003;"></span>
+        <div id="cheatBox">
+            <button id="cheatToggle" onclick="toggleCheats()" title="Cheats">🛠</button>
+            <div id="cheatPanel">
+                <button id="btnCheatMetals" class="cheat-btn" onclick="addCheatMetals()">+100 Metals ⛏️</button>
+                <button id="btnCheatGold" class="cheat-btn" onclick="addCheatGold()">+100 Gold 💰</button>
+                <button id="btnCheatSkip" class="cheat-btn" onclick="cheatSkipStage()">Skip Stage ⏭</button>
+            </div>
+        </div>
     </div>
 
     <button id="btnSkipIntro" class="corner-btn" onclick="launchCoreGame()">Skip Intro ⏭</button>
     <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
-    <div id="cheatBox">
-        <button id="cheatToggle" onclick="toggleCheats()" title="Cheats">🛠</button>
-        <div id="cheatPanel">
-            <button id="btnCheatMetals" class="cheat-btn" onclick="addCheatMetals()">+100 Metals ⛏️</button>
-            <button id="btnCheatGold" class="cheat-btn" onclick="addCheatGold()">+100 Gold 💰</button>
-            <button id="btnCheatSkip" class="cheat-btn" onclick="cheatSkipStage()">Skip Stage ⏭</button>
-        </div>
-    </div>
 
     <script>
         /* --- INTRO SEQUENCE LOGIC --- */
