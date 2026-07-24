@@ -6,6 +6,21 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ---
 
+## Variation A prototype (shipped, 7 passes)
+
+The exploration/economy half of the game was reworked end-to-end across seven implementation passes (I1–I7),
+grounded in the two design docs `specs/variation-a-the-mine.md` (supply: ringed nodes, expedition, alloy,
+essence, craft, value) and `specs/variation-a-demand-and-towns.md` (demand: claims/idle layer, customer
+intensity, towns). One-line thesis: **a sword is an alloy you walked for, a charge you extracted, and a
+craft you performed.** In order: **I1** ringed node instances replacing fixed trait coordinates · **I2** heat
+produces essence yield instead of quality · **I3** tap/hold movement density dial + alloy grade/impurity ·
+**I4** essence-spend forge stage + charge/alloy/craft value formula · **I5** requested trait *intensity* +
+capped sale payout + repriced Auto-Craft · **I6** Claims (the idle layer, with the purity-3 lock that keeps
+hand-digging relevant) · **I7** Chart fog-of-war, tutorial reconciliation, and full localStorage persistence.
+`specs/game-design.md` is kept current with all of the above — read it, not this note, for exact mechanics.
+
+---
+
 ## ✅ Done
 
 ### Session 2026-07-17 — smelter tuning, map-preview polish, compositions, day system
@@ -77,7 +92,7 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## 🔜 Next up
 
-- [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Now also needs to persist **day state** (`currentDay`, `customersToday`) alongside gold/vault/metals/compositions/upgrades/tutorial progress.
+- [x] **Save / load** game state across sessions (localStorage, `swordforge_save_v1`) — gold/essence/metals/Vault/Shop/Blueprints/smelter/day-state/tutorial-skip/quests/Diary/node-claim-state all persist; autosaves on sale/forge/day-rollover/claim/`visibilitychange`; a save skips the intro+tutorial on boot; **Reset Save** button clears it. Mid-trip state (position, HP, active blade, in-progress forge) is deliberately not persisted — see `specs/game-design.md` §9.
 - [ ] **More customer art / variety** — named customers, archetypes, more dialogue; only 3 portraits so far
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
 - [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel

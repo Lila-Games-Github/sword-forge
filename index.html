@@ -233,6 +233,7 @@
         #btnCheatMetals { bottom: 60px; }
         #btnCheatGold { bottom: 104px; }
         #btnCheatSkip { bottom: 148px; }
+        #btnResetSave { bottom: 192px; }
         #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
 
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
@@ -401,6 +402,16 @@
         .res-ti { color: #878681; } .res-st { color: #708090; } .res-al { color: #a9a9a9; } .res-mg { color: #8a8a8a; }
         .res-br { color: #CD7F32; } .res-bi { color: #1A1A1A; } .res-ir { color: #434b4d; } .res-ri { color: #A52A2A; }
         #inventory { font-size: 11px; text-align: center; background: #f8f9fa; padding: 6px; border-radius: 4px; border: 1px dashed #ccc; margin-top: 8px; }
+        /* This-trip alloy readout: proportional stacked bar (one segment per metal spent) + mix/grade text. */
+        #alloy-readout { margin-bottom: 8px; }
+        .alloy-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #eee; margin-bottom: 3px; }
+
+        /* Essence-spend step (forge pipeline stage 0): per-trait +/- stepper rows. */
+        .essence-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 4px; border-bottom: 1px solid rgba(74,54,35,0.2); }
+        .essence-step-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-weight: bold; font-size: 15px; line-height: 1; cursor: pointer; flex: none; }
+        .essence-step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        /* Shared "inputs so far" line shown across the forge pipeline modals (alloy grade / charge / craft-so-far). */
+        .forge-inputs-line { font-size: 11px; color: #4a3623; text-align: center; background: rgba(255,255,255,0.4); border-radius: 6px; padding: 3px 6px; }
 
         /* Counter-screen buttons that open the Inventory / Recorded Compositions modals. */
         .counter-panel-buttons { display: flex; gap: 8px; margin-top: 8px; }
@@ -449,6 +460,7 @@
         #dayTransition.show-text #dayTransitionText { opacity: 1; }
         
         #heatModal { z-index: 1001; }
+        #essenceModal { z-index: 1005; }
         #shapeModal { z-index: 1005; }
         #designModal { z-index: 1006; }
         #hammerModal { z-index: 1007; }
@@ -459,6 +471,7 @@
         #tutorialModal { z-index: 1010; }
         #tutorialReviewModal { z-index: 1011; }
         #chartModal { z-index: 1015; }
+        #nodePanelModal { z-index: 1016; } /* above #chartModal (1015) — openNodePanel() doesn't close the Chart, so this must out-stack it or its Manage/canvas intercept every click */
         #newTraitModal { z-index: 1012; }
         #newShapeModal { z-index: 1013; } /* above #shapeModal (1005) so it layers over the shape-select step */
         #newShapeImg img { max-height: 96px; max-width: 78%; object-fit: contain; }
@@ -850,7 +863,8 @@
                     <div class="expandable-content" id="metals-content">
                         <div class="mining-indicator" id="mining-text">⚒️ Smelting 1 Metal/Sec...</div>
                         <button id="btnUpgradeSmelter" class="btn-craft" style="background-color: #d35400; margin-bottom: 10px; margin-top: 0;">Upgrade Rate (50g)</button>
-                        
+                        <div id="alloy-readout"></div>
+
                         <div class="metals-grid-container">
                             <div style="flex: 1;">
                                 <div style="border-bottom: 1px solid #ddd; margin-bottom: 4px;"><strong>Available</strong></div>
@@ -892,6 +906,7 @@
                             <div class="interactive-heat-thumb" id="interactive-heat-thumb"></div>
                         </div>
                         <div id="heat-timer" style="text-align: center; margin-top: 6px; font-size: 13px; font-weight: bold; color: #ffd27f; display: none;"></div>
+                        <div id="heat-yield" style="text-align: center; margin-top: 2px; font-size: 12px; font-weight: bold; color: #7fd8ff; display: none;"></div>
                     </div>
                     <div id="forge-instructions" class="forge-instructions">Tap Pulley to Lower Bucket</div>
                 </div>
@@ -906,6 +921,7 @@
                     <button class="design-info-btn" title="Hint" onclick="document.getElementById('designHint').classList.toggle('show')">i</button>
                 </div>
                 <div id="designHint" class="design-hint">The look of the sword does not affect its properties... Design freely!</div>
+                <div id="design-inputs-line" class="forge-inputs-line"></div>
 
                 <div class="preview-canvas" id="preview-canvas">
                     <img id="preview-blade" src="" style="z-index: 1;">
@@ -931,12 +947,29 @@
             </div>
         </div>
 
+        <div id="essenceModal" class="modal-overlay">
+            <div class="design-modal-content">
+                <div class="design-header">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Charge the Blade</h3>
+                    <span id="essence-total" style="color: #b8860b; font-weight: bold; font-size: 13px; white-space: nowrap;">Total Charge: 0</span>
+                </div>
+                <div id="essence-inputs-line" class="forge-inputs-line"></div>
+                <p style="margin: 0; font-size: 12px; color: #5c4a33; text-align: center;">Spend banked essence into each trait — more essence, more charge, more value.</p>
+                <div class="parts-grid" id="essence-body" style="display: block; overflow-y: auto; flex: 1;"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="cancel-btn" style="flex: 1; margin-top: 0; background: #95a5a6;" onclick="closeEssenceModal()">Close</button>
+                    <button class="btn-craft" style="flex: 2; margin-top: 0; background: #27ae60;" onclick="confirmEssenceSpend()">Continue</button>
+                </div>
+            </div>
+        </div>
+
         <div id="shapeModal" class="modal-overlay">
             <div class="design-modal-content">
                 <div class="design-header">
                     <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Choose a Blade</h3>
                     <span id="shape-gold" style="color: #b8860b; font-weight: bold; font-size: 14px; white-space: nowrap;">💰 0g</span>
                 </div>
+                <div id="shape-inputs-line" class="forge-inputs-line"></div>
                 <p id="shape-subtitle" style="margin: 0; font-size: 12px; color: #5c4a33; text-align: center;">Pick the shape to forge, then hammer it into form.</p>
                 <div class="parts-grid" id="shape-grid"></div>
                 <div style="display: flex; gap: 8px;">
@@ -951,6 +984,7 @@
                 <div class="design-header">
                     <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Hammer the Blade</h3>
                 </div>
+                <div id="hammer-inputs-line" class="forge-inputs-line"></div>
                 <div class="hammer-stage" id="hammer-stage">
                     <img id="hammer-img" src="" alt="Forging blade">
                     <div id="hammer-targets"></div>
@@ -966,6 +1000,7 @@
                 <div class="design-header">
                     <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Quench the Blade</h3>
                 </div>
+                <div id="cool-inputs-line" class="forge-inputs-line"></div>
                 <div class="forge-minigame-container" style="cursor: pointer;" onclick="dipBlade()">
                     <img src="assets/backgrounds/forge_bg.png" class="forge-bg" alt="Forge">
                     <img id="cool-blade" class="cool-blade hot" src="" alt="Blade">
@@ -983,6 +1018,7 @@
                 <div class="design-header">
                     <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Sharpen the Blade</h3>
                 </div>
+                <div id="sharpen-inputs-line" class="forge-inputs-line"></div>
                 <div class="forge-minigame-container" id="sharpen-stage" style="touch-action: none; cursor: ew-resize;">
                     <img src="assets/backgrounds/sharpen_bg.png" class="forge-bg" alt="Forge floor">
                     <img src="assets/forge/grindstone.png" class="sharpen-stone" alt="Grindstone">
@@ -1084,7 +1120,10 @@
 
         <div id="chartModal" class="modal-overlay">
             <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
-                <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
+                    <button id="claimsPill" style="display:none; background:rgba(44,33,22,0.92); color:#f0d8a0; border:1px solid #c8a84b; border-radius:12px; padding:4px 10px; font-family:'Cinzel',serif; font-size:11px; font-weight:bold; cursor:pointer; white-space:nowrap;" onclick="collectAllClaims()"></button>
+                </div>
                 <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto;">
                     <canvas id="minimap-canvas" width="500" height="500" style="width: 100%; aspect-ratio: 1; display: block; border-radius: 4px; border: 2px inset #a6957a; background: #c9b690; touch-action: none; cursor: grab;"></canvas>
                     <div style="position: absolute; bottom: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px;">
@@ -1094,6 +1133,7 @@
                     <div id="chartHint" style="display:none; position:absolute; left:0; top:0; transform:translate(-50%,-100%); pointer-events:none; z-index:5; text-align:center;">
                         <div id="chartHintLabel" style="background:rgba(44,33,22,0.96); color:#f0d8a0; border:1px solid #c8a84b; border-radius:10px; padding:3px 9px; font-family:'Cinzel',serif; font-size:11px; font-weight:bold; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.5); margin-bottom:1px;">Your location</div>
                     </div>
+                    <button id="nodeManageBtn" style="display:none; position:absolute; left:0; top:0; transform:translate(-50%,0); z-index:5; background:#e67e22; color:#fff; border:1px solid #4a3623; border-radius:10px; padding:3px 10px; font-family:'Cinzel',serif; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.5);" onclick="openSelectedNodePanel()">Manage ▸</button>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin-top:10px; font-size:11px; color:#4a3623; font-family:'Cinzel',serif;">
                     <span><img src="assets/map/tile_sword.png" style="width:16px;height:16px;vertical-align:middle;object-fit:contain;"> You</span>
@@ -1101,6 +1141,14 @@
                     <span>Scroll / pinch to zoom · drag to pan</span>
                 </div>
                 <button class="cancel-btn" onclick="closeChartModal()">Close</button>
+            </div>
+        </div>
+
+        <div id="nodePanelModal" class="modal-overlay">
+            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; max-width: 360px;">
+                <h3 id="node-panel-title" style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;"></h3>
+                <div id="node-panel-body" style="font-size: 13px; text-align: left; color: #4a3623; line-height: 1.5; margin: 10px 0 14px;"></div>
+                <button class="cancel-btn" onclick="closeNodePanel()">Close</button>
             </div>
         </div>
 
@@ -1168,6 +1216,7 @@
     <button id="btnCheatSkip" class="corner-btn" onclick="cheatSkipStage()" style="display:none;">Skip Stage ⏭</button>
     <button id="btnCheatGold" class="corner-btn" onclick="addCheatGold()" style="display:none;">+100 Gold 💰</button>
     <button id="btnCheatMetals" class="corner-btn" onclick="addCheatMetals()" style="display:none;">+100 Metals ⛏️</button>
+    <button id="btnResetSave" class="corner-btn" onclick="resetSave()" style="display:none;">Reset Save 🗑️</button>
     <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
 
     <script>
@@ -1219,6 +1268,7 @@
             document.getElementById('btnCheatMetals').style.display = 'block'; // cheat: stays available throughout
             document.getElementById('btnCheatGold').style.display = 'block';  // cheat: stays available throughout
             document.getElementById('btnCheatSkip').style.display = 'block';  // cheat: skip the current forge minigame
+            document.getElementById('btnResetSave').style.display = 'block'; // stays available throughout
             initializeMainGame();
         }
 
@@ -1231,7 +1281,8 @@
         // Cheat: skip whichever forge minigame is open and proceed to the next stage.
         function cheatSkipStage() {
             const shown = id => document.getElementById(id).style.display === 'flex';
-            if (shown('heatModal')) { resolveInteractiveHeatMinigame('Epic'); return; }
+            if (shown('heatModal')) { heatYield = 4; resolveInteractiveHeatMinigame('Epic'); return; }
+            if (shown('essenceModal')) { confirmEssenceSpend(); return; }
             if (shown('shapeModal')) { confirmShape(); return; }
             if (shown('hammerModal')) {
                 clearHammerTimers(); document.getElementById('hammerModal').style.display = 'none';
@@ -1341,36 +1392,119 @@
         const BLADE_UNLOCK_COST = 50;
         let designQuality = null; // projected quality of the sword being designed → drives the crack/sparkle preview overlay
 
-        /* --- FORGE PIPELINE: shape select → hammer minigame → design (fittings) ---
-           forgeCtx carries the in-progress forge across the three modals.
+        /* --- FORGE PIPELINE: essence spend → shape select → hammer minigame → quench → design (fittings) → sharpen ---
+           forgeCtx carries the in-progress forge across the modals.
              mode 'manual' — traits were heated on the map; forge them as-is.
              mode 'auto'   — Auto-Craft from a recorded composition; a heat minigame runs first. */
         let forgeCtx = null;
         let forgeShapeIndex = 0;
+        let forgeEssenceSpend = {}; // staged per-trait {1:n,2:n,3:n} while #essenceModal is open — committed onto forgeCtx.charge/essenceSpend by confirmEssenceSpend()
 
         // Close the forge WITHOUT discarding it: snapshot the active stage's progress into forgeCtx, pause its timers,
         // hide the modals, but keep forgeCtx alive so the Forge button drops the player back in where they left off.
         function closeForge() {
             if (forgeCtx) {
-                if (forgeCtx.stage === 'shape') forgeCtx.shapeIndex = forgeShapeIndex;
+                if (forgeCtx.stage === 'essence') forgeCtx.forgeEssenceSpend = cloneChargeMap(forgeEssenceSpend);
+                else if (forgeCtx.stage === 'shape') forgeCtx.shapeIndex = forgeShapeIndex;
                 else if (forgeCtx.stage === 'hammer') { forgeCtx.hammerStage = hammerStage; forgeCtx.hammerPointIdx = hammerPointIdx; }
                 else if (forgeCtx.stage === 'design') forgeCtx.designDraft = { ...currentDesign };
                 else if (forgeCtx.stage === 'sharpen') forgeCtx.sharpenPct = sharpenPct;
             }
             clearHammerTimers(); clearCoolTimers(); clearSharpenTimers(); sharpenActive = false;
-            ['shapeModal', 'hammerModal', 'coolModal', 'designModal', 'sharpenModal'].forEach(id => document.getElementById(id).style.display = 'none');
+            ['essenceModal', 'shapeModal', 'hammerModal', 'coolModal', 'designModal', 'sharpenModal'].forEach(id => document.getElementById(id).style.display = 'none');
             updateUI(); // keep the Forge button live so it can resume the paused pipeline
         }
         // Reopen a paused forge at the stage it was closed on (Forge button re-entry).
         function resumeForge() {
             hideForgeArrow(); hideHands();
             switch (forgeCtx.stage) {
+                case 'essence': openEssenceModal(); break;
                 case 'hammer': openHammerModal(true); break;
                 case 'cool': openCoolModal(); break;
                 case 'design': openForgeDesign(); break;
                 case 'sharpen': openSharpenModal(); break;
                 default: openShapeModal();
             }
+        }
+
+        // --- Part 0: spend banked essence into charge for each trait on the blade ---
+        function defaultEssencePurity(traitId) { const e = essence[traitId]; if (!e) return 1; return [1, 2, 3].find(p => (e[p] || 0) > 0) || 1; }
+        function forgeEssenceSpendPurity(traitId) { const d = forgeEssenceSpend[traitId]; if (d) { const p = [1, 2, 3].find(p => (d[p] || 0) > 0); if (p) return p; } return defaultEssencePurity(traitId); }
+        function cloneChargeMap(m) { return Object.fromEntries(Object.entries(m || {}).map(([k, v]) => [k, { ...v }])); }
+        function openEssenceModal() {
+            forgeCtx.stage = 'essence';
+            if (tutorialStep < tutorialFlow.length) {
+                // Keep the tutorial's flow unchanged — no new screen mid-lesson: auto-allocate 1 unit per trait
+                // at its cheapest owned grade and confirm immediately, without ever showing the modal. A rushed
+                // heat (heatYield 1) already fully spent by an earlier tutorial forge must never soft-lock the
+                // guided Auto-Craft step later on, so top the bank up to at least 1 unit first (tutorial-only).
+                forgeEssenceSpend = {};
+                forgeCtx.traits.forEach(t => {
+                    const p = defaultEssencePurity(t.id);
+                    if (!essence[t.id]) essence[t.id] = { 1: 0, 2: 0, 3: 0 };
+                    if ((essence[t.id][p] || 0) < 1) essence[t.id][p] = 1;
+                    forgeEssenceSpend[t.id] = { 1: 0, 2: 0, 3: 0 }; forgeEssenceSpend[t.id][p] = 1;
+                });
+                confirmEssenceSpend();
+                return;
+            }
+            forgeEssenceSpend = forgeCtx.forgeEssenceSpend ? cloneChargeMap(forgeCtx.forgeEssenceSpend) : {};
+            forgeCtx.traits.forEach(t => {
+                if (forgeEssenceSpend[t.id]) return; // restored from a paused essence stage above
+                const tmpl = forgeCtx.chargeTemplate && forgeCtx.chargeTemplate[t.id]; // Auto-Craft's recorded spend, if any
+                const p = (tmpl && [1, 2, 3].find(pp => (tmpl[pp] || 0) > 0)) || defaultEssencePurity(t.id);
+                const owned = (essence[t.id] && essence[t.id][p]) || 0;
+                const want = tmpl ? (tmpl[p] || 0) : (owned > 0 ? 1 : 0);
+                forgeEssenceSpend[t.id] = { 1: 0, 2: 0, 3: 0 }; forgeEssenceSpend[t.id][p] = Math.max(owned > 0 ? 1 : 0, Math.min(owned, want));
+            });
+            document.getElementById('essenceModal').style.display = 'flex';
+            renderEssenceModal();
+        }
+        function closeEssenceModal() { closeForge(); }
+        function renderEssenceModal() {
+            const body = document.getElementById('essence-body'); if (!body || !forgeCtx) return;
+            let totalCharge = 0;
+            body.innerHTML = forgeCtx.traits.map(t => {
+                const p = forgeEssenceSpendPurity(t.id);
+                const owned = (essence[t.id] && essence[t.id][p]) || 0;
+                const units = Math.max(1, Math.min(owned || 1, (forgeEssenceSpend[t.id] && forgeEssenceSpend[t.id][p]) || 1));
+                const charge = units * p; totalCharge += charge;
+                return `<div class="essence-row">
+                    <div>${t.symbol} <strong>${t.name}</strong><br><span style="font-size:10px; color:#7a6752;">grade ${p} · ${owned} owned</span></div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button class="essence-step-btn" ${units <= 1 ? 'disabled' : ''} onclick="stepEssence('${t.id}', -1)">−</button>
+                        <span style="min-width:18px; text-align:center; font-weight:bold;">${units}</span>
+                        <button class="essence-step-btn" ${units >= owned ? 'disabled' : ''} onclick="stepEssence('${t.id}', 1)">+</button>
+                    </div>
+                    <div style="font-size:11px; color:#4a3623; min-width:64px; text-align:right;">charge ${charge}<br>≈${traitValue(charge)}g</div>
+                </div>`;
+            }).join('');
+            document.getElementById('essence-total').textContent = `Total Charge: ${totalCharge}`;
+            updateForgeInputsLine('essence-inputs-line');
+        }
+        function stepEssence(traitId, delta) {
+            const p = forgeEssenceSpendPurity(traitId);
+            const owned = (essence[traitId] && essence[traitId][p]) || 0;
+            if (!forgeEssenceSpend[traitId]) forgeEssenceSpend[traitId] = { 1: 0, 2: 0, 3: 0 };
+            const cur = forgeEssenceSpend[traitId][p] || 0;
+            forgeEssenceSpend[traitId][p] = Math.max(1, Math.min(owned, cur + delta));
+            renderEssenceModal();
+        }
+        function confirmEssenceSpend() {
+            const charge = {}, essenceSpend = {};
+            for (const t of forgeCtx.traits) {
+                const p = forgeEssenceSpendPurity(t.id);
+                const owned = (essence[t.id] && essence[t.id][p]) || 0;
+                if (owned <= 0) { gameAlert(`No ${t.name} essence banked — heat this trait again first.`); return; }
+                const units = Math.min(Math.max(1, (forgeEssenceSpend[t.id] && forgeEssenceSpend[t.id][p]) || 1), owned);
+                spendEssence(t.id, p, units);
+                essenceSpend[t.id] = { 1: 0, 2: 0, 3: 0 }; essenceSpend[t.id][p] = units;
+                charge[t.id] = units * p;
+            }
+            forgeCtx.charge = charge; forgeCtx.essenceSpend = essenceSpend;
+            forgeEssenceSpend = {};
+            document.getElementById('essenceModal').style.display = 'none';
+            openShapeModal();
         }
 
         // --- Part 1: choose the blade shape (3 free, 7 unlockable at 50g) ---
@@ -1381,6 +1515,7 @@
             const firstUnlocked = parts.findIndex(p => bladeUnlocked[p.id]);
             forgeShapeIndex = (forgeCtx.shapeIndex != null) ? forgeCtx.shapeIndex : (firstUnlocked >= 0 ? firstUnlocked : 0); // restore a tentative pick on resume
             document.getElementById('shapeModal').style.display = 'flex';
+            updateForgeInputsLine('shape-inputs-line');
             renderShapeGrid();
         }
         function renderShapeGrid() {
@@ -1435,6 +1570,7 @@
             document.getElementById('hammer-instructions').textContent = 'Strike the glowing marks before they fade!';
             const m = forgeCtx.hammerMisses; document.getElementById('hammer-misses').textContent = m > 0 ? `Misses: ${m}` : '';
             document.getElementById('hammerModal').style.display = 'flex';
+            updateForgeInputsLine('hammer-inputs-line');
             hTimeout(spawnHammerTarget, 550);
         }
         function spawnHammerTarget() {
@@ -1458,6 +1594,7 @@
             el.classList.add(success ? 'hit' : 'miss');
             if (success) spawnPerfectText(el.style.left, el.style.top);
             const m = forgeCtx.hammerMisses; document.getElementById('hammer-misses').textContent = m > 0 ? `Misses: ${m}` : '';
+            updateForgeInputsLine('hammer-inputs-line');
             hTimeout(() => { el.remove(); hammerPointIdx++; hTimeout(spawnHammerTarget, HAMMER_GAP_MS); }, 200);
         }
         // Green "Perfect!" that pops at the hit point and arcs out of the stage while fading (random left/right launch).
@@ -1499,6 +1636,7 @@
             document.getElementById('cool-instructions').textContent = 'Tap the blade to quench it';
             document.getElementById('cool-hand').style.display = (tutorialStep < tutorialFlow.length) ? 'block' : 'none';
             document.getElementById('coolModal').style.display = 'flex';
+            updateForgeInputsLine('cool-inputs-line');
         }
         function dipBlade() {
             if (coolDipped) return; coolDipped = true;
@@ -1527,6 +1665,7 @@
             const arr = partsFor('blade', designTraits); let bi = arr.findIndex(p => p.id === forgeCtx.shape); if (bi < 0) bi = 0;
             currentDesign = forgeCtx.designDraft ? { ...forgeCtx.designDraft } : { blade: bi, grip: 0, guard: 0, pommel: 0 }; // restore in-progress fittings on resume
             document.getElementById('designModal').style.display = 'flex';
+            updateForgeInputsLine('design-inputs-line');
             updateDesignPreview();
             switchDesignTab('grip');
         }
@@ -1558,6 +1697,7 @@
             document.getElementById('sharpen-instructions').textContent = 'Turning the wheel...';
             updateSharpenMeter();
             document.getElementById('sharpenModal').style.display = 'flex';
+            updateForgeInputsLine('sharpen-inputs-line');
             sTimeout(startSharpenSpin, 2000); // the wheel starts spinning after 2s and never stops until finish
         }
         function startSharpenSpin() {
@@ -1594,6 +1734,7 @@
             else { note.textContent = `Over-honed! −${sharpenTiersFor(pct)} quality`; note.style.color = '#e74c3c'; }
             const fb = document.getElementById('sharpen-finish-btn');
             fb.disabled = pct < SHARP_MIN; fb.style.opacity = pct < SHARP_MIN ? '0.5' : '1';
+            updateForgeInputsLine('sharpen-inputs-line'); // live craft-so-far reflects the over-hone penalty as it's ground past 110%
         }
         function finishSharpen() {
             if (sharpenPct < SHARP_MIN) return;
@@ -1635,33 +1776,78 @@
             ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => knob.addEventListener(ev, joyStop));
         }
 
-        // --- Quality: heat outcome → HP cap (manual only) → hammer penalty (−1 tier per 2 misses) ---
-        function dropTiers(quality, n) { return QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(quality) - n)]; }
+        // --- Quality: craft performance (hammer misses + sharpen over-hone), capped by alloy grade — no HP coupling ---
         function hammerPenaltyTiers() { return forgeCtx ? Math.floor(forgeCtx.hammerMisses / 2) : 0; }
-        function setTraitQuality(t, q) { const base = (t.baseValue != null) ? t.baseValue : ((t.value || 0) - (QUALITY_BONUS[t.quality] || 0)); return Object.assign({}, t, { quality: q, baseValue: base, value: base + QUALITY_BONUS[q] }); }
-        function projectedForgeQuality() {
-            const tiers = hammerPenaltyTiers();
-            if (forgeCtx.mode === 'auto') return dropTiers(forgeCtx.heatQuality || 'Fine', tiers);
-            const capped = swordQuality({ traits: forgeCtx.traits.map(t => applyQualityCap(t, healthQualityCap())) });
-            return dropTiers(capped, tiers);
+        // grade I → max Weak, II → max Fine, III → Epic allowed; each tier of craft-performance penalty drops one step further.
+        // autoPenalty: Auto-Craft caps one tier below what identical performance would give a hand forge (I5).
+        function craftQualityFor(grade, tiers, autoPenalty) { const cap = ALLOY_GRADE_ORDER.indexOf(grade); return QUALITY_ORDER[Math.max(0, Math.min(2 - tiers, cap) - (autoPenalty || 0))]; }
+        // Live tiers-so-far: hammer misses already happened; sharpen's over-hone only counts once finished (or, while
+        // actively sharpening, previews the current grind position so the readout isn't stuck at 0 mid-stage).
+        function craftTiersSoFar() { return hammerPenaltyTiers() + (forgeCtx.stage === 'sharpen' ? sharpenTiersFor(sharpenPct) : (forgeCtx.sharpenTiers || 0)); }
+        function liveAlloyGrade() { return forgeCtx.mode === 'auto' ? alloyGradeFor(metalsList.reduce((s, m) => s + (forgeCtx.recipe[m] || 0), 0), 0) : alloyGrade(); }
+        function projectedForgeQuality() { return craftQualityFor(liveAlloyGrade(), craftTiersSoFar(), forgeCtx.mode === 'auto' ? 1 : 0); }
+        // Shared "so far" readout shown across every forge pipeline modal (essence → shape → hammer → cool → design → sharpen).
+        function forgeInputsText() {
+            if (!forgeCtx) return '';
+            const grade = liveAlloyGrade();
+            const craftSoFar = craftQualityFor(grade, craftTiersSoFar(), forgeCtx.mode === 'auto' ? 1 : 0);
+            const chargePart = forgeCtx.charge ? ` · Charge <strong>${Object.values(forgeCtx.charge).reduce((s, c) => s + c, 0)}</strong>` : '';
+            return `Alloy <strong>${grade}</strong>${chargePart} · Craft so far <strong>${craftSoFar}</strong>`;
         }
+        function updateForgeInputsLine(elId) { const el = document.getElementById(elId); if (el && forgeCtx) el.innerHTML = forgeInputsText(); }
 
         let minimapAnim = null, minimapStatic = null;
         const minimapSwordImg = new Image(); minimapSwordImg.src = 'assets/map/tile_sword.png'; // same player icon as the grid map
         let minimapZoom = 1, minimapPanX = 0, minimapPanY = 0, selectedTraitCell = -1;
         let chartHintTarget = null, chartHintTimer = null; // tutorial: alternating "Your location" / "Flame trait" pointer on the minimap
+        let nodePanelId = null; // id of the node currently shown in #nodePanelModal, or null when closed
 
-        // Build the static layer once: full 50x50 ground + every trait icon (hazards are NOT shown).
+        // Build the static layer once: full 50x50 ground (hazards are NOT shown), fogged per node-discovery state.
+        // Surveyed nodes get a full reveal (icon + claim-state badge); the two unsurveyed nodes nearest the player
+        // get a dashed "rumour" ring (ring + rough compass direction, no identity); everything else draws nothing —
+        // the Chart no longer doubles as a complete solution key (variation-a-the-mine.md §2.5).
+        const MINIMAP_COMPASS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
+        function minimapCompassDir(dx, dy) { const a = Math.atan2(dy, dx); const i = (Math.round(a / (Math.PI / 4)) % 8 + 8) % 8; return MINIMAP_COMPASS[i]; }
         function buildMinimapStatic() {
             const src = document.getElementById('minimap-canvas'); if (!src) return;
             const N = gridSize; const off = document.createElement('canvas'); off.width = src.width; off.height = src.height;
             const ctx = off.getContext('2d'); const s = off.width / N;
             ctx.fillStyle = '#c9b690'; ctx.fillRect(0, 0, off.width, off.height); // uniform ground, no hazards
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = Math.round(s * 2.2) + 'px serif';
-            for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-                const v = boardData[y * N + x];
-                if (v !== '' && v !== '💥' && baseTraits.some(t => t.symbol === v)) ctx.fillText(v, x * s + s / 2, y * s + s / 2);
-            }
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            ctx.font = Math.round(s * 2.2) + 'px serif';
+            mapNodes.filter(n => n.surveyed).forEach(n => {
+                const trait = baseTraits.find(t => t.id === n.traitId); if (!trait) return;
+                const cx = n.x * s + s / 2, cy = n.y * s + s / 2;
+                const developed = n.claimed && (n.claimTiers.rate > 0 || n.claimTiers.capacity > 0 || n.claimTiers.purity > 0);
+                const spent = !n.claimed && n.charges <= 0;
+                ctx.save();
+                if (spent) ctx.globalAlpha = 0.4; // hand-dig exhausted, unclaimed — visually dimmed
+                ctx.fillText(trait.symbol, cx, cy);
+                ctx.restore();
+                if (n.claimed) { // claim-state badge: thin gold ring, thicker + a tick once any upgrade axis is spent (developed)
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(cx, cy, s * 0.62, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = developed ? 2.5 : 1.5; ctx.stroke();
+                    if (developed) {
+                        ctx.beginPath(); ctx.moveTo(cx + s * 0.32, cy - s * 0.5); ctx.lineTo(cx + s * 0.46, cy - s * 0.36); ctx.lineTo(cx + s * 0.7, cy - s * 0.68);
+                        ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 2.2; ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+            });
+            const rumours = mapNodes.filter(n => !n.surveyed)
+                .map(n => ({ n, d: Math.hypot(n.x - playerX, n.y - playerY) }))
+                .sort((a, b) => a.d - b.d).slice(0, 2).map(e => e.n);
+            ctx.save(); ctx.setLineDash([4, 3]);
+            rumours.forEach(n => {
+                const cx = n.x * s + s / 2, cy = n.y * s + s / 2;
+                ctx.beginPath(); ctx.arc(cx, cy, s * 0.85, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(160,40,40,0.85)'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.font = 'bold ' + Math.round(s * 0.85) + 'px Cinzel, serif'; ctx.fillStyle = 'rgba(110,30,30,0.9)';
+                ctx.fillText(`R${n.ring} ${minimapCompassDir(n.x - playerX, n.y - playerY)}`, cx, cy);
+            });
+            ctx.restore();
             minimapStatic = off;
         }
         function clampMinimapPan() {
@@ -1700,7 +1886,7 @@
             if (chartHintTarget) {
                 const hint = document.getElementById('chartHint');
                 let gx = playerX, gy = playerY, label = 'Your location';
-                if (chartHintTarget === 'flame') { const fi = boardData.indexOf('🔥'); if (fi !== -1) { gx = fi % gridSize; gy = Math.floor(fi / gridSize); label = 'Flame trait'; } }
+                if (chartHintTarget === 'flame') { const fn = mapNodes.find(n => n.id === 'flame_r1_a'); if (fn) { gx = fn.x; gy = fn.y; label = 'Flame trait'; } }
                 const hx = (gx * s + s / 2) * minimapZoom + minimapPanX, hy = (gy * s + s / 2) * minimapZoom + minimapPanY;
                 if (hx < 0 || hy < 0 || hx > canvas.width || hy > canvas.height) { hint.style.display = 'none'; }
                 else {
@@ -1724,11 +1910,24 @@
                 ctx.fillStyle = 'rgba(44,33,22,0.95)'; roundRectPath(ctx, sx - tw / 2 - padX, boxY, tw + padX * 2, h, 6 * k); ctx.fill();
                 ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 1.5 * k; ctx.stroke();
                 ctx.fillStyle = '#f0d8a0'; ctx.fillText(trait.name, sx, boxY + h / 2);
+                // Node "Manage" affordance: a surveyed node's tap-label grows a button beneath it, tracking pan/zoom.
+                const tappedNode = nodesByIndex[selectedTraitCell]; const mgBtn = document.getElementById('nodeManageBtn');
+                if (mgBtn) {
+                    if (tappedNode && tappedNode.surveyed) {
+                        const disp = canvas.clientWidth / canvas.width;
+                        mgBtn.style.left = Math.round(sx * disp) + 'px'; mgBtn.style.top = Math.round((boxY + h + 4 * k) * disp) + 'px';
+                        mgBtn.style.display = 'block';
+                    } else mgBtn.style.display = 'none';
+                }
+            } else {
+                const mgBtn = document.getElementById('nodeManageBtn'); if (mgBtn) mgBtn.style.display = 'none';
             }
         }
         function minimapLoop(t) { renderMinimap(t); minimapAnim = requestAnimationFrame(minimapLoop); }
 
-        // Select the trait nearest to a tap (within ~1.3 cells), given client coordinates.
+        // Select the trait nearest to a tap (within ~1.3 cells), given client coordinates. Only surveyed nodes are
+        // selectable — an unsurveyed node draws nothing on the chart (see buildMinimapStatic's fog), so it must
+        // not be tap-revealable by name either, or the fog would just be cosmetic.
         function minimapSelectAt(clientX, clientY) {
             const canvas = document.getElementById('minimap-canvas'); const rect = canvas.getBoundingClientRect(); const s = canvas.width / gridSize;
             const cx = (clientX - rect.left) * (canvas.width / rect.width), cy = (clientY - rect.top) * (canvas.height / rect.height);
@@ -1736,6 +1935,7 @@
             let best = -1, bestD = (1.3 * s) * (1.3 * s);
             for (let i = 0; i < boardData.length; i++) {
                 const v = boardData[i]; if (v === '' || v === '💥' || !baseTraits.some(t => t.symbol === v)) continue;
+                if (!nodesByIndex[i] || !nodesByIndex[i].surveyed) continue;
                 const gx = i % gridSize, gy = Math.floor(i / gridSize);
                 const dx = (gx * s + s / 2) - mapX, dy = (gy * s + s / 2) - mapY, d = dx * dx + dy * dy;
                 if (d < bestD) { bestD = d; best = i; }
@@ -1773,6 +1973,7 @@
             hideHands();
             minimapZoom = 1; minimapPanX = 0; minimapPanY = 0; selectedTraitCell = -1; // reset view each open
             buildMinimapStatic();
+            renderClaimsPill();
             if (minimapAnim) cancelAnimationFrame(minimapAnim);
             minimapLoop();
             // Guide the player during the tutorial chart step (you → flame, repeating).
@@ -1784,6 +1985,51 @@
             stopChartHint();
             if (minimapAnim) { cancelAnimationFrame(minimapAnim); minimapAnim = null; }
             if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'chartClosed') { tutorialStep++; setTimeout(playTutorialStep, 400); }
+        }
+
+        // "N claims banked" pill on the Chart header — shows only while at least one claimed node has
+        // something to collect; tapping it runs collectAllClaims() for every such node in one go.
+        function renderClaimsPill() {
+            const pill = document.getElementById('claimsPill'); if (!pill) return;
+            const ready = mapNodes.filter(n => n.claimed && n.banked > 0);
+            if (ready.length === 0) { pill.style.display = 'none'; return; }
+            pill.style.display = 'inline-block';
+            pill.textContent = `⛏️ ${ready.length} claim${ready.length > 1 ? 's' : ''} banked`;
+        }
+
+        // --- Node panel: tapping "Manage" on a surveyed node's minimap label opens claim/upgrade controls. ---
+        function openSelectedNodePanel() { const node = nodesByIndex[selectedTraitCell]; if (node) openNodePanel(node.id); }
+        function openNodePanel(nodeId) {
+            nodePanelId = nodeId;
+            document.getElementById('nodePanelModal').style.display = 'flex';
+            renderNodePanel(nodeId);
+        }
+        function closeNodePanel() { document.getElementById('nodePanelModal').style.display = 'none'; nodePanelId = null; }
+        function renderNodePanel(nodeId) {
+            if (!nodeId) return;
+            const node = mapNodes.find(n => n.id === nodeId); if (!node) return;
+            const trait = baseTraits.find(t => t.id === node.traitId);
+            document.getElementById('node-panel-title').textContent = `${trait.symbol} ${trait.name} — Ring ${node.ring}`;
+            const lockedRow = `<div style="margin-top:6px; padding:7px 8px; border-radius:6px; background:rgba(0,0,0,0.1); color:#7a5230; font-size:11.5px; text-align:center; font-weight:bold;">Purity 3 — LOCKED. No claim reaches grade 3. Go dig it yourself.</div>`;
+            let html = `<div style="margin-bottom:10px;">Hand-dig purity: <strong>grade ${node.purity}</strong> &nbsp;·&nbsp; Charges: <strong>${node.charges}/${node.maxCharges}</strong></div>`;
+            if (!node.claimed) {
+                const cost = CLAIM_COST[node.ring];
+                html += `<button class="btn-craft" style="margin-top:0;" ${(!node.surveyed || gold < cost) ? 'disabled' : ''} onclick="claimNode('${node.id}')">Claim this node — ${cost}g</button>`;
+                html += `<div style="font-size:11px; color:#7a6752; margin-top:8px;">A claim produces essence passively at grade 1, banking up to a capacity, then idles until collected. It never reaches the hand-dig's peak purity.</div>`;
+            } else {
+                const capacity = claimCapacity(node), rate = claimRate(node), pct = Math.round(100 * node.banked / capacity);
+                html += `<div style="margin-bottom:6px;"><strong>Banked:</strong> ${node.banked} / ${capacity} <span style="color:#7a6752; font-size:11px;">(+${rate}/tick · grade ${node.claimPurity})</span></div>`;
+                html += `<div style="height:10px; border-radius:5px; background:#eee; overflow:hidden; margin-bottom:10px; border:1px solid #a6957a;"><div style="height:100%; width:${pct}%; background:#e67e22;"></div></div>`;
+                html += `<button class="btn-craft" style="margin-top:0;" ${node.banked <= 0 ? 'disabled' : ''} onclick="collectNode('${node.id}')">Collect${node.banked > 0 ? ' ' + node.banked : ''}</button>`;
+                const rateCost = RATE_UPGRADE_COST(node.claimTiers.rate);
+                html += `<button class="cancel-btn" style="background:#2980b9;" ${gold < rateCost ? 'disabled' : ''} onclick="upgradeClaimRate('${node.id}')">Upgrade Rate → +${node.claimTiers.rate + 1}/tick — ${rateCost}g</button>`;
+                const capCost = CAPACITY_UPGRADE_COST(node.claimTiers.capacity);
+                html += `<button class="cancel-btn" style="background:#2980b9;" ${gold < capCost ? 'disabled' : ''} onclick="upgradeClaimCapacity('${node.id}')">Upgrade Capacity → ${CLAIM_BASE_CAPACITY + (node.claimTiers.capacity + 1) * CLAIM_CAPACITY_STEP} — ${capCost}g</button>`;
+                if (node.claimTiers.purity < 1) html += `<button class="cancel-btn" style="background:#8e44ad;" ${gold < PURITY_UPGRADE_COST ? 'disabled' : ''} onclick="upgradeClaimPurity('${node.id}')">Upgrade Purity → grade 2 — ${PURITY_UPGRADE_COST}g</button>`;
+                else html += `<div style="font-size:11px; color:#7a6752; margin-top:6px; text-align:center;">Purity: grade 2 (maximum for a claim)</div>`;
+                html += lockedRow;
+            }
+            document.getElementById('node-panel-body').innerHTML = html;
         }
 
         function updateDesignPreview() {
@@ -1830,35 +2076,43 @@
         }
 
         // Finalize the pipeline: build the sword, apply the quality chain, drop it in the Vault.
+        // Value = Σ(charge × 8) + shapeBase, scaled by craft quality (hammer misses + sharpen over-hone,
+        // capped by alloy grade — HP no longer caps quality; HP is purely the expedition budget) and alloy grade.
         function completeForge(finalDesignObj) {
             const ctx = forgeCtx; if (!ctx) return; forgeCtx = null;
             const tiers = Math.floor(ctx.hammerMisses / 2) + (ctx.sharpenTiers || 0); // −1 tier per 2 hammer misses, plus over-honing penalty
             const craftBonus = (ctx.hammerHits || 0) + (ctx.sharpenBonus || 0); // craftsmanship gold: +1 per hammer hit + sharpen-accuracy bonus (flat, paid on sale)
             const shape = ctx.shape;
+            const traits = ctx.traits.map(t => ({ id: t.id, name: t.name, symbol: t.symbol })); // identity only — no per-trait quality anymore
+            const swordBase = Object.values(ctx.charge || {}).reduce((s, c) => s + traitValue(c), 0) + (SHAPE_BASE[shape] || 5);
             if (ctx.mode === 'auto') {
-                // Auto-Craft: one heat + one hammer performance sets a uniform quality (no HP cap — no exploration).
+                // Auto-Craft: debits the blueprint's metal recipe (essence was already debited by confirmEssenceSpend upstream).
                 const bp = savedBlueprints[ctx.bpIndex];
                 metalsList.forEach(m => availableMetals[m] -= bp.recipe[m]);
-                const q = QUALITY_ORDER[Math.max(0, QUALITY_ORDER.indexOf(ctx.heatQuality || 'Fine') - tiers)];
-                const finalTraits = ctx.traits.map(t => setTraitQuality(t, q));
-                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...bp.recipe }, value: calculateSwordValue(finalTraits), craftBonus, hazardLoss: 0 };
+                const grade = alloyGradeFor(metalsList.reduce((s, m) => s + bp.recipe[m], 0), 0);
+                const craftQuality = craftQualityFor(grade, tiers, 1); // Auto-Craft: one tier below what identical performance would give a hand forge
+                const value = Math.round(swordBase * CRAFT_MULT[craftQuality] * ALLOY_MULT[grade]);
+                const newSword = { shape, design: finalDesignObj, traits, charge: { ...ctx.charge }, recipe: { ...bp.recipe }, alloyGrade: grade, craftQuality, value, craftBonus };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; updateUI(); showForgeResult(newSword);
-                if (swordQuality(newSword) === 'Epic') bumpQuest('epic5');
+                if (newSword.craftQuality === 'Epic') bumpQuest('epic5');
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'craftFlameRecipe' && bp.traits.some(t => t.id === 'flame')) { hideHands(); tutorialStep++; }
                 if (shopSellPhase === 'craft' && bp.traits.some(t => t.id === 'flame')) { hideHands(); shopSellPhase = 'toShop'; } // shop-sell guide: now send it to the shop
+                saveGame();
             } else {
-                // Manual: each trait keeps its heated quality, capped by blade HP, then dropped by the hammer penalty.
-                const cap = healthQualityCap();
-                const finalTraits = ctx.traits.map(t => { let qi = Math.min(QUALITY_ORDER.indexOf(t.quality), QUALITY_ORDER.indexOf(cap)); qi = Math.max(0, qi - tiers); return setTraitQuality(t, QUALITY_ORDER[qi]); });
-                const newSword = { shape, design: finalDesignObj, traits: finalTraits, recipe: { ...usedMetals }, value: calculateSwordValue(finalTraits), craftBonus, hazardLoss: hazardGoldLost };
+                // Manual: alloy grade comes from this trip's metal mix + hazard impurity (read before the reset below).
+                const grade = alloyGrade();
+                const craftQuality = craftQualityFor(grade, tiers);
+                const value = Math.round(swordBase * CRAFT_MULT[craftQuality] * ALLOY_MULT[grade]);
+                const newSword = { shape, design: finalDesignObj, traits, charge: { ...ctx.charge }, recipe: { ...usedMetals }, alloyGrade: grade, craftQuality, value, craftBonus };
                 craftedSwords.push(newSword); totalSwordsCrafted++; purifyEnabled = true; tutorialMetalLock = false; // first sword forged: unlock metals, auto-gen, Record Composition & Chart
-                lastForgedMixture = { traits: [...finalTraits], recipe: { ...usedMetals } }; // enables "Record Last Composition" after forging
-                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; hazardGoldLost = 0; // new blade starts fresh
+                lastForgedMixture = { traits: [...traits], recipe: { ...usedMetals }, chargeTemplate: cloneChargeMap(ctx.essenceSpend) }; // enables "Record Last Composition" after forging
+                const oldIndex = playerY * gridSize + playerX; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; alloyImpurity = 0; // new blade starts fresh
                 health = 100; playerX = 25; playerY = 25; clearPath(); // new blade → fresh trail
                 updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
                 showForgeResult(newSword);
-                if (swordQuality(newSword) === 'Epic') bumpQuest('epic5');
+                if (newSword.craftQuality === 'Epic') bumpQuest('epic5');
                 if (tutorialStep < tutorialFlow.length && tutorialFlow[tutorialStep].waitAction === 'forge') tutorialStep++;
+                saveGame();
             }
         }
 
@@ -1866,6 +2120,22 @@
         const metalsList = ['titanium', 'steel', 'aluminium', 'magnesium', 'bronze', 'blackIron', 'iron', 'redIron'];
         const getInitials = (m) => ({ titanium: 'Ti', steel: 'St', aluminium: 'Al', magnesium: 'Mg', bronze: 'Br', blackIron: 'BI', iron: 'Ir', redIron: 'RI' }[m]);
         const metalNames = { titanium: 'Titanium', steel: 'Steel', aluminium: 'Aluminium', magnesium: 'Magnesium', bronze: 'Bronze', blackIron: 'Black Iron', iron: 'Iron', redIron: 'Red Iron' };
+        // Bar-segment colors + one-word flavor adjective per metal, for the this-trip alloy readout (renderAlloyReadout).
+        const METAL_COLORS = { titanium: '#878681', steel: '#708090', aluminium: '#a9a9a9', magnesium: '#8a8a8a', bronze: '#CD7F32', blackIron: '#1A1A1A', iron: '#434b4d', redIron: '#A52A2A' };
+        const ALLOY_ADJECTIVE = { titanium: 'aerospace-grade', steel: 'steel-true', aluminium: 'feather-thin', magnesium: 'featherweight', bronze: 'warm-toned', blackIron: 'dark-tempered', iron: 'mass-heavy', redIron: 'blood-forged' };
+        // Live "this-trip" alloy mix: proportional bar + text ("Iron 6 · Steel 4 · Bronze 3 — mass-heavy") + computed grade.
+        function renderAlloyReadout() {
+            const el = document.getElementById('alloy-readout'); if (!el) return;
+            const total = metalsList.reduce((s, m) => s + usedMetals[m], 0);
+            if (total === 0) { el.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">No alloy yet — spend metal on the route to build one.</div>`; return; }
+            const entries = metalsList.filter(m => usedMetals[m] > 0).sort((a, b) => usedMetals[b] - usedMetals[a]);
+            const barHtml = entries.map(m => `<span style="flex:${usedMetals[m]}; background:${METAL_COLORS[m]};"></span>`).join('');
+            const mixText = entries.slice(0, 3).map(m => `${metalNames[m]} ${usedMetals[m]}`).join(' · ');
+            const grade = alloyGrade();
+            const gradeColor = grade === 'III' ? '#8e44ad' : grade === 'II' ? '#2980b9' : '#7f8c8d';
+            const impurityText = alloyImpurity > 0 ? ` <span style="color:#c0392b;">⚠ ${alloyImpurity} impurit${alloyImpurity > 1 ? 'ies' : 'y'}</span>` : '';
+            el.innerHTML = `<div class="alloy-bar">${barHtml}</div><div style="font-size:10px; color:#555; text-align:center;">${mixText} — <em>${ALLOY_ADJECTIVE[entries[0]] || 'mixed'}</em>${impurityText}</div><div style="font-size:11px; text-align:center; font-weight:bold; color:${gradeColor};">Alloy Grade ${grade}</div>`;
+        }
 
         function getMetalForDir(dx, dy) {
             if(dx === 0 && dy === -1) return 'steel'; if(dx === 1 && dy === -1) return 'aluminium';
@@ -2119,11 +2389,13 @@
         const gridSize = 50; const totalCells = gridSize * gridSize; const visionRadius = 3.5; 
         let playerX = 25; let playerY = 25; let health = 100; let gold = 0; let reputation = 0;
         let isProcessingCustomer = false; let requestCount = 0; let totalSwordsCrafted = 0; let suppressAutoRequest = false; let lastForgedMixture = null; let forgeLockedForRecord = false;
-        let hazardGoldLost = 0; // gold lost to hazard zones while building the current blade (stamped onto the forged sword)
+        let alloyImpurity = 0; // +1 per hazard hit while building the current blade — feeds alloyGrade() only, no longer a direct gold cost
         // Day system: 7 customers/day; End Day advances to the next day.
         let currentDay = 1; let customersToday = 0; const CUSTOMERS_PER_DAY = 7; const EARLY_END_MIN = 3; let endDayGuideActive = false; let shownDay1EndBox = false; let dayTransitioning = false; let refusalsToday = 0;
-        let activeTraits = []; let requestedTrait = null; let requestedShape = null; 
-        let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false; 
+        let activeTraits = []; let requestedTrait = null; let requestedShape = null; let requestedCharge = null; // requestedCharge: null (no intensity ask) or 3/6/9 — see setRandomRequest
+        let essence = {}; // essence[traitId] = {1:n, 2:n, 3:n} — units banked per purity grade, populated by addEssence()
+        let craftedSwords = []; let shopSwords = []; let savedBlueprints = []; let shopUnlocked = false;
+        let shopSalesToday = 0; // passive-shop sales made today, resets in runDayTransition — drives SHOP_DAILY_SALE_CAP
         
         let unlockedMetals = { titanium: false, aluminium: false, blackIron: false, redIron: false };
         // Tutorial first-craft: start with exactly 4 steel + 1 magnesium, everything else 0.
@@ -2146,6 +2418,7 @@
 
         let forgePhase = 'idle'; let heatScore = 0; let heatCompletion = 0; let heatDecay = 18; let heatAnimationFrame = null; let lastHeatTime = 0; let pendingHeatTrait = null; let pendingHeatIndex = -1;
         let heatOutcomeCb = null; // when set, the heat minigame is "detached" (Auto-Craft): resolve reports the quality via this callback instead of fusing a map trait
+        let heatYield = 0; // 1-4, last heat's essence yield — set by updateInteractiveHeatLoop/cheatSkipStage, consumed by resolveInteractiveHeatMinigame
         let bellowHeld = false; const BELLOW_HOLD_RATE = 40; // holding the bellow adds this much heat/sec (gross; decay is applied separately, so net ≈ +22/sec at default decay)
         // Heating-minigame tuning. Green band = [lo,hi]; decay = drop/sec; stabilize = seconds in band to win;
         // pump = +heat per tap; hold = +heat/sec while held; overheatBleed = completion drained/sec when too hot; blood = decay grows with heat.
@@ -2179,9 +2452,8 @@
             lightning: { stageBands: [[52, 64], [52, 64]], stabilize: 0.8, decay: 26, pump: 12, hold: 38 }, // fast two-strike
             dark:      { lo: 40, hi: 70, hidden: true, hideEvery: 1.1 },                // thumb flickers hidden
         };
-        // Quality tiers (low→high) and the value bonus each adds to a trait's distance-based base value.
+        // Craft-quality tiers (low→high) — sword-level now, not per-trait (see completeForge/craftQualityFor).
         const QUALITY_ORDER = ['Weak', 'Fine', 'Epic'];
-        const QUALITY_BONUS = { Weak: 0, Fine: 10, Epic: 20 };
         // Per-trait heat timer: seconds of heating-phase time before the heat "rushes" (quality drops to Fine).
         // Generous first pass; tutorial heats get a safe long timer. Unlisted traits use DEFAULT_HEAT_TIMER.
         const heatTimers = {
@@ -2191,19 +2463,6 @@
             durable: 11.5, endurance: 14
         };
         const DEFAULT_HEAT_TIMER = 9, TUTORIAL_HEAT_TIMER = 45;
-        // A battered blade caps quality at forge time: HP≥80 → Epic, 40–79 → Fine, <40 → Weak.
-        function healthQualityCap() { return health >= 80 ? 'Epic' : health >= 40 ? 'Fine' : 'Weak'; }
-        // Copy a trait with its quality capped at `cap` and its value recomputed for the resulting tier.
-        function applyQualityCap(t, cap) {
-            const q = QUALITY_ORDER[Math.min(QUALITY_ORDER.indexOf(t.quality), QUALITY_ORDER.indexOf(cap))];
-            const base = (t.baseValue != null) ? t.baseValue : ((t.value || 0) - (QUALITY_BONUS[t.quality] || 0));
-            return Object.assign({}, t, { quality: q, baseValue: base, value: base + QUALITY_BONUS[q] });
-        }
-        // The sword's overall quality = its highest-tier trait (drives the crack/sparkle overlay).
-        function swordQuality(sword) {
-            if (!sword.traits || !sword.traits.length) return null;
-            return sword.traits.reduce((best, t) => QUALITY_ORDER.indexOf(t.quality) > QUALITY_ORDER.indexOf(best) ? t.quality : best, 'Weak');
-        }
         let heatCfg = DEFAULT_HEAT;
         // Runtime state for the dynamic heating variants (reset each heat by initHeatDynamics).
         let heatElapsed = 0, heatStage = 0, jumpsDone = 0, hideOn = false, nextGust = 0, nextJitter = 0, nextJump = 0, nextHide = 0, curCenter = 50, lastHeatGradient = '';
@@ -2211,6 +2470,9 @@
         let knownTraitIds = new Set(); // trait IDs heated at least once this session (for the "New Trait Discovered!" box)
         let isPurifying = false; let purifyProgress = 0; let purifyDirection = 1; let purifyAnimationFrame = null; let lastPurifyTime = 0; let pendingMove = {dx: 0, dy: 0}; let activeMoveKey = null;
         let movePreviewCells = []; let lastPreviewSteps = 0; let hoverPreviewCells = [];
+        // Tap vs hold: a press under TAP_HOLD_MS resolves as a guaranteed single-block move (dense alloy);
+        // holding past it arms the existing Purify slider (thin alloy, 2-3 blocks). See doTapMove/handleMovementClick.
+        let tapTimerHandle = null; let tapArmedDir = null; const TAP_HOLD_MS = 160;
 
         const swordShapes = [ 'Shortsword', 'Longsword', 'Broadsword', 'Katana', 'Rapier', 'Cutlass', 'Claymore', 'Saber', 'Scimitar', 'Machete' ];
         
@@ -2245,17 +2507,106 @@
         }
 
         let boardData = new Array(totalCells).fill(''); let exploredCells = new Array(totalCells).fill(false); let discoveredTraits = new Array(totalCells).fill(false); let pathCells = new Array(totalCells).fill(false); // cells the active sword has landed on (dashes mark only the endpoint)
-        let domCells = []; let closest8Traits = []; 
+        let domCells = []; let closest8Traits = [];
+        let mapNodes = []; let nodesByIndex = {}; // ringed node instances (source of truth for map placement) + O(1) lookup by board index, both (re)built in generateLayout()
+
+        // Node instances, hand-placed across 3 rings around the centre (25,25). purity === ring; several traits
+        // (flame, durable, sharp) intentionally get a node at more than one ring. 9 of 24 traits get no node yet.
+        const NODE_TABLE = [
+            { id: 'balanced_r1_a',  traitId: 'balanced',  x: 24, y: 21, ring: 1 },
+            { id: 'accurate_r1_a',  traitId: 'accurate',  x: 19, y: 21, ring: 1 },
+            { id: 'flame_r1_a',     traitId: 'flame',     x: 16, y: 27, ring: 1 },
+            { id: 'durable_r1_a',   traitId: 'durable',   x: 22, y: 30, ring: 1 },
+            { id: 'sharp_r1_a',     traitId: 'sharp',     x: 30, y: 19, ring: 1 },
+            { id: 'noble_r1_a',     traitId: 'noble',     x: 27, y: 19, ring: 1 },
+            { id: 'grace_r2_a',     traitId: 'grace',     x: 35, y: 24, ring: 2 },
+            { id: 'water_r2_a',     traitId: 'water',     x: 35, y: 27, ring: 2 },
+            { id: 'durable_r2_a',   traitId: 'durable',   x: 20, y: 38, ring: 2 },
+            { id: 'endurance_r2_a', traitId: 'endurance', x: 28, y: 39, ring: 2 },
+            { id: 'fury_r2_a',      traitId: 'fury',      x: 9,  y: 27, ring: 2 },
+            { id: 'storm_r2_a',     traitId: 'storm',     x: 18, y: 14, ring: 2 },
+            { id: 'flame_r3_a',     traitId: 'flame',     x: 8,  y: 45, ring: 3 },
+            { id: 'sharp_r3_a',     traitId: 'sharp',     x: 46, y: 26, ring: 3 },
+            { id: 'cursed_r3_a',    traitId: 'cursed',    x: 6,  y: 47, ring: 3 },
+            { id: 'celestial_r3_a', traitId: 'celestial', x: 28, y: 4,  ring: 3 },
+            { id: 'ice_r3_a',       traitId: 'ice',       x: 43, y: 27, ring: 3 },
+            { id: 'dark_r3_a',      traitId: 'dark',      x: 22, y: 48, ring: 3 },
+        ];
+        // Advisory distance-from-centre → ring classifier (used for rumour-band text elsewhere; NEVER used to validate NODE_TABLE).
+        function ringOf(x, y) { const d = Math.hypot(x - 25, y - 25); return d <= 9 ? 1 : d <= 17 ? 2 : 3; }
+        function addEssence(traitId, purity, n) { essence[traitId] = essence[traitId] || { 1: 0, 2: 0, 3: 0 }; essence[traitId][purity] += n; }
+        function spendEssence(traitId, purity, n) { const e = essence[traitId]; if (!e || (e[purity] || 0) < n) return false; e[purity] -= n; return true; }
+        function essenceTotal(traitId) { const e = essence[traitId]; return e ? (e[1] || 0) + (e[2] || 0) + (e[3] || 0) : 0; }
+
+        // Alloy grade: more metal spent = higher grade, each hazard impurity knocks it back down one step.
+        const ALLOY_GRADE_ORDER = ['I', 'II', 'III'];
+        function alloyGradeFor(totalMetals, impurity) { let idx = totalMetals >= 14 ? 2 : totalMetals >= 6 ? 1 : 0; idx = Math.max(0, idx - impurity); return ALLOY_GRADE_ORDER[idx]; }
+        // Live-trip grade: total metals spent so far this route, capped down by this trip's impurity.
+        function alloyGrade() { return alloyGradeFor(metalsList.reduce((s, m) => s + usedMetals[m], 0), alloyImpurity); }
+
+        // Charge/value: a sword is worth what was walked for (charge) and how well it was forged (craft × alloy).
+        const TRAIT_VALUE_RATE = 8;
+        const CRAFT_MULT = { Weak: 0.8, Fine: 1.0, Epic: 1.3 };
+        const ALLOY_MULT = { I: 0.9, II: 1.0, III: 1.15 };
+        const SHAPE_BASE = { Shortsword: 5, Longsword: 7, Broadsword: 9, Rapier: 6, Cutlass: 7, Saber: 8, Scimitar: 9, Machete: 6, Katana: 12, Claymore: 15 };
+        function traitValue(charge) { return charge * TRAIT_VALUE_RATE; }
+        function chargeFor(spendMap) { return (spendMap[1] || 0) * 1 + (spendMap[2] || 0) * 2 + (spendMap[3] || 0) * 3; }
+        const SHOP_DAILY_SALE_CAP = 5; // passive shop sells at most this many swords per day, however lucky the rolls
+
+        // --- Claims: the idle layer. A surveyed node can be claimed for gold; a claimed node then produces
+        // essence passively (at claimPurity) on the metal-generator's tick cadence (see startMetalGenerator's
+        // claimTickCounter), banking up to a capacity ceiling where it idles until collected. Rate and capacity
+        // are open-ended gold sinks; purity can raise a claim from grade 1 to grade 2 and NO FURTHER — a claim
+        // can never reach grade 3, which is the load-bearing rule that keeps hand-digging (the whole forge
+        // minigame chain) alive. See upgradeClaimPurity().
+        const CLAIM_COST = { 1: 120, 2: 340, 3: 700 };
+        const CLAIM_BASE_RATE = 1, CLAIM_TICK_EVERY = 3, CLAIM_BASE_CAPACITY = 10, CLAIM_CAPACITY_STEP = 5, PURITY_UPGRADE_COST = 250;
+        function RATE_UPGRADE_COST(tier) { return 80 + tier * 60; }
+        function CAPACITY_UPGRADE_COST(tier) { return 80 + tier * 60; }
+        function claimRate(node) { return CLAIM_BASE_RATE + node.claimTiers.rate; }
+        function claimCapacity(node) { return CLAIM_BASE_CAPACITY + node.claimTiers.capacity * CLAIM_CAPACITY_STEP; }
+        function claimNode(nodeId) {
+            const node = mapNodes.find(n => n.id === nodeId); if (!node || node.claimed) return;
+            if (!node.surveyed) { gameAlert("Survey this node first — heat it once by hand."); return; }
+            const cost = CLAIM_COST[node.ring];
+            if (gold < cost) { gameAlert(`You need ${cost}g to claim this node.`); return; }
+            gold -= cost; node.claimed = true; node.claimPurity = 1; node.banked = 0;
+            updateUI(); renderNodePanel(nodeId); renderClaimsPill(); buildMinimapStatic(); saveGame();
+        }
+        function collectNode(nodeId) {
+            const node = mapNodes.find(n => n.id === nodeId); if (!node || !node.claimed || node.banked <= 0) return;
+            addEssence(node.traitId, node.claimPurity, node.banked); node.banked = 0;
+            updateUI(); renderNodePanel(nodeId); renderClaimsPill(); saveGame();
+        }
+        function collectAllClaims() {
+            mapNodes.filter(n => n.claimed && n.banked > 0).forEach(n => { addEssence(n.traitId, n.claimPurity, n.banked); n.banked = 0; });
+            updateUI(); if (nodePanelId) renderNodePanel(nodePanelId); renderClaimsPill(); saveGame();
+        }
+        function upgradeClaimRate(nodeId) {
+            const node = mapNodes.find(n => n.id === nodeId); if (!node || !node.claimed) return;
+            const cost = RATE_UPGRADE_COST(node.claimTiers.rate); if (gold < cost) { gameAlert(`You need ${cost}g for this upgrade.`); return; }
+            gold -= cost; node.claimTiers.rate++; updateUI(); renderNodePanel(nodeId); buildMinimapStatic(); saveGame();
+        }
+        function upgradeClaimCapacity(nodeId) {
+            const node = mapNodes.find(n => n.id === nodeId); if (!node || !node.claimed) return;
+            const cost = CAPACITY_UPGRADE_COST(node.claimTiers.capacity); if (gold < cost) { gameAlert(`You need ${cost}g for this upgrade.`); return; }
+            gold -= cost; node.claimTiers.capacity++; updateUI(); renderNodePanel(nodeId); buildMinimapStatic(); saveGame();
+        }
+        function upgradeClaimPurity(nodeId) {
+            const node = mapNodes.find(n => n.id === nodeId); if (!node || !node.claimed) return;
+            if (node.claimTiers.purity >= 1) return; // THE LOAD-BEARING RULE — no code path may ever push this past 1 (claimPurity past 2, i.e. never grade 3)
+            if (gold < PURITY_UPGRADE_COST) { gameAlert(`You need ${PURITY_UPGRADE_COST}g for this upgrade.`); return; }
+            gold -= PURITY_UPGRADE_COST; node.claimTiers.purity = 1; node.claimPurity = 1 + node.claimTiers.purity; updateUI(); renderNodePanel(nodeId); buildMinimapStatic(); saveGame();
+        }
 
         function getSwordTier(sword) {
-            const val = sword.value || 5;
-            if (val < 30) return "I (Common)"; if (val < 60) return "II (Uncommon)"; if (val < 90) return "III (Rare)"; if (val < 120) return "IV (Epic)"; return "V (Legendary)";
+            const v = sword.value || 5;
+            if (v < 25) return "I (Common)"; if (v < 60) return "II (Uncommon)"; if (v < 120) return "III (Rare)"; if (v < 200) return "IV (Epic)"; return "V (Legendary)";
         }
-        function calculateSwordValue(traits) { return (!traits || traits.length === 0) ? 5 : traits.reduce((sum, t) => sum + (t.value || 0), 0); }
 
         function showForgeResult(sword) {
             // Quality overlay: cracks on a Weak sword, sparkling stars on an Epic one (Fine gets neither).
-            const q = swordQuality(sword);
+            const q = sword.craftQuality;
             const overlaySrc = q === 'Weak' ? 'assets/sword-parts/overlays/crack.png' : q === 'Epic' ? 'assets/sword-parts/overlays/sparkle.png' : '';
             const overlayHtml = overlaySrc ? `<img src="${overlaySrc}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none;">` : '';
             const imageHtml = `
@@ -2268,20 +2619,23 @@
                 </div>
             `;
 
-            const traitString = sword.traits.length > 0 ? sword.traits.map(t => `<span style="background:#e8f4f8; padding: 2px 6px; border-radius:4px; border:1px solid #bdc3c7; display:inline-block; margin:2px;">${t.quality} ${t.symbol} ${t.name}</span>`).join(' ') : 'None';
+            const traitString = sword.traits.length > 0 ? sword.traits.map(t => `<span style="background:#e8f4f8; padding: 2px 6px; border-radius:4px; border:1px solid #bdc3c7; display:inline-block; margin:2px;">${t.symbol} ${t.name}: charge ${(sword.charge && sword.charge[t.id]) || 0}</span>`).join(' ') : 'None';
             const metalsString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]} ${getInitials(m)}`).join(' | ');
             // Big, bold quality headline shown right under the sword (Epic purple / Fine blue / Weak grey).
             const qColor = q === 'Epic' ? '#8e44ad' : q === 'Fine' ? '#2980b9' : '#7f8c8d';
             const qualityHtml = q ? `<div style="text-align:center; font-size:26px; font-weight:bold; color:${qColor}; letter-spacing:1px; margin:-4px 0 14px 0;">${q}</div>` : '';
+            const gradeColor = sword.alloyGrade === 'III' ? '#8e44ad' : sword.alloyGrade === 'II' ? '#2980b9' : '#7f8c8d';
 
             document.getElementById('forgeResultDetails').innerHTML = `
                 ${imageHtml}
                 ${qualityHtml}
                 <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Shape:</strong> <span>${sword.shape}</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Value:</strong> <span style="color:#d35400; font-weight:bold;">${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32;">+${sword.craftBonus} craft</span>` : ''}${(sword.hazardLoss||0) > 0 ? ` <span style="color:#c0392b;">−${sword.hazardLoss} hazard</span>` : ''}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Alloy Grade:</strong> <span style="color:${gradeColor}; font-weight:bold;">${sword.alloyGrade}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Craft:</strong> <span style="color:${qColor}; font-weight:bold;">${sword.craftQuality}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;"><strong>Value:</strong> <span style="color:#d35400; font-weight:bold;">${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32;">+${sword.craftBonus} craft</span>` : ''}</span></div>
                     <div style="margin-bottom: 5px;"><strong>Metals Used:</strong><br><span style="font-size:12px; color:#555;">${metalsString}</span></div>
-                    <div><strong>Active Traits:</strong><br><div style="margin-top:4px;">${traitString}</div></div>
+                    <div><strong>Active Traits (Charge):</strong><br><div style="margin-top:4px;">${traitString}</div></div>
                 </div>
             `;
             document.getElementById('forgeResultModal').style.display = 'flex';
@@ -2291,24 +2645,46 @@
 
         function generateLayout() {
             boardData.fill(''); exploredCells.fill(false); discoveredTraits.fill(false); pathCells.fill(false);
-            let seed = 1337; 
+            let seed = 1337;
             function seededRandom() { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 
-            const traitCoordinates = { 'celestial': {x: 28, y: 4}, 'luck': {x: 45, y: 6}, 'honor': {x: 35, y: 10}, 'savage': {x: 6, y: 15}, 'storm': {x: 18, y: 14}, 'noble': {x: 29, y: 16}, 'flexible': {x: 44, y: 16}, 'accurate': {x: 19, y: 21}, 'balanced': {x: 24, y: 21}, 'grace': {x: 35, y: 24}, 'sharp': {x: 46, y: 26}, 'fury': {x: 9, y: 27}, 'flame': {x: 16, y: 27}, 'water': {x: 35, y: 27}, 'ice': {x: 43, y: 27}, 'lightning': {x: 9, y: 33}, 'durable': {x: 24, y: 34}, 'floral': {x: 38, y: 36}, 'endurance': {x: 28, y: 39}, 'heavy': {x: 14, y: 43}, 'blood': {x: 43, y: 42}, 'cursed': {x: 6, y: 47}, 'dark': {x: 22, y: 48}, 'cruel': {x: 39, y: 48} };
-
-            let traitPositions = [];
-            baseTraits.forEach(trait => {
-                let coords = traitCoordinates[trait.id]; let x = coords ? coords.x : Math.floor(Math.random() * gridSize); let y = coords ? coords.y : Math.floor(Math.random() * gridSize); let idx = y * gridSize + x;
-                boardData[idx] = trait.symbol; traitPositions.push({ trait: trait, dist: Math.hypot(x - 25, y - 25) });
+            // Build ringed node instances from the hardcoded (deterministic) NODE_TABLE — replaces the old
+            // one-node-per-trait traitCoordinates placement. Multiple nodes may share a traitId (different ring).
+            nodesByIndex = {};
+            mapNodes = NODE_TABLE.map(n => {
+                const maxCharges = n.ring === 1 ? 4 : n.ring === 2 ? 3 : 2;
+                return { id: n.id, traitId: n.traitId, x: n.x, y: n.y, ring: n.ring, purity: n.ring,
+                    charges: maxCharges, maxCharges,
+                    surveyed: false, claimed: false, claimTiers: { rate: 0, capacity: 0, purity: 0 }, claimPurity: 1, banked: 0 };
             });
+            mapNodes.forEach(node => {
+                const trait = baseTraits.find(t => t.id === node.traitId); const idx = node.y * gridSize + node.x;
+                boardData[idx] = trait.symbol; nodesByIndex[idx] = node;
+            });
+            // Force the tutorial's Flame node surveyed from the start — its Chart hint (startChartHint) and the
+            // "reach Flame" guided route both depend on it being reachable/visible before the player ever heats it;
+            // this keeps the fog-of-war gate (surveyed-only reveal, below) from hiding it during the guided flow.
+            const tutorialFlameNode = mapNodes.find(n => n.id === 'flame_r1_a'); if (tutorialFlameNode) tutorialFlameNode.surveyed = true;
 
-            traitPositions.sort((a, b) => a.dist - b.dist); closest8Traits = traitPositions.slice(0, 8).map(tp => tp.trait);
+            // Nearest-first, deduped-by-trait pool (used by setRandomRequest's low-requestCount customer rolls).
+            let nodeDist = mapNodes.map(n => ({ node: n, dist: Math.hypot(n.x - 25, n.y - 25) })).sort((a, b) => a.dist - b.dist);
+            let seenTraitIds = new Set(); closest8Traits = [];
+            for (const nd of nodeDist) {
+                if (seenTraitIds.has(nd.node.traitId)) continue; seenTraitIds.add(nd.node.traitId);
+                closest8Traits.push(baseTraits.find(t => t.id === nd.node.traitId));
+                if (closest8Traits.length >= 8) break;
+            }
+
             const hazardCount = Math.floor(totalCells * 0.20);
             for(let i = 0; i < hazardCount; i++) {
                 let x, y, idx; do { x = Math.floor(seededRandom() * gridSize); y = Math.floor(seededRandom() * gridSize); idx = y * gridSize + x; } while ((x === 25 && y === 25) || boardData[idx] !== ''); boardData[idx] = '💥';
             }
             // Keep the guided tutorial path to the Balanced trait clear of hazards.
             const guidedSafe = 23 * gridSize + 24; if (boardData[guidedSafe] === '💥') boardData[guidedSafe] = '';
+            // Defense-in-depth for the guided Flame dash: (16,28) sits one tile south of the flame node
+            // (flame_r1_a, x=16,y=27) — the cell a 3-block west/south dash can overshoot to if the player's
+            // approach row is one off. Keep it clear of hazards, same as the Balanced approach above.
+            const guidedSafeFlame = 28 * gridSize + 16; if (boardData[guidedSafeFlame] === '💥') boardData[guidedSafeFlame] = '';
         }
 
         function renderCell(index) {
@@ -2387,6 +2763,7 @@
 
         function setRandomRequest() {
             requestCount++;
+            requestedCharge = null; // reset every customer — only the generic pool below (requestCount>3, non-story) ever asks for intensity
             showCosplayOption = false; // reset the Roland-only extra option each customer
             currentCustomerId = ((currentDay === 1 || currentDay === 2) && customersToday === 0) ? 'bram'
                 : (currentDay === 1 && customersToday === 6) ? 'june'
@@ -2417,12 +2794,17 @@
             else if (requestCount === 2) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Blacksmith! I heard you are good. I need a blade with the <strong>Flame</strong> 🔥 trait!`; }
             else if (requestCount === 3) { requestedTrait = baseTraits.find(t => t.id === 'flame'); requestedShape = null; line = `Do you have a good sword? I am going to fight an ice dragon — I heard they are weak to heat.`; }
             else {
-                let availablePool = requestCount <= 10 ? closest8Traits : baseTraits;
+                const minableIds = new Set(mapNodes.map(n => n.traitId)); // only ask for traits that actually have a node to dig (I5 required fix)
+                let availablePool = (requestCount <= 10 ? closest8Traits : baseTraits).filter(t => minableIds.has(t.id));
                 if (requestCount === 4) availablePool = availablePool.filter(t => t.id !== 'flame'); // 4th customer avoids Flame so the record reminder points to a fresh trait
                 requestedTrait = availablePool[Math.floor(Math.random() * availablePool.length)];
                 requestedShape = Math.random() <= 0.10 ? swordShapes[Math.floor(Math.random() * swordShapes.length)] : null;
+                const chargeOptions = requestCount < 15 ? [3, 3, 6] : [3, 6, 6, 9]; // weighted toward "a little" early, 9 unlocks later
+                requestedCharge = chargeOptions[Math.floor(Math.random() * chargeOptions.length)];
                 const shapeText = requestedShape ? `<strong>${requestedShape}</strong>` : "blade";
-                line = `Blacksmith! I need a ${shapeText} with the <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol} trait!`;
+                line = requestedCharge === 3 ? `Blacksmith! I need a ${shapeText} with a little <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol} in it!`
+                    : requestedCharge === 6 ? `Blacksmith! I need a ${shapeText}, strongly <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol}-touched!`
+                    : `Blacksmith! I need a ${shapeText} — the deepest <strong>${requestedTrait.name}</strong> ${requestedTrait.symbol} you can forge!`;
             }
             presentCustomerDialogue(line);
         }
@@ -2551,14 +2933,15 @@
             const ov = document.getElementById('dayTransition');
             ov.style.pointerEvents = 'auto'; ov.style.opacity = '1'; // fade to black
             setTimeout(() => {
-                currentDay++; customersToday = 0;
+                currentDay++; customersToday = 0; shopSalesToday = 0; // shop throughput cap refills with the new day
+                mapNodes.forEach(n => n.charges = n.maxCharges); // nodes refill on day rollover
                 metalsList.filter(m => !(['titanium', 'aluminium', 'blackIron', 'redIron'].includes(m) && !unlockedMetals[m])).forEach(m => availableMetals[m] += DAY_METAL_BONUS); // fresh-day restock
                 document.getElementById('dayTransitionText').textContent = 'Day ' + currentDay;
                 ov.classList.add('show-text');
                 isProcessingCustomer = false; suppressAutoRequest = false;
                 setRandomRequest(); // first customer of the new day
                 updateUI();
-                setTimeout(() => { ov.classList.remove('show-text'); ov.style.opacity = '0'; ov.style.pointerEvents = 'none'; dayTransitioning = false; if (cleanDay) bumpQuest('noRefuseDay'); }, 900);
+                setTimeout(() => { ov.classList.remove('show-text'); ov.style.opacity = '0'; ov.style.pointerEvents = 'none'; dayTransitioning = false; if (cleanDay) bumpQuest('noRefuseDay'); saveGame(); }, 900);
             }, 650);
         }
         function updateEndDayUI() {
@@ -2629,6 +3012,7 @@
                 + nav;
         }
 
+        let claimTickCounter = 0; // counts smelter ticks up to CLAIM_TICK_EVERY — claims produce on a slower cadence than metals (~30s, not 10s)
         function startMetalGenerator() {
             if (generationInterval) clearInterval(generationInterval);
             generationInterval = setInterval(() => {
@@ -2638,6 +3022,12 @@
                     const min = Math.min(...pool.map(m => availableMetals[m]));
                     const choices = min < METAL_FLOOR ? pool.filter(m => availableMetals[m] === min) : pool;
                     availableMetals[choices[Math.floor(Math.random() * choices.length)]]++;
+                }
+                claimTickCounter++;
+                if (claimTickCounter >= CLAIM_TICK_EVERY) {
+                    claimTickCounter = 0;
+                    mapNodes.forEach(n => { if (!n.claimed) return; n.banked = Math.min(claimCapacity(n), n.banked + claimRate(n)); });
+                    renderClaimsPill(); if (nodePanelId) renderNodePanel(nodePanelId);
                 }
                 updateUI();
             }, METAL_TICK_MS);
@@ -2660,12 +3050,14 @@
                 if (!shopUnlocked || shopSwords.length === 0) return;
                 let soldAny = false, soldTotal = 0, soldCount = 0;
                 for (let i = shopSwords.length - 1; i >= 0; i--) {
-                    if (Math.random() < 0.05) { const soldSword = shopSwords.splice(i, 1)[0]; const sv = Math.max(1, soldSword.value + (soldSword.craftBonus || 0) - (soldSword.hazardLoss || 0)); gold += sv; soldTotal += sv; soldCount++; soldAny = true; recordLedgerSale(soldSword, sv); }
+                    if (shopSalesToday >= SHOP_DAILY_SALE_CAP) break; // passive shop throughput cap — can't run away even on a lucky streak
+                    if (Math.random() < 0.05) { const soldSword = shopSwords.splice(i, 1)[0]; const sv = Math.max(1, soldSword.value + (soldSword.craftBonus || 0)); gold += sv; soldTotal += sv; soldCount++; soldAny = true; shopSalesToday++; recordLedgerSale(soldSword, sv); }
                 }
                 if (soldAny) {
                     showShopSalePopup(soldTotal, soldCount);
                     const goldText = document.getElementById('gold-text'); goldText.style.backgroundColor = '#2ecc71'; goldText.style.color = 'white'; goldText.innerHTML = `+ ${soldTotal}g`;
                     setTimeout(() => { goldText.style.backgroundColor = '#fcf8e3'; goldText.style.color = '#d4af37'; goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: inherit;">${reputation}</span>`; updateUI(); }, 800); updateUI();
+                    saveGame();
                 }
             }, 10000);
         }
@@ -2692,7 +3084,7 @@
             const sales = shopLedger[ledgerSelectedDay] || [];
             const total = sales.reduce((s, x) => s + x.gold, 0);
             body.innerHTML = `<div class="ledger-total">${sales.length} sold · +${total}g</div>` + sales.map(sale => {
-                const traitStr = sale.traits.length ? sale.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'No traits';
+                const traitStr = sale.traits.length ? sale.traits.map(t => `${t.symbol} ${t.name}`).join(', ') : 'No traits';
                 return `<div class="ledger-row"><div class="ledger-row-img"><div class="ledger-sword">${vaultPartsHtml(sale, false)}</div></div><div class="ledger-row-info"><strong>${sale.shape}</strong><br>${traitStr}</div><div class="ledger-row-gold">+${sale.gold}g</div></div>`;
             }).join('');
         }
@@ -2703,7 +3095,7 @@
             try {
                 if (requestCount === 1) return craftedSwords.length > 0 ? 0 : -1;
                 if (!requestedTrait) return -1;
-                return craftedSwords.findIndex(sword => { const hasTrait = sword.traits.some(t => t.id === requestedTrait.id); const hasShape = !requestedShape || sword.shape === requestedShape; return hasTrait && hasShape; });
+                return craftedSwords.findIndex(sword => { const hasTrait = sword.traits.some(t => t.id === requestedTrait.id) && (!requestedCharge || (sword.charge[requestedTrait.id] || 0) >= requestedCharge); const hasShape = !requestedShape || sword.shape === requestedShape; return hasTrait && hasShape; });
             } catch(e) { console.error("Error finding sword index:", e); return -1; }
         }
         
@@ -2733,11 +3125,11 @@
             if (isProcessingCustomer || (tutActive && !tutSellStep)) {
                 btnAutoSell.disabled = true;
             } else {
-                btnAutoSell.disabled = findValidSwordIndex() === -1;
+                btnAutoSell.disabled = false; // always tappable post-tutorial — searchInventory() gameAlerts on no match rather than the game pre-answering for the player
             }
 
             const inventory = document.getElementById('inventory');
-            inventory.innerHTML = activeTraits.length === 0 ? '<strong>Active Blade Traits:</strong> None' : '<strong>Active Blade Traits:</strong><br>' + activeTraits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ');
+            inventory.innerHTML = activeTraits.length === 0 ? '<strong>Active Blade Traits:</strong> None' : '<strong>Active Blade Traits:</strong><br>' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', '); // per-trait quality no longer exists at heat time (I2) — quality becomes sword-level in I4
 
             metalsList.forEach(m => {
                 document.getElementById(`avail-${m}`).textContent = `${getInitials(m)}: ${availableMetals[m]}`; document.getElementById(`used-${m}`).textContent = `${getInitials(m)}: ${usedMetals[m]}`;
@@ -2751,6 +3143,8 @@
                     }
                 }
             });
+            renderAlloyReadout();
+            renderClaimsPill();
 
             document.getElementById('mining-text').textContent = `⚒️ Smelting ${metalsPerTick} Metal${metalsPerTick > 1 ? 's' : ''} / ${METAL_TICK_MS / 1000} Sec...`; document.getElementById('btnUpgradeSmelter').disabled = gold < 50; document.getElementById('btnRefuse').disabled = isProcessingCustomer || requestCount <= 3;
             
@@ -2798,7 +3192,9 @@
                 const canAfford = metalsList.every(m => availableMetals[m] >= bp.recipe[m]);
                 const compString = metalsList.filter(m => bp.recipe[m] > 0).map(m => `${bp.recipe[m]}${getInitials(m)}`).join(' | ');
                 const delBtn = tutorialStep < tutorialFlow.length ? '' : `<button class="recipe-delete-btn" onclick="deleteBlueprint(${selectedBlueprintIndex})">🗑️ Delete</button>`;
-                body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Craft</button>${delBtn}</div></div>`;
+                // Estimate only — final value also depends on the shape/craft/alloy chosen at craft time, not known yet here.
+                const estValue = bp.traits.reduce((s, t) => s + traitValue(bp.chargeTemplate && bp.chargeTemplate[t.id] ? chargeFor(bp.chargeTemplate[t.id]) : 1), 0);
+                body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(bp)}<br><strong>Traits:</strong> ${bp.traits.map(t => `${t.symbol} ${t.name}`).join(', ')}<br><strong>Est. Value:</strong> ~${estValue}g<br><strong>Composition:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Craft</button>${delBtn}</div></div>`;
             } else {
                 // Grid view: one trait-icon tile per composition.
                 back.style.visibility = 'hidden'; title.textContent = '📜 Recorded Compositions';
@@ -2838,7 +3234,7 @@
         function vaultPartsHtml(sword, withOverlay) {
             const parts = ['blade', 'grip', 'guard', 'pommel'].map(p => `<img src="${designPartSrc(p, sword.design, sword.traits)}">`).join('');
             if (!withOverlay) return parts;
-            const q = swordQuality(sword);
+            const q = sword.craftQuality;
             const ov = q === 'Weak' ? 'assets/sword-parts/overlays/crack.png' : q === 'Epic' ? 'assets/sword-parts/overlays/sparkle.png' : '';
             return parts + (ov ? `<img src="${ov}">` : '');
         }
@@ -2851,7 +3247,8 @@
                 back.style.visibility = 'visible'; title.textContent = '🛡️ Sword Details';
                 const sword = craftedSwords[vaultDetailIndex], index = vaultDetailIndex;
                 const costString = metalsList.filter(m => sword.recipe[m] > 0).map(m => `${sword.recipe[m]}${getInitials(m)}`).join(' | ');
-                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Quality:</strong> ${swordQuality(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><strong>Value:</strong> ${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32; font-weight:bold;">+${sword.craftBonus} craft</span>` : ''}${(sword.hazardLoss||0) > 0 ? ` <span style="color:#c0392b; font-weight:bold;">−${sword.hazardLoss} hazard</span>` : ''}<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Sell</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
+                const traitStr = sword.traits.length > 0 ? sword.traits.map(t => `${t.symbol} ${t.name}: charge ${(sword.charge && sword.charge[t.id]) || 0}`).join(', ') : 'None';
+                body.innerHTML = `<div class="detail-img">${vaultPartsHtml(sword, true)}</div><div class="sword-card"><div class="sword-card-title">🗡️ Crafted ${sword.shape} #${index + 1}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Alloy Grade:</strong> ${sword.alloyGrade}<br><strong>Craft:</strong> ${sword.craftQuality}<br><strong>Traits:</strong> ${traitStr}<br><strong>Value:</strong> ${sword.value}g${(sword.craftBonus||0) > 0 ? ` <span style="color:#2e7d32; font-weight:bold;">+${sword.craftBonus} craft</span>` : ''}<br><strong>Recipe:</strong> ${costString}</div><div class="action-row"><button class="btn-action btn-sell" ${isProcessingCustomer ? 'disabled' : ''} onclick="sellSword(${index})">Sell</button><button class="btn-action btn-shop" ${!shopUnlocked ? 'disabled' : ''} onclick="moveToShop(${index})">${shopUnlocked ? 'To Shop' : 'Locked'}</button></div></div>`;
             } else {
                 // Grid view: one sword-image tile per crafted sword.
                 back.style.visibility = 'hidden'; title.textContent = '🛡️ Inventory (Vault)';
@@ -2860,9 +3257,8 @@
                 craftedSwords.forEach((sword, index) => {
                     const tile = document.createElement('div'); tile.className = 'vault-tile' + (index === vaultHighlightIndex ? ' search-highlight' : '');
                     tile.onclick = () => showVaultDetail(index);
-                    let topQuality = 'Weak'; if (sword.traits.some(t => t.quality === 'Epic')) topQuality = 'Epic'; else if (sword.traits.some(t => t.quality === 'Fine')) topQuality = 'Fine';
                     const emojis = sword.traits.length > 0 ? sword.traits.map(t => t.symbol).join('') : '🗡️';
-                    tile.innerHTML = `<div class="vault-tile-img">${vaultPartsHtml(sword, false)}</div><div class="vault-tile-cap">${emojis} ${topQuality}<br>${sword.value}g</div>`;
+                    tile.innerHTML = `<div class="vault-tile-img">${vaultPartsHtml(sword, false)}</div><div class="vault-tile-cap">${emojis} ${sword.craftQuality}<br>${sword.value}g</div>`;
                     grid.appendChild(tile);
                 });
                 body.innerHTML = ''; body.appendChild(grid);
@@ -2873,7 +3269,8 @@
             const listEl = document.getElementById('shop-list'); listEl.innerHTML = ''; if (shopSwords.length === 0) { listEl.innerHTML = '<div class="empty-list">No swords in the shop.</div>'; return; }
             shopSwords.forEach(sword => {
                 const card = document.createElement('div'); card.className = 'sword-card';
-                card.innerHTML = `<div class="shop-sword-img"><div class="shop-sword-inner">${vaultPartsHtml(sword, true)}</div></div><div class="sword-card-title">🏪 Shop ${sword.shape}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Traits:</strong> ${sword.traits.length > 0 ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'None'}<br><em>Waiting for buyer... (${sword.value}g)</em></div>`;
+                const traitStr = sword.traits.length > 0 ? sword.traits.map(t => `${t.symbol} ${t.name}`).join(', ') : 'None';
+                card.innerHTML = `<div class="shop-sword-img"><div class="shop-sword-inner">${vaultPartsHtml(sword, true)}</div></div><div class="sword-card-title">🏪 Shop ${sword.shape}</div><div class="sword-card-details"><strong>Tier:</strong> ${getSwordTier(sword)}<br><strong>Traits:</strong> ${traitStr}<br><em>Waiting for buyer... (${sword.value}g)</em></div>`;
                 listEl.appendChild(card);
             });
         }
@@ -2926,6 +3323,15 @@
             } else landWobble();
         }
 
+        // Guaranteed single-block move: spend 1 metal, move exactly 1 cell, no slider. Dense alloy (1 metal/cell) —
+        // used by the guided tutorial phase (every press) and, once purifyEnabled, by a quick tap (see handleMovementClick).
+        function doTapMove(dx, dy) {
+            if (playerX + dx < 0 || playerX + dx >= gridSize || playerY + dy < 0 || playerY + dy >= gridSize) return;
+            const metal = getMetalForDir(dx, dy); if (availableMetals[metal] <= 0) return;
+            clearHoverPreview();
+            availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(dx, dy)); move(dx, dy, false); markPath(playerY * gridSize + playerX); updateUI();
+        }
+
         function startInlinePurify(dx, dy) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;
             if (playerX + dx < 0 || playerX + dx >= gridSize || playerY + dy < 0 || playerY + dy >= gridSize) return;
@@ -2933,7 +3339,7 @@
             clearHoverPreview(); // a move is starting; drop the directional hint
 
             // Guided phase: slider locked -> each press adds 1 metal to the bucket and moves exactly 1 block.
-            if (!purifyEnabled) { availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(dx, dy)); move(dx, dy, false); markPath(playerY * gridSize + playerX); updateUI(); return; }
+            if (!purifyEnabled) { doTapMove(dx, dy); return; }
 
             pendingMove = { dx, dy }; purifyProgress = 0; purifyDirection = 1; lastPreviewSteps = 0;
             document.getElementById('inline-purify-container').style.visibility = 'visible'; document.getElementById('purify-thumb').style.left = '0%';
@@ -2986,6 +3392,7 @@
 
         // Abort a hold without moving or spending metal (drag onto the centre button, or right-click).
         function cancelInlinePurify() {
+            if (tapTimerHandle) { clearTimeout(tapTimerHandle); tapTimerHandle = null; tapArmedDir = null; } // defensive: shouldn't be armed while isPurifying, but never leak a pending tap
             if (!isPurifying) return; isPurifying = false; cancelAnimationFrame(purifyAnimationFrame); activeMoveKey = null;
             document.getElementById('inline-purify-container').style.visibility = 'hidden';
             document.getElementById('btnCancelMove').classList.remove('show-cancel');
@@ -2993,11 +3400,18 @@
         }
 
         function resolvePurifyMinigame() {
-            let totalSteps = stepsFromProgress(purifyProgress);
+            // A tap is short-circuited away before this ever runs (see handleMovementClick/keydown), so a genuine
+            // hold-release must never resolve to 1 block — that guaranteed single-block case belongs to tap alone.
+            let totalSteps = Math.max(2, stepsFromProgress(purifyProgress));
             const metal = getMetalForDir(pendingMove.dx, pendingMove.dy); availableMetals[metal]--; usedMetals[metal]++; tossMetalToBucket(btnForDir(pendingMove.dx, pendingMove.dy));
             // Dash steps pass over hazards harmlessly (applyHazard=false); only the final landing cell is checked.
-            for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false, false)) break; }
+            // Tutorial gate-advance is likewise suppressed on every intermediate step (checkTutorial=false) and
+            // evaluated once below against the dash's real final resting cell, so a pass-through cell can never
+            // prematurely advance tutorialStep ahead of where the sword actually lands.
+            for (let i = 0; i < totalSteps; i++) { if (!move(pendingMove.dx, pendingMove.dy, false, false, false)) break; }
             applyHazardAtCurrent(); markPath(playerY * gridSize + playerX); updateUI();
+            const finalIndex = playerY * gridSize + playerX;
+            checkTutorialMoveGate(finalIndex, boardData[finalIndex] !== '' && boardData[finalIndex] !== '💥');
         }
 
         function showHeatArrow() { document.getElementById('heatArrow').style.display = 'inline-block'; }
@@ -3050,9 +3464,9 @@
         function showFlameHint() { document.getElementById('flameHintBanner').classList.add('show'); }
         function hideFlameHint() { document.getElementById('flameHintBanner').classList.remove('show'); }
 
-        // Stepping onto a hazard zone: −25 HP, −4 gold (floored at 0), a red flash + a warning toast. Returns false if it was fatal.
+        // Stepping onto a hazard zone: −25 HP, +1 impurity, a red flash + a warning toast. Returns false if it was fatal.
         function hitHazard(idx) {
-            health -= 25; hazardGoldLost += 4; // impurities: −4 is subtracted from this blade's sale price (not from current gold)
+            health -= 25; alloyImpurity += 1; // impurities knock down the alloy grade (see alloyGrade()) — no longer a direct gold cost
             domCells[idx].classList.add('damage-flash'); setTimeout(() => domCells[idx].classList.remove('damage-flash'), 200);
             gameAlert("Avoid the hazard zones! You don't want impurities in your alloy.");
             updateUI();
@@ -3069,9 +3483,26 @@
             return true;
         }
 
+        // Tutorial waitAction gate-advance, factored out of move() so a multi-step dash (resolvePurifyMinigame)
+        // can suppress it on every intermediate step and evaluate it exactly once against the dash's real final
+        // resting cell — evaluating it per intermediate step let a pass-through cell prematurely advance tutorialStep.
+        function checkTutorialMoveGate(newIndex, onTrait) {
+            if (tutorialStep >= tutorialFlow.length) return;
+            const wa = tutorialFlow[tutorialStep].waitAction;
+            // hide steel+magnesium hands once the guided recipe (4 steel + 1 magnesium) is added
+            if (wa === 'reachTrait' && usedMetals.steel >= 4 && usedMetals.magnesium >= 1) hideHands();
+            // hide the magnesium hand once the Flame trait is revealed on the map
+            if (wa === 'reachFlameTrait') { const fn = mapNodes.find(n => n.id === 'flame_r1_a'); const fi = fn ? (fn.y * gridSize + fn.x) : -1; if (fi !== -1 && exploredCells[fi]) { hideHands(); showFlameHint(); } }
+            if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
+            else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 3000); }
+            else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); hideFlameHint(); tutorialStep++; showHeatArrow(); }
+        }
+
         // applyHazard=false lets the sword pass over a hazard without taking damage (dash steps do this;
         // the dash checks the final landing cell once, see resolvePurifyMinigame).
-        function move(dx, dy, consumeMetal = true, applyHazard = true) {
+        // checkTutorial=false likewise suppresses the tutorial gate-advance check on intermediate dash steps
+        // (see resolvePurifyMinigame, which evaluates checkTutorialMoveGate itself once the dash fully resolves).
+        function move(dx, dy, consumeMetal = true, applyHazard = true, checkTutorial = true) {
             const metal = getMetalForDir(dx, dy); if (consumeMetal && availableMetals[metal] <= 0) return false;
             const newX = playerX + dx, newY = playerY + dy;
             if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
@@ -3084,19 +3515,10 @@
                 if (!cameraUnlocked) centerCameraOnPlayer(); // free-camera mode: don't follow the sword
                 const onTrait = boardData[newIndex] !== '' && boardData[newIndex] !== '💥';
                 if (onTrait) showTraitToast();
-                if (tutorialStep < tutorialFlow.length) {
-                    const wa = tutorialFlow[tutorialStep].waitAction;
-                    // hide steel+magnesium hands once the guided recipe (4 steel + 1 magnesium) is added
-                    if (wa === 'reachTrait' && usedMetals.steel >= 4 && usedMetals.magnesium >= 1) hideHands();
-                    // hide the magnesium hand once the Flame trait is revealed on the map
-                    if (wa === 'reachFlameTrait') { const fi = boardData.indexOf('🔥'); if (fi !== -1 && exploredCells[fi]) { hideHands(); showFlameHint(); } }
-                    if (wa === 'move') { tutorialStep++; setTimeout(playTutorialStep, 500); }
-                    else if (wa === 'reachTrait' && onTrait) { hideHands(); tutorialStep++; setTimeout(playTutorialStep, 3000); }
-                    else if (wa === 'reachFlameTrait' && boardData[newIndex] === '🔥') { hideHands(); hideFlameHint(); tutorialStep++; showHeatArrow(); }
-                }
+                if (checkTutorial) checkTutorialMoveGate(newIndex, onTrait);
                 return true;
             }
-            return false; 
+            return false;
         }
 
         /* --- FIXED INTERACTIVE HEAT MINIGAME LOGIC --- */
@@ -3120,7 +3542,8 @@
                 const foundTrait = baseTraits.find(t => t.symbol === boardData[currentIndex]);
                 if (foundTrait) {
                     if (activeTraits.some(t => t.id === foundTrait.id)) { gameAlert("This trait is already heated into your active blade!"); return; }
-                    
+                    if ((nodesByIndex[currentIndex]?.charges || 0) <= 0) { gameAlert("This node is spent. Come back after the day resets."); return; }
+
                     pendingHeatTrait = foundTrait; pendingHeatIndex = currentIndex; forgePhase = 'pulley'; heatScore = 0; heatCompletion = 0;
                     // Per-trait heating variant (Tier A). Tutorial heats stay on the default band so onboarding isn't harder.
                     heatCfg = (tutorialStep < tutorialFlow.length) ? Object.assign({}, DEFAULT_HEAT) : Object.assign({}, DEFAULT_HEAT, heatConfigs[foundTrait.id]);
@@ -3130,7 +3553,7 @@
                     document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
                     document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
                     document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
-                    { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; } // timer shows only once heating starts
+                    { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; const hy = document.getElementById('heat-yield'); hy.style.display = 'none'; hy.textContent = ''; } // timer/yield show only once heating starts
                     cueHeat('#forge-pulley', 'leftOf'); // point/glow the pulley first
                 }
             } else gameAlert("There is no hidden trait to heat on this square!");
@@ -3148,7 +3571,7 @@
             document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
             document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
             document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
-            { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; }
+            { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; const hy = document.getElementById('heat-yield'); hy.style.display = 'none'; hy.textContent = ''; }
             cueHeat('#forge-pulley', 'leftOf');
         }
 
@@ -3160,7 +3583,7 @@
 
             setTimeout(() => {
                 forgePhase = 'heating'; document.getElementById('forge-instructions').textContent = 'Pump Bellows! Keep heat in Green!';
-                { const ht = document.getElementById('heat-timer'); ht.textContent = '⏱ ' + heatCfg.timer.toFixed(1) + 's'; ht.style.display = 'block'; }
+                { const ht = document.getElementById('heat-timer'); ht.textContent = '⏱ ' + heatCfg.timer.toFixed(1) + 's'; ht.style.display = 'block'; const hy = document.getElementById('heat-yield'); hy.style.display = 'block'; hy.textContent = '≈4 essence'; }
                 document.getElementById('forge-meter-container').style.display = 'block'; lastHeatTime = performance.now();
                 cueHeat('#forge-bellow', 'above'); // now point/glow the bellow
                 heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
@@ -3207,6 +3630,7 @@
             if (forgePhase !== 'heating') return;
             const dt = (time - lastHeatTime) / 1000; lastHeatTime = time; heatElapsed += dt;
             const htEl = document.getElementById('heat-timer'); if (htEl) htEl.textContent = '⏱ ' + Math.max(0, heatCfg.timer - heatElapsed).toFixed(1) + 's';
+            { const timeLeftFrac = Math.max(0, heatCfg.timer - heatElapsed) / heatCfg.timer; const projYield = timeLeftFrac >= 0.5 ? 4 : timeLeftFrac >= 0.25 ? 3 : 2; const hyEl = document.getElementById('heat-yield'); if (hyEl) hyEl.textContent = `≈${projYield} essence`; }
             heatScore -= heatCfg.decay * dt;
             if (heatCfg.blood) heatScore -= heatScore * 0.15 * dt; // Blood: bleeds faster the hotter it is
             if (bellowHeld) heatScore += heatCfg.hold * dt; // holding the bellow raises heat gradually
@@ -3231,6 +3655,7 @@
                     } else {
                         forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
                         document.getElementById('forge-instructions').textContent = 'Forged!';
+                        { const timeLeftFrac = Math.max(0, heatCfg.timer - heatElapsed) / heatCfg.timer; heatYield = timeLeftFrac >= 0.5 ? 4 : timeLeftFrac >= 0.25 ? 3 : 2; }
                         setTimeout(() => { resolveInteractiveHeatMinigame('Epic'); }, 600);
                         return;
                     }
@@ -3246,6 +3671,7 @@
                 forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
                 document.getElementById('heat-timer').textContent = '⏱ 0.0s';
                 document.getElementById('forge-instructions').textContent = "Time's up — rushed forge!";
+                heatYield = 1; // never 0 — a rushed forge still yields something
                 setTimeout(() => { resolveInteractiveHeatMinigame('Fine'); }, 600);
                 return;
             }
@@ -3259,12 +3685,16 @@
             // Detached (Auto-Craft) heat: report the quality and hand back to the forge pipeline; don't fuse a map trait.
             if (heatOutcomeCb) { const cb = heatOutcomeCb; heatOutcomeCb = null; pendingHeatTrait = null; pendingHeatIndex = -1; cb(heatQuality || 'Epic'); return; }
 
-            const quality = heatQuality || 'Epic'; const baseVal = Math.floor((Math.hypot(playerX - 25, playerY - 25) / 35.355339) * 100);
+            // Heat performance set heatYield (1-4, computed in updateInteractiveHeatLoop/cheatSkipStage); the node's
+            // ring sets purity. Trait quality no longer comes from heat — see I4 (forge-time craft quality).
+            const node = nodesByIndex[pendingHeatIndex];
+            if (node) { addEssence(node.traitId, node.purity, heatYield); node.charges--; node.surveyed = true; }
             if (!discoveredTraits[pendingHeatIndex]) { discoveredTraits[pendingHeatIndex] = true; renderCell(pendingHeatIndex); }
-            activeTraits.push(Object.assign({}, pendingHeatTrait, { quality: quality, baseValue: baseVal, value: baseVal + QUALITY_BONUS[quality] }));
-            domCells[pendingHeatIndex].style.backgroundColor = '#f39c12'; 
-            
-            setTimeout(() => { domCells[pendingHeatIndex].style.backgroundColor = ''; renderCell(pendingHeatIndex); }, 200);
+            activeTraits.push({ ...pendingHeatTrait }); // identity only, transitional — I4 replaces this selection model
+            const heatedCellIdx = pendingHeatIndex; // snapshot: pendingHeatIndex is reset to -1 below, before this fires
+            domCells[heatedCellIdx].style.backgroundColor = '#f39c12';
+
+            setTimeout(() => { domCells[heatedCellIdx].style.backgroundColor = ''; renderCell(heatedCellIdx); }, 200);
             updateUI();
 
             // First time a trait is heated → celebratory "New Trait Discovered!" box (layered above any
@@ -3274,7 +3704,7 @@
             if (isNewTrait) knownTraitIds.add(heatedTrait.id);
             if (isNewTrait) bumpQuest('discover3');
             if (isNewTrait) showNewTraitModal(heatedTrait);
-            else showTraitToast(`${heatedTrait.symbol} ${heatedTrait.name} trait acquired`);
+            else showTraitToast(`${heatedTrait.symbol} ${heatedTrait.name} trait acquired — +${heatYield} essence (grade ${node ? node.purity : '?'})`);
 
             pendingHeatTrait = null; pendingHeatIndex = -1;
 
@@ -3302,7 +3732,7 @@
 
         function handleDeath() {
             gameAlert("Your active blade shattered! You lost the materials and traits inside it.");
-            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false; hazardGoldLost = 0;
+            health = 100; activeTraits = []; usedMetals = { titanium: 0, steel: 0, aluminium: 0, magnesium: 0, bronze: 0, blackIron: 0, iron: 0, redIron: 0 }; forgeLockedForRecord = false; alloyImpurity = 0;
             const oldIndex = playerY * gridSize + playerX; playerX = 25; playerY = 25; clearPath(); // blade shattered → fresh trail
             updateVision(); renderCell(oldIndex); renderCell(playerY * gridSize + playerX); updateUI(); centerCameraOnPlayer();
         }
@@ -3310,16 +3740,16 @@
         let pendingRecord = null;
         function saveRecipe() {
             // Record the active blade's mixture, or — when nothing is active (e.g. right after forging) — the last forged mixture.
-            let traits, recipe;
+            let traits, recipe, chargeTemplate = null;
             if (activeTraits.length > 0) {
                 const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0); if (totalUsed === 0) { gameAlert("You haven't used any metals yet!"); return; }
-                traits = activeTraits; recipe = usedMetals;
+                traits = activeTraits; recipe = usedMetals; // recording pre-forge — no essence spend to reference yet
             } else if (lastForgedMixture) {
-                traits = lastForgedMixture.traits; recipe = lastForgedMixture.recipe;
+                traits = lastForgedMixture.traits; recipe = lastForgedMixture.recipe; chargeTemplate = lastForgedMixture.chargeTemplate || null;
             } else { gameAlert("You need at least one heated trait to save a recipe!"); return; }
             // A composition is keyed by its trait set. Re-recording the same trait(s) updates that entry (with a before/after comparison).
             const existingIndex = savedBlueprints.findIndex(bp => bp.traits.length === traits.length && traits.every(t => bp.traits.some(bt => bt.id === t.id)));
-            pendingRecord = { traits: traits.map(t => ({ ...t })), recipe: { ...recipe }, existingIndex };
+            pendingRecord = { traits: traits.map(t => ({ ...t })), recipe: { ...recipe }, chargeTemplate: chargeTemplate ? cloneChargeMap(chargeTemplate) : null, existingIndex };
             openRecordModal();
         }
         function metalsSummary(recipe) { return metalsList.filter(m => recipe[m] > 0).map(m => `${recipe[m]} ${metalNames[m]}`).join(', ') || 'no metals'; }
@@ -3356,14 +3786,14 @@
         }
         function confirmRecord() {
             const pr = pendingRecord; if (!pr) return; pendingRecord = null;
-            const traitNames = pr.traits.map(t => `${t.quality} ${t.name}`).join(' & ');
+            const traitNames = pr.traits.map(t => t.name).join(' & ');
             if (pr.existingIndex >= 0) {
                 const bp = savedBlueprints[pr.existingIndex];
-                bp.traits = pr.traits.map(t => ({ ...t })); bp.recipe = { ...pr.recipe }; bp.name = traitNames + " Blade";
+                bp.traits = pr.traits.map(t => ({ ...t })); bp.recipe = { ...pr.recipe }; bp.name = traitNames + " Blade"; if (pr.chargeTemplate) bp.chargeTemplate = cloneChargeMap(pr.chargeTemplate);
                 showTraitToast(`📜 ${traitNames} composition updated`);
                 bumpQuest('update3');
             } else {
-                savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
+                savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, chargeTemplate: pr.chargeTemplate ? cloneChargeMap(pr.chargeTemplate) : null, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
                 showTraitToast(`📜 ${traitNames} composition recorded`);
             }
             document.getElementById('recordModal').style.display = 'none';
@@ -3375,8 +3805,8 @@
         // "Keep Both": save the new composition alongside the existing one (two entries can share a trait set with different metals).
         function keepBothRecord() {
             const pr = pendingRecord; if (!pr) return; pendingRecord = null;
-            const traitNames = pr.traits.map(t => `${t.quality} ${t.name}`).join(' & ');
-            savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
+            const traitNames = pr.traits.map(t => t.name).join(' & ');
+            savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, chargeTemplate: pr.chargeTemplate ? cloneChargeMap(pr.chargeTemplate) : null, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
             showTraitToast(`📜 ${traitNames} composition recorded`);
             document.getElementById('recordModal').style.display = 'none';
             forgeLockedForRecord = false; // recording done — Forge is available again
@@ -3384,13 +3814,15 @@
         }
 
         function quickCraft(index) {
-            if (isProcessingCustomer) return; const bp = savedBlueprints[index];
-            if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
+            if (isProcessingCustomer) return;
             hideHands(); closeCompositionsModal(); closeInventoryModal(); // clear the list modals so the forge pipeline shows cleanly
-            forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, hammerHits: 0, heatQuality: null };
-            // Auto-Craft runs the full pipeline: re-heat (last-acquired trait) → shape → hammer → design.
+            if (forgeCtx) { resumeForge(); return; } // a paused forge (manual or Auto-Craft) already exists -> resume it instead of silently overwriting it, same guard as forgeSword
+            const bp = savedBlueprints[index];
+            if (!metalsList.every(m => availableMetals[m] >= bp.recipe[m])) { gameAlert("Not enough available metals to craft this recipe!"); return; }
+            forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: { ...bp.recipe }, bpIndex: index, hammerMisses: 0, hammerHits: 0, heatQuality: null, chargeTemplate: bp.chargeTemplate ? cloneChargeMap(bp.chargeTemplate) : null };
+            // Auto-Craft runs the full pipeline: re-heat (last-acquired trait) → essence spend → shape → hammer → design.
             const heatTrait = bp.traits[bp.traits.length - 1];
-            startDetachedHeat(heatTrait, (q) => { if (!forgeCtx) return; forgeCtx.heatQuality = q; openShapeModal(); });
+            startDetachedHeat(heatTrait, (q) => { if (!forgeCtx) return; forgeCtx.heatQuality = q; openEssenceModal(); });
         }
 
         function forgeSword() {
@@ -3399,9 +3831,9 @@
             const totalUsed = metalsList.reduce((sum, m) => sum + usedMetals[m], 0);
             if (totalUsed === 0) { gameAlert("You need to use at least 1 metal (by moving) to forge a blade!"); return; }
             hideForgeArrow(); hideHands();
-            // Manual forge: traits were already heated on the map. Start the pipeline at shape select.
-            forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, hammerHits: 0, heatQuality: null };
-            openShapeModal();
+            // Manual forge: traits were already heated on the map. Start the pipeline at the essence-spend step.
+            forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, hammerHits: 0, heatQuality: null, chargeTemplate: null };
+            openEssenceModal();
         }
 
         /* --- FAILSAFE CUSTOMER PROCESSING --- */
@@ -3436,40 +3868,50 @@
         }
 
         function sellSword(index) {
-            if (isProcessingCustomer) return; 
+            if (isProcessingCustomer) return;
             const sword = craftedSwords[index];
-            let hasRequestedTrait = true; 
+            let hasRequestedTrait = true;
             let hasRequestedShape = true;
-            
-            if (requestCount !== 1) { 
-                hasRequestedTrait = sword.traits.some(t => t.id === requestedTrait.id); 
-                hasRequestedShape = !requestedShape || sword.shape === requestedShape; 
+
+            if (requestCount !== 1) {
+                hasRequestedTrait = sword.traits.some(t => t.id === requestedTrait.id) && (!requestedCharge || (sword.charge[requestedTrait.id] || 0) >= requestedCharge);
+                hasRequestedShape = !requestedShape || sword.shape === requestedShape;
             }
-            
+
             if (hasRequestedTrait && hasRequestedShape) {
-                isProcessingCustomer = true; 
-                let goldEarned = sword.value;
-                if (requestCount === 1) goldEarned = Math.max(15, goldEarned); 
+                isProcessingCustomer = true;
+                let goldEarned;
+                if (requestCount === 1) {
+                    goldEarned = Math.max(15, sword.value); // no requestedTrait exists yet for the very first sale
+                } else {
+                    // Pay for what was asked for, not the whole sword: the requested trait's own value, plus at most
+                    // a 25% top-up from everything else on the blade (both scaled by this sword's craft × alloy).
+                    const cm = CRAFT_MULT[sword.craftQuality], am = ALLOY_MULT[sword.alloyGrade];
+                    const rv = traitValue(sword.charge[requestedTrait.id] || 0) * cm * am;
+                    const otherValue = sword.traits.filter(t => t.id !== requestedTrait.id).reduce((s, t) => s + traitValue(sword.charge[t.id] || 0), 0) * cm * am;
+                    goldEarned = rv + Math.min(otherValue, 0.25 * rv);
+                }
                 if (reputation < 0) goldEarned = Math.max(1, Math.floor(goldEarned * 0.8)); else if (reputation > 10) goldEarned = Math.floor(goldEarned * 1.2);
-                const craftBonus = sword.craftBonus || 0, hazardLoss = sword.hazardLoss || 0; // craft bonus adds; hazard impurities subtract — both settled at sale (flat, not rep-scaled)
-                const total = Math.max(1, goldEarned + craftBonus - hazardLoss); // final price the customer pays (min 1g)
-                if (currentCustomerId && diaryGiven[currentCustomerId]) { const tr = sword.traits.length ? sword.traits.map(t => `${t.quality} ${t.symbol} ${t.name}`).join(', ') : 'plain'; diaryGiven[currentCustomerId].push(`${tr} ${sword.shape}`); } // log the sale to the customer's Diary page
+                const craftBonus = sword.craftBonus || 0; // craftsmanship gold — settled at sale (flat, not rep-scaled)
+                const total = Math.max(1, Math.round(goldEarned + craftBonus)); // final price the customer pays (min 1g)
+                if (currentCustomerId && diaryGiven[currentCustomerId]) { const tr = sword.traits.length ? sword.traits.map(t => `${t.symbol} ${t.name}`).join(', ') : 'plain'; diaryGiven[currentCustomerId].push(`${tr} ${sword.shape}`); } // log the sale to the customer's Diary page
                 if (requestCount === 1) topUpMetalsAfterFirstSale(); // starter stock once the tutorial's first sale lands
-                gold += total; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal();
+                gold += total; reputation++; craftedSwords.splice(index, 1); vaultHighlightIndex = -1; closeInventoryModal(); saveGame();
 
                 const wa = tutorialStep < tutorialFlow.length ? tutorialFlow[tutorialStep].waitAction : null;
                 const isFlame2 = wa === 'sellFlame2';
                 const isTutorialSale = wa === 'sell' || wa === 'sellFlame' || isFlame2;
                 const feedback = customerFeedbackLine(sword);
-                const departureText = isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `${feedback} Here's your <strong>${total} gold</strong>.`; // net total only — the +craft/−hazard breakdown lives in the sword details, not the dialogue
+                const departureText = isFlame2 ? `You can craft such a powerful sword? This is amazing!` : `${feedback} Here's your <strong>${total} gold</strong>.`; // net total only — the breakdown lives in the sword details, not the dialogue
                 // Customer waits at the counter showing their reaction; tapping the player's response
                 // brings the next customer (tutorial advances to its next step, else a random request).
                 if (isTutorialSale) hideHands();
                 showSaleFeedback(departureText, isTutorialSale ? () => { tutorialStep++; playTutorialStep(); } : () => { maybeSummonNextCustomer(); });
             } else if (!hasRequestedTrait) {
-                gameAlert(`The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`); 
-            } else if (!hasRequestedShape) { 
-                gameAlert(`The customer refuses. "This is a ${sword.shape}! I specifically asked for a ${requestedShape}!"`); 
+                const notEnough = requestedCharge && sword.traits.some(t => t.id === requestedTrait.id); // has the trait, just not deep enough
+                gameAlert(notEnough ? `The customer refuses. "That ${requestedTrait.name} isn't strong enough — I need it more intense!"` : `The customer refuses. "I specifically asked for the ${requestedTrait.symbol} ${requestedTrait.name} trait!"`);
+            } else if (!hasRequestedShape) {
+                gameAlert(`The customer refuses. "This is a ${sword.shape}! I specifically asked for a ${requestedShape}!"`);
             }
         }
 
@@ -3481,6 +3923,8 @@
 
         function moveToShop(index) { if (!shopUnlocked) return; shopSwords.push(craftedSwords.splice(index, 1)[0]); vaultHighlightIndex = -1; closeInventoryModal(); updateUI(); if (shopSellPhase === 'toShop') { hideHands(); shopSellPhase = 'shopBox'; setTimeout(updateShopSellHand, 300); } } // shop-sell guide: now head to the shop
 
+        // Tap (<TAP_HOLD_MS) = guaranteed 1-block move, no slider. Hold (>=TAP_HOLD_MS) arms the Purify slider.
+        // Guided (!purifyEnabled) phase is untouched: startInlinePurify itself still resolves it as an instant tap.
         function handleMovementClick(d) {
             if (isProcessingCustomer || document.getElementById('heatModal').style.display === 'flex' || document.getElementById('designModal').style.display === 'flex') return;
             const metal = getMetalForDir(d.dx, d.dy);
@@ -3488,7 +3932,10 @@
             if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) {
                 if (gold >= 50) { gold -= 50; unlockedMetals[metal] = true; updateUI(); } else { gameAlert(`You need 50 Gold to unlock ${metal}!`); } return;
             }
-            startInlinePurify(d.dx, d.dy);
+            if (!purifyEnabled) { startInlinePurify(d.dx, d.dy); return; } // guided phase: unchanged, instant single-block move
+            if (tapTimerHandle) return; // defensive: already armed (shouldn't double-fire from one press)
+            tapArmedDir = { dx: d.dx, dy: d.dy };
+            tapTimerHandle = setTimeout(() => { tapTimerHandle = null; tapArmedDir = null; startInlinePurify(d.dx, d.dy); }, TAP_HOLD_MS);
         }
 
         const dirBtns = [ { id: 'btnSteel', dx: 0, dy: -1 }, { id: 'btnIron', dx: 0, dy: 1 }, { id: 'btnMagnesium', dx: -1, dy: 0 }, { id: 'btnBronze', dx: 1, dy: 0 }, { id: 'btnTitanium', dx: -1, dy: -1 }, { id: 'btnAluminium', dx: 1, dy: -1 }, { id: 'btnRedIron', dx: 1, dy: 1 }, { id: 'btnBlackIron', dx: -1, dy: 1 } ];
@@ -3500,8 +3947,14 @@
             btn.addEventListener('mouseleave', clearHoverPreview);
         });
 
-        window.addEventListener('mouseup', () => { if (isPurifying && !activeMoveKey) stopInlinePurify(); });
-        window.addEventListener('touchend', () => { if (isPurifying && !activeMoveKey) stopInlinePurify(); });
+        // Release before the hold timer armed the slider -> resolve as the guaranteed single-block tap instead.
+        // Timer already fired (slider visible) -> fall through to the existing stopInlinePurify() resolution.
+        function releaseMovement() {
+            if (tapTimerHandle && !activeMoveKey) { clearTimeout(tapTimerHandle); tapTimerHandle = null; const d = tapArmedDir; tapArmedDir = null; if (d) doTapMove(d.dx, d.dy); return; }
+            if (isPurifying && !activeMoveKey) stopInlinePurify();
+        }
+        window.addEventListener('mouseup', releaseMovement);
+        window.addEventListener('touchend', releaseMovement);
 
         // Cancel a held move: drag the cursor onto the centre cancel button, slide a finger over it, or right-click.
         (function setupMoveCancel() {
@@ -3524,14 +3977,20 @@
             else if (key === 'c') { dx = 1; dy = 1; } else if (key === 's' || key === 'arrowdown' || key === 'x') { dx = 0; dy = 1; } else if (key === 'z') { dx = -1; dy = 1; }
             else if (key === 'a' || key === 'arrowleft') { dx = -1; dy = 0; } else if (key === 'q') { dx = -1; dy = -1; } else return;
 
-            e.preventDefault(); if (isPurifying) return; 
+            e.preventDefault(); if (isPurifying || tapTimerHandle) return;
             const metal = getMetalForDir(dx, dy);
             if (tutorialMetalLock && metal !== 'steel' && metal !== 'magnesium') return; // first-craft stage: only steel & magnesium
             if (['titanium', 'aluminium', 'blackIron', 'redIron'].includes(metal) && !unlockedMetals[metal]) { gameAlert(`Click the locked button on the grid to unlock ${metal} for 50g first!`); return; }
-            activeMoveKey = key; startInlinePurify(dx, dy);
+            activeMoveKey = key;
+            if (!purifyEnabled) { startInlinePurify(dx, dy); return; } // guided phase: unchanged, instant single-block move
+            tapArmedDir = { dx, dy }; tapTimerHandle = setTimeout(() => { tapTimerHandle = null; tapArmedDir = null; startInlinePurify(dx, dy); }, TAP_HOLD_MS);
         });
 
-        document.addEventListener('keyup', (e) => { if (isPurifying && activeMoveKey === e.key.toLowerCase()) { e.preventDefault(); activeMoveKey = null; stopInlinePurify(); } });
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase(); if (activeMoveKey !== key) return;
+            if (tapTimerHandle) { e.preventDefault(); clearTimeout(tapTimerHandle); tapTimerHandle = null; const d = tapArmedDir; tapArmedDir = null; activeMoveKey = null; if (d) doTapMove(d.dx, d.dy); return; }
+            if (isPurifying) { e.preventDefault(); activeMoveKey = null; stopInlinePurify(); }
+        });
 
         document.getElementById('btnHeat').onclick = initiateHeatSequence; document.getElementById('btnForge').onclick = forgeSword;
         document.getElementById('btnSaveRecipe').onclick = saveRecipe; document.getElementById('btnChart').onclick = openChartModal;
@@ -3539,16 +3998,78 @@
         document.getElementById('btnCosplay').onclick = onCosplayClick;
         document.getElementById('btnCameraLock').onclick = toggleCameraLock;
 
-        function initializeMainGame() {
-            slideScreen(0); 
-            generateLayout(); 
-            initDOMGrid(); 
-            setRandomRequest(); 
-            startMetalGenerator(); 
-            startShopLoop(); 
+        // skipLayoutGen: true when resuming from a save (loadGame() already rebuilt + overlaid mapNodes/boardData —
+        // calling generateLayout() again here would wipe that restoration back to a fresh, unclaimed/unsurveyed map).
+        function initializeMainGame(skipLayoutGen) {
+            slideScreen(0);
+            if (!skipLayoutGen) generateLayout();
+            initDOMGrid();
+            setRandomRequest();
+            startMetalGenerator();
+            startShopLoop();
             updateUI();
-            playTutorialStep();
+            playTutorialStep(); // no-op cleanup (hides the tutorial modal/Skip button) when tutorialStep is already past the end
         }
+
+        // --- Persistence: localStorage save/load of the full run. ---
+        // Deliberately NOT persisted (mid-trip/mid-pipeline state — closing the tab loses only the current,
+        // not-yet-forged trip, matching how metals/traits already reset on death): playerX/Y, health, activeTraits,
+        // usedMetals, alloyImpurity, forgeCtx, the shop ledger, and the dialogue/tutorial-hand UI state.
+        const SAVE_KEY = 'swordforge_save_v1';
+        function saveGame() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                    gold, reputation, essence, availableMetals, unlockedMetals, bladeUnlocked, shopUnlocked,
+                    craftedSwords, shopSwords, savedBlueprints, metalsPerTick, currentDay, customersToday, requestCount,
+                    tutorialStep, quests, diaryGiven,
+                    nodeState: mapNodes.map(n => ({ id: n.id, charges: n.charges, surveyed: n.surveyed, claimed: n.claimed, claimTiers: n.claimTiers, claimPurity: n.claimPurity, banked: n.banked })),
+                    exploredCells, discoveredTraits, pathCells,
+                }));
+            } catch (e) { console.error('saveGame failed', e); }
+        }
+        function loadGame() {
+            let raw; try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
+            if (!raw) return false;
+            let s; try { s = JSON.parse(raw); } catch (e) { return false; }
+            try {
+                gold = s.gold || 0; reputation = s.reputation || 0; essence = s.essence || {};
+                availableMetals = s.availableMetals || availableMetals; unlockedMetals = s.unlockedMetals || unlockedMetals;
+                bladeUnlocked = s.bladeUnlocked || bladeUnlocked; shopUnlocked = !!s.shopUnlocked;
+                craftedSwords = s.craftedSwords || []; shopSwords = s.shopSwords || []; savedBlueprints = s.savedBlueprints || [];
+                metalsPerTick = s.metalsPerTick || 1; currentDay = s.currentDay || 1; customersToday = s.customersToday || 0;
+                requestCount = s.requestCount || 0; tutorialStep = (s.tutorialStep != null) ? s.tutorialStep : tutorialStep;
+                if (Array.isArray(s.quests)) quests.forEach((q, i) => { if (s.quests[i]) Object.assign(q, s.quests[i]); });
+                if (s.diaryGiven) Object.assign(diaryGiven, s.diaryGiven);
+                generateLayout(); // rebuild the deterministic base (mapNodes/boardData/nodesByIndex skeleton)
+                (s.nodeState || []).forEach(saved => { const n = mapNodes.find(m => m.id === saved.id); if (n) Object.assign(n, saved); });
+                if (s.exploredCells) exploredCells = s.exploredCells;
+                if (s.discoveredTraits) discoveredTraits = s.discoveredTraits;
+                if (s.pathCells) pathCells = s.pathCells;
+                return true;
+            } catch (e) { console.error('loadGame failed', e); return false; }
+        }
+        // Wipes the save and reloads into a fresh intro + tutorial. Clears coreGameLaunched FIRST — reload()
+        // fires a 'visibilitychange' (page hidden) before this context actually tears down, and the autosave
+        // handler below would otherwise resurrect the just-deleted save from this still-alive JS context.
+        function resetSave() { coreGameLaunched = false; try { localStorage.removeItem(SAVE_KEY); } catch (e) {} location.reload(); }
+
+        // Boot straight into a restored run, skipping the intro scenes and the tutorial entirely — any existing
+        // save implies the tutorial was already completed at least once, and this prototype doesn't attempt to
+        // resume mid-tutorial UI state (dialogue frames, hand pointers, an in-progress forgeCtx are not saved).
+        function bootFromSave() {
+            tutorialStep = tutorialFlow.length; tutorialMetalLock = false; purifyEnabled = true; hasShownShopTutorial = true;
+            coreGameLaunched = true;
+            document.getElementById('intro-container').style.display = 'none';
+            document.getElementById('mobile-wrapper').style.display = 'block';
+            document.getElementById('btnSkipIntro').style.display = 'none';
+            document.getElementById('btnCheatMetals').style.display = 'block';
+            document.getElementById('btnCheatGold').style.display = 'block';
+            document.getElementById('btnCheatSkip').style.display = 'block';
+            document.getElementById('btnResetSave').style.display = 'block';
+            initializeMainGame(true); // true = skip generateLayout(); loadGame() above already built + restored it
+        }
+        if (loadGame()) bootFromSave();
+        document.addEventListener('visibilitychange', () => { if (document.hidden && coreGameLaunched) saveGame(); });
 
     </script>
 </body>
