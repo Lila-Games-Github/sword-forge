@@ -230,10 +230,15 @@
         .corner-btn { position: fixed; right: 16px; z-index: 2000; background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 8px; padding: 9px 15px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
         .corner-btn:hover { background: #4a3623; }
         #btnSkipTutorial { bottom: 16px; }
-        #btnCheatMetals { bottom: 60px; }
-        #btnCheatGold { bottom: 104px; }
-        #btnCheatSkip { bottom: 148px; }
         #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
+        /* Collapsible dev-cheat box (small, top-right). */
+        #cheatBox { position: fixed; top: 8px; right: 8px; z-index: 2500; display: none; flex-direction: column; align-items: flex-end; gap: 5px; }
+        #cheatToggle { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #c8a84b; background: rgba(44,33,22,0.92); color: #f0d8a0; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+        #cheatToggle:hover { background: #4a3623; }
+        #cheatPanel { display: none; flex-direction: column; align-items: flex-end; gap: 4px; }
+        #cheatBox.open #cheatPanel { display: flex; }
+        .cheat-btn { background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 6px; padding: 5px 9px; font-family: 'Cinzel', serif; font-size: 10.5px; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
+        .cheat-btn:hover { background: #4a3623; }
 
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
         .npc-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -1165,10 +1170,15 @@
     </div>
 
     <button id="btnSkipIntro" class="corner-btn" onclick="launchCoreGame()">Skip Intro ⏭</button>
-    <button id="btnCheatSkip" class="corner-btn" onclick="cheatSkipStage()" style="display:none;">Skip Stage ⏭</button>
-    <button id="btnCheatGold" class="corner-btn" onclick="addCheatGold()" style="display:none;">+100 Gold 💰</button>
-    <button id="btnCheatMetals" class="corner-btn" onclick="addCheatMetals()" style="display:none;">+100 Metals ⛏️</button>
     <button id="btnSkipTutorial" class="corner-btn" onclick="skipTutorial()" style="display:none;">Skip Tutorial ⏭</button>
+    <div id="cheatBox">
+        <button id="cheatToggle" onclick="toggleCheats()" title="Cheats">🛠</button>
+        <div id="cheatPanel">
+            <button id="btnCheatMetals" class="cheat-btn" onclick="addCheatMetals()">+100 Metals ⛏️</button>
+            <button id="btnCheatGold" class="cheat-btn" onclick="addCheatGold()">+100 Gold 💰</button>
+            <button id="btnCheatSkip" class="cheat-btn" onclick="cheatSkipStage()">Skip Stage ⏭</button>
+        </div>
+    </div>
 
     <script>
         /* --- INTRO SEQUENCE LOGIC --- */
@@ -1216,13 +1226,12 @@
             document.getElementById('mobile-wrapper').style.display = 'block';
             document.getElementById('btnSkipIntro').style.display = 'none';   // intro is done
             document.getElementById('btnSkipTutorial').style.display = 'block'; // show Skip while the tutorial runs
-            document.getElementById('btnCheatMetals').style.display = 'block'; // cheat: stays available throughout
-            document.getElementById('btnCheatGold').style.display = 'block';  // cheat: stays available throughout
-            document.getElementById('btnCheatSkip').style.display = 'block';  // cheat: skip the current forge minigame
+            document.getElementById('cheatBox').style.display = 'flex'; // show the collapsible dev-cheat box (stays available throughout)
             initializeMainGame();
         }
 
         // Cheat: instantly add 100 of every metal.
+        function toggleCheats() { document.getElementById('cheatBox').classList.toggle('open'); }
         function addCheatMetals() { metalsList.forEach(m => availableMetals[m] += 100); updateUI(); }
 
         // Cheat: instantly add 100 gold.
