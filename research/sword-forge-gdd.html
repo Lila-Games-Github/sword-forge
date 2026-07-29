@@ -1,0 +1,797 @@
+<title>Sword Forge — Game Design Document (Internal)</title>
+<style>
+  /* ============================ TOKENS ============================ */
+  :root{
+    --bg:#efe7d6; --bg-2:#f5eee0; --surface:#faf4e8; --surface-2:#f0e7d4;
+    --line:#ddceb0; --line-2:#cbb992;
+    --ink:#231b12; --ink-2:#5a4f3d; --ink-3:#877a63;
+    --ember:#bd4e1b; --ember-bright:#c8641a; --steel:#3c6076;
+    /* status semantics (distinct from accent) */
+    --s-impl:#3f7d4e; --s-prog:#c07d12; --s-plan:#3f6d8c; --s-concept:#7d5aa0;
+    --s-impl-bg:rgba(63,125,78,.12); --s-prog-bg:rgba(192,125,18,.13); --s-plan-bg:rgba(63,109,140,.12); --s-concept-bg:rgba(125,90,160,.12);
+    --warn:#a8531c; --warn-bg:rgba(168,83,28,.1);
+    --serif-display:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+    --serif-body:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sidebar:264px; --shadow:0 14px 30px -22px rgba(74,54,30,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14100c; --bg-2:#1a1611; --surface:#221c16; --surface-2:#2a231b;
+      --line:#3a3126; --line-2:#4a3f30;
+      --ink:#ece3d4; --ink-2:#b6aa96; --ink-3:#867a68;
+      --ember:#e0632a; --ember-bright:#f6a93b; --steel:#8fb0c6;
+      --s-impl:#66b57a; --s-prog:#e0a53b; --s-plan:#79a2bc; --s-concept:#b394d6;
+      --s-impl-bg:rgba(102,181,122,.14); --s-prog-bg:rgba(224,165,59,.14); --s-plan-bg:rgba(121,162,188,.14); --s-concept-bg:rgba(179,148,214,.15);
+      --warn:#e0913f; --warn-bg:rgba(224,145,63,.12);
+      --shadow:0 16px 34px -24px rgba(0,0,0,.75);
+    }
+  }
+  :root[data-theme="dark"]{
+      --bg:#14100c; --bg-2:#1a1611; --surface:#221c16; --surface-2:#2a231b;
+      --line:#3a3126; --line-2:#4a3f30;
+      --ink:#ece3d4; --ink-2:#b6aa96; --ink-3:#867a68;
+      --ember:#e0632a; --ember-bright:#f6a93b; --steel:#8fb0c6;
+      --s-impl:#66b57a; --s-prog:#e0a53b; --s-plan:#79a2bc; --s-concept:#b394d6;
+      --s-impl-bg:rgba(102,181,122,.14); --s-prog-bg:rgba(224,165,59,.14); --s-plan-bg:rgba(121,162,188,.14); --s-concept-bg:rgba(179,148,214,.15);
+      --warn:#e0913f; --warn-bg:rgba(224,145,63,.12);
+      --shadow:0 16px 34px -24px rgba(0,0,0,.75);
+  }
+  :root[data-theme="light"]{
+      --bg:#efe7d6; --bg-2:#f5eee0; --surface:#faf4e8; --surface-2:#f0e7d4;
+      --line:#ddceb0; --line-2:#cbb992;
+      --ink:#231b12; --ink-2:#5a4f3d; --ink-3:#877a63;
+      --ember:#bd4e1b; --ember-bright:#c8641a; --steel:#3c6076;
+      --s-impl:#3f7d4e; --s-prog:#c07d12; --s-plan:#3f6d8c; --s-concept:#7d5aa0;
+      --s-impl-bg:rgba(63,125,78,.12); --s-prog-bg:rgba(192,125,18,.13); --s-plan-bg:rgba(63,109,140,.12); --s-concept-bg:rgba(125,90,160,.12);
+      --warn:#a8531c; --warn-bg:rgba(168,83,28,.1);
+      --shadow:0 14px 30px -22px rgba(74,54,30,.5);
+  }
+
+  /* ============================ BASE ============================ */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth; scroll-padding-top:1.5rem}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif-body);
+    font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased; overflow-x:hidden}
+  h1,h2,h3,h4{font-family:var(--serif-display); font-weight:700; line-height:1.15; text-wrap:balance; margin:0}
+  p{margin:0 0 .85rem} ul,ol{margin:0 0 .9rem; padding-left:1.25rem} li{margin:.2rem 0}
+  a{color:var(--ember-bright); text-underline-offset:2px}
+  code{font-family:var(--mono); font-size:.85em; background:var(--surface-2); border:1px solid var(--line); border-radius:4px; padding:.04em .34em; color:var(--ink)}
+  :focus-visible{outline:2px solid var(--ember-bright); outline-offset:2px; border-radius:3px}
+  strong{color:var(--ink)}
+
+  /* ============================ LAYOUT ============================ */
+  .app{display:grid; grid-template-columns:var(--sidebar) 1fr; align-items:start; max-width:1320px; margin-inline:auto}
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:1.4rem 1rem 3rem 1.4rem; border-right:1px solid var(--line); background:var(--bg-2)}
+  .toc .doc-name{font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ember); margin-bottom:1rem}
+  .toc nav a{display:block; font-family:var(--mono); font-size:.74rem; letter-spacing:.02em; color:var(--ink-2);
+    text-decoration:none; padding:.32rem .5rem; border-radius:5px; border-left:2px solid transparent; line-height:1.35}
+  .toc nav a:hover{background:var(--surface-2); color:var(--ink)}
+  .toc nav a.active{color:var(--ember-bright); border-left-color:var(--ember); background:var(--surface-2)}
+  .toc nav a .n{color:var(--ink-3); margin-right:.5em}
+  .toc .grp{font-family:var(--mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin:1.1rem 0 .35rem .5rem}
+  main{min-width:0; padding:0 clamp(1.1rem,3.5vw,3rem) 5rem}
+
+  /* ============================ HERO ============================ */
+  .cover{padding:clamp(2.4rem,5vw,4rem) 0 2rem; border-bottom:1px solid var(--line); margin-bottom:2.4rem}
+  .cover .eyebrow{font-family:var(--mono); font-size:.68rem; letter-spacing:.3em; text-transform:uppercase; color:var(--ember); margin-bottom:1rem}
+  .cover h1{font-size:clamp(2.4rem,6vw,4rem); letter-spacing:-.01em; line-height:.98}
+  .cover .tagline{font-style:italic; font-size:clamp(1.05rem,2.4vw,1.35rem); color:var(--ink-2); margin-top:.8rem; max-width:54ch}
+  .meta-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.6rem; margin-top:1.8rem}
+  .meta-grid .m{border:1px solid var(--line); border-radius:6px; padding:.6rem .8rem; background:var(--surface)}
+  .meta-grid .m .k{font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+  .meta-grid .m .v{font-size:.92rem; margin-top:.15rem}
+
+  /* ============================ SECTIONS ============================ */
+  section{padding-block:1.6rem 2.2rem; border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+  .sec-head{display:flex; align-items:baseline; flex-wrap:wrap; gap:.6rem 1rem; margin-bottom:1rem}
+  .sec-head .num{font-family:var(--mono); font-size:.9rem; color:var(--ember); font-weight:700}
+  .sec-head h2{font-size:clamp(1.4rem,3vw,1.95rem)}
+  h3{font-size:1.18rem; margin:1.6rem 0 .55rem; color:var(--ink)}
+  h4{font-size:1rem; margin:1.1rem 0 .4rem; font-family:var(--serif-body); font-weight:700}
+  .prose{max-width:74ch}
+  .lead{font-size:1.08rem; color:var(--ink-2); max-width:70ch}
+
+  /* ============================ STATUS TAGS ============================ */
+  .st{display:inline-flex; align-items:center; gap:.35rem; font-family:var(--mono); font-size:.62rem; letter-spacing:.08em;
+    text-transform:uppercase; padding:.2rem .5rem; border-radius:100px; border:1px solid var(--sc); color:var(--sc); background:var(--scb); white-space:nowrap; vertical-align:middle}
+  .st::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--sc)}
+  .st.impl{--sc:var(--s-impl); --scb:var(--s-impl-bg)}
+  .st.prog{--sc:var(--s-prog); --scb:var(--s-prog-bg)}
+  .st.plan{--sc:var(--s-plan); --scb:var(--s-plan-bg)}
+  .st.concept{--sc:var(--s-concept); --scb:var(--s-concept-bg)}
+  .legend{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1.2rem}
+
+  /* ============================ CALLOUTS ============================ */
+  .note{border:1px solid var(--line); border-left:4px solid var(--steel); border-radius:6px; padding:.85rem 1.1rem; background:var(--surface); margin:1rem 0; font-size:.95rem}
+  .note.warn{border-left-color:var(--warn); background:var(--warn-bg)}
+  .note .lbl{font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--steel); display:block; margin-bottom:.3rem}
+  .note.warn .lbl{color:var(--warn)}
+  .tbd{font-family:var(--mono); font-size:.66rem; letter-spacing:.06em; color:var(--s-concept); border:1px dashed var(--s-concept); border-radius:4px; padding:.05em .4em; text-transform:uppercase}
+
+  /* ============================ TABLES ============================ */
+  .tw{overflow-x:auto; margin:1rem 0; border:1px solid var(--line); border-radius:8px}
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th,td{text-align:left; padding:.6rem .8rem; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{font-family:var(--mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); background:var(--surface-2); position:sticky; top:0}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even){background:var(--surface)}
+  td.num, .tnum{font-variant-numeric:tabular-nums; font-family:var(--mono); font-size:.85em}
+  td .mini{font-size:.82em; color:var(--ink-3)}
+
+  /* ============================ GRIDS / CARDS ============================ */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.9rem; margin:1.1rem 0}
+  .card{border:1px solid var(--line); border-radius:8px; padding:1rem 1.15rem; background:var(--surface)}
+  .card h4{margin-top:0}
+  .card p{font-size:.92rem; color:var(--ink-2); margin-bottom:0}
+  .pillars .card{border-top:3px solid var(--ember)}
+  .statgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.7rem; margin:1rem 0}
+  .stat{border:1px solid var(--line); border-radius:8px; padding:.85rem 1rem; background:var(--surface)}
+  .stat .big{font-family:var(--serif-display); font-weight:700; font-size:1.5rem; color:var(--ember); font-variant-numeric:tabular-nums}
+  .stat .k{font-family:var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-top:.2rem}
+
+  /* ============================ DIAGRAMS ============================ */
+  .fig{margin:1.2rem 0; border:1px solid var(--line); border-radius:8px; background:var(--bg-2); box-shadow:var(--shadow)}
+  .fig .fs{overflow-x:auto; padding:1.1rem}
+  .fig svg{display:block; width:100%; height:auto; min-width:520px}
+  .fig cap, .fig .cap{display:block; font-family:var(--mono); font-size:.66rem; letter-spacing:.08em; color:var(--ink-3); padding:.6rem 1.1rem; border-top:1px solid var(--line)}
+  .dnode{font-family:var(--serif-display); font-weight:700}
+  .dlbl{font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em}
+
+  /* ============================ MISC ============================ */
+  .themebtn{position:fixed; top:.7rem; right:.9rem; z-index:60; font-family:var(--mono); font-size:.6rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-2); background:var(--surface); border:1px solid var(--line-2); border-radius:6px; padding:.4rem .6rem; cursor:pointer}
+  .themebtn:hover{color:var(--ember)}
+  hr{border:none; border-top:1px solid var(--line); margin:1.4rem 0}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:.2rem 1rem; font-size:.92rem; margin:.6rem 0}
+  .kv dt{font-family:var(--mono); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); padding-top:.15rem}
+  .kv dd{margin:0}
+  .pill-good{color:var(--s-impl); font-weight:700} .pill-evil{color:var(--warn); font-weight:700}
+
+  @media (max-width:920px){
+    .app{grid-template-columns:1fr}
+    .toc{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); max-height:none}
+    .toc nav{columns:2; column-gap:1rem}
+    .toc .grp{column-span:all}
+    main{padding-top:1rem}
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<button class="themebtn" id="themebtn" aria-label="Toggle light/dark theme">◐ Theme</button>
+
+<div class="app">
+  <!-- ===================== SIDEBAR TOC ===================== -->
+  <aside class="toc">
+    <div class="doc-name">⚒ Sword Forge · GDD</div>
+    <nav id="toc">
+      <div class="grp">Overview</div>
+      <a href="#summary"><span class="n">1</span>Executive Summary</a>
+      <a href="#pillars"><span class="n">2</span>Design Pillars</a>
+      <a href="#audience"><span class="n">3</span>Audience &amp; Platform</a>
+      <a href="#loop"><span class="n">4</span>Core Gameplay Loop</a>
+      <div class="grp">Meta &amp; Progression</div>
+      <a href="#towns"><span class="n">5</span>Town-to-Town Progression</a>
+      <a href="#morality"><span class="n">6</span>Good vs Evil Reputation</a>
+      <div class="grp">Core Systems</div>
+      <a href="#exploration"><span class="n">7</span>Exploration &amp; Maps</a>
+      <a href="#traits"><span class="n">8</span>Traits &amp; Discovery</a>
+      <a href="#heating"><span class="n">9</span>Heating Minigame</a>
+      <a href="#quality"><span class="n">10</span>Quality System</a>
+      <a href="#forging"><span class="n">11</span>Forging Pipeline</a>
+      <a href="#materials"><span class="n">12</span>Materials &amp; Gathering</a>
+      <a href="#automation"><span class="n">13</span>Automation &amp; Hiring</a>
+      <div class="grp">Economy &amp; Content</div>
+      <a href="#economy"><span class="n">14</span>Economy &amp; Balance</a>
+      <a href="#customers"><span class="n">15</span>Customers &amp; Day Cycle</a>
+      <a href="#compositions"><span class="n">16</span>Recorded Compositions</a>
+      <a href="#decor"><span class="n">17</span>Decor &amp; Customization</a>
+      <div class="grp">Presentation</div>
+      <a href="#ux"><span class="n">18</span>UX / UI</a>
+      <a href="#tutorial"><span class="n">19</span>Onboarding</a>
+      <a href="#art"><span class="n">20</span>Art Direction</a>
+      <a href="#audio"><span class="n">21</span>Audio</a>
+      <div class="grp">Business &amp; Tech</div>
+      <a href="#monetization"><span class="n">22</span>Monetization</a>
+      <a href="#tech"><span class="n">23</span>Technical Architecture</a>
+      <a href="#potioncraft"><span class="n">24</span>PotionCraft Comparison</a>
+      <div class="grp">Planning</div>
+      <a href="#status"><span class="n">25</span>System Status Board</a>
+      <a href="#risks"><span class="n">26</span>Risks</a>
+      <a href="#open"><span class="n">27</span>Open Questions</a>
+      <a href="#appendix"><span class="n">28</span>Appendices</a>
+    </nav>
+  </aside>
+
+  <main>
+    <!-- ===================== COVER ===================== -->
+    <header class="cover">
+      <p class="eyebrow">Game Design Document · Internal · Living Draft</p>
+      <h1>Sword Forge</h1>
+      <p class="tagline">A cozy 2D blacksmith crafting game: explore for magical traits, forge them into custom swords through hands-on minigames, and sell to the townsfolk — as you rebuild a life, one town at a time.</p>
+      <div class="meta-grid">
+        <div class="m"><div class="k">Version</div><div class="v">0.1 — draft</div></div>
+        <div class="m"><div class="k">Date</div><div class="v">2026-07-24</div></div>
+        <div class="m"><div class="k">Audience</div><div class="v">Internal team</div></div>
+        <div class="m"><div class="k">Platform</div><div class="v">Web (mobile-first)</div></div>
+        <div class="m"><div class="k">Build</div><div class="v">Single-file HTML</div></div>
+        <div class="m"><div class="k">Status</div><div class="v">Playable prototype</div></div>
+      </div>
+      <div class="note">
+        <span class="lbl">How to read this document</span>
+        Every system carries a <strong>status tag</strong> so vision and shipped reality never blur. Numbers are the <em>current</em> tuning (they will move). For the authoritative implemented mechanics, <code>specs/game-design.md</code> is the SSOT; this GDD adds the <em>direction</em> the specs don't yet cover.
+        <div class="legend">
+          <span class="st impl">Implemented</span>
+          <span class="st prog">In progress</span>
+          <span class="st plan">Planned</span>
+          <span class="st concept">Concept / undecided</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== 1 SUMMARY ===================== -->
+    <section id="summary">
+      <div class="sec-head"><span class="num">1</span><h2>Executive Summary</h2></div>
+      <p class="lead">Sword Forge is a cozy crafting-shop sim. You play a blacksmith who explores a fogged map to discover magical <strong>traits</strong>, fuses them onto a blade through a chain of <strong>skill minigames</strong> (heat, hammer, quench, sharpen), forges a custom sword, and sells it to a rotating cast of customers — building gold, reputation, and a home.</p>
+      <p>The shipped prototype is a complete single-town loop with a full tutorial. The design ahead expands it into a <strong>town-to-town journey</strong>: the smith's hometown is destroyed, Town 1 is a survival story paced by a menacing landlord, and each subsequent town brings its own customers, storylines, materials, minigames, and décor as the smith chases the title of greatest blacksmith alive.</p>
+      <div class="cards">
+        <div class="card"><h4>The fantasy</h4><p>Master a craft with your hands — every sword is <em>made</em>, not bought from a menu — and become a legend of the forge.</p></div>
+        <div class="card"><h4>The hook</h4><p>Quality is <em>earned</em> through minigame skill, and who you choose to arm (good vs. evil) reshapes the town around you.</p></div>
+        <div class="card"><h4>The vibe</h4><p>Warm, unhurried, no player death — the tension lives in craftsmanship and moral choice, not danger.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 2 PILLARS ===================== -->
+    <section id="pillars">
+      <div class="sec-head"><span class="num">2</span><h2>Design Pillars</h2></div>
+      <div class="cards pillars">
+        <div class="card"><h4>Craft is felt, not clicked</h4><p>Every stage of forging is a hands-on minigame. Skill — not menus or timers alone — sets the outcome.</p></div>
+        <div class="card"><h4>Craftsmanship has consequences</h4><p>Sword quality decides customer outcomes; who you serve decides the town's fate. The blade is a moral instrument.</p></div>
+        <div class="card"><h4>Cozy, never punishing</h4><p>No player HP, no death, no game-over. The stakes are pride, reputation, and story — a game you relax into.</p></div>
+        <div class="card"><h4>Depth through variety</h4><p>Per-trait crafting, unique maps, and town-gated systems keep a simple loop from going stale.</p></div>
+        <div class="card"><h4>A journey, not a treadmill</h4><p>Towns give the grind a shape: arrive, build, uncover a story, move on. Progress carries with you.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 3 AUDIENCE ===================== -->
+    <section id="audience">
+      <div class="sec-head"><span class="num">3</span><h2>Audience &amp; Platform</h2></div>
+      <div class="prose">
+        <p><strong>Audience:</strong> fans of cozy crafting/management sims (PotionCraft, Stardew, Moonlighter, Papers-Please-style moral choice) — players who enjoy mastery of a satisfying loop and light narrative, in short-to-medium sessions.</p>
+        <p><strong>Platform:</strong> web, mobile-first (touch + mouse), delivered as a single self-contained HTML file auto-deployed to GitHub Pages. <span class="st impl">Implemented</span></p>
+        <p><strong>Session shape:</strong> a few minutes per customer; a "game day" is a handful of customers; a town is a long-form arc (~90–100 days, <span class="tbd">TBD</span>).</p>
+      </div>
+    </section>
+
+    <!-- ===================== 4 LOOP ===================== -->
+    <section id="loop">
+      <div class="sec-head"><span class="num">4</span><h2>Core Gameplay Loop</h2></div>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 900 250" role="img" aria-label="Core loop: Gather, Explore, Heat, Forge, Sell, Reinvest">
+            <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--line-2)"/></marker></defs>
+            <g stroke="var(--line-2)" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+              <line x1="128" y1="70" x2="238" y2="70"/><line x1="366" y1="70" x2="476" y2="70"/><line x1="604" y1="70" x2="714" y2="70"/>
+              <line x1="770" y1="98" x2="770" y2="150"/>
+              <line x1="714" y1="180" x2="604" y2="180"/><line x1="476" y1="180" x2="366" y2="180"/><line x1="238" y1="180" x2="128" y2="180"/>
+              <line x1="70" y1="150" x2="70" y2="98"/>
+            </g>
+            <g text-anchor="middle">
+              <g><rect x="12" y="46" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--ember)" stroke-width="1.6"/><text x="70" y="68" class="dnode" font-size="14" fill="var(--ink)">Gather</text><text x="70" y="84" class="dlbl" font-size="8" fill="var(--ember)">metals / ores</text></g>
+              <g><rect x="250" y="46" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--line-2)"/><text x="308" y="68" class="dnode" font-size="14" fill="var(--ink)">Explore</text><text x="308" y="84" class="dlbl" font-size="8" fill="var(--ink-3)">find traits</text></g>
+              <g><rect x="488" y="46" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--line-2)"/><text x="546" y="68" class="dnode" font-size="14" fill="var(--ink)">Heat</text><text x="546" y="84" class="dlbl" font-size="8" fill="var(--ink-3)">fuse trait</text></g>
+              <g><rect x="712" y="46" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--line-2)"/><text x="770" y="68" class="dnode" font-size="14" fill="var(--ink)">Forge</text><text x="770" y="84" class="dlbl" font-size="8" fill="var(--ink-3)">shape the sword</text></g>
+              <g><rect x="712" y="156" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--line-2)"/><text x="770" y="178" class="dnode" font-size="14" fill="var(--ink)">Sell</text><text x="770" y="194" class="dlbl" font-size="8" fill="var(--ink-3)">customers / shop</text></g>
+              <g><rect x="12" y="156" width="116" height="48" rx="8" fill="var(--surface)" stroke="var(--steel)" stroke-width="1.6"/><text x="70" y="178" class="dnode" font-size="14" fill="var(--ink)">Reinvest</text><text x="70" y="194" class="dlbl" font-size="8" fill="var(--steel)">upgrade / unlock</text></g>
+            </g>
+          </svg>
+        </div>
+        <span class="cap">The six-beat loop. Meta-progression (rent, reputation, town arcs) wraps around it.</span>
+      </div>
+      <ol>
+        <li><strong>Gather</strong> — accumulate metals/ores (auto-generated today; hands-on gathering planned).</li>
+        <li><strong>Explore</strong> — spend materials to move across a fogged map and discover traits.</li>
+        <li><strong>Heat</strong> — play the heating minigame to fuse a discovered trait onto the active blade.</li>
+        <li><strong>Forge</strong> — shape → hammer → quench → design → sharpen the sword into the Vault.</li>
+        <li><strong>Sell</strong> — fulfil a customer's request for gold + reputation, or list in the passive shop.</li>
+        <li><strong>Reinvest</strong> — upgrade the smelter, unlock metals/shapes, buy décor, pay rent, save compositions.</li>
+      </ol>
+    </section>
+
+    <!-- ===================== 5 TOWNS ===================== -->
+    <section id="towns">
+      <div class="sec-head"><span class="num">5</span><h2>Town-to-Town Progression</h2><span class="st plan">Planned</span></div>
+      <p class="lead">The meta-spine. The smith's hometown was destroyed; he flees to <strong>Town 1</strong> (a survival story) and, from Town 2 onward, pursues a single ambition: <em>to become the greatest blacksmith who ever lived.</em></p>
+
+      <h3>Town 1 — the landlord &amp; the survival arc</h3>
+      <div class="kv">
+        <dt>Landlord intro</dt><dd>The forge's owner is met around <strong>day 4–8</strong> <span class="tbd">TBD</span> and thereafter collects rent.</dd>
+        <dt>Rent</dt><dd>~<strong>1,000 gold</strong> <span class="tbd">TBD</span> every <strong>28–30 days</strong> (a monthly beat).</dd>
+        <dt>Scripted ending</dt><dd>After the <strong>3rd rent</strong>, the owner is exposed as part of an evil scheme and jailed; the forge is confiscated and the smith is forced to move on.</dd>
+        <dt>Length</dt><dd>~<strong>90–100 game days</strong> <span class="tbd">TBD</span> (≈ three rent cycles).</dd>
+      </div>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 900 170" role="img" aria-label="Town 1 timeline with rent beats and two endings">
+            <line x1="40" y1="70" x2="820" y2="70" stroke="var(--line-2)" stroke-width="2"/>
+            <g font-family="var(--mono)" font-size="9" fill="var(--ink-3)" text-anchor="middle">
+              <circle cx="90" cy="70" r="5" fill="var(--ember)"/><text x="90" y="52">Day 4–8</text><text x="90" y="94">landlord intro</text>
+              <circle cx="280" cy="70" r="5" fill="var(--s-prog)"/><text x="280" y="52">~Day 28</text><text x="280" y="94">rent 1</text>
+              <circle cx="470" cy="70" r="5" fill="var(--s-prog)"/><text x="470" y="52">~Day 56</text><text x="470" y="94">rent 2</text>
+              <circle cx="660" cy="70" r="5" fill="var(--s-prog)"/><text x="660" y="52">~Day 84</text><text x="660" y="94">rent 3 → exposed</text>
+              <text x="805" y="52">~Day 90–100</text>
+            </g>
+            <g text-anchor="middle" font-family="var(--serif-display)" font-weight="700" font-size="11">
+              <rect x="740" y="26" width="150" height="34" rx="6" fill="var(--s-impl-bg)" stroke="var(--s-impl)"/><text x="815" y="47" fill="var(--ink)">Confiscation exit</text>
+              <rect x="740" y="112" width="150" height="34" rx="6" fill="var(--warn-bg)" stroke="var(--warn)"/><text x="815" y="133" fill="var(--ink)">Corruption exit</text>
+            </g>
+            <line x1="660" y1="70" x2="740" y2="43" stroke="var(--s-impl)" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <line x1="400" y1="70" x2="740" y2="129" stroke="var(--warn)" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <text x="470" y="150" font-family="var(--mono)" font-size="8.5" fill="var(--warn)" text-anchor="middle">low reputation any time → town corrupts → destroyed</text>
+          </svg>
+        </div>
+        <span class="cap">Town 1 has <strong>two exits</strong> — the scripted confiscation, or the player-driven evil-corruption collapse (see §6).</span>
+      </div>
+
+      <h3>Two ways every town ends</h3>
+      <ul>
+        <li><strong>Main-story exit</strong> — finish the town's storyline (Town 1: the landlord scandal). The default, "good" path.</li>
+        <li><strong>Corruption exit</strong> — walk the evil path (§6) until reputation bottoms out; the town is slowly corrupted and finally destroyed, forcing the move. Both exits are live in Town 1. <span class="st concept">Concept</span></li>
+      </ul>
+
+      <h3>What carries over</h3>
+      <div class="note">
+        <span class="lbl">Carry-over rule</span>
+        <strong>Everything carries over</strong> — gold, Vault, materials, blueprints, smelter upgrades, discovered traits, and décor. The <em>only</em> thing that changes each town is the <strong>customer cast</strong> (each town has its own customers &amp; storylines). Each new town <em>may</em> introduce new ingredients, crafting materials, sword parts, décor, and unique minigames.
+      </div>
+
+      <h3>Per-town unlock tracks</h3>
+      <p>Each town gates content across five tracks. Exactly what lands where is <span class="tbd">TBD</span>.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Track</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Mechanics</td><td>new minigames, gathering nodes, systems</td></tr>
+          <tr><td>Features</td><td>quality-of-life, tools, shop functions</td></tr>
+          <tr><td>Cosmetics</td><td>premium &amp; base sword parts</td></tr>
+          <tr><td>Décor</td><td>storefront / counter / bedroom items</td></tr>
+          <tr><td>Storylines</td><td>the town's cast &amp; main arc</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn"><span class="lbl">Open</span> Whether the player can travel <em>back and forth</em> between towns is undecided. Town count and a final ending are undecided — current focus is <strong>the first few days of Town 1 (D1–D3)</strong>.</div>
+    </section>
+
+    <!-- ===================== 6 MORALITY ===================== -->
+    <section id="morality">
+      <div class="sec-head"><span class="num">6</span><h2>Good vs Evil Reputation</h2><span class="st plan">Planned</span> <span class="st impl">(rep exists)</span></div>
+      <p class="lead">Reputation <em>is</em> the morality system. There is no neutral customer — every customer is either <span class="pill-good">good</span> or <span class="pill-evil">evil</span>, and the player must judge which from <strong>appearance and request alone</strong>. There are no markers.</p>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 620 240" role="img" aria-label="Reputation matrix: serve or reject, good or evil">
+            <g font-family="var(--mono)" font-size="10" fill="var(--ink-3)" text-anchor="middle">
+              <text x="230" y="24">SERVE</text><text x="450" y="24">REJECT</text>
+              <text x="70" y="90" transform="rotate(-90 70 90)">GOOD customer</text>
+              <text x="70" y="185" transform="rotate(-90 70 185)">EVIL customer</text>
+            </g>
+            <g text-anchor="middle" font-family="var(--serif-display)" font-weight="700" font-size="20">
+              <rect x="130" y="40" width="200" height="80" rx="8" fill="var(--s-impl-bg)" stroke="var(--s-impl)"/><text x="230" y="88" fill="var(--s-impl)">+ rep</text>
+              <rect x="350" y="40" width="200" height="80" rx="8" fill="var(--warn-bg)" stroke="var(--warn)"/><text x="450" y="88" fill="var(--warn)">− rep</text>
+              <rect x="130" y="132" width="200" height="80" rx="8" fill="var(--warn-bg)" stroke="var(--warn)"/><text x="230" y="180" fill="var(--warn)">− rep</text>
+              <rect x="350" y="132" width="200" height="80" rx="8" fill="var(--s-impl-bg)" stroke="var(--s-impl)"/><text x="450" y="180" fill="var(--s-impl)">+ rep</text>
+            </g>
+          </svg>
+        </div>
+        <span class="cap">The moral 2×2. Refusing a good customer hurts, exactly as serving an evil one does.</span>
+      </div>
+      <h3>The spiral</h3>
+      <p>Reputation feeds back into the customer pool: <strong>low reputation summons more evil customers and unlocks more evil storylines.</strong> Stay on the evil path and the town itself <strong>slowly corrupts and is ultimately destroyed</strong> — the "corruption exit" of §5. High reputation keeps the town healthy and its good storylines flowing.</p>
+      <div class="note"><span class="lbl">Current vs planned</span> A numeric reputation with payout multipliers is already <span class="st impl">Implemented</span> (sale +1, refuse −1; Rep&lt;0 ×0.8 payout, Rep&gt;10 ×1.2). The <strong>good/evil customer axis, refusal-of-good penalty, evil-influx, and corruption ending</strong> are <span class="st plan">Planned</span> layers on top.</p></div>
+    </section>
+
+    <!-- ===================== 7 EXPLORATION ===================== -->
+    <section id="exploration">
+      <div class="sec-head"><span class="num">7</span><h2>Exploration &amp; Maps</h2></div>
+
+      <h3>7.1 The trait map (current) <span class="st impl">Implemented</span></h3>
+      <div class="statgrid">
+        <div class="stat"><div class="big">50×50</div><div class="k">grid (2,500 cells)</div></div>
+        <div class="stat"><div class="big">~20%</div><div class="k">hazard cells</div></div>
+        <div class="stat"><div class="big">3.5</div><div class="k">vision radius</div></div>
+        <div class="stat"><div class="big">1337</div><div class="k">fixed seed</div></div>
+      </div>
+      <p>A fog-of-war grid. The smith starts at the centre <code>(25,25)</code>. <strong>8-directional movement</strong> costs 1 unit of a direction-specific metal; a hold-and-release <strong>Purify dash</strong> minigame extends a move to 1/2/3 cells for the same single metal. Hazards damage only the cell landed on (crossing over is safe).</p>
+
+      <h3>7.2 The cozy shift — sword HP, not smith HP <span class="st plan">Planned</span></h3>
+      <div class="note warn">
+        <span class="lbl">Design change from the shipped build</span>
+        Today the <em>smith</em> has an HP bar and can "die" (which shatters the blade). The intended cozy model: <strong>the smith has no HP at all.</strong> Instead, the <strong>active sword has HP and can be destroyed</strong> — hazards damage the sword, and at 0 HP the sword <strong>shatters</strong> (losing the active blade &amp; its fused traits). No player death, no game-over — only the loss of work-in-progress.
+      </div>
+
+      <h3>7.3 The 24 shape maps <span class="st concept">Concept</span></h3>
+      <p>A planned expansion of exploration:</p>
+      <ul>
+        <li><strong>1 main map</strong> — holds the <strong>24 traits</strong> to discover (today's grid).</li>
+        <li><strong>+ 24 shape maps</strong> — one per trait, each holding that trait's <strong>10 blade shapes</strong> to explore for. All <strong>24 are global and fixed</strong> (they never change town-to-town), and <strong>each of the 24 looks entirely different.</strong></li>
+      </ul>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 900 220" role="img" aria-label="One main trait map fanning into 24 per-trait shape maps">
+            <g text-anchor="middle">
+              <rect x="40" y="86" width="150" height="52" rx="8" fill="var(--surface)" stroke="var(--ember)" stroke-width="1.8"/>
+              <text x="115" y="108" class="dnode" font-size="14" fill="var(--ink)">Main Map</text>
+              <text x="115" y="124" class="dlbl" font-size="8" fill="var(--ember)">24 traits</text>
+            </g>
+            <g stroke="var(--line-2)" stroke-width="1.2" fill="none">
+              <line x1="190" y1="112" x2="330" y2="40"/><line x1="190" y1="112" x2="330" y2="90"/>
+              <line x1="190" y1="112" x2="330" y2="140"/><line x1="190" y1="112" x2="330" y2="190"/>
+            </g>
+            <g text-anchor="middle" font-family="var(--mono)" font-size="9">
+              <rect x="330" y="22" width="180" height="34" rx="6" fill="var(--surface)" stroke="var(--line-2)"/><text x="420" y="43" fill="var(--ink)">🔥 Flame — 10 shapes</text>
+              <rect x="330" y="72" width="180" height="34" rx="6" fill="var(--surface)" stroke="var(--line-2)"/><text x="420" y="93" fill="var(--ink)">❄️ Ice — 10 shapes</text>
+              <rect x="330" y="122" width="180" height="34" rx="6" fill="var(--surface)" stroke="var(--line-2)"/><text x="420" y="143" fill="var(--ink)">☄️ Celestial — 10 shapes</text>
+              <rect x="330" y="172" width="180" height="34" rx="6" fill="var(--surface)" stroke="var(--line-2)"/><text x="420" y="193" fill="var(--ink-3)">… 21 more, all unique</text>
+            </g>
+            <g text-anchor="middle"><rect x="600" y="86" width="250" height="52" rx="8" fill="var(--bg-2)" stroke="var(--steel)" stroke-dasharray="4 3"/>
+              <text x="725" y="106" class="dlbl" font-size="9" fill="var(--steel)">Entry (undecided):</text>
+              <text x="725" y="124" font-family="var(--serif-body)" font-size="11" fill="var(--ink-2)">discover trait → buy map ~500g</text></g>
+          </svg>
+        </div>
+        <span class="cap">24 traits × 10 shapes = <strong>240 shape unlocks</strong>. See the scope risk in §26.</span>
+      </div>
+      <div class="kv">
+        <dt>Coexists with</dt><dd>the current <strong>50 g per-shape unlock</strong> — both models are documented; which to keep is <span class="tbd">TBD</span>.</dd>
+        <dt>Entry (proposed)</dt><dd>trait discovery is fast, so surfacing a shape map on discovery could overwhelm. Proposal: discovering a trait <strong>unlocks</strong> its shape map, which the player then <strong>buys from a merchant for ~500 g</strong>. <span class="tbd">TBD</span></dd>
+        <dt>Format</dt><dd>current tile-grid style for now; the two new-map <em>styles</em> may become separate prototype files.</dd>
+      </div>
+    </section>
+
+    <!-- ===================== 8 TRAITS ===================== -->
+    <section id="traits">
+      <div class="sec-head"><span class="num">8</span><h2>Traits &amp; Discovery</h2><span class="st impl">Implemented</span></div>
+      <p><strong>24 traits</strong>, each at a fixed map coordinate. Stepping on a trait cell reveals a <code>❓</code>; heating it fuses the trait. A trait's base value scales with distance from centre: <code>value = floor(distance / 35.355 × 100)</code> → 0–100. A trait can be fused onto a blade only once.</p>
+      <p>Each trait has a <strong>unique heating minigame</strong> (§9), grouped into three difficulty tiers:</p>
+      <div class="tw"><table>
+        <thead><tr><th>Tier</th><th>Behaviour</th><th>Traits</th></tr></thead>
+        <tbody>
+          <tr><td>A — Static</td><td>fixed band, tuned position/width/decay</td><td>Flame, Ice, Floral, Sharp, Balanced, Fury, Durable, Endurance, Heavy, Cruel, Grace, Blood</td></tr>
+          <tr><td>B — Dynamic</td><td>bands oscillate, gust, jitter, split, or reposition</td><td>Water, Celestial, Flexible, Storm, Savage, Luck, Accurate, Cursed</td></tr>
+          <tr><td>C — Sequential / hidden</td><td>multi-stage or hidden-marker "by feel"</td><td>Noble, Honor, Lightning, Dark</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><span class="lbl">Planned extension</span> Per-trait crafting will go beyond the heat band into a <strong>unique full process</strong> — e.g. Flame needs higher heat + a flammable polish + a fire crystal in a late stage. See §12. <span class="st plan">Planned</span></div>
+    </section>
+
+    <!-- ===================== 9 HEATING ===================== -->
+    <section id="heating">
+      <div class="sec-head"><span class="num">9</span><h2>Heating Minigame</h2><span class="st impl">Implemented</span></div>
+      <p>Triggered on a discovered trait: <strong>Pulley</strong> (tap to lower the bucket) → <strong>Bellows</strong> (tap +16 heat, or hold at +40/s vs. 18/s decay ≈ +22/s net) → <strong>Stabilize</strong> in the green band for a cumulative time.</p>
+      <div class="statgrid">
+        <div class="stat"><div class="big">40–70</div><div class="k">default band</div></div>
+        <div class="stat"><div class="big">2.0 s</div><div class="k">default stabilize</div></div>
+        <div class="stat"><div class="big">7.5–14 s</div><div class="k">per-trait timer range</div></div>
+        <div class="stat"><div class="big">45 s</div><div class="k">tutorial timer (safe)</div></div>
+      </div>
+      <p><strong>Heat timer → quality:</strong> stabilize before the countdown ends → the trait fuses at <strong>Epic</strong>; if the timer expires first it still fuses, at <strong>Fine</strong> (one tier down, no hard fail). Timer length is per-trait (e.g. Grace 7.5 s, most static 9 s, dynamic/staged ~11 s, Durable 11.5 s, Endurance 14 s).</p>
+    </section>
+
+    <!-- ===================== 10 QUALITY ===================== -->
+    <section id="quality">
+      <div class="sec-head"><span class="num">10</span><h2>Quality System</h2><span class="st impl">Implemented</span></div>
+      <p>Three tiers — <strong>Weak (+0) · Fine (+10) · Epic (+20)</strong> value bonus — set by a four-stage chain:</p>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 900 120" role="img" aria-label="Quality chain: heat, HP cap, hammer, sharpen">
+            <defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--line-2)"/></marker></defs>
+            <g text-anchor="middle" font-family="var(--mono)" font-size="8">
+              <g><rect x="20" y="34" width="170" height="52" rx="7" fill="var(--surface)" stroke="var(--ember)" stroke-width="1.5"/><text x="105" y="58" class="dnode" font-size="12" fill="var(--ink)">1 · Heat</text><text x="105" y="74" fill="var(--ink-3)">Epic / Fine</text></g>
+              <g><rect x="240" y="34" width="170" height="52" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="325" y="58" class="dnode" font-size="12" fill="var(--ink)">2 · HP cap</text><text x="325" y="74" fill="var(--ink-3)">sword HP gate</text></g>
+              <g><rect x="460" y="34" width="170" height="52" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="545" y="58" class="dnode" font-size="12" fill="var(--ink)">3 · Hammer</text><text x="545" y="74" fill="var(--ink-3)">−1 / 2 misses</text></g>
+              <g><rect x="680" y="34" width="170" height="52" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="765" y="58" class="dnode" font-size="12" fill="var(--ink)">4 · Sharpen</text><text x="765" y="74" fill="var(--ink-3)">−1 / 10% over</text></g>
+            </g>
+            <g stroke="var(--line-2)" stroke-width="1.5" marker-end="url(#ar2)"><line x1="190" y1="60" x2="238" y2="60"/><line x1="410" y1="60" x2="458" y2="60"/><line x1="630" y1="60" x2="678" y2="60"/></g>
+          </svg>
+        </div>
+        <span class="cap">Weak is the floor. Stage 2 caps quality by HP (≥80 → Epic, 40–79 → Fine, &lt;40 → Weak) — now the <em>sword's</em> HP under the cozy model.</span>
+      </div>
+      <p><strong>Value tiers</strong> (from summed trait value): I Common (&lt;30) · II Uncommon (&lt;60) · III Rare (&lt;90) · IV Epic (&lt;120) · V Legendary (≥120). A trait-less sword = 5 g. Overlays render <em>cracks</em> on Weak and <em>sparkles</em> on Epic swords.</p>
+    </section>
+
+    <!-- ===================== 11 FORGING ===================== -->
+    <section id="forging">
+      <div class="sec-head"><span class="num">11</span><h2>Forging Pipeline</h2><span class="st impl">Implemented</span></div>
+      <div class="fig">
+        <div class="fs">
+          <svg viewBox="0 0 900 90" role="img" aria-label="Forge pipeline: shape, hammer, quench, design, sharpen">
+            <defs><marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--line-2)"/></marker></defs>
+            <g text-anchor="middle" font-family="var(--serif-display)" font-weight="700" font-size="12">
+              <g><rect x="12" y="26" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="87" y="51" fill="var(--ink)">Shape</text></g>
+              <g><rect x="190" y="26" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="265" y="51" fill="var(--ink)">Hammer</text></g>
+              <g><rect x="368" y="26" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--steel)"/><text x="443" y="51" fill="var(--ink)">Quench*</text></g>
+              <g><rect x="546" y="26" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="621" y="51" fill="var(--ink)">Design</text></g>
+              <g><rect x="724" y="26" width="150" height="40" rx="7" fill="var(--surface)" stroke="var(--line-2)"/><text x="799" y="51" fill="var(--ink)">Sharpen</text></g>
+            </g>
+            <g stroke="var(--line-2)" stroke-width="1.5" marker-end="url(#ar3)"><line x1="162" y1="46" x2="188" y2="46"/><line x1="340" y1="46" x2="366" y2="46"/><line x1="518" y1="46" x2="544" y2="46"/><line x1="696" y1="46" x2="722" y2="46"/></g>
+          </svg>
+        </div>
+        <span class="cap">* Quench is skipped when the last-fused trait is Flame. Auto-Craft runs the whole chain with a prepended heat minigame.</span>
+      </div>
+      <ul>
+        <li><strong>Shape</strong> — pick 1 of 10 blade shapes (3 free, 7 unlock for 50 g each). Shapes are <strong>cosmetic</strong>, but some customers request a specific shape.</li>
+        <li><strong>Hammer</strong> — hit 6 shrinking-ring targets over 2 stages; misses cost quality (−1 tier / 2 misses).</li>
+        <li><strong>Quench</strong> — a feel-only cooling beat (no quality effect); skipped for Flame blades.</li>
+        <li><strong>Design</strong> — pick grip / guard / pommel art (cosmetic); trait-skinned parts for Flame/Ice/Water.</li>
+        <li><strong>Sharpen</strong> — slide the blade across a grindstone to a 0–120% bar; 90–110% is the "keen" no-penalty window, over-honing past 110% costs −1 tier / 10% over.</li>
+      </ul>
+    </section>
+
+    <!-- ===================== 12 MATERIALS ===================== -->
+    <section id="materials">
+      <div class="sec-head"><span class="num">12</span><h2>Materials &amp; Gathering</h2></div>
+
+      <h3>12.1 Current: metals &amp; the smelter <span class="st impl">Implemented</span></h3>
+      <p>Eight metals double as directional movement fuel — 4 cardinal (steel/iron/magnesium/bronze, free) + 4 diagonal (titanium/aluminium/blackIron/redIron, 50 g each to unlock). The smelter auto-generates <strong>1 metal / 10 s</strong>, feeding the lowest-count metal until all pooled metals reach 5, then uniformly at random. Only unlocked metals generate. Upgrade for +1/tick per 50 g.</p>
+
+      <h3>12.2 Planned: hands-on gathering <span class="st plan">Planned (leaning in)</span></h3>
+      <div class="note">
+        <span class="lbl">Direction</span>
+        Inspired by PotionCraft's crystal gathering, the smith would <strong>gather materials/ores by hand</strong> rather than have them auto-generate. <strong>Leaning toward replacing auto-generation with gathering</strong> — the two are documented as alternatives until decided. <span class="tbd">final call TBD</span>
+      </div>
+
+      <h3>12.3 Planned: per-trait crafting materials <span class="st plan">Planned</span></h3>
+      <p>Beyond metals, traits will demand bespoke inputs — e.g. a <strong>flammable polish</strong> and a <strong>fire crystal</strong> for a Flame sword. New materials are also a per-town unlock track (§5). Sourcing (gather vs. buy vs. town-specific) is <span class="tbd">TBD</span>.</p>
+    </section>
+
+    <!-- ===================== 13 AUTOMATION ===================== -->
+    <section id="automation">
+      <div class="sec-head"><span class="num">13</span><h2>Automation &amp; Hiring</h2><span class="st concept">Concept</span></div>
+      <p class="lead">To counter minigame fatigue over a long game, the smith can <strong>hire help</strong> to automate steps of the craft. All five hands-on activities are automatable:</p>
+      <div class="cards">
+        <div class="card"><h4>Heating</h4><p>An assistant works the bellows.</p></div>
+        <div class="card"><h4>Gathering</h4><p>A hand collects materials/ores.</p></div>
+        <div class="card"><h4>Hammering</h4><p>A striker shapes the ingot.</p></div>
+        <div class="card"><h4>Quenching</h4><p>Cooling handled for you.</p></div>
+        <div class="card"><h4>Sharpening</h4><p>A grinder finishes the edge.</p></div>
+      </div>
+      <div class="note warn"><span class="lbl">Open design</span> Cost/gating (gold? town unlock?), whether automation trades quality for convenience, and how it interacts with per-trait unique processes are all <span class="tbd">TBD</span>.</div>
+    </section>
+
+    <!-- ===================== 14 ECONOMY ===================== -->
+    <section id="economy">
+      <div class="sec-head"><span class="num">14</span><h2>Economy &amp; Balance</h2></div>
+      <div class="tw"><table>
+        <thead><tr><th>Lever</th><th class="tnum">Value</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Metal generation</td><td class="num">1 / 10 s</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Smelter upgrade</td><td class="num">50 g → +1/tick</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Diagonal metal unlock</td><td class="num">50 g each ×4</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Blade shape unlock</td><td class="num">50 g each ×7</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Passive shop unlock</td><td class="num">500 g</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Shop sale chance</td><td class="num">5% / 10 s per sword</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Customer #1 payout floor</td><td class="num">≥ 15 g</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Reputation multipliers</td><td class="num">&lt;0 ×0.8 · &gt;10 ×1.2</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Customers / day</td><td class="num">7 (variable planned)</td><td><span class="st impl">Impl</span></td></tr>
+          <tr><td>Shape-map merchant</td><td class="num">~500 g</td><td><span class="st concept">Concept</span></td></tr>
+          <tr><td>Rent (Town 1)</td><td class="num">~1,000 g / 28–30 d</td><td><span class="st plan">Planned</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn"><span class="lbl">Balance risk</span> Rent of ~1,000 g per ~28 days versus a per-customer payout of ~15–100 g needs a dedicated economy pass — the earn curve across a 90–100 day town is currently undesigned. See §26.</div>
+    </section>
+
+    <!-- ===================== 15 CUSTOMERS ===================== -->
+    <section id="customers">
+      <div class="sec-head"><span class="num">15</span><h2>Customers &amp; Day Cycle</h2></div>
+      <p><strong>Day system</strong> <span class="st impl">Implemented</span>: <strong>7 customers per day</strong> (sales and refusals both count); after the 7th, tap <strong>End Day</strong> to advance via a "Day N" fade transition. Gold, Vault, metals, reputation, shop, and blueprints persist across days.</p>
+      <p><strong>Requests</strong>: scripted openers (#1 "any", #2 Flame, #3 ice-dragon) then random from #4; 10% of requests also demand a specific shape. Payout = sword value × reputation multiplier.</p>
+      <h3>Planned layers</h3>
+      <ul>
+        <li><strong>Variable customer count</strong> — festival, holiday, and "war week" days raise or lower the number of arrivals. <span class="st plan">Planned</span></li>
+        <li><strong>Per-town casts</strong> — each town has its own customers and storylines (the one thing that <em>doesn't</em> carry over). <span class="st plan">Planned</span></li>
+        <li><strong>Good/evil customers</strong> — see §6. <span class="st plan">Planned</span></li>
+      </ul>
+      <div class="note"><span class="lbl">Out of scope here</span> The named-customer story campaign (character arcs, quality→fate, dialogue) is being drafted separately in the <code>story/</code> folder and is intentionally excluded from this GDD.</div>
+    </section>
+
+    <!-- ===================== 16 COMPOSITIONS ===================== -->
+    <section id="compositions">
+      <div class="sec-head"><span class="num">16</span><h2>Recorded Compositions</h2><span class="st impl">Implemented</span></div>
+      <p>Players save a blade's trait-set + material recipe as a named <strong>composition</strong>, keyed by trait-set. Re-recording an existing set offers <strong>Update</strong> (replace) or <strong>Keep Both</strong> (a second recipe for the same traits). The <strong>⚡ Auto-Craft</strong> button runs the full forge pipeline from a composition (prepending a heat minigame); performance sets one uniform quality across the sword's traits.</p>
+    </section>
+
+    <!-- ===================== 17 DECOR ===================== -->
+    <section id="decor">
+      <div class="sec-head"><span class="num">17</span><h2>Décor &amp; Customization</h2><span class="st plan">Planned</span> <span class="st concept">(bedroom Concept)</span></div>
+      <p class="lead">A cosmetic base-customization layer across three spaces:</p>
+      <div class="cards">
+        <div class="card"><h4>Storefront <span class="mini">(Screen 1)</span></h4><p>The shop the town sees.</p></div>
+        <div class="card"><h4>Counter <span class="mini">(Screen 2)</span></h4><p>Where customers are served.</p></div>
+        <div class="card"><h4>Bedroom <span class="mini">(new)</span></h4><p>A personal space — not yet built. <span class="st concept">Concept</span></p></div>
+      </div>
+      <p>Each town gives the shop a <strong>new look</strong>, but the player <strong>carries prior décor over</strong> and re-decorates freely. Each space has <strong>base (free/gold)</strong> items and <strong>premium</strong> items (see §22). Sword parts follow the same base/premium split.</p>
+    </section>
+
+    <!-- ===================== 18 UX ===================== -->
+    <section id="ux">
+      <div class="sec-head"><span class="num">18</span><h2>UX / UI</h2><span class="st impl">Implemented</span></div>
+      <p><strong>Three swipeable screens</strong>: Shop (0) · Counter (1) · Forge/Map (2). A gold/reputation pill and Day badge sit on both the Counter and Forge screens. Inventory (Vault) and Recorded Compositions open as scrollable modals (tile grid → drill-in detail).</p>
+      <p><strong>Feedback &amp; juice</strong>: damage/heat flashes, gold-pulse on passive sales, "trait acquired" &amp; "New Trait Discovered!" toasts, metal-toss-into-bucket on a spend, guided hand pointers, and parchment <code>gameAlert</code> popups for warnings. Key modals: shape, hammer, quench, design, sharpen, record, compositions, inventory, chart/minimap, tutorial-review.</p>
+    </section>
+
+    <!-- ===================== 19 TUTORIAL ===================== -->
+    <section id="tutorial">
+      <div class="sec-head"><span class="num">19</span><h2>Onboarding</h2><span class="st impl">Implemented</span></div>
+      <p>A 4-scene animated intro → a data-driven <code>tutorialFlow</code> that walks the full first craft (select metals → reach a trait → heat → record composition → forge → sell → meet scripted customers → learn the chart &amp; Purify dash), plus post-tutorial guides (shop unlock at 500 g; a one-off "record your compositions" reminder). First craft is locked to 4 steel + 1 magnesium until the first forge.</p>
+      <div class="note"><span class="lbl">Current focus</span> Design attention is on <strong>D1–D3 — the first few days of Town 1</strong>: the arrival, the first customers, and the landlord introduction.</div>
+    </section>
+
+    <!-- ===================== 20 ART ===================== -->
+    <section id="art">
+      <div class="sec-head"><span class="num">20</span><h2>Art Direction</h2><span class="st impl">Implemented</span></div>
+      <p>Warm, hand-crafted 2D with a forge palette (ember, soot, quenched steel). Assets live under <code>assets/</code> in a fixed taxonomy: <code>backgrounds/</code>, <code>ui/</code>, <code>forge/</code> (props), <code>sword-parts/</code> (blades/grips/guards/pommels + trait skins + overlays), <code>hammer/</code>, <code>map/</code> (tiles &amp; minimap), <code>customer/</code> (portraits). New towns introduce new backdrops, décor, and part art. The 24 shape maps each need a distinct look (see scope risk, §26).</p>
+    </section>
+
+    <!-- ===================== 21 AUDIO ===================== -->
+    <section id="audio">
+      <div class="sec-head"><span class="num">21</span><h2>Audio</h2><span class="st plan">Planned (none yet)</span></div>
+      <p>No audio is implemented. Planned: anvil-hit and bellows SFX, a trait-discovery ding, a sale/coin chime, ambient forge crackle, and cozy per-town background music. Audio is a strong, cheap win for the cozy feel.</p>
+    </section>
+
+    <!-- ===================== 22 MONETIZATION ===================== -->
+    <section id="monetization">
+      <div class="sec-head"><span class="num">22</span><h2>Monetization</h2><span class="st concept">Concept</span></div>
+      <p class="lead">A free-to-play web game with <strong>real-money IAP</strong> for cosmetics — no pay-to-win.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Item type</th><th>Base tier</th><th>Premium tier</th></tr></thead>
+        <tbody>
+          <tr><td>Décor (storefront / counter / bedroom)</td><td>free &amp; gold-bought</td><td>real-money premium sets</td></tr>
+          <tr><td>Sword parts (grip / guard / pommel)</td><td>mostly gold-bought</td><td>a few fancy premium parts</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn"><span class="lbl">Guardrails to define</span> Because premium is real money, keep it strictly cosmetic (never quality/value), avoid dark patterns in a cozy game, and confirm the store/checkout tech (a static GitHub Pages build has no backend today). Pricing, storefront, and platform-fee handling are <span class="tbd">TBD</span>.</div>
+    </section>
+
+    <!-- ===================== 23 TECH ===================== -->
+    <section id="tech">
+      <div class="sec-head"><span class="num">23</span><h2>Technical Architecture</h2></div>
+      <p><strong>Single self-contained <code>index.html</code></strong> — all HTML, CSS, and vanilla JS in one file; no build step, bundler, or framework. Global mutable state + direct DOM manipulation. Auto-deploys to GitHub Pages on push to <code>main</code>. <span class="st impl">Implemented</span></p>
+      <div class="note warn">
+        <span class="lbl">Save / load — required, not built</span>
+        Nothing persists across reload today. With 90–100-day towns and full cross-town carry-over, <strong>save/load is mandatory</strong>: it must persist gold, Vault, materials, compositions, upgrades, unlocks, tutorial progress, day/town state, reputation, décor, and (eventually) premium entitlements — with a version/migration story. This is the single biggest technical prerequisite for the town system. <span class="st plan">Planned — top priority</span>
+      </div>
+      <div class="note warn"><span class="lbl">Scale watch</span> The single-file model is a real constraint against the planned content volume (24 unique maps, 240 shapes, per-town assets). Asset delivery and file size will need a plan even if the code stays single-file.</div>
+    </section>
+
+    <!-- ===================== 24 POTIONCRAFT ===================== -->
+    <section id="potioncraft">
+      <div class="sec-head"><span class="num">24</span><h2>Comparison — <em>Potion Craft: Alchemist Simulator</em></h2></div>
+      <p class="lead">Our closest reference: a cozy crafting-shop sim where you brew potions by steering a vial across a hand-drawn map using ground ingredients, then serve customers with moral weight. Here's where Sword Forge stands.</p>
+      <div class="tw"><table>
+        <thead><tr><th>Axis</th><th>PotionCraft</th><th>Sword Forge</th><th>Read</th></tr></thead>
+        <tbody>
+          <tr><td>Craft metaphor</td><td>One elegant unified activity — navigate a map with ingredient vectors.</td><td>A chain of distinct minigames (heat/hammer/quench/sharpen), unique per trait.</td><td><strong>Worse cohesion, better variety.</strong> PC's single loop is more elegant; ours risks fatigue (hence per-trait uniqueness + automation).</td></tr>
+          <tr><td>Exploration</td><td>None — the "map" is the crafting surface.</td><td>A real world map to explore for traits, + 24 planned shape maps.</td><td><strong>Better.</strong> We add an adventure layer PC lacks — at the cost of two systems to unify.</td></tr>
+          <tr><td>Customers &amp; morality</td><td>Deep: haggling, reputation, serve/refuse shady requests.</td><td>Simpler payout multiplier today; planned good/evil axis that reshapes the town.</td><td><strong>Worse now, bolder later.</strong> PC's economy is richer; our morality-drives-the-town is more consequential.</td></tr>
+          <tr><td>Progression / meta</td><td>Alchemy-machine skill tree, recipe learning, shop upgrades — complete.</td><td>Upgrades + blueprints today; town-to-town journey planned.</td><td><strong>Worse now, bigger ambition.</strong> PC is polished &amp; finished; our town spine is a larger structure, unbuilt.</td></tr>
+          <tr><td>Materials / gathering</td><td>Grow a garden, buy from merchants, experiment to ID ingredients.</td><td>Auto-generated metals today; hands-on gathering planned.</td><td><strong>Worse now.</strong> Auto-gen is passive; gathering (this doc's lean) closes the gap.</td></tr>
+          <tr><td>Art &amp; presentation</td><td>Cohesive hand-drawn woodcut, mature, atmospheric.</td><td>Custom forge art, still cohering; distinct theme.</td><td><strong>Worse now.</strong> PC is a shipped, unified art bible; ours is prototype-stage but has a clear identity.</td></tr>
+          <tr><td>Feel</td><td>Meditative, zen, slow.</td><td>Active, hands-busy, minigame-driven.</td><td><strong>Different flavour.</strong> A more energetic cozy — a genuine niche of its own.</td></tr>
+          <tr><td>Platform / model</td><td>Premium paid, PC/console/mobile.</td><td>Free web + cosmetic IAP.</td><td><strong>More accessible</strong>, but a cosmetic-IAP model is harder to get right in cozy — needs care (§22).</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><span class="lbl">Takeaway</span> Sword Forge's edge is the <strong>explore-then-craft adventure loop</strong> and <strong>morality that reshapes the world</strong> — things PotionCraft doesn't do. Its risks are exactly PC's strengths: <strong>cohesion, gathering depth, and finished polish</strong>. Prioritise gathering, per-trait uniqueness, and a unifying art pass to trade on our strengths while covering the gaps.</div>
+    </section>
+
+    <!-- ===================== 25 STATUS BOARD ===================== -->
+    <section id="status">
+      <div class="sec-head"><span class="num">25</span><h2>System Status Board</h2></div>
+      <div class="tw"><table>
+        <thead><tr><th>System</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Grid exploration, Purify dash, hazards</td><td><span class="st impl">Implemented</span></td></tr>
+          <tr><td>Traits, heating, per-trait heat variants</td><td><span class="st impl">Implemented</span></td></tr>
+          <tr><td>Quality chain, forge pipeline, Auto-Craft</td><td><span class="st impl">Implemented</span></td></tr>
+          <tr><td>Smelter, metals, shop, day system, reputation</td><td><span class="st impl">Implemented</span></td></tr>
+          <tr><td>Recorded compositions, tutorial, minimap</td><td><span class="st impl">Implemented</span></td></tr>
+          <tr><td>Sword-HP model (replace smith HP/death)</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Save / load + migration</td><td><span class="st plan">Planned — top priority</span></td></tr>
+          <tr><td>Town-to-town progression + rent + two endings</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Good/evil customer axis + corruption</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Variable customer count (festivals/war weeks)</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Hands-on gathering (vs auto-gen)</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Per-trait crafting materials (polish/crystals)</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>Audio</td><td><span class="st plan">Planned</span></td></tr>
+          <tr><td>24 shape maps + merchant entry</td><td><span class="st concept">Concept</span></td></tr>
+          <tr><td>Automation / hiring</td><td><span class="st concept">Concept</span></td></tr>
+          <tr><td>Décor / base customization + bedroom</td><td><span class="st concept">Concept</span></td></tr>
+          <tr><td>Real-money cosmetic IAP</td><td><span class="st concept">Concept</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <!-- ===================== 26 RISKS ===================== -->
+    <section id="risks">
+      <div class="sec-head"><span class="num">26</span><h2>Risks</h2></div>
+      <div class="cards">
+        <div class="card"><h4>⚠ Content scale</h4><p>24 bespoke shape-maps + 240 shapes + per-trait crafting chains + per-town casts/materials/minigames + a décor layer is an enormous surface for a small team on a single-file build. <strong>The top risk.</strong> Mitigate with templating, prioritisation, and staged town releases.</p></div>
+        <div class="card"><h4>⚠ Minigame fatigue</h4><p>A ~2-minute loop repeated across ~650 customers/town will wear thin. Per-trait uniqueness and automation are the intended countermeasures — validate they're enough.</p></div>
+        <div class="card"><h4>⚠ Rent vs. earn balance</h4><p>~1,000 g/month against ~15–100 g/customer needs a designed earn curve, or rent becomes a grind wall or a non-event.</p></div>
+        <div class="card"><h4>⚠ Save/load dependency</h4><p>The whole town system is blocked on persistence. Build it first.</p></div>
+        <div class="card"><h4>⚠ IAP in a cozy game</h4><p>Real-money cosmetics can clash with cozy trust; needs a static-build storefront solution and strict no-pay-to-win guardrails.</p></div>
+        <div class="card"><h4>⚠ Two-system cohesion</h4><p>Explore-vs-craft risks feeling like two games; a unifying loop/art pass matters (PotionCraft's lesson).</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 27 OPEN ===================== -->
+    <section id="open">
+      <div class="sec-head"><span class="num">27</span><h2>Open Questions</h2></div>
+      <ul>
+        <li>Town <strong>count</strong> and a <strong>final ending</strong> — undecided.</li>
+        <li><strong>Back-and-forth</strong> travel between towns — undecided.</li>
+        <li>Exact <strong>rent amount</strong> and <strong>landlord intro day</strong> (4–8) — to lock.</li>
+        <li>Keep <strong>gathering or auto-generation</strong> (or both) — leaning gathering.</li>
+        <li>Keep the <strong>50 g shape unlock</strong>, the <strong>24 shape maps</strong>, or both.</li>
+        <li><strong>Shape-map entry</strong> flow — merchant-buy at ~500 g proposed.</li>
+        <li>What each <strong>town unlocks</strong> across the five tracks.</li>
+        <li>Automation <strong>cost / gating</strong> and its quality trade-off.</li>
+        <li>IAP <strong>storefront tech</strong> on a static build, and pricing.</li>
+        <li>Full <strong>economy pass</strong> across a 90–100-day town.</li>
+      </ul>
+    </section>
+
+    <!-- ===================== 28 APPENDIX ===================== -->
+    <section id="appendix">
+      <div class="sec-head"><span class="num">28</span><h2>Appendices</h2></div>
+      <h3>A · Glossary</h3>
+      <div class="kv">
+        <dt>Trait</dt><dd>a magical property discovered on the map and fused into a blade (24 total).</dd>
+        <dt>Composition</dt><dd>a saved trait-set + material recipe (a "blueprint").</dd>
+        <dt>The Gray</dt><dd>the spreading darkness / threat in the fiction (working name).</dd>
+        <dt>Quality</dt><dd>Weak / Fine / Epic — a per-trait value bonus set by minigame skill.</dd>
+        <dt>Value tier</dt><dd>Common → Legendary — a sword's total worth band.</dd>
+        <dt>Purify dash</dt><dd>the hold-and-release movement minigame.</dd>
+      </div>
+      <h3>B · Document lineage</h3>
+      <p>This GDD supersedes the original vision in <code>archive/Sword_Grid_Game_GDD.md</code> (historical only). For authoritative <em>implemented</em> mechanics, <code>specs/game-design.md</code> is the SSOT — this doc must be reconciled with it as systems ship. Progress is tracked in <code>plan.md</code>.</p>
+      <h3>C · Change log</h3>
+      <div class="kv">
+        <dt>v0.1</dt><dd>2026-07-24 — initial draft: full current-state capture + town/morality/maps/gathering/automation/monetization vision + PotionCraft comparison.</dd>
+      </div>
+      <h3>D · References</h3>
+      <ul>
+        <li><em>Potion Craft: Alchemist Simulator</em> (Niceplay Games) — primary reference.</li>
+        <li>Local: <code>research/potioncraft.html</code> / <code>.md</code> (crafting-minigame exploration).</li>
+        <li>Local: <code>research/chalk-map-design.md</code> (paused exploration-redesign notes).</li>
+      </ul>
+      <hr>
+      <p style="color:var(--ink-3); font-size:.85rem; font-family:var(--mono)">Living document · reconcile with <code>specs/game-design.md</code> as systems ship · nothing here is wired into the build unless status-tagged Implemented.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+  (function(){
+    // theme toggle (defaults to OS pref)
+    var btn = document.getElementById('themebtn');
+    btn.addEventListener('click', function(){
+      var cur = document.documentElement.getAttribute('data-theme');
+      var dark = cur ? cur === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+    });
+    // scrollspy for the TOC
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    var sections = Array.prototype.slice.call(document.querySelectorAll('main section'));
+    if('IntersectionObserver' in window){
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            links.forEach(function(l){ l.classList.remove('active'); });
+            var a = map[e.target.id]; if(a){ a.classList.add('active');
+              a.scrollIntoView({block:'nearest'}); }
+          }
+        });
+      }, {rootMargin:'-10% 0px -80% 0px', threshold:0});
+      sections.forEach(function(s){ obs.observe(s); });
+    }
+  })();
+</script>
