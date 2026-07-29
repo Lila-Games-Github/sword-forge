@@ -119,6 +119,7 @@ function buildMarkers(){
 // ---- Hazard ----
 function isTan(r,g,b){ return b<=r && b<=g && (r-b)>20 && Math.abs(r-g)<45 && !(g>r+15); }
 function isHazard(wx, wy) {
+    if (!pix) return false; // no pixel data (file:// draw-only mode) → treat everything as safe terrain
     wx = Math.round(wx); wy = Math.round(wy); let sum = 0, n = 0;
     for (let dy=-6; dy<=6; dy+=2) for (let dx=-6; dx<=6; dx+=2) {
         const x=wx+dx, y=wy+dy; if (x<0||y<0||x>=WORLD||y>=WORLD) continue;
@@ -312,11 +313,15 @@ function boot() {
     mapImg.onload=ready; chalkImg.onload=ready; mapImg.src=MAP_SRC; chalkImg.src=CHALK_SRC;
 }
 function init() {
-    const off=document.createElement('canvas'); off.width=WORLD; off.height=WORLD;
-    const octx=off.getContext('2d',{willReadFrequently:true}); octx.drawImage(mapImg,0,0,WORLD,WORLD);
-    pix=octx.getImageData(0,0,WORLD,WORLD).data;
-    const sp=findSpawn(SPAWN.x,SPAWN.y); SPAWN.x=sp.x; SPAWN.y=sp.y; sword.x=sp.x; sword.y=sp.y;
-    buildMarkers(); layout();
+    // Read the map's pixels for trait/hazard detection. Opening this file via file:// taints the
+    // canvas and blocks getImageData — fall back to a draw-only mode (map still renders) instead of a blank screen.
+    try {
+        const off=document.createElement('canvas'); off.width=WORLD; off.height=WORLD;
+        const octx=off.getContext('2d',{willReadFrequently:true}); octx.drawImage(mapImg,0,0,WORLD,WORLD);
+        pix=octx.getImageData(0,0,WORLD,WORLD).data;
+    } catch(e) { pix=null; setTimeout(()=>toast('⚠️ Run via a local server (or the live URL) for traits & hazards'), 500); }
+    if (pix) { const sp=findSpawn(SPAWN.x,SPAWN.y); SPAWN.x=sp.x; SPAWN.y=sp.y; sword.x=sp.x; sword.y=sp.y; buildMarkers(); }
+    layout();
     trail.push({x:sword.x,y:sword.y}); revealAt(sword.x,sword.y);
     requestAnimationFrame(t=>{ lastT=t; requestAnimationFrame(tick); });
 }

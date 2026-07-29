@@ -8,6 +8,24 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## ✅ Done
 
+### Sessions 2026-07-21 → 07-24 — story customers, economy depth, minigame reworks, counter tools
+- [x] **Day metal restock** — each day rollover adds **+7 to every unlocked metal** (`DAY_METAL_BONUS`; locked diagonals skipped).
+- [x] **Forge Close / pause-resume** — every forge-stage modal's button is **Close** (not Cancel); it pauses the pipeline (`closeForge` snapshots the stage — shape pick / hammer stage+point+misses / design draft / sharpen %) instead of discarding it. Clicking **Forge** again resumes at that stage (`resumeForge`); the forge only clears on completion.
+- [x] **New customer portraits + no-repeat pool** — `man3/4`, `woman2/3` added; every non-scripted customer draws a random human portrait, never repeating back-to-back (`customerPool`/`randomCustomerImg`).
+- [x] **Scripted story customers** — **Bram** (Day 1 opener; returns Day 2 as `BramD2` with a 3-beat **Continue ▶** dialogue, wants a **Durable** sword — trait inferred, never named); **June** (Day 1 final customer #7, wants **Sharp**); **Roland** (Day 2 #3, wants **Noble**, with an extra *"I don't make swords for cosplay"* response → retort). Multi-beat dialogue engine (`presentCustomerDialogueSequence`/`customerLineQueue`); customers tagged via `currentCustomerId`.
+- [x] **Quests** — a 📋 collapsible panel (top-left of the counter) with 5 one-off quests (**+20g** each): craft 5 Epic swords, survive a day with no refusals, discover 3 traits, update 3 compositions, open the shop. (`quests`/`bumpQuest`/`renderQuests`.)
+- [x] **Diary** — a 📖 collapsible panel (below Quests, mutually exclusive) — a paged book of the story customers (Bram/June/Roland) with portrait + storyline note + a running list of swords crafted for them. **Each page is locked (🔒, identity hidden) until you sell to that customer.** (`diaryCustomers`/`diaryGiven`/`renderDiary`.)
+- [x] **Craftsmanship gold bonus** — **+1 per successful hammer hit** + a sharpen-accuracy bonus (**+3** at 95–105%, **+2** at 90–95%/105–110%). Baked onto the sword (`craftBonus`) and shown as a green **+x** on the forge board / Vault detail; added flat to the sale total.
+- [x] **Hazard rework** — landing on a 💥 now costs **−25 HP** (was −20) **and −4 gold**, shows a **dialogue box** (`gameAlert`) warning, and the per-blade gold lost (`hazardGoldLost`) is stamped on the sword (`hazardLoss`) and shown as a red **−x**. Sale total = `value + craftBonus − hazardLoss` (min 1), shown as one number in the sale line.
+- [x] **5-metal top-up after the first sale** (`topUpMetalsAfterFirstSale`).
+- [x] **Hammer minigame harder** — targets **⅓ the size**, ring lasts **~0.65s** (`HAMMER_RING_MS`), a green **"Perfect!"** arcs off each hit (`spawnPerfectText`).
+- [x] **Sharpen minigame** — replaced the ◀ ▶ buttons with a **joystick** (`#sharpen-knob`, analog, springs back); blade sweeps **near-full width** (`SHARP_TRAVEL`); the **95–105% "perfect" band is marked in gold** on the meter at 50% opacity (`.sharpen-goldzone`).
+- [x] **Day-full counter clears** — once the day's 7 customers are done the counter shows **no portrait and no dialogue box** (was a persistent "rest up" bubble); re-shown for the next day (`onDayFull`).
+- [x] **Passive shop polish (screen 0)** — a green **sale popup** shows the gold gained (`showShopSalePopup`); each shop card shows the **composited sword image laid flat** (−135°); a **📒 Ledger** logs passive sales by day with scrollable day tabs, keeping the **5 most recent days** (`shopLedger`/`recordLedgerSale`/`renderLedger`).
+- [x] **Blade-unlock popup** — buying a locked blade shape pops a *"&lt;shape&gt; unlocked"* box (`showNewShapeModal`).
+- [x] **Collapsible cheat box** — +100 Metals / +100 Gold / Skip Stage (and **Skip Tutorial** during the tutorial) now live behind a small **🛠 toggle** floating just **above** the game frame's top-right (`#cheatBox` in `#frame-shell`), collapsed by default; works on desktop **and mobile** (was a fixed corner stack that landed in the mobile letterbox / overlapped the health bar).
+- [x] **Bram story page** — `story/bram-one-more-sunrise.html` (standalone narrative deck).
+
 ### Session 2026-07-17 — smelter tuning, map-preview polish, compositions, day system
 - [x] **Metal generation reworked** — base rate **1 metal / 10s** post-tutorial (`METAL_TICK_MS`); **lowest-first priority** (feeds the lowest-count metal until all pooled metals are ≥5, then uniform random; `METAL_FLOOR`); **only unlocked metals are generated** (locked diagonals no longer accumulate). Smelter readout shows the true cadence.
 - [x] **Hover directional hint** — hovering a movement button lights up the cells it would move the sword into with `assets/map/tile_movepath.png` (1 tile before the Purify dash unlocks, 3 after; all 8 buttons incl. locked diagonals; desktop mouse-only). `.move-hover-path` + `showHoverPreview`/`clearHoverPreview`.
@@ -77,15 +95,15 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## 🔜 Next up
 
-- [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Now also needs to persist **day state** (`currentDay`, `customersToday`) alongside gold/vault/metals/compositions/upgrades/tutorial progress.
-- [ ] **More customer art / variety** — named customers, archetypes, more dialogue; only 3 portraits so far
+- [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Must now cover a lot: gold/vault/metals/compositions/upgrades/tutorial progress **+ day state** (`currentDay`, `customersToday`, `refusalsToday`) **+ quests + diary (`diaryGiven`) + shop ledger (`shopLedger`) + per-sword `craftBonus`/`hazardLoss`**.
+- [~] **Customer variety** — mostly done: named story customers **Bram / June / Roland** with branching dialogue + locked **Diary** pages, plus a 7-portrait no-repeat pool. Still open: **later-day story progression for June & Roland** (only their first appearance exists; Bram already returns on Day 2), and more archetypes/dialogue.
 - [ ] **Audio** — anvil hits, trait-discovery ding, shop-sale chime
 - [ ] **Balance pass on per-trait heating** — `heatConfigs` band difficulty is first-pass (Dark hidden, Cursed jumps, Lightning two-strike likeliest to need softening); `heatTimers` were recently halved — play-test the timer + quality feel
 - [ ] **Hammer mini-game art polish** — only Shortsword/Longsword/Broadsword have mid-forge art; the other 7 shapes reuse the Longsword mid as a placeholder. Add per-shape mid art (and optionally top-down final art) when ready. Target positions in `HAMMER_POINTS` are approximate — tune to the real art.
 - [ ] Clean up **committed-but-unreferenced** files (all safe to delete): `assets/unused/` folder, `assets/ui/Chart_background.png` (grep count 0), and `assets/sword-parts/pommels/sparkle.png` (stray duplicate — the real overlay is `overlays/sparkle.png`)
 
 ## ⚠️ Known / decisions to make
-- [ ] **`+100 Metals`, `+100 Gold`, `Skip Stage`, and `Skip Intro` are visible to players** on the live site — gate them (key combo / `?cheats` URL flag) before a "real" release, or remove the cheats
+- [ ] **Cheats still ship to players** — now tucked into a collapsed **🛠 box** (top-right) plus **Skip Intro** (during the intro); still fully usable on the live site. Gate behind a key combo / `?cheats` flag, or remove, before a "real" release.
 - [x] ~~Heat **quality** is hardcoded **Epic-only**~~ — **done:** Weak/Fine/Epic driven by the heat timer + blade-HP cap, with crack/sparkle overlays
 - [ ] Map seed fixed (`1337`) — should reset randomize the layout?
 - [ ] Original GDD's **Dagger** shape is absent (10 shapes vs 11)
@@ -100,6 +118,7 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
 **XP skill tree** (TBD).
 - Prototype: [`research/map_test.html`](research/map_test.html) (canvas + pointer-draw, offscreen fog,
   pixel-mask hazards, colour-cluster marker detection), art `research/map_test.png` + `research/chalk.png`.
+  ⚠️ **Must be run over http** (local server or the live URL) — it reads the map's pixels via `getImageData`, which a `file://` open blocks (tainted canvas). Opening the file directly now degrades to a draw-only mode + a "run via a server" toast instead of a blank screen (`try/catch` in `init()`), but traits/hazards need http.
 - Full design notes + open questions: [`research/chalk-map-design.md`](research/chalk-map-design.md).
 - **Not ported to `index.html`.** Next: decide the ore→ingot material system + skill-tree nodes, then plan the port.
 
