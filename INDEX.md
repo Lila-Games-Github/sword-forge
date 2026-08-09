@@ -27,7 +27,8 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 - **(pre-2026-08-10)** — [research/chalk-map-design.md](research/chalk-map-design.md) + [research/map_test.html](research/map_test.html) — chalk-map redesign exploration (not shipped). `canon` (research)
 - **(pre-2026-08-10)** — [research/potioncraft.md](research/potioncraft.md) — PotionCraft reference notes. `canon` (research)
 - **(pre-2026-08-10)** — [research/sword-forge-gdd.html](research/sword-forge-gdd.html) — Sword Forge GDD v0.1 (research doc). `canon` (research)
-- **2026-08-10** — [docs/agents/](docs/agents/) — issue-tracker / triage-labels / domain-docs config (setup-matt-pocock-skills). `canon`
+- **2026-08-10** — agent workflow config from setup-matt-pocock-skills: [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) (GitHub Issues via `gh`), [docs/agents/triage-labels.md](docs/agents/triage-labels.md) (five-role vocabulary), [docs/agents/domain.md](docs/agents/domain.md) (single-context CONTEXT.md + ADRs). `canon`
+- **2026-08-10** — [AGENTS.md](AGENTS.md) — agent-file pointer to the code wiki (written by wiki adopt). `canon`
 - **2026-08-10** — [docs/wiki/](docs/wiki/) — code-repo navigation wiki adopted (subordinate to the spec chain). `canon` (navigation layer)
 - **2026-08-10** — V2 (`swordforgeV2.html`) declared the canonical build; `index.html` (V1) kept for historical reference and remains the deployed Pages entry point until promoted. Recorded in CLAUDE.md / README / ONBOARDING banners.
 - **2026-08-10** — living-docs spine seeded by `start-session` (INDEX.md, LEARNINGS.md, HANDOFF.md, verifier hook, `.claude/settings.json`).
