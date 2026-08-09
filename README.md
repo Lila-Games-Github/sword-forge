@@ -1,12 +1,14 @@
 # Sword Forge
 
-A 2D grid-based blacksmith crafting game, built as a **single self-contained `index.html`** (vanilla HTML/CSS/JS — no build step, bundler, or dependencies). Explore a fog-of-war grid to discover magical traits, heat and forge them into custom swords, and sell to customers at your counter.
+A 2D grid-based blacksmith crafting game, built as a **single self-contained HTML file** (vanilla HTML/CSS/JS — no build step, bundler, or dependencies). Explore a fog-of-war grid to discover magical traits, heat and forge them into custom swords, and sell to customers at your counter.
+
+**Canonical build: `swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial). `index.html` is V1, kept for historical reference; it is still the deployed site root until V2 is promoted.
 
 **Play it:** auto-deployed to GitHub Pages on every push to `main` → https://lila-games-github.github.io/sword-forge/
 
 ## Run locally
 
-Open `index.html` in any modern browser — no server or install required. (A zero-dependency static server config lives in `.claude/` for tooling that needs one.)
+Open `swordforgeV2.html` in any modern browser — no server or install required. (A zero-dependency static server config lives in `.claude/` for tooling that needs one.)
 
 ## Core loop
 
@@ -16,7 +18,8 @@ Select metals → move across the **50×50** fog-of-war grid (each move spends o
 
 | Path | What |
 |------|------|
-| `index.html` | The entire game (markup + CSS + JS). **Always edit this.** |
+| `swordforgeV2.html` | The entire game, V2 (markup + CSS + JS). **Always edit this.** |
+| `index.html` | V1 — historical reference; still the deployed Pages entry point. |
 | `specs/game-design.md` | Single source of truth for mechanics, kept in sync with the code. |
 | `specs/README.md` | SSOT policy. |
 | `ONBOARDING.md` | Zero-context handoff — read this first if you're new to the project. |

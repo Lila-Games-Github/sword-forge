@@ -2,6 +2,8 @@
 
 You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. This doc gives a zero-context agent everything needed to be productive. Read `specs/game-design.md` next — it's the mechanics SSOT.
 
+> ⚠️ **Canon update (2026-08-10):** the canonical build is now **`swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial); `index.html` is V1, kept for historical reference and still serving as the deployed Pages entry point until V2 is promoted. The sections below describe V1 systems — most concepts carry over, but verify against V2 before relying on specifics.
+
 ## 1. What it is
 - A browser game: explore a fog-of-war grid to find magical traits, heat them onto your blade (a timed minigame that sets quality), forge custom swords, and sell them to customers — or list them in a passive shop.
 - **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~3,100 lines.)
@@ -28,7 +30,7 @@ You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. Thi
 - **Match the existing style** — terse, semicolon-dense vanilla JS, many statements per line, globals. Don't refactor to a framework.
 - **Update `specs/game-design.md` in the SAME change** as any mechanic/number/system change. It's the SSOT.
 - **Proofread all player-facing copy** for grammar/spelling (standing owner preference).
-- **Verify before pushing** — reload the preview, exercise the affected code with `preview_eval`, and confirm `preview_console_logs` is clean.
+- **Verify before pushing** — reload the preview, exercise the affected code by running JS in the page (`javascript_tool` in the current environment), and confirm the console (`read_console_messages`) is clean.
 
 ## 5. Where things live
 - `index.html` — the game. Always edit this.
