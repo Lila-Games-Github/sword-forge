@@ -101,10 +101,17 @@ water **pulls back to centre**, fire **locks a trait in**. Everything from the F
   lands in the forged sword's recipe), copies the plan into `committedPath`, resets `pathPos` to 0 and clears
   the plan. The slot **morphs**: it is the Smelter whenever a plan is on the map and **Bellows** the rest of
   the time, so a heat control is always reachable (including before anything is plotted).
-- **Temperature (0–100).** Bellows tap = **+12**; decays **2/sec** (`pcTempTick`). Shown on the 🔥 gauge with
-  a numeric readout and the ×2/×3 threshold ticks — and on the **ingot marker itself**, which reads ember +
-  glow at ≥70, dull orange at 35–69 and cold iron below 35, so the fast/precise trade is legible on the map.
-  Tapping the furnace bellows art does the same thing.
+- **Temperature (0–100).** Bellows tap = **+12**; decays **2/sec** (`pcTempTick`). Shown on the **forge scale**
+  (the inked gauge above the map) and on the **ingot marker itself**, which reads ember + glow at ≥70, dull
+  orange at 35–69 and cold iron below 35, so the fast/precise trade is legible on the map. Tapping the furnace
+  bellows art does the same thing.
+  - **The forge scale draws four numbers, and they are a hand-mirrored copy of the constants — not derived.**
+    The `.pc-temp` track paints the three `pcStepSize` regimes as progressively darker ink washes split at
+    **35%** and **70%**, labels their midpoints **×I / ×II / ×III** at 17.5% / 52.5% / 85%, and marks the
+    `PC_POUR_TEMP` gate with an ink notch at **40%**. `pcSetTemp` (and `pcResetRun`, which bypasses it) write
+    `data-zone = pcStepSize()` on the gauge to light the live band. **If `PC_POUR_TEMP` or the 35/70
+    thresholds in `pcStepSize` are ever retuned, the CSS percentages in the `.pc-temp` block and the two
+    `.pc-temp-mark` inline `left:` values must move in lockstep** — nothing computes them.
 - **Pour.** Needs **temp ≥ 40** and a committed route. Flings `assets/forge/Metal.png` from the furnace mouth
   to the marker; the ingot now exists and the anvil is live. Pouring happens once per blade — later commits
   in the same run reuse the same ingot.
