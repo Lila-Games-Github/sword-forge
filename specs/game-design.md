@@ -178,15 +178,82 @@ water **pulls back to centre**, fire **locks a trait in**. Everything from the F
   further than the pan/zoom clamp can ever reach, so there is no reachable sheet edge and no black void. The
   illustrated sheet (`assets/map/map_parchment_v2.png`, falling back to `map_parchment.png`, then to the
   procedural mottling) is composited on top through a **radial feather mask**, dissolving into the base instead
-  of ending on a hard alpha edge, and is lifted toward parchment by a **scrim** (`PC_ART_SCRIM` = 0.34) so the
-  busy terrain never swallows the ink. Unexplored ground is a **warm sepia haze** (`#33240f` @ 0.9) over that
-  parchment, not black, and the fog holes are **blurred**, so explored ground fades out instead of ending on
-  scalloped discs. Every art layer is load-probed; the board boots identically with none of the PNGs present.
+  of ending on a hard alpha edge. Every art layer is load-probed; the board boots identically with none of the
+  PNGs present.
+  - **VALUE CONTRACT — the map is light parchment with dark ink on it, and these are the numbers.** The
+    shipped `map_parchment_v2.png` is a **dark painting** (mean relative luminance Y **0.22**), not a parchment
+    sheet; Potion Craft's alchemy map sits at Y **0.42–0.48**. Three knobs bring it to parity and they are
+    tuned **together**:
+    1. **`filter#v2artLift`** — an `feComponentTransfer` gamma (exponent **0.7**, offset 0.02) on
+       `#v2groundArt`. **`color-interpolation-filters="sRGB"` is REQUIRED**; the SVG default (linearRGB) makes
+       the same exponent read far too bright. A gamma is used instead of a heavier scrim because it raises the
+       paper while leaving the painted ink dark — a flat scrim strong enough to hit the target costs tonal
+       range.
+    2. **`PC_ART_SCRIM` = 0.18** (was 0.34) over `#v2scrim`, now filled `--sf-parch` `#efe1bd` (was
+       `--sf-card`). With the gamma doing the lifting, the scrim's only remaining job is a warm parchment tint.
+    3. **`#v2fog` = `--sf-haze` `#7a4f26` @ 0.52** (was `#33240f` @ 0.90). The old wash kept ~10% of the
+       terrain signal — about 97% of the illustration destroyed. At 0.52 it keeps ~48%. **Do not take the fog
+       fill below Y 0.10**: an opaque dark marker (the cold-iron marker stroke `#20202a`) stops clearing 3:1
+       unaided once a fogged cell drops under Y 0.145.
+    - **`radialGradient#v2artFadeGrad` is `r=88%` with the plateau at `85%`** (was 52%/60%). At 52% the sheet
+      was 90% dissolved at the mid-left/mid-right world edge and gone in the corners — inside pannable
+      territory, so panning revealed a *brighter, emptier* ring than the middle. At 88% the whole 1400×980
+      world carries the illustration and the dissolve lives only in the 700-unit padding, which `v2setView`'s
+      clamp already makes unreachable.
+    - **Reveal-frontier trade.** With the fog lifted, explored vs unexplored separate by only ~1.4:1 in
+      luminance, so the frontier is now carried by **edge definition** — `filter#v2fogSoft` tightened from
+      `stdDeviation` 17 → **11**. If exploration stops reading in playtest, **tighten the blur to 8 before
+      raising the fog alpha**; every step of alpha buys separation at a fixed cost in terrain visibility.
+  - **LEGIBILITY INVARIANT: every map marker must hold ≥ 3:1 against its own cell on at least one boundary.**
+    Two structural rules make that unconditional rather than a function of how the ground is tuned:
+    **(a) game objects draw ABOVE `#v2fog`** — the route layers already did; **`<g id="v2traits">` now does
+    too** (an undiscovered `?` is a game object, not terrain; under a uniform wash a node and its background
+    compress together and no achievable fog alpha keeps them apart). **(b) the trait node's pale rim is
+    OPAQUE** (`PC_HALO`, `stroke-width` 2.8, opacity 1 — was 2.4 @ 0.6). The node has two boundaries against
+    the ground: the ink ring `#4a3826` clears 3:1 whenever ground Y ≥ 0.233, and an opaque pale rim clears 3:1
+    whenever ground Y ≤ 0.232. The two intervals cover the whole range, so best-of-boundary ≥ 3:1 for **any**
+    ground luminance, forever.
+  - **The old `#v2vignette` rect is deleted — it drew nothing.** Its gradient used objectBoundingBox units on
+    a 2800 × 2380 rect, so its first non-zero stop sat past world x > 1902 / y > 1464, while `v2setView`
+    clamps the viewBox inside the 1400 × 980 world. A world-anchored gradient cannot frame a pan/zoom
+    viewport. The frame vignette is now **`#v2vig`, a CSS overlay in SCREEN space** (`z-index: 3` — above
+    `#v2board`, below `#v2furnace` at 4), which is pan- and zoom-invariant and needs no JS. Its outer stop is
+    capped at **0.20**: it sits over the whole board and dims markers and ground together, so raising it past
+    ~0.24 eats the 3:1 budget above.
 - **Trait sites speak the ink language.** Each site is a parchment-cored disc in a dark ink ring with a dashed
-  hairline and a pale rim (readable over any terrain): structurally unlike the two-stroke destination ✕.
-  While the ingot is inside a site's snap radius the site is **armed**: a warm ember ring lights and pulses
-  (`.pc-trait-armed`, `data-armed="1"`), the marker **snaps onto the node centre**, and the status line names
-  the trait and its value. Undiscovered sites carry `?`, discovered ones the trait symbol.
+  hairline and an opaque pale rim (readable over any terrain): structurally unlike the two-stroke destination ✕.
+  While the ingot is inside a site's snap radius the site is **armed**. Undiscovered sites carry `?`,
+  discovered ones the trait symbol.
+  - **The armed ring is GILD and sits OUTSIDE the marker's bloom — both are load-bearing.** `pcMarkGlow` is
+    r19 `#ff7a2a` @ 0.6 under `feGaussianBlur` σ=9, i.e. ~37 world units of visible spread. The old armed ring
+    was r24 in ember `#ff8f33`: inside that bloom, in the same hue, so at opacity 0.95 it still fused into
+    "the ingot is glowing" and the armed state was not readable. It is now **r48, dashed, `--sf-gild`
+    `#c8a84b`**, on a pale `PC_HALO` under-ring, and both breathe together. **Do not drop the radius below
+    40** — that is where it re-enters the bloom and the bug returns. Gild is also the game's value colour,
+    which is what armed means: *this site is worth N gold, Fire to lock it in*.
+  - **An armed site also shows an offset trait cartouche** (`.pc-trait-badge`, ±34 world units, flipped inward
+    near the world edge). `pcAdvance` snaps the marker exactly onto the site centre, and `pcMarkBody` is a
+    34 × 26 rect, so the marker **completely covers** the node's r16.5 parchment core and its glyph — the ring
+    says *a site is armed*, the cartouche says *which one*. It is created hidden and revealed only by
+    `pcArmVisual`, the single arm/disarm point, so it can never desync from the ring.
+- **Terrain marks: hazards are hatched ground, and the green dots are gone.**
+  - **Hazards (18) are a drawn map symbol, not a filled disc.** They were two opaque circles (`#3a2b1b` with a
+    `#211710` ring and a `#241a10` core) up to 56 screen px across — nearly twice a trait node — which read as
+    holes punched through the sheet and looked like a rendering fault whenever the viewport bisected one. They
+    are now built from the **same five-layer recipe as a trait node** (offset ink shadow, pale halo rim, core,
+    inked outline, drawn glyph) but ragged instead of round and **hatched instead of filled**
+    (`pattern#v2slagHatch` — parchment `--sf-parch-dk` under ink `--sf-ink` cross-hatching), so the
+    illustration reads through them: the cartographer's fill for bad ground. Colour is `PC_INK` /
+    `PC_INK_DARK` / `PC_HALO` only — three off-token literals left the file and none entered.
+    **Placement and damage are byte-identical**: the jitter comes from a local LCG seeded on the hazard index,
+    **never `v2rand`**, so the seeded stream is untouched and the same 18 positions/radii (and therefore the
+    same iron / titanium / redIron route incidence) survive. Each hazard still costs **−25 HP and −4 gold**.
+  - **The 12 green "skill" dots are DELETED** (behaviour change). They paid `v2Skill`, which has **no HUD
+    readout** (`#v2-skill` does not exist in the document) and no gameplay effect, and they were sampled off
+    the **retired** `V2_ORES` beziers rather than the `pcPathFrom` routes the player actually travels — 15 of
+    the 24 reachable routes passed one only by accident. They also carried the file's only `#5c7d3a` and
+    `#9be04f` (neon lime) literals. `v2Skill`, `V2_DOT_R`, `v2dots` and the empty `<g id="v2greenDots">` are
+    left in place as inert scaffolding so every existing reader stays valid.
 - **The furnace lives in the world.** It is a DOM sprite over the SVG board, so `v2setView` translates it
   against the camera (`v2syncFurnace`), anchored to `V2_START` (the same point the trail leaves from) against
   the baseline the initial view puts that anchor at. It pans and zooms with the map instead of floating over

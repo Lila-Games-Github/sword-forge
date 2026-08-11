@@ -31,6 +31,19 @@
                warmer one. Do not merge them without a full visual pass. --- */
             --sf-sheet:#ddceb4; --sf-sheet-band:#cbb894; --sf-rule:#4a3623; --sf-burn:#8a5a2b; --sf-gild-dk:#8a6a1c;
             --sf-oxide-pale:#d4744a;   /* rep tier: destructive read on the opaque ink pill; --sf-oxide-lt only reaches 3.86:1 there */
+            --sf-haze:#7a4f26;   /* map fog-of-war haze. SVG fill ATTRIBUTES take the literal (attributes cannot read var()), so keep #v2fog and this token in step. */
+            /* SHAPE SCALE (cycle 5). Potion Craft draws square inked plates; a capsule radius on a 26px-tall
+               element is the flat-UI tell. Three numeric radii; 50% is allowed ONLY for genuine circles. The
+               four asymmetric hand-torn values (.forge-minigame-container, the modal shell,
+               .interactive-heat-meter, .sharpen-meter) are NOT radius chrome — they are torn paper. Leave
+               them verbatim; do not fold them into this scale. */
+            --sf-r-1:2px;    /* inset chips: cartouches, meter thumbs, scrollbar thumb */
+            --sf-r-2:4px;    /* THE plate radius: buttons, tiles, cards, gauges, pills */
+            --sf-r-3:10px;   /* device shell only (#mobile-wrapper) — chrome OUTSIDE the painting */
+            /* Potion-Craft plate edge: an inked rule plus its highlight, ZERO blur. Replaces the cast shadow
+               on UI chrome so elements sit ON the parchment instead of floating over it. The device is not new
+               — .list-modal-header has used exactly this pair since cycle 4b. */
+            --sf-plate:0 1px 0 rgba(74,54,35,0.85), 0 2px 0 -1px rgba(255,247,224,0.5);
             /* Display type ramp: t0 celebration · t1 modal title · t2 section head · t3 body · t4 meta. */
             --sf-t0:21px; --sf-t1:19px; --sf-t2:15px; --sf-t3:13px; --sf-t4:11px;
             /* LAYOUT tokens, not colours.
@@ -61,10 +74,31 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #333;
+            background-color: #1a0f06;   /* only ever seen for one frame before ::before paints, and behind it if the jpg 404s */
             margin: 0;
             height: 100vh;
             overflow: hidden;
+        }
+        /* SET DRESSING. The game frame is 360px wide; at 1280px the old flat #333 body was 77% of every
+           desktop frame — three quarters of the screen saying "this is a web page". This puts the forge
+           interior behind the frame, using the painting the heating mini-game ALREADY loads (no new asset,
+           no second request, warm in the cache), then sinks it far enough that it can never compete: blurred
+           to 14px so no shape reads as a subject, brightness 0.30 so it sits well below the frame's darkest
+           chrome, desaturated so the frame's ember/parchment stay the only saturated things on screen.
+           z-index:-1 on a pseudo of <body> paints ABOVE the canvas background colour and BELOW every element,
+           so nothing else in the file needs a z-index. position:fixed keeps both pseudos out of the flex flow
+           — the centred frame cannot shift by a pixel. inset:-40px hides the blur's soft edge.
+           If the jpg fails to load the gradients still paint and the frame sits on warm dark, not grey. */
+        body::before {
+            content: ''; position: fixed; inset: -40px; z-index: -1; pointer-events: none;
+            background: url('assets/backgrounds/background_forge.jpg') center/cover no-repeat;
+            filter: blur(14px) brightness(0.30) saturate(0.62) contrast(0.94);
+        }
+        body::after {
+            content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(46% 40% at 50% 44%, rgba(150,74,22,0.22) 0%, rgba(150,74,22,0) 70%),   /* faint hearth glow behind the frame */
+                radial-gradient(74% 66% at 50% 48%, rgba(10,5,2,0) 34%, rgba(10,5,2,0.55) 76%, rgba(4,2,1,0.90) 100%);   /* vignette: the room falls away at the edges */
         }
 
         /* Form controls do NOT inherit font-family from body — the UA sheet sets `font: 400 13.333px Arial`
@@ -216,7 +250,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border-radius: 12px;
+            border-radius: var(--sf-r-3);
             display: none; 
         }
 
@@ -241,12 +275,36 @@
             flex-direction: column;
             position: relative;
         }
+        /* THE COUNTER APRON. The bottom 17% of the counter screen was a bare slab of flat rgb(144,119,81) —
+           the single largest defect on that frame, and NOT a crop of the customer art: the band is painted
+           into Screen1bg.png itself (every pixel from source y≈450 to 571 is that identical tone), and Bram's
+           lowest opaque row renders 63px ABOVE it. So there is nothing to fix on the <img>; the fix is to
+           dress the band as what it should have been — the front face of the shop counter.
+           HEIGHT IS DERIVED, NOT MAGIC: #screen-1 is a fixed 360x640 box, Screen1bg.png is 304x572,
+           background-size:cover scales it by 360/304 = 1.1842, so the source band at y450 lands 640 − 450 ×
+           1.1842 = 107.1px up from the bottom; 112 also covers the ragged 446-455 transition. Re-derive if
+           the art or the frame size changes. The 62px plank period is deliberately NOT a divisor of 360, so
+           seams never land on a regular sixth. Drawn entirely in the existing --sf-burn -> --sf-rule wood
+           range with the file's own inked-rule idiom (ink line + cream plate line as a box-shadow), so it
+           costs no asset and no layout. */
+        #screen-1::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 112px; z-index: 1; pointer-events: none;
+            background-color: #6f5734;
+            background-image:
+                linear-gradient(180deg, rgba(255,236,196,0.16) 0 3px, rgba(0,0,0,0) 3px 10px),
+                repeating-linear-gradient(90deg, rgba(47,33,23,0) 0 58px, rgba(47,33,23,0.55) 58px 60px, rgba(255,236,196,0.10) 60px 61px, rgba(47,33,23,0) 61px 62px),
+                repeating-linear-gradient(1.2deg, rgba(47,33,23,0.16) 0 1px, rgba(0,0,0,0) 1px 7px),
+                repeating-linear-gradient(-0.7deg, rgba(255,236,196,0.07) 0 1px, rgba(0,0,0,0) 1px 11px),
+                linear-gradient(180deg, #8a5a2b 0%, #6b4a26 34%, #4a3623 100%);
+            box-shadow: inset 0 2px 0 #2f2117, inset 0 3px 0 rgba(255,236,196,0.22), inset 0 26px 30px -22px rgba(0,0,0,0.75), inset 0 -18px 26px -14px rgba(0,0,0,0.6);
+        }
         /* Quest tracker (screen 1, top-left) */
-        #questToggle, #diaryToggle { position: absolute; left: 8px; z-index: 30; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4a3623; background: rgba(0,0,0,0.55); color: #fceeb5; font-size: 19px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+        #questToggle, #diaryToggle { position: absolute; left: 8px; z-index: 30; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4a3623; background: rgba(0,0,0,0.55); color: #fceeb5; font-size: 0; cursor: pointer; box-shadow: var(--sf-plate); display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+        #questToggle .sf-mk, #diaryToggle .sf-mk { width: 21px; height: 21px; }
         #questToggle { top: 8px; }
         #diaryToggle { top: 56px; }
         #questToggle:hover, #diaryToggle:hover { background: rgba(0,0,0,0.78); }
-        #questPanel, #diaryPanel { position: absolute; top: 104px; left: 8px; z-index: 29; width: 258px; max-width: calc(100% - 16px); max-height: 58%; overflow-y: auto; background: rgba(28,19,11,0.95); border: 2px solid #4a3623; border-radius: 10px; padding: 10px 12px 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.55); display: none; }
+        #questPanel, #diaryPanel { position: absolute; top: 104px; left: 8px; z-index: 29; width: 258px; max-width: calc(100% - 16px); max-height: 58%; overflow-y: auto; background: rgba(28,19,11,0.95); border: 2px solid #4a3623; border-radius: var(--sf-r-2); padding: 10px 12px 12px; box-shadow: var(--sf-plate); display: none; }
         #questPanel.open, #diaryPanel.open { display: block; }
         #questPanel h4, #diaryPanel h4 { margin: 0 0 8px; color: #fceeb5; font-family: 'Cinzel', serif; font-size: 15px; text-align: center; }
         .diary-portrait { display: block; width: 84px; height: 84px; object-fit: contain; margin: 0 auto 8px; border-radius: 8px; background: rgba(0,0,0,0.3); }
@@ -276,13 +334,16 @@
            backdrop → the tier colours in updateUI() are tuned once and hold on both screens (4.7–6.0:1).
            The rgba() border literal is deliberate: the house rule at the top of this file says var() must
            not go inside a border shorthand. */
-        #screen-1 #gold-text { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: 1px solid rgba(200,168,75,0.55); }
+        /* Radius 16 -> --sf-r-2: a full capsule on a 26px-tall element is the flat-UI tell. Potion Craft
+           states a number on a square inked plate, and the pill is now that plate. */
+        #screen-1 #gold-text { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 14px; border-radius: var(--sf-r-2); font-size: 13px; font-weight: bold; box-shadow: var(--sf-plate); width: auto; border: 1px solid rgba(200,168,75,0.55); }
+        #gold-text .sf-mk, #gold-text-2 .sf-mk { width: 1em; height: 1em; vertical-align: -0.16em; }
         /* Passive-sale flash. This used to be two inline style writes in startShopLoop whose "restore" pass
            re-applied a light parchment chip and never cleared, permanently corrupting the pill for the rest
            of the session. Keeping it in the stylesheet next to the rule it flashes against is what makes
            the restore a single classList.remove. */
         #screen-1 #gold-text.gold-flash { background: var(--sf-moss); color: var(--sf-cream); }
-        #screen-2 #gold-text-2 { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); border: 1px solid rgba(200,168,75,0.55); }
+        #screen-2 #gold-text-2 { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 14px; border-radius: var(--sf-r-2); font-size: 13px; font-weight: bold; box-shadow: var(--sf-plate); border: 1px solid rgba(200,168,75,0.55); }
         .customer-stage { position: relative; width: 100%; flex: 1 1 auto; min-height: 360px; margin-bottom: 10px; }
         .customer-img { position: absolute; left: -8px; bottom: 0; height: 100%; max-height: 480px; width: auto; object-fit: contain; object-position: bottom left; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
         .customer-img.slide-in { animation: customerSlideIn 0.55s ease-out; }
@@ -293,13 +354,16 @@
 
         /* Screen chevrons: an ink tab with a gild hairline, not a flat black tab with the only pure-white
            text in the game. Cycle 4a's palette sweep hunted hex literals, so the `white` KEYWORD survived. */
-        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(47,33,23,0.78); color: #f0d8a0; border: 1px solid rgba(200,168,75,0.5); font-family: 'Cinzel', serif; padding: 24px 12px; z-index: 900; cursor: pointer; font-size: 20px; }
+        /* font-size:0 + an authored 2.6px stroke: the old ❮/❯ were OS ornament glyphs rendered by a serif
+           fallback at 20px. The drawn chevron matches the ink weight of the manicule and the map's own ✕. */
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(47,33,23,0.78); color: #f0d8a0; border: 1px solid rgba(200,168,75,0.5); font-family: 'Cinzel', serif; padding: 24px 12px; z-index: 900; cursor: pointer; font-size: 0; line-height: 0; }
+        .nav-btn svg { display: block; width: 11px; height: 22px; }
         /* The press must re-state the centring transform or the chevron jumps half its height (pre-existing
            under the old global scale(0.95); fixed here rather than carried forward). */
         .nav-btn:active:not(:disabled) { transform: translateY(-50%) translateY(2px); }
-        #nav-left { left: 0; border-radius: 0 8px 8px 0; }
-        #nav-right { right: 0; border-radius: 8px 0 0 8px; }
-        .corner-btn { position: fixed; right: 16px; z-index: 2000; background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 8px; padding: 9px 15px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
+        #nav-left { left: 0; border-radius: 0; }
+        #nav-right { right: 0; border-radius: 0; }
+        .corner-btn { position: fixed; right: 16px; z-index: 2000; background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: var(--sf-r-2); padding: 9px 15px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: var(--sf-plate); }
         .corner-btn:hover { background: #4a3623; }
         #btnSkipTutorial { bottom: 16px; }
         /* Lives INSIDE the intro card, in the card's own material: same scrim, same hairline, same gold
@@ -325,8 +389,31 @@
         .npc-container, .customer-actions, .status-panel, .action-area, .list-panel { width: 100%; box-sizing: border-box; }
         .npc-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         .npc-emoji { font-size: 40px; }
-        .dialogue-bubble { background-color: var(--sf-parch); color: var(--sf-body); padding: 12px; border-radius: 10px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.25); flex-grow: 1; border: 1px solid var(--sf-card-bd); font-size: 14px; }
-        .dialogue-bubble::after { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 10px solid #efe1bd; }   /* literal: keep in sync with --sf-parch */
+        /* The one container on the counter screen that opted out of the scorched-sheet language the modal
+           family already ships: it was a flat fill, a uniform 10px radius, a 1px hairline and a bare CSS
+           triangle — an SMS bubble on a hand-painted counter. Same idiom as .modal-content now: hand-cut
+           asymmetric radius, laid-paper grain, cream plate line, scorch creeping in from the edge. */
+        .dialogue-bubble {
+            background-color: var(--sf-parch);
+            background-image:
+                radial-gradient(120% 78% at 50% 0%, rgba(255,249,231,0.55), rgba(255,249,231,0) 62%),
+                repeating-linear-gradient(94deg, rgba(74,54,35,0.035) 0 1px, transparent 1px 4px);
+            color: var(--sf-body); padding: 12px 13px; position: relative; flex-grow: 1;
+            font-family: 'Lora', Georgia, serif; font-size: 13.5px; line-height: 1.5;
+            border: 2px solid var(--sf-rule);
+            border-radius: 13px 10px 14px 11px / 10px 14px 11px 13px;   /* hand-cut, same asymmetry idiom as .modal-content */
+            box-shadow: inset 0 0 0 1px rgba(255,247,224,0.6), inset 0 0 22px rgba(138,90,43,0.30), inset 0 -12px 20px rgba(74,54,35,0.13), 0 0 0 1px rgba(18,11,4,0.5), 0 8px 20px rgba(0,0,0,0.55);
+        }
+        /* The point is a rotated CORNER OF THE SHEET, not an SMS tail: same fill, same 2px --sf-rule on the
+           two exposed edges. Anchored to the BOTTOM — it was top:50%, which slid down as the line grew and
+           ended up aiming at bare wall; at bottom:16px it points down-left at the customer whatever the
+           copy length. */
+        .dialogue-bubble::after {
+            content: ''; position: absolute; left: -9px; top: auto; bottom: 16px; width: 15px; height: 15px;
+            transform: rotate(45deg); background: var(--sf-parch);
+            border-left: 2px solid var(--sf-rule); border-bottom: 2px solid var(--sf-rule); border-right: 0; border-top: 0;
+            border-radius: 0 0 0 4px; box-shadow: -3px 3px 6px rgba(0,0,0,0.28);
+        }
 
         .customer-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
         .customer-actions.responses-hidden { opacity: 0; pointer-events: none; }
@@ -341,13 +428,23 @@
         #btnRefuse:hover:not(:disabled), #btnCosplay:hover { background: linear-gradient(#a9977a, #8b7a5f); }
         #btnRefuse:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .status-panel { background: rgba(232,220,192,0.94); border: 1px solid var(--sf-ink-mid); color: var(--sf-body); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
+        .status-panel { background: rgba(232,220,192,0.94); border: 1px solid var(--sf-ink-mid); color: var(--sf-body); padding: 10px; border-radius: var(--sf-r-2); box-shadow: var(--sf-plate); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
         .status-header { display: flex; justify-content: space-between; align-items: center; }
-        /* Parchment-toned bar with an inked hairline, so the HUD reads as an inked gauge on the sheet
-           rather than a videogame HP bar. Tier colours are mirrored verbatim in updateUI(). */
-        .health-container { width: 100%; height: 12px; background: linear-gradient(#2f2419, #1d1610); border-radius: 6px; overflow: hidden; border: 1px solid var(--sf-ink); margin-bottom: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 1px 0 rgba(239,225,189,0.25); }
-        #health-bar { height: 100%; width: 100%; background: linear-gradient(180deg, #8a9a52 0%, #5f7038 48%, #3f4c22 100%); box-shadow: inset 0 1px 0 rgba(239,225,189,0.28), inset 0 -2px 3px rgba(0,0,0,0.35); transition: width 0.3s, background 0.3s; }
-        .health-text { font-weight: bold; font-size: 12px; width: 100%; text-align: center; }
+        /* BLADE PURITY — a FOUR-STATE value, not a continuum. `health` is only ever set to 100 or decremented
+           by exactly 25 (see the assignments at `health = 100` ×3 and `health -= 25` ×2), so it takes exactly
+           {100,75,50,25,0}. A continuous 316px bar did not merely look like browser chrome, it mis-stated the
+           data model — 316px of width spent on five states. Four struck pips (one per hazard hit still
+           affordable) is the honest instrument, and it sits directly above .pc-temp, which is a fully drawn
+           gauge — an unlabelled progress bar 46px above it made the investment gap self-evident.
+           Pip tiers MIRROR healthQualityCap()'s 80/40 thresholds (the old bar used 50/20 and therefore showed
+           full moss at health 75 while the blade was already capped at Fine). Retune both together. */
+        .purity-gauge { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; line-height: 14px; color: var(--sf-ink-dk); }
+        .purity-pips { display: flex; flex: 1 1 0; gap: 4px; }
+        .purity-pip { flex: 1 1 0; height: 14px; border: 1.5px solid var(--sf-ink); border-radius: var(--sf-r-1); background: linear-gradient(180deg, rgba(47,33,23,0.22), rgba(47,33,23,0.34)); box-shadow: inset 0 1px 2px rgba(0,0,0,0.45); transition: background 0.25s; }
+        .purity-pip.on { background: linear-gradient(180deg, #8a9a52, #546330); box-shadow: inset 0 1px 0 rgba(255,247,224,0.45), inset 0 -2px 3px rgba(0,0,0,0.30); }
+        .purity-pip.on.warn { background: linear-gradient(180deg, #d8b45a, #8a6a1c); }
+        .purity-pip.on.bad  { background: linear-gradient(180deg, #c9603a, #75291a); }
+        .purity-cartouche { flex: 0 0 auto; padding: 1px 6px 2px; border: 1.5px solid var(--sf-ink); border-radius: var(--sf-r-2); background: linear-gradient(180deg, #efe1bd, #d8c8a0); font-weight: 700; line-height: 14px; box-shadow: inset 0 1px 0 rgba(255,252,240,0.55), 0 1px 0 rgba(255,250,235,0.30); }   /* same construction as .pc-temp-read, directly below it */
         /* (bare `#gold-text` rule deleted — #gold-text only ever exists inside #screen-1, and
            `#screen-1 #gold-text` above overrode every property it set. It read as live intent and painted
            nothing, which is exactly what made startShopLoop's "restore mirrors the #gold-text CSS" comment
@@ -449,6 +546,20 @@
            unchanged. font-size:0 on the host kills any residual text node. */
         .tut-hand::before, .tut-arrow::before, .cool-hand::before, .sharpen-hand::before, #v2tut-hand::before { content: ''; display: block; width: 28px; height: 28px; background: var(--sf-hand) center/contain no-repeat; transform: rotate(var(--sf-hand-rot, 0deg)); }
         .cool-hand::before, .sharpen-hand::before, #v2tut-hand::before { width: 32px; height: 32px; }
+        /* Scene-overlay pointers sit on PAINTED ART, not on parchment chrome. At 28px the manicule's outline
+           renders 1.71px (stroke-width 2.2 of a 36-unit viewBox) and it disappears into the forge painting.
+           A bigger box plus a tight double ink halo makes the mark read on both the pale stone wall and the
+           dark iron wheel with no per-scene tuning — and it is the fix that survives an art change. The
+           compounding-halo trick is house technique, documented on .pc-ico-img: the second drop-shadow takes
+           the first's output as input, so the alpha thickens the edge instead of just re-blurring it. The
+           soft CAST shadow it replaces read as a floating UI sprite; a tight halo reads as ink.
+           28 -> 34 is safe: placeHand's `const H = 28` only positions the BOX; the ::before grows inside it
+           and stays centred, so no offset anywhere changes.
+           NOTE: .cool-hand / .sharpen-hand / #v2tut-hand each re-declare `filter` in their OWN later rules,
+           which would win over a selector list here — so the halo is applied at each of those four sites
+           individually. Only the ::before sizing is shared, because this rule is later than the 32px one. */
+        #heatHand::before, .cool-hand::before, .sharpen-hand::before, #v2tut-hand::before { width: 34px; height: 34px; margin: -3px; }
+        #heatHand { filter: drop-shadow(0 0 2.5px rgba(28,18,8,0.95)) drop-shadow(0 0 2.5px rgba(28,18,8,0.85)); }
         .sf-hand-r { --sf-hand-rot: 0deg; }
         .sf-hand-l { --sf-hand-rot: 180deg; }
         .sf-hand-d { --sf-hand-rot: 90deg; }
@@ -466,7 +577,7 @@
         #btnSaveRecipe { background-image: url('assets/ui/buttonsave.png'); }
         #btnChart { background: linear-gradient(#6e828a, #5c6b70); }
 
-        .list-panel { background: rgba(232,220,192,0.94); border: 1px solid var(--sf-ink-mid); color: var(--sf-body); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px; text-align: left; }
+        .list-panel { background: rgba(232,220,192,0.94); border: 1px solid var(--sf-ink-mid); color: var(--sf-body); padding: 10px; border-radius: var(--sf-r-2); box-shadow: var(--sf-plate); margin-bottom: 10px; text-align: left; }
         .list-panel h3 { margin-top: 0; margin-bottom: 8px; border-bottom: 2px solid var(--sf-card-bd); padding-bottom: 5px; font-size: 14px; }
         .expandable-header { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
         .expandable-content { display: none; padding-top: 10px; margin-top: 5px; border-top: 2px solid var(--sf-card-bd); }
@@ -511,14 +622,21 @@
         #inventory { font-size: 11px; text-align: center; background: rgba(232,220,192,0.6); color: var(--sf-body); padding: 6px; border-radius: 4px; border: 1px dashed var(--sf-card-bd); margin-top: 8px; }
 
         /* Counter-screen buttons that open the Inventory / Recorded Compositions modals. */
-        .counter-panel-buttons { display: flex; gap: 8px; margin-top: 8px; }
+        /* position+z-index is LOAD-BEARING: #screen-1::after (the counter apron) is a positioned pseudo at
+           z-index 1, so without this the two keys paint underneath it and vanish. */
+        .counter-panel-buttons { display: flex; gap: 8px; margin-top: 8px; position: relative; z-index: 2; }
         .panel-open-btn { flex: 1; padding: 12px 8px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-family: 'Cinzel', serif; font-weight: bold; font-size: 13px; cursor: pointer; }
         .panel-open-btn:hover { background: #cbb894; }
         /* Inventory / Compositions modal: own box with an internal scroll + drill-in detail view. */
         .list-modal-content { background: var(--sf-sheet); width: 90%; max-width: 460px; height: 82%; max-height: 640px; border-radius: 8px; border: 2px solid var(--sf-rule); display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8); }
         .list-modal-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--sf-sheet-band); flex: 0 0 auto; }   /* the rule under it is DRAWN as a box-shadow in the cycle-4b block, so it costs no layout */
         .list-modal-header h3 { margin: 0; flex: 1; text-align: center; color: var(--sf-rule); font-family: 'Cinzel', serif; font-size: 15px; }
-        .list-nav-btn { background: linear-gradient(#c3b193, #a9977a); color: var(--sf-ink-dk); border: 1px solid var(--sf-ink-mid); border-radius: 6px; width: 34px; height: 34px; font-size: 16px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+        .list-nav-btn { background: linear-gradient(#c3b193, #a9977a); color: var(--sf-ink-dk); border: 1px solid var(--sf-ink-mid); border-radius: var(--sf-r-2); width: 34px; height: 34px; font-size: 16px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+        /* The close mark reuses the EXACT stroke geometry of the map's destination ✕ (pcRouteThumb / the
+           #v2xmark pair): two 2.2px crossed strokes rotated 8deg. Close and "you are going here" are then
+           demonstrably the same hand. font-size:0 kills the residual text node on the SVG-bearing buttons. */
+        .list-nav-btn:has(svg), .cave-header > button:has(svg) { font-size: 0; }
+        .list-nav-btn svg, .cave-header > button svg { display: block; width: 15px; height: 15px; margin: 0 auto; }
         .list-modal-body { flex: 1 1 auto; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
         /* Sales Ledger: scrollable day tabs + per-day sold-sword list. */
         #ledgerModal { z-index: 1014; }
@@ -548,8 +666,8 @@
         .modal-content { background: var(--sf-parch-dk); color: var(--sf-body); padding: 15px; border-radius: 8px; width: 85%; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
         .modal-content h3 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--sf-ink); }
         /* Day system: day badge, End Day button, confirm modal, and the black day-transition overlay. */
-        .day-badge { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 12px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); white-space: nowrap; }
-        #btnEndDay { background: linear-gradient(#5a4a34, #3a2f21); color: var(--sf-cream); border: 1px solid var(--sf-ink); border-radius: 6px; padding: 6px 12px; font-weight: bold; font-size: 13px; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .day-badge { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 12px; border-radius: var(--sf-r-2); font-size: 13px; font-weight: bold; box-shadow: var(--sf-plate); white-space: nowrap; }
+        #btnEndDay { background: linear-gradient(#5a4a34, #3a2f21); color: var(--sf-cream); border: 1px solid var(--sf-ink); border-radius: var(--sf-r-2); padding: 6px 12px; font-weight: bold; font-size: 13px; cursor: pointer; white-space: nowrap; box-shadow: var(--sf-plate); }
         #btnEndDay:disabled { background: linear-gradient(#8b7a5f, #6d5f49); opacity: 0.55; cursor: not-allowed; }
         #endDayModal { z-index: 1015; }
         #dayTransition { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 4000; display: flex; justify-content: center; align-items: center; }
@@ -557,6 +675,12 @@
         #dayTransition.show-text #dayTransitionText { opacity: 1; }
         
         #heatModal { z-index: 1001; }
+        /* BUG FIX, not chrome: #caveModal was the one modal never given a z-index, so it computed to `auto`
+           while .nav-btn is 900 — #nav-left PAINTED OVER the open cave and was hit-testable there
+           (elementFromPoint at its centre returned nav-left), so a tap in that 36x79px strip navigated the
+           underlying screen instead of mining. caveLayout places nodes from x=11%, so deposits do land under
+           it. 1004 sits below #shapeModal (1005) and above #heatModal (1001), matching the ordering intent. */
+        #caveModal { z-index: 1004; }
         #shapeModal { z-index: 1005; }
         #designModal { z-index: 1006; }
         #hammerModal { z-index: 1007; }
@@ -592,11 +716,11 @@
         .dialogue-frame.frame10 .dialogue-text { top: 22%; bottom: 44%; } /* frame10's diagram sits lower, so its text drops further */
 
         /* Gameplay toast: shown briefly whenever the player steps onto a trait cell. */
-        #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
+        #traitToast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(44, 33, 22, 0.94); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: var(--sf-r-2); padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
         #traitToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         /* Passive shop sale popup (screen 0): flashes the gold gained when a sword auto-sells. */
         #screen-0 { position: relative; }
-        #shop-sale-popup { position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-8px); background: rgba(63,76,34,0.96); color: var(--sf-cream); border: 1px solid var(--sf-moss-lt); border-radius: 20px; padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.45); z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
+        #shop-sale-popup { position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-8px); background: rgba(63,76,34,0.96); color: var(--sf-cream); border: 1px solid var(--sf-moss-lt); border-radius: var(--sf-r-2); padding: 8px 18px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.45); z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
         #shop-sale-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         #flameHintBanner { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-14px); width: 88%; max-width: 310px; box-sizing: border-box; background: rgba(44, 33, 22, 0.96); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 14px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; line-height: 1.35; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 1002; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; }
         #flameHintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -706,13 +830,39 @@
             box-shadow: 0 3px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6);
         }
 
-        /* Static fallback only — heatGradient() overwrites this the moment the mini-game starts. Keep the two in step. */
+        /* FORGE INSTRUMENT, same language as .pc-temp: an inked parchment trough with a rule comb, ink
+           washes marking cold (left) and scorch (right), a positioned ember slug per target band, and a
+           struck needle. It was a 235x20 PILL filled with a hard-stop three-band traffic light carrying an
+           8x16 pure-white slab handle with a #fff glow and a #000 border — #fff and #000 were the last two
+           raw literals in the forge frames, and against ink-drawn forge art the whole thing read as a
+           difficulty slider dropped onto a woodcut.
+           heatPaintBands() moves the slugs; it replaced heatGradient(), which rewrote this element's entire
+           `background` string every frame.
+           overflow is VISIBLE on purpose — the needle is translateX(-50%) and must not be sliced at
+           heatScore 0 or 100, which the loop clamps to regularly. Band clipping moved onto .ih-bands so
+           nothing else depends on the trough clipping; do NOT restore overflow:hidden here. */
         .interactive-heat-track {
-            width: 100%; height: 20px; border-radius: 10px; overflow: hidden; border: 2px solid var(--sf-ink-dk); position: relative;
-            background: linear-gradient(to right, #41505a 0%, #5c6b70 40%, #8a9a52 40%, #5f7038 70%, #9e3b22 70%, #75291a 100%);
+            position: relative; width: 100%; height: 24px; border: 1.5px solid var(--sf-ink); border-radius: var(--sf-r-2); overflow: visible;
+            background: linear-gradient(90deg, rgba(65,80,90,0.30) 0%, rgba(65,80,90,0.10) 26%, rgba(47,33,23,0.03) 42%, rgba(47,33,23,0.03) 62%, rgba(158,59,34,0.14) 80%, rgba(117,41,26,0.42) 100%), linear-gradient(180deg, #efe1bd, #d8c8a0);
+            box-shadow: inset 0 1px 0 rgba(255,252,240,0.55), inset 0 -2px 3px rgba(74,56,38,0.22), 0 1px 0 rgba(255,250,235,0.30);
         }
-
-        .interactive-heat-thumb { width: 8px; height: 100%; background: #fff; border: 1px solid #000; position: absolute; top: 0; left: 0; box-shadow: 0 0 5px #fff; }
+        .interactive-heat-track::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 4; pointer-events: none;
+            background: repeating-linear-gradient(90deg, rgba(74,56,38,0.45) 0 1px, transparent 1px 10%); }   /* rule comb, same 10% pitch as .pc-temp */
+        .ih-bands { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; border-radius: 3px; }
+        .ih-band { position: absolute; top: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(255,243,208,0.85), rgba(255,179,71,0.72) 52%, rgba(217,138,60,0.60));
+            box-shadow: inset 0 0 0 1.5px rgba(74,54,35,0.75), inset 0 1px 0 rgba(255,252,240,0.80); }
+        .interactive-heat-track.in-band .ih-band { background: linear-gradient(180deg, rgba(255,243,208,0.95), rgba(255,140,42,0.85) 52%, rgba(194,65,12,0.70));
+            box-shadow: inset 0 0 0 1.5px rgba(74,54,35,0.80), inset 0 1px 0 rgba(255,252,240,0.90), 0 0 10px rgba(255,140,42,0.55); }
+        /* Struck needle: cream core between two ink flanks, plus a triangular head. A single-colour ink
+           needle is INVISIBLE against the ember slug — verified by render, do not simplify it back.
+           height:auto is load-bearing: it cancels the old height:100% now that top/bottom drive the box. */
+        .interactive-heat-thumb { position: absolute; top: -2px; bottom: -2px; left: 0; width: 5px; height: auto; z-index: 7; transform: translateX(-50%);
+            background: linear-gradient(180deg, #2f2117 0 42%, #fff6e2 42% 58%, #2f2117 58%);
+            border: 0; border-radius: 0; box-shadow: 0 0 0 1px rgba(255,247,224,0.80), 0 0 7px rgba(0,0,0,0.55); }
+        .interactive-heat-thumb::after { content: ''; position: absolute; left: 50%; top: -1px; transform: translateX(-50%);
+            border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--sf-ink-dk);
+            filter: drop-shadow(0 1px 0 rgba(255,247,224,0.90)); }
 
         /* Hint ribbon (heat + quench + sharpen all share this class): a torn strip of parchment LYING ON the
            scene, not a UI slab punched through it. The old dark bar rendered at rgb(50,43,31) against art at
@@ -862,7 +1012,7 @@
         @keyframes steamRise { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 25% { opacity: 0.85; } 100% { transform: translateY(-95px) scale(1.7); opacity: 0; } }
         /* z 12 (was 6) is REQUIRED by the .forge-minigame-container rim pseudos at z 8/9 — at z 6 the hand
            would be dimmed by the scorch halo it is supposed to point through. */
-        .cool-hand { position: absolute; z-index: 12; left: 60%; top: 8%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        .cool-hand { position: absolute; z-index: 12; left: 60%; top: 8%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 0 2.5px rgba(28,18,8,0.95)) drop-shadow(0 0 2.5px rgba(28,18,8,0.85)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }   /* ink halo, not a cast shadow — see the .tut-hand::before note */
 
         /* =========================================
            SHARPEN (grindstone step after design; over-honing costs quality)
@@ -871,14 +1021,14 @@
         .sharpen-spin { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 4; pointer-events: none; opacity: 0; will-change: transform; }
         .sharpen-sword { position: absolute; left: 50%; top: 42%; height: 70%; aspect-ratio: 1 / 1; z-index: 5; pointer-events: none; transform: translate(-50%, -50%) rotate(-135deg); transform-origin: 50% 50%; will-change: transform; }
         .sharpen-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 5px rgba(0,0,0,0.55)); }
-        .sharpen-joystick { position: relative; width: 160px; height: 58px; margin: 12px auto 6px; border-radius: 29px; background: linear-gradient(#3a3226, #211b12); border: 2px solid #5a4a34; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); touch-action: none; }
+        .sharpen-joystick { position: relative; width: 160px; height: 58px; margin: 12px auto 6px; border-radius: var(--sf-r-2); background: linear-gradient(#3a3226, #211b12); border: 2px solid #5a4a34; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); touch-action: none; }
         .sharpen-knob { position: absolute; top: 50%; left: 50%; margin: -24px 0 0 -24px; width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f5d98a, #c8912f); border: 2px solid #4a3623; box-shadow: 0 3px 6px rgba(0,0,0,0.55); cursor: grab; transition: transform 0.12s ease; touch-action: none; }
         .sharpen-knob.dragging { cursor: grabbing; transition: none; }
         .sharpen-sparks { position: absolute; left: 50%; top: 42%; width: 60px; height: 60px; transform: translate(-50%, -50%); z-index: 6; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
         .sharpen-sparks.active { opacity: 1; }
         .sharpen-spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: #ffd24d; box-shadow: 0 0 6px 2px rgba(255,180,30,0.9); animation: sharpenSparkFly 0.5s linear infinite; }
         @keyframes sharpenSparkFly { 0% { opacity: 0; transform: translate(0,0) scale(0.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0.2); } }
-        .sharpen-hand { position: absolute; z-index: 12; left: 50%; top: 56%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: sharpenHandSlide 0.9s ease-in-out infinite alternate; }
+        .sharpen-hand { position: absolute; z-index: 12; left: 50%; top: 56%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 0 2.5px rgba(28,18,8,0.95)) drop-shadow(0 0 2.5px rgba(28,18,8,0.85)); animation: sharpenHandSlide 0.9s ease-in-out infinite alternate; }
         @keyframes sharpenHandSlide { from { transform: translateX(-45px); } to { transform: translateX(45px); } }
         /* Byte-for-byte the same card as .interactive-heat-meter: the two sit on the same art, one screen
            apart, and leaving this one a black slab would make the fix look half-applied. */
@@ -899,34 +1049,100 @@
         #screen-2 { position: relative; }
         /* Parchment, never black: the wrap's own backdrop is the same tone as the map ground, so even a
            transient letterbox (aspect measured a frame late) shows sheet, not void. */
-        #v2map-wrap { border: 3px solid #6a5636; border-radius: 10px; overflow: hidden; background: #d8c8a0; position: relative; flex: 1 1 0; min-height: 200px; }
+        #v2map-wrap { border: 3px solid #6a5636; border-radius: var(--sf-r-2); overflow: hidden; background: #d8c8a0; position: relative; flex: 1 1 0; min-height: 200px; }
         #v2board { display: block; position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
         #v2sword { transition: transform 0.11s ease-out; }   /* the small ease that snaps the ingot onto a trait node */
-        /* Trait site armed by the ingot standing on it: warm ember ring, slow breath. */
+        /* FRAME VIGNETTE, in SCREEN space. The old one was an SVG rect in WORLD space and drew literally
+           nothing: its gradient used objectBoundingBox units on a 2800x2380 rect, putting its first non-zero
+           stop past world x>1902 / y>1464, while v2setView clamps the viewBox inside the 1400x980 world. A
+           world-anchored gradient cannot frame a pan/zoom viewport — so it lives here, where it is pan- and
+           zoom-invariant and needs no JS. The 72%/68% sizing is derived, not guessed: it puts the viewport's
+           mid-edges at gradient position ~0.68 and its corners at ~0.97, so the falloff bites at the frame
+           and nowhere else. The 0.20 outer cap is a CONTRAST BUDGET — this sits above the whole board and
+           dims markers and ground together; past ~0.24 it eats the 3:1 guarantee. z-index 3 = above #v2board
+           (auto), below #v2furnace (4), the zoom buttons (7) and the Adventure key (6). */
+        #v2vig { position: absolute; inset: 0; pointer-events: none; z-index: 3;
+                 background: radial-gradient(72% 68% at 50% 46%, rgba(58,39,18,0) 0%, rgba(58,39,18,0) 62%, rgba(58,39,18,0.07) 82%, rgba(58,39,18,0.20) 100%); }
+        .pc-slag { pointer-events: none; }   /* terrain mark, never a pan/zoom target (the old hazard discs swallowed pointer events over the board) */
+        /* Trait site armed by the ingot standing on it: a GILD survey ring wide enough to clear the ingot's
+           own ember bloom, on a pale halo, breathing slowly. Ember was the wrong colour here — the marker is
+           ember, and pcMarkGlow blooms to ~37 world units, so the old r24 ember ring vanished INTO it even at
+           opacity 0.95. See the armed-state note in specs/game-design.md §3A before retuning either. */
         .pc-trait-armed .pc-trait-lit { animation: pcArmPulse 1.15s ease-in-out infinite; }
-        @keyframes pcArmPulse { 0%,100% { opacity: 0.95; stroke-width: 3.4; } 50% { opacity: 0.42; stroke-width: 5.2; } }
+        .pc-trait-armed .pc-trait-lithalo { animation: pcArmHalo 1.15s ease-in-out infinite; }
+        @keyframes pcArmPulse { 0%,100% { opacity: 0.95; stroke-width: 3.4; } 50% { opacity: 0.5; stroke-width: 5.4; } }
+        @keyframes pcArmHalo  { 0%,100% { opacity: 0.5; } 50% { opacity: 0.24; } }
         #v2board:active { cursor: grabbing; }
         .v2-zoom { position: absolute; right: 6px; bottom: 6px; display: flex; flex-direction: column; gap: 4px; }
-        .v2-zoom button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #6a5636; background: rgba(25,20,12,0.72); color: #f0e8d6; font-size: 18px; font-weight: bold; line-height: 1; cursor: pointer; padding: 0; }
+        .v2-zoom button { width: 30px; height: 30px; border-radius: var(--sf-r-2); border: 1px solid #6a5636; background: rgba(25,20,12,0.72); color: #f0e8d6; font-size: 18px; font-weight: bold; line-height: 1; cursor: pointer; padding: 0; }
         .v2-zoom button:active { transform: scale(.94); }
         /* ===== Cave (Adventure) ===== */
-        .cave-content { width: 100%; height: 100%; background: radial-gradient(circle at 50% 18%, #3c2d1e, #17100a 82%); border: none; border-radius: 0; display: flex; flex-direction: column; overflow: hidden; box-shadow: none; }
-        .cave-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.35); border-bottom: 1px solid #4a3a28; }
-        .cave-tabs { display: flex; gap: 8px; }
-        .cave-tab { flex: none; white-space: nowrap; background: rgba(0,0,0,0.3); color: #cbb890; border: 1px solid #5a4832; border-radius: 8px; padding: 7px 14px; font-family: 'Cinzel', serif; font-size: 14px; font-weight: bold; cursor: pointer; }
-        .cave-tab.active { background: #6a5636; color: #fceeb5; border-color: #c8a84b; }
-        .cave-header > button { background: #4a4033; color: #f0e8d6; border: 1px solid #6a5636; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; padding: 0; }
-        .cave-counts { display: flex; flex-wrap: wrap; gap: 5px 12px; padding: 8px 14px; font-size: 12px; color: #e7d9b8; background: rgba(0,0,0,0.2); }
+        /* The cave was the most literally wireframe screen in the build: a bare box carrying a single flat
+           two-stop radial, a wrapped run of plain text with two OS emoji in it, and eight CSS-gradient balls.
+           Everything below is CSS-only over the same DOM; the deposits themselves become inked mineral
+           silhouettes in JS (CAVE_GLYPH / caveDeposit). .cave-content also fills 360x640 exactly, which is
+           why the warm .modal-overlay vignette added in cycle 4b was 100% occluded here and never rendered —
+           the inset shadow below is what finally gives this screen an edge. */
+        .cave-content { width: 100%; height: 100%; border: none; border-radius: 0; display: flex; flex-direction: column; overflow: hidden;
+            background-color: #241a12;
+            background-image:
+                radial-gradient(58% 30% at 50% -4%, rgba(255,196,110,0.30), rgba(255,196,110,0) 72%),   /* lamp pool at the mouth */
+                radial-gradient(52% 14% at 22% 34%, rgba(10,6,3,0.40), rgba(10,6,3,0) 70%),
+                radial-gradient(46% 11% at 78% 58%, rgba(10,6,3,0.36), rgba(10,6,3,0) 70%),
+                radial-gradient(60% 13% at 40% 78%, rgba(10,6,3,0.34), rgba(10,6,3,0) 70%),
+                repeating-linear-gradient(-3deg, rgba(10,6,3,0.30) 0 2px, rgba(0,0,0,0) 2px 23px),      /* rock strata */
+                repeating-linear-gradient(-3deg, rgba(255,232,190,0.045) 0 1px, rgba(0,0,0,0) 1px 8px), /* strata catchlight */
+                radial-gradient(circle at 50% 16%, #4a3626 0%, #2b1e14 52%, #150e08 100%);
+            box-shadow: inset 0 0 90px 30px rgba(8,4,2,0.85), inset 0 0 0 1px rgba(255,232,190,0.07);
+        }
+        /* BOTH strata gradients MUST share the same angle. Crossed angles produce a visible woven-basket
+           lattice, not rock. Change one, change both. */
+        .cave-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 12px; border-bottom: 0;
+            background: linear-gradient(180deg, #2c2015, #1a120b);
+            box-shadow: 0 1px 0 #0e0904, 0 3px 0 -1px rgba(200,168,75,0.28), 0 8px 14px -6px rgba(0,0,0,0.8); }   /* drawn rule + gild plate line, same idiom as .list-modal-header */
+        .cave-tabs { display: flex; gap: 6px; min-width: 0; }
+        .cave-tab { flex: 0 1 auto; min-width: 0; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+            font-family: 'Cinzel', serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.4px;
+            padding: 7px 12px; border-radius: 7px 7px 3px 3px;   /* a TAB, not a plate: it reads as sitting in the header rail */
+            background: linear-gradient(180deg, #3a2a1b, #241a10); color: #a58f68; border: 1px solid var(--sf-rule);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.65); text-shadow: 0 1px 0 rgba(0,0,0,0.6); }
+        .cave-tab.active { background: linear-gradient(180deg, #7a6136, #4f3c1e); color: var(--sf-cream); border-color: var(--sf-gild);
+            box-shadow: inset 0 1px 0 rgba(255,236,180,0.35), 0 2px 0 rgba(20,12,5,0.7), 0 4px 10px rgba(0,0,0,0.55); }
+        .cave-header > button { flex: 0 0 auto; width: 32px; height: 32px; padding: 0; font-size: 15px; line-height: 1; cursor: pointer;
+            font-family: 'Cinzel', serif; color: #d8c49a; border-radius: var(--sf-r-2);
+            background: linear-gradient(180deg, #3a2a1b, #241a10); border: 1px solid var(--sf-rule);
+            box-shadow: inset 0 1px 0 rgba(255,236,180,0.14), 0 2px 4px rgba(0,0,0,0.55); }
+        /* Counts: ONE scrolling row of inked chips, not a wrapped text run. nowrap+scroll holds it at 35px so
+           the field keeps the 17px that wrapping to two rows was spending; the mask fades the last chip so
+           the overflow reads as "there is more" without a scrollbar. */
+        .cave-counts { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 7px 12px;
+            background: linear-gradient(180deg, rgba(12,7,3,0.62), rgba(12,7,3,0.30));
+            box-shadow: inset 0 1px 0 rgba(255,232,190,0.06), 0 1px 0 rgba(8,4,2,0.9);
+            scrollbar-width: none; -ms-overflow-style: none;
+            -webkit-mask-image: linear-gradient(90deg, #000 0 90%, rgba(0,0,0,0) 100%);
+                    mask-image: linear-gradient(90deg, #000 0 90%, rgba(0,0,0,0) 100%); }
+        .cave-counts::-webkit-scrollbar { display: none; }
+        .cave-counts span { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 4px; border-radius: 11px;
+            background: rgba(52,38,24,0.85); border: 1px solid var(--sf-rule);
+            font-family: 'Lora', serif; font-size: 11px; font-weight: 700; color: #e7d9b8;
+            box-shadow: inset 0 1px 0 rgba(255,232,190,0.10); }
+        .cave-counts .cave-ct-ico { width: 16px; height: 16px; flex: none; display: block; }
         #cave-field { position: relative; flex: 1; overflow: hidden; }
         .cave-node { position: absolute; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; user-select: none; touch-action: none; }
         .cave-node:active { transform: translate(-50%,-50%) scale(0.9); }
-        .cave-sphere { width: 46px; height: 46px; border-radius: 50%; box-shadow: inset -8px -9px 12px rgba(0,0,0,0.5), inset 5px 5px 8px rgba(255,255,255,0.3), 0 3px 6px rgba(0,0,0,0.55); }
-        .cave-label { font-size: 10px; color: #f0e2c4; font-weight: bold; text-shadow: 0 1px 2px #000; }
+        .cave-sphere { width: 46px; height: 46px; display: block; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.6)); }   /* now an <svg>, not a gradient ball */
+        .cave-label { font-family: 'Cinzel', serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px;
+            color: var(--sf-cream); padding: 1px 7px; border-radius: 9px;
+            background: rgba(24,16,9,0.88); border: 1px solid var(--sf-rule); text-shadow: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.6); }
         .cave-float { position: absolute; transform: translate(-50%,-50%); font-weight: bold; font-size: 15px; pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.85); z-index: 5; }
-        .cave-hint { text-align: center; padding: 8px; color: #b8a680; font-size: 12px; background: rgba(0,0,0,0.25); }
-        .cave-done { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: #c9b58a; font-size: 14px; padding: 20px; line-height: 1.6; }
+        .cave-hint { flex: 0 0 auto; text-align: center; padding: 8px 12px;
+            font-family: 'Lora', serif; font-size: 11.5px; letter-spacing: 0.1px; color: #d8c49a;
+            background: linear-gradient(180deg, rgba(12,7,3,0.45), rgba(12,7,3,0.80));
+            box-shadow: inset 0 1px 0 rgba(255,232,190,0.09), 0 -1px 0 rgba(8,4,2,0.9); }
+        .cave-done { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-family: 'Lora', serif; color: #d8c49a; font-size: 13px; padding: 20px; line-height: 1.7; }
         /* ===== Furnace scene + gauges (unified forge) ===== */
-        .topbar-btn { background: #4a4033; color: #f0e8d6; border: 1px solid #6a5636; border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; flex: 0 0 auto; }
+        .topbar-btn { background: #4a4033; color: #f0e8d6; border: 1px solid #6a5636; border-radius: var(--sf-r-2); padding: 5px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; flex: 0 0 auto; }
         .topbar-btn:active { transform: scale(.96); }
         .topbar-btn:disabled { opacity: .5; }
         #screen-2 .status-header #gold-text-2 { flex: 0 1 auto; }   /* the font-size here never applied — the later same-specificity rule below wins */
@@ -951,12 +1167,12 @@
         #v2-ingot { position: absolute; left: 48%; top: 56%; width: 56%; pointer-events: auto; cursor: pointer; z-index: 5; }
         #v2-ingot img { width: 100%; display: block; filter: drop-shadow(0 0 9px rgba(255,150,30,0.85)); animation: v2ingotPulse 1s ease-in-out infinite; }
         @keyframes v2ingotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-        .v2-corner-btn { position: absolute; left: 6px; top: 6px; background: rgba(25,20,12,0.72); color: #f0e8d6; border: 1px solid #6a5636; border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 6; }
+        .v2-corner-btn { position: absolute; left: 6px; top: 6px; background: rgba(25,20,12,0.72); color: #f0e8d6; border: 1px solid #6a5636; border-radius: var(--sf-r-2); padding: 5px 9px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 6; }
         /* V2 furnace tutorial — box + hand float over every screen and modal (modals sit at z 1006) */
         #v2tut-box { position: absolute; top: 40px; left: 8px; right: 8px; z-index: 1100; display: flex; align-items: center; gap: 7px; background: rgba(28,20,10,0.96); border: 1.5px solid #c8a84b; border-radius: 9px; padding: 7px 9px; box-shadow: 0 3px 14px rgba(0,0,0,0.6); }
         #v2tut-text { flex: 1 1 auto; color: #f3e6c8; font-size: 12px; line-height: 1.35; text-align: left; }
         #v2tut-text b { color: #ffd98a; }
-        #v2tut-hand { position: absolute; font-size: 0; z-index: 1101; pointer-events: none; transform: translate(-50%,-104%); animation: v2handBounce 0.85s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
+        #v2tut-hand { position: absolute; font-size: 0; z-index: 1101; pointer-events: none; transform: translate(-50%,-104%); animation: v2handBounce 0.85s ease-in-out infinite; filter: drop-shadow(0 0 2.5px rgba(28,18,8,0.95)) drop-shadow(0 0 2.5px rgba(28,18,8,0.85)); }
         @keyframes v2handBounce { 0%,100% { transform: translate(-50%,-104%); } 50% { transform: translate(-50%,-130%); } }
         #v2tut-hand.side { animation-name: v2handBounceSide; }
         @keyframes v2handBounceSide { 0%,100% { transform: translate(4%,-50%); } 50% { transform: translate(30%,-50%); } }
@@ -1023,7 +1239,7 @@
             border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid var(--sf-ink-dk);
             filter: drop-shadow(0 0 1px rgba(255,247,224,0.9)); }   /* PC_POUR_TEMP = 40 */
         .pc-temp-zone { position: absolute; top: 60%; transform: translate(-50%,-50%); z-index: 5; pointer-events: none;
-            padding: 0 3px 1px; border-radius: 2px; background: rgba(243,231,201,0.78);
+            padding: 0 3px 1px; border-radius: var(--sf-r-1); background: rgba(243,231,201,0.78);
             font-family: 'Cinzel', serif; font-size: 9px; font-weight: bold; line-height: 11px; letter-spacing: 0.3px; color: var(--sf-ink); }
         .pc-temp[data-zone="1"] .pc-temp-zone[data-z="1"],
         .pc-temp[data-zone="2"] .pc-temp-zone[data-z="2"],
@@ -1038,7 +1254,9 @@
            clickable. .pc-btn is already position:relative and .pc-badge anchors to the button, so promoting
            the row to a positioned box changes no existing offset. */
         .pc-row { display: flex; gap: 3px; align-items: stretch; margin: 5px 0 3px; position: relative; z-index: 41; }
-        .pc-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; padding: 4px 0 3px; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#e2d3b2, #c9b68d); color: #3d2b1a; box-shadow: 0 2px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35); cursor: pointer; }
+        /* Radius 7 -> --sf-r-2 and the cast shadow -> a 0-blur inked rule: the seven station keys now sit ON
+           the sheet instead of floating over it, and match .pc-temp's 4px trough directly above them. */
+        .pc-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; padding: 4px 0 3px; border-radius: var(--sf-r-2); border: 1px solid #6a5636; background: linear-gradient(#e2d3b2, #c9b68d); color: #3d2b1a; box-shadow: 0 1px 0 rgba(74,54,35,0.85), inset 0 1px 0 rgba(255,255,255,0.35); cursor: pointer; }
         .pc-btn .pc-ico { font-size: 17px; line-height: 1; display: block; position: relative; z-index: 0; height: 22px; }
         /* Inked parchment medallion behind every station icon. The painterly art is only 12-37% opaque, so it
            dissolves against the mid-tone button face; a near-white stamped seal underneath raises the local
@@ -1058,12 +1276,33 @@
            Bellows slot, which is emoji-only — no bellows art shipped) is buried under the medallion. */
         .pc-btn .pc-ico .pc-ico-fb { display: inline-block; position: relative; z-index: 1; font-style: normal; line-height: 22px; }
         .pc-btn .pc-ico img.pc-ico-img + .pc-ico-fb { display: none; }   /* art present → hide the emoji fallback */
+
+        /* ---- INLINE INK MARKS (generalisation of the .pc-ico-img pipeline to non-station UI) ----
+           OS colour emoji were the loudest flat-UI artefact left on the counter and forge frames: a glossy
+           blue shield and an orange scroll sitting directly on parchment keys the button-tier pass had
+           already brought fully into the material language. These are authored 0..24 marks in the same
+           construction as PC_ORE_GLYPH, mostly stroked in `currentColor` so ONE mark serves ink-on-parchment
+           and cream-on-ink without a second asset. Ships no files and adds no colour.
+           The emoji each mark replaced is kept as a hidden <i> sibling — exactly the contract .pc-ico-fb
+           already uses behind the station art, for the same reason: the glyph stays greppable and the
+           element still carries a text fallback if the SVG is ever stripped.
+           CAUTION for anyone adding marks: a sub-path with fill="none" draws with its GROUP's stroke, so on
+           a dark face (cave tab, gold pill, moss key) it inherits ink and vanishes. Every dark-face mark
+           below restates its own stroke. */
+        .sf-mk { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.2em; flex: 0 0 auto; }
+        .sf-mk svg { display: block; width: 100%; height: 100%; }
+        .sf-mk-fb { display: none; font-style: normal; }   /* the OS emoji this mark replaced */
+        .sf-lbl { display: inline-flex; align-items: center; gap: 0.42em; }
+        .btn-ico { width: 17px; height: 17px; flex: none; display: block; }
+        /* .panel-open-btn is also worn by #btnLedger on screen 0 (width:100%, single text node), so
+           inline-flex is harmless there and centres the mark beside the label everywhere. */
+        .panel-open-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         .pc-btn .pc-lbl { font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; line-height: 1.05; letter-spacing: -0.2px; white-space: nowrap; }   /* 10px minimum; tightened so the longest label still clears the button at 360px */
         /* Disabled = drained, not erased. The old flat opacity wash faded face, border, label AND icon together,
            leaving 0% of icon pixels above 3:1. Here the face flattens and the icon loses its colour but keeps a
            reinforced silhouette: legibility survives, energy does not. The `opacity: 1` is load-bearing — without
            it the global `button:disabled { opacity: 0.4 }` still applies and this whole block is invisible. */
-        .pc-btn:disabled { opacity: 1; cursor: not-allowed; background: #cfc3a8; border-color: #9a8760; color: #6b5b45; box-shadow: 0 1px 2px rgba(0,0,0,0.28); }
+        .pc-btn:disabled { opacity: 1; cursor: not-allowed; background: #cfc3a8; border-color: #9a8760; color: #6b5b45; box-shadow: 0 1px 0 rgba(74,54,35,0.55); }
         .pc-btn:disabled .pc-ico::before { background: #e3d9c0; box-shadow: inset 0 0 0 1px rgba(74,56,38,0.34); }
         .pc-btn:disabled .pc-ico img.pc-ico-img { filter: grayscale(0.75) opacity(0.85) drop-shadow(0 0 0.6px rgba(47,33,23,1)) drop-shadow(0 0 0.6px rgba(47,33,23,1)); }
         .pc-btn:disabled .pc-ico .pc-ico-fb { filter: grayscale(0.85) opacity(0.8); }
@@ -1078,10 +1317,13 @@
             0%, 100% { box-shadow: 0 0 0 1px rgba(255,107,53,0.50), 0 0 8px 1px rgba(255,107,53,0.34), inset 0 1px 0 rgba(255,255,255,0.45); }
             50%      { box-shadow: 0 0 0 1px rgba(255,107,53,0.80), 0 0 13px 3px rgba(255,179,71,0.60), inset 0 1px 0 rgba(255,255,255,0.45); }
         }
-        .pc-btn .pc-badge { position: absolute; top: -4px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: 8px; background: #4a3623; color: #fceeb5; font-size: 9px; font-weight: bold; line-height: 15px; text-align: center; }
-        .pc-forge-btn { width: 100%; margin: 0; padding: 7px 0; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#8a5a2b, #5c3a17); color: #fceeb5; font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); cursor: pointer; }
+        .pc-btn .pc-badge { position: absolute; top: -4px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: var(--sf-r-1); background: #4a3623; color: #fceeb5; font-size: 9px; font-weight: bold; line-height: 15px; text-align: center; }
+        /* display:flex is REQUIRED, not decoration: the 🗡️ emoji became an inline mark + a separate label
+           span (#pcForgeLbl), because pcUpdateStations rewrites this button's label on every tick — a
+           textContent write on the button itself would destroy the inline SVG. */
+        .pc-forge-btn { width: 100%; margin: 0; padding: 7px 0; border-radius: var(--sf-r-2); border: 1px solid #6a5636; background: linear-gradient(#8a5a2b, #5c3a17); color: #fceeb5; font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 1px 0 rgba(28,18,8,0.9), 0 2px 0 -1px rgba(255,210,140,0.35); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
         /* Matches the station row's drained-not-erased disabled treatment; #pcBtnForge sits directly below it. */
-        .pc-forge-btn:disabled { opacity: 1; cursor: not-allowed; background: linear-gradient(#5e4630, #40301f); border-color: var(--sf-ink-mid); color: #a5916e; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .pc-forge-btn:disabled { opacity: 1; cursor: not-allowed; background: linear-gradient(#5e4630, #40301f); border-color: var(--sf-ink-mid); color: #a5916e; box-shadow: 0 1px 0 rgba(28,18,8,0.7); }
         /* Feedback ribbon. This line is the ONLY core-loop feedback channel now that the modal alerts are
            gone, so it is INKED PARCHMENT rather than tan on tan: #f0e0b8 over the screen-2 sheet measured
            1.16:1, and the old #ffd76a pulse colour measured 1.10:1 — i.e. the ATTENTION state was less
@@ -1100,7 +1342,7 @@
            "Path exhausted" nudge in pcAnvil), ~501px natural at these metrics, which packs into 2 lines with
            room left. Keep new strings under ~505px natural (roughly 85 characters); a third line is eaten
            silently by overflow:hidden. If copy must grow, drop font-size to 12px before raising the token. */
-        .pc-status { position: relative; z-index: 41; flex: 0 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: center; height: var(--pc-status-h); margin: 0 0 4px; padding: 3px 10px; font-family: 'Lora', serif; font-size: 13px; line-height: 1.3; letter-spacing: 0.1px; text-align: center; color: var(--sf-ink-dk); background: linear-gradient(#f6ecd2, #e6d7b2); border: 1px solid #6a5636; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.45); text-shadow: 0 1px 0 rgba(255,255,255,0.5); overflow: hidden; }
+        .pc-status { position: relative; z-index: 41; flex: 0 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: center; height: var(--pc-status-h); margin: 0 0 4px; padding: 3px 10px; font-family: 'Lora', serif; font-size: 13px; line-height: 1.3; letter-spacing: 0.1px; text-align: center; color: var(--sf-ink-dk); background: linear-gradient(#f6ecd2, #e6d7b2); border: 1px solid #6a5636; border-radius: var(--sf-r-2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 0 rgba(74,54,35,0.85); text-shadow: 0 1px 0 rgba(255,255,255,0.5); overflow: hidden; }
         /* Core-loop nudges ("path exhausted", "no trait here") pulse the ribbon instead of raising a modal.
            NO transform: the old scale(1.08) blew the 340px block out to 367.2px, which is 3.6px past
            #mobile-wrapper on BOTH sides, and the wrapper is overflow:hidden — so every single notification
@@ -1113,7 +1355,7 @@
         @keyframes pcStatusPulse {
             0%   { border-color: var(--sf-ember-hot); background: linear-gradient(#fff3d8, #ffdfa8); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px 2px rgba(255,107,53,0.55); }
             60%  { border-color: var(--sf-ember);     background: linear-gradient(#fbf0d8, #f4e4bc); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 0 6px 1px rgba(255,140,42,0.30); }
-            100% { border-color: var(--sf-ink-mid);   background: linear-gradient(#f6ecd2, #e6d7b2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.45); }
+            100% { border-color: var(--sf-ink-mid);   background: linear-gradient(#f6ecd2, #e6d7b2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 0 rgba(74,54,35,0.85); }   /* byte-identical to the resting .pc-status box-shadow — see the note above */
         }
         @media (prefers-reduced-motion: reduce) { .pc-status.pc-pulse { animation-duration: 0.01s; } }
         /* Ore picker: floats above the station row, same parchment language as the dock tiles. */
@@ -1127,11 +1369,11 @@
            both produce bottom 140px and a 5.5px gap above the row), so the two must stay in step or the
            panel visibly jumps the first time it is opened. Because the panel is bottom-anchored, any future
            height growth pushes it UP into the map, never down into the row. */
-        .pc-picker { display: none; position: absolute; left: 10px; right: 10px; bottom: calc(var(--pc-status-h) + 98px); z-index: 40; background: #fbf6e9; border: 2px solid var(--sf-ink-mid); border-radius: 10px; padding: 7px; box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
+        .pc-picker { display: none; position: absolute; left: 10px; right: 10px; bottom: calc(var(--pc-status-h) + 98px); z-index: 40; background: #fbf6e9; border: 2px solid var(--sf-ink-mid); border-radius: var(--sf-r-2); padding: 7px; box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
         .pc-picker.open { display: block; }
         .pc-picker-h { font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; color: #5a4a2a; text-align: center; margin-bottom: 5px; }
         .pc-ore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .pc-ore { position: relative; background: #efe4cf; border: 1px solid #cbb98f; border-radius: 7px; padding: 3px 2px 2px; display: flex; flex-direction: column; align-items: center; gap: 0; cursor: pointer; }
+        .pc-ore { position: relative; background: #efe4cf; border: 1px solid #cbb98f; border-radius: var(--sf-r-2); padding: 3px 2px 2px; display: flex; flex-direction: column; align-items: center; gap: 0; cursor: pointer; }
         .pc-ore.sel { border-color: var(--sf-ember); box-shadow: 0 0 7px rgba(255,140,42,0.75); }
         .pc-ore.locked { background: #e2dccb; border-style: dashed; }
         /* Row 1 of a tile: the ore's inked mineral silhouette + a thumbnail of the ACTUAL route it plots.
@@ -1149,7 +1391,7 @@
         .pc-ore-dest { font-family: 'Lora', serif; font-size: 8px; line-height: 1.15; color: var(--sf-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
         /* Stock moves to a corner badge (same language as .pc-badge) so the tile can spend that line on
            where the route ENDS, and the panel does not grow taller to pay for the thumbnail. */
-        .pc-ore-ct { position: absolute; top: -5px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: 8px; background: var(--sf-ink); color: var(--sf-cream); font-family: 'Lora', serif; font-size: 8.5px; font-weight: bold; line-height: 14px; text-align: center; }
+        .pc-ore-ct { position: absolute; top: -5px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: var(--sf-r-1); background: var(--sf-ink); color: var(--sf-cream); font-family: 'Lora', serif; font-size: 8.5px; font-weight: bold; line-height: 14px; text-align: center; }
         .pc-ore.locked .pc-ore-ct { background: var(--sf-ink-mid); }
 
         /* =========================================
@@ -1192,6 +1434,24 @@
         .list-modal-header h3 { font-family: 'Cinzel', serif; font-weight: 700; font-size: var(--sf-t2); letter-spacing: 0.5px; color: var(--sf-rule); }
         #forgeResultModal h3, #newTraitModal h3, #newShapeModal h3 { font-size: var(--sf-t0); }
         #newTraitModal h3, #newShapeModal h3 { color: var(--sf-gild-dk); }
+        /* THE REWARD FRAME. The highest-emotional-weight moment in the game was rendering the trait's OS
+           colour emoji at font-size:60px on a bare div, with a literal sparkle emoji in the title — the
+           lowest art investment in the build sitting on the beat that should carry the most. The SHEET was
+           already right (cycle 4b's hand-cut deckle, laid grain, edge scorch); only what sat ON it was
+           wrong. This is a struck medallion: raised parchment disc, inner plate ring, the trait's inked mark.
+           A CSS filter chain over the emoji (grayscale/sepia/saturate/hue-rotate) was tried first and FAILS —
+           it keeps the emoji's internal shading and reads as a sepia blob. The marks have to be drawn.
+           The strike animation is the only motion in the frame; it lands the "this was minted for you" beat
+           a static glyph cannot. */
+        .trait-medal { width: 104px; height: 104px; margin: 8px auto 10px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 38% 30%, #f6ead0, #d9c8a4 55%, #b39c72 100%);
+            border: 2px solid var(--sf-rule);
+            box-shadow: inset 0 0 0 1px rgba(255,247,224,0.60), inset 0 3px 7px rgba(255,252,240,0.70), inset 0 -5px 10px rgba(74,54,35,0.40), 0 3px 0 rgba(74,54,35,0.55), 0 6px 14px rgba(0,0,0,0.50); }
+        .trait-medal::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; border: 1.5px solid rgba(74,54,35,0.55); box-shadow: inset 0 0 0 1px rgba(255,247,224,0.35); }
+        .trait-mark { width: 58px; height: 58px; display: block; fill: none; stroke: var(--sf-ink-dk); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .trait-mark .f { fill: var(--sf-ink-dk); stroke: none; }
+        @keyframes traitStrike { 0% { transform: scale(0.72); opacity: 0; } 55% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        #newTraitModal .trait-medal { animation: traitStrike 0.42s cubic-bezier(.2,.9,.3,1.2) both; }
         .modal-content p, .design-modal-content p, .list-modal-body { font-size: var(--sf-t3); line-height: 1.55; }
         .list-modal-header, .ledger-tabs {
             background: linear-gradient(180deg, #d4c3a2, var(--sf-sheet-band)); border-bottom: 0;
@@ -1321,8 +1581,8 @@
 
     <div id="frame-shell">
     <div id="mobile-wrapper">
-        <button id="nav-left" class="nav-btn" style="display: none;" onclick="slideScreen(-1)">❮</button>
-        <button id="nav-right" class="nav-btn" onclick="slideScreen(1)">❯</button>
+        <button id="nav-left" class="nav-btn" style="display: none;" onclick="slideScreen(-1)"><svg viewBox="0 0 16 32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 5 16l6 11"/></svg><i class="sf-mk-fb" aria-hidden="true">❮</i></button>
+        <button id="nav-right" class="nav-btn" onclick="slideScreen(1)"><svg viewBox="0 0 16 32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l6 11-6 11"/></svg><i class="sf-mk-fb" aria-hidden="true">❯</i></button>
         <div id="v2tut-box" style="display:none;"><span id="v2tut-text"></span></div>
         <div id="v2tut-hand" class="sf-hand-d" style="display:none;"></div>
 
@@ -1330,9 +1590,11 @@
             <div class="screen" id="screen-0">
                 <div id="shop-sale-popup"></div>
                 <div class="list-panel" id="shop-panel-container">
-                    <h3>🏪 Shop Front</h3>
+                    <!-- display:flex, NOT the .sf-lbl inline-flex: .list-panel h3 carries a full-width
+                         border-bottom rule, which an inline box would shrink to the text width. -->
+                    <h3 style="display: flex; align-items: center; gap: 7px;"><svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.4 9.6h15.2v10.2H4.4z"/><path d="M3.4 9.6 5.6 4.6h12.8l2.2 5"/><path d="M9.6 19.8v-5.4h4.8v5.4"/></g></svg>Shop Front<i class="sf-mk-fb" aria-hidden="true">🏪</i></h3>
                     <p style="font-size: 12px; color: #666;">Passively sells your swords over time.</p>
-                    <button id="btnLedger" class="panel-open-btn" style="width: 100%; margin-bottom: 8px; flex: none;" onclick="openLedger()">📒 Ledger</button>
+                    <button id="btnLedger" class="panel-open-btn" style="width: 100%; margin-bottom: 8px; flex: none;" onclick="openLedger()"><svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#3a2a19" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M6.4 4.2h11.2v15.6H6.4z"/><path d="M6.4 8.2h11.2" fill="none" stroke="#2f2117" stroke-width="1.4"/><path d="M14.4 4.2v4" fill="none" stroke="#2f2117" stroke-width="1.4"/></g></svg>Ledger<i class="sf-mk-fb" aria-hidden="true">📒</i></button>
                     <div id="shop-locked-view" style="text-align: center;">
                         <div class="empty-list">The shop is currently closed.</div>
                         <button id="btnUnlockShop" class="btn-craft" style="margin-top: 10px;" onclick="unlockShop()">Unlock Shop (1000 Gold)</button>
@@ -1342,13 +1604,14 @@
             </div>
 
             <div class="screen" id="screen-1">
-                <button id="questToggle" onclick="toggleQuests()" title="Quests">📋</button>
+                <button id="questToggle" onclick="toggleQuests()" title="Quests"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#fceeb5" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M5 3.8h14V21H5Z"/><path d="M9 2h6v3.6H9Z" fill="#c8a84b"/><path d="M8.2 10h7.6M8.2 13.4h7.6M8.2 16.8H13" fill="none" stroke="#2f2117" stroke-width="1.5" stroke-linecap="round"/></g></svg></span><i class="sf-mk-fb" aria-hidden="true">📋</i></button>
                 <div id="questPanel"><div id="quest-list"></div></div>
-                <button id="diaryToggle" onclick="toggleDiary()" title="Diary">📖</button>
+                <button id="diaryToggle" onclick="toggleDiary()" title="Diary"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#fceeb5" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M3.4 4.6C6.4 3 9.6 3 12 4.8 14.4 3 17.6 3 20.6 4.6V19.4C17.6 17.9 14.4 17.9 12 19.7 9.6 17.9 6.4 17.9 3.4 19.4Z"/><path d="M12 4.8V19.7" fill="none" stroke="#2f2117" stroke-width="1.5"/></g></svg></span><i class="sf-mk-fb" aria-hidden="true">📖</i></button>
                 <div id="diaryPanel"><div id="diary-content"></div></div>
                 <div class="counter-topbar">
                     <span id="day-text" class="day-badge">Day 1</span>
-                    <span id="gold-text">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text">0</span></span>
+                    <!-- mirrors updateUI()'s MK_COIN/MK_STAR so the pre-first-updateUI paint matches -->
+                    <span id="gold-text"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="#2f2117" stroke-width="1.5" opacity=".85"/></g></svg></span> 0 &nbsp;|&nbsp; <span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M12 2.4 14.9 9l6.9.7-5.2 4.7 1.5 7-6.1-3.6-6.1 3.6 1.5-7L2.2 9.7 9.1 9Z"/></g></svg></span> <span id="rep-text">0</span></span>
                 </div>
 
                 <div class="customer-stage">
@@ -1361,25 +1624,29 @@
                             <button id="btnCosplay" style="display:none;">I don't make swords for cosplay.</button>
                         </div>
                         <button id="btnNextCustomer" style="display:none;">Thank you</button>
-                        <button id="btnContinueDialogue" style="display:none;">Continue ▶</button>
+                        <!-- The chevron restates its own cream stroke: it is fill:none, so on the moss primary
+                             key it would otherwise inherit the group ink and vanish. -->
+                        <button id="btnContinueDialogue" style="display:none;">Continue <svg viewBox="0 0 24 24" style="width:13px;height:13px;vertical-align:-2px" aria-hidden="true" focusable="false"><path d="M9 4.6 16.6 12 9 19.4" fill="none" stroke="#fceeb5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                     </div>
                 </div>
 
                 <div class="counter-panel-buttons">
-                    <button class="panel-open-btn" onclick="openInventoryModal()">🛡️ Inventory</button>
-                    <button id="btnOpenComps" class="panel-open-btn" onclick="openCompositionsModal()">📜 Alloy Book</button>
+                    <button class="panel-open-btn" onclick="openInventoryModal()"><svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#3a2a19" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M12 3.2 19 5.8v5.4c0 4.2-2.8 7.4-7 9.6-4.2-2.2-7-5.4-7-9.6V5.8Z"/><path d="M12 3.2 19 5.8v5.4c0 .8-.1 1.6-.3 2.4L12 10.8Z" fill="#fceeb5" opacity=".22" stroke="none"/></g></svg>Inventory<i class="sf-mk-fb" aria-hidden="true">🛡️</i></button>
+                    <button id="btnOpenComps" class="panel-open-btn" onclick="openCompositionsModal()"><svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#3a2a19" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M6.4 3.2h11.2c1.3 0 2.3 1.2 2.3 2.6S18.9 8.4 17.6 8.4H8.7v9.8c0 1.4-1 2.6-2.3 2.6s-2.3-1.2-2.3-2.6V5.8c0-1.4 1-2.6 2.3-2.6Z"/><path d="M11 11.4h6.4M11 14.4h6.4M11 17.4h4.4" fill="none" stroke="#2f2117" stroke-width="1.5" stroke-linecap="round"/></g></svg>Alloy Book<i class="sf-mk-fb" aria-hidden="true">📜</i></button>
                 </div>
             </div>
 
             <div class="screen" id="screen-2">
                 <div class="status-panel" style="margin-bottom: 6px;">
-                    <div class="health-container"><div id="health-bar"></div></div>
+                    <div class="purity-gauge"><span>PURITY</span><span class="purity-pips" id="purity-pips"><i class="purity-pip"></i><i class="purity-pip"></i><i class="purity-pip"></i><i class="purity-pip"></i></span><span class="purity-cartouche" id="purity-cap">EPIC</span></div>
                     <div class="status-header" style="justify-content: space-between; gap: 6px;">
-                        <button id="btnEndDay" onclick="requestEndDay()" class="topbar-btn">🌙 End Day</button>
+                        <button id="btnEndDay" onclick="requestEndDay()" class="topbar-btn sf-lbl"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M15.4 3.4a8.6 8.6 0 1 0 5.2 10.8A6.9 6.9 0 0 1 15.4 3.4Z"/></svg></span><i class="sf-mk-fb" aria-hidden="true">🌙</i>End Day</button>
                         <span id="day-text-2" class="day-badge">Day 1</span>
-                        <span id="gold-text-2">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text-2">0</span></span>
+                        <span id="gold-text-2"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="#2f2117" stroke-width="1.5" opacity=".85"/></g></svg></span> 0 &nbsp;|&nbsp; <span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M12 2.4 14.9 9l6.9.7-5.2 4.7 1.5 7-6.1-3.6-6.1 3.6 1.5-7L2.2 9.7 9.1 9Z"/></g></svg></span> <span id="rep-text-2">0</span></span>
                         <button id="btnSaveRecipe" class="topbar-btn">Note the Alloy</button>
-                        <button id="btnTutorialInfo" onclick="openTutorialReview()" title="Review tutorial tips" style="display: none; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; font-size: 12px; line-height: 1; padding: 0; cursor: pointer;">ℹ️</button>
+                        <!-- A Cinzel lowercase "i" is the cheapest correct answer here: the button is already a
+                             24px circle with an ink border, so the glyph IS the mark. -->
+                        <button id="btnTutorialInfo" onclick="openTutorialReview()" title="Review tutorial tips" style="display: none; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; color: #3a2a19; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; line-height: 1; padding: 0; cursor: pointer;">i</button>
                     </div>
                 </div>
 
@@ -1401,17 +1668,52 @@
                                 <rect x="0" y="0" width="512" height="512" fill="#d8c8a0"/>
                                 <image id="v2parchTile" x="0" y="0" width="512" height="512" preserveAspectRatio="none" style="display:none;"/>
                             </pattern>
-                            <!-- The illustrated sheet dissolves into that base instead of ending on a hard alpha edge. -->
-                            <radialGradient id="v2artFadeGrad" cx="50%" cy="50%" r="52%">
+                            <!-- The illustrated sheet dissolves into that base instead of ending on a hard alpha edge.
+                                 r/plateau are 88%/85%, NOT the original 52%/60%: at 52% the sheet was 90% dissolved at
+                                 the mid-left/mid-right world edge and gone in the corners — all inside pannable
+                                 territory, so panning out revealed a BRIGHTER, emptier ring than the middle (the value
+                                 structure inverted twice over). At 88% the extreme world corner still sits at
+                                 normalised 0.803 and keeps full alpha, so the whole 1400x980 world carries the
+                                 illustration and the dissolve lives only in the 700-unit padding, which v2setView's
+                                 clamp already makes unreachable. -->
+                            <radialGradient id="v2artFadeGrad" cx="50%" cy="50%" r="88%">
                                 <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
-                                <stop offset="60%" stop-color="#fff" stop-opacity="1"/>
+                                <stop offset="85%" stop-color="#fff" stop-opacity="1"/>
                                 <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
                             </radialGradient>
                             <mask id="v2artMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1400" height="980">
                                 <rect x="0" y="0" width="1400" height="980" fill="url(#v2artFadeGrad)"/>
                             </mask>
-                            <!-- Fog holes are blurred so explored ground fades out instead of ending on scalloped discs. -->
-                            <filter id="v2fogSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="17"/></filter>
+                            <!-- VALUE LIFT for the v2 sheet. map_parchment_v2.png ships at mean relative luminance
+                                 0.22; Potion Craft's alchemy sheet is 0.42-0.48. A gamma is used rather than a heavier
+                                 scrim because it raises the PAPER while leaving the painted ink dark — a flat scrim
+                                 strong enough to reach the target flattens the illustration's tonal range instead.
+                                 color-interpolation-filters="sRGB" is REQUIRED: the SVG default is linearRGB, and the
+                                 same exponent there reads far too bright and washes the whole map out. Do not drop it.
+                                 If the PNG fails to load, #v2groundArt stays display:none and this filter is inert. -->
+                            <filter id="v2artLift" x="-2%" y="-2%" width="104%" height="104%" color-interpolation-filters="sRGB">
+                                <feComponentTransfer>
+                                    <feFuncR type="gamma" amplitude="1" exponent="0.7" offset="0.02"/>
+                                    <feFuncG type="gamma" amplitude="1" exponent="0.7" offset="0.02"/>
+                                    <feFuncB type="gamma" amplitude="1" exponent="0.7" offset="0.02"/>
+                                </feComponentTransfer>
+                            </filter>
+                            <!-- Slag hatch: parchment under ink cross-hatching, the cartographer's fill for bad
+                                 ground. #d8c8a0 is --sf-parch-dk (already the v2parchPat base) and #4a3826 is
+                                 --sf-ink / PC_INK, so no new tone enters the map. Hatching over VISIBLE parchment is
+                                 what stops a hazard reading as a hole punched in the sheet — the same decision the
+                                 fog already makes ("warm haze over the parchment, never a black hole"). -->
+                            <pattern id="v2slagHatch" patternUnits="userSpaceOnUse" width="13" height="13" patternTransform="rotate(38)">
+                                <rect x="0" y="0" width="13" height="13" fill="#d8c8a0" opacity="0.88"/>
+                                <line x1="0" y1="0" x2="0" y2="13" stroke="#4a3826" stroke-width="2.4" opacity="0.42"/>
+                                <line x1="6.5" y1="0" x2="6.5" y2="13" stroke="#4a3826" stroke-width="1" opacity="0.24"/>
+                            </pattern>
+                            <!-- Fog holes are blurred so explored ground fades out instead of ending on scalloped
+                                 discs. 17 -> 11: with the fog lightened, explored vs unexplored separate by only
+                                 ~1.4:1 in luminance, so the frontier must be carried by EDGE DEFINITION rather than
+                                 by value. If the reveal still does not read at boot, tighten this to 8 BEFORE
+                                 reaching for more fog opacity. -->
+                            <filter id="v2fogSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="11"/></filter>
                             <mask id="v2fogMask">
                                 <rect x="-700" y="-700" width="2800" height="2380" fill="#fff"/>
                                 <g id="v2fogHoles" fill="#000" filter="url(#v2fogSoft)"></g>
@@ -1419,13 +1721,14 @@
                             <!-- Everything the craft draws (routes, trail, ingot marker) is clipped to the padded sheet,
                                  so a route near the world edge is never chopped mid-stroke. -->
                             <clipPath id="v2mapClip"><rect x="-700" y="-700" width="2800" height="2380"/></clipPath>
-                            <!-- Inner vignette: makes the map edge read authored even on the flat-fill fallback. -->
-                            <radialGradient id="v2vignetteGrad" cx="50%" cy="48%" r="74%">
-                                <stop offset="0%" stop-color="#3a2712" stop-opacity="0"/>
-                                <stop offset="58%" stop-color="#3a2712" stop-opacity="0"/>
-                                <stop offset="86%" stop-color="#3a2712" stop-opacity="0.26"/>
-                                <stop offset="100%" stop-color="#2a1c0c" stop-opacity="0.62"/>
-                            </radialGradient>
+                            <!-- (radialGradient#v2vignetteGrad + rect#v2vignette DELETED — they drew ZERO pixels in
+                                 any reachable view. objectBoundingBox units on a 2800x2380 rect put the first non-zero
+                                 stop past world x>1902 / y>1464, and v2setView clamps the viewBox inside the 1400x980
+                                 world, so the gradient's maximum reach inside the world was alpha 0. A world-anchored
+                                 gradient cannot frame a pan/zoom viewport; the frame vignette is #v2vig, a CSS overlay
+                                 in SCREEN space. Verified by toggling display:none at boot, at all four pan-clamp
+                                 corners and at max zoom-out: max per-pixel delta 16/255 on <0.2% of pixels, mean
+                                 0.009/255 — inside the animation noise floor.) -->
                             <!-- Molten-ingot marker: the three stops are re-tinted by temperature (pcMarkerTint). -->
                             <radialGradient id="pcEmberGrad" cx="36%" cy="32%" r="76%">
                                 <stop id="pcEmber0" offset="0%" stop-color="#ffe6b3"/>
@@ -1440,19 +1743,31 @@
                              clamp can never reach an edge and the void is unreachable by construction. -->
                         <rect id="v2ground" x="-700" y="-700" width="2800" height="2380" fill="url(#v2parchPat)"/>
                         <!-- Hand-inked terrain illustration; wired in only once it actually loads (pcLoadMapArt). -->
-                        <image id="v2groundArt" x="0" y="0" width="1400" height="980" preserveAspectRatio="xMidYMid slice" mask="url(#v2artMask)" style="display:none;"/>
-                        <!-- Scrim: lifts the (busy, dark) illustration to a mid-tone so ink strokes stay readable. -->
-                        <rect id="v2scrim" x="-700" y="-700" width="2800" height="2380" fill="#e8dcc0" opacity="0" pointer-events="none"/>
+                        <!-- filter runs BEFORE mask in the SVG rendering model, so the dissolve still works on the
+                             lifted image. -->
+                        <image id="v2groundArt" x="0" y="0" width="1400" height="980" preserveAspectRatio="xMidYMid slice" filter="url(#v2artLift)" mask="url(#v2artMask)" style="display:none;"/>
+                        <!-- Scrim: a warm parchment TINT, not the lift. filter#v2artLift does the lifting now, so
+                             PC_ART_SCRIM dropped 0.34 -> 0.18 and this recovered the tonal range the heavy scrim was
+                             flattening. Fill is exact --sf-parch (it was --sf-card #e8dcc0, a hand-copied near-miss). -->
+                        <rect id="v2scrim" x="-700" y="-700" width="2800" height="2380" fill="#efe1bd" opacity="0" pointer-events="none"/>   <!-- literal: keep in sync with --sf-parch -->
                         <g id="v2terrain">
                             <g id="v2blobs"></g>
                             <g id="v2hazards"></g>
                             <g id="v2greenDots"></g>
-                            <g id="v2traits"></g>
                         </g>
-                        <rect id="v2vignette" x="-700" y="-700" width="2800" height="2380" fill="url(#v2vignetteGrad)" pointer-events="none"/>
                         <!-- Unexplored ground is warm sepia haze over the parchment, never a black hole (Potion Craft
-                             keeps the sheet visible edge to edge); the blurred mask feathers the explored border. -->
-                        <rect id="v2fog" x="-700" y="-700" width="2800" height="2380" fill="#33240f" opacity="0.9" mask="url(#v2fogMask)"/>
+                             keeps the sheet visible edge to edge); the blurred mask feathers the explored border.
+                             --sf-haze #7a4f26 @ 0.52 keeps ~48% of the terrain signal; the old #33240f @ 0.90 kept
+                             ~10%, i.e. it destroyed about 97% of the illustration's tonal range. Do NOT take the fill
+                             below relative luminance 0.10 — an opaque dark marker stops clearing 3:1 unaided once a
+                             fogged cell drops under Y 0.145. -->
+                        <rect id="v2fog" x="-700" y="-700" width="2800" height="2380" fill="#7a4f26" opacity="0.52" mask="url(#v2fogMask)"/>   <!-- literal: keep in sync with --sf-haze -->
+                        <!-- Trait sites sit ABOVE the fog for the same reason the route does: an undiscovered '?' is a
+                             GAME OBJECT, not terrain, and a uniform wash over both a node and its background
+                             compresses them together — under the fog no achievable alpha keeps a site at 3:1.
+                             #v2terrain is a pure grouping element (referenced nowhere in CSS or JS) and v2traitsG is
+                             fetched by getElementById, so moving this out of it is inert to every code path. -->
+                        <g id="v2traits"></g>
                         <!-- Route layers sit ABOVE the fog so a plotted route reads through unexplored ground (Potion Craft). -->
                         <g id="pcTrail" clip-path="url(#v2mapClip)"></g>
                         <g id="pcPlanned" clip-path="url(#v2mapClip)"></g>
@@ -1475,6 +1790,8 @@
                         </g>
                     </svg>
 
+                    <div id="v2vig"></div>   <!-- frame vignette, screen space; see the #v2vig rule -->
+
                     <div id="v2furnace">
                         <img src="assets/forge/blast_furnace.png" alt="Furnace" class="v2-furnace-img">
                         <img src="assets/forge/blast_furnace_bellowtop.png" alt="" id="v2-bellowtop" class="v2-furnace-img">
@@ -1488,7 +1805,7 @@
                         <button id="v2zoomIn" type="button" aria-label="Zoom in">+</button>
                         <button id="v2zoomOut" type="button" aria-label="Zoom out">−</button>
                     </div>
-                    <button id="btnAdventure" onclick="openCave()" class="v2-corner-btn">⛏️ Adventure</button>
+                    <button id="btnAdventure" onclick="openCave()" class="v2-corner-btn sf-lbl"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.6c5.4-3.6 11.8-3.6 17.2 0"/><path d="M12 6.4v14.2"/><path d="M9.8 20.6h4.4"/></svg></span><i class="sf-mk-fb" aria-hidden="true">⛏️</i>Adventure</button>
                 </div>
 
                 <!-- Ore picker for the Ore station (floats above the row). -->
@@ -1509,7 +1826,11 @@
                     <button class="pc-btn" id="pcBtnFire" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_fire.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🔥</span></span><span class="pc-lbl">Fire</span></button>
                 </div>
                 <div id="pc-status" class="pc-status">Pick an ore to plot a route.</div>
-                <button id="pcBtnForge" class="pc-forge-btn" type="button">🗡️ Forge the Blade</button>
+                <!-- The ONLY bare emoji left in the station strip (the other seven sit hidden behind
+                     .pc-ico-img art), and it is on screen for the entire core loop directly under seven fully
+                     inked medallions. The label MUST live in its own span: pcUpdateStations rewrites it on
+                     every tick, and a textContent write on the button would destroy the inline SVG. -->
+                <button id="pcBtnForge" class="pc-forge-btn" type="button"><span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.4 14 6.8v7.2h-4V6.8z"/><path d="M6.2 15.2h11.6"/><path d="M12 15.2v4.4"/><path d="M10.3 21.2h3.4"/></svg></span><i class="sf-mk-fb" aria-hidden="true">🗡️</i><span id="pcForgeLbl">Forge the Blade</span></button>
 
                 <!-- Legacy V2 drag-dock (ore / charcoal / limestone tiles). Superseded by the station row above;
                      kept in the DOM (hidden) so the drag-plot code and the old tutorial selectors still resolve. -->
@@ -1551,11 +1872,19 @@
                     <img src="assets/forge/bellow_forge.png" id="forge-bellow" class="forge-bellow" onmousedown="handleBellowClick(event)" ontouchstart="handleBellowClick(event)" alt="Bellow">
                     
                     <div class="interactive-heat-meter" id="forge-meter-container">
-                        <div style="font-size: 11px; font-family: 'Cinzel', serif; color: var(--sf-ink-dk); margin-bottom: 5px; text-shadow: none;">Keep heat in the <span style="color:#43521f; font-weight:bold;">Green Zone</span>!</div>
+                        <!-- The label names the THING (working heat), not a colour. The band is no longer green
+                             and there is no "green zone" to point at; the matching string in handlePulleyClick
+                             must stay in step with this one. -->
+                        <div style="font-size: 10.5px; font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.3px; color: var(--sf-ink-dk); margin-bottom: 5px; text-shadow: none;">Hold the blade at working heat</div>
                         <div class="interactive-heat-track">
+                            <div class="ih-bands" id="ih-bands"></div>
                             <div class="interactive-heat-thumb" id="interactive-heat-thumb"></div>
                         </div>
-                        <div id="heat-timer" style="text-align: center; margin-top: 6px; font-size: 13px; font-family: 'Cinzel', serif; font-weight: bold; color: #75291a; display: none;"></div>
+                        <!-- The ⏱ became an inked sand-glass in the oxide the timer already used. The NUMBER
+                             lives in its own span: two call sites clear this box with textContent = '', which
+                             would otherwise delete the inline SVG on the second forge of a session. display
+                             toggles between 'none' and 'flex', not 'block' — gap/align-items need flex. -->
+                        <div id="heat-timer" style="align-items: center; justify-content: center; gap: 5px; margin-top: 6px; font-size: 13px; font-family: 'Cinzel', serif; font-weight: bold; color: #75291a; display: none;"><svg viewBox="0 0 12 16" style="width:12px;height:15px;display:block;flex:none" aria-hidden="true" focusable="false"><path d="M2 1h8M2 15h8M3 1c0 4 3 5 3 7s-3 3-3 7M9 1c0 4-3 5-3 7s3 3 3 7" fill="none" stroke="#75291a" stroke-width="1.4" stroke-linecap="round"/><path d="M4.2 13.4h3.6c0-2-1.8-2.6-1.8-2.6s-1.8.6-1.8 2.6Z" fill="#75291a"/></svg><span id="heat-timer-val">0.0s</span></div>
                     </div>
                     <div id="forge-instructions" class="forge-instructions">Tap Pulley to Lower Bucket</div>
                 </div>
@@ -1570,7 +1899,7 @@
                         <button id="cave-tab-1" class="cave-tab" onclick="caveSwitch(1)">Cave 1</button>
                         <button id="cave-tab-2" class="cave-tab" onclick="caveSwitch(2)">Cave 2</button>
                     </div>
-                    <button onclick="closeCave()" aria-label="Leave the cave">✕</button>
+                    <button onclick="closeCave()" aria-label="Leave the cave"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" transform="translate(12,12) rotate(8)"><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></svg><i class="sf-mk-fb" aria-hidden="true">✕</i></button>
                 </div>
                 <div class="cave-counts" id="cave-counts"></div>
                 <div id="cave-field"></div>
@@ -1705,7 +2034,7 @@
                 <div class="list-modal-header">
                     <button class="list-nav-btn" id="inv-back" onclick="showVaultGrid()" style="visibility: hidden;">←</button>
                     <h3 id="inv-title">🛡️ Inventory (Vault)</h3>
-                    <button class="list-nav-btn" onclick="closeInventoryModal()">✕</button>
+                    <button class="list-nav-btn" onclick="closeInventoryModal()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" transform="translate(12,12) rotate(8)"><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></svg><i class="sf-mk-fb" aria-hidden="true">✕</i></button>
                 </div>
                 <div class="list-modal-body" id="inv-body"></div>
             </div>
@@ -1716,7 +2045,7 @@
                 <div class="list-modal-header">
                     <button class="list-nav-btn" style="visibility: hidden;">←</button>
                     <h3>📒 Sales Ledger</h3>
-                    <button class="list-nav-btn" onclick="closeLedger()">✕</button>
+                    <button class="list-nav-btn" onclick="closeLedger()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" transform="translate(12,12) rotate(8)"><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></svg><i class="sf-mk-fb" aria-hidden="true">✕</i></button>
                 </div>
                 <div class="ledger-tabs" id="ledger-tabs"></div>
                 <div class="list-modal-body" id="ledger-body"></div>
@@ -1728,7 +2057,7 @@
                 <div class="list-modal-header">
                     <button class="list-nav-btn" id="comp-back" onclick="showCompositionGrid()" style="visibility: hidden;">←</button>
                     <h3 id="comp-title">📜 Alloy Book</h3>
-                    <button class="list-nav-btn" onclick="closeCompositionsModal()">✕</button>
+                    <button class="list-nav-btn" onclick="closeCompositionsModal()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" transform="translate(12,12) rotate(8)"><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></svg><i class="sf-mk-fb" aria-hidden="true">✕</i></button>
                 </div>
                 <div class="list-modal-body" id="comp-body"></div>
             </div>
@@ -1800,27 +2129,30 @@
 
         <div id="forgeResultModal" class="modal-overlay">
             <div class="modal-content" style="max-width: 330px;">
-                <h3>🗡️ Forging Complete!</h3>
+                <h3>Forging Complete</h3>
                 <div id="forgeResultDetails" style="font-size: 14px; text-align: left; margin-bottom: 15px; line-height: 1.6; color: #3d2b1a;"></div>
-                <button class="btn-craft" style="background: linear-gradient(#a98a4f, #7d6127); border: 1px solid #5c4718; width: 100%; font-size: 16px; padding: 12px;" onclick="closeForgeResultModal()">Add to Vault</button>
+                <button class="btn-craft" style="width: 100%; font-size: 16px; padding: 12px;" onclick="closeForgeResultModal()">Add to Vault</button>
             </div>
         </div>
 
         <div id="newTraitModal" class="modal-overlay">
             <div class="modal-content">
-                <h3 style="margin-bottom: 6px;">✨ New Trait Discovered!</h3>
-                <div id="newTraitIcon" style="font-size: 60px; line-height: 1.3; margin: 6px 0;"></div>
+                <h3 style="margin-bottom: 6px;">New Trait Discovered</h3>
+                <div class="trait-medal"><svg id="newTraitMark" class="trait-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false"></svg></div>
                 <div id="newTraitName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #4a3623; margin-bottom: 14px;"></div>
-                <button class="btn-craft" style="background: linear-gradient(#d6b95f, #a98a4f); border: 1px solid #7d6127; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
+                <button class="btn-craft" style="width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
             </div>
         </div>
 
         <div id="newShapeModal" class="modal-overlay">
             <div class="modal-content">
-                <h3 style="margin-bottom: 6px;">🗡️ New Blade!</h3>
+                <h3 style="margin-bottom: 6px;">New Blade</h3>
                 <div id="newShapeImg" style="height: 96px; display: flex; align-items: center; justify-content: center; margin: 6px 0;"></div>
                 <div id="newShapeName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #4a3623; margin-bottom: 14px;"></div>
-                <button class="btn-craft" style="background: linear-gradient(#d6b95f, #a98a4f); border: 1px solid #7d6127; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewShapeModal()">Continue</button>
+                <!-- The inline background/border override is gone: these three reward CTAs were the ONLY reason
+                     any button in the game is brass rather than the cycle-4b moss primary key, and fixing one
+                     while leaving the others would make the reward modals inconsistent with each other. -->
+                <button class="btn-craft" style="width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewShapeModal()">Continue</button>
             </div>
         </div>
 
@@ -3424,9 +3756,27 @@
             } catch(e) { console.error("Error finding blueprint index:", e); return -1; }
         }
 
+        /* Ink marks for the innerHTML call sites (the static markup carries its own copies inline).
+           Same 0..24 construction and the same hidden-emoji-sibling contract as the .sf-mk CSS block.
+           The gold pill is cream-on-INK, so these two are filled --sf-gild with an ink stroke rather than
+           `currentColor`: a cream coin and a cream star would drop the value/reputation read entirely.
+           CAUTION: updateUI rewrites #gold-text's innerHTML on every state change and is guarded by
+           `goldText.textContent.indexOf('+') === -1` (the passive-sale flash). SVG contributes no text, so
+           that guard still works — do not change it. */
+        const SFMK = (d, fb) => '<span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></span><i class="sf-mk-fb" aria-hidden="true">' + fb + '</i>';
+        const MK_COIN = '<span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="#2f2117" stroke-width="1.5" opacity=".85"/><path d="M8.6 7.4C10 6.1 12.4 5.6 14.2 6.2" fill="none" stroke="#fceeb5" stroke-width="1.6" opacity=".5" stroke-linecap="round"/></g></svg></span><i class="sf-mk-fb" aria-hidden="true">💰</i>';
+        const MK_STAR = '<span class="sf-mk"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M12 2.4 14.9 9l6.9.7-5.2 4.7 1.5 7-6.1-3.6-6.1 3.6 1.5-7L2.2 9.7 9.1 9Z"/></g></svg></span><i class="sf-mk-fb" aria-hidden="true">⭐</i>';
+
         function updateUI() {
-            const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%';
-            healthBar.style.background = health > 50 ? 'linear-gradient(180deg,#8a9a52 0%,#5f7038 48%,#3f4c22 100%)' : health > 20 ? 'linear-gradient(180deg,#d8b45a 0%,#a8801f 48%,#6f5211 100%)' : 'linear-gradient(180deg,#c9603a 0%,#9e3b22 48%,#5f2011 100%)';   // mirrors the #health-bar CSS tiers verbatim — change both together
+            // 4 pips = 4 remaining hazard hits (health only ever moves in −25 steps). Math.ceil keeps the
+            // gauge honest even if health ever stops being quantised. Tier AND cartouche both read
+            // healthQualityCap(), so the gauge can no longer show full moss at 75 while the blade is already
+            // capped at Fine — which the old bar's hand-mirrored 50/20 tiers did. Retune with healthQualityCap.
+            { const lit = Math.max(0, Math.min(4, Math.ceil(health / 25))); const cap = healthQualityCap();
+              const tier = cap === 'Epic' ? '' : cap === 'Fine' ? ' warn' : ' bad';
+              const pips = document.getElementById('purity-pips').children;
+              for (let i = 0; i < 4; i++) pips[i].className = 'purity-pip' + (i < lit ? ' on' + tier : '');
+              const pc = document.getElementById('purity-cap'); if (pc) pc.textContent = health <= 0 ? 'RUINED' : cap.toUpperCase(); }
             { const bt = document.getElementById('blade-traits-text'); if (bt) bt.innerHTML = activeTraits.length === 0 ? '<strong>Blade Traits:</strong> None' : '<strong>Blade Traits:</strong> ' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', '); }
             // Reputation tiers: --sf-oxide-pale (falling) / --sf-iron-lt (neutral) / --sf-moss-lt (rising).
             // These are the LIGHT rungs because the pill is now opaque ink on both screens — hand-mirrored
@@ -3436,9 +3786,9 @@
             // on screen 2, and the display serif is ~18% wider than the Arial it replaced in a header that
             // had exactly 0.0px of horizontal slack.
             const goldText = document.getElementById('gold-text');
-            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
+            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `${MK_COIN} ${gold} &nbsp;|&nbsp; ${MK_STAR} <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
             const goldText2 = document.getElementById('gold-text-2'); // screen 2 mirror of the gold/rep pill
-            if (goldText2) goldText2.innerHTML = `💰 ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
+            if (goldText2) goldText2.innerHTML = `${MK_COIN} ${gold} &nbsp;|&nbsp; ${MK_STAR} <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
             updateEndDayUI(); // day counter + End Day button state
 
             const btnAutoSell = document.getElementById('btnAutoSell');
@@ -3716,16 +4066,23 @@
         // on the hand-painted forge art. Every offset expression below is unchanged — the manicule renders in
         // a 28px SQUARE, and a rotated square has the same bounding box, so nothing shifts in any direction.
         const HAND_DIR = { below: 'sf-hand-u', leftOf: 'sf-hand-r', rightOf: 'sf-hand-l', above: 'sf-hand-d' };
-        function placeHand(handEl, targetEl, side) {
+        // `over` pulls the hand INTO the target by N px along the pointing axis. Needed only for the two
+        // heat-modal cues, whose targets are painted props inside a busy painting — standing the manicule
+        // off beside them reads as another prop in the artwork, not as a pointer. Omitted/0 reproduces the
+        // old behaviour EXACTLY, and every existing call site passes 3 args, so nothing else moves.
+        // NOTE for anyone "fixing" this function: the base math is correct to ~1px. side:'leftOf'
+        // deliberately stands the hand BESIDE the target, so comparing hand CENTRE to target CENTRE will
+        // always look ~49px off. Do not re-derive the offsets.
+        function placeHand(handEl, targetEl, side, over) {
             if (!targetEl) { handEl.style.display = 'none'; return; }
             const wrap = document.getElementById('mobile-wrapper'); const wr = wrap.getBoundingClientRect(); const tr = targetEl.getBoundingClientRect();
             if (tr.width === 0 && tr.height === 0) { handEl.style.display = 'none'; return; }
-            const H = 28; let left, top;
+            const H = 28, O = over || 0; let left, top;
             const cx = tr.left - wr.left + tr.width / 2, cy = tr.top - wr.top + tr.height / 2;
-            if (side === 'below') { left = cx - H / 2; top = (tr.bottom - wr.top) + 2; }
-            else if (side === 'leftOf') { left = (tr.left - wr.left) - H - 2; top = cy - H / 2; }
-            else if (side === 'rightOf') { left = (tr.right - wr.left) + 2; top = cy - H / 2; }
-            else { left = cx - H / 2; top = (tr.top - wr.top) - H - 2; } // 'above'
+            if (side === 'below') { left = cx - H / 2; top = (tr.bottom - wr.top) + 2 - O; }
+            else if (side === 'leftOf') { left = (tr.left - wr.left) - H - 2 + O; top = cy - H / 2; }
+            else if (side === 'rightOf') { left = (tr.right - wr.left) + 2 - O; top = cy - H / 2; }
+            else { left = cx - H / 2; top = (tr.top - wr.top) - H - 2 + O; } // 'above'
             handEl.classList.remove('sf-hand-u', 'sf-hand-d', 'sf-hand-l', 'sf-hand-r'); handEl.classList.add(HAND_DIR[side] || 'sf-hand-d');   // unrecognised side degrades to 'above', exactly as before
             handEl.style.left = Math.round(left) + 'px'; handEl.style.top = Math.round(top) + 'px'; handEl.style.display = 'block';
         }
@@ -3733,8 +4090,8 @@
             const h1 = document.getElementById('tutHand1'), h2 = document.getElementById('tutHand2');
             h1.style.display = 'none'; h2.style.display = 'none';
             if (!spec || !spec.length) return;
-            placeHand(h1, document.querySelector(spec[0].sel), spec[0].side);
-            if (spec[1]) placeHand(h2, document.querySelector(spec[1].sel), spec[1].side);
+            placeHand(h1, document.querySelector(spec[0].sel), spec[0].side, spec[0].over);
+            if (spec[1]) placeHand(h2, document.querySelector(spec[1].sel), spec[1].side, spec[1].over);
         }
         function hideHands() { document.getElementById('tutHand1').style.display = 'none'; document.getElementById('tutHand2').style.display = 'none'; }
 
@@ -3750,8 +4107,42 @@
         function gameAlert(msg) { document.getElementById('gameAlertText').innerHTML = msg; document.getElementById('gameAlertModal').style.display = 'flex'; }
         function closeGameAlert() { document.getElementById('gameAlertModal').style.display = 'none'; }
 
+        /* Inked heraldic marks for the reward medallion, keyed by trait id. 48x48, stroked (class "f" =
+           filled). MODAL-ONLY BY DESIGN: trait.symbol keeps the emoji everywhere else — canvas fillText, the
+           SVG <text> nodes on the map and minimap, the vault/ledger/shop cards and the customer dialogue
+           strings. Those call sites cannot render markup, so do NOT "finish" this by swapping
+           baseTraits[].symbol; that would break the map renderer. A full de-emoji of those surfaces needs a
+           separate `mark` field beside `symbol` and is larger work.
+           Any id missing here falls back to the emoji, so a 25th trait degrades to the old behaviour rather
+           than rendering an empty medallion. */
+        const TRAIT_MARKS = {
+            durable:'<path d="M24 6 41 12v12c0 10-8 16-17 19C15 43 7 34 7 24V12Z"/><path d="M24 16v13"/>',
+            cursed:'<path d="M24 7c9 0 15 6 15 14 0 5-2 8-5 10v6H14v-6c-3-2-5-5-5-10 0-8 6-14 15-14Z"/><circle cx="18" cy="22" r="3.2" class="f"/><circle cx="30" cy="22" r="3.2" class="f"/><path d="M21 32h6"/>',
+            heavy:'<path d="M24 12v30M13 20h22M10 30c1.6 8 6.6 12 14 12s12.4-4 14-12"/><circle cx="24" cy="8" r="4"/>',
+            balanced:'<path d="M24 8v32M10 15h28M17 41h14"/><path d="M10 15 4 27a6 6 0 0012 0Z"/><path d="M38 15l-6 12a6 6 0 0012 0Z"/>',
+            floral:'<circle cx="24" cy="24" r="5"/><circle cx="35" cy="24" r="6"/><circle cx="29.5" cy="33.5" r="6"/><circle cx="18.5" cy="33.5" r="6"/><circle cx="13" cy="24" r="6"/><circle cx="18.5" cy="14.5" r="6"/><circle cx="29.5" cy="14.5" r="6"/>',
+            grace:'<path d="M24 5c1.6 10 6.4 14.8 16.4 16.4C30.4 23 25.6 27.8 24 37.8 22.4 27.8 17.6 23 7.6 21.4 17.6 19.8 22.4 15 24 5Z"/>',
+            noble:'<path d="M9 35h30M9 35 6.5 14l9.5 7.5L24 9l8 12.5L41.5 14 39 35"/><circle cx="24" cy="28" r="2.4" class="f"/>',
+            flexible:'<path d="M5 24h5"/><path d="M10 24c0-8 4.7-8 4.7 0s4.7 8 4.7 0 4.7-8 4.7 0 4.7 8 4.7 0 4.7-8 4.7 0"/><path d="M38 24h5"/>',
+            sharp:'<path d="M24 4 33 24l-9 20-9-20Z"/><path d="M24 12v22"/>',
+            fury:'<path d="M24 6v11M11 12l7.5 8M37 12l-7.5 8M6 27h11M42 27H31M13 41l7-9M35 41l-7-9"/>',
+            accurate:'<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="10"/><circle cx="24" cy="24" r="3.2" class="f"/>',
+            luck:'<circle cx="24" cy="15" r="7.5"/><circle cx="15" cy="29" r="7.5"/><circle cx="33" cy="29" r="7.5"/><path d="M24 30c2 6 1.5 9 0 13"/>',
+            honor:'<path d="M16 5l6 13M32 5l-6 13"/><circle cx="24" cy="30" r="11"/><path d="M24 24l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7Z"/>',
+            endurance:'<circle cx="11" cy="24" r="7"/><circle cx="24" cy="24" r="7"/><circle cx="37" cy="24" r="7"/>',
+            savage:'<path d="M11 7c5 10 7 21 5 34M22 5c5 10 7 23 5 36M33 7c5 10 7 21 5 34"/>',
+            cruel:'<path d="M7 14h34"/><path d="M9 14l4.5 12L18 14l4.5 14L27 14l4.5 12L36 14"/><path d="M7 41h34M13 41l4-6M24 41l4-6M35 41l-4-6"/>',
+            blood:'<path class="f" d="M24 6c7.5 11 12.5 16 12.5 22A12.5 12.5 0 0111.5 28C11.5 22 16.5 17 24 6Z"/><circle cx="12" cy="10" r="2.6" class="f"/><circle cx="36" cy="12" r="2" class="f"/>',
+            celestial:'<path d="M33 6l2.6 6.4L42 15l-6.4 2.6L33 24l-2.6-6.4L24 15l6.4-2.6Z"/><path d="M27 21 8 40M22 13 12 20M31 30l-7 10"/>',
+            storm:'<path d="M31 11C20 6 9 12 9 22c0 8 6 14 14 14 7 0 12-5 12-11 0-5-4-9-9-9-4 0-7 3-7 7 0 3 2 5 5 5"/>',
+            ice:'<path d="M24 5v38M8.5 14l31 20M39.5 14l-31 20"/><path d="M24 12l-4-4M24 12l4-4M24 36l-4 4M24 36l4 4M13.7 17.8l-5.4-.6M13.7 30.2l-5.4.6M34.3 17.8l5.4-.6M34.3 30.2l5.4.6"/>',
+            flame:'<path d="M24 5c1 7 5 9 8 13 3 4 4 7 4 11 0 7-5 13-12 13S12 36 12 29c0-4 2-8 5-11 .4 3 1.6 5 3.4 6C19 18 21 10 24 5Z"/><path d="M24 41c-3.4 0-6-2.6-6-6 0-3.4 3-5 4.4-8.6 2.6 2.6 7.6 5 7.6 8.6 0 3.4-2.6 6-6 6Z"/>',
+            water:'<path d="M24 6c7.5 11 12.5 16 12.5 22A12.5 12.5 0 0111.5 28C11.5 22 16.5 17 24 6Z"/><path d="M16.5 29c1 4 4 6.5 7.5 6.5"/>',
+            lightning:'<path class="f" d="M28 4 11 28h9.5L16 44 37 20h-10.5L33 4Z"/>',
+            dark:'<circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="11.5" class="f"/>'
+        };
         // Celebratory box shown the first time a given trait is heated (see resolveInteractiveHeatMinigame).
-        function showNewTraitModal(trait) { document.getElementById('newTraitIcon').textContent = trait.symbol; document.getElementById('newTraitName').textContent = trait.name; document.getElementById('newTraitModal').style.display = 'flex'; }
+        function showNewTraitModal(trait) { const mk = document.getElementById('newTraitMark'); mk.innerHTML = TRAIT_MARKS[trait.id] || ('<text x="24" y="33" text-anchor="middle" font-size="30" stroke="none">' + trait.symbol + '</text>'); document.getElementById('newTraitName').textContent = trait.name; document.getElementById('newTraitModal').style.display = 'flex'; }
         function closeNewTraitModal() { document.getElementById('newTraitModal').style.display = 'none'; if (recordReminderPending) setTimeout(triggerRecordReminder, 400); }
         // Celebratory "<shape> unlocked" box shown when a new blade shape is bought in the shape-select step.
         function showNewShapeModal(shape, src) { document.getElementById('newShapeImg').innerHTML = src ? `<img src="${src}" alt="${shape}">` : ''; document.getElementById('newShapeName').textContent = `${shape} unlocked`; document.getElementById('newShapeModal').style.display = 'flex'; }
@@ -3817,10 +4208,17 @@
             document.getElementById('forge-pulley').classList.remove('forge-cue');
             document.getElementById('forge-bellow').classList.remove('forge-cue');
         }
-        function cueHeat(targetSel, side) {
+        /* MEASURED overlaps, from the shipped PNGs' own alpha, not from taste:
+           #forge-pulley 'leftOf' 24 — at over=0 the 28px hand box lands squarely on the painted LANTERN
+             behind the pulley (a busy, mid-value patch), so a cream manicule dissolves into it. +24 puts the
+             box on the pulley wheel's dark iron with the fingertip on the hub, and the prop stays ~60% clear.
+           #forge-bellow 'above' 20 — the bellows is a DIAGONAL lever, so the top-centre of its bounding box
+             is empty wall: at over=0 the fingertip floated 20.3px above the first opaque row of
+             bellow_forge.png. +20 lands the fingertip on the lever, within ~0.3px. */
+        function cueHeat(targetSel, side, over) {
             clearHeatCues();
             const el = document.querySelector(targetSel); el.classList.add('forge-cue');
-            setTimeout(() => { if (el.classList.contains('forge-cue')) placeHand(document.getElementById('heatHand'), el, side); }, 60);
+            setTimeout(() => { if (el.classList.contains('forge-cue')) placeHand(document.getElementById('heatHand'), el, side, over); }, 60);
         }
 
         function initiateHeatSequence() {
@@ -3840,8 +4238,8 @@
                     document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
                     document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
                     document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
-                    { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; } // timer shows only once heating starts
-                    cueHeat('#forge-pulley', 'leftOf'); // point/glow the pulley first
+                    { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; } // timer shows only once heating starts. NO textContent='' here — it would delete the inline sand-glass SVG, and the bug would only surface on the SECOND forge of a session.
+                    cueHeat('#forge-pulley', 'leftOf', 24); // point/glow the pulley first (24 = measured overlap, see cueHeat)
                 }
             } else gameAlert("Move the sword onto a trait to heat it!");
         }
@@ -3858,8 +4256,8 @@
             document.getElementById('forge-bucket').style.top = '-100%'; document.getElementById('forge-pulley').style.transform = 'rotate(0deg)';
             document.getElementById('forge-meter-container').style.display = 'none'; document.getElementById('forge-instructions').textContent = 'Tap Pulley to Lower Bucket';
             document.getElementById('interactive-heat-thumb').style.left = '0%'; document.getElementById('heatModal').style.display = 'flex';
-            { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; ht.textContent = ''; }
-            cueHeat('#forge-pulley', 'leftOf');
+            { const ht = document.getElementById('heat-timer'); ht.style.display = 'none'; }   // see the note at the matching line in initiateHeatSequence
+            cueHeat('#forge-pulley', 'leftOf', 24);
         }
 
         function handlePulleyClick() {
@@ -3869,10 +4267,10 @@
             document.getElementById('forge-pulley').style.transform = 'rotate(720deg)'; document.getElementById('forge-bucket').style.top = '18%';
 
             setTimeout(() => {
-                forgePhase = 'heating'; document.getElementById('forge-instructions').textContent = 'Pump Bellows! Keep heat in Green!';
-                { const ht = document.getElementById('heat-timer'); ht.textContent = '⏱ ' + heatCfg.timer.toFixed(1) + 's'; ht.style.display = 'block'; }
+                forgePhase = 'heating'; document.getElementById('forge-instructions').textContent = 'Pump the bellows - hold the blade at working heat';   // must stay in step with the meter's own label
+                { const ht = document.getElementById('heat-timer'); document.getElementById('heat-timer-val').textContent = heatCfg.timer.toFixed(1) + 's'; ht.style.display = 'flex'; }
                 document.getElementById('forge-meter-container').style.display = 'block'; lastHeatTime = performance.now();
-                cueHeat('#forge-bellow', 'above'); // now point/glow the bellow
+                cueHeat('#forge-bellow', 'above', 20); // now point/glow the bellow (20 = measured overlap, see cueHeat)
                 heatAnimationFrame = requestAnimationFrame(updateInteractiveHeatLoop);
             }, 2000);
         }
@@ -3889,14 +4287,20 @@
 
         // Dynamic-band helpers (Tier B/C). Traits with no dynamic fields just yield the static [lo,hi].
         function clampBand(center, hw) { return [Math.max(0, center - hw), Math.min(100, center + hw)]; }
-        function heatGradient(bands) {
-            const s = bands.slice().sort((a, b) => a[0] - b[0]); const parts = []; let pos = 0;
-            // Colour literals only — the stop PERCENTAGES come from `bands` and the win condition reads heatBands,
-            // never this string. Cold iron → moss (target) → oxide (too hot); mirrors .interactive-heat-track's fallback.
-            s.forEach(b => { const lo = Math.max(0, Math.min(100, b[0])), hi = Math.max(0, Math.min(100, b[1])); parts.push(`#41505a ${pos}%`, `#5c6b70 ${lo}%`, `#8a9a52 ${lo}%`, `#5f7038 ${hi}%`); pos = hi; });
-            parts.push(`#9e3b22 ${pos}%`, `#75291a 100%`);
-            return `linear-gradient(to right, ${parts.join(', ')})`;
+        // Paints one ember slug per target band into #ih-bands (heatCfg.multiBand yields TWO, so the slug
+        // pool grows/shrinks). Replaced heatGradient(), which rebuilt the track's whole `background` string
+        // every frame; the trough is now static parchment and only the slugs move. The percentages still
+        // come from `bands`, and the win condition still reads heatBands and never this DOM.
+        function heatPaintBands(bands) {
+            const host = document.getElementById('ih-bands'); if (!host) return;
+            const s = bands.slice().sort((a, b) => a[0] - b[0]);
+            while (host.children.length < s.length) { const d = document.createElement('span'); d.className = 'ih-band'; host.appendChild(d); }
+            while (host.children.length > s.length) host.removeChild(host.lastChild);
+            s.forEach((b, i) => { const lo = Math.max(0, Math.min(100, b[0])), hi = Math.max(0, Math.min(100, b[1])); const e = host.children[i]; e.style.left = lo + '%'; e.style.width = Math.max(0, hi - lo) + '%'; });
         }
+        // The every-frame dirty-check contract is unchanged; lastHeatGradient now holds this key instead of
+        // a gradient string, so the DOM write still only happens when a band actually moves.
+        function heatBandKey(bands) { return bands.map(b => b[0].toFixed(1) + ':' + b[1].toFixed(1)).join('|'); }
         function updateHeatBands() {
             if (heatCfg.stageBands) { heatBands = [heatCfg.stageBands[heatStage]]; return; }
             if (heatCfg.multiBand) { heatBands = heatCfg.activeBands; return; }
@@ -3912,13 +4316,16 @@
             if (heatCfg.multiBand) { const hw = heatCfg.halfWidth; heatCfg.activeBands = [clampBand(15 + Math.random() * 25, hw), clampBand(58 + Math.random() * 27, hw)]; }
             const thumb = document.getElementById('interactive-heat-thumb'); if (thumb) thumb.style.opacity = '1';
             updateHeatBands();
-            const track = document.querySelector('.interactive-heat-track'); if (track) { lastHeatGradient = heatGradient(heatBands); track.style.background = lastHeatGradient; }
+            heatPaintBands(heatBands); lastHeatGradient = heatBandKey(heatBands);
+            // Clear the in-band ember flare left over from a previous forge. The old code had no equivalent
+            // because the whole gradient was recomputed from scratch each frame.
+            { const track = document.querySelector('.interactive-heat-track'); if (track) track.classList.remove('in-band'); }
         }
 
         function updateInteractiveHeatLoop(time) {
             if (forgePhase !== 'heating') return;
             const dt = (time - lastHeatTime) / 1000; lastHeatTime = time; heatElapsed += dt;
-            const htEl = document.getElementById('heat-timer'); if (htEl) htEl.textContent = '⏱ ' + Math.max(0, heatCfg.timer - heatElapsed).toFixed(1) + 's';
+            const htEl = document.getElementById('heat-timer-val'); if (htEl) htEl.textContent = Math.max(0, heatCfg.timer - heatElapsed).toFixed(1) + 's';
             heatScore -= heatCfg.decay * dt;
             if (heatCfg.blood) heatScore -= heatScore * 0.15 * dt; // Blood: bleeds faster the hotter it is
             if (bellowHeld) heatScore += heatCfg.hold * dt; // holding the bellow raises heat gradually
@@ -3928,9 +4335,10 @@
             updateHeatBands(); // recompute the current band(s) for moving/random/staged variants
             const thumb = document.getElementById('interactive-heat-thumb'); thumb.style.left = heatScore + '%';
             if (heatCfg.hidden) { if (heatElapsed >= nextHide) { hideOn = !hideOn; nextHide = heatElapsed + (heatCfg.hideEvery || 1.1); } thumb.style.opacity = hideOn ? '0' : '1'; } // Dark: flicker the marker
-            const grad = heatGradient(heatBands); if (grad !== lastHeatGradient) { document.querySelector('.interactive-heat-track').style.background = grad; lastHeatGradient = grad; }
+            const grad = heatBandKey(heatBands); if (grad !== lastHeatGradient) { heatPaintBands(heatBands); lastHeatGradient = grad; }
 
             const inBand = heatBands.some(b => heatScore >= b[0] && heatScore <= b[1]);
+            { const tr = document.querySelector('.interactive-heat-track'); if (tr) tr.classList.toggle('in-band', inBand); }   // ember flare while the needle is on target: the moment-to-moment feedback the tricolour was expressing with raw hue
             if (inBand) {
                 heatCompletion += dt;
                 const stageMsg = heatCfg.stageBands ? ` [${heatStage + 1}/${heatCfg.stageBands.length}]` : '';
@@ -3956,7 +4364,7 @@
             // Timer ran out before the heat stabilized → forge anyway, but at reduced (Fine) quality.
             if (heatElapsed >= heatCfg.timer) {
                 forgePhase = 'done'; cancelAnimationFrame(heatAnimationFrame);
-                document.getElementById('heat-timer').textContent = '⏱ 0.0s';
+                document.getElementById('heat-timer-val').textContent = '0.0s';
                 document.getElementById('forge-instructions').textContent = "Time's up — rushed forge!";
                 setTimeout(() => { resolveInteractiveHeatMinigame('Fine'); }, 600);
                 return;
@@ -4325,7 +4733,11 @@
         // split a daily total into a random number of node amounts (each ≥1) that sum to the total
         function caveSplit(total, minN, maxN){ const n=Math.max(1, Math.min(total, caveRnd(minN,maxN))); const base=Math.floor(total/n); let rem=total-base*n; const arr=[]; for(let i=0;i<n;i++){ let a=base; if(rem>0){ a++; rem--; } arr.push(a); } return arr; }
         function caveAddNodes(id, kind, oreId, total, minN, maxN){ caveSplit(total,minN,maxN).forEach(a=>caveNodesByCave[id].push({ kind:kind, id:oreId, amount:a, mined:false })); }
-        function caveLayout(nodes){ const placed=[]; nodes.forEach(n=>{ let x,y,t=0; do{ x=11+Math.random()*78; y=14+Math.random()*70; t++; }while(t<40 && placed.some(p=>Math.hypot(p.x-x,p.y-y)<17)); n.x=x; n.y=y; placed.push({x,y}); }); }
+        // Separation 17 -> 19: labels are wider than the 46px deposit and already overlapped neighbouring
+        // nodes; now that they are opaque pills the collisions would be unignorable. NOTE the retry loop
+        // fails SILENTLY (it places the last candidate wherever it landed), so overlap degrades rather than
+        // throws — 19 rather than 21 keeps the 9-13 node field comfortably packable.
+        function caveLayout(nodes){ const placed=[]; nodes.forEach(n=>{ let x,y,t=0; do{ x=11+Math.random()*78; y=14+Math.random()*70; t++; }while(t<40 && placed.some(p=>Math.hypot(p.x-x,p.y-y)<19)); n.x=x; n.y=y; placed.push({x,y}); }); }
         function caveGenerateDay(){
             caveNodesByCave={1:[],2:[]};
             caveDefs[1].ores.forEach(o=>caveAddNodes(1,'ore',o,caveRnd(3,6),1,2));   // 3–6 of each ore
@@ -4337,23 +4749,30 @@
         }
         function caveNodeColor(n){ return n.kind==='ore' ? V2_ORE_BY[n.id].color : (n.kind==='charcoal' ? '#2e2b28' : '#e6e2d2'); }
         function caveNodeLabel(n){ return n.kind==='ore' ? V2_ORE_BY[n.id].name : (n.kind==='charcoal' ? 'Charcoal' : 'Limestone'); }
-        function caveRenderCounts(){ const el=document.getElementById('cave-counts'); if(!el) return; const parts=V2_ORES.map(o=>o.name+' '+v2Ore[o.id]); parts.push('🔥 '+v2Charcoal); parts.push('🪨 '+v2Limestone); el.innerHTML=parts.map(p=>'<span>'+p+'</span>').join(''); }
+        // Each chip now carries the ore's own inked silhouette instead of a bare name (and the 🔥 / 🪨 emoji are gone).
+        function caveRenderCounts(){ const el=document.getElementById('cave-counts'); if(!el) return; const parts=V2_ORES.map(o=>caveIco(o.id)+o.name+' '+v2Ore[o.id]); parts.push(caveIco('charcoal')+'Charcoal '+v2Charcoal); parts.push(caveIco('limestone')+'Limestone '+v2Limestone); el.innerHTML=parts.map(p=>'<span>'+p+'</span>').join(''); }
         function caveFloat(el, str, color){ const field=document.getElementById('cave-field'); if(!field||!el) return; const f=document.createElement('div'); f.className='cave-float'; f.textContent=str; f.style.color=color; f.style.left=el.style.left; f.style.top=el.style.top; field.appendChild(f); f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(-50%,-150%)',opacity:0}],{duration:800,easing:'ease-out'}).onfinish=()=>f.remove(); }
-        function caveRenderTabs(){ [1,2].forEach(id=>{ const b=document.getElementById('cave-tab-'+id); if(!b) return; b.classList.toggle('active', id===currentCaveId); const locked=(id===2 && !cave2Unlocked); b.textContent='Cave '+id+(locked?' 🔒':''); }); }
+        // The padlock shackle MUST restate its stroke: it is fill:none, so it would otherwise draw with the
+        // group's ink stroke and vanish against the dark tab face.
+        const CAVE_LOCK_MK = '<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex:none" aria-hidden="true"><g fill="#c8a84b" stroke="#2f2117" stroke-width="1.3" stroke-linejoin="round"><path d="M7.4,10.4 L7.4,7.6 C7.4,4.9 9.5,2.8 12,2.8 C14.5,2.8 16.6,4.9 16.6,7.6 L16.6,10.4" fill="none" stroke="#c8a84b" stroke-width="2.2" stroke-linecap="round"/><path d="M4.8,10.4 L19.2,10.4 L19.2,21 L4.8,21 Z"/><circle cx="12" cy="15.4" r="1.7" fill="#2f2117" stroke="none"/></g></svg>';
+        function caveRenderTabs(){ [1,2].forEach(id=>{ const b=document.getElementById('cave-tab-'+id); if(!b) return; b.classList.toggle('active', id===currentCaveId); const locked=(id===2 && !cave2Unlocked); b.innerHTML='Cave '+id+(locked?CAVE_LOCK_MK:''); }); }
         function caveSwitch(id){ currentCaveId=id; caveRenderTabs(); caveRender(); }
         function unlockCave2(){ if(cave2Unlocked) return; if(gold<1000){ gameAlert('You need 1000 gold to unlock this cave.'); return; } gold-=1000; cave2Unlocked=true; if(typeof updateUI==='function') updateUI(); caveRenderTabs(); caveRender(); }
         function caveRender(){
             const field=document.getElementById('cave-field'); if(!field) return; field.innerHTML='';
-            if(currentCaveId===2 && !cave2Unlocked){ field.innerHTML='<div class="cave-done"><div>🔒 <b>'+caveDefs[2].name+'</b><br>Rich in Cobalt &amp; Silver.<br>Unlock this cave for <b>1000 gold</b>.<br><button class="btn-craft" style="margin-top:14px; background:#c8a84b;" onclick="unlockCave2()">Unlock (1000 gold)</button></div></div>'; return; }
+            // The inline background:#c8a84b flat-filled straight over the primary key; .btn-unlock-ready is
+            // the file's own authored "affordable unlock" tier and already exists.
+            if(currentCaveId===2 && !cave2Unlocked){ field.innerHTML='<div class="cave-done"><div><b>'+caveDefs[2].name+'</b><br>Rich in Cobalt &amp; Silver.<br>Unlock this cave for <b>1000 gold</b>.<br><button class="btn-craft btn-unlock-ready" style="margin-top:14px;" onclick="unlockCave2()">Unlock (1000 gold)</button></div></div>'; return; }
             const nodes=caveNodesByCave[currentCaveId].filter(n=>!n.mined);
             if(!nodes.length){ field.innerHTML='<div class="cave-done"><div>You\'ve mined everything here today.<br>Fresh deposits appear after you end the day.</div></div>'; return; }
-            nodes.forEach(n=>{ const el=document.createElement('div'); el.className='cave-node'; el.innerHTML='<div class="cave-sphere" style="background:'+caveNodeColor(n)+'"></div><div class="cave-label">'+caveNodeLabel(n)+' ×'+n.amount+'</div>'; el.style.left=n.x+'%'; el.style.top=n.y+'%'; n.el=el; el.addEventListener('pointerdown', ev=>{ ev.preventDefault(); caveMine(n); }); field.appendChild(el); });
+            nodes.forEach(n=>{ const el=document.createElement('div'); el.className='cave-node'; el.innerHTML=caveDeposit(caveKind(n))+'<div class="cave-label">'+caveNodeLabel(n)+' ×'+n.amount+'</div>'; el.style.left=n.x+'%'; el.style.top=n.y+'%'; n.el=el; el.addEventListener('pointerdown', ev=>{ ev.preventDefault(); caveMine(n); }); field.appendChild(el); });   // caveNodeColor is now unused (no other caller); left in place rather than churn the diff
         }
         function caveMine(node){
             if(node.mined) return; node.mined=true; const el=node.el;
-            if(node.kind==='ore'){ v2Ore[node.id]+=node.amount; caveFloat(el,'+'+node.amount+' '+V2_ORE_BY[node.id].name,'#fff'); }
+            // --sf-cream, not '#fff': pure white was the only such literal in the cave.
+            if(node.kind==='ore'){ v2Ore[node.id]+=node.amount; caveFloat(el,'+'+node.amount+' '+V2_ORE_BY[node.id].name,'#fceeb5'); }
             else if(node.kind==='charcoal'){ v2Charcoal+=node.amount; caveFloat(el,'+'+node.amount+' Charcoal','#e8dcc0'); }
-            else { v2Limestone+=node.amount; caveFloat(el,'+'+node.amount+' Limestone','#fff'); }
+            else { v2Limestone+=node.amount; caveFloat(el,'+'+node.amount+' Limestone','#fceeb5'); }
             v2updateCounts(); caveRenderCounts();
             if(el) el.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(-50%,-50%) scale(1.45)',opacity:0}],{duration:260,easing:'ease-out'}).onfinish=()=>{ el.remove(); if(!caveNodesByCave[currentCaveId].some(n=>!n.mined)) caveRender(); };
             if(typeof v2tutAdvance==='function') v2tutAdvance('gathered');
@@ -4486,7 +4905,7 @@
         }
         function v2onSwordMoved(x,y){
             v2reveal(x,y,'sword'); v2ensureSwordVisible();
-            for(let i=0;i<v2dots.length;i++){ const d=v2dots[i]; if(d.collected) continue; if(Math.hypot(x-d.x,y-d.y)<V2_DOT_R){ d.collected=true; d.el.style.display='none'; v2Skill+=d.v; v2updateCounts(); v2floatText(d.x,d.y,'+'+d.v,'#9be04f'); } }
+            // (the green-dot collection scan is gone with the dots — see the note in initV2Map)
             if(!v2tutActive()) for(let h=0;h<v2hazards.length;h++){ const z=v2hazards[h]; if(z.hit) continue; if(Math.hypot(x-z.x,y-z.y)<z.r+6){ z.hit=true; health-=25; hazardGoldLost+=4; v2floatText(z.x,z.y,'-25 HP','#c9603a'); gameAlert("Avoid the hazard zones! You don't want impurities in your alloy."); if(health<=0){ handleDeath(); return; } updateUI(); } }   // hazards are inert during the tutorial
             let on=null; for(let t=0;t<v2traits.length;t++){ const tr=v2traits[t]; if(Math.hypot(x-tr.x,y-tr.y)<V2_TRAIT_R){ on=tr; break; } }
             if(on && !v2tutTargetTrait(on.trait.id)) on=null;   // guided craft: skip traits the sword only passes through (e.g. Balanced en route to Flame)
@@ -4546,14 +4965,42 @@
             const cell=v2snapWorldToCell(x,y); x=pcWX(cell); y=pcWY(cell);
             const g=document.createElementNS(V2NS,'g'); g.setAttribute('transform','translate('+x+','+y+')'); g.setAttribute('class','pc-trait');
             const mk=(tag,at)=>{ const e=document.createElementNS(V2NS,tag); for(const k in at) e.setAttribute(k,at[k]); g.appendChild(e); return e; };
-            const lit=mk('circle',{ class:'pc-trait-lit', r:24, fill:'none', stroke:'#ff8f33', 'stroke-width':3.4, opacity:0 });
+            /* Armed ring sits OUTSIDE the ingot marker's own ember bloom and is GILD, not ember, so it can
+               never fuse with it. Measured: pcMarkGlow is r19 #ff7a2a at 0.6 under feGaussianBlur sigma 9,
+               i.e. ~37 world units of visible spread; the old r24 ember ring sat INSIDE that bloom in the
+               same hue, so at opacity 0.95 the armed state still read as "the ingot is glowing". r48 clears
+               it by 11 units; the dash ties it to the plotted route. Do NOT drop below r40 — that is where
+               it re-enters the bloom and the bug returns. #c8a84b is --sf-gild, which is also the game's
+               value colour, and armed means "this site is worth N gold, Fire to lock it in". */
+            const litHalo=mk('circle',{ class:'pc-trait-lithalo', r:48, fill:'none', stroke:PC_HALO, 'stroke-width':7, opacity:0 });
+            const lit=mk('circle',{ class:'pc-trait-lit', r:48, fill:'none', stroke:'#c8a84b', 'stroke-width':3.4, 'stroke-dasharray':'14 10', opacity:0 });
             mk('circle',{ r:18, fill:PC_INK_DARK, opacity:0.16, transform:'translate(1.6,2.4)' });        // inked drop shadow, same offset idiom as the trail
-            mk('circle',{ r:18.6, fill:'none', stroke:PC_HALO, 'stroke-width':2.4, opacity:0.6 });        // pale rim: the node keeps its silhouette over dark terrain
+            /* OPAQUE pale rim (was 2.4 @ 0.6). This is what makes the 3:1 guarantee unconditional instead of
+               a function of how the ground is tuned. The node has two boundaries against the ground: the
+               opaque ink ring #4a3826 clears 3:1 whenever ground Y >= 0.233, and an opaque pale rim clears
+               3:1 whenever ground Y <= 0.232. The two intervals cover the whole range, so best-of-boundary
+               is >= 3:1 for EVERY possible ground luminance. At 0.6 the rim's rendered colour depends on the
+               ground and the guarantee collapses. */
+            mk('circle',{ r:18.6, fill:'none', stroke:PC_HALO, 'stroke-width':2.8, opacity:1 });
             mk('circle',{ r:16.5, fill:'#efe1bd', stroke:PC_INK, 'stroke-width':3 });                     // parchment core in an ink ring
             mk('circle',{ r:11, fill:'none', stroke:'#4a3826', 'stroke-width':1.1, 'stroke-dasharray':'3 5', opacity:0.5 });
             const txt=mk('text',{ 'text-anchor':'middle', y:6, 'font-size':15, fill:'#3a2a18', 'font-weight':'bold' }); txt.textContent='?';
+            /* Standing on a site, the ingot marker (pcMarkBody is a 34x26 rect plus a blurred halo) covers
+               the node's r16.5 parchment core and its glyph COMPLETELY — pcMoveIngotTo snaps the marker onto
+               the site centre, so the two are exactly concentric. This offset cartouche puts the trait's own
+               symbol back on screen clear of the marker, in the node's own material (ink shadow, halo rim,
+               parchment core, ink ring): the ring says a site is armed, this says WHICH one. Flipped inward
+               near the world edge so it is never the thing that hangs off the sheet. It is created hidden
+               and revealed only by pcArmVisual, the single arm/disarm point, so it cannot desync. */
+            const bx=(x>1180?-34:34), by=(y<130?34:-34);
+            const badge=mk('g',{ class:'pc-trait-badge', transform:'translate('+bx+','+by+')', opacity:0 });
+            const bmk=(tag,at)=>{ const e=document.createElementNS(V2NS,tag); for(const k in at) e.setAttribute(k,at[k]); badge.appendChild(e); return e; };
+            bmk('circle',{ r:13.6, fill:PC_INK_DARK, opacity:0.16, transform:'translate(1.4,2)' });
+            bmk('circle',{ r:14.4, fill:'none', stroke:PC_HALO, 'stroke-width':2.2, opacity:0.6 });
+            bmk('circle',{ r:12.6, fill:'#efe1bd', stroke:PC_INK, 'stroke-width':2.4 });
+            const btxt=bmk('text',{ 'text-anchor':'middle', y:4.2, 'font-size':12, fill:'#3a2a18', 'font-weight':'bold' });
             v2traitsG.appendChild(g);
-            v2traits.push({ trait:tr, x:x, y:y, cell:cell, value:v2traitValue(x,y), el:g, litEl:lit, txtEl:txt, discovered:false });
+            v2traits.push({ trait:tr, x:x, y:y, cell:cell, value:v2traitValue(x,y), el:g, litEl:lit, litHaloEl:litHalo, badgeEl:badge, badgeTxt:btxt, txtEl:txt, discovered:false });
         }
         // Armed = the ingot is inside this site's snap radius. Lit ring + the status line naming the trait.
         let pcArmedSite = null;
@@ -4562,12 +5009,48 @@
             site.el.setAttribute('class', on ? 'pc-trait pc-trait-armed' : 'pc-trait');
             if(on) site.el.setAttribute('data-armed','1'); else site.el.removeAttribute('data-armed');
             if(site.litEl) site.litEl.setAttribute('opacity', on ? 0.95 : 0);
+            if(site.litHaloEl) site.litHaloEl.setAttribute('opacity', on ? 0.5 : 0);
+            // Standing on it means it is discovered, so the badge always shows the real symbol.
+            if(site.badgeEl){ if(on && site.badgeTxt) site.badgeTxt.textContent = site.trait.symbol; site.badgeEl.setAttribute('opacity', on ? 1 : 0); }
         }
         function pcRefreshTraitFocus(){
             const site = (typeof pcTraitHere==='function') ? pcTraitHere() : null;
             if(site === pcArmedSite) return;
             pcArmVisual(pcArmedSite, false); pcArmedSite = site; pcArmVisual(site, true);
             if(site) pcNotify('Standing on ' + site.trait.symbol + ' ' + site.trait.name + ' (' + site.value + 'g). Fire to lock it in.');
+        }
+
+        /* SLAG GROUND — the map's mark for impure terrain. Same five-layer construction as a trait node
+           (offset ink shadow, pale halo rim, core, inked outline, drawn glyph) but ragged instead of round
+           and HATCHED instead of filled, so the illustration reads THROUGH it. The old mark was two opaque
+           circles (#3a2b1b outer with a #211710 ring, #241a10 inner) up to 56 screen px across against a
+           trait node's 28.6 — nearly twice the game's own map symbol, in three colours that are in no token,
+           with a hard fill that hid the terrain underneath. They read as holes punched through the sheet,
+           and an opaque disc bisected by the viewport looks like a rendering fault, whereas a hatched patch
+           with a parchment core running off frame reads correctly.
+           Jitter comes from a LOCAL LCG seeded on the hazard index, NOT v2rand, so the seeded hazard stream
+           is untouched and all 18 positions/radii — and therefore which routes are damaging — are
+           byte-identical to before this change. Placement code is not touched at all. */
+        function v2slagOutline(rr, seed, squash){
+            let s=((seed*2654435761)>>>0)||1; const rnd=()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; };
+            const n=9, p=[]; for(let i=0;i<n;i++){ const a=(i/n)*Math.PI*2, k=rr*(0.84+rnd()*0.3); p.push({x:Math.cos(a)*k, y:Math.sin(a)*k*squash}); }
+            const mid=(a,b)=>({x:(a.x+b.x)/2, y:(a.y+b.y)/2});
+            let m=mid(p[n-1],p[0]), d='M'+m.x.toFixed(1)+','+m.y.toFixed(1);
+            for(let i=0;i<n;i++){ const q=mid(p[i],p[(i+1)%n]); d+='Q'+p[i].x.toFixed(1)+','+p[i].y.toFixed(1)+' '+q.x.toFixed(1)+','+q.y.toFixed(1); }
+            return d+'Z';
+        }
+        function v2drawSlag(hx,hy,rr,idx){
+            const g=document.createElementNS(V2NS,'g'); g.setAttribute('class','pc-slag'); g.setAttribute('transform','translate('+hx.toFixed(1)+','+hy.toFixed(1)+')');
+            const mk=(tag,at)=>{ const e=document.createElementNS(V2NS,tag); for(const k in at) e.setAttribute(k,at[k]); g.appendChild(e); return e; };
+            const d=v2slagOutline(rr, idx+1, 0.82);
+            mk('path',{ d:d, fill:PC_INK_DARK, opacity:0.15, transform:'translate(2.4,3.4)' });                                 // offset ink shadow, same idiom as the trail + trait node
+            mk('path',{ d:d, fill:'none', stroke:PC_HALO, 'stroke-width':6, 'stroke-linejoin':'round', opacity:0.42 });         // pale rim: the patch keeps its silhouette over dark terrain
+            mk('path',{ d:d, fill:'url(#v2slagHatch)' });                                                                       // hatched parchment: bad ground, never a hole
+            mk('path',{ d:d, fill:'none', stroke:PC_INK, 'stroke-width':3, 'stroke-linejoin':'round' });                        // the inked outline
+            mk('path',{ d:v2slagOutline(rr*0.5, idx+91, 0.82), fill:'none', stroke:PC_INK, 'stroke-width':1.4, 'stroke-dasharray':'4 5', opacity:0.55 });   // inner contour, echoes the trait node's dashed r11 ring
+            const blot=mk('g',{ fill:PC_INK, opacity:0.88, transform:'scale('+Math.min(1.4, rr/28).toFixed(2)+') rotate(-16)' });   // glyph: a slag spatter — "impurities in your alloy", the game's own hazard copy
+            [[0,0,5.4,4.2],[8,-5,2.7,2.1],[-7,5,2.3,1.8],[6,6,1.7,1.3]].forEach(b=>{ const e=document.createElementNS(V2NS,'ellipse'); e.setAttribute('cx',b[0]); e.setAttribute('cy',b[1]); e.setAttribute('rx',b[2]); e.setAttribute('ry',b[3]); blot.appendChild(e); });
+            v2hazG.appendChild(g);
         }
 
         function initV2Map(){
@@ -4606,12 +5089,18 @@
             ends.forEach((e,i)=>{ const tr=tierPool[i]; if(!tr) return; pinned.add(tr.id); v2addTrait(tr, pcWX(e.cell), pcWY(e.cell)); });
             const outer=baseTraits.filter(b=>!pinned.has(b.id));
             outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35; const r=420+(i%4)*48; let x=V2_CENTER.x+Math.cos(ang)*r, y=V2_CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(60,Math.min(1340,x)); y=Math.max(56,Math.min(924,y)); v2addTrait(tr,x,y); });
-            // green dots (skill points) on the ore paths
+            /* The 12 green "skill" dots are DELETED. They paid v2Skill, which has NO HUD readout — the only
+               occurrence of the string "v2-skill" in this file is the getElementById that looks for it, and
+               that element does not exist — and no gameplay effect. They were also sampled off the RETIRED
+               V2_ORES beziers with v2samplePath, not the pcPathFrom routes the player actually travels, so
+               of the 24 reachable routes only 15 passed within pickup radius of one, purely by accident.
+               They carried the file's only #5c7d3a and #9be04f (neon lime) literals.
+               v2dots=[] and the empty <g id="v2greenDots"> stay so v2dotsG, v2dbg.dots and the now
+               zero-iteration collection loop in v2onSwordMoved all remain valid. */
             v2dots=[]; v2dotsG.innerHTML='';
-            V2_ORES.forEach((o,i)=>{ [{f:0.6,v:1+(i%3)},{f:0.9,v:3+(i%3)}].forEach(s=>{ const p=v2samplePath(o.d,s.f); const c=document.createElementNS(V2NS,'circle'); c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',9); c.setAttribute('fill','#5c7d3a'); v2dotsG.appendChild(c); v2dots.push({x:p.x,y:p.y,v:s.v,el:c,collected:false}); }); });
             // dark hazard zones (seeded, spread out, clear of the central start and the traits)
             v2hazards=[]; v2hazG.innerHTML=''; let placed=0, tries=0;
-            while(placed<18 && tries<900){ tries++; const ang=v2rand()*Math.PI*2, rad=250+v2rand()*270; let hx=V2_CENTER.x+Math.cos(ang)*rad, hy=V2_CENTER.y+Math.sin(ang)*rad*0.72; if(hx<70||hx>1330||hy<64||hy>916) continue; let ok=true; for(const z of v2hazards){ if(Math.hypot(hx-z.x,hy-z.y)<104){ ok=false; break; } } if(ok) for(const tr of v2traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<90){ ok=false; break; } } if(!ok) continue; const rr=26+v2rand()*22; const c=document.createElementNS(V2NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); v2hazG.appendChild(c); const c2=document.createElementNS(V2NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); v2hazG.appendChild(c2); v2hazards.push({x:hx,y:hy,r:rr}); placed++; }
+            while(placed<18 && tries<900){ tries++; const ang=v2rand()*Math.PI*2, rad=250+v2rand()*270; let hx=V2_CENTER.x+Math.cos(ang)*rad, hy=V2_CENTER.y+Math.sin(ang)*rad*0.72; if(hx<70||hx>1330||hy<64||hy>916) continue; let ok=true; for(const z of v2hazards){ if(Math.hypot(hx-z.x,hy-z.y)<104){ ok=false; break; } } if(ok) for(const tr of v2traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<90){ ok=false; break; } } if(!ok) continue; const rr=26+v2rand()*22; v2drawSlag(hx,hy,rr,placed); v2hazards.push({x:hx,y:hy,r:rr}); placed++; }   // rr still comes off v2rand() at exactly the same point in the stream, and v2drawSlag never calls v2rand — placement and damage are unchanged
             // sword + initial reveal (only the 5 central traits show)
             v2fogHoles.innerHTML=''; v2revLast={sword:null,x:null}; v2marker={x:V2_START.x,y:V2_START.y}; v2setSword(V2_START.x,V2_START.y);
             const c0=document.createElementNS(V2NS,'circle'); c0.setAttribute('cx',V2_START.x); c0.setAttribute('cy',V2_START.y); c0.setAttribute('r',V2_INIT_REVEAL); c0.setAttribute('fill','#000'); v2fogHoles.appendChild(c0);
@@ -4800,6 +5289,40 @@
             redIron:   '<circle cx="7.5" cy="15.5" r="6"/><circle cx="17" cy="16" r="5"/><circle cx="13.5" cy="7.5" r="5.2"/><circle cx="12" cy="5.5" r="1.5" fill="#f0e6d0" opacity=".34" stroke="none"/>'                                                                                        // pebble cluster
         };
 
+        /* Cave deposit silhouettes. steel/iron/bronze are PC_ORE_GLYPH's entries VERBATIM so the picker and
+           the cave name the same ore with the same shape; copper/cobalt/silver/charcoal/limestone are
+           authored in the same 0..24 idiom because PC_ORE_GLYPH has no entry for them — the two ore sets are
+           genuinely disjoint (the cave stocks V2_ORES steel/iron/copper/bronze/cobalt/silver; the live loop
+           spends PC_ORE_ORDER steel/iron/magnesium/bronze/titanium/aluminium/blackIron/redIron).
+           COLOUR stays V2_ORE_BY[id].color. PC_ORE_COLORS disagrees with it on EVERY shared id (PC iron
+           #4b4a44 grey vs V2 iron #8a5a33 brown; PC steel #6b7a80 vs V2 #9aa6b4), so borrowing colour here
+           would silently recolour the cave. Only the SHAPE table is shared.
+           Charcoal's tone is lifted to #4a443d for the GLYPH only — the authored #2e2b28 is invisible against
+           the cave wall. */
+        const CAVE_GLYPH = {
+            steel:     PC_ORE_GLYPH.steel,
+            iron:      PC_ORE_GLYPH.iron,
+            bronze:    PC_ORE_GLYPH.bronze,
+            copper:    '<path d="M5.5,20.5 L3.5,10 L9.5,3.5 L14.5,7 L12.5,20.5 Z"/><path d="M13.5,20.5 L15.5,9 L20.5,12.5 L19.5,20.5 Z"/><path d="M9.5,3.5 L14.5,7 L12.5,20.5 L10.5,20.5 Z" fill="#f0e6d0" opacity=".26" stroke="none"/>',
+            cobalt:    '<path d="M4.5,17 C2,12.5 4.5,6.5 9.5,6 C13,3 19,5.5 20,10 C22,14.5 18.5,20 13.5,20 Z"/><ellipse cx="9.5" cy="10.5" rx="3.2" ry="2.2" fill="#f0e6d0" opacity=".3" stroke="none" transform="rotate(-28 9.5 10.5)"/>',
+            silver:    '<path d="M12,2.6 C17.6,2.6 22,6.9 22,12.3 C22,17.1 18.6,20.9 14.3,20.9 C10.8,20.9 8,18.2 8,14.9 C8,12.2 10.2,10 12.9,10 C15,10 16.7,11.6 16.7,13.6 L13.4,13.6 C13.4,13.4 13.2,13.3 12.9,13.3 C12.1,13.3 11.3,14 11.3,14.9 C11.3,16.4 12.6,17.6 14.3,17.6 C16.8,17.6 18.7,15.2 18.7,12.3 C18.7,8.7 15.7,5.9 12,5.9 C7.6,5.9 4,9.4 4,13.8 L0.7,13.8 C0.7,7.6 5.8,2.6 12,2.6 Z"/>',
+            charcoal:  '<path d="M3.2,15.4 L6.8,7.4 L12.6,9.4 L10.6,17.6 Z"/><path d="M12.2,5.6 L18.4,4.2 L21,10.8 L14.8,13.4 Z"/><path d="M11.8,17.2 L17.8,14.4 L20.6,19.6 L14,21.2 Z"/><path d="M4.6,13.6 L7.2,8.4 L10.4,9.5 Z" fill="#f0e6d0" opacity=".3" stroke="none"/>',
+            limestone: '<path d="M4,16.6 C4,10.8 8,6.8 12,6.8 C16.6,6.8 20,10.8 20,16.6 Z"/><path d="M4,16.6 L20,16.6 L20,19.4 L4,19.4 Z"/><path d="M7.6,11.4 C9.2,9.2 12.4,8.6 14,9.8" fill="none" stroke="#f0e6d0" stroke-width="1.5" opacity=".45"/>'
+        };
+        const CAVE_TONE = { steel:'#9aa6b4', iron:'#8a5a33', copper:'#c8763c', bronze:'#c39a52', cobalt:'#4a67a0', silver:'#c2cad2', charcoal:'#4a443d', limestone:'#e6e2d2' };
+        function caveKind(n){ return n.kind==='ore' ? n.id : n.kind; }
+        // 16px chip glyph for .cave-counts; same construction as pcOreMineral.
+        function caveIco(k){ return '<svg class="cave-ct-ico" viewBox="0 0 24 24" aria-hidden="true"><g fill="'+CAVE_TONE[k]+'" stroke="'+PC_INK_DARK+'" stroke-width="1.35" stroke-linejoin="round">'+CAVE_GLYPH[k]+'</g></svg>'; }
+        // 46px deposit: offset ink under-print (the map's inked-texture idiom), the glyph in the ore's tone,
+        // a halo pool, a ground shadow and two rubble chips. NO boulder host — it swamped the ore tone at 46px.
+        function caveDeposit(k){ return '<svg class="cave-sphere" viewBox="0 0 30 30" aria-hidden="true">'
+            + '<ellipse cx="15" cy="26.2" rx="9.6" ry="2.6" fill="#120c06" opacity=".55"/>'
+            + '<circle cx="15" cy="13.6" r="11.4" fill="'+PC_HALO+'" opacity=".13"/>'
+            + '<g transform="translate(3,2)"><g transform="translate(0.9,1.3)" fill="#120c06" opacity=".45" stroke="none">'+CAVE_GLYPH[k]+'</g>'
+            + '<g fill="'+CAVE_TONE[k]+'" stroke="'+PC_INK_DARK+'" stroke-width="1.5" stroke-linejoin="round">'+CAVE_GLYPH[k]+'</g></g>'
+            + '<path d="M6.4,25.6 L9.4,22.8 L12.4,25.6 Z M17.6,25.6 L20.2,23.2 L23.2,25.6 Z" fill="#3a2c1e" stroke="'+PC_INK_DARK+'" stroke-width="1" stroke-linejoin="round"/>'
+            + '</svg>'; }
+
         let plannedOre = null, plannedPath = [], crushSteps = 0;   // the plan (re-selectable freely until it is committed)
         let committedPath = [], pathPos = 0, committedOre = null;  // the locked route + progress along it
         let temperature = 0;
@@ -4930,7 +5453,7 @@
         /* Map art. Every layer is load-probed and every layer has a fallback, so the board boots with or
            without the PNGs: base tile → flat #d8c8a0 pattern rect, illustrated sheet → nothing (base stands).
            PC_ART_SCRIM is the single knob for how far the busy v2 illustration is lifted toward parchment. */
-        const PC_ART_SCRIM = 0.34;
+        const PC_ART_SCRIM = 0.18;   // the lifting moved to filter#v2artLift (gamma); this is only the final tint toward --sf-parch
         function pcProbeImg(src, ok) { const p = new Image(); p.onload = () => ok(src); p.onerror = () => ok(null); p.src = src; }
         function pcSetHref(el, src) { el.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src); el.setAttribute('href', src); el.style.display = ''; }
         function pcLoadMapArt() {
@@ -5251,7 +5774,7 @@
             $('pcBtnQuench').disabled = pcTravelling || !pcPoured;
             $('pcBtnFire').disabled = pcTravelling || !canFire;
             const forge = $('pcBtnForge'); forge.disabled = !(forgeCtx || activeTraits.length > 0);
-            forge.textContent = forgeCtx ? '🗡️ Resume Forging' : '🗡️ Forge the Blade';
+            { const fl = document.getElementById('pcForgeLbl'); if (fl) fl.textContent = forgeCtx ? 'Resume Forging' : 'Forge the Blade'; }   // label only — a textContent write on the button itself would delete its inline mark
             // glow the one station the loop is waiting on
             [ore, crush, smelt, pour, anvil, $('pcBtnQuench'), $('pcBtnFire')].forEach(b => b.classList.remove('pc-ready'));
             const next = canFire ? $('pcBtnFire')
