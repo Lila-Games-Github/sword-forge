@@ -21,6 +21,10 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 
 ## 3. Grid & movement
 
+> ⚠️ **V1 only.** §3 describes the free 8-direction fog-grid of `index.html`. In the canonical build
+> (`swordforgeV2.html`) the front half of the loop is the **station loop** in [§3A](#3a-station-loop-swordforgev2html--canonical);
+> the code below (`move`, `startInlinePurify`, `renderCell`, the 3×3 pad) is retained but unreachable.
+
 - **Grid:** 50×50 (2500 cells). Player starts at center **(25, 25)**.
 - **Vision:** radius 3.5; fog clears in a circle around the player as they move.
 - **Hazards:** 20% of cells are explosions (💥), placed by seeded RNG (seed `1337`), never on the center start. **Landing** on one costs **−25 HP** (max 100), a red flash on the cell, and a **warning dialogue box** (`gameAlert`) — *"Avoid the hazard zones! You don't want impurities in your alloy."* (`hitHazard`). It also adds a **−4 gold "impurity" penalty** to the blade being built — **not deducted immediately**, but tallied (`hazardGoldLost`, +4 per hit) and **subtracted from the sword's sale price**. The tally is stamped onto the forged sword (`hazardLoss`) and shown as a red **"−x hazard"** on the forge-result board and the Vault sword-detail view (alongside the green craftsmanship **"+x"**). Damage is only applied to the cell the sword **lands on** — **crossing over** a hazard mid-dash (a 2- or 3-block Purify dash) is harmless, even over multiple hazards in a row. Reaching 0 HP triggers death. A low HP total also **caps the forged sword's quality** (see §4): a battered blade forges a lower-quality sword.
@@ -61,6 +65,115 @@ While the button is held, a **live path preview** (the green `tile_move.png`) hi
 **Cancel a held move** (no movement, no metal spent) by dragging the cursor onto the **cancel button** that appears in the centre of the 3×3 movement grid while holding, sliding a finger over it, or **right-clicking**.
 
 The slider is **locked during the early guided tutorial** (moves are single-block) and unlocked when the tutorial reaches the chart/slider lesson (also unlocked on first craft as a fallback); once unlocked it stays available for the rest of the game.
+
+## 3A. Station loop (`swordforgeV2.html` — canonical)
+
+The presentation-pass front half. Implements the verb mapping in
+[`2026-08-10-core-loop-potioncraft-mapping.md`](2026-08-10-core-loop-potioncraft-mapping.md) §2–3:
+an ore **plots** a route, the crusher **lengthens** it, the smelter **commits** it, the anvil **travels** it,
+water **pulls back to centre**, fire **locks a trait in**. Everything from the Forge button onward (§5) is unchanged.
+
+- **World & cells.** The map is the SVG path board (1400 × 980 world units). The route lattice is
+  **28-unit cells → 50 × 35**; the ingot starts on the cell under `V2_START` (25, 19) and "centre" is the cell
+  under `V2_CENTER` (25, 17). Cell index = `cy * 50 + cx` (`orePathDefs`, `plannedPath`, `committedPath`, `pathPos`).
+- **Ore = route shape.** Each of the 8 metals owns a shape in `orePathDefs`: 10–11 `{dx,dy}` cell steps that
+  curve toward that metal's quadrant (steel = long north-bending arc, iron = south hook, magnesium = west
+  zigzag, bronze = east sweep, titanium/aluminium/blackIron/redIron = NW/NE/SW/SE curves). Picking an ore
+  plots `plannedPath` **from the ingot's current cell**, clamped at the map edges. Re-picking replots freely;
+  nothing is spent until the smelter commits.
+- **Traits sit on route ends.** `PC_CENTRAL` pins Balanced/Durable/Sharp/Heavy/Flexible to the **uncrushed**
+  end of the steel/iron/magnesium/bronze/blackIron routes (one ore reaches them); `PC_STACKED` pins Flame
+  (steel → aluminium), Ice (titanium ×2) and Water (redIron ×2) to two-ore stacks, always on their
+  **uncrushed** ends. Every trait site is **snapped to the route lattice**, so the cell the ingot lands on and
+  the node it stands under are the same point (no visual offset between marker and site).
+- **Crusher = reach, and every grind lands.** Each press repeats the shape's **last two steps**; the cap is
+  **`PC_CRUSH_MAX` = 2 presses** (`pcCrushMax`), because each central ore also has a trait site pinned to its
+  **crush-1 and crush-2 endpoints**, so all three grinds of an ore end on a trait and crushing is a real
+  choice (Potion Craft: grind finer, travel further), never a way to overshoot the trait onto a dead cell.
+  Those 10 extra sites are dealt from the remaining catalog **in catalog (tier) order to endpoints sorted by
+  distance from the centre**, so the longer grind lands the later-tier trait, and trait value keeps its single
+  formula (`v2traitValue` = distance from centre / 6, clamped 5-100), so a farther endpoint also pays more.
+  Worked example (steel): crush ×0 → ⚖️ Balanced 26g, ×1 → ✨ Grace 35g, ×2 → 👑 Noble 45g. Iron is the one
+  ore whose shape hooks back toward the centre, so its crushed ends pay slightly *less* (32 → 27 → 26) while
+  still opening different traits. That follows from the distance formula and is intended, not a special case.
+  Crushing is only available before the commit.
+- **Smelter.** Commits: spends **1 unit** of the planned metal (`availableMetals` −1, `usedMetals` +1, so it
+  lands in the forged sword's recipe), copies the plan into `committedPath`, resets `pathPos` to 0 and clears
+  the plan. The slot **morphs**: it is the Smelter whenever a plan is on the map and **Bellows** the rest of
+  the time, so a heat control is always reachable (including before anything is plotted).
+- **Temperature (0–100).** Bellows tap = **+12**; decays **2/sec** (`pcTempTick`). Shown on the 🔥 gauge with
+  a numeric readout and the ×2/×3 threshold ticks — and on the **ingot marker itself**, which reads ember +
+  glow at ≥70, dull orange at 35–69 and cold iron below 35, so the fast/precise trade is legible on the map.
+  Tapping the furnace bellows art does the same thing.
+- **Pour.** Needs **temp ≥ 40** and a committed route. Flings `assets/forge/Metal.png` from the furnace mouth
+  to the marker; the ingot now exists and the anvil is live. Pouring happens once per blade — later commits
+  in the same run reuse the same ingot.
+- **Anvil = travel.** Each strike advances along `committedPath` by a **temperature-scaled** number of cells:
+  **≥70 → 3, 35–69 → 2, <35 → 1**. Cells are walked one at a time (150 ms apart) so travel reads; **every**
+  cell is checked, so nothing is hopped over. Each landing reveals fog, marks the travelled trail, and runs
+  the map's hazard / trait checks. At the end of the route the anvil reports **"path exhausted"** — quench,
+  smelt another ore, or fire the trait you are standing on.
+- **Quench.** Pulls the ingot **3 cells in a straight line toward the centre cell** (one cell at a time) and
+  drops temperature by **30**. It takes the ingot off its route, so the remaining route is dropped — plot a
+  fresh ore from wherever the water left you.
+- **Fire.** Enabled only while the ingot stands on a trait it has not already fused. It runs the **existing
+  heating mini-game** (`initiateHeatSequence`, §4) unchanged — the trait fuses on success, at the quality
+  that mini-game decides. (In the pre-station V2 build the trait auto-fused on contact; that path is gated
+  behind `pcStationMode`.)
+  - **Arming is positional, not cached.** Both the Fire button's enabled state and the press itself resolve
+    the trait from the ingot's **live cell** (`pcTraitHere` — nearest trait site within `V2_TRAIT_R` = 30 world
+    units of the cell centre), then adopt it into `mapTraitOn` / `mapTraitValue` (`pcArmTrait`). The flag set
+    during travel by `v2onSwordMoved` is only a fast path; it is never the authority. A route that ends on a
+    trait therefore locks that trait **every** time, regardless of how the travel ticks landed.
+  - `resolveInteractiveHeatMinigame` bails when there is no `pendingHeatTrait` (stray resolve / cheat-skip),
+    instead of fusing a malformed trait.
+- **Stacking loop.** After a trait fuses, pick another ore — the new plan starts from the ingot's current
+  cell — and the next smelter commit replaces `committedPath`. Traits stack on the blade as before.
+- **Forge = point of no return.** The full-width **Forge the Blade** button enters the existing pipeline (§5)
+  and re-labels itself *Resume Forging* while a forge is paused. After `completeForge` the run resets
+  (`pcResetRun` via `v2ResetSword`): route, trail, temperature and ingot cleared, marker back to the start cell.
+- **Route rendering.** Both layers are authored SVG ink drawn **above the fog**, so a plotted route reads
+  through unexplored ground, and both are **clipped to the padded sheet** (`#v2mapClip`) along with the marker.
+  The plan (and the committed remainder) is a single **dashed Catmull-Rom curve** through the cell centres with
+  an arrowhead at mid-length and an **✕ on the destination cell**; the travelled part is a **solid inked
+  stroke** plus a low-opacity offset under-stroke, redrawn on every landing. Cell centres are control points
+  only: the route never shows lattice squares or elbows. Every stroke carries a **pale halo under-stroke**
+  (`PC_HALO`) so ink still reads over the darkest terrain in the illustrated map.
+  - **The trail is the record, and it ends at the ingot.** `pcDrawTrail` redraws from the recorded landed-cell
+    sequence `pcTrailCells` (quench hops included) and cuts it into **sub-paths wherever two landings are more
+    than one lattice step apart**, so a hop can never be smoothed into a straight chord across the map. A
+    **retrace** (quench dragging the ingot back down cells it just walked) *rewinds* the ink (`pcAddTrail`
+    pops instead of pushing), so the trail never leaves a stub pointing past the marker to nowhere.
+- **Map surface: parchment edge to edge.** The base is a **seamless parchment pattern** (`assets/map/parchment_tile.png`,
+  falling back to flat `#d8c8a0`) on a rect that extends **700 world units past the world on every side**,
+  further than the pan/zoom clamp can ever reach, so there is no reachable sheet edge and no black void. The
+  illustrated sheet (`assets/map/map_parchment_v2.png`, falling back to `map_parchment.png`, then to the
+  procedural mottling) is composited on top through a **radial feather mask**, dissolving into the base instead
+  of ending on a hard alpha edge, and is lifted toward parchment by a **scrim** (`PC_ART_SCRIM` = 0.34) so the
+  busy terrain never swallows the ink. Unexplored ground is a **warm sepia haze** (`#33240f` @ 0.9) over that
+  parchment, not black, and the fog holes are **blurred**, so explored ground fades out instead of ending on
+  scalloped discs. Every art layer is load-probed; the board boots identically with none of the PNGs present.
+- **Trait sites speak the ink language.** Each site is a parchment-cored disc in a dark ink ring with a dashed
+  hairline and a pale rim (readable over any terrain): structurally unlike the two-stroke destination ✕.
+  While the ingot is inside a site's snap radius the site is **armed**: a warm ember ring lights and pulses
+  (`.pc-trait-armed`, `data-armed="1"`), the marker **snaps onto the node centre**, and the status line names
+  the trait and its value. Undiscovered sites carry `?`, discovered ones the trait symbol.
+- **The furnace lives in the world.** It is a DOM sprite over the SVG board, so `v2setView` translates it
+  against the camera (`v2syncFurnace`), anchored to `V2_START` (the same point the trail leaves from) against
+  the baseline the initial view puts that anchor at. It pans and zooms with the map instead of floating over
+  it; at the default view its transform is identity, so the chimney/trail alignment is unchanged. A
+  `ResizeObserver` on the map box re-runs `v2setView`, so a stale aspect can never letterbox the board.
+- **Feedback register.** Core-loop nudges — path exhausted, nothing plotted, too cold to pour, no trait under
+  the ingot, out of a metal — go to the inline status line with a highlight pulse (`pcNotify`). `gameAlert`
+  is reserved for genuinely blocking errors, and any open `gameAlert` is closed on a screen slide and when
+  the forge pipeline starts, so a notice can never sit over a later scene.
+- **Metals.** The 8-metal economy of §3 is back in use: `availableMetals` with passive generation
+  (`startMetalGenerator`). The presentation build boots with all 8 unlocked and 8 of each.
+- **Boot.** The build opens straight on the forge screen with both tutorials skipped
+  (`tutorialStep = tutorialFlow.length`, `v2tutSkip()`); the cheat panel's *Skip Tutorial* still works and no
+  tutorial code was removed.
+- **Not carried over from the drag-dock build:** charcoal/limestone fuel, the fuel gauge, hold-to-travel
+  bellows, and drag-and-drop ore plotting. That dock is still in the DOM but hidden.
 
 ## 4. Traits & heating
 

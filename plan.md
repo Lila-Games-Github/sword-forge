@@ -8,6 +8,13 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## ✅ Done
 
+### Session 2026-08-10 — presentation pass: station loop (`swordforgeV2.html`)
+- [x] **Front half rebuilt as forge stations** (Potion Craft verb mapping, `specs/2026-08-10-core-loop-potioncraft-mapping.md` → as-built in `specs/game-design.md` §3A). Station row replaces the drag-dock: **Ore** (plots a route from the ingot's cell — one shape per metal, `orePathDefs`), **Crusher** (repeats the shape's last two steps, capped at 2× length), **Smelter** (commits, spends 1 metal; then morphs into **Bellows**), **Pour** (temp ≥ 40 → the ingot exists), **Anvil** (travel: 3/2/1 cells per strike by temperature), **Quench** (3 cells toward centre, −30°), **Fire** (the existing heating mini-game locks the trait in), **Forge the Blade** (unchanged pipeline).
+- [x] **Temperature meter** — bellows +12/tap, decay 2/sec, ×2/×3 threshold ticks on the 🔥 gauge.
+- [x] **Route rendering** — planned/committed-ahead cells drawn with `tile_movepath.png` above the fog, travelled trail with `tile_path.png`.
+- [x] **Traits pinned to route ends** — 5 reachable with one ore, Flame/Ice/Water with a two-ore stack (the stacking loop).
+- [x] **Boots straight into play** — both tutorials skipped by default (code untouched; cheat-panel Skip still works).
+
 ### Sessions 2026-07-21 → 07-24 — story customers, economy depth, minigame reworks, counter tools
 - [x] **Day metal restock** — each day rollover adds **+7 to every unlocked metal** (`DAY_METAL_BONUS`; locked diagonals skipped).
 - [x] **Forge Close / pause-resume** — every forge-stage modal's button is **Close** (not Cancel); it pauses the pipeline (`closeForge` snapshots the stage — shape pick / hammer stage+point+misses / design draft / sharpen %) instead of discarding it. Clicking **Forge** again resumes at that stage (`resumeForge`); the forge only clears on completion.

@@ -262,8 +262,9 @@
 
         .status-panel { background: rgba(255, 255, 255, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 12px; text-align: left; flex-shrink: 0; }
         .status-header { display: flex; justify-content: space-between; align-items: center; }
-        .health-container { width: 100%; height: 16px; background-color: #ddd; border-radius: 8px; overflow: hidden; border: 2px solid #333; margin-bottom: 5px; }
-        #health-bar { height: 100%; width: 100%; background-color: #2ecc71; transition: width 0.3s, background-color 0.3s; }
+        /* Parchment-toned bar with an inked border, so the HUD reads as part of the map sheet. */
+        .health-container { width: 100%; height: 16px; background: linear-gradient(#3a2c1c, #241a10); border-radius: 8px; overflow: hidden; border: 2px solid #4a3623; margin-bottom: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.12); }
+        #health-bar { height: 100%; width: 100%; background: linear-gradient(180deg, #9fce6a 0%, #6da33c 48%, #4d7828 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 3px rgba(0,0,0,0.3); transition: width 0.3s, background 0.3s; }
         .health-text { font-weight: bold; font-size: 12px; width: 100%; text-align: center; }
         #gold-text { font-weight: bold; font-size: 14px; padding: 6px 10px; border-radius: 5px; color: #d4af37; background-color: #fcf8e3; border: 1px solid #faebcc; width: 100%; text-align: center; box-sizing: border-box;}
 
@@ -714,8 +715,14 @@
 
         /* ===== V2 PATH MAP (replaces the grid) ===== */
         #screen-2 { position: relative; }
-        #v2map-wrap { border: 3px solid #6a5636; border-radius: 10px; overflow: hidden; background: #000; position: relative; flex: 1 1 0; min-height: 200px; }
+        /* Parchment, never black: the wrap's own backdrop is the same tone as the map ground, so even a
+           transient letterbox (aspect measured a frame late) shows sheet, not void. */
+        #v2map-wrap { border: 3px solid #6a5636; border-radius: 10px; overflow: hidden; background: #d8c8a0; position: relative; flex: 1 1 0; min-height: 200px; }
         #v2board { display: block; position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+        #v2sword { transition: transform 0.11s ease-out; }   /* the small ease that snaps the ingot onto a trait node */
+        /* Trait site armed by the ingot standing on it: warm ember ring, slow breath. */
+        .pc-trait-armed .pc-trait-lit { animation: pcArmPulse 1.15s ease-in-out infinite; }
+        @keyframes pcArmPulse { 0%,100% { opacity: 0.95; stroke-width: 3.4; } 50% { opacity: 0.42; stroke-width: 5.2; } }
         #v2board:active { cursor: grabbing; }
         .v2-zoom { position: absolute; right: 6px; bottom: 6px; display: flex; flex-direction: column; gap: 4px; }
         .v2-zoom button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #6a5636; background: rgba(25,20,12,0.72); color: #f0e8d6; font-size: 18px; font-weight: bold; line-height: 1; cursor: pointer; padding: 0; }
@@ -807,6 +814,44 @@
         .v2-rfx { font-size: 8px; color: #9c9078; text-align: center; line-height: 1.1; }
         .v2-float { position: absolute; z-index: 58; font-weight: bold; font-size: 16px; pointer-events: none; transform: translate(-50%,-50%); text-shadow: 0 1px 2px rgba(0,0,0,.7); }
         .v2-chunk { position: absolute; width: 13px; height: 13px; border-radius: 50%; pointer-events: none; z-index: 55; transform: translate(-50%,-50%); box-shadow: inset -3px -3px 4px rgba(0,0,0,.5); }
+
+        /* ===== STATION ROW (Potion-Craft verbs expressed as forge stations) ===== */
+        .pc-temp .v2-gauge-track { position: relative; }
+        .pc-temp-mark { position: absolute; top: 0; width: 2px; height: 100%; background: rgba(255,255,255,0.55); z-index: 2; } /* the 35 / 70 speed thresholds */
+        .pc-temp-read { font-size: 10px; font-weight: bold; color: #f0e0b8; white-space: nowrap; min-width: 54px; text-align: right; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .pc-row { display: flex; gap: 3px; align-items: stretch; margin: 5px 0 3px; }
+        .pc-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; padding: 4px 0 3px; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#e2d3b2, #c9b68d); color: #3d2b1a; box-shadow: 0 2px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35); cursor: pointer; }
+        .pc-btn .pc-ico { font-size: 17px; line-height: 1; display: block; height: 22px; }
+        .pc-btn img { width: 20px; height: 18px; object-fit: contain; display: block; }
+        .pc-btn .pc-ico img.pc-ico-img { width: 22px; height: 22px; object-fit: contain; display: block; margin: 0 auto; }
+        .pc-btn .pc-ico .pc-ico-fb { display: inline-block; font-style: normal; line-height: 22px; }
+        .pc-btn .pc-ico img.pc-ico-img + .pc-ico-fb { display: none; }   /* art present → hide the emoji fallback */
+        .pc-btn .pc-lbl { font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; line-height: 1.05; letter-spacing: -0.2px; white-space: nowrap; }   /* 10px minimum; tightened so the longest label still clears the button at 360px */
+        .pc-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+        .pc-btn.pc-ready:not(:disabled) { border-color: #f1c40f; box-shadow: 0 0 8px 2px rgba(241,196,15,0.55), inset 0 1px 0 rgba(255,255,255,0.35); }
+        .pc-btn .pc-badge { position: absolute; top: -4px; right: -2px; min-width: 15px; padding: 0 3px; border-radius: 8px; background: #4a3623; color: #fceeb5; font-size: 9px; font-weight: bold; line-height: 15px; text-align: center; }
+        .pc-forge-btn { width: 100%; margin: 0; padding: 7px 0; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#8a5a2b, #5c3a17); color: #fceeb5; font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); cursor: pointer; }
+        .pc-forge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pc-status { font-family: 'Cinzel', serif; font-size: 11px; line-height: 1.25; color: #f0e0b8; text-align: center; margin: 0 0 4px; min-height: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.85); }
+        /* Core-loop nudges ("path exhausted", "no trait here") pulse the status line instead of raising a modal. */
+        .pc-status.pc-pulse { animation: pcStatusPulse 0.75s ease-out; }
+        @keyframes pcStatusPulse {
+            0%   { color: #ffd76a; transform: scale(1.08); text-shadow: 0 0 9px rgba(255,196,64,0.95), 0 1px 2px rgba(0,0,0,0.85); }
+            60%  { color: #ffd76a; transform: scale(1.0);  text-shadow: 0 0 6px rgba(255,196,64,0.55), 0 1px 2px rgba(0,0,0,0.85); }
+            100% { color: #f0e0b8; transform: scale(1.0);  text-shadow: 0 1px 2px rgba(0,0,0,0.85); }
+        }
+        /* Ore picker: floats above the station row, same parchment language as the dock tiles. */
+        .pc-picker { display: none; position: absolute; left: 10px; right: 10px; bottom: 96px; z-index: 40; background: #fbf6e9; border: 2px solid #6a5636; border-radius: 10px; padding: 7px; box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
+        .pc-picker.open { display: block; }
+        .pc-picker-h { font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; color: #5a4a2a; text-align: center; margin-bottom: 5px; }
+        .pc-ore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .pc-ore { position: relative; background: #efe4cf; border: 1px solid #cbb98f; border-radius: 7px; padding: 4px 2px 3px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+        .pc-ore.sel { border-color: #e67e22; box-shadow: 0 0 7px rgba(230,126,34,0.75); }
+        .pc-ore.locked { background: #e2dccb; border-style: dashed; }
+        .pc-ore .v2-sphere { width: 20px; height: 20px; }
+        .pc-ore-nm { font-size: 8.5px; font-weight: bold; color: #5a4a2a; }
+        .pc-ore-ct { font-size: 8.5px; color: #8a7448; }
+        .pc-ore-dir { position: absolute; top: 1px; right: 3px; font-size: 11px; font-weight: bold; line-height: 1; color: #9c6b23; display: inline-block; }
     </style>
 </head>
 <body>
@@ -911,36 +956,92 @@
                 </div>
 
                 <div id="v2-gauges">
-                    <div class="v2-gauge"><span class="v2-gauge-lbl">🔥</span><div class="v2-gauge-track"><div id="v2-heat-fill" class="v2-gauge-fill heat"></div></div></div>
-                    <div class="v2-gauge"><span class="v2-gauge-lbl">⛽</span><div class="v2-gauge-track"><div id="v2-fuel-fill" class="v2-gauge-fill fuel"></div></div></div>
+                    <!-- Temperature: bellows raise it, time bleeds it; the two ticks are the ×2 / ×3 anvil-speed thresholds. -->
+                    <div class="v2-gauge pc-temp"><span class="v2-gauge-lbl">🔥</span><div class="v2-gauge-track"><div id="v2-heat-fill" class="v2-gauge-fill heat"></div><div class="pc-temp-mark" style="left:35%;"></div><div class="pc-temp-mark" style="left:70%;"></div></div><span id="pc-temp-read" class="pc-temp-read">0° ×1</span></div>
+                    <div class="v2-gauge" id="v2-fuel-gauge" style="display:none;"><span class="v2-gauge-lbl">⛽</span><div class="v2-gauge-track"><div id="v2-fuel-fill" class="v2-gauge-fill fuel"></div></div></div>
                 </div>
 
                 <!-- ===== V2 PATH MAP + FURNACE ===== -->
                 <div id="v2map-wrap">
                     <svg id="v2board" viewBox="420 311 560 672" preserveAspectRatio="xMidYMid meet" aria-label="Crafting map">
                         <defs>
-                            <mask id="v2fogMask">
-                                <rect x="0" y="0" width="1400" height="980" fill="#fff"/>
-                                <g id="v2fogHoles" fill="#000"></g>
+                            <!-- Seamless parchment base. The tile <image> is wired in only if the art loads
+                                 (pcLoadMapArt); the flat rect under it is the fallback, so the pattern is never empty. -->
+                            <pattern id="v2parchPat" patternUnits="userSpaceOnUse" x="-1024" y="-1024" width="512" height="512">
+                                <rect x="0" y="0" width="512" height="512" fill="#d8c8a0"/>
+                                <image id="v2parchTile" x="0" y="0" width="512" height="512" preserveAspectRatio="none" style="display:none;"/>
+                            </pattern>
+                            <!-- The illustrated sheet dissolves into that base instead of ending on a hard alpha edge. -->
+                            <radialGradient id="v2artFadeGrad" cx="50%" cy="50%" r="52%">
+                                <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+                                <stop offset="60%" stop-color="#fff" stop-opacity="1"/>
+                                <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+                            </radialGradient>
+                            <mask id="v2artMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1400" height="980">
+                                <rect x="0" y="0" width="1400" height="980" fill="url(#v2artFadeGrad)"/>
                             </mask>
+                            <!-- Fog holes are blurred so explored ground fades out instead of ending on scalloped discs. -->
+                            <filter id="v2fogSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="17"/></filter>
+                            <mask id="v2fogMask">
+                                <rect x="-700" y="-700" width="2800" height="2380" fill="#fff"/>
+                                <g id="v2fogHoles" fill="#000" filter="url(#v2fogSoft)"></g>
+                            </mask>
+                            <!-- Everything the craft draws (routes, trail, ingot marker) is clipped to the padded sheet,
+                                 so a route near the world edge is never chopped mid-stroke. -->
+                            <clipPath id="v2mapClip"><rect x="-700" y="-700" width="2800" height="2380"/></clipPath>
+                            <!-- Inner vignette: makes the map edge read authored even on the flat-fill fallback. -->
+                            <radialGradient id="v2vignetteGrad" cx="50%" cy="48%" r="74%">
+                                <stop offset="0%" stop-color="#3a2712" stop-opacity="0"/>
+                                <stop offset="58%" stop-color="#3a2712" stop-opacity="0"/>
+                                <stop offset="86%" stop-color="#3a2712" stop-opacity="0.26"/>
+                                <stop offset="100%" stop-color="#2a1c0c" stop-opacity="0.62"/>
+                            </radialGradient>
+                            <!-- Molten-ingot marker: the three stops are re-tinted by temperature (pcMarkerTint). -->
+                            <radialGradient id="pcEmberGrad" cx="36%" cy="32%" r="76%">
+                                <stop id="pcEmber0" offset="0%" stop-color="#ffe6b3"/>
+                                <stop id="pcEmber1" offset="52%" stop-color="#ffb347"/>
+                                <stop id="pcEmber2" offset="100%" stop-color="#ff6b35"/>
+                            </radialGradient>
+                            <filter id="pcEmberGlow" x="-120%" y="-120%" width="340%" height="340%">
+                                <feGaussianBlur stdDeviation="9"/>
+                            </filter>
                         </defs>
-                        <rect x="0" y="0" width="1400" height="980" fill="#d8c8a0"/>
+                        <!-- Base sheet: 700 units of parchment past the world on every side, so the pan/zoom
+                             clamp can never reach an edge and the void is unreachable by construction. -->
+                        <rect id="v2ground" x="-700" y="-700" width="2800" height="2380" fill="url(#v2parchPat)"/>
+                        <!-- Hand-inked terrain illustration; wired in only once it actually loads (pcLoadMapArt). -->
+                        <image id="v2groundArt" x="0" y="0" width="1400" height="980" preserveAspectRatio="xMidYMid slice" mask="url(#v2artMask)" style="display:none;"/>
+                        <!-- Scrim: lifts the (busy, dark) illustration to a mid-tone so ink strokes stay readable. -->
+                        <rect id="v2scrim" x="-700" y="-700" width="2800" height="2380" fill="#e8dcc0" opacity="0" pointer-events="none"/>
                         <g id="v2terrain">
                             <g id="v2blobs"></g>
                             <g id="v2hazards"></g>
                             <g id="v2greenDots"></g>
                             <g id="v2traits"></g>
                         </g>
-                        <rect id="v2fog" x="0" y="0" width="1400" height="980" fill="#14100a" mask="url(#v2fogMask)"/>
+                        <rect id="v2vignette" x="-700" y="-700" width="2800" height="2380" fill="url(#v2vignetteGrad)" pointer-events="none"/>
+                        <!-- Unexplored ground is warm sepia haze over the parchment, never a black hole (Potion Craft
+                             keeps the sheet visible edge to edge); the blurred mask feathers the explored border. -->
+                        <rect id="v2fog" x="-700" y="-700" width="2800" height="2380" fill="#33240f" opacity="0.9" mask="url(#v2fogMask)"/>
+                        <!-- Route layers sit ABOVE the fog so a plotted route reads through unexplored ground (Potion Craft). -->
+                        <g id="pcTrail" clip-path="url(#v2mapClip)"></g>
+                        <g id="pcPlanned" clip-path="url(#v2mapClip)"></g>
                         <path id="v2pathpreview" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" stroke-dasharray="12 10" opacity="0.5" style="display:none;"/>
                         <path id="v2pathline" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
                         <g id="v2xmark" style="display:none;">
                             <line x1="-10" y1="-10" x2="10" y2="10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
                             <line x1="-10" y1="10" x2="10" y2="-10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
                         </g>
-                        <g id="v2sword">
-                            <rect x="-17" y="-17" width="34" height="34" rx="7" fill="#3f7bd6" stroke="#dbe9ff" stroke-width="3.5"/>
-                            <rect x="-6" y="-6" width="12" height="12" rx="3" fill="#dbe9ff"/>
+                        <g id="v2swordClip" clip-path="url(#v2mapClip)">
+                            <g id="v2sword">
+                                <g id="pcMarkInner">
+                                    <!-- Parchment aura: keeps the COLD (dark iron) marker readable over dark terrain. -->
+                                    <circle id="pcMarkHalo" r="20" fill="#f4ead1" opacity="0.55" filter="url(#pcEmberGlow)"/>
+                                    <circle id="pcMarkGlow" r="19" fill="#ff7a2a" opacity="0" filter="url(#pcEmberGlow)"/>
+                                    <rect id="pcMarkBody" x="-17" y="-13" width="34" height="26" rx="12" ry="12" fill="url(#pcEmberGrad)" stroke="#2b1d10" stroke-width="3"/>
+                                    <rect id="pcMarkCore" x="-7" y="-5" width="14" height="10" rx="5" ry="5" fill="#fff2cf" opacity="0.85"/>
+                                </g>
+                            </g>
                         </g>
                     </svg>
 
@@ -960,7 +1061,29 @@
                     <button id="btnAdventure" onclick="openCave()" class="v2-corner-btn">⛏️ Adventure</button>
                 </div>
 
-                <div class="v2-dock">
+                <!-- Ore picker for the Ore station (floats above the row). -->
+                <div id="pc-picker" class="pc-picker">
+                    <div class="pc-picker-h">Choose an ore — its shape is the route</div>
+                    <div class="pc-ore-grid" id="pcOreGrid"></div>
+                </div>
+
+                <div id="pc-stations" class="pc-row">
+                    <!-- Painterly station icons; the emoji sits behind each <img> as a pure-CSS fallback
+                         (onerror removes the image, the adjacent-sibling rule then un-hides the emoji). -->
+                    <button class="pc-btn" id="pcBtnOre" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_ore.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">⛏️</span></span><span class="pc-lbl">Ore</span><span class="pc-badge" id="pcOreBadge">0</span></button>
+                    <button class="pc-btn" id="pcBtnCrush" type="button"><img src="assets/forge/stamp_mill.png" onerror="this.onerror=null;this.src='assets/forge/grindstone.png';" alt=""><span class="pc-lbl">Crush</span><span class="pc-badge" id="pcCrushBadge" style="display:none;">0</span></button>
+                    <button class="pc-btn" id="pcBtnSmelt" type="button"><span class="pc-ico" id="pcSmeltIco"><img class="pc-ico-img" id="pcSmeltImg" src="assets/ui/icon_smelter.png" alt="" onerror="this.remove()"><span class="pc-ico-fb" id="pcSmeltFb">🏭</span></span><span class="pc-lbl" id="pcSmeltLbl">Smelter</span></button>
+                    <button class="pc-btn" id="pcBtnPour" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_pour.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🫗</span></span><span class="pc-lbl">Pour</span></button>
+                    <button class="pc-btn" id="pcBtnAnvil" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_anvil.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🔨</span></span><span class="pc-lbl">Anvil</span><span class="pc-badge" id="pcAnvilBadge">×1</span></button>
+                    <button class="pc-btn" id="pcBtnQuench" type="button"><img src="assets/forge/water_bucket.png" alt=""><span class="pc-lbl">Quench</span></button>
+                    <button class="pc-btn" id="pcBtnFire" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_fire.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🔥</span></span><span class="pc-lbl">Fire</span></button>
+                </div>
+                <div id="pc-status" class="pc-status">Pick an ore to plot a route.</div>
+                <button id="pcBtnForge" class="pc-forge-btn" type="button">🗡️ Forge the Blade</button>
+
+                <!-- Legacy V2 drag-dock (ore / charcoal / limestone tiles). Superseded by the station row above;
+                     kept in the DOM (hidden) so the drag-plot code and the old tutorial selectors still resolve. -->
+                <div class="v2-dock" id="v2dock" style="display:none;">
                     <div id="v2inv">
                         <div class="v2-ore-grid" id="v2oreGrid"></div>
                         <div class="v2-reagents">
@@ -2211,6 +2334,7 @@
 
         let currentScreenIndex = 2;
         function slideScreen(direction) {
+            if (typeof closeGameAlert === 'function') closeGameAlert();   // a notice must never outlive the screen it belonged to
             currentScreenIndex += direction;
             if(currentScreenIndex < 0) currentScreenIndex = 0; if(currentScreenIndex > 2) currentScreenIndex = 2;
             document.getElementById('screens-container').style.transform = `translateX(-${currentScreenIndex * 33.333}%)`;
@@ -2862,7 +2986,8 @@
         }
 
         function updateUI() {
-            const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%'; healthBar.style.backgroundColor = health > 50 ? '#2ecc71' : health > 20 ? '#f1c40f' : '#e74c3c';
+            const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%';
+            healthBar.style.background = health > 50 ? 'linear-gradient(180deg,#9fce6a 0%,#6da33c 48%,#4d7828 100%)' : health > 20 ? 'linear-gradient(180deg,#f6dd8a 0%,#dfae32 48%,#a8791a 100%)' : 'linear-gradient(180deg,#f09a86 0%,#d0452f 48%,#8e2a1a 100%)';
             { const bt = document.getElementById('blade-traits-text'); if (bt) bt.innerHTML = activeTraits.length === 0 ? '<strong>Blade Traits:</strong> None' : '<strong>Blade Traits:</strong> ' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', '); }
             const repColor = reputation < 0 ? '#e74c3c' : reputation > 10 ? '#27ae60' : '#2980b9';
             const goldText = document.getElementById('gold-text');
@@ -2907,6 +3032,7 @@
                 else { btnUnlock.disabled = true; btnUnlock.style.background = '#999'; btnUnlock.textContent = "Need 1000 Gold to Unlock"; }
             }
             renderBlueprints(); renderVault(); checkShopTutorial();
+            if (typeof pcUpdateStations === 'function') pcUpdateStations();   // station row mirrors Heat/Forge availability
         }
 
         // ---- Recorded Compositions modal: icon-tile grid → drill in to a detail view ----
@@ -3390,6 +3516,10 @@
             // Detached (Auto-Craft) heat: report the quality and hand back to the forge pipeline; don't fuse a map trait.
             if (heatOutcomeCb) { const cb = heatOutcomeCb; heatOutcomeCb = null; pendingHeatTrait = null; pendingHeatIndex = -1; cb(heatQuality || 'Epic'); return; }
 
+            // No heat context (e.g. the cheat "skip stage" or a stray resolve): bail instead of pushing a
+            // malformed {quality,baseValue,value} trait and then throwing on the null trait's id.
+            if (!pendingHeatTrait) { pendingHeatIndex = -1; return; }
+
             const quality = heatQuality || 'Epic'; const baseVal = (typeof mapTraitValue === 'number' ? mapTraitValue : 0);
             activeTraits.push(Object.assign({}, pendingHeatTrait, { quality: quality, baseValue: baseVal, value: baseVal + QUALITY_BONUS[quality] }));
             updateUI();
@@ -3519,6 +3649,7 @@
         function forgeSword() {
             if (forgeCtx) { resumeForge(); return; } // a paused forge exists → drop back into it instead of starting fresh
             if (activeTraits.length === 0) return; // Forge requires at least one heated trait (button is disabled until then)
+            if (typeof closeGameAlert === 'function') closeGameAlert();   // never carry a map notice into the forge pipeline (shape → hammer → quench)
             hideForgeArrow(); hideHands();
             // Manual forge: traits were already heated on the map. Start the pipeline at shape select.
             forgeCtx = { mode: 'manual', traits: activeTraits, recipe: { ...usedMetals }, bpIndex: -1, hammerMisses: 0, hammerHits: 0, heatQuality: null };
@@ -3776,7 +3907,22 @@
         function closeCave(){ caveOpen=false; document.getElementById('caveModal').style.display='none'; v2updateCounts(); }
 
         // ---- zoom / pan: the SVG viewBox is a window into the 1000×700 world ----
-        function v2setView(){ if(v2board){ const r=v2board.getBoundingClientRect(); if(r.width>2&&r.height>2) v2aspect=r.height/r.width; } const maxW=Math.min(V2_MAX_W, V2_WORLD_H/v2aspect); let w=Math.max(V2_MIN_W, Math.min(maxW, v2view.w)); let h=w*v2aspect; let x=Math.max(0, Math.min(V2_WORLD_W-w, v2view.x)); let y=Math.max(0, Math.min(V2_WORLD_H-h, v2view.y)); v2view.w=w; v2view.x=x; v2view.y=y; if(v2board) v2board.setAttribute('viewBox', x+' '+y+' '+w+' '+h); }
+        function v2setView(){ if(v2board){ const r=v2board.getBoundingClientRect(); if(r.width>2&&r.height>2) v2aspect=r.height/r.width; } const maxW=Math.min(V2_MAX_W, V2_WORLD_H/v2aspect); let w=Math.max(V2_MIN_W, Math.min(maxW, v2view.w)); let h=w*v2aspect; let x=Math.max(0, Math.min(V2_WORLD_W-w, v2view.x)); let y=Math.max(0, Math.min(V2_WORLD_H-h, v2view.y)); v2view.w=w; v2view.x=x; v2view.y=y; if(v2board) v2board.setAttribute('viewBox', x+' '+y+' '+w+' '+h); v2syncFurnace(); }
+        /* The furnace is a DOM sprite over an SVG world, so it has to be moved BY the camera or it floats free of
+           the map (it used to bob against the ground while you panned). Its world anchor is the spawn point
+           V2_START (the same point the trail leaves from), and the baseline it is translated against is exactly
+           where the initial view puts that anchor, so the chimney/trail alignment is preserved unchanged. */
+        function v2syncFurnace(){
+            const f=document.getElementById('v2furnace'), wrap=document.getElementById('v2map-wrap');
+            if(!f || !wrap || !v2board) return;
+            const br=v2board.getBoundingClientRect(); if(br.width<2||br.height<2) return;
+            const wr=wrap.getBoundingClientRect(), sx=br.width/v2view.w, sy=br.height/(v2view.w*v2aspect);
+            const px=(br.left-wr.left)+(V2_START.x-v2view.x)*sx, py=(br.top-wr.top)+(V2_START.y-v2view.y)*sy;
+            const bx=(br.left-wr.left)+br.width/2, by=(br.top-wr.top)+br.height*V2_SWORD_SY;   // where the initial view lands V2_START
+            const k=Math.max(0.72, Math.min(1.5, V2_INIT_W/v2view.w));
+            f.style.transformOrigin='50% 100%';
+            f.style.transform='translateX(-50%) translate('+(px-bx).toFixed(1)+'px,'+(py-by).toFixed(1)+'px) scale('+k.toFixed(3)+')';
+        }
         function v2zoomAt(factor, wx, wy){ const h=v2view.w*v2aspect; if(wx==null){ wx=v2view.x+v2view.w/2; wy=v2view.y+h/2; } const fx=(wx-v2view.x)/v2view.w, fy=(wy-v2view.y)/h; let nw=Math.max(V2_MIN_W, Math.min(V2_MAX_W, v2view.w*factor)); v2view.x=wx-fx*nw; v2view.y=wy-fy*(nw*v2aspect); v2view.w=nw; v2setView(); }
         function v2clientToWorld(cx,cy){ const r=v2board.getBoundingClientRect(); const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; return { x:v2view.x+fx*v2view.w, y:v2view.y+fy*(v2view.w*v2aspect) }; }
         function v2ensureSwordVisible(){ const mx=0.2, myTop=0.12, myBot=0.5, vw=v2view.w, vh=vw*v2aspect; let nx=v2view.x, ny=v2view.y;
@@ -3890,7 +4036,7 @@
             let on=null; for(let t=0;t<v2traits.length;t++){ const tr=v2traits[t]; if(Math.hypot(x-tr.x,y-tr.y)<V2_TRAIT_R){ on=tr; break; } }
             if(on && !v2tutTargetTrait(on.trait.id)) on=null;   // guided craft: skip traits the sword only passes through (e.g. Balanced en route to Flame)
             if(on && !on.discovered){ on.discovered=true; on.txtEl.textContent=on.trait.symbol; on.txtEl.removeAttribute('font-weight'); v2recordComposition(on.trait, on.value); }
-            if(on && !activeTraits.some(t=>t.id===on.trait.id)){ v2fuseTrait(on.trait, on.value); }   // fuse on reach (you're bellowing to get here)
+            if(on && !pcStationMode && !activeTraits.some(t=>t.id===on.trait.id)){ v2fuseTrait(on.trait, on.value); }   // fuse on reach (you're bellowing to get here); in station mode the Fire station + heat minigame locks the trait instead
             const prevId = mapTraitOn?mapTraitOn.id:null, nowId = on?on.trait.id:null;
             if(nowId!==prevId){ mapTraitOn = on?on.trait:null; mapTraitValue = on?on.value:0; updateUI(); }
         }
@@ -3914,7 +4060,7 @@
         function v2pourIngot(){ if(activeTraits.length===0){ gameAlert('Heat a trait onto your blade first, then pour the ingot.'); return; } const ig=document.getElementById('v2-ingot'); if(ig) ig.style.display=''; v2tutAdvance('pour'); }
         function v2ingotForge(){ const ig=document.getElementById('v2-ingot'); if(ig) ig.style.display='none'; if(v2tutActive() && V2_TUT[v2tutStep].wait==='forge'){ v2tutPaused=true; v2tutRender(); } forgeSword(); }   // hide the tutorial box during the forge pipeline; the "sell it" step fires from completeForge
 
-        function v2ResetSword(){ v2bellowStop(); v2segs=[]; v2sw={seg:0,pct:0}; v2used=v2freshUsed(); mapTraitOn=null; mapTraitValue=0; v2revLast={sword:null,x:null}; const ig=document.getElementById('v2-ingot'); if(ig) ig.style.display='none'; if(v2pathEl){ v2pathEl.style.display='none'; v2preview.style.display='none'; v2xmark.style.display='none'; } if(v2swordEl){ v2setSword(V2_START.x,V2_START.y); v2reveal(V2_START.x,V2_START.y,'sword'); v2ensureSwordVisible(); } }
+        function v2ResetSword(){ v2bellowStop(); v2segs=[]; v2sw={seg:0,pct:0}; v2used=v2freshUsed(); mapTraitOn=null; mapTraitValue=0; v2revLast={sword:null,x:null}; const ig=document.getElementById('v2-ingot'); if(ig) ig.style.display='none'; if(v2pathEl){ v2pathEl.style.display='none'; v2preview.style.display='none'; v2xmark.style.display='none'; } if(v2swordEl){ v2setSword(V2_START.x,V2_START.y); v2reveal(V2_START.x,V2_START.y,'sword'); v2ensureSwordVisible(); } if(typeof pcResetRun==='function') pcResetRun(); }   // station loop: clear planned/committed route, trail, temperature and the poured ingot
 
         function v2overBucket(cx,cy){ const r=v2bucket.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
         let v2ghost=null, v2dragKind=null;
@@ -3936,7 +4082,38 @@
             if(v2dragKind && v2overBucket(ev.clientX,ev.clientY)){ if(v2dragKind.kind==='ore') v2plotOre(v2dragKind.id); else if(v2dragKind.kind==='charcoal') v2addFuel(); else if(v2dragKind.kind==='limestone') v2addLimestone(); }
             v2dragKind=null; }
 
-        function v2addTrait(tr, x, y){ const g=document.createElementNS(V2NS,'g'); g.setAttribute('transform','translate('+x+','+y+')'); const bg=document.createElementNS(V2NS,'circle'); bg.setAttribute('r',17); bg.setAttribute('fill','rgba(0,0,0,0.4)'); g.appendChild(bg); const txt=document.createElementNS(V2NS,'text'); txt.setAttribute('text-anchor','middle'); txt.setAttribute('y',7); txt.setAttribute('font-size','21'); txt.setAttribute('fill','#f2e6cc'); txt.setAttribute('font-weight','bold'); txt.textContent='?'; g.appendChild(txt); v2traitsG.appendChild(g); v2traits.push({ trait:tr, x:x, y:y, value:v2traitValue(x,y), el:g, txtEl:txt, discovered:false }); }
+        /* Trait sites speak the same ink language as the route: a parchment-cored disc inside a dark ink ring,
+           with a dashed hairline inside it: nothing like the two-stroke destination ✕. The site is SNAPPED to
+           the route lattice so "the cell the ingot lands on" and "the node it sits under" are the same point.
+           The outer ring (.pc-trait-lit) is the armed state: lit + pulsing the moment pcTraitHere() picks it. */
+        function v2snapWorldToCell(x,y){ return pcIdx(pcClampCX(Math.round((x-PC_CELL/2)/PC_CELL)), pcClampCY(Math.round((y-PC_CELL/2)/PC_CELL))); }
+        function v2addTrait(tr, x, y){
+            const cell=v2snapWorldToCell(x,y); x=pcWX(cell); y=pcWY(cell);
+            const g=document.createElementNS(V2NS,'g'); g.setAttribute('transform','translate('+x+','+y+')'); g.setAttribute('class','pc-trait');
+            const mk=(tag,at)=>{ const e=document.createElementNS(V2NS,tag); for(const k in at) e.setAttribute(k,at[k]); g.appendChild(e); return e; };
+            const lit=mk('circle',{ class:'pc-trait-lit', r:24, fill:'none', stroke:'#ff8f33', 'stroke-width':3.4, opacity:0 });
+            mk('circle',{ r:18, fill:PC_INK_DARK, opacity:0.16, transform:'translate(1.6,2.4)' });        // inked drop shadow, same offset idiom as the trail
+            mk('circle',{ r:18.6, fill:'none', stroke:PC_HALO, 'stroke-width':2.4, opacity:0.6 });        // pale rim: the node keeps its silhouette over dark terrain
+            mk('circle',{ r:16.5, fill:'#efe1bd', stroke:PC_INK, 'stroke-width':3 });                     // parchment core in an ink ring
+            mk('circle',{ r:11, fill:'none', stroke:'#4a3826', 'stroke-width':1.1, 'stroke-dasharray':'3 5', opacity:0.5 });
+            const txt=mk('text',{ 'text-anchor':'middle', y:6, 'font-size':15, fill:'#3a2a18', 'font-weight':'bold' }); txt.textContent='?';
+            v2traitsG.appendChild(g);
+            v2traits.push({ trait:tr, x:x, y:y, cell:cell, value:v2traitValue(x,y), el:g, litEl:lit, txtEl:txt, discovered:false });
+        }
+        // Armed = the ingot is inside this site's snap radius. Lit ring + the status line naming the trait.
+        let pcArmedSite = null;
+        function pcArmVisual(site, on){
+            if(!site || !site.el) return;
+            site.el.setAttribute('class', on ? 'pc-trait pc-trait-armed' : 'pc-trait');
+            if(on) site.el.setAttribute('data-armed','1'); else site.el.removeAttribute('data-armed');
+            if(site.litEl) site.litEl.setAttribute('opacity', on ? 0.95 : 0);
+        }
+        function pcRefreshTraitFocus(){
+            const site = (typeof pcTraitHere==='function') ? pcTraitHere() : null;
+            if(site === pcArmedSite) return;
+            pcArmVisual(pcArmedSite, false); pcArmedSite = site; pcArmVisual(site, true);
+            if(site) pcNotify('Standing on ' + site.trait.symbol + ' ' + site.trait.name + ' (' + site.value + 'g). Fire to lock it in.');
+        }
 
         function initV2Map(){
             v2board=document.getElementById('v2board'); if(!v2board) return;
@@ -3950,14 +4127,29 @@
             const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
             for(let i=0;i<150;i++){ const bx=v2rand()*V2_WORLD_W, by=v2rand()*V2_WORLD_H, rx=26+v2rand()*92, ry=18+v2rand()*62; const e=document.createElementNS(V2NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(v2rand()*tans.length)]); e.setAttribute('opacity',(0.1+v2rand()*0.22).toFixed(2)); v2blobsG.appendChild(e); }
             // traits: 5 central on ore paths (visible at start), the other 19 pushed far into the fog
-            v2traits=[]; v2traitsG.innerHTML='';
-            const centralIds=Object.values(V2_CENTRAL);
-            Object.keys(V2_CENTRAL).forEach(oreId=>{ const tr=baseTraits.find(b=>b.id===V2_CENTRAL[oreId]); if(!tr) return; const p=v2samplePath(V2_ORE_BY[oreId].d, 1.0); v2addTrait(tr, p.x, p.y); });
-            // Flame is pinned to its reachable route end. Water/Ice are ALSO pinned, but to keep the seeded hazard
-            // layout identical to the pre-pin map they're first placed at their ORIGINAL scattered spots (so the outer
-            // count + the hazard-avoidance below are unchanged), then relocated to their route ends after hazards.
-            const flameTr=baseTraits.find(b=>b.id==='flame'); if(flameTr){ const fp=v2pinnedEndpoint(V2_PINNED.flame); v2addTrait(flameTr, fp.x, fp.y); }
-            const outer=baseTraits.filter(b=>centralIds.indexOf(b.id)===-1 && b.id!=='flame');
+            v2traits=[]; v2traitsG.innerHTML=''; pcArmedSite=null;   // the armed site is a live node ref, so it dies with the layer
+            // Station loop: every ore's plotted route ENDS on a trait, so one ore reaches a trait and two
+            // stacked ores reach the deeper ones (PC_CENTRAL / PC_STACKED, see the station-loop section).
+            const centralIds=Object.values(PC_CENTRAL).concat(Object.keys(PC_STACKED));
+            Object.keys(PC_CENTRAL).forEach(oreId=>{ const tr=baseTraits.find(b=>b.id===PC_CENTRAL[oreId]); if(!tr) return; const c=pcStackEndCell([oreId]); v2addTrait(tr, pcWX(c), pcWY(c)); });
+            Object.keys(PC_STACKED).forEach(tid=>{ const tr=baseTraits.find(b=>b.id===tid); if(!tr) return; const c=pcStackEndCell(PC_STACKED[tid]); v2addTrait(tr, pcWX(c), pcWY(c)); });
+            /* Crushing is a REACH choice (Potion Craft: grind finer, travel further). Every central ore's
+               crush-1 and crush-2 endpoints get their own trait site, so all three grinds land on something.
+               Sites are handed out in catalog order to endpoints sorted by distance from the centre, so the
+               longer grind lands the later-tier trait, and value = distance/6 pays it more for the reach.
+               Stacked combos (PC_STACKED) stay pinned to their UNCRUSHED ends. */
+            const pinned=new Set(centralIds), taken=new Set(v2traits.map(t=>t.cell)), ends=[];
+            Object.keys(PC_CENTRAL).forEach(oreId=>{
+                for(let cr=1; cr<=PC_CRUSH_MAX; cr++){
+                    const p=pcPathFrom(pcStartCell(), oreId, cr); if(!p.length) continue;
+                    const c=p[p.length-1]; if(taken.has(c)) continue; taken.add(c);
+                    ends.push({ cell:c, d:Math.hypot(pcWX(c)-V2_CENTER.x, pcWY(c)-V2_CENTER.y) });
+                }
+            });
+            ends.sort((a,b)=>a.d-b.d);
+            const tierPool=baseTraits.filter(b=>!pinned.has(b.id));
+            ends.forEach((e,i)=>{ const tr=tierPool[i]; if(!tr) return; pinned.add(tr.id); v2addTrait(tr, pcWX(e.cell), pcWY(e.cell)); });
+            const outer=baseTraits.filter(b=>!pinned.has(b.id));
             outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35; const r=420+(i%4)*48; let x=V2_CENTER.x+Math.cos(ang)*r, y=V2_CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(60,Math.min(1340,x)); y=Math.max(56,Math.min(924,y)); v2addTrait(tr,x,y); });
             // green dots (skill points) on the ore paths
             v2dots=[]; v2dotsG.innerHTML='';
@@ -3965,18 +4157,20 @@
             // dark hazard zones (seeded, spread out, clear of the central start and the traits)
             v2hazards=[]; v2hazG.innerHTML=''; let placed=0, tries=0;
             while(placed<18 && tries<900){ tries++; const ang=v2rand()*Math.PI*2, rad=250+v2rand()*270; let hx=V2_CENTER.x+Math.cos(ang)*rad, hy=V2_CENTER.y+Math.sin(ang)*rad*0.72; if(hx<70||hx>1330||hy<64||hy>916) continue; let ok=true; for(const z of v2hazards){ if(Math.hypot(hx-z.x,hy-z.y)<104){ ok=false; break; } } if(ok) for(const tr of v2traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<90){ ok=false; break; } } if(!ok) continue; const rr=26+v2rand()*22; const c=document.createElementNS(V2NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); v2hazG.appendChild(c); const c2=document.createElementNS(V2NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); v2hazG.appendChild(c2); v2hazards.push({x:hx,y:hy,r:rr}); placed++; }
-            // Now that hazards are placed against the original layout, move Water/Ice to their pinned route ends (kept in fog).
-            ['water','ice'].forEach(id=>{ const t=v2traits.find(tr=>tr.trait.id===id); if(t && V2_PINNED[id]){ const p=v2pinnedEndpoint(V2_PINNED[id]); t.el.setAttribute('transform','translate('+p.x+','+p.y+')'); t.x=p.x; t.y=p.y; t.value=v2traitValue(p.x,p.y); } });
             // sword + initial reveal (only the 5 central traits show)
             v2fogHoles.innerHTML=''; v2revLast={sword:null,x:null}; v2marker={x:V2_START.x,y:V2_START.y}; v2setSword(V2_START.x,V2_START.y);
             const c0=document.createElementNS(V2NS,'circle'); c0.setAttribute('cx',V2_START.x); c0.setAttribute('cy',V2_START.y); c0.setAttribute('r',V2_INIT_REVEAL); c0.setAttribute('fill','#000'); v2fogHoles.appendChild(c0);
             // initial zoomed-in view centred on the start + zoom/pan controls
             v2view={ x:V2_START.x-V2_INIT_W/2, y:V2_START.y-V2_INIT_W*v2aspect*V2_SWORD_SY, w:V2_INIT_W }; v2setView(); v2wireZoomPan();
+            // Re-measure whenever the map box changes size: a stale v2aspect letterboxes the board (bars of
+            // backdrop around the sheet) and leaves the furnace anchored to the wrong baseline.
+            if(!window.v2mapWatched){ window.v2mapWatched=true; window.addEventListener('resize', ()=>v2setView()); if(window.ResizeObserver) new ResizeObserver(()=>v2setView()).observe(document.getElementById('v2map-wrap')); }
             document.querySelectorAll('.v2-rtile').forEach(el=>{ el.addEventListener('pointerdown', ev=>v2oreDown(el,ev)); });   // charcoal/limestone are now drag-drop (ore tiles are wired in v2renderOreGrid)
-            const bellows=document.getElementById('v2-bellows'); if(bellows){ bellows.addEventListener('pointerdown', ev=>{ ev.preventDefault(); try{ bellows.setPointerCapture(ev.pointerId); }catch(e){} v2bellowStart(); }); bellows.addEventListener('pointerup', v2bellowStop); bellows.addEventListener('pointercancel', v2bellowStop); }
-            const mouth=document.getElementById('v2-mouth'); if(mouth) mouth.addEventListener('pointerdown', ev=>{ ev.preventDefault(); v2pourIngot(); });
+            // Station mode taps the furnace as a second surface for the same two verbs (bellows = +temperature, mouth = pour).
+            const bellows=document.getElementById('v2-bellows'); if(bellows){ bellows.addEventListener('pointerdown', ev=>{ ev.preventDefault(); if(pcStationMode){ pcBellows(); return; } try{ bellows.setPointerCapture(ev.pointerId); }catch(e){} v2bellowStart(); }); bellows.addEventListener('pointerup', v2bellowStop); bellows.addEventListener('pointercancel', v2bellowStop); }
+            const mouth=document.getElementById('v2-mouth'); if(mouth) mouth.addEventListener('pointerdown', ev=>{ ev.preventDefault(); if(pcStationMode){ pcPour(); return; } v2pourIngot(); });
             const ingot=document.getElementById('v2-ingot'); if(ingot) ingot.addEventListener('pointerdown', ev=>{ ev.preventDefault(); v2ingotForge(); });
-            if(!window.v2heatTimer) window.v2heatTimer = setInterval(()=>{ if(!v2bellowing && v2heat>0 && !v2tutActive()){ v2heat=Math.max(0, v2heat - V2_HEAT_DECAY*0.3); v2updateGauges(); } }, 300);   // slow heat decay when idle (paused during the tutorial so the long plotting sequence stays hot enough to keep dropping ore)
+            if(!window.v2heatTimer) window.v2heatTimer = setInterval(()=>{ if(!pcStationMode && !v2bellowing && v2heat>0 && !v2tutActive()){ v2heat=Math.max(0, v2heat - V2_HEAT_DECAY*0.3); v2updateGauges(); } }, 300);   // slow idle heat decay (paused during the tutorial); in station mode pcTempTick owns temperature instead
             v2updateCounts(); v2updateGauges();
             window.v2dbg = { segs:()=>v2segs, sw:()=>v2sw, advanceSword:v2advanceSword, plotOre:v2plotOre, addFuel:v2addFuel, addLimestone:v2addLimestone, bellowStart:v2bellowStart, bellowStop:v2bellowStop, heat:()=>v2heat, fuel:()=>v2fuel, setHeat:(v)=>{v2heat=v;v2updateGauges();}, setFuel:(v)=>{v2fuel=v;v2updateGauges();}, traits:v2traits, dots:v2dots, hazards:v2hazards, res:()=>({ore:v2Ore,charcoal:v2Charcoal,limestone:v2Limestone,skill:v2Skill}), on:()=>mapTraitOn, val:()=>mapTraitValue, pour:v2pourIngot, view:()=>v2view, zoom:v2zoomAt };
         }
@@ -4106,16 +4300,478 @@
         function v2tutFlameEndpoint(){ return v2pinnedEndpoint(V2_PINNED.flame); }   // flame craft's stop point (steel-max → copper-max → copper-max → copper-½)
         window.addEventListener('resize', ()=>{ if(v2tutActive()) v2tutRender(); });
 
+        /* ===================== PATH-STATION LOOP (front half of the craft) =====================
+           Potion Craft's verbs, expressed as forge stations, over the same SVG world the V2 map draws:
+             Ore      → PLOTS a route (each metal has its own shape)      Crusher → LENGTHENS the plan
+             Smelter  → COMMITS it (spends 1 metal)                       Bellows → raises TEMPERATURE
+             Pour     → makes the ingot (needs temp ≥ 40)                 Anvil   → TRAVELS the route
+             Quench   → pulls 3 cells toward centre, −30 temp             Fire    → locks a trait in
+           The route is a lattice of 28-unit cells over the 1400×980 world (50 × 35); the cell centres are only
+           control points — the route itself is drawn as authored ink (dashed plan + ✕, solid travelled trail). */
+        let pcStationMode = true;                    // station row owns the map (legacy drag-plot + hold-to-travel stay in the file but are unreachable)
+        const PC_CELL = 28, PC_COLS = 50, PC_ROWS = 35;
+        const PC_BELLOW_TEMP = 12, PC_TEMP_DECAY = 2, PC_POUR_TEMP = 40, PC_QUENCH_TEMP = 30, PC_QUENCH_CELLS = 3, PC_STEP_MS = 150;
+        // Route shapes. Each metal is a personality: 8–12 {dx,dy} cell steps that curve toward its quadrant.
+        const orePathDefs = {
+            steel:     [{dx:0,dy:-1},{dx:1,dy:-1},{dx:1,dy:-1},{dx:1,dy:0},{dx:0,dy:-1},{dx:-1,dy:0},{dx:-1,dy:-1},{dx:-1,dy:0},{dx:0,dy:-1},{dx:1,dy:0},{dx:1,dy:-1}], // long north-bending arc
+            iron:      [{dx:0,dy:1},{dx:0,dy:1},{dx:0,dy:1},{dx:1,dy:1},{dx:1,dy:1},{dx:1,dy:0},{dx:1,dy:0},{dx:1,dy:-1},{dx:0,dy:-1},{dx:0,dy:-1}],                      // south hook, curling back up
+            magnesium: [{dx:-1,dy:0},{dx:-1,dy:-1},{dx:-1,dy:1},{dx:-1,dy:0},{dx:-1,dy:-1},{dx:-1,dy:1},{dx:-1,dy:0},{dx:-1,dy:-1},{dx:-1,dy:1},{dx:-1,dy:0}],             // west zigzag
+            bronze:    [{dx:1,dy:0},{dx:1,dy:0},{dx:1,dy:1},{dx:1,dy:1},{dx:1,dy:1},{dx:1,dy:0},{dx:1,dy:0},{dx:1,dy:-1},{dx:1,dy:-1},{dx:1,dy:0}],                        // east sweep, bellying south
+            titanium:  [{dx:-1,dy:-1},{dx:-1,dy:-1},{dx:-1,dy:0},{dx:-1,dy:-1},{dx:0,dy:-1},{dx:-1,dy:0},{dx:-1,dy:-1},{dx:-1,dy:0},{dx:0,dy:-1},{dx:-1,dy:-1}],           // north-west spiral
+            aluminium: [{dx:1,dy:-1},{dx:1,dy:-1},{dx:1,dy:0},{dx:1,dy:-1},{dx:0,dy:-1},{dx:1,dy:0},{dx:1,dy:-1},{dx:1,dy:0},{dx:1,dy:-1},{dx:0,dy:-1},{dx:1,dy:0}],      // north-east climb
+            blackIron: [{dx:-1,dy:1},{dx:-1,dy:1},{dx:-1,dy:0},{dx:-1,dy:1},{dx:0,dy:1},{dx:-1,dy:1},{dx:-1,dy:1},{dx:-1,dy:0},{dx:-1,dy:1},{dx:0,dy:1}],                  // south-west curve
+            redIron:   [{dx:1,dy:1},{dx:1,dy:1},{dx:1,dy:0},{dx:0,dy:1},{dx:1,dy:1},{dx:1,dy:0},{dx:1,dy:1},{dx:1,dy:0},{dx:0,dy:1},{dx:1,dy:0}]                           // south-east curve
+        };
+        // Traits sitting exactly where a route ends: one ore reaches these five…
+        const PC_CENTRAL = { steel:'balanced', iron:'durable', magnesium:'sharp', bronze:'heavy', blackIron:'flexible' };
+        // …and these need a stack of two (the stacking loop: fire the first trait, then plot again from where you stand).
+        const PC_STACKED = { flame:['steel','aluminium'], ice:['titanium','titanium'], water:['redIron','redIron'] };
+        const PC_ORE_COLORS = { titanium:'#878681', steel:'#708090', aluminium:'#a9a9a9', magnesium:'#8a8a8a', bronze:'#CD7F32', blackIron:'#1A1A1A', iron:'#434b4d', redIron:'#A52A2A' };
+        const PC_ORE_ORDER = ['steel','iron','magnesium','bronze','titanium','aluminium','blackIron','redIron'];
+
+        let plannedOre = null, plannedPath = [], crushSteps = 0;   // the plan (re-selectable freely until it is committed)
+        let committedPath = [], pathPos = 0, committedOre = null;  // the locked route + progress along it
+        let temperature = 0;
+        let pcPoured = false, pcTravelling = false, pcIngotCell = 0, pcTrailCells = [], pcRunId = 0, pcTempTimer = null, pcTravelStart = 0;
+
+        function pcIdx(cx, cy) { return cy * PC_COLS + cx; }
+        function pcCX(i) { return i % PC_COLS; }
+        function pcCY(i) { return Math.floor(i / PC_COLS); }
+        function pcWX(i) { return pcCX(i) * PC_CELL + PC_CELL / 2; }
+        function pcWY(i) { return pcCY(i) * PC_CELL + PC_CELL / 2; }
+        function pcClampCX(cx) { return Math.max(0, Math.min(PC_COLS - 1, cx)); }
+        function pcClampCY(cy) { return Math.max(0, Math.min(PC_ROWS - 1, cy)); }
+        function pcStartCell() { return pcIdx(pcClampCX(Math.floor(V2_START.x / PC_CELL)), pcClampCY(Math.floor(V2_START.y / PC_CELL))); }
+        function pcCentreCell() { return pcIdx(pcClampCX(Math.floor(V2_CENTER.x / PC_CELL)), pcClampCY(Math.floor(V2_CENTER.y / PC_CELL))); }
+
+        // Crushing repeats the shape's last two steps. Capped at PC_CRUSH_MAX because every grind level has a
+        // trait site pinned to its endpoint (initV2Map): a crush you cannot land on would be a dead choice.
+        const PC_CRUSH_MAX = 2;
+        function pcCrushMax(oreId) { const b = orePathDefs[oreId]; return b ? Math.min(PC_CRUSH_MAX, Math.ceil(b.length / 2)) : 0; }
+        function pcStepsFor(oreId, crush) {
+            const base = orePathDefs[oreId] || [], cap = base.length * 2, tail = base.slice(-2), out = base.slice();
+            for (let c = 0; c < crush; c++) for (let k = 0; k < tail.length && out.length < cap; k++) out.push(tail[k]);
+            return out;
+        }
+        // Walk a shape from a cell into a list of cell indices (clamped at the map edges; edge-repeats dropped).
+        function pcPathFrom(startIdx, oreId, crush) {
+            let cx = pcCX(startIdx), cy = pcCY(startIdx); const cells = [];
+            pcStepsFor(oreId, crush).forEach(s => {
+                const nx = pcClampCX(cx + s.dx), ny = pcClampCY(cy + s.dy);
+                if (nx === cx && ny === cy) return; // clamped against the edge — no duplicate cell
+                cx = nx; cy = ny; cells.push(pcIdx(cx, cy));
+            });
+            return cells;
+        }
+        // Where a stack of ores ends up (used to pin traits onto route ends).
+        function pcStackEndCell(oreIds) {
+            let idx = pcStartCell();
+            oreIds.forEach(o => { const p = pcPathFrom(idx, o, 0); if (p.length) idx = p[p.length - 1]; });
+            return idx;
+        }
+        function pcOreArrowDeg(oreId) {
+            const s = (orePathDefs[oreId] || []).reduce((a, st) => ({ dx: a.dx + st.dx, dy: a.dy + st.dy }), { dx: 0, dy: 0 });
+            return Math.round(Math.atan2(s.dy, s.dx) * 180 / Math.PI);
+        }
+
+        /* ---- route rendering: authored ink strokes on the SVG world, above the fog, clipped to the map sheet ----
+           Potion Craft draws the plotted route as one hand-inked dashed curve with an ✕ at the destination, and the
+           travelled part as a solid line. We do the same: cell centres are only the control points, never the shape. */
+        // Ink + the pale halo laid under every stroke, so a route still reads over the busy/dark terrain art.
+        const PC_INK = '#4a3826', PC_INK_DARK = '#2f2117', PC_HALO = '#f0e6d0', PC_HALO_OP = 0.5;
+        function pcCellPt(i) { return { x: pcWX(i), y: pcWY(i) }; }
+        // Catmull-Rom → cubic bezier: a smooth curve through every point, no polyline elbows.
+        function pcSmoothD(pts) {
+            if (!pts.length) return '';
+            if (pts.length === 1) return 'M' + pts[0].x.toFixed(1) + ',' + pts[0].y.toFixed(1);
+            let d = 'M' + pts[0].x.toFixed(1) + ',' + pts[0].y.toFixed(1);
+            for (let i = 0; i < pts.length - 1; i++) {
+                const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || pts[i + 1];
+                const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+                const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+                d += ' C' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + p2.x.toFixed(1) + ',' + p2.y.toFixed(1);
+            }
+            return d;
+        }
+        function pcSvgEl(g, tag, attrs) { const e = document.createElementNS(V2NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); g.appendChild(e); return e; }
+        // Small inked arrowhead pointing along the curve at `frac` of its length.
+        function pcArrowOn(g, pathEl, frac, col, op) {
+            let L = 0; try { L = pathEl.getTotalLength(); } catch (e) { return; }
+            if (!L) return;
+            const at = Math.max(0, Math.min(L, L * frac)), a = pathEl.getPointAtLength(at), b = pathEl.getPointAtLength(Math.min(L, at + 6));
+            const ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+            pcSvgEl(g, 'path', { d: 'M-9,-8 L9,0 L-9,8 L-4,0 Z', fill: col, opacity: op, transform: 'translate(' + a.x.toFixed(1) + ',' + a.y.toFixed(1) + ') rotate(' + ang.toFixed(1) + ')' });
+        }
+        // Destination ✕ — two short crossed strokes, tilted a touch so it reads hand-drawn.
+        function pcXMarkOn(g, pt, col, op) {
+            const t = 'translate(' + pt.x.toFixed(1) + ',' + pt.y.toFixed(1) + ') rotate(7)';
+            pcSvgEl(g, 'line', { x1: -11, y1: -11, x2: 11, y2: 11, stroke: col, 'stroke-width': 5, 'stroke-linecap': 'round', opacity: op, transform: t });
+            pcSvgEl(g, 'line', { x1: -11, y1: 11, x2: 11, y2: -11, stroke: col, 'stroke-width': 5, 'stroke-linecap': 'round', opacity: op, transform: t });
+        }
+        // The plan (or the locked-but-untravelled remainder): one dashed curve + midway arrow + ✕ on the target cell.
+        function pcDrawPlanned() {
+            const g = document.getElementById('pcPlanned'); if (!g) return; g.innerHTML = '';
+            const cells = plannedPath.length ? plannedPath : committedPath.slice(pathPos);
+            const firm = plannedPath.length > 0;                       // a free plan inks darker than a committed remainder
+            if (!cells.length) return;
+            const pts = [pcCellPt(pcIngotCell)].concat(cells.map(pcCellPt));
+            const d = pcSmoothD(pts); if (!d) return;
+            const op = firm ? 0.9 : 0.62;
+            pcSvgEl(g, 'path', { d: d, fill: 'none', stroke: PC_HALO, 'stroke-width': firm ? 11 : 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: PC_HALO_OP * (firm ? 1 : 0.8) });   // halo first: dashes stay legible over dark terrain
+            const p = pcSvgEl(g, 'path', { d: d, fill: 'none', stroke: PC_INK, 'stroke-width': firm ? 5 : 4.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-dasharray': firm ? '14 13' : '10 12', opacity: op });
+            pcArrowOn(g, p, 0.5, PC_INK, op);
+            pcXMarkOn(g, pts[pts.length - 1], PC_INK, op);
+        }
+        /* The travelled route, re-drawn from the recorded landed-cell sequence (pcTrailCells) on every landing.
+           It is cut into runs wherever two consecutive landings are further apart than one lattice step, so a
+           hop can never be smoothed into a straight chord across the map (the post-quench artefact). */
+        function pcTrailRuns() {
+            const runs = []; let cur = [];
+            for (let i = 0; i < pcTrailCells.length; i++) {
+                const p = pcCellPt(pcTrailCells[i]);
+                if (cur.length) { const q = cur[cur.length - 1]; if (Math.hypot(p.x - q.x, p.y - q.y) > PC_CELL * 1.9) { runs.push(cur); cur = []; } }
+                cur.push(p);
+            }
+            if (cur.length) runs.push(cur);
+            return runs;
+        }
+        function pcDrawTrail() {
+            const g = document.getElementById('pcTrail'); if (!g) return; g.innerHTML = '';
+            if (!pcTrailCells.length) return;
+            let head = null;
+            pcTrailRuns().forEach(pts => {
+                if (pts.length === 1) { pcSvgEl(g, 'circle', { cx: pts[0].x, cy: pts[0].y, r: 6.5, fill: PC_HALO, opacity: PC_HALO_OP }); pcSvgEl(g, 'circle', { cx: pts[0].x, cy: pts[0].y, r: 4.5, fill: PC_INK_DARK, opacity: 0.55 }); return; }
+                const d = pcSmoothD(pts); if (!d) return;
+                pcSvgEl(g, 'path', { d: d, fill: 'none', stroke: PC_HALO, 'stroke-width': 12, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: PC_HALO_OP });                                   // pale halo = separation from any terrain
+                pcSvgEl(g, 'path', { d: d, fill: 'none', stroke: PC_INK_DARK, 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.16, transform: 'translate(1.8,2.6)' });   // offset under-stroke = inked texture
+                head = pcSvgEl(g, 'path', { d: d, fill: 'none', stroke: PC_INK_DARK, 'stroke-width': 5.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.92 });
+            });
+            if (head) pcArrowOn(g, head, 0.62, PC_INK_DARK, 0.85);
+        }
+        function pcAddTrail(idx) {
+            const n = pcTrailCells.length;
+            if (n && pcTrailCells[n - 1] === idx) return;
+            // A retrace (quench dragging the ingot back down its own route) rewinds the ink instead of leaving
+            // the old end sticking out past the marker; the trail always ends where the ingot is.
+            if (n > 1 && pcTrailCells[n - 2] === idx) { pcTrailCells.pop(); pcDrawTrail(); return; }
+            pcTrailCells.push(idx); pcDrawTrail();
+        }
+        function pcClearTrail() { pcTrailCells = []; const g = document.getElementById('pcTrail'); if (g) g.innerHTML = ''; }
+        /* Map art. Every layer is load-probed and every layer has a fallback, so the board boots with or
+           without the PNGs: base tile → flat #d8c8a0 pattern rect, illustrated sheet → nothing (base stands).
+           PC_ART_SCRIM is the single knob for how far the busy v2 illustration is lifted toward parchment. */
+        const PC_ART_SCRIM = 0.34;
+        function pcProbeImg(src, ok) { const p = new Image(); p.onload = () => ok(src); p.onerror = () => ok(null); p.src = src; }
+        function pcSetHref(el, src) { el.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src); el.setAttribute('href', src); el.style.display = ''; }
+        function pcLoadMapArt() {
+            const tile = document.getElementById('v2parchTile');
+            if (tile) pcProbeImg('assets/map/parchment_tile.png', src => { if (src) pcSetHref(tile, src); });   // else the pattern's flat rect stands
+            const el = document.getElementById('v2groundArt'); if (!el) return;
+            const wire = src => {
+                if (!src) return;                                       // no sheet shipped: base parchment + procedural mottling stay
+                pcSetHref(el, src);
+                const blobs = document.getElementById('v2blobs'); if (blobs) blobs.style.display = 'none';   // the illustration replaces the procedural mottling
+                const scrim = document.getElementById('v2scrim'); if (scrim) scrim.setAttribute('opacity', PC_ART_SCRIM);
+            };
+            pcProbeImg('assets/map/map_parchment_v2.png', v2src => v2src ? wire(v2src) : pcProbeImg('assets/map/map_parchment.png', wire));
+        }
+        // Marker tint: the hot=fast / cold=precise trade has to read ON THE MAP, not only on the gauge.
+        function pcMarkerTint() {
+            const s0 = document.getElementById('pcEmber0'), s1 = document.getElementById('pcEmber1'), s2 = document.getElementById('pcEmber2');
+            const glow = document.getElementById('pcMarkGlow'), body = document.getElementById('pcMarkBody'), core = document.getElementById('pcMarkCore');
+            if (!s0 || !body) return;
+            let c0, c1, c2, gl, stroke, coreCol, coreOp;
+            if (temperature >= 70) { c0 = '#fff0c6'; c1 = '#ffb347'; c2 = '#ff6b35'; gl = 0.6; stroke = '#5a2a10'; coreCol = '#fff6dd'; coreOp = 0.92; }        // ember core + glow
+            else if (temperature >= 35) { c0 = '#f4d199'; c1 = '#d98a3c'; c2 = '#96471d'; gl = 0.22; stroke = '#42230f'; coreCol = '#ffe2ad'; coreOp = 0.6; }   // dull orange
+            else { c0 = '#8b8b95'; c1 = '#5a5a63'; c2 = '#3a3a42'; gl = 0; stroke = '#20202a'; coreCol = '#9aa0ad'; coreOp = 0.42; }                            // cold iron, faint rim
+            s0.setAttribute('stop-color', c0); s1.setAttribute('stop-color', c1); s2.setAttribute('stop-color', c2);
+            body.setAttribute('stroke', stroke);
+            if (glow) glow.setAttribute('opacity', gl);
+            if (core) { core.setAttribute('fill', coreCol); core.setAttribute('opacity', coreOp); }
+        }
+        function pcMarkerPulse() {
+            const el = document.getElementById('pcMarkInner');
+            if (el && el.animate) el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.22)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease-out' });
+        }
+
+        function pcStatus(msg) { const el = document.getElementById('pc-status'); if (el && msg != null) el.textContent = msg; }
+        // Core-loop feedback that must NOT block: inline status line + a short highlight pulse (gameAlert is for real errors).
+        function pcNotify(msg) {
+            const el = document.getElementById('pc-status'); if (!el) return; if (msg != null) el.textContent = msg;
+            el.classList.remove('pc-pulse'); void el.offsetWidth; el.classList.add('pc-pulse');
+            setTimeout(() => el.classList.remove('pc-pulse'), 800);
+        }
+        function pcStepSize() { return temperature >= 70 ? 3 : temperature >= 35 ? 2 : 1; }
+        function pcSetTemp(v) {
+            temperature = Math.max(0, Math.min(100, v));
+            v2heat = temperature;                                  // the existing gauge + v2heatQuality read v2heat
+            v2updateGauges();
+            const r = document.getElementById('pc-temp-read'); if (r) r.textContent = Math.round(temperature) + '° ×' + pcStepSize();
+            pcMarkerTint();                                        // hot = ember + glow, cold = dark iron (readable on the map)
+            pcUpdateStations();
+        }
+        function pcTempTick() { if (temperature > 0 && !document.hidden) pcSetTemp(temperature - PC_TEMP_DECAY * 0.25); }
+
+        // ---- stations ----
+        function pcToggleOrePicker() {
+            const p = document.getElementById('pc-picker'); if (!p) return;
+            p.classList.toggle('open'); if (p.classList.contains('open')) pcRenderOrePicker();
+        }
+        function pcRenderOrePicker() {
+            const grid = document.getElementById('pcOreGrid'); if (!grid) return; grid.innerHTML = '';
+            PC_ORE_ORDER.forEach(id => {
+                const locked = ['titanium', 'aluminium', 'blackIron', 'redIron'].indexOf(id) !== -1 && !unlockedMetals[id];
+                const t = document.createElement('div'); t.className = 'pc-ore' + (locked ? ' locked' : '') + (plannedOre === id ? ' sel' : '');
+                t.innerHTML = '<span class="pc-ore-dir" style="transform:rotate(' + pcOreArrowDeg(id) + 'deg)">→</span>'
+                    + '<div class="v2-sphere" style="background:' + PC_ORE_COLORS[id] + (locked ? ';opacity:.35' : '') + '"></div>'
+                    + '<div class="pc-ore-nm">' + metalNames[id] + '</div>'
+                    + '<div class="pc-ore-ct">' + (locked ? '🔒 50g' : '×' + (availableMetals[id] || 0)) + '</div>';
+                t.addEventListener('click', () => pcPickOre(id));
+                grid.appendChild(t);
+            });
+        }
+        function pcPickOre(id) {
+            if (pcTravelling) return;
+            if (['titanium', 'aluminium', 'blackIron', 'redIron'].indexOf(id) !== -1 && !unlockedMetals[id]) {
+                if (gold < 50) { pcNotify('You need 50 Gold to unlock ' + metalNames[id] + '.'); return; }
+                gold -= 50; unlockedMetals[id] = true; updateUI(); pcRenderOrePicker(); return;
+            }
+            if ((availableMetals[id] || 0) <= 0) { pcNotify('You are out of ' + metalNames[id] + '. It builds back up over time.'); return; }
+            plannedOre = id; crushSteps = 0;
+            plannedPath = pcPathFrom(pcIngotCell, id, 0);          // the plan always starts from where the ingot stands
+            pcDrawPlanned(); pcRenderOrePicker();
+            pcStatus(metalNames[id] + ' plotted — ' + plannedPath.length + ' cells. Crush to lengthen, or smelt to lock it in.');
+            pcUpdateStations();
+        }
+        function pcCrush() {
+            if (pcTravelling || !plannedOre || !plannedPath.length) { pcNotify('Pick an ore first — the crusher lengthens a plotted route.'); return; }
+            if (crushSteps >= pcCrushMax(plannedOre)) { pcNotify('This ore is crushed as fine as it goes.'); return; }
+            crushSteps++;
+            plannedPath = pcPathFrom(pcIngotCell, plannedOre, crushSteps);
+            pcDrawPlanned();
+            pcStatus('Crushed ×' + crushSteps + ' — route now ' + plannedPath.length + ' cells.');
+            pcUpdateStations();
+        }
+        function pcSmelt() {
+            if (pcTravelling) return;
+            if (!plannedOre || !plannedPath.length) { pcNotify('Plot a route first — pick an ore at the Ore station.'); return; }
+            if ((availableMetals[plannedOre] || 0) <= 0) { pcNotify('You are out of ' + metalNames[plannedOre] + '.'); return; }
+            availableMetals[plannedOre]--; usedMetals[plannedOre]++;                 // the metal is spent on the commit (recipe of the blade being built)
+            committedPath = plannedPath.slice(); pathPos = 0; committedOre = plannedOre;
+            plannedOre = null; plannedPath = []; crushSteps = 0;
+            pcDrawPlanned(); pcRenderOrePicker();
+            const p = document.getElementById('pc-picker'); if (p) p.classList.remove('open');
+            pcStatus('Route locked in. Work the bellows to raise the heat, then pour at ' + PC_POUR_TEMP + '°.');
+            updateUI(); pcUpdateStations();
+        }
+        function pcBellows() {
+            if (pcTravelling) return;
+            pcSetTemp(temperature + PC_BELLOW_TEMP);
+            const bt = document.getElementById('v2-bellowtop');
+            if (bt && bt.animate) bt.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(-11deg) translateY(5%)' }, { transform: 'rotate(0deg)' }], { duration: 260, easing: 'ease-in-out' });
+            if (!pcPoured && committedPath.length && temperature >= PC_POUR_TEMP) pcStatus('Hot enough — pour the ingot.');
+            else if (!committedPath.length) pcStatus('Furnace at ' + Math.round(temperature) + '°. Plot and smelt an ore to give the heat somewhere to go.');
+            else pcStatus('Furnace at ' + Math.round(temperature) + '° — pouring needs ' + PC_POUR_TEMP + '°.');
+        }
+        // Pour: fling a chunk of metal from the furnace mouth to the ingot marker, then the anvil is live.
+        function pcPour() {
+            if (pcTravelling || pcPoured) return;
+            if (!committedPath.length) { pcNotify('Smelt a route first — there is nothing to pour into.'); return; }
+            if (temperature < PC_POUR_TEMP) { pcNotify('The melt is too cold to pour. Work the bellows to ' + PC_POUR_TEMP + '°.'); return; }
+            pcPoured = true;
+            const host = v2scr(), mouth = document.getElementById('v2-mouth');
+            if (host && mouth) {
+                const hr = host.getBoundingClientRect(), mr = mouth.getBoundingClientRect(), tgt = v2worldToScreen(pcWX(pcIngotCell), pcWY(pcIngotCell));
+                const m = document.createElement('img'); m.src = 'assets/forge/Metal.png'; m.className = 'metal-toss';
+                m.style.left = (mr.left + mr.width / 2 - hr.left) + 'px'; m.style.top = (mr.top + mr.height / 2 - hr.top) + 'px';
+                host.appendChild(m);
+                const dX = tgt.x - hr.left - (mr.left + mr.width / 2 - hr.left), dY = tgt.y - hr.top - (mr.top + mr.height / 2 - hr.top);
+                const done = () => { if (m.parentNode) m.remove(); };
+                if (m.animate) m.animate([
+                    { transform: 'translate(-50%,-50%) translate(0,0) scale(0.7)' },
+                    { transform: 'translate(-50%,-50%) translate(' + dX * 0.5 + 'px,' + (dY * 0.5 - 46) + 'px) rotate(200deg) scale(1.1)', offset: 0.5 },
+                    { transform: 'translate(-50%,-50%) translate(' + dX + 'px,' + dY + 'px) rotate(390deg) scale(0.8)', opacity: 0.2 }
+                ], { duration: 520, easing: 'cubic-bezier(.4,.02,.68,1)' }).onfinish = done; else done();
+                setTimeout(done, 800);
+            }
+            pcStatus('Ingot poured. Hammer it along the route at the anvil.');
+            pcUpdateStations();
+        }
+        // Every landing: move the marker, mark the trail, and run the map's own reveal / hazard / trait checks.
+        // Landing inside a trait site's snap radius parks the marker ON the node centre (CSS eases the last few
+        // pixels), so "you are standing on the trait" is never a near-miss the player has to squint at.
+        function pcMoveIngotTo(idx) {
+            pcIngotCell = idx;
+            playerX = pcCX(idx); playerY = pcCY(idx);       // keep the legacy player coords in step with the ingot
+            markPath(playerY * gridSize + playerX);         // legacy trail state (the 50×50 grid DOM is gone, so this is state-only)
+            pcAddTrail(idx);
+            const site = pcTraitHere(), mx = site ? site.x : pcWX(idx), my = site ? site.y : pcWY(idx);
+            v2setSword(mx, my); pcMarkerPulse();
+            v2onSwordMoved(pcWX(idx), pcWY(idx));           // fog reveal + hazard damage + trait detection (mapTraitOn)
+            pcRefreshTraitFocus();                          // lit ring + status line the moment a site arms
+        }
+        // Anvil strike: advance along the committed route, one cell at a time so the travel reads.
+        function pcAnvil() {
+            if (pcTravelling && Date.now() - pcTravelStart < 4000) return;   // watchdog: a dropped frame must never lock the anvil out for good
+            pcTravelling = false;
+            if (!pcPoured) { pcNotify('Pour the ingot first — the anvil needs metal on it.'); return; }
+            if (!committedPath.length) { pcNotify('No route to travel. Pick an ore and smelt it.'); return; }
+            if (pathPos >= committedPath.length) { pcNotify('Path exhausted — quench, smelt another ore, or fire the trait you are standing on.'); return; }
+            const n = Math.min(pcStepSize(), committedPath.length - pathPos), run = pcRunId;
+            pcTravelling = true; pcTravelStart = Date.now(); pcUpdateStations();
+            const btn = document.getElementById('pcBtnAnvil');
+            if (btn && btn.animate) btn.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(3px) scale(0.94)' }, { transform: 'translateY(0)' }], { duration: 180 });
+            let k = 0;
+            const tick = () => {
+                if (run !== pcRunId) { pcTravelling = false; return; }   // the run was reset (forged / shattered) mid-travel
+                pcMoveIngotTo(committedPath[pathPos]); pathPos++; k++;
+                pcDrawPlanned();
+                if (k < n && health > 0) { setTimeout(tick, PC_STEP_MS); return; }
+                pcTravelling = false;
+                if (pathPos >= committedPath.length) pcNotify(pcTraitHere() ? 'Path exhausted — you are standing on a trait. Fire to lock it in.' : 'Path exhausted — quench, or smelt another ore to plot on.');
+                else pcStatus('Travelled ' + pathPos + '/' + committedPath.length + ' cells. Hotter metal moves further.');
+                pcUpdateStations();
+            };
+            setTimeout(tick, 60);
+        }
+        // Quench: water pulls the ingot straight back toward the centre of the map and kills 30° of heat.
+        function pcQuench() {
+            if (pcTravelling) return;
+            if (!pcPoured) { pcNotify('There is no ingot to quench yet.'); return; }
+            const centre = pcCentreCell(); let cx = pcCX(pcIngotCell), cy = pcCY(pcIngotCell); const seq = [];
+            for (let i = 0; i < PC_QUENCH_CELLS; i++) {
+                if (cx === pcCX(centre) && cy === pcCY(centre)) break;
+                cx += Math.sign(pcCX(centre) - cx); cy += Math.sign(pcCY(centre) - cy);
+                seq.push(pcIdx(cx, cy));
+            }
+            pcSetTemp(temperature - PC_QUENCH_TEMP);
+            v2floatText(pcWX(pcIngotCell), pcWY(pcIngotCell), '💧 −' + PC_QUENCH_TEMP + '°', '#8fd0ff');
+            // the ingot is off its route now — the remaining plan is dropped, plot a fresh one from here
+            committedPath = []; pathPos = 0; committedOre = null; plannedOre = null; plannedPath = []; crushSteps = 0;
+            pcDrawPlanned();
+            if (!seq.length) { pcStatus('Quenched at the centre of the map.'); pcUpdateStations(); return; }
+            const run = pcRunId; let k = 0; pcTravelling = true; pcTravelStart = Date.now(); pcUpdateStations();
+            const tick = () => {
+                if (run !== pcRunId) { pcTravelling = false; return; }
+                pcMoveIngotTo(seq[k]); k++;
+                if (k < seq.length && health > 0) { setTimeout(tick, 190); return; }
+                pcTravelling = false; pcStatus('Quenched — pulled ' + k + ' cells toward the centre. Plot a new ore from here.');
+                pcUpdateStations();
+            };
+            setTimeout(tick, 60);
+        }
+        /* Trait arming is resolved from the ingot's LIVE cell, not from the cached mapTraitOn flag.
+           The flag is set by v2onSwordMoved during travel, but a dropped/duplicated landing (or a state
+           reset in between) used to leave it null while the ingot visibly sat on the trait — the demo
+           blocker. pcTraitHere() is the authority; mapTraitOn stays as the fast path / legacy consumer. */
+        function pcTraitHere() {
+            if (typeof v2traits === 'undefined' || !v2traits.length) return null;
+            const x = pcWX(pcIngotCell), y = pcWY(pcIngotCell);
+            let best = null, bd = Infinity;
+            for (let i = 0; i < v2traits.length; i++) { const tr = v2traits[i], d = Math.hypot(x - tr.x, y - tr.y); if (d <= V2_TRAIT_R && d < bd) { bd = d; best = tr; } }
+            return best;
+        }
+        // Adopt whatever the ingot is standing on into the legacy trait state (what the heat minigame reads).
+        function pcArmTrait() {
+            const site = pcTraitHere();
+            if (!site) return null;
+            if (!site.discovered) { site.discovered = true; site.txtEl.textContent = site.trait.symbol; site.txtEl.removeAttribute('font-weight'); v2recordComposition(site.trait, site.value); }
+            mapTraitOn = site.trait; mapTraitValue = site.value; updateUI();   // updateUI also un-disables the legacy #btnHeat gate initiateHeatSequence reads
+            return site;
+        }
+        function pcFire() {
+            if (pcTravelling) return;
+            const site = pcArmTrait();
+            if (!site) { pcNotify('No trait under the ingot — hammer onto a trait marker, then fire.'); return; }
+            if (activeTraits.some(t => t.id === site.trait.id)) { pcNotify(site.trait.name + ' is already fused into this blade.'); return; }
+            initiateHeatSequence();                     // the existing heating minigame; it fuses the trait on success
+            if (getComputedStyle(document.getElementById('heatModal')).display === 'none') pcNotify('The forge is busy right now — try the fire again in a moment.');
+        }
+        function pcForge() { if (forgeCtx || activeTraits.length > 0) forgeSword(); }
+
+        // Fresh blade: drop the route, the trail, the heat and the ingot (called from v2ResetSword).
+        function pcResetRun() {
+            pcRunId++; pcTravelling = false; pcPoured = false;
+            plannedOre = null; plannedPath = []; crushSteps = 0; committedPath = []; pathPos = 0; committedOre = null;
+            pcIngotCell = pcStartCell(); pcClearTrail(); pcAddTrail(pcIngotCell); pcDrawPlanned();
+            temperature = 0; v2heat = 0; if (typeof v2updateGauges === 'function') v2updateGauges();
+            pcMarkerTint();
+            const r = document.getElementById('pc-temp-read'); if (r) r.textContent = '0° ×1';
+            if (typeof v2setSword === 'function' && v2swordEl) v2setSword(pcWX(pcIngotCell), pcWY(pcIngotCell));
+            pcStatus('New blade. Pick an ore to plot a route.');
+            pcUpdateStations();
+        }
+
+        function pcUpdateStations() {
+            const $ = id => document.getElementById(id);
+            const ore = $('pcBtnOre'); if (!ore) return;                 // stations not built yet (updateUI runs before init)
+            if (pcTravelling && Date.now() - pcTravelStart > 4000) pcTravelling = false;   // self-heal if a travel tick was ever dropped (a full 3-cell strike takes ~0.5s)
+            const planning = plannedPath.length > 0, committed = committedPath.length > 0, ahead = committed && pathPos < committedPath.length;
+            pcRefreshTraitFocus();                                       // keep the lit-ring state honest even after a reset / forge
+            const here = pcTraitHere();                                  // live cell test, so Fire lights up even if the cached flag missed
+            const canFire = !!(here && !activeTraits.some(t => t.id === here.trait.id));
+            ore.disabled = pcTravelling;
+            $('pcOreBadge').textContent = plannedOre ? (availableMetals[plannedOre] || 0) : PC_ORE_ORDER.reduce((n, m) => n + (availableMetals[m] || 0), 0);
+            const crush = $('pcBtnCrush'); crush.disabled = pcTravelling || !planning || crushSteps >= pcCrushMax(plannedOre);
+            const cb = $('pcCrushBadge'); cb.style.display = crushSteps > 0 ? '' : 'none'; cb.textContent = '+' + crushSteps;
+            // Slot 3 morphs: Smelter while a plan is on the map, Bellows the rest of the time (so heat is always reachable).
+            const smelt = $('pcBtnSmelt'), asSmelter = planning;
+            // Slot 3 icon: painterly smelter art when it is the Smelter (no bellows art shipped), emoji otherwise.
+            const sIm = $('pcSmeltImg'), sFb = $('pcSmeltFb');
+            if (sIm) sIm.style.display = asSmelter ? 'block' : 'none';
+            if (sFb) { sFb.textContent = asSmelter ? '🏭' : '💨'; sFb.style.display = (asSmelter && sIm) ? 'none' : 'inline-block'; }
+            $('pcSmeltLbl').textContent = asSmelter ? 'Smelter' : 'Bellows';
+            smelt.disabled = pcTravelling || (asSmelter && (availableMetals[plannedOre] || 0) <= 0);
+            const pour = $('pcBtnPour'); pour.disabled = pcTravelling || pcPoured || !committed || temperature < PC_POUR_TEMP;
+            const anvil = $('pcBtnAnvil'); anvil.disabled = pcTravelling || !pcPoured || !ahead;
+            $('pcAnvilBadge').textContent = '×' + pcStepSize();
+            $('pcBtnQuench').disabled = pcTravelling || !pcPoured;
+            $('pcBtnFire').disabled = pcTravelling || !canFire;
+            const forge = $('pcBtnForge'); forge.disabled = !(forgeCtx || activeTraits.length > 0);
+            forge.textContent = forgeCtx ? '🗡️ Resume Forging' : '🗡️ Forge the Blade';
+            // glow the one station the loop is waiting on
+            [ore, crush, smelt, pour, anvil, $('pcBtnQuench'), $('pcBtnFire')].forEach(b => b.classList.remove('pc-ready'));
+            const next = canFire ? $('pcBtnFire')
+                : (!committed && !planning) ? ore
+                : planning ? smelt
+                : (!pcPoured && temperature < PC_POUR_TEMP) ? smelt
+                : !pcPoured ? pour
+                : ahead ? anvil : ore;
+            if (next && !next.disabled) next.classList.add('pc-ready');
+        }
+
+        function pcInitStations() {
+            const bind = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+            bind('pcBtnOre', pcToggleOrePicker); bind('pcBtnCrush', pcCrush);
+            bind('pcBtnSmelt', () => { plannedPath.length ? pcSmelt() : pcBellows(); });
+            bind('pcBtnPour', pcPour); bind('pcBtnAnvil', pcAnvil); bind('pcBtnQuench', pcQuench);
+            bind('pcBtnFire', pcFire); bind('pcBtnForge', pcForge);
+            pcIngotCell = pcStartCell(); pcClearTrail(); pcAddTrail(pcIngotCell);
+            if (v2swordEl) v2setSword(pcWX(pcIngotCell), pcWY(pcIngotCell));
+            pcLoadMapArt();
+            pcRenderOrePicker(); pcDrawPlanned(); pcSetTemp(0);
+            if (pcTempTimer) clearInterval(pcTempTimer);
+            pcTempTimer = setInterval(pcTempTick, 250);   // temperature bleeds 2°/sec
+            pcStatus('Pick an ore to plot a route.');
+            window.pcdbg = { plan: pcPickOre, crush: pcCrush, smelt: pcSmelt, bellows: pcBellows, pour: pcPour, anvil: pcAnvil, quench: pcQuench, fire: pcFire, forge: pcForge, setTemp: pcSetTemp, traitHere: () => { const s = pcTraitHere(); return s ? s.trait.id : null; }, state: () => ({ plannedOre, plannedPath, committedPath, pathPos, temperature, poured: pcPoured, cell: pcIngotCell, travelling: pcTravelling, traitHere: (pcTraitHere() || {}).trait ? pcTraitHere().trait.id : null, traits: activeTraits.map(t => t.id) }) };
+        }
+
         function initializeMainGame() {
-            // V2: the path map replaces the 50×50 grid + metal movement. A fresh furnace tutorial (v2tut*) guides the first craft.
+            // The path map replaces the 50×50 grid + metal movement; the station row (pc*) drives the front half.
             tutorialStep = tutorialFlow.length;
             tutorialMetalLock = false; purifyEnabled = true; suppressAutoRequest = false;
+            // Presentation build: boot straight into the playable forge screen. Both tutorials are skipped by
+            // default (their code is untouched — "Skip Tutorial ⏭" in the cheat panel still calls v2tutSkip).
+            unlockedMetals = { titanium: true, aluminium: true, blackIron: true, redIron: true };
+            metalsList.forEach(m => { availableMetals[m] = Math.max(availableMetals[m], 8); });
             initV2Map();
+            pcInitStations();          // station row + route lattice (must follow initV2Map — it needs the SVG refs)
             slideScreen(2);            // open on the Forge/Map screen
             setRandomRequest();
+            startMetalGenerator();     // metals keep building back up passively
             startShopLoop();
             updateUI();
-            v2tutStart();
+            v2tutSkip();
         }
 
     </script>
