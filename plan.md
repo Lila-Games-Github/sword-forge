@@ -8,6 +8,21 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ## ✅ Done
 
+### Session 2026-08-11 — presentation pass: visual gauntlet vs Potion Craft (`swordforgeV2.html`)
+
+Full write-up in `SESSION-2026-08-11-presentation-pass.md`. Commits `f14c6b6`, `d331b2e`, `4bf6272` (branch `sword-forge/core-loop-mapping`, not pushed).
+
+- [x] **Route rendering rebuilt as authored ink** — dashed Catmull-Rom curve with a mid arrowhead and an X terminus for the plan, solid inked stroke for the travelled trail, both clipped to the map. Replaces the recycled grid tiles.
+- [x] **Molten ingot marker** — temperature-tinted (ember glow hot, dark iron cold) so the hot-fast / cold-precise trade reads on the map. The V1 blue token is gone.
+- [x] **Map is an illustration** — hand-inked parchment terrain (`map_parchment_v2.png`) over a seamless tile base, feather-masked; no hard edge or black void reachable at any pan.
+- [x] **Trait sites are ink nodes** that light when the ingot stands on them; snapped to the cell lattice.
+- [x] **Crush is a real choice** — crush 0/1/2 on steel reach Balanced → Grace → Noble instead of overshooting onto a dead cell.
+- [x] **Feedback is inline**, not blocking modal alerts.
+- [x] **Chrome in the parchment language** — `:root` token palette (flat-UI literals to zero), forge-scale temperature gauge, inked station medallions, ore picker with real route thumbnails, fixed status ribbon, inked manicule replacing all emoji guidance hands, 15 modals on one scorched sheet, "Record Composition" → "Note the Alloy".
+- [x] **Art** — stamp mill, parchment map + seamless tile, 6 station icons (~$0.28 total).
+
+**Next up:** see the Owed section of the session write-up — letterbox rebuild (~75% of a desktop window is dead grey), the counter/sell and mining screens still need the chrome pass, the emoji sweep, and `INDEX.md` cataloguing at merge.
+
 ### Session 2026-08-10 — presentation pass: station loop (`swordforgeV2.html`)
 - [x] **Front half rebuilt as forge stations** (Potion Craft verb mapping, `specs/2026-08-10-core-loop-potioncraft-mapping.md` → as-built in `specs/game-design.md` §3A). Station row replaces the drag-dock: **Ore** (plots a route from the ingot's cell — one shape per metal, `orePathDefs`), **Crusher** (repeats the shape's last two steps, capped at 2× length), **Smelter** (commits, spends 1 metal; then morphs into **Bellows**), **Pour** (temp ≥ 40 → the ingot exists), **Anvil** (travel: 3/2/1 cells per strike by temperature), **Quench** (3 cells toward centre, −30°), **Fire** (the existing heating mini-game locks the trait in), **Forge the Blade** (unchanged pipeline).
 - [x] **Temperature meter** — bellows +12/tap, decay 2/sec, ×2/×3 threshold ticks on the 🔥 gauge.
