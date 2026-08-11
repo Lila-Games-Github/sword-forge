@@ -1,0 +1,18 @@
+{
+  "rating_average": 3.951456308364868,
+  "rating_count": 181903,
+  "rating_distribution": {
+    "5": 94846,
+    "4": 27002,
+    "3": 16876,
+    "2": 5062,
+    "1": 25314
+  },
+  "rating_distribution_sum": 169100,
+  "rating_distribution_implied_average": 3.952,
+  "rating_distribution_matches_average": true,
+  "title": "Shop Titans: Crafting Tycoon - Apps on Google Play",
+  "package": "com.ripostegames.shopr",
+  "source_url": "https://play.google.com/store/apps/details?id=com.ripostegames.shopr&hl=en_US",
+  "source": "play_store_listing_page"
+}
