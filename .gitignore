@@ -10,3 +10,16 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+### Game-research heavy assets (keep text docs, ignore binaries/large dumps)
+# Videos: raw clips, sidecar metadata, extracted frames (keep transcript.txt / notes.md / *.vtt)
+research/**/Videos/**/*.mp4
+research/**/Videos/**/*.webm
+research/**/Videos/**/*.part
+research/**/Videos/**/*.info.json
+research/**/Videos/**/frames/
+# Wiki: downloaded images (keep the *.md page text)
+research/**/Web Sources/wiki/img/
+# Review corpora: large raw dumps (keep the digest .md + listing_metadata.json)
+research/**/Reviews/*.csv
+research/**/Reviews/*.jsonl
+research/**/Reviews/sensortower-ios-reviews-raw.json

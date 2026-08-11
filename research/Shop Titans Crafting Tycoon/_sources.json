@@ -1,0 +1,321 @@
+{
+  "game": "Shop Titans Crafting Tycoon",
+  "created": "2026-08-11T16:35:04",
+  "depth": "deep",
+  "providers": {
+    "search": "WebSearch",
+    "reader": "playwright"
+  },
+  "sources": [
+    {
+      "id": "web-01",
+      "type": "web",
+      "url": "https://shop-titans.fandom.com/wiki/",
+      "category": "wiki",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/wiki/"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-02",
+      "type": "web",
+      "url": "https://st-central.net/",
+      "category": "guides",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-02-st-central.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-03",
+      "type": "web",
+      "url": "https://ackadia.com/games/shop-titans-guide/",
+      "category": "guides",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-03-ackadia.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-04",
+      "type": "web",
+      "url": "https://playshoptitans.com/blueprints/featured/new",
+      "category": "official",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-04-playshoptitans.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-05",
+      "type": "web",
+      "url": "https://www.gamezebo.com/walkthroughs/shop-titans-beginners-guide-tips-cheats-and-strategies/",
+      "category": "guides",
+      "approved": true,
+      "status": "failed",
+      "files": [
+        ""
+      ],
+      "notes": "gamezebo HTTP 403 bot-block"
+    },
+    {
+      "id": "web-06",
+      "type": "web",
+      "url": "https://www.bluestacks.com/blog/game-guides/shop-titans/shopt-tips-tricks-en.html",
+      "category": "guides",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-06-bluestacks.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-07",
+      "type": "web",
+      "url": "https://www.slashskill.com/shop-titans-complete-guide-master-crafting-questing-and-your-shop/",
+      "category": "guides",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-07-slashskill.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-08",
+      "type": "web",
+      "url": "https://minireview.io/incremental/shop-titans-rpg-idle-tycoon",
+      "category": "review",
+      "approved": true,
+      "status": "failed",
+      "files": [],
+      "notes": "MiniReview JS-rendered; WebFetch recovered title only"
+    },
+    {
+      "id": "web-09",
+      "type": "web",
+      "url": "https://www.metacritic.com/game/shop-titans/",
+      "category": "review",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-09-metacritic.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-10",
+      "type": "web",
+      "url": "https://steamcommunity.com/app/1258080/discussions/0/2946998508803954809/",
+      "category": "community",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-10-steam-p2w.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-11",
+      "type": "web",
+      "url": "https://steamcommunity.com/app/1258080/reviews/?browsefilter=toprated",
+      "category": "community",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-11-steam-reviews.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "web-12",
+      "type": "web",
+      "url": "https://www.pocketgamer.com/shop-titans/guide/",
+      "category": "guides",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Web Sources/web-12-pocketgamer.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-downloads-revenue",
+      "type": "market",
+      "url": "sensortower://download_revenue_estimates",
+      "category": "growth",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/growth-performance.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-active-users",
+      "type": "market",
+      "url": "sensortower://active_users",
+      "category": "engagement",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/growth-performance.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-retention",
+      "type": "market",
+      "url": "sensortower://retention_metrics",
+      "category": "retention",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/growth-performance.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-iap",
+      "type": "market",
+      "url": "sensortower://top_in_app_purchases",
+      "category": "monetization",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/monetization.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-ratings",
+      "type": "market",
+      "url": "sensortower://app_metadata",
+      "category": "ratings",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/ratings-acquisition.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-reviews",
+      "type": "market",
+      "url": "sensortower://reviews",
+      "category": "sentiment",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/ratings-acquisition.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-acquisition",
+      "type": "market",
+      "url": "sensortower://ad_network_analysis",
+      "category": "acquisition",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/ratings-acquisition.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "market-similar",
+      "type": "market",
+      "url": "websearch://similar-games",
+      "category": "competitive",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Market Data/ratings-acquisition.md"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "review-playstore",
+      "type": "review",
+      "url": "https://play.google.com/store/apps/details?id=com.ripostegames.shopr",
+      "category": "playstore",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Reviews/reviews.jsonl"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "yt-01",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=DjkiXuUllIM",
+      "category": "ftue",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Videos/yt-01-ftue/transcript.txt"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "yt-02",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=KHncTjjvprs",
+      "category": "progression",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Videos/yt-02-progression/transcript.txt"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "yt-03",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=UcyOqACm5gg",
+      "category": "endgame",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Videos/yt-03-endgame/transcript.txt"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "yt-04",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=5THC_31srzk",
+      "category": "monetization",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Videos/yt-04-monetization/transcript.txt"
+      ],
+      "notes": "verify: ok"
+    },
+    {
+      "id": "yt-05",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=P5D8MG92_Eo",
+      "category": "review",
+      "approved": true,
+      "status": "verified",
+      "files": [
+        "Videos/yt-05-review/transcript.txt"
+      ],
+      "notes": "verify: ok"
+    }
+  ]
+}
