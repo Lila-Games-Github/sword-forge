@@ -81,6 +81,22 @@ water **pulls back to centre**, fire **locks a trait in**. Everything from the F
   zigzag, bronze = east sweep, titanium/aluminium/blackIron/redIron = NW/NE/SW/SE curves). Picking an ore
   plots `plannedPath` **from the ingot's current cell**, clamped at the map edges. Re-picking replots freely;
   nothing is spent until the smelter commits.
+  - **The ore picker shows the route, not a bearing.** Each tile in `#pc-picker` carries four things, all
+    computed **live** on every render (`pcRenderOrePicker`): an **inked mineral silhouette** (`PC_ORE_GLYPH`,
+    filled with the ore's own `PC_ORE_COLORS` tone), a **thumbnail of the actual plotted route**
+    (`pcRouteThumb` — the same `pcPathFrom` cells and the same `pcSmoothD` Catmull-Rom the map draws, inked in
+    the map's own halo + dashed-ink language, fit to a 42×30 box, with a start dot and either a trait-node
+    disc or a destination ✕), a **destination line**, and a **stock badge**. Nothing here may be tabulated:
+    the ore→trait mapping does not exist as a table (crush-1/crush-2 sites are dealt at runtime in
+    `initV2Map`, and every route is plotted from the live `pcIngotCell`), so the destination is a live
+    `pcTraitAtCell` lookup against `v2traits` by end cell. **The fog is respected**: an undiscovered site
+    reads `? unknown` and is never named until `site.discovered` flips. Shape carries ore identity because
+    colour cannot — six of the eight `PC_ORE_COLORS` tones are under 9% chroma and titanium/magnesium are
+    0.8 percentage points apart in lightness, so the palette separates the ores by lightness alone.
+  - **The picker's vertical offset is derived, never a constant.** `.pc-picker`'s `bottom` is
+    `calc(var(--pc-status-h) + 98px)` at load and is re-derived from live geometry (`#pc-stations`'s
+    `offsetTop` within its `offsetParent`, + 6px) every time `pcToggleOrePicker` opens it. Both produce
+    140px and a 5.5px gap above the station row. **They must stay in step** or the panel jumps on first open.
 - **Traits sit on route ends.** `PC_CENTRAL` pins Balanced/Durable/Sharp/Heavy/Flexible to the **uncrushed**
   end of the steel/iron/magnesium/bronze/blackIron routes (one ore reaches them); `PC_STACKED` pins Flame
   (steel → aluminium), Ice (titanium ×2) and Water (redIron ×2) to two-ore stacks, always on their
@@ -100,7 +116,13 @@ water **pulls back to centre**, fire **locks a trait in**. Everything from the F
 - **Smelter.** Commits: spends **1 unit** of the planned metal (`availableMetals` −1, `usedMetals` +1, so it
   lands in the forged sword's recipe), copies the plan into `committedPath`, resets `pathPos` to 0 and clears
   the plan. The slot **morphs**: it is the Smelter whenever a plan is on the map and **Bellows** the rest of
-  the time, so a heat control is always reachable (including before anything is plotted).
+  the time, so a heat control is always reachable (including before anything is plotted). Each verb has its
+  own painterly icon — `assets/ui/icon_smelter.png` as the Smelter, `assets/ui/icon_bellows.png` as the
+  Bellows — swapped by `pcUpdateStations`. Both `<img>`s carry `onerror="this.remove()"`, so a missing PNG
+  leaves the 🏭/💨 emoji fallback un-hidden **for that verb only**; the medallion is never empty. Crush and
+  Quench now carry the same fallback pair (🪨 / 💧); Crush's `onerror` chains `stamp_mill` → `grindstone` →
+  emoji. The emoji fallback keeps `position: relative; z-index: 1` so the medallion `::before` (an
+  absolutely-positioned `z-index: 0` box) can never bury it — verified with every image request aborted.
 - **Temperature (0–100).** Bellows tap = **+12**; decays **2/sec** (`pcTempTick`). Shown on the **forge scale**
   (the inked gauge above the map) and on the **ingot marker itself**, which reads ember + glow at ≥70, dull
   orange at 35–69 and cold iron below 35, so the fast/precise trade is legible on the map. Tapping the furnace
@@ -174,6 +196,25 @@ water **pulls back to centre**, fire **locks a trait in**. Everything from the F
   the ingot, out of a metal — go to the inline status line with a highlight pulse (`pcNotify`). `gameAlert`
   is reserved for genuinely blocking errors, and any open `gameAlert` is closed on a screen slide and when
   the forge pipeline starts, so a notice can never sit over a later scene.
+  - **The ribbon is a FIXED two-line slab, and that is load-bearing.** `.pc-status` is an inked-parchment
+    plaque of exactly **`--pc-status-h` = 42px** (2 × 13px × 1.3 + 6px padding + 2px border = 41.8), set in
+    **Lora 13px** so the one place in the UI that writes whole sentences reads as prose rather than an eighth
+    row of Cinzel station labels. It was previously auto-height (`min-height: 14px`): because `#v2map-wrap`
+    is `flex: 1 1 0`, a message that wrapped to two lines stole 13.5px **from the map** and jerked the whole
+    station row up under the player's thumb mid-loop. The fixed slab costs the map ~28px permanently
+    (407.5 → 379.5px at the reference frame, still 179px above `#v2map-wrap`'s 200px floor) and buys a map
+    height and station-row position that do not move for any message.
+  - **COPY BUDGET — check this before adding a `pcStatus`/`pcNotify` string.** The box holds **two lines of
+    ~318px**, i.e. roughly **85 characters** (~505px natural at these metrics). The current worst case is the
+    82-character path-exhausted nudge in `pcAnvil`. A third line is eaten silently by `overflow: hidden`.
+    If copy must grow, drop `.pc-status` to `font-size: 12px` before raising the token — and if the token or
+    the font metrics change, **`--pc-status-h` must change with them**, because `.pc-picker`'s `bottom`
+    derives from it (above) and the clip failure is invisible.
+  - **The pulse never moves anything.** `pcStatusPulse` animates border-colour, wash and glow only. It used
+    to animate `transform: scale(1.08)`, which blew the 340px block out to 367.2px — 3.6px past
+    `#mobile-wrapper` on **both** sides, and the wrapper is `overflow: hidden`, so every notification visibly
+    shaved both ends of the line. The ink also stays put: the old colour swap to `#ffd76a` measured 1.10:1
+    against the sheet, i.e. the attention state was **less** legible than rest.
 - **Metals.** The 8-metal economy of §3 is back in use: `availableMetals` with passive generation
   (`startMetalGenerator`). The presentation build boots with all 8 unlocked and 8 of each.
 - **Boot.** The build opens straight on the forge screen with both tutorials skipped
@@ -306,6 +347,20 @@ Forging runs as a **pipeline of steps** — shape select → hammer → *quench 
 - **Ledger** (`📒 Ledger` button on the Shop screen → `#ledgerModal`): an expandable window with **scrollable day tabs** across the top (most-recent day first, labelled *Day N*); tapping a tab lists every sword sold **that day via the passive shop** — its image (laid flat), shape, traits, and the gold it fetched, plus a day total. Only the **5 most recent days** with sales are kept; older days are dropped (`shopLedger`, capped at `LEDGER_MAX_DAYS`; `recordLedgerSale`/`renderLedger`).
 
 ### Recorded Compositions (blueprints)
+
+> **VOCABULARY (cycle 4b): the player-facing noun is now "alloy", not "composition".** "Composition" is
+> chemistry-lab language in a smithy, and the build already said *"You have discovered a type of alloy!"*.
+> All 20 user-facing strings were renamed in one pass so the button never disagrees with the modal it opens:
+> **Record Composition → "Note the Alloy"** (`#btnSaveRecipe` and the `#recordModal` title),
+> **Update Composition → "Update the Alloy"**, **📜 Recorded Compositions → "📜 Alloy Book"** (counter button,
+> list-modal title, tutorial copy), **Composition Details → "Alloy Details"**,
+> *"No compositions recorded yet." → "No alloys noted yet."*, *"… composition recorded/updated" →
+> "… alloy noted/updated"*, and the quest label *"Update 3 recorded compositions" → "Update 3 noted alloys"*
+> (quest progress is keyed by `id`, not label, so the rename is safe there).
+> **Internal names are deliberately unchanged** — `btnSaveRecipe`, `openCompositionsModal`,
+> `v2recordComposition`, `compositionsModal`, `savedBlueprints` and this section's own heading still say
+> "composition". Renaming them would widen the diff for no player-visible gain. Read every "Record
+> Composition"/"Recorded Compositions" below as the UI strings above.
 - The **Record Composition** button saves the current active traits + used-metal composition as a named entry. If the active blade is empty (e.g. right after forging) but a sword was just forged, the button instead reads **Record Last Composition** and saves that last forged sword's traits + composition — so you can still record after forging without re-heating.
 - **Confirmation box (`#recordModal`):** recording never saves silently — it opens a box first. A composition is **keyed by its trait set**:
   - **New trait set** → the box shows *what trait(s)* are being saved and *how many metals* were used, with a **Record** button (or Cancel).
@@ -323,11 +378,83 @@ Forging runs as a **pipeline of steps** — shape select → hammer → *quench 
 
 ## 8. UI / UX
 
+### Material language (cycle 4b — hand-inked parchment)
+The whole UI is one material: **inked parchment, Cinzel for chrome labels and titles, Lora for prose.** The
+`:root --sf-*` block is the single source of colour; flat-UI hexes stay banned. Recorded here because these
+are cross-cutting constraints the next author will otherwise break by accident.
+
+- **Type.** `body` is **Lora**, not Arial. Form controls do **not** inherit `font-family` from `body` — the UA
+  sheet hard-sets `font: 400 13.333px Arial` on `button/input/select/textarea` — so a `button, input, select,
+  textarea { font-family: 'Cinzel', serif }` rule is required and is what actually fixed the 24 elements that
+  were still system sans. The two **customer responses** (`#btnAutoSell`, `#btnRefuse`, `#btnCosplay`,
+  `#btnNextCustomer`, `#btnContinueDialogue`) are re-declared back to Lora: they are sentences, not labels.
+- **Modal shell.** 15 of the 19 modals now share **one** hand-cut sheet (`.modal-content`,
+  `.design-modal-content`, `.list-modal-content`): a 2px `--sf-rule` border, an **asymmetric** border-radius,
+  laid-paper grain, and a scorch inset. It is appended as the **last block in the stylesheet on purpose** —
+  source order at equal specificity is what lets it beat the earlier per-family rules with no `!important`.
+  **Moving that block earlier silently half-converts the game.** Inline `style="background:…;border:…"` on
+  the seven `.modal-content` consumers had to be stripped for it to apply at all. `#heatModal` opts out via
+  `.modal-bare` (its shell is a transparent carrier around the forge box); `.dialogue-frame` ×3 and
+  `.cave-content` are excluded by design (painted art / a cave interior, not sheets).
+- **Type ramp.** Modal `<h3>` computed to **five** different sizes with no rule behind them (15 / 16 / 18.72
+  / 20 / 22px) — and 18.72px was the UA default `1.17em` showing through, because the design-desk h3s carry
+  an inline style with no `font-size`. Now three intentional steps: `--sf-t0` 21px (celebration),
+  `--sf-t1` 19px (modal title), `--sf-t2` 15px (list header).
+- **Buttons: three tiers, one press, one drained state.** Secondary = pressed-parchment key; primary =
+  moss key with cream ink; tertiary = oxide. Press is `translateY(2px)` + an inset shadow (the key sinks)
+  rather than the old global `scale(0.95)` + fade (which on parchment read as "the button went
+  translucent"). `.dialogue-btn` and `.nav-btn` keep their own presses because both re-state a **centring
+  transform** a bare `translateY` would destroy. Disabled is **drained, not erased** — the `opacity: 1` in
+  each disabled rule is load-bearing, because the global `button:disabled { opacity: 0.4 }` must stay for
+  `.pc-btn:disabled`/`.pc-forge-btn:disabled`, which document that they depend on it.
+- **Inline styles beat stylesheets — that was the actual bug class here.** Three JS sites wrote inline
+  styles that defeated the shared states and are now class toggles: the review-nav `prev/next.style.opacity`,
+  `btnUnlockShop.style.background` (both branches), and the passive-sale gold flash.
+- **Mini-game chrome.** `.forge-instructions` (shared by heat/quench/sharpen) is a **torn parchment strip**
+  via `clip-path`; because `clip-path` also clips border and box-shadow away, its border is 0 and the lift is
+  a `filter: drop-shadow`. Do not re-add a border ("outline the ribbon") — it is silently clipped — and do
+  not tighten the padding; the polygon eats ~6% of the box at the notches. `.interactive-heat-meter` and
+  `.sharpen-meter` are the same parchment card; **their label colours in the markup are atomic with the CSS**
+  (on parchment the old `#8a9a52` label scores 2.4:1 and the `#ffd27f` timer 1.1:1 — invisible).
+  `.forge-minigame-container` gains a **burnt-paper rim** as `::before`/`::after` at **z 8/9** — above the
+  painted props (z 3–7), below the meters and ribbon (z 14). That ordering is load-bearing: higher greys out
+  the ribbon, lower and it sits under the props. Because 8/9 is above them, `.cool-hand` and `.sharpen-hand`
+  are raised to **z 12**.
+- **`#heatModal .cancel-btn` is scoped ON PURPOSE.** `.cancel-btn` is shared by 12 call sites; on the eleven
+  parchment cards the pale stone correctly reads as recessed. `#heatModal` is the outlier — its
+  `.modal-content` is transparent, so the same slab landed on a near-black screen and held ~half the bright
+  pixels on it in 8.6% of its area. The scoped rule sinks the **field** (mean L 0.176 → 0.035) while
+  **raising** text contrast to 6.7–9.4:1. Those two numbers move in opposite directions deliberately —
+  "restoring the old ratio" by lowering text contrast would re-break accessibility and leave the slab.
+- **Tutorial pointers are an inked manicule**, not emoji. `--sf-hand` is a data-URI SVG drawn pointing right
+  and rotated by `.sf-hand-{u,d,l,r}`; the rotation lives on `::before` so the element's own transform stays
+  free for the bob/slide keyframes, and the box is a **28px square in all four directions**, which is why
+  `placeHand`'s `const H = 28` offset maths is unchanged. Being a data URI, it survives with zero assets.
+- **Gold/reputation pill is OPAQUE ink on both screens.** The old `rgba(0,0,0,0.55)` composited to near-black
+  on screen 1 but to `rgb(105,99,86)` over screen 2's parchment, so the tier colour met two wildly different
+  backdrops and scored **1.08–1.13:1** on the forge screen. One known backdrop → one set of tiers.
+  **Reputation tiers (hand-mirrored from `:root` in `updateUI` — retune both):** `< 0` → `#d4744a`
+  (`--sf-oxide-pale`, 4.74:1), `0–10` → `#93a3a8` (`--sf-iron-lt`, 5.96:1), `> 10` → `#8a9a52`
+  (`--sf-moss-lt`, 5.05:1). The pill copy drops the word **"Gold:"** (icons carry it): it was wrapping to
+  three lines on screen 2, and Cinzel is ~18% wider than the Arial it replaced in a header with **0.0px** of
+  slack (`flex-wrap: nowrap; overflow: hidden`). After the change the header measures scrollWidth ===
+  clientWidth === 318 at both 360px and 375px — **re-check that if the header copy or font ever changes.**
+- **`#mobile-wrapper`'s background is `--sf-ink-dk`, not `#f0f0f0`.** On a fractional viewport offset
+  (wrapper at x 7.5 on a 375px screen) the 33.333%-wide `.screen` rasterises ~0.04px short and this colour
+  shows through as a 1-device-px column for the full 640px height; the old grey read as a bright cut straight
+  through the painted burnt-paper border. It is a rasterisation artifact, so geometry cannot fix it —
+  `.screen { flex: 1 0 0 }` was tried and shrank every screen to 353.3px.
+- **`sharpenModal` has zero slack** and is the one modal that breaks under a heavier edge: its children
+  needed 562px in a 550px budget, so the flex box was silently crushing `.sharpen-joystick` from its authored
+  58px to 40px while the 48px `.sharpen-knob` overflowed the track. `border 3→2` (+2px), `gap 10→8` (+6px)
+  and a tighter joystick margin (+12px) return the full 58px with `scrollHeight === clientHeight`;
+  `flex-shrink: 0` then makes any future overflow **visible** instead of silently eating the joystick.
+
 - **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
 - **Counter (Customers) screen:** two stacked top-left corner tabs — a **📋 quest tracker** (see §6 *Quests*) and, below it, a **📖 Diary** (mutually exclusive panels). The Diary is a **paged book** (◀ ▶ arrows) of the named story customers — **Bram, June, Roland**. Each page is **locked (identity hidden behind a 🔒 placeholder) until the player sells a sword to that specific customer**; once unlocked it shows the customer's portrait, a short storyline note, and a running **list of swords crafted for them** (`diaryCustomers`/`diaryGiven`; sales tagged via `currentCustomerId`; a page unlocks when `diaryGiven[id]` is non-empty; `renderDiary`/`diaryFlip`). a slim gold/reputation pill at the top; the customer rendered as an **image** anchored bottom-left that **slides in from the left** on each new customer: **Bram** (`assets/customer/Bram.png`) is the tutorial's very first customer (Day 1 opener) and returns as `BramD2.png` for **Day 2's opener**; every other customer draws a **random portrait** from the human pool (`man1`–`man4`, `woman1`–`woman3`), never repeating the previous portrait back-to-back (`customerPool`/`setCustomerImage`); the request speech bubble (tail pointing to the customer) whose text is **revealed word by word** (see §6), with the player's two **response options** — **"I have something for you."** (Search Inventory) and **"I don't have what you need."** (Refuse) — stacked beside it, fading in only once the line has finished typing (Refuse is disabled for the first three customers — see §6); after a sale those two options are replaced by a single **response button** (*"Thank you" / "Glad you liked it" / "Take care"*) that the player taps to send the customer off and bring the next (see §6); and, at the bottom, two buttons — **🛡️ Inventory** and **📜 Recorded Compositions** — that each open their **own modal** (a fixed-height box with an internal scroll, so the screen itself no longer grows). Each modal is a **tile grid → tap a tile → drill-in detail view** (with a ← Back): the **Inventory** modal's tiles show the **composited sword image** (blade + fittings, with the quality overlay in the detail) and the detail carries **Sell** + **To Shop**; the **Recorded Compositions** modal's tiles show the trait icon(s) and the detail carries **⚡ Craft** + **🗑️ Delete**. Background: `Screen1bg.png`.
 - **Forge screen:** status panel — health bar (no numeric text), then a row with an **ℹ️ tutorial-review button** (left) and the **gold/reputation pill** (mirrors screen 1's `💰 Gold | ⭐ Rep`), then a **"Blade Traits:"** line listing the heated traits (or "None"). The ℹ️ button re-opens past tutorial dialogue boxes (in their own frames) with ◀ Prev / Next ▶ / Close, and stays available after the tutorial. Then a draggable/zoomable 50×50 viewport (drag to pan; mouse-wheel zoom is centered on the cursor; a **📷 free-camera toggle** at the viewport's bottom-right (highlighted gold when active) — when active, moving the sword no longer recentres the view; turning it off snaps back to the sword), 3×3 movement grid, action buttons (Heat, Forge, Record Composition, 🗺️ Chart). ("Record Composition" saves a recorded composition — see §6.)
   - **Grid tiles:** the spawn cell (25,25) shows `tile_centre` and the 8 cells around it show `tile_centre2` (home base); cells the active sword **lands on** show a `tile_path` trail. Dashes only mark the endpoint, so jumped-over cells stay blank; the trail never overwrites hazard, trait, or the home tiles. The trail resets with the active blade — after a forge or on death (`pathCells`, `markPath`/`clearPath`).
-- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart (a text label + pulsing glow over the minimap alternates every 3s between the player marker — "Your location" — and the Flame icon — "Flame trait" — until the chart is closed, so the player sees where to head) → learn the Purify-dash slider (two illustrated dialogue boxes: a tap-vs-hold art frame, then an avoid-impure-tiles art frame) → head west toward the Flame trait (when its ❓ mark is revealed by the fog, a persistent top-of-screen banner — "See the trait mark ❓… add some iron to go down to it." — appears and stays until the player reaches it) → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Composition" (the **Forge button is greyed out from when the Flame is heated until the composition is recorded**, so the player can't accidentally forge first) → record it (a **confirmation box** shows the trait + metals being saved; confirm to record — see §6) → a bouncing arrow points to the now-enabled Forge button to craft the sword → forge it (choose the blade shape, hammer the ingot into form, quench it in water, design the fittings, then sharpen it on the grindstone — see §5) → prompt to go sell it at the counter → sell the flame sword to the 2nd customer → a 3rd customer (off to fight an ice dragon, "weak to heat") arrives, a tutorial box teaches opening **Recorded Compositions** and tapping **Craft** to forge a flame sword from the recorded composition (which re-runs the heat + hammer mini-games — see §6), then giving it to the customer, who is delighted, then a closing "help customers find the perfect sword" tip as the 4th (non-Flame) customer arrives; then, the first time the player finishes a heating minigame after the tutorial (heating that 4th customer's new trait), a one-off record-reminder box — "Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve." — with a hand pointer to the Record Composition button (see §6)), plus a contextual "Shop Available!" tip the first time the player reaches 500 gold (enough to unlock the Shop), which then hand-guides them to the Shop screen and the Unlock Shop button (see §6). **Any tutorial box tied to a customer** (the sell-a-sword prompt, the "another customer" prompt, the Auto-Craft lesson, and the closing tip) is gated to appear **only after that customer's word-by-word line has fully typed out plus a ~2s read pause**, so a tutorial box never overlaps the customer's speech. During the intro, a **"Skip Intro" button** (fixed bottom-right) jumps straight into the game (`launchCoreGame`). A **"Skip Tutorial"** button (in the collapsible cheat box, shown only while the tutorial is running) ends the flow immediately and unlocks everything (metals, passive generation, Record Composition, Chart, the Purify slider). The three cheat buttons live in a **small collapsible box** floating **just above the game frame's top-right** (`#cheatBox` inside a `#frame-shell` wrapper, so it clears the game window / health bar and works on desktop and mobile): a **🛠 toggle** (`toggleCheats`) expands a **horizontal row** of **"+100 Metals"** (adds 100 of every metal), **"+100 Gold"**, **"Skip Stage"** (skips whichever forge minigame is open — heat/shape/hammer/quench/design/sharpen — and proceeds to the next stage), and — **while the tutorial is running** — **"Skip Tutorial"**. The box appears once the game starts (`launchCoreGame`) and stays available for the session, collapsed by default. ⚠️ The Skip Intro button and all three cheats currently ship to players.
+- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart (a text label + pulsing glow over the minimap alternates every 3s between the player marker — "Your location" — and the Flame icon — "Flame trait" — until the chart is closed, so the player sees where to head) → learn the Purify-dash slider (two illustrated dialogue boxes: a tap-vs-hold art frame, then an avoid-impure-tiles art frame) → head west toward the Flame trait (when its ❓ mark is revealed by the fog, a persistent top-of-screen banner — "See the trait mark ❓… add some iron to go down to it." — appears and stays until the player reaches it) → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Composition" (the **Forge button is greyed out from when the Flame is heated until the composition is recorded**, so the player can't accidentally forge first) → record it (a **confirmation box** shows the trait + metals being saved; confirm to record — see §6) → a bouncing arrow points to the now-enabled Forge button to craft the sword → forge it (choose the blade shape, hammer the ingot into form, quench it in water, design the fittings, then sharpen it on the grindstone — see §5) → prompt to go sell it at the counter → sell the flame sword to the 2nd customer → a 3rd customer (off to fight an ice dragon, "weak to heat") arrives, a tutorial box teaches opening **Recorded Compositions** and tapping **Craft** to forge a flame sword from the recorded composition (which re-runs the heat + hammer mini-games — see §6), then giving it to the customer, who is delighted, then a closing "help customers find the perfect sword" tip as the 4th (non-Flame) customer arrives; then, the first time the player finishes a heating minigame after the tutorial (heating that 4th customer's new trait), a one-off record-reminder box — "Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve." — with a hand pointer to the Record Composition button (see §6)), plus a contextual "Shop Available!" tip the first time the player reaches 500 gold (enough to unlock the Shop), which then hand-guides them to the Shop screen and the Unlock Shop button (see §6). **Any tutorial box tied to a customer** (the sell-a-sword prompt, the "another customer" prompt, the Auto-Craft lesson, and the closing tip) is gated to appear **only after that customer's word-by-word line has fully typed out plus a ~2s read pause**, so a tutorial box never overlaps the customer's speech. During the intro, a **"Skip Intro" button** (fixed bottom-right) jumps straight into the game (`launchCoreGame`). A **"Skip Tutorial"** button (in the collapsible cheat box, shown only while the tutorial is running) ends the flow immediately and unlocks everything (metals, passive generation, Record Composition, Chart, the Purify slider). The three cheat buttons live in a **small collapsible box** floating **just above the game frame's top-right** (`#cheatBox` inside a `#frame-shell` wrapper, so it clears the game window / health bar and works on desktop and mobile): a **🛠 toggle** (`toggleCheats`) expands a **horizontal row** of **"+100 Metals"** (adds 100 of every metal), **"+100 Gold"**, **"Skip Stage"** (skips whichever forge minigame is open — heat/shape/hammer/quench/design/sharpen — and proceeds to the next stage), and — **while the tutorial is running** — **"Skip Tutorial"**. **The box is now OPT-IN: `launchCoreGame` only shows it when the URL contains `dev`** (e.g. `?dev`). It renders at y≈50 while the game frame starts at y≈86, i.e. in the page void *outside* the product, so shipping it visible put a 🛠 button carrying "Remove Fog" and "+100 Gold" in every player's view. Nothing becomes unskippable: `initializeMainGame` already calls `v2tutSkip()` unconditionally in this presentation build, and `cheatSkipStage`/`v2tutSkip` remain callable from the console. **Skip Intro now lives INSIDE the intro card** (absolute, top-right, in the card's own material — same scrim, hairline and gold Cinzel caps as `.story-box`); it was `position: fixed` on the *page*, rendering up to 325px outside the card in the grey body void in a material nothing else on screen used.
 - **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. Spending a metal (a move/dash) **flings an ore chunk** (`assets/forge/Metal.png`) from the pressed metal button into the bucket in an arc, and the bucket wobbles as it lands (`tossMetalToBucket`; fires only on an actual spend, so a cancelled Purify hold throws nothing). The **first time** a given trait is heated (per session) shows a celebratory **"New Trait Discovered!"** box with the trait's icon and name — including during the tutorial (it layers above the tutorial dialogue); repeat heats of an already-known trait just show the "trait acquired" toast. Warnings/errors (not enough gold, duplicate composition, wrong sword for a customer, etc.) use a **styled parchment popup** (`gameAlert`, matching the dialogue-frame look) instead of the browser's native `alert()`. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow (and during the guided flame step it is re-disabled from the heat until the composition is recorded, so the player records before forging).
 - **Tutorial hand pointers:** at each guided step a bouncing 👆/👇/👈/👉 hand points to the element to use next — the Steel & Magnesium metal buttons (until the 4 steel + 1 magnesium recipe is added), Heat, Forge, the left/right screen arrows, Search Inventory, the Chart button, Magnesium again (until the Flame trait is revealed on the map), Record Composition, and — for the 3rd (ice-dragon) customer — the selected composition's **Auto-Craft** button then **Search Inventory**. Each hand clears once its action is taken. Data-driven via a `hand` field on the relevant `tutorialFlow` gate steps.
 - **Minimap (Chart modal):** a live canvas minimap of the full 50×50 grid (fully revealed — no fog) — uniform tan ground (hazards are **not** shown), every trait drawn as its emoji icon at its location, and the player marked by the same sword icon used on the grid map (`assets/map/tile_sword.png`) with a pulsing blue glow. Supports **zoom** (scroll / pinch / on-screen +/− buttons, 1×–6×) and **pan** (drag), clamped to the map. **Tapping a trait icon** shows a small label with that trait's name below it. During the tutorial's chart step, a **text label + pulsing glow** (no hand pointer) highlights the target and alternates every 3 seconds between the player marker ("Your location", its own blue glow) and the Flame icon ("Flame trait", an amber glow ring), tracking zoom/pan, until the chart is closed. (Replaces the old static `Minimap.png`, now unused.)

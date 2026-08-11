@@ -6,7 +6,7 @@
     <title>Blacksmith's Tale - Full Game</title>
     <style>
         /* --- FONTS --- */
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&family=Lora:ital,wght@0,400;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
         /* --- PARCHMENT PALETTE (single source of truth; flat-UI hexes are banned) ---
            Semantics: affirmative/go → moss · destructive/over-limit → oxide · cold/under-limit → iron
@@ -25,6 +25,25 @@
             --sf-amber:#e0a12b; --sf-ember:#ff8c2a; --sf-ember-lt:#ffb347; --sf-ember-hot:#ff6b35;
             --sf-stone:#a9977a; --sf-stone-dk:#8b7a5f;
             --sf-verd:#4a6b63;
+            /* --- cycle 4b: modal + ribbon chrome. These replace hand-copied literals: --sf-sheet the loose
+               #d9cbb3 (x12), --sf-sheet-band #cbb894 (x4), --sf-rule #4a3623 (x52). --sf-rule is deliberately
+               NOT --sf-ink (#4a3826): the two differ by (0,+2,-3) and the modal family has always used the
+               warmer one. Do not merge them without a full visual pass. --- */
+            --sf-sheet:#ddceb4; --sf-sheet-band:#cbb894; --sf-rule:#4a3623; --sf-burn:#8a5a2b; --sf-gild-dk:#8a6a1c;
+            --sf-oxide-pale:#d4744a;   /* rep tier: destructive read on the opaque ink pill; --sf-oxide-lt only reaches 3.86:1 there */
+            /* Display type ramp: t0 celebration · t1 modal title · t2 section head · t3 body · t4 meta. */
+            --sf-t0:21px; --sf-t1:19px; --sf-t2:15px; --sf-t3:13px; --sf-t4:11px;
+            /* LAYOUT tokens, not colours.
+               --pc-status-h: the feedback ribbon is a FIXED two-line slab (2 x 13px x 1.3 + 6 padding + 2
+               border = 41.8 → 42). .pc-picker derives its `bottom` from it with calc(), so the picker can
+               never drift into the station row again the way the old hardcoded `bottom: 96px` did. Anyone
+               changing .pc-status font-size/line-height must change this token in the same edit — overflow
+               is hidden, so a clipped second line fails silently.
+               --sf-hand: the inked manicule that replaced the emoji tutorial pointers. Drawn pointing RIGHT
+               and rotated by the .sf-hand-* direction classes. Its two colours are parchment #f0e2be and
+               --sf-ink-dk #2f2117, so no new colour enters the palette and no asset is added. */
+            --pc-status-h: 42px;
+            --sf-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 26'%3E%3Cg fill='%23f0e2be' stroke='%232f2117' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M3.5 8.2 10 5.6 13.4 20.8 7 23.2Z'/%3E%3Cpath d='M10.4 6.1C15 5.1 18.6 7 20.4 9.6h11.4c1.4 0 2.4.9 2.4 2s-1 2-2.4 2H26c1.9 0 2.9.9 2.9 1.9 0 1-1 1.8-2.5 1.8 1.2 0 1.9.7 1.9 1.6 0 1-.9 1.7-2.2 1.7h-6.5c-3.8 0-6.3-1.6-7.6-4.2z'/%3E%3C/g%3E%3C/svg%3E");
         }
 
         /* --- GLOBAL RESET --- */
@@ -38,7 +57,7 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Lora', serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -47,6 +66,13 @@
             height: 100vh;
             overflow: hidden;
         }
+
+        /* Form controls do NOT inherit font-family from body — the UA sheet sets `font: 400 13.333px Arial`
+           on button/input/select/textarea, so the body rule alone still left 15 buttons in system sans.
+           Chrome LABELS take the display serif; sentence-length customer responses stay on the body face. */
+        button, input, select, textarea { font-family: 'Cinzel', serif; }
+        #btnAutoSell, #btnAutoCraftSell, #btnRefuse, #btnCosplay, #btnNextCustomer, #btnContinueDialogue { font-family: 'Lora', serif; }
+        .day-badge { font-family: 'Cinzel', serif; }
 
         /* =========================================
            INTRO SEQUENCE STYLES
@@ -142,6 +168,13 @@
             z-index: 5;
             pointer-events: none;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            /* Same scrim the .story-box directly above already uses, for the same reason: unscrimmed 90%
+               white over the busiest part of the panel art was barely readable on scenes 1 and 3. */
+            background: rgba(4, 4, 6, 0.62);
+            padding: 3px 14px 4px;
+            border-radius: 12px;
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
         }
 
         @keyframes pulseFade {
@@ -174,7 +207,12 @@
         #mobile-wrapper {
             width: 360px;
             height: 640px;
-            background-color: #f0f0f0;
+            /* The frame's own edge colour, NOT app-chrome grey. On a fractional viewport offset (wrapper at
+               x 7.5 on a 375px screen) the 33.333%-wide screen rasterises ~0.04px short and this background
+               shows through as a 1-device-px column for the full 640px height; #f0f0f0 read as a bright cut
+               straight through the painted burnt-paper border. A geometry fix cannot remove a rounding
+               artifact — `.screen { flex: 1 0 0 }` was tested and shrank every screen to 353.3px. */
+            background-color: var(--sf-ink-dk);
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -232,9 +270,19 @@
         .quest-row.done .quest-progress { color: #a3b568; text-decoration: none; }
         /* Counter (screen 1) layout */
         .counter-topbar { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
-        #screen-1 #gold-text { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: none; }
-        #screen-1 #rep-text { color: inherit; background: none; border: none; padding: 0; }
-        #screen-2 #gold-text-2 { background: rgba(0,0,0,0.55); color: #fceeb5; padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        /* Gold/reputation pill. OPAQUE ink, not 55% black: the same wash composited to near-black on
+           screen 1 but to rgb(105,99,86) over screen 2's parchment sheet, so the reputation tier colour was
+           meeting two wildly different backdrops and scored 1.08–1.13:1 on the forge screen. One known
+           backdrop → the tier colours in updateUI() are tuned once and hold on both screens (4.7–6.0:1).
+           The rgba() border literal is deliberate: the house rule at the top of this file says var() must
+           not go inside a border shorthand. */
+        #screen-1 #gold-text { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); width: auto; border: 1px solid rgba(200,168,75,0.55); }
+        /* Passive-sale flash. This used to be two inline style writes in startShopLoop whose "restore" pass
+           re-applied a light parchment chip and never cleared, permanently corrupting the pill for the rest
+           of the session. Keeping it in the stylesheet next to the rule it flashes against is what makes
+           the restore a single classList.remove. */
+        #screen-1 #gold-text.gold-flash { background: var(--sf-moss); color: var(--sf-cream); }
+        #screen-2 #gold-text-2 { background: var(--sf-ink-dk); color: var(--sf-cream); padding: 5px 16px; border-radius: 16px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.4); border: 1px solid rgba(200,168,75,0.55); }
         .customer-stage { position: relative; width: 100%; flex: 1 1 auto; min-height: 360px; margin-bottom: 10px; }
         .customer-img { position: absolute; left: -8px; bottom: 0; height: 100%; max-height: 480px; width: auto; object-fit: contain; object-position: bottom left; pointer-events: none; z-index: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
         .customer-img.slide-in { animation: customerSlideIn 0.55s ease-out; }
@@ -243,13 +291,27 @@
         .customer-panel .dialogue-bubble { width: 100%; box-sizing: border-box; flex-grow: 0; }
         #screen-2 { display: flex; flex-direction: column; padding: 10px; background-image: url('assets/backgrounds/2b64bc5e-a475-4868-ac35-3b751a16a749.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
 
-        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 24px 12px; z-index: 900; cursor: pointer; font-size: 20px; }
+        /* Screen chevrons: an ink tab with a gild hairline, not a flat black tab with the only pure-white
+           text in the game. Cycle 4a's palette sweep hunted hex literals, so the `white` KEYWORD survived. */
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(47,33,23,0.78); color: #f0d8a0; border: 1px solid rgba(200,168,75,0.5); font-family: 'Cinzel', serif; padding: 24px 12px; z-index: 900; cursor: pointer; font-size: 20px; }
+        /* The press must re-state the centring transform or the chevron jumps half its height (pre-existing
+           under the old global scale(0.95); fixed here rather than carried forward). */
+        .nav-btn:active:not(:disabled) { transform: translateY(-50%) translateY(2px); }
         #nav-left { left: 0; border-radius: 0 8px 8px 0; }
         #nav-right { right: 0; border-radius: 8px 0 0 8px; }
         .corner-btn { position: fixed; right: 16px; z-index: 2000; background: rgba(44,33,22,0.92); color: #f0d8a0; border: 1px solid #c8a84b; border-radius: 8px; padding: 9px 15px; font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
         .corner-btn:hover { background: #4a3623; }
         #btnSkipTutorial { bottom: 16px; }
-        #btnSkipIntro { bottom: 16px; z-index: 10000; } /* above the intro (z-index 9999) */
+        /* Lives INSIDE the intro card, in the card's own material: same scrim, same hairline, same gold
+           Cinzel caps as .story-box. It used to be position:fixed on the PAGE — at 1280x800 it rendered
+           325px outside the card, floating in the grey body void in a material nothing else on screen used.
+           Top-right so it never crowds the .tap-indicator's lane at the bottom; z-index must stay >= 30
+           because `.scene.active` sits at 10. */
+        #btnSkipIntro { position: absolute; right: 12px; top: 12px; z-index: 30; background: rgba(4,4,6,0.85);
+            border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; color: #dfb76c;
+            font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; padding: 7px 13px; box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+            -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); cursor: pointer; }
         /* Collapsible dev-cheat box (small, top-right). */
         #frame-shell { position: relative; }
         #cheatBox { position: absolute; right: 4px; bottom: calc(100% + 6px); z-index: 2500; display: none; flex-direction: column-reverse; align-items: flex-end; gap: 5px; } /* floats just above the game frame, expanding upward into the chrome */
@@ -286,7 +348,10 @@
         .health-container { width: 100%; height: 12px; background: linear-gradient(#2f2419, #1d1610); border-radius: 6px; overflow: hidden; border: 1px solid var(--sf-ink); margin-bottom: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 1px 0 rgba(239,225,189,0.25); }
         #health-bar { height: 100%; width: 100%; background: linear-gradient(180deg, #8a9a52 0%, #5f7038 48%, #3f4c22 100%); box-shadow: inset 0 1px 0 rgba(239,225,189,0.28), inset 0 -2px 3px rgba(0,0,0,0.35); transition: width 0.3s, background 0.3s; }
         .health-text { font-weight: bold; font-size: 12px; width: 100%; text-align: center; }
-        #gold-text { font-weight: bold; font-size: 14px; padding: 6px 10px; border-radius: 5px; color: #7a5a12; background-color: var(--sf-parch); border: 1px solid var(--sf-card-bd); width: 100%; text-align: center; box-sizing: border-box;}
+        /* (bare `#gold-text` rule deleted — #gold-text only ever exists inside #screen-1, and
+           `#screen-1 #gold-text` above overrode every property it set. It read as live intent and painted
+           nothing, which is exactly what made startShopLoop's "restore mirrors the #gold-text CSS" comment
+           wrong: it mirrored this dead rule, not the one that actually paints the pill.) */
 
         .viewport-wrap { position: relative; flex: 1; display: flex; min-height: 0; margin-bottom: 8px; }
         .grid-viewport { flex: 1; overflow: hidden; border: 3px solid #333; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; position: relative; cursor: grab; }
@@ -350,7 +415,7 @@
 
         .controls { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; flex-shrink: 0; width: 100%; }
         .movement-grid { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 40px); gap: 4px; justify-content: center; margin-bottom: 4px; }
-        button { font-weight: bold; cursor: pointer; border: none; border-radius: 5px; color: white; transition: opacity 0.2s, transform 0.1s; }
+        button { font-weight: bold; cursor: pointer; border: none; border-radius: 5px; color: var(--sf-cream); transition: opacity 0.2s, transform 0.1s; }
         button:active:not(:disabled) { opacity: 0.8; transform: scale(0.95); }
         button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
@@ -376,12 +441,26 @@
         .action-btn:disabled { opacity: 0.45; }
         .btn-glow { animation: btnGlowPulse 1.3s ease-in-out infinite; }
         @keyframes btnGlowPulse { 0%, 100% { box-shadow: 0 0 3px 1px rgba(255,179,71,0.45); } 50% { box-shadow: 0 0 13px 5px rgba(255,140,42,0.9); } }
-        .tut-hand { position: absolute; z-index: 1009; font-size: 26px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        .tut-hand { position: absolute; z-index: 1009; font-size: 0; line-height: 0; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        /* Inked manicule pointer, replacing the glossy Segoe-UI-Emoji hands that sat straight on top of the
+           hand-painted forge art. One right-pointing glyph (--sf-hand), rotated per direction. The rotation
+           lives on ::before so the element's own transform stays free for the bob/slide keyframes, and the
+           box stays a 28px SQUARE in all four directions so placeHand's `const H = 28` offset math is
+           unchanged. font-size:0 on the host kills any residual text node. */
+        .tut-hand::before, .tut-arrow::before, .cool-hand::before, .sharpen-hand::before, #v2tut-hand::before { content: ''; display: block; width: 28px; height: 28px; background: var(--sf-hand) center/contain no-repeat; transform: rotate(var(--sf-hand-rot, 0deg)); }
+        .cool-hand::before, .sharpen-hand::before, #v2tut-hand::before { width: 32px; height: 32px; }
+        .sf-hand-r { --sf-hand-rot: 0deg; }
+        .sf-hand-l { --sf-hand-rot: 180deg; }
+        .sf-hand-d { --sf-hand-rot: 90deg; }
+        .sf-hand-u { --sf-hand-rot: 270deg; }
         @keyframes tutHandBob { from { transform: translateY(0) scale(1); } to { transform: translateY(4px) scale(1.1); } }
 
-        #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; padding-left: 20px; }
+        #btnHeat, #btnForge, #btnSaveRecipe { background-color: transparent !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; color: #fceeb5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; }
+        /* padding-left was on the shared selector but never reached #btnSaveRecipe — `#screen-2 .topbar-btn`
+           (1,1,0) overrides it with a `padding` shorthand. Re-declared only where it still applies. */
+        #btnHeat, #btnForge { padding-left: 20px; }
         #btnHeat { background-image: url('assets/ui/buttonheat.png'); position: relative; }
-        .tut-arrow { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; font-size: 24px; line-height: 1; pointer-events: none; display: none; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutArrowBounce 0.7s infinite alternate; }
+        .tut-arrow { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; font-size: 0; line-height: 1; pointer-events: none; display: none; z-index: 50; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutArrowBounce 0.7s infinite alternate; }
         @keyframes tutArrowBounce { from { transform: translateX(-50%) translateY(0); } to { transform: translateX(-50%) translateY(6px); } }
         #btnForge { background-image: url('assets/ui/buttonforge.png'); position: relative; }
         #btnSaveRecipe { background-image: url('assets/ui/buttonsave.png'); }
@@ -404,7 +483,7 @@
         .shop-sword-inner { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; transform: rotate(-135deg); }
         .shop-sword-inner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35)); }
         .action-row { display: flex; gap: 5px; margin-top: 8px; }
-        .btn-action { flex: 1; padding: 8px; border-radius: 4px; color: white; border: none; font-size: 11px; font-weight: bold; }
+        .btn-action { flex: 1; padding: 8px; border-radius: 4px; color: var(--sf-cream); border: none; font-size: 11px; font-weight: bold; }   /* no parchment sheet in this game carries pure-white ink */
         .btn-sell { background: linear-gradient(#6e828a, #5c6b70); border: 1px solid var(--sf-iron-dk); }
         .btn-shop { background: linear-gradient(#a98a4f, #7d6127); border: 1px solid #5c4718; }
         .empty-list { color: var(--sf-ink-soft); font-size: 12px; font-style: italic; text-align: center; width: 100%; padding: 5px 0; }
@@ -436,17 +515,17 @@
         .panel-open-btn { flex: 1; padding: 12px 8px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-family: 'Cinzel', serif; font-weight: bold; font-size: 13px; cursor: pointer; }
         .panel-open-btn:hover { background: #cbb894; }
         /* Inventory / Compositions modal: own box with an internal scroll + drill-in detail view. */
-        .list-modal-content { background: #d9cbb3; width: 90%; max-width: 460px; height: 82%; max-height: 640px; border-radius: 8px; border: 3px solid #4a3623; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8); }
-        .list-modal-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #cbb894; border-bottom: 2px solid #4a3623; flex: 0 0 auto; }
-        .list-modal-header h3 { margin: 0; flex: 1; text-align: center; color: #4a3623; font-family: 'Cinzel', serif; font-size: 15px; }
+        .list-modal-content { background: var(--sf-sheet); width: 90%; max-width: 460px; height: 82%; max-height: 640px; border-radius: 8px; border: 2px solid var(--sf-rule); display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 0 40px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8); }
+        .list-modal-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--sf-sheet-band); flex: 0 0 auto; }   /* the rule under it is DRAWN as a box-shadow in the cycle-4b block, so it costs no layout */
+        .list-modal-header h3 { margin: 0; flex: 1; text-align: center; color: var(--sf-rule); font-family: 'Cinzel', serif; font-size: 15px; }
         .list-nav-btn { background: linear-gradient(#c3b193, #a9977a); color: var(--sf-ink-dk); border: 1px solid var(--sf-ink-mid); border-radius: 6px; width: 34px; height: 34px; font-size: 16px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
         .list-modal-body { flex: 1 1 auto; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
         /* Sales Ledger: scrollable day tabs + per-day sold-sword list. */
         #ledgerModal { z-index: 1014; }
-        .ledger-tabs { display: flex; gap: 6px; padding: 8px 10px; background: #cbb894; border-bottom: 2px solid #4a3623; overflow-x: auto; flex: 0 0 auto; -webkit-overflow-scrolling: touch; }
-        .ledger-tab { flex: 0 0 auto; padding: 6px 12px; border-radius: 6px; border: 1px solid #4a3623; background: #d9cbb3; color: #4a3623; font-family: 'Cinzel', serif; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
-        .ledger-tab.active { background: #4a3623; color: #f0d8a0; }
-        .ledger-total { text-align: right; font-weight: bold; color: #4a3623; font-size: 13px; padding: 2px 4px 8px; border-bottom: 1px solid rgba(74,54,35,0.3); margin-bottom: 6px; }
+        .ledger-tabs { display: flex; gap: 6px; padding: 8px 10px; background: var(--sf-sheet-band); overflow-x: auto; flex: 0 0 auto; -webkit-overflow-scrolling: touch; }
+        .ledger-tab { flex: 0 0 auto; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--sf-rule); background: var(--sf-sheet); color: var(--sf-rule); font-family: 'Cinzel', serif; font-weight: bold; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .ledger-tab.active { background: var(--sf-rule); color: #f0d8a0; }
+        .ledger-total { text-align: right; font-weight: bold; color: var(--sf-rule); font-size: 13px; padding: 2px 4px 8px; border-bottom: 1px solid rgba(74,54,35,0.3); margin-bottom: 6px; }
         .ledger-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid rgba(74,54,35,0.2); }
         .ledger-row:last-child { border-bottom: none; }
         .ledger-row-img { position: relative; width: 56px; height: 40px; flex: 0 0 auto; overflow: hidden; }
@@ -523,6 +602,27 @@
         #flameHintBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         .cancel-btn { background: linear-gradient(#c3b193, #a9977a); width: 100%; padding: 10px; color: var(--sf-ink-dk); border: 1px solid var(--sf-ink-mid); border-radius: 4px; font-weight: bold; margin-top: 8px; box-shadow: 0 3px 5px rgba(0,0,0,0.35); cursor: pointer; }
+        /* Escape hatch, not a call to action — scoped to #heatModal ONLY. The shared pale-stone .cancel-btn
+           is correct on the eleven other call sites, which all sit on a parchment card; #heatModal is the
+           outlier because its .modal-content is a transparent carrier, so the same slab lands on a
+           near-black screen and becomes the brightest field on it (65.8% of its pixels above L 0.30, versus
+           8.9% across the whole painting — half the bright pixels on screen in 8.6% of its area).
+           Note the two numbers move in OPPOSITE directions here: the FIELD sinks (mean L 0.176 → 0.035)
+           while TEXT contrast RISES to 6.7:1 (top stop) / 9.4:1 (bottom stop), up from 5.5–7.4:1. Anyone
+           "restoring" the old ratio by lowering text contrast would re-break accessibility and leave the
+           slab in place. Gradient stops are --sf-ink / --sf-ink-dk spelled out per the house rule. */
+        #heatModal .cancel-btn {
+            display: block; width: auto; min-width: 46%; margin: 12px auto 0; padding: 8px 22px;
+            background: linear-gradient(180deg, #4a3826, #2f2117);
+            color: var(--sf-parch-dk);
+            border: 1px solid rgba(47,33,23,0.9);
+            border-radius: 5px;
+            font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; letter-spacing: 0.4px;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(239,225,189,0.16);
+            opacity: 0.92;
+        }
+        #heatModal .cancel-btn:hover, #heatModal .cancel-btn:focus-visible { opacity: 1; color: var(--sf-parch); }
         /* (.purify-track / .heat-thumb deleted — provably unreferenced, and a five-stop flat-UI traffic light
             sitting in the stylesheet is how the palette gets re-contaminated the day someone re-enables purify.) */
 
@@ -531,14 +631,36 @@
            ========================================= */
         .forge-minigame-container {
             position: relative;
-            width: 100%; 
-            min-height: 400px; 
-            aspect-ratio: 3 / 4; 
-            border-radius: 8px;
-            border: 3px solid #111;
+            width: 100%;
+            min-height: 400px;
+            aspect-ratio: 3 / 4;
+            border: 0;
+            border-radius: 14px 10px 16px 9px / 10px 15px 9px 16px;   /* hand-torn, not machined: a perfect 8px rect was the flat-UI tell */
             overflow: hidden;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5);
             background-color: #000;
+        }
+        /* Burnt-paper rim. The scorched edge around the game frame is PAINTED INTO the screen background
+           bitmap — there is no CSS burnt-edge treatment, mask or border-image anywhere in this file to
+           reuse, so this authors one. ::before is the scorch halo, ::after the charred lip with an ember
+           line in it. z 8/9 is load-bearing: above the painted props (z 3–7), below the meters and hint
+           ribbon (z 14). Higher greys out the ribbon; lower and it sits under the props it should char.
+           Because 8/9 is above .cool-hand and .sharpen-hand, those two are raised to z 12 below.
+           pointer-events:none keeps the pulley/bellow onclick handlers live. */
+        .forge-minigame-container::before {
+            content: ''; position: absolute; inset: 0; z-index: 8; pointer-events: none; border-radius: inherit;
+            background:
+                radial-gradient(128% 30% at 50% 0%, rgba(26,14,6,0.80) 0 4%, rgba(26,14,6,0) 34%),
+                radial-gradient(128% 30% at 50% 100%, rgba(26,14,6,0.80) 0 4%, rgba(26,14,6,0) 34%),
+                radial-gradient(30% 128% at 0% 50%, rgba(26,14,6,0.80) 0 4%, rgba(26,14,6,0) 34%),
+                radial-gradient(30% 128% at 100% 50%, rgba(26,14,6,0.80) 0 4%, rgba(26,14,6,0) 34%);
+        }
+        .forge-minigame-container::after {
+            content: ''; position: absolute; inset: 0; z-index: 9; pointer-events: none; border-radius: inherit;
+            box-shadow:
+                inset 0 0 0 1px rgba(20,11,5,0.95),
+                inset 0 0 2px 1px rgba(120,60,20,0.55),
+                inset 0 0 8px 2px rgba(38,20,9,0.75);
         }
 
         .forge-bg {
@@ -562,12 +684,26 @@
             filter: drop-shadow(0px 5px 8px rgba(0,0,0,0.5));
         }
         .forge-cue { animation: forgeCue 0.85s ease-in-out infinite alternate; }
-        @keyframes forgeCue { from { filter: drop-shadow(0 0 2px rgba(255,210,80,0.5)); } to { filter: drop-shadow(0 0 16px rgba(255,180,30,1)); } }
+        /* There is no primary BUTTON on the heating screen — the primary action IS the painted prop. So with
+           Cancel sunk, the cued prop has to become the attractor or the screen has none. The old single amber
+           halo measured a sub-3px glow laid over an already amber-lit furnace interior: invisible. The
+           stacked pair puts a near-white core (which separates from the warm painting) under a wide
+           --sf-ember-hot bloom. Both cue targets (#forge-pulley, #forge-bellow) pick this up via .forge-cue. */
+        @keyframes forgeCue {
+            from { filter: drop-shadow(0 0 3px rgba(255,244,214,0.55)) drop-shadow(0 0 8px rgba(255,140,42,0.45)); }
+            to   { filter: drop-shadow(0 0 7px rgba(255,250,235,1)) drop-shadow(0 0 22px rgba(255,107,53,0.95)); }
+        }
 
+        /* Meter card, shared language with .sharpen-meter below: a parchment slip pinned to the scene, not a
+           second black slab over the painting. The inline label/timer colours in the markup are ATOMIC with
+           this rule — on parchment the old #8a9a52 label scores 2.4:1 and the old #ffd27f timer 1.1:1, i.e.
+           invisible. Change one, change all three. */
         .interactive-heat-meter {
-            position: absolute; top: 10px; left: 10%; width: 80%; background: rgba(28,20,10,0.86);
-            padding: 8px; border-radius: 8px; display: none; z-index: 10; border: 1px solid rgba(200,168,75,0.35);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            position: absolute; top: 8px; left: 8%; width: 84%; box-sizing: border-box; display: none; z-index: 14; padding: 7px 10px 9px;
+            background: linear-gradient(180deg, rgba(252,246,229,0.96), rgba(214,197,157,0.96));
+            border: 1px solid rgba(47,33,23,0.8);
+            border-radius: 4px 3px 5px 3px / 3px 5px 3px 4px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6);
         }
 
         /* Static fallback only — heatGradient() overwrites this the moment the mini-game starts. Keep the two in step. */
@@ -578,21 +714,34 @@
 
         .interactive-heat-thumb { width: 8px; height: 100%; background: #fff; border: 1px solid #000; position: absolute; top: 0; left: 0; box-shadow: 0 0 5px #fff; }
 
+        /* Hint ribbon (heat + quench + sharpen all share this class): a torn strip of parchment LYING ON the
+           scene, not a UI slab punched through it. The old dark bar rendered at rgb(50,43,31) against art at
+           rgb(59,54,45) — a 1.17:1 field difference, so it read purely as a rectangular hole in the artwork.
+           clip-path supplies the deckled edge; because clip-path also clips border and box-shadow away, the
+           border is 0 and the lift comes from filter: drop-shadow, which follows the clip. Do NOT re-add a
+           border to "outline" it (silently clipped) and do NOT tighten the 9px/20px padding — the polygon
+           eats up to ~6% of the box at the notches and will clip descenders. */
         .forge-instructions {
-            position: absolute; bottom: 5%; left: 10%; width: 80%; text-align: center; font-weight: bold; color: var(--sf-parch); background: rgba(28,20,10,0.82); padding: 8px; border-radius: 5px; font-size: 13px; z-index: 10; pointer-events: none; border: 1px solid var(--sf-ink-mid); box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: absolute; bottom: 5%; left: 7%; width: 86%; box-sizing: border-box; text-align: center; z-index: 14; pointer-events: none;
+            font-family: 'Cinzel', serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.35px; line-height: 1.25;
+            color: var(--sf-ink-dk); text-shadow: 0 1px 0 rgba(255,252,240,0.6);
+            background: linear-gradient(180deg, rgba(255,252,240,0.97) 0%, rgba(239,225,189,0.97) 46%, rgba(214,197,157,0.97) 100%);
+            border: 0; border-radius: 0; padding: 9px 20px; box-shadow: none;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
+            clip-path: polygon(0.6% 22%, 2.4% 6%, 5% 16%, 9% 4%, 14% 14%, 22% 3%, 34% 12%, 50% 2%, 66% 12%, 79% 4%, 88% 14%, 94% 5%, 97.4% 16%, 99.4% 7%, 99.2% 82%, 97% 95%, 92% 85%, 85% 97%, 74% 87%, 60% 98%, 46% 88%, 33% 97%, 21% 86%, 12% 96%, 6% 85%, 2.2% 94%, 0.8% 80%);
         }
 
         /* =========================================
            NEW DESIGN DESK (PAPER DOLL) STYLES
            ========================================= */
         .design-modal-content {
-            background: #d9cbb3; /* Parchment style */
+            background: var(--sf-sheet); /* Parchment style */
             width: 90%;
             height: 90%;
             max-height: 600px;
             padding: 10px;
             border-radius: 8px;
-            border: 3px solid #4a3623;
+            border: 2px solid var(--sf-rule);   /* 3→2 is +2px of vertical budget, which sharpenModal needs (see the cycle-4b layout guard) */
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -628,7 +777,7 @@
         }
 
         .tab-container { display: flex; justify-content: space-between; gap: 4px; }
-        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; background: #8b7355; color: white; border: 1px solid #4a3623; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .tab-btn { flex: 1; padding: 8px 0; font-size: 11px; background: #8b7355; color: var(--sf-cream); border: 1px solid var(--sf-rule); border-radius: 4px; font-weight: bold; cursor: pointer; }   /* face + colour are re-stated by the cycle-4b secondary tier; this is the pre-cascade default */
         .tab-btn.active { background: #5c4033; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); border-color: #2a1b0e; }
         
         .parts-grid {
@@ -711,7 +860,9 @@
         .steam-puff:nth-child(3) { left: 66%; animation-delay: 0.9s; }
         .steam-puff:nth-child(4) { left: 34%; animation-delay: 1.3s; }
         @keyframes steamRise { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 25% { opacity: 0.85; } 100% { transform: translateY(-95px) scale(1.7); opacity: 0; } }
-        .cool-hand { position: absolute; z-index: 6; left: 60%; top: 8%; font-size: 30px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
+        /* z 12 (was 6) is REQUIRED by the .forge-minigame-container rim pseudos at z 8/9 — at z 6 the hand
+           would be dimmed by the scorch halo it is supposed to point through. */
+        .cool-hand { position: absolute; z-index: 12; left: 60%; top: 8%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: tutHandBob 0.7s ease-in-out infinite alternate; }
 
         /* =========================================
            SHARPEN (grindstone step after design; over-honing costs quality)
@@ -727,15 +878,22 @@
         .sharpen-sparks.active { opacity: 1; }
         .sharpen-spark { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: #ffd24d; box-shadow: 0 0 6px 2px rgba(255,180,30,0.9); animation: sharpenSparkFly 0.5s linear infinite; }
         @keyframes sharpenSparkFly { 0% { opacity: 0; transform: translate(0,0) scale(0.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0.2); } }
-        .sharpen-hand { position: absolute; z-index: 7; left: 50%; top: 56%; font-size: 30px; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: sharpenHandSlide 0.9s ease-in-out infinite alternate; }
+        .sharpen-hand { position: absolute; z-index: 12; left: 50%; top: 56%; font-size: 0; line-height: 1; pointer-events: none; display: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); animation: sharpenHandSlide 0.9s ease-in-out infinite alternate; }
         @keyframes sharpenHandSlide { from { transform: translateX(-45px); } to { transform: translateX(45px); } }
-        .sharpen-meter { position: absolute; top: 10px; left: 8%; width: 84%; background: rgba(28,20,10,0.86); padding: 8px 10px 10px; border-radius: 8px; z-index: 10; border: 1px solid rgba(200,168,75,0.35); box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none; }
+        /* Byte-for-byte the same card as .interactive-heat-meter: the two sit on the same art, one screen
+           apart, and leaving this one a black slab would make the fix look half-applied. */
+        .sharpen-meter { position: absolute; top: 8px; left: 8%; width: 84%; box-sizing: border-box; padding: 7px 10px 9px; z-index: 14; pointer-events: none;
+            background: linear-gradient(180deg, rgba(252,246,229,0.96), rgba(214,197,157,0.96));
+            border: 1px solid rgba(47,33,23,0.8);
+            border-radius: 4px 3px 5px 3px / 3px 5px 3px 4px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6); }
         .sharpen-track { position: relative; width: 100%; height: 18px; border-radius: 9px; overflow: hidden; border: 2px solid var(--sf-ink-dk); background: #241b12; }
         /* Fill tiers are set imperatively in updateSharpenMeter — iron (under) / moss (keen) / oxide (over-honed). */
         .sharpen-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--sf-iron); transition: width 0.05s linear, background 0.2s ease; }
         .sharpen-goldzone { position: absolute; top: 0; left: 79.17%; width: 8.33%; height: 100%; background: var(--sf-amber); opacity: 0.5; z-index: 1; box-shadow: 0 0 6px rgba(224,161,43,0.75); } /* the 95–105% "perfect" (+3 gold) band, half-opacity so the fill shows through */
         .sharpen-tick { position: absolute; top: -2px; width: 2px; height: calc(100% + 4px); background: rgba(255,247,224,0.7); z-index: 2; }
-        .sharpen-readout { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: var(--sf-parch); font-size: 12px; font-weight: bold; }
+        /* Ink, not parchment: the readout now sits ON the parchment meter card (--sf-parch on it was 1.1:1). */
+        .sharpen-readout { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: var(--sf-ink-dk); font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; }
 
         /* ===== V2 PATH MAP (replaces the grid) ===== */
         #screen-2 { position: relative; }
@@ -771,7 +929,7 @@
         .topbar-btn { background: #4a4033; color: #f0e8d6; border: 1px solid #6a5636; border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; flex: 0 0 auto; }
         .topbar-btn:active { transform: scale(.96); }
         .topbar-btn:disabled { opacity: .5; }
-        #screen-2 .status-header #gold-text-2 { flex: 0 1 auto; font-size: 12px; }
+        #screen-2 .status-header #gold-text-2 { flex: 0 1 auto; }   /* the font-size here never applied — the later same-specificity rule below wins */
         #v2-gauges { display: flex; gap: 10px; margin-bottom: 5px; }
         .v2-gauge { flex: 1; display: flex; align-items: center; gap: 5px; }
         .v2-gauge-lbl { font-size: 14px; }
@@ -798,7 +956,7 @@
         #v2tut-box { position: absolute; top: 40px; left: 8px; right: 8px; z-index: 1100; display: flex; align-items: center; gap: 7px; background: rgba(28,20,10,0.96); border: 1.5px solid #c8a84b; border-radius: 9px; padding: 7px 9px; box-shadow: 0 3px 14px rgba(0,0,0,0.6); }
         #v2tut-text { flex: 1 1 auto; color: #f3e6c8; font-size: 12px; line-height: 1.35; text-align: left; }
         #v2tut-text b { color: #ffd98a; }
-        #v2tut-hand { position: absolute; font-size: 30px; z-index: 1101; pointer-events: none; transform: translate(-50%,-104%); animation: v2handBounce 0.85s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
+        #v2tut-hand { position: absolute; font-size: 0; z-index: 1101; pointer-events: none; transform: translate(-50%,-104%); animation: v2handBounce 0.85s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
         @keyframes v2handBounce { 0%,100% { transform: translate(-50%,-104%); } 50% { transform: translate(-50%,-130%); } }
         #v2tut-hand.side { animation-name: v2handBounceSide; }
         @keyframes v2handBounceSide { 0%,100% { transform: translate(4%,-50%); } 50% { transform: translate(30%,-50%); } }
@@ -808,7 +966,12 @@
         #screen-2 .status-header { flex-wrap: nowrap; overflow: hidden; gap: 4px !important; margin-top: 4px; }
         #screen-2 .topbar-btn { padding: 4px 6px; font-size: 10px; }
         #screen-2 .day-badge { font-size: 11px; padding: 2px 7px; }
-        #screen-2 .status-header #gold-text-2 { font-size: 11px; }
+        /* The inherited 16px side padding left ~48px of content width in a 79.8px box, so the pill wrapped to
+           THREE lines (40px tall against 21–25px neighbours). Tightened + nowrap. The header has no
+           horizontal slack (flex-wrap:nowrap, overflow:hidden), which is also why the pill copy dropped the
+           word "Gold:" when the display serif came in — see updateUI(). */
+        #screen-2 .status-header #gold-text-2 { font-size: 11px; padding: 4px 8px; white-space: nowrap; }
+        #screen-2 #btnSaveRecipe { padding: 4px 10px; }   /* buttonsave.png carries its own frame + rivets; 6px sat the label on them */
         #screen-2 .v2-dock { margin: 4px 0; min-width: 0; }
         #screen-2 #v2inv { padding: 6px; gap: 6px; min-width: 0; }
         #screen-2 .v2-tile { padding: 3px 2px 2px; flex: 0 0 auto; width: 58px; }
@@ -869,7 +1032,12 @@
             background: linear-gradient(180deg, #efe1bd, #d8c8a0); color: var(--sf-ink-dk); text-shadow: none;
             font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; line-height: 16px; text-align: center; white-space: nowrap;
             box-shadow: inset 0 1px 0 rgba(255,252,240,0.55), 0 1px 0 rgba(255,250,235,0.30); }
-        .pc-row { display: flex; gap: 3px; align-items: stretch; margin: 5px 0 3px; }
+        /* z-index 41 is a safety net, not a fix: with the picker's derived `bottom` the two boxes no longer
+           intersect, but if the row ever reflows taller (label wrap, icon swap, font substitution) the
+           station bar now paints ABOVE the panel instead of being sliced, so the buttons stay visible and
+           clickable. .pc-btn is already position:relative and .pc-badge anchors to the button, so promoting
+           the row to a positioned box changes no existing offset. */
+        .pc-row { display: flex; gap: 3px; align-items: stretch; margin: 5px 0 3px; position: relative; z-index: 41; }
         .pc-btn { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; padding: 4px 0 3px; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#e2d3b2, #c9b68d); color: #3d2b1a; box-shadow: 0 2px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35); cursor: pointer; }
         .pc-btn .pc-ico { font-size: 17px; line-height: 1; display: block; position: relative; z-index: 0; height: 22px; }
         /* Inked parchment medallion behind every station icon. The painterly art is only 12-37% opaque, so it
@@ -914,26 +1082,200 @@
         .pc-forge-btn { width: 100%; margin: 0; padding: 7px 0; border-radius: 7px; border: 1px solid #6a5636; background: linear-gradient(#8a5a2b, #5c3a17); color: #fceeb5; font-family: 'Cinzel', serif; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); cursor: pointer; }
         /* Matches the station row's drained-not-erased disabled treatment; #pcBtnForge sits directly below it. */
         .pc-forge-btn:disabled { opacity: 1; cursor: not-allowed; background: linear-gradient(#5e4630, #40301f); border-color: var(--sf-ink-mid); color: #a5916e; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
-        .pc-status { font-family: 'Cinzel', serif; font-size: 11px; line-height: 1.25; color: #f0e0b8; text-align: center; margin: 0 0 4px; min-height: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.85); }
-        /* Core-loop nudges ("path exhausted", "no trait here") pulse the status line instead of raising a modal. */
+        /* Feedback ribbon. This line is the ONLY core-loop feedback channel now that the modal alerts are
+           gone, so it is INKED PARCHMENT rather than tan on tan: #f0e0b8 over the screen-2 sheet measured
+           1.16:1, and the old #ffd76a pulse colour measured 1.10:1 — i.e. the ATTENTION state was less
+           visible than rest. Ink on the plaque measures 12.0:1. Prose sets in Lora, the body face, so the
+           ribbon reads as a sentence instead of an eighth row of Cinzel station labels sitting 3px above it.
+           FIXED two-line slab, never auto-height: the old min-height:14px grew to 27.5px on a long message,
+           and because #v2map-wrap is flex:1 1 0 that stole 13.5px from the MAP and jerked the whole station
+           row up under the player's thumb mid-loop.
+           Property notes — do not drop any of these:
+             position/z-index 41 : outranks .pc-picker (40), so load-bearing feedback can never be buried.
+             flex: 0 0 auto      : #screen-2 is a column flex container; without it the 42px is shrinkable.
+             display:flex+center : vertically centres a one-line message inside the two-line slab.
+             height + border-box : 2 x (13 x 1.3) + 6 padding + 2 border = 41.8 → --pc-status-h is 42px.
+             text-shadow light   : an emboss. The old dark drop shadow was wrong the instant the ink darkened.
+           COPY BUDGET: the longest string any pcStatus/pcNotify call site can emit is 82 characters (the
+           "Path exhausted" nudge in pcAnvil), ~501px natural at these metrics, which packs into 2 lines with
+           room left. Keep new strings under ~505px natural (roughly 85 characters); a third line is eaten
+           silently by overflow:hidden. If copy must grow, drop font-size to 12px before raising the token. */
+        .pc-status { position: relative; z-index: 41; flex: 0 0 auto; box-sizing: border-box; display: flex; align-items: center; justify-content: center; height: var(--pc-status-h); margin: 0 0 4px; padding: 3px 10px; font-family: 'Lora', serif; font-size: 13px; line-height: 1.3; letter-spacing: 0.1px; text-align: center; color: var(--sf-ink-dk); background: linear-gradient(#f6ecd2, #e6d7b2); border: 1px solid #6a5636; border-radius: 7px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.45); text-shadow: 0 1px 0 rgba(255,255,255,0.5); overflow: hidden; }
+        /* Core-loop nudges ("path exhausted", "no trait here") pulse the ribbon instead of raising a modal.
+           NO transform: the old scale(1.08) blew the 340px block out to 367.2px, which is 3.6px past
+           #mobile-wrapper on BOTH sides, and the wrapper is overflow:hidden — so every single notification
+           visibly shaved both ends of the line. The ember now lives in the border, the wash and the glow, so
+           nothing reflows and nothing clips. The ink stays put: the message must stay READABLE while it is
+           drawing attention to itself, which the old colour swap to #ffd76a (1.10:1) did not.
+           The 100% frame must stay byte-identical to the resting .pc-status background/box-shadow so the
+           animation lands on the static state with no snap. Change one, change both. */
         .pc-status.pc-pulse { animation: pcStatusPulse 0.75s ease-out; }
         @keyframes pcStatusPulse {
-            0%   { color: #ffd76a; transform: scale(1.08); text-shadow: 0 0 9px rgba(255,196,64,0.95), 0 1px 2px rgba(0,0,0,0.85); }
-            60%  { color: #ffd76a; transform: scale(1.0);  text-shadow: 0 0 6px rgba(255,196,64,0.55), 0 1px 2px rgba(0,0,0,0.85); }
-            100% { color: #f0e0b8; transform: scale(1.0);  text-shadow: 0 1px 2px rgba(0,0,0,0.85); }
+            0%   { border-color: var(--sf-ember-hot); background: linear-gradient(#fff3d8, #ffdfa8); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px 2px rgba(255,107,53,0.55); }
+            60%  { border-color: var(--sf-ember);     background: linear-gradient(#fbf0d8, #f4e4bc); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 0 6px 1px rgba(255,140,42,0.30); }
+            100% { border-color: var(--sf-ink-mid);   background: linear-gradient(#f6ecd2, #e6d7b2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.45); }
         }
+        @media (prefers-reduced-motion: reduce) { .pc-status.pc-pulse { animation-duration: 0.01s; } }
         /* Ore picker: floats above the station row, same parchment language as the dock tiles. */
-        .pc-picker { display: none; position: absolute; left: 10px; right: 10px; bottom: 96px; z-index: 40; background: #fbf6e9; border: 2px solid #6a5636; border-radius: 10px; padding: 7px; box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
+        /* `bottom` is DERIVED, never a magic number: the old `bottom: 96px` was silently keyed to the status
+           line being exactly 14px tall, so the moment a message wrapped to two lines the station row rose
+           and the picker covered the top 24px of it — elementFromPoint at the Ore button returned pc-picker,
+           i.e. the open panel ate taps on the upper half of every station icon. Measured up from #screen-2's
+           bottom edge: 10 (screen padding) + 33 (.pc-forge-btn) + 4 (.pc-status margin) + --pc-status-h
+           + 3 (.pc-row margin) + 42.5 (.pc-row) = 92.5 + token, plus a 6px breathing gap → +98.
+           pcToggleOrePicker re-derives exactly this from live geometry every time the panel opens (measured:
+           both produce bottom 140px and a 5.5px gap above the row), so the two must stay in step or the
+           panel visibly jumps the first time it is opened. Because the panel is bottom-anchored, any future
+           height growth pushes it UP into the map, never down into the row. */
+        .pc-picker { display: none; position: absolute; left: 10px; right: 10px; bottom: calc(var(--pc-status-h) + 98px); z-index: 40; background: #fbf6e9; border: 2px solid var(--sf-ink-mid); border-radius: 10px; padding: 7px; box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
         .pc-picker.open { display: block; }
         .pc-picker-h { font-family: 'Cinzel', serif; font-size: 10px; font-weight: bold; color: #5a4a2a; text-align: center; margin-bottom: 5px; }
-        .pc-ore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .pc-ore { position: relative; background: #efe4cf; border: 1px solid #cbb98f; border-radius: 7px; padding: 4px 2px 3px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+        .pc-ore-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .pc-ore { position: relative; background: #efe4cf; border: 1px solid #cbb98f; border-radius: 7px; padding: 3px 2px 2px; display: flex; flex-direction: column; align-items: center; gap: 0; cursor: pointer; }
         .pc-ore.sel { border-color: var(--sf-ember); box-shadow: 0 0 7px rgba(255,140,42,0.75); }
         .pc-ore.locked { background: #e2dccb; border-style: dashed; }
-        .pc-ore .v2-sphere { width: 20px; height: 20px; }
-        .pc-ore-nm { font-size: 8.5px; font-weight: bold; color: #5a4a2a; }
-        .pc-ore-ct { font-size: 8.5px; color: #8a7448; }
-        .pc-ore-dir { position: absolute; top: 1px; right: 3px; font-size: 11px; font-weight: bold; line-height: 1; color: #9c6b23; display: inline-block; }
+        /* Row 1 of a tile: the ore's inked mineral silhouette + a thumbnail of the ACTUAL route it plots.
+           SHAPE carries identity here because COLOUR cannot — six of the eight PC_ORE_COLORS tones sit under
+           9% chroma and titanium/magnesium are 0.8 percentage points apart in lightness, so on a 22px sphere
+           five of the eight were indistinguishable. The route thumbnail replaces a single `→` glyph that was
+           rotated by the arctangent of the SUM of the ore's steps: that collapsed a 10–11 step authored
+           curve into ONE bearing (bronze +6°, iron +22°, redIron +37° — three arrows in a 31° spread for
+           three completely different shapes), so the one decision-relevant fact was not merely too small,
+           it was not encoded at all. */
+        .pc-ore-fig { display: flex; align-items: center; justify-content: center; gap: 1px; width: 100%; }
+        .pc-ore-min { width: 23px; height: 23px; flex: none; }
+        .pc-ore-route { width: 42px; height: 30px; flex: none; }
+        .pc-ore-nm { font-family: 'Cinzel', serif; font-size: 8.5px; font-weight: bold; line-height: 1.15; color: #5a4a2a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .pc-ore-dest { font-family: 'Lora', serif; font-size: 8px; line-height: 1.15; color: var(--sf-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        /* Stock moves to a corner badge (same language as .pc-badge) so the tile can spend that line on
+           where the route ENDS, and the panel does not grow taller to pay for the thumbnail. */
+        .pc-ore-ct { position: absolute; top: -5px; right: -3px; min-width: 15px; padding: 0 3px; border-radius: 8px; background: var(--sf-ink); color: var(--sf-cream); font-family: 'Lora', serif; font-size: 8.5px; font-weight: bold; line-height: 14px; text-align: center; }
+        .pc-ore.locked .pc-ore-ct { background: var(--sf-ink-mid); }
+
+        /* =========================================
+           MODAL + BUTTON CHROME (cycle 4b — one edge language)
+           Appended LAST on purpose: these rules must beat the earlier .modal-content, .list-modal-content
+           and .design-modal-content declarations at EQUAL specificity. Source order does that job — do NOT
+           add !important, and do NOT move this block earlier. If it is pasted next to the other modal rules,
+           .design-modal-content wins and the design/shape/hammer/cool/sharpen modals silently keep the old
+           edge while the other ten change: a half-converted game, the worst possible outcome.
+           EXCLUDED BY DESIGN: .dialogue-frame (tutorialModal, gameAlertModal, tutorialReviewModal — already
+           painted parchment art, a CSS sheet behind a painted sheet would double-frame them) and
+           .cave-content (caveModal — deliberately a dark cave interior, not a sheet).
+           ========================================= */
+
+        /* --- The sheet. Every dialog is one piece of hand-cut, edge-scorched parchment. --- */
+        .modal-content, .design-modal-content, .list-modal-content {
+            font-family: 'Lora', Georgia, serif; color: var(--sf-body);
+            border: 2px solid var(--sf-rule);
+            border-radius: 11px 13px 9px 14px / 13px 9px 14px 11px;   /* asymmetric = hand-cut; a perfect rect is the flat-UI tell */
+            background-color: var(--sf-sheet);
+            background-image:
+                radial-gradient(120% 78% at 50% 0%, rgba(255,249,231,0.60), rgba(255,249,231,0) 60%),
+                repeating-linear-gradient(94deg, rgba(74,54,35,0.032) 0 1px, transparent 1px 4px);   /* laid-paper grain, 94deg so it never aligns to the box */
+            box-shadow:
+                inset 0 0 0 1px rgba(255,247,224,0.55),   /* cream plate line just inside the rule */
+                inset 0 0 30px rgba(138,90,43,0.34),      /* scorch creeping in from the edge */
+                inset 0 -16px 26px rgba(74,54,35,0.15),
+                0 0 0 1px rgba(18,11,4,0.60),             /* outer hairline, keeps the sheet off the backdrop */
+                0 14px 36px rgba(0,0,0,0.78);
+        }
+        /* heatModal's shell is a transparent carrier around the forge box — it must NOT become a sheet. */
+        .modal-content.modal-bare { background: none; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+        /* Warm vignette, not a flat black wash: the room dims around the sheet (Potion Craft). */
+        .modal-overlay { background: radial-gradient(ellipse at 50% 45%, rgba(26,15,6,0.70) 0%, rgba(7,4,2,0.93) 78%); }
+
+        /* --- Type ramp. Modal <h3> computed to FIVE different sizes with no rule behind them (15 / 16 /
+               18.72 / 20 / 22px), and the 18.72 was not even authored — it is the UA default 1.17em showing
+               through, because the design-desk h3s carry an inline style with no font-size. --- */
+        .modal-content h3, .design-modal-content h3 { font-family: 'Cinzel', serif; font-weight: 700; font-size: var(--sf-t1); letter-spacing: 0.6px; color: var(--sf-rule); }
+        .list-modal-header h3 { font-family: 'Cinzel', serif; font-weight: 700; font-size: var(--sf-t2); letter-spacing: 0.5px; color: var(--sf-rule); }
+        #forgeResultModal h3, #newTraitModal h3, #newShapeModal h3 { font-size: var(--sf-t0); }
+        #newTraitModal h3, #newShapeModal h3 { color: var(--sf-gild-dk); }
+        .modal-content p, .design-modal-content p, .list-modal-body { font-size: var(--sf-t3); line-height: 1.55; }
+        .list-modal-header, .ledger-tabs {
+            background: linear-gradient(180deg, #d4c3a2, var(--sf-sheet-band)); border-bottom: 0;
+            box-shadow: 0 1px 0 rgba(74,54,35,0.85), 0 3px 0 -1px rgba(255,247,224,0.5);   /* inked rule + its plate line, DRAWN not bordered → zero layout cost */
+        }
+
+        /* --- Button system: three tiers, one press, one drained state. Twenty-five button classes plus
+               twenty-one #btnXxx id overrides existed with no shared system, exactly half on the display
+               serif and half on system sans. --- */
+        /* SECONDARY / neutral — pressed-parchment key. */
+        .cancel-btn, .panel-open-btn, .list-nav-btn, .ledger-tab, .tab-btn, #btnRefuse, #btnCosplay {
+            font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.3px;
+            color: #3a2a19; text-shadow: 0 1px 0 rgba(255,250,235,0.55);
+            background: linear-gradient(180deg, #e0d0ae, #c6b28c);
+            border: 1px solid var(--sf-rule); border-radius: 5px;
+            box-shadow: inset 0 1px 0 rgba(255,250,235,0.65), 0 2px 0 rgba(74,54,35,0.55), 0 3px 6px rgba(0,0,0,0.40);
+        }
+        /* PRIMARY / affirmative — moss key, cream ink. */
+        .btn-craft, #btnNextCustomer, #btnContinueDialogue {
+            font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.4px;
+            color: var(--sf-cream); text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+            background: linear-gradient(180deg, #8a9a52, #546330);
+            border: 1px solid #2f3d16; border-radius: 5px;
+            box-shadow: inset 0 1px 0 rgba(255,247,224,0.35), 0 2px 0 rgba(47,45,22,0.70), 0 3px 7px rgba(0,0,0,0.45);
+        }
+        /* …but the two customer responses are SENTENCES ("I don't have what you need."), not chrome labels,
+           and they sit directly beside #btnAutoSell which is on the body face. They take the secondary key's
+           SHAPE and keep the body FACE. Same specificity as the rule above, so source order decides. */
+        #btnRefuse, #btnCosplay { font-family: 'Lora', serif; }
+        /* TERTIARY / destructive — oxide. */
+        .recipe-delete-btn {
+            font-family: 'Cinzel', serif; letter-spacing: 0.3px; border-radius: 5px;
+            background: linear-gradient(180deg, #c9603a, #8b3320); border: 1px solid var(--sf-oxide-dk);
+            box-shadow: inset 0 1px 0 rgba(255,220,200,0.28), 0 2px 0 rgba(60,20,12,0.70), 0 3px 6px rgba(0,0,0,0.45);
+        }
+        /* btnUnlockShop is a .btn-craft whose enabled background used to be written inline, so it was the one
+           button that opted out of both the primary tier and the drained tier. JS toggles this class now. */
+        .btn-craft.btn-unlock-ready { background: linear-gradient(180deg, #d08a3a, #8f5115); border-color: #6b3c0f; }
+        /* Selected tab MUST be restated after the secondary rule, or the active tab reads as unselected. */
+        .tab-btn.active, .ledger-tab.active {
+            background: linear-gradient(180deg, #6b5334, #4a3623); color: var(--sf-cream);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5); border-color: #2a1b0e; box-shadow: inset 0 2px 5px rgba(0,0,0,0.55);
+        }
+        /* HOVER (:not(:disabled) adds a class-level unit, so these beat the earlier .panel-open-btn:hover). */
+        .cancel-btn:hover:not(:disabled), .panel-open-btn:hover:not(:disabled), .list-nav-btn:hover:not(:disabled),
+        .ledger-tab:hover:not(:disabled), .tab-btn:hover:not(:disabled) { background: linear-gradient(180deg, #e9dbbd, #d0bd97); }
+        .btn-craft:hover:not(:disabled), #btnNextCustomer:hover, #btnContinueDialogue:hover { background: linear-gradient(180deg, #96a75c, #5d6d36); }
+        /* PRESSED: the key sinks into the sheet. Replaces the global scale(0.95)+fade, which on a parchment
+           key reads as "the button went translucent", not "the key went down". .dialogue-btn (0,3,0) and
+           .nav-btn:active out-specify this and keep their own presses — both re-state a centring transform
+           that a bare translateY would destroy. */
+        button:active:not(:disabled) { opacity: 1; transform: translateY(2px); }
+        .cancel-btn:active:not(:disabled), .panel-open-btn:active:not(:disabled), .list-nav-btn:active:not(:disabled),
+        .ledger-tab:active:not(:disabled), .tab-btn:active:not(:disabled), .btn-craft:active:not(:disabled),
+        .recipe-delete-btn:active:not(:disabled), #btnNextCustomer:active:not(:disabled), #btnContinueDialogue:active:not(:disabled),
+        #btnRefuse:active:not(:disabled), #btnCosplay:active:not(:disabled) {
+            box-shadow: inset 0 2px 5px rgba(47,33,23,0.50); filter: brightness(0.95);
+        }
+        /* DISABLED: drained, not erased — the same idiom .pc-btn:disabled already uses. The `opacity: 1` is
+           load-bearing: without it the global `button:disabled { opacity: 0.4 }` still wins and this whole
+           block is invisible. That global rule stays untouched — .pc-btn:disabled and .pc-forge-btn:disabled
+           both carry an in-file comment saying they depend on it being there. */
+        .cancel-btn:disabled, .panel-open-btn:disabled, .list-nav-btn:disabled, .ledger-tab:disabled,
+        .tab-btn:disabled, .topbar-btn:disabled, #btnRefuse:disabled {
+            opacity: 1; cursor: not-allowed; background: #cfc3a8; border-color: #9a8760;
+            color: #6b5b45; text-shadow: none; box-shadow: inset 0 1px 0 rgba(255,250,235,0.35), 0 1px 2px rgba(0,0,0,0.25);
+        }
+        .btn-craft:disabled {
+            opacity: 1; cursor: not-allowed; background: linear-gradient(180deg, #8b7a5f, #6d5f49);
+            border-color: var(--sf-stone-dk); color: #e2d6bb; text-shadow: none;
+            box-shadow: inset 0 1px 0 rgba(255,250,235,0.25), 0 1px 2px rgba(0,0,0,0.30);
+        }
+        /* .action-btn / #btnHeat / #btnForge / #btnSaveRecipe carry painted button art — never flood-fill
+           them, drain the art instead. */
+        .action-btn:disabled { opacity: 1; cursor: not-allowed; filter: grayscale(0.72) brightness(0.80); }
+
+        /* --- Layout guard for sharpenModal, the one modal with zero slack. Its children needed 562px in a
+               550px budget, so the flex box was silently crushing .sharpen-joystick from its authored 58px to
+               40px while .sharpen-knob (48px, absolutely positioned) overflowed the track by 8px. border
+               3→2 (+2px), gap 10→8 (+6px) and a tighter joystick margin (+12px) hand it all 58px back with
+               scrollHeight === clientHeight. flex-shrink:0 then makes any future overflow VISIBLE instead of
+               silently eating the joystick, which is the intended failure mode. --- */
+        .design-modal-content { gap: 8px; }
+        .sharpen-joystick { margin: 4px auto 2px; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -971,6 +1313,10 @@
             </div>
             <div class="tap-indicator">TAP TO BEGIN</div>
         </div>
+        <!-- Skip lives INSIDE the intro card (was position:fixed on the PAGE, rendering up to 325px outside
+             it in the grey body void). It cannot advance a scene: the intro's click listeners are bound
+             per-.scene and this button is their sibling, not a descendant. -->
+        <button id="btnSkipIntro" onclick="launchCoreGame()">Skip Intro</button>
     </div>
 
     <div id="frame-shell">
@@ -978,7 +1324,7 @@
         <button id="nav-left" class="nav-btn" style="display: none;" onclick="slideScreen(-1)">❮</button>
         <button id="nav-right" class="nav-btn" onclick="slideScreen(1)">❯</button>
         <div id="v2tut-box" style="display:none;"><span id="v2tut-text"></span></div>
-        <div id="v2tut-hand" style="display:none;">👇</div>
+        <div id="v2tut-hand" class="sf-hand-d" style="display:none;"></div>
 
         <div id="screens-container">
             <div class="screen" id="screen-0">
@@ -989,7 +1335,7 @@
                     <button id="btnLedger" class="panel-open-btn" style="width: 100%; margin-bottom: 8px; flex: none;" onclick="openLedger()">📒 Ledger</button>
                     <div id="shop-locked-view" style="text-align: center;">
                         <div class="empty-list">The shop is currently closed.</div>
-                        <button id="btnUnlockShop" class="btn-craft" style="background:linear-gradient(#d08a3a, #9c5c1c); margin-top: 10px;" onclick="unlockShop()">Unlock Shop (1000 Gold)</button>
+                        <button id="btnUnlockShop" class="btn-craft" style="margin-top: 10px;" onclick="unlockShop()">Unlock Shop (1000 Gold)</button>
                     </div>
                     <div class="sword-list" id="shop-list" style="display: none;"></div>
                 </div>
@@ -1021,7 +1367,7 @@
 
                 <div class="counter-panel-buttons">
                     <button class="panel-open-btn" onclick="openInventoryModal()">🛡️ Inventory</button>
-                    <button id="btnOpenComps" class="panel-open-btn" onclick="openCompositionsModal()">📜 Recorded Compositions</button>
+                    <button id="btnOpenComps" class="panel-open-btn" onclick="openCompositionsModal()">📜 Alloy Book</button>
                 </div>
             </div>
 
@@ -1032,7 +1378,7 @@
                         <button id="btnEndDay" onclick="requestEndDay()" class="topbar-btn">🌙 End Day</button>
                         <span id="day-text-2" class="day-badge">Day 1</span>
                         <span id="gold-text-2">💰 Gold: 0 &nbsp;|&nbsp; ⭐ <span id="rep-text-2">0</span></span>
-                        <button id="btnSaveRecipe" class="topbar-btn">📜 Record</button>
+                        <button id="btnSaveRecipe" class="topbar-btn">Note the Alloy</button>
                         <button id="btnTutorialInfo" onclick="openTutorialReview()" title="Review tutorial tips" style="display: none; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #4a3623; background: #d9cbb3; font-size: 12px; line-height: 1; padding: 0; cursor: pointer;">ℹ️</button>
                     </div>
                 </div>
@@ -1155,11 +1501,11 @@
                     <!-- Painterly station icons; the emoji sits behind each <img> as a pure-CSS fallback
                          (onerror removes the image, the adjacent-sibling rule then un-hides the emoji). -->
                     <button class="pc-btn" id="pcBtnOre" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_ore.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">⛏️</span></span><span class="pc-lbl">Ore</span><span class="pc-badge" id="pcOreBadge">0</span></button>
-                    <button class="pc-btn" id="pcBtnCrush" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/forge/stamp_mill.png" onerror="this.onerror=null;this.src='assets/forge/grindstone.png';" alt=""></span><span class="pc-lbl">Crush</span><span class="pc-badge" id="pcCrushBadge" style="display:none;">0</span></button>
-                    <button class="pc-btn" id="pcBtnSmelt" type="button"><span class="pc-ico" id="pcSmeltIco"><img class="pc-ico-img" id="pcSmeltImg" src="assets/ui/icon_smelter.png" alt="" onerror="this.remove()"><span class="pc-ico-fb" id="pcSmeltFb">🏭</span></span><span class="pc-lbl" id="pcSmeltLbl">Smelter</span></button>
+                    <button class="pc-btn" id="pcBtnCrush" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/forge/stamp_mill.png" onerror="if(this.dataset.f){this.remove();}else{this.dataset.f=1;this.src='assets/forge/grindstone.png';}" alt=""><span class="pc-ico-fb">🪨</span></span><span class="pc-lbl">Crush</span><span class="pc-badge" id="pcCrushBadge" style="display:none;">0</span></button>
+                    <button class="pc-btn" id="pcBtnSmelt" type="button"><span class="pc-ico" id="pcSmeltIco"><img class="pc-ico-img" id="pcSmeltImg" src="assets/ui/icon_smelter.png" alt="" onerror="this.remove()"><img class="pc-ico-img" id="pcBellowsImg" src="assets/ui/icon_bellows.png" alt="" style="display:none;" onerror="this.remove()"><span class="pc-ico-fb" id="pcSmeltFb">🏭</span></span><span class="pc-lbl" id="pcSmeltLbl">Smelter</span></button>
                     <button class="pc-btn" id="pcBtnPour" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_pour.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🫗</span></span><span class="pc-lbl">Pour</span></button>
                     <button class="pc-btn" id="pcBtnAnvil" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_anvil.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🔨</span></span><span class="pc-lbl">Anvil</span><span class="pc-badge" id="pcAnvilBadge">×1</span></button>
-                    <button class="pc-btn" id="pcBtnQuench" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/forge/water_bucket.png" alt=""></span><span class="pc-lbl">Quench</span></button>
+                    <button class="pc-btn" id="pcBtnQuench" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/forge/water_bucket.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">💧</span></span><span class="pc-lbl">Quench</span></button>
                     <button class="pc-btn" id="pcBtnFire" type="button"><span class="pc-ico"><img class="pc-ico-img" src="assets/ui/icon_fire.png" alt="" onerror="this.remove()"><span class="pc-ico-fb">🔥</span></span><span class="pc-lbl">Fire</span></button>
                 </div>
                 <div id="pc-status" class="pc-status">Pick an ore to plot a route.</div>
@@ -1187,8 +1533,8 @@
 
                 <!-- hidden buttons kept only for JS references -->
                 <div class="action-area" style="display:none;">
-                    <button class="action-btn" id="btnHeat">Heat<span id="heatArrow" class="tut-arrow">👇</span></button>
-                    <button class="action-btn" id="btnForge">Forge<span id="forgeArrow" class="tut-arrow">👇</span></button>
+                    <button class="action-btn" id="btnHeat">Heat<span id="heatArrow" class="tut-arrow sf-hand-d"></span></button>
+                    <button class="action-btn" id="btnForge">Forge<span id="forgeArrow" class="tut-arrow sf-hand-d"></span></button>
                     <button class="action-btn" id="btnChart">🗺️ Chart</button>
                 </div>
 
@@ -1196,7 +1542,7 @@
         </div> 
         
         <div id="heatModal" class="modal-overlay">
-            <div class="modal-content" style="background: transparent; box-shadow: none; padding: 0;">
+            <div class="modal-content modal-bare">
                 
                 <div class="forge-minigame-container">
                     <img src="assets/backgrounds/background_forge.jpg" class="forge-bg" alt="Forge Background">
@@ -1205,11 +1551,11 @@
                     <img src="assets/forge/bellow_forge.png" id="forge-bellow" class="forge-bellow" onmousedown="handleBellowClick(event)" ontouchstart="handleBellowClick(event)" alt="Bellow">
                     
                     <div class="interactive-heat-meter" id="forge-meter-container">
-                        <div style="font-size: 11px; color: var(--sf-parch); margin-bottom: 5px; text-shadow: 1px 1px 2px #000;">Keep heat in the <span style="color:#8a9a52; font-weight:bold;">Green Zone</span>!</div>
+                        <div style="font-size: 11px; font-family: 'Cinzel', serif; color: var(--sf-ink-dk); margin-bottom: 5px; text-shadow: none;">Keep heat in the <span style="color:#43521f; font-weight:bold;">Green Zone</span>!</div>
                         <div class="interactive-heat-track">
                             <div class="interactive-heat-thumb" id="interactive-heat-thumb"></div>
                         </div>
-                        <div id="heat-timer" style="text-align: center; margin-top: 6px; font-size: 13px; font-weight: bold; color: #ffd27f; display: none;"></div>
+                        <div id="heat-timer" style="text-align: center; margin-top: 6px; font-size: 13px; font-family: 'Cinzel', serif; font-weight: bold; color: #75291a; display: none;"></div>
                     </div>
                     <div id="forge-instructions" class="forge-instructions">Tap Pulley to Lower Bucket</div>
                 </div>
@@ -1304,7 +1650,7 @@
                     <img id="cool-blade" class="cool-blade hot" src="" alt="Blade">
                     <img src="assets/forge/water_bucket.png" class="cool-bucket" alt="Water bucket">
                     <div class="cool-steam" id="cool-steam"><div class="steam-puff"></div><div class="steam-puff"></div><div class="steam-puff"></div><div class="steam-puff"></div></div>
-                    <span class="cool-hand" id="cool-hand">👈</span>
+                    <span class="cool-hand sf-hand-l" id="cool-hand"></span>
                     <div id="cool-instructions" class="forge-instructions">Tap the blade to quench it</div>
                 </div>
                 <button class="cancel-btn" style="margin-top: 0; background: linear-gradient(#c3b193, #a9977a);" onclick="closeForge()">Close</button>
@@ -1334,7 +1680,7 @@
                         <span class="sharpen-spark" style="--sx:-14px;--sy:-26px;animation-delay:0.32s;"></span>
                         <span class="sharpen-spark" style="--sx:14px;--sy:24px;animation-delay:0.4s;"></span>
                     </div>
-                    <span class="sharpen-hand" id="sharpen-hand">👈</span>
+                    <span class="sharpen-hand sf-hand-l" id="sharpen-hand"></span>
                     <div class="sharpen-meter">
                         <div class="sharpen-track">
                             <div class="sharpen-fill" id="sharpen-fill"></div>
@@ -1381,7 +1727,7 @@
             <div class="list-modal-content">
                 <div class="list-modal-header">
                     <button class="list-nav-btn" id="comp-back" onclick="showCompositionGrid()" style="visibility: hidden;">←</button>
-                    <h3 id="comp-title">📜 Recorded Compositions</h3>
+                    <h3 id="comp-title">📜 Alloy Book</h3>
                     <button class="list-nav-btn" onclick="closeCompositionsModal()">✕</button>
                 </div>
                 <div class="list-modal-body" id="comp-body"></div>
@@ -1404,8 +1750,8 @@
         </div>
 
         <div id="recordModal" class="modal-overlay">
-            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; max-width: 360px;">
-                <h3 id="record-title" style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;">Record Composition</h3>
+            <div class="modal-content" style="max-width: 360px;">
+                <h3 id="record-title" style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;">Note the Alloy</h3>
                 <div id="record-body" style="font-size: 13px; text-align: left; color: #4a3623; line-height: 1.5; margin: 10px 0 14px;"></div>
                 <div style="display: flex; gap: 8px;">
                     <button class="cancel-btn" style="flex: 1; margin-top: 0; background: linear-gradient(#c3b193, #a9977a);" onclick="closeRecordModal()">Cancel</button>
@@ -1416,7 +1762,7 @@
         </div>
 
         <div id="chartModal" class="modal-overlay">
-            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; padding: 10px;">
+            <div class="modal-content" style="padding: 10px;">
                 <h3 style="margin-bottom: 10px; color: #4a3623; font-family: 'Cinzel', serif;">Map</h3>
                 <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto;">
                     <canvas id="minimap-canvas" width="500" height="500" style="width: 100%; aspect-ratio: 1; display: block; border-radius: 4px; border: 2px inset #a6957a; background: #c9b690; touch-action: none; cursor: grab;"></canvas>
@@ -1453,16 +1799,16 @@
         </div>
 
         <div id="forgeResultModal" class="modal-overlay">
-            <div class="modal-content" style="border: 3px solid #4a3623; background: #d9cbb3; max-width: 330px;">
-                <h3 style="color: #4a3623; font-family: 'Cinzel', serif; font-size: 22px;">🗡️ Forging Complete!</h3>
+            <div class="modal-content" style="max-width: 330px;">
+                <h3>🗡️ Forging Complete!</h3>
                 <div id="forgeResultDetails" style="font-size: 14px; text-align: left; margin-bottom: 15px; line-height: 1.6; color: #3d2b1a;"></div>
                 <button class="btn-craft" style="background: linear-gradient(#a98a4f, #7d6127); border: 1px solid #5c4718; width: 100%; font-size: 16px; padding: 12px;" onclick="closeForgeResultModal()">Add to Vault</button>
             </div>
         </div>
 
         <div id="newTraitModal" class="modal-overlay">
-            <div class="modal-content" style="border: 3px solid #4a3623; background: #d9cbb3;">
-                <h3 style="color: #8a6a1c; font-family: 'Cinzel', serif; font-size: 20px; margin-bottom: 6px;">✨ New Trait Discovered!</h3>
+            <div class="modal-content">
+                <h3 style="margin-bottom: 6px;">✨ New Trait Discovered!</h3>
                 <div id="newTraitIcon" style="font-size: 60px; line-height: 1.3; margin: 6px 0;"></div>
                 <div id="newTraitName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #4a3623; margin-bottom: 14px;"></div>
                 <button class="btn-craft" style="background: linear-gradient(#d6b95f, #a98a4f); border: 1px solid #7d6127; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewTraitModal()">Continue</button>
@@ -1470,8 +1816,8 @@
         </div>
 
         <div id="newShapeModal" class="modal-overlay">
-            <div class="modal-content" style="border: 3px solid #4a3623; background: #d9cbb3;">
-                <h3 style="color: #8a6a1c; font-family: 'Cinzel', serif; font-size: 20px; margin-bottom: 6px;">🗡️ New Blade!</h3>
+            <div class="modal-content">
+                <h3 style="margin-bottom: 6px;">🗡️ New Blade!</h3>
                 <div id="newShapeImg" style="height: 96px; display: flex; align-items: center; justify-content: center; margin: 6px 0;"></div>
                 <div id="newShapeName" style="font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #4a3623; margin-bottom: 14px;"></div>
                 <button class="btn-craft" style="background: linear-gradient(#d6b95f, #a98a4f); border: 1px solid #7d6127; width: 100%; font-size: 16px; padding: 12px;" onclick="closeNewShapeModal()">Continue</button>
@@ -1479,7 +1825,7 @@
         </div>
 
         <div id="endDayModal" class="modal-overlay">
-            <div class="modal-content" style="background: #d9cbb3; border: 3px solid #4a3623; max-width: 330px;">
+            <div class="modal-content" style="max-width: 330px;">
                 <h3 style="margin-top: 0; color: #4a3623; font-family: 'Cinzel', serif;">End Day</h3>
                 <div id="endday-text" style="font-size: 14px; color: #4a3623; line-height: 1.5; margin: 10px 0 16px;"></div>
                 <div style="display: flex; gap: 8px;">
@@ -1507,8 +1853,6 @@
         </div>
     </div>
     </div>
-
-    <button id="btnSkipIntro" class="corner-btn" onclick="launchCoreGame()">Skip Intro ⏭</button>
 
     <script>
         /* --- INTRO SEQUENCE LOGIC --- */
@@ -1555,7 +1899,13 @@
             document.getElementById('intro-container').style.display = 'none';
             document.getElementById('mobile-wrapper').style.display = 'block';
             document.getElementById('btnSkipIntro').style.display = 'none';   // intro is done
-            document.getElementById('cheatBox').style.display = 'flex'; // show the collapsible dev-cheat box (Skip Tutorial lives here now)
+            // Dev-cheat box (+100 metals / +100 gold / skip stage / remove fog / skip tutorial) is OPT-IN.
+            // It renders at y=50 while the game frame starts at y=86, i.e. in the page void OUTSIDE the
+            // product, so shipping it visible put a 🛠 button carrying "Remove Fog" in every player's view —
+            // the same class of defect as the old page-level Skip Intro, at higher stakes. Add ?dev to the
+            // URL to bring it back. NOTE: Skip Tutorial lives in this panel, but initializeMainGame() already
+            // calls v2tutSkip() unconditionally in this presentation build, so nothing becomes unskippable.
+            if (location.search.indexOf('dev') !== -1) document.getElementById('cheatBox').style.display = 'flex';
             initializeMainGame();
         }
 
@@ -2235,7 +2585,7 @@
             { frame: 10, text: "Plan your path and avoid impure zones. You can also hold the button to jump over the hazard zone! Hold Magnesium and move west." },
             { waitAction: 'reachFlameTrait', hand: [{ sel: '#btnMagnesium', side: 'above' }] },
             { waitAction: 'heatFlame' },
-            { text: "Click on 'Record Composition' to save the metals we used to craft a sword with a specific trait." },
+            { text: "Click on 'Note the Alloy' to save the metals we used to craft a sword with a specific trait." },
             { waitAction: 'recordMixture', hand: [{ sel: '#btnSaveRecipe', side: 'above' }] },
             { onShow: () => showForgeArrow(), waitAction: 'forge' },
             { text: "Go to the counter and sell it!" },
@@ -2243,7 +2593,7 @@
             // Ice-dragon (customer #3) arrives; wait for the whole line to type out (+2s) before the lesson box.
             { onShow: () => { setRandomRequest(); const bp = savedBlueprints.find(b => b.traits.some(t => t.id === 'flame')); if (bp) metalsList.forEach(m => { if (availableMetals[m] < bp.recipe[m]) availableMetals[m] = bp.recipe[m]; }); updateUI(); }, action: 'afterCustomer', read: 2000 },
             // Lesson box + expand the recipe panel together (the modal covers the panel, so Auto-Craft can't be tapped before the box is dismissed).
-            { onShow: () => { openCompositionsModal(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Recorded Compositions, tap Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
+            { onShow: () => { openCompositionsModal(); const fi = savedBlueprints.findIndex(b => b.traits.some(t => t.id === 'flame')); if (fi !== -1) { selectedBlueprintIndex = fi; renderBlueprints(); } }, text: "You know how to craft a flame sword! In your Alloy Book, tap Craft — you'll re-heat the alloy and hammer it into shape — then give it to the customer." },
             { waitAction: 'craftFlameRecipe', hand: [{ sel: '#recipe-detail .btn-craft', side: 'above' }] },
             { waitAction: 'sellFlame2', hand: [{ sel: '#btnAutoSell', side: 'above' }] },
             { action: 'delay', duration: 800 },
@@ -2325,8 +2675,8 @@
             document.getElementById('review-text').innerHTML = d.text;
             document.getElementById('review-count').textContent = `${reviewIndex + 1}/${dialogueHistory.length}`;
             const prev = document.getElementById('review-prev'), next = document.getElementById('review-next');
-            prev.disabled = reviewIndex === 0; prev.style.opacity = prev.disabled ? '0.45' : '1';
-            next.disabled = reviewIndex === dialogueHistory.length - 1; next.style.opacity = next.disabled ? '0.45' : '1';
+            // Drained state is CSS now (.cancel-btn:disabled); an inline opacity would beat the stylesheet.
+            prev.disabled = reviewIndex === 0; next.disabled = reviewIndex === dialogueHistory.length - 1;
         }
 
         document.getElementById('btnTutorialOk').onclick = () => { tutorialStep++; playTutorialStep(); };
@@ -2933,7 +3283,7 @@
             { id: 'epic5', label: 'Craft 5 Epic swords', goal: 5, progress: 0, done: false },
             { id: 'noRefuseDay', label: 'Survive a day without turning any customer away', goal: 1, progress: 0, done: false },
             { id: 'discover3', label: 'Discover 3 new traits', goal: 3, progress: 0, done: false },
-            { id: 'update3', label: 'Update 3 recorded compositions', goal: 3, progress: 0, done: false },
+            { id: 'update3', label: 'Update 3 noted alloys', goal: 3, progress: 0, done: false },
             { id: 'openShop', label: 'Open the shop front', goal: 1, progress: 0, done: false }
         ];
         // Advance a quest by `amount`; award gold + toast when it hits its goal. No-op once done.
@@ -3018,8 +3368,13 @@
                 }
                 if (soldAny) {
                     showShopSalePopup(soldTotal, soldCount);
-                    const goldText = document.getElementById('gold-text'); goldText.style.backgroundColor = '#5f7038'; goldText.style.color = '#fceeb5'; goldText.innerHTML = `+ ${soldTotal}g`;
-                    setTimeout(() => { goldText.style.backgroundColor = '#efe1bd'; goldText.style.color = '#7a5a12'; goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: inherit;">${reputation}</span>`; updateUI(); }, 800); updateUI();   // restore values mirror the #gold-text CSS
+                    // The flash is a CLASS (#screen-1 #gold-text.gold-flash), not two inline style writes: the
+                    // old "restore" pass re-applied a light parchment chip inline and never cleared it, so
+                    // after the first passive sale the pill stayed corrupted for the rest of the session.
+                    const goldText = document.getElementById('gold-text'); goldText.classList.add('gold-flash'); goldText.innerHTML = `+ ${soldTotal}g`;
+                    // Clearing the text BEFORE updateUI() is load-bearing, not tidying: updateUI's guard skips
+                    // any pill whose text still contains a '+', so dropping the class alone would freeze it.
+                    setTimeout(() => { goldText.classList.remove('gold-flash'); goldText.innerHTML = ''; updateUI(); }, 800); updateUI();
                 }
             }, 10000);
         }
@@ -3073,11 +3428,17 @@
             const healthBar = document.getElementById('health-bar'); healthBar.style.width = Math.max(0, health) + '%';
             healthBar.style.background = health > 50 ? 'linear-gradient(180deg,#8a9a52 0%,#5f7038 48%,#3f4c22 100%)' : health > 20 ? 'linear-gradient(180deg,#d8b45a 0%,#a8801f 48%,#6f5211 100%)' : 'linear-gradient(180deg,#c9603a 0%,#9e3b22 48%,#5f2011 100%)';   // mirrors the #health-bar CSS tiers verbatim — change both together
             { const bt = document.getElementById('blade-traits-text'); if (bt) bt.innerHTML = activeTraits.length === 0 ? '<strong>Blade Traits:</strong> None' : '<strong>Blade Traits:</strong> ' + activeTraits.map(t => `${t.symbol} ${t.name}`).join(', '); }
-            const repColor = reputation < 0 ? '#9e3b22' : reputation > 10 ? '#5f7038' : '#5c6b70';
+            // Reputation tiers: --sf-oxide-pale (falling) / --sf-iron-lt (neutral) / --sf-moss-lt (rising).
+            // These are the LIGHT rungs because the pill is now opaque ink on both screens — hand-mirrored
+            // from the :root tokens, so retune both together (same convention as the #health-bar tiers above).
+            const repColor = reputation < 0 ? '#d4744a' : reputation > 10 ? '#8a9a52' : '#93a3a8';
+            // The word "Gold:" is dropped: the icons carry the meaning, the pill was wrapping to THREE lines
+            // on screen 2, and the display serif is ~18% wider than the Arial it replaced in a header that
+            // had exactly 0.0px of horizontal slack.
             const goldText = document.getElementById('gold-text');
-            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
+            if (goldText.textContent.indexOf('+') === -1) { goldText.innerHTML = `💰 ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text" style="color: ${repColor};">${reputation}</span>`; }
             const goldText2 = document.getElementById('gold-text-2'); // screen 2 mirror of the gold/rep pill
-            if (goldText2) goldText2.innerHTML = `💰 Gold: ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
+            if (goldText2) goldText2.innerHTML = `💰 ${gold} &nbsp;|&nbsp; ⭐ <span id="rep-text-2" style="color: ${repColor};">${reputation}</span>`;
             updateEndDayUI(); // day counter + End Day button state
 
             const btnAutoSell = document.getElementById('btnAutoSell');
@@ -3104,7 +3465,7 @@
             if (forgeBtn.disabled) hideForgeArrow();
             forgeBtn.classList.toggle('btn-glow', !forgeBtn.disabled); // glow once there's a heated trait to forge
             // First-craft stage: Record Composition and Chart are locked until the first sword is forged.
-            const saveBtn = document.getElementById('btnSaveRecipe'); saveBtn.disabled = !mapTraitOn; saveBtn.textContent = 'Record Composition'; // V2: record the trait the sword is on
+            const saveBtn = document.getElementById('btnSaveRecipe'); saveBtn.disabled = !mapTraitOn; saveBtn.textContent = 'Note the Alloy'; // V2: note the alloy the sword is on
             document.getElementById('btnChart').disabled = tutorialMetalLock;
 
             if (shopUnlocked) {
@@ -3112,8 +3473,11 @@
             } else {
                 document.getElementById('shop-locked-view').style.display = 'block'; document.getElementById('shop-list').style.display = 'none';
                 const btnUnlock = document.getElementById('btnUnlockShop');
-                if (gold >= 1000) { btnUnlock.disabled = false; btnUnlock.style.background = 'linear-gradient(#d08a3a, #9c5c1c)'; btnUnlock.textContent = "Unlock Shop (1000 Gold)"; }
-                else { btnUnlock.disabled = true; btnUnlock.style.background = 'linear-gradient(#a9977a, #8b7a5f)'; btnUnlock.textContent = "Need 1000 Gold to Unlock"; }
+                // Class, not an inline background: an inline style beats the stylesheet, so writing the
+                // background on BOTH branches made this the one button that opted out of the shared
+                // primary/drained tiers. .btn-craft:disabled governs the off state now.
+                if (gold >= 1000) { btnUnlock.disabled = false; btnUnlock.classList.add('btn-unlock-ready'); btnUnlock.textContent = "Unlock Shop (1000 Gold)"; }
+                else { btnUnlock.disabled = true; btnUnlock.classList.remove('btn-unlock-ready'); btnUnlock.textContent = "Need 1000 Gold to Unlock"; }
             }
             renderBlueprints(); renderVault(); checkShopTutorial();
             if (typeof pcUpdateStations === 'function') pcUpdateStations();   // station row mirrors Heat/Forge availability
@@ -3132,7 +3496,7 @@
             if (selectedBlueprintIndex >= savedBlueprints.length) selectedBlueprintIndex = -1;
             if (selectedBlueprintIndex >= 0) {
                 // Detail view: Tier / Traits / Value / Composition + Auto-Craft (+ Delete outside the tutorial).
-                back.style.visibility = 'visible'; title.textContent = '📜 Composition Details';
+                back.style.visibility = 'visible'; title.textContent = '📜 Alloy Details';
                 const bp = savedBlueprints[selectedBlueprintIndex];
                 const canAfford = v2canAfford(bp.recipe);
                 const compString = v2recipeSummary(bp.recipe);
@@ -3140,8 +3504,8 @@
                 body.innerHTML = `<div id="recipe-detail" class="sword-card"><div class="sword-card-title">📜 ${bp.name}</div><div class="sword-card-details"><strong>Trait:</strong> ${bp.traits.map(t => `${t.symbol} ${t.name}`).join(', ')}<br><strong>Value:</strong> ${calculateSwordValue(bp.traits)}g<br><strong>Uses:</strong> ${compString}</div><div class="recipe-actions"><button class="btn-craft" ${canAfford ? '' : 'disabled'} onclick="quickCraft(${selectedBlueprintIndex})">⚡ Craft</button>${delBtn}</div></div>`;
             } else {
                 // Grid view: one trait-icon tile per composition.
-                back.style.visibility = 'hidden'; title.textContent = '📜 Recorded Compositions';
-                if (savedBlueprints.length === 0) { body.innerHTML = '<div class="empty-list">No compositions recorded yet.</div>'; return; }
+                back.style.visibility = 'hidden'; title.textContent = '📜 Alloy Book';
+                if (savedBlueprints.length === 0) { body.innerHTML = '<div class="empty-list">No alloys noted yet.</div>'; return; }
                 const grid = document.createElement('div'); grid.className = 'recipe-tile-grid';
                 savedBlueprints.forEach((bp, index) => {
                     const tile = document.createElement('div'); tile.className = 'recipe-tile';
@@ -3347,18 +3711,23 @@
         function showForgeArrow() { document.getElementById('forgeArrow').style.display = 'inline-block'; }
         function hideForgeArrow() { const fa = document.getElementById('forgeArrow'); if (fa) fa.style.display = 'none'; }
 
-        // Tutorial hand pointers: place a bouncing hand next to a target element, pointing at it.
+        // Tutorial hand pointers: place a bouncing inked manicule next to a target element, pointing at it.
+        // Direction is a CLASS now, not a glyph: the emoji hands were Segoe UI Emoji vectors sitting straight
+        // on the hand-painted forge art. Every offset expression below is unchanged — the manicule renders in
+        // a 28px SQUARE, and a rotated square has the same bounding box, so nothing shifts in any direction.
+        const HAND_DIR = { below: 'sf-hand-u', leftOf: 'sf-hand-r', rightOf: 'sf-hand-l', above: 'sf-hand-d' };
         function placeHand(handEl, targetEl, side) {
             if (!targetEl) { handEl.style.display = 'none'; return; }
             const wrap = document.getElementById('mobile-wrapper'); const wr = wrap.getBoundingClientRect(); const tr = targetEl.getBoundingClientRect();
             if (tr.width === 0 && tr.height === 0) { handEl.style.display = 'none'; return; }
-            const H = 28; let left, top, emoji;
+            const H = 28; let left, top;
             const cx = tr.left - wr.left + tr.width / 2, cy = tr.top - wr.top + tr.height / 2;
-            if (side === 'below') { emoji = '👆'; left = cx - H / 2; top = (tr.bottom - wr.top) + 2; }
-            else if (side === 'leftOf') { emoji = '👉'; left = (tr.left - wr.left) - H - 2; top = cy - H / 2; }
-            else if (side === 'rightOf') { emoji = '👈'; left = (tr.right - wr.left) + 2; top = cy - H / 2; }
-            else { emoji = '👇'; left = cx - H / 2; top = (tr.top - wr.top) - H - 2; } // 'above'
-            handEl.textContent = emoji; handEl.style.left = Math.round(left) + 'px'; handEl.style.top = Math.round(top) + 'px'; handEl.style.display = 'block';
+            if (side === 'below') { left = cx - H / 2; top = (tr.bottom - wr.top) + 2; }
+            else if (side === 'leftOf') { left = (tr.left - wr.left) - H - 2; top = cy - H / 2; }
+            else if (side === 'rightOf') { left = (tr.right - wr.left) + 2; top = cy - H / 2; }
+            else { left = cx - H / 2; top = (tr.top - wr.top) - H - 2; } // 'above'
+            handEl.classList.remove('sf-hand-u', 'sf-hand-d', 'sf-hand-l', 'sf-hand-r'); handEl.classList.add(HAND_DIR[side] || 'sf-hand-d');   // unrecognised side degrades to 'above', exactly as before
+            handEl.style.left = Math.round(left) + 'px'; handEl.style.top = Math.round(top) + 'px'; handEl.style.display = 'block';
         }
         function showHands(spec) {
             const h1 = document.getElementById('tutHand1'), h2 = document.getElementById('tutHand2');
@@ -3638,7 +4007,7 @@
         function triggerRecordReminder() {
             if (!recordReminderPending || hasShownRecordReminder) return;
             recordReminderPending = false; hasShownRecordReminder = true;
-            showGuideBox(null, "Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve.", () => showHands([{ sel: '#btnSaveRecipe', side: 'above' }]));
+            showGuideBox(null, "Remember to note the alloy behind each new trait you discover, and keep updating the old ones as you improve.", () => showHands([{ sel: '#btnSaveRecipe', side: 'above' }]));
         }
 
         function cancelHeat() { forgePhase = 'idle'; bellowHeld = false; clearHeatCues(); if (heatAnimationFrame) cancelAnimationFrame(heatAnimationFrame); document.getElementById('heatModal').style.display = 'none'; pendingHeatTrait = null; pendingHeatIndex = -1; if (heatOutcomeCb) { heatOutcomeCb = null; forgeCtx = null; } } // cancelling a detached (Auto-Craft) heat aborts the forge pipeline
@@ -3656,7 +4025,7 @@
             // V2: record/update the composition for the trait the sword is currently on, using this blade's resource usage.
             if (!mapTraitOn) { gameAlert("Move the sword onto a trait to record how you reached it."); return; }
             const updated = v2recordComposition(mapTraitOn, mapTraitValue);
-            showTraitToast('📜 ' + mapTraitOn.name + ' composition ' + (updated ? 'updated' : 'recorded'));
+            showTraitToast('📜 ' + mapTraitOn.name + ' alloy ' + (updated ? 'updated' : 'noted'));
             updateUI();
         }
         function metalsSummary(recipe) { return metalsList.filter(m => recipe[m] > 0).map(m => `${recipe[m]} ${metalNames[m]}`).join(', ') || 'no metals'; }
@@ -3668,7 +4037,7 @@
                 // Existing composition for this trait set → show a before/after metal comparison and ask to replace it.
                 const old = savedBlueprints[pr.existingIndex].recipe;
                 const identical = metalsList.every(m => old[m] === pr.recipe[m]);
-                title.textContent = 'Update Composition';
+                title.textContent = 'Update the Alloy';
                 body.innerHTML = `Replace the old record or keep both?`
                     + `<div style="display:flex; gap:10px; margin-top:10px;"><div style="flex:1; background:#e8dcc0; color:#3d2b1a; border:1px solid #b9a37c; border-radius:6px; padding:8px;"><strong>Recorded</strong><br>${metalsSummary(old)}</div>`
                     + `<div style="flex:1; background:#e8dcc0; color:#3d2b1a; border:1px solid #b9a37c; border-radius:6px; padding:8px;"><strong>New</strong><br>${metalsSummary(pr.recipe)}</div></div>`
@@ -3677,8 +4046,8 @@
                 document.getElementById('record-keepboth-btn').style.display = identical ? 'none' : ''; // no point duplicating an identical composition
             } else {
                 // New trait set → summary of what's being saved.
-                title.textContent = 'Record Composition';
-                body.innerHTML = `Save a new composition for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
+                title.textContent = 'Note the Alloy';
+                body.innerHTML = `Note a new alloy for the <strong>${traitLabel}</strong> trait${pr.traits.length > 1 ? 's' : ''}.`
                     + `<div style="margin-top:10px; background:#e8dcc0; color:#3d2b1a; border:1px solid #b9a37c; border-radius:6px; padding:8px;"><strong>Metals used:</strong> ${metalsSummary(pr.recipe)}</div>`;
                 btn.textContent = 'Record';
                 document.getElementById('record-keepboth-btn').style.display = 'none';
@@ -3697,11 +4066,11 @@
             if (pr.existingIndex >= 0) {
                 const bp = savedBlueprints[pr.existingIndex];
                 bp.traits = pr.traits.map(t => ({ ...t })); bp.recipe = { ...pr.recipe }; bp.name = traitNames + " Blade";
-                showTraitToast(`📜 ${traitNames} composition updated`);
+                showTraitToast(`📜 ${traitNames} alloy updated`);
                 bumpQuest('update3');
             } else {
                 savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
-                showTraitToast(`📜 ${traitNames} composition recorded`);
+                showTraitToast(`📜 ${traitNames} alloy noted`);
             }
             document.getElementById('recordModal').style.display = 'none';
             forgeLockedForRecord = false; // recording done — Forge is available again
@@ -3714,7 +4083,7 @@
             const pr = pendingRecord; if (!pr) return; pendingRecord = null;
             const traitNames = pr.traits.map(t => `${t.quality} ${t.name}`).join(' & ');
             savedBlueprints.push({ name: traitNames + " Blade", traits: pr.traits.map(t => ({ ...t })), recipe: { ...pr.recipe }, design: { blade: 0, grip: 0, guard: 0, pommel: 0 } });
-            showTraitToast(`📜 ${traitNames} composition recorded`);
+            showTraitToast(`📜 ${traitNames} alloy noted`);
             document.getElementById('recordModal').style.display = 'none';
             forgeLockedForRecord = false; // recording done — Forge is available again
             updateUI();
@@ -3722,7 +4091,7 @@
 
         function quickCraft(index) {
             if (isProcessingCustomer) return; const bp = savedBlueprints[index]; if (!bp) return;
-            if (!v2canAfford(bp.recipe)) { gameAlert("Not enough ores / charcoal / limestone to craft this composition."); return; }
+            if (!v2canAfford(bp.recipe)) { gameAlert("Not enough ores / charcoal / limestone to craft this alloy."); return; }
             const r = bp.recipe; V2_ORES.forEach(o => { v2Ore[o.id] -= ((r.ores && r.ores[o.id]) || 0); }); v2Charcoal -= (r.charcoal || 0); v2Limestone -= (r.limestone || 0); v2updateCounts(); // spend the recorded resources
             hideHands(); closeCompositionsModal(); closeInventoryModal(); // clear the list modals so the forge pipeline shows cleanly
             forgeCtx = { mode: 'auto', traits: bp.traits.map(t => ({ ...t })), recipe: JSON.parse(JSON.stringify(bp.recipe)), bpIndex: index, hammerMisses: 0, hammerHits: 0, heatQuality: null };
@@ -4291,8 +4660,8 @@
             { text:'Tap the <b>ingot</b> to forge the blade.',                                  hand:'#v2-ingot',                       wait:'forge'        },
             { text:'Tap <b>❮</b> to sell your Flame blade to the customer.',                    hand:'#nav-left',                       wait:'screen:1'     },
             // — Customer #3: also wants Flame — teach Recorded Compositions + Auto-Craft —
-            { text:'Another 🔥 Flame order! No need to re-map it — open your <b>📜 Recorded Compositions</b>.', hand:'#btnOpenComps',           wait:'compopen', pauseBefore:true },
-            { text:'Every trait you discover is <b>saved here automatically</b>. Tap your 🔥 Flame composition.', hand:'.recipe-tile[data-trait*="flame"]', wait:'compselect:flame' },
+            { text:'Another 🔥 Flame order! No need to re-map it — open your <b>📜 Alloy Book</b>.', hand:'#btnOpenComps',           wait:'compopen', pauseBefore:true },
+            { text:'Every trait you discover is <b>saved here automatically</b>. Tap your 🔥 Flame alloy.', hand:'.recipe-tile[data-trait*="flame"]', wait:'compselect:flame' },
             { text:'Tap <b>⚡ Craft</b> to re-forge it straight from the recipe — no re-mapping needed.', hand:'#compositionsModal .btn-craft',  wait:'compcraft' },
             // — After customer #3 is served: show off the Quests + Diary panels —
             { text:'Nice work! Tap <b>📋</b> to check your <b>Quests</b> — small goals that pay bonus gold.', hand:'#questToggle', wait:'quests', pauseBefore:true },
@@ -4353,12 +4722,12 @@
             const r=el.getBoundingClientRect(), hr=host.getBoundingClientRect();
             if(r.width===0 && r.height===0){ hand.style.display='none'; return; }
             hand.style.display='';
-            if((r.top - hr.top) < 60){   // target hugs the top edge (Quest/Diary toggles) → point at it from the right (👈), the "above" hand would clip off-screen
-                hand.textContent='👈'; hand.classList.add('side');
+            if((r.top - hr.top) < 60){   // target hugs the top edge (Quest/Diary toggles) → point at it from the right, the "above" hand would clip off-screen
+                hand.classList.add('side','sf-hand-l'); hand.classList.remove('sf-hand-d');   // '.side' selects the v2handBounceSide keyframe — keep it
                 hand.style.left=(r.right - hr.left + 6)+'px';
                 hand.style.top =(r.top + r.height/2 - hr.top)+'px';
             } else {
-                hand.textContent='👇'; hand.classList.remove('side');
+                hand.classList.add('sf-hand-d'); hand.classList.remove('side','sf-hand-l');
                 hand.style.left=(r.left + r.width/2 - hr.left)+'px';
                 hand.style.top =(r.top - hr.top)+'px';
             }
@@ -4414,6 +4783,22 @@
         const PC_STACKED = { flame:['steel','aluminium'], ice:['titanium','titanium'], water:['redIron','redIron'] };
         const PC_ORE_COLORS = { titanium:'#7f8a8e', steel:'#6b7a80', aluminium:'#9aa0a0', magnesium:'#8d8b84', bronze:'#a8763a', blackIron:'#34302b', iron:'#4b4a44', redIron:'#8c3a2a' };   // authored mineral tones; the .res-* text swatches use the same eight — keep them in step
         const PC_ORE_ORDER = ['steel','iron','magnesium','bronze','titanium','aluminium','blackIron','redIron'];
+        /* Eight inked mineral silhouettes on a 0..24 box. SHAPE carries the ore's identity in the picker
+           because COLOUR cannot: six of the eight PC_ORE_COLORS tones are under 9% chroma, and titanium
+           (#7f8a8e) and magnesium (#8d8b84) are 0.8 percentage points apart in lightness — indistinguishable
+           on a 22px sphere. pcOreMineral applies the ore's own tone as the fill, so this stays a pure SHAPE
+           table and the palette is NOT forked. Highlight #f0e6d0 is PC_HALO, facet ink #2f2117 is
+           PC_INK_DARK, so no new colour enters the file. */
+        const PC_ORE_GLYPH = {
+            steel:     '<path d="M4,18.5 L7,9.5 L17,9.5 L20,18.5 Z"/><path d="M7,9.5 L9.5,6.5 L19.5,6.5 L17,9.5 Z" fill="#f0e6d0" opacity=".26" stroke="none"/><path d="M17,9.5 L19.5,6.5" fill="none" stroke="#2f2117" stroke-width=".9" opacity=".5"/>',                                                    // cast ingot bar
+            iron:      '<path d="M4.5,13.5 L6.5,6.5 L13,4 L19.5,7.5 L21,14 L15.5,20 L8,19 Z"/><path d="M9,12 L13,8 L16.5,12.5 L12.5,16 Z" fill="#f0e6d0" opacity=".2" stroke="none"/>',                                                                                                            // rough nugget
+            magnesium: '<path d="M11,2 L15,11.5 L12.5,22 L10,22 L7.5,11.5 Z"/><path d="M18,7.5 L21,13.5 L19,20 L16.5,13.5 Z"/><path d="M11,2 L12.2,22 L10,22 L7.5,11.5 Z" fill="#f0e6d0" opacity=".22" stroke="none"/>',                                                                            // needle shards
+            bronze:    '<circle cx="11.5" cy="13.5" r="8.4"/><circle cx="19" cy="6" r="3.4"/><ellipse cx="8.5" cy="10" rx="3" ry="2" fill="#f0e6d0" opacity=".32" stroke="none" transform="rotate(-32 8.5 10)"/>',                                                                                  // molten bead + droplet
+            titanium:  '<path d="M12,1.5 L19.5,6 L19.5,17.5 L12,22.5 L4.5,17.5 L4.5,6 Z"/><path d="M12,1.5 L19.5,6 L12,10.5 L4.5,6 Z" fill="#f0e6d0" opacity=".3" stroke="none"/><path d="M12,10.5 L12,22.5" fill="none" stroke="#2f2117" stroke-width=".9" opacity=".45"/>',                        // tall hex crystal
+            aluminium: '<path d="M12,4.5 L22,9.5 L12,14.5 L2,9.5 Z"/><path d="M2,13 L12,18 L22,13 L22,15.5 L12,20.5 L2,15.5 Z"/><path d="M12,4.5 L22,9.5 L12,11.5 L2,9.5 Z" fill="#f0e6d0" opacity=".28" stroke="none"/>',                                                                          // stacked flat plates
+            blackIron: '<path d="M4.5,4.5 L16,4.5 L19.5,8 L19.5,19.5 L8,19.5 L4.5,16 Z"/><path d="M4.5,4.5 L16,4.5 L19.5,8 L8,8 Z" fill="#f0e6d0" opacity=".24" stroke="none"/><path d="M8,8 L8,19.5" fill="none" stroke="#2f2117" stroke-width=".9" opacity=".45"/>',                                // chamfered block
+            redIron:   '<circle cx="7.5" cy="15.5" r="6"/><circle cx="17" cy="16" r="5"/><circle cx="13.5" cy="7.5" r="5.2"/><circle cx="12" cy="5.5" r="1.5" fill="#f0e6d0" opacity=".34" stroke="none"/>'                                                                                        // pebble cluster
+        };
 
         let plannedOre = null, plannedPath = [], crushSteps = 0;   // the plan (re-selectable freely until it is committed)
         let committedPath = [], pathPos = 0, committedOre = null;  // the locked route + progress along it
@@ -4455,10 +4840,9 @@
             oreIds.forEach(o => { const p = pcPathFrom(idx, o, 0); if (p.length) idx = p[p.length - 1]; });
             return idx;
         }
-        function pcOreArrowDeg(oreId) {
-            const s = (orePathDefs[oreId] || []).reduce((a, st) => ({ dx: a.dx + st.dx, dy: a.dy + st.dy }), { dx: 0, dy: 0 });
-            return Math.round(Math.atan2(s.dy, s.dx) * 180 / Math.PI);
-        }
+        /* (pcOreArrowDeg deleted — it summed an ore's {dx,dy} steps into ONE bearing for the picker's `→`
+           glyph, which is information the route shape simply does not have. Replaced by pcRouteThumb, which
+           draws the actual plotted cells.) */
 
         /* ---- route rendering: authored ink strokes on the SVG world, above the fog, clipped to the map sheet ----
            Potion Craft draws the plotted route as one hand-inked dashed curve with an ✕ at the destination, and the
@@ -4602,17 +4986,59 @@
         // ---- stations ----
         function pcToggleOrePicker() {
             const p = document.getElementById('pc-picker'); if (!p) return;
-            p.classList.toggle('open'); if (p.classList.contains('open')) pcRenderOrePicker();
+            p.classList.toggle('open');
+            if (!p.classList.contains('open')) return;
+            // Anchor to the TOP of the station row from live geometry rather than trusting a magic offset, so
+            // a reflow of the row (label swap, icon fallback, font substitution) can never let the panel
+            // slice into it. offsetParent rather than a hard-coded '#screen-2': the picker and the row are
+            // siblings, so they always share the same positioned ancestor whatever the screen is renumbered to.
+            const st = document.getElementById('pc-stations'), op = st && st.offsetParent;
+            if (op) p.style.bottom = Math.round(op.clientHeight - st.offsetTop + 6) + 'px';
+            pcRenderOrePicker();
         }
+        function pcOreMineral(id, locked) {
+            return '<svg class="pc-ore-min" viewBox="0 0 24 24" aria-hidden="true"><g fill="' + PC_ORE_COLORS[id] + '" stroke="' + PC_INK_DARK + '" stroke-width="1.35" stroke-linejoin="round"' + (locked ? ' opacity=".38"' : '') + '>' + PC_ORE_GLYPH[id] + '</g></svg>';
+        }
+        /* The tile's route thumbnail: the ACTUAL plotted cells, inked in the map's own language (pale halo +
+           dashed ink + start dot + destination mark), fit to the box. It is fed the CELL INDICES pcPathFrom
+           returns rather than the raw step deltas, so edge-clamped steps the real path drops are dropped here
+           too — the thumbnail cannot lie about the route. Scale is PER TILE, so it reads SHAPE, not length;
+           length goes in the tile's title. Empty `cells` degrades safely (pcSmoothD returns a bare moveto,
+           start dot and mark coincide, no throw). */
+        function pcRouteThumb(cells, fromCell, w, h, site) {
+            const pts = [{ x: pcCX(fromCell), y: pcCY(fromCell) }].concat(cells.map(i => ({ x: pcCX(i), y: pcCY(i) })));
+            let mnx = pts[0].x, mxx = pts[0].x, mny = pts[0].y, mxy = pts[0].y;
+            pts.forEach(p => { if (p.x < mnx) mnx = p.x; if (p.x > mxx) mxx = p.x; if (p.y < mny) mny = p.y; if (p.y > mxy) mxy = p.y; });
+            const pad = 4, sc = Math.min((w - pad * 2) / Math.max(1, mxx - mnx), (h - pad * 2) / Math.max(1, mxy - mny));
+            const ox = pad + (w - pad * 2 - (mxx - mnx) * sc) / 2 - mnx * sc, oy = pad + (h - pad * 2 - (mxy - mny) * sc) / 2 - mny * sc;
+            const P = pts.map(p => ({ x: p.x * sc + ox, y: p.y * sc + oy })), d = pcSmoothD(P), a = P[0], b = P[P.length - 1];
+            return '<svg class="pc-ore-route" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
+                + '<path d="' + d + '" fill="none" stroke="' + PC_HALO + '" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>'
+                + '<path d="' + d + '" fill="none" stroke="' + PC_INK + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2.4"/>'
+                + '<circle cx="' + a.x.toFixed(1) + '" cy="' + a.y.toFixed(1) + '" r="1.8" fill="' + PC_INK + '"/>'
+                + (site ? '<circle cx="' + b.x.toFixed(1) + '" cy="' + b.y.toFixed(1) + '" r="4.2" fill="#efe1bd" stroke="' + PC_INK + '" stroke-width="1.5"/>'                                                                        // trait node: same parchment-core-in-ink-ring as v2addTrait
+                        : '<g stroke="' + PC_INK + '" stroke-width="1.6" stroke-linecap="round" transform="translate(' + b.x.toFixed(1) + ',' + b.y.toFixed(1) + ') rotate(8)"><line x1="-3" y1="-3" x2="3" y2="3"/><line x1="-3" y1="3" x2="3" y2="-3"/></g>')                                    // ✕: open ground
+                + '</svg>';
+        }
+        /* Every tile is computed LIVE, never from a table. The ore-to-trait mapping cannot be hard-coded:
+           PC_CENTRAL pins only the five crush-0 endpoints, the crush-1/crush-2 endpoints are handed traits at
+           runtime in initV2Map from a tierPool sorted by distance from centre, and every route is plotted
+           from the CURRENT pcIngotCell, not from spawn. So after travelling one route the same eight ores
+           lead somewhere else, and the panel has to say so. */
         function pcRenderOrePicker() {
             const grid = document.getElementById('pcOreGrid'); if (!grid) return; grid.innerHTML = '';
             PC_ORE_ORDER.forEach(id => {
                 const locked = ['titanium', 'aluminium', 'blackIron', 'redIron'].indexOf(id) !== -1 && !unlockedMetals[id];
+                const cr = plannedOre === id ? crushSteps : 0;                                          // the selected ore previews its CURRENT grind
+                const path = pcPathFrom(pcIngotCell, id, cr);                                           // same call pcPickOre makes: the thumbnail IS the route
+                const site = path.length ? pcTraitAtCell(path[path.length - 1]) : null;
+                const dest = !site ? '&nbsp;' : (site.discovered ? site.trait.symbol + ' ' + site.trait.name : '? unknown');   // the fog stays honest: an undiscovered site is never named
                 const t = document.createElement('div'); t.className = 'pc-ore' + (locked ? ' locked' : '') + (plannedOre === id ? ' sel' : '');
-                t.innerHTML = '<span class="pc-ore-dir" style="transform:rotate(' + pcOreArrowDeg(id) + 'deg)">→</span>'
-                    + '<div class="v2-sphere" style="background:' + PC_ORE_COLORS[id] + (locked ? ';opacity:.35' : '') + '"></div>'
+                t.title = metalNames[id] + ' — ' + path.length + ' cells' + (site ? (site.discovered ? ', ends on ' + site.trait.name : ', ends on an undiscovered site') : ', ends on open ground');
+                t.innerHTML = '<div class="pc-ore-fig">' + pcOreMineral(id, locked) + pcRouteThumb(path, pcIngotCell, 42, 30, site) + '</div>'
                     + '<div class="pc-ore-nm">' + metalNames[id] + '</div>'
-                    + '<div class="pc-ore-ct">' + (locked ? '🔒 50g' : '×' + (availableMetals[id] || 0)) + '</div>';
+                    + '<div class="pc-ore-dest">' + dest + '</div>'
+                    + '<div class="pc-ore-ct">' + (locked ? '🔒50g' : '×' + (availableMetals[id] || 0)) + '</div>';
                 t.addEventListener('click', () => pcPickOre(id));
                 grid.appendChild(t);
             });
@@ -4751,13 +5177,18 @@
            The flag is set by v2onSwordMoved during travel, but a dropped/duplicated landing (or a state
            reset in between) used to leave it null while the ingot visibly sat on the trait — the demo
            blocker. pcTraitHere() is the authority; mapTraitOn stays as the fast path / legacy consumer. */
-        function pcTraitHere() {
+        // Nearest trait site to ANY lattice cell (V2_TRAIT_R is the snap radius). The ore picker asks this
+        // about a route's END cell; pcTraitHere asks it about the cell the ingot is standing on. The
+        // `typeof v2traits` guard means the first pcRenderOrePicker call from pcInitStations cannot throw
+        // even if it were ever to run before initV2Map.
+        function pcTraitAtCell(cell) {
             if (typeof v2traits === 'undefined' || !v2traits.length) return null;
-            const x = pcWX(pcIngotCell), y = pcWY(pcIngotCell);
+            const x = pcWX(cell), y = pcWY(cell);
             let best = null, bd = Infinity;
             for (let i = 0; i < v2traits.length; i++) { const tr = v2traits[i], d = Math.hypot(x - tr.x, y - tr.y); if (d <= V2_TRAIT_R && d < bd) { bd = d; best = tr; } }
             return best;
         }
+        function pcTraitHere() { return pcTraitAtCell(pcIngotCell); }
         // Adopt whatever the ingot is standing on into the legacy trait state (what the heat minigame reads).
         function pcArmTrait() {
             const site = pcTraitHere();
@@ -4804,10 +5235,14 @@
             const cb = $('pcCrushBadge'); cb.style.display = crushSteps > 0 ? '' : 'none'; cb.textContent = '+' + crushSteps;
             // Slot 3 morphs: Smelter while a plan is on the map, Bellows the rest of the time (so heat is always reachable).
             const smelt = $('pcBtnSmelt'), asSmelter = planning;
-            // Slot 3 icon: painterly smelter art when it is the Smelter (no bellows art shipped), emoji otherwise.
-            const sIm = $('pcSmeltImg'), sFb = $('pcSmeltFb');
+            // Slot 3 icon: painterly art per verb — smelter art as the Smelter, bellows art as the Bellows.
+            // Each <img> carries its own onerror="this.remove()", so a missing PNG leaves that id null and
+            // the emoji fallback un-hides for THAT verb only; the build never shows an empty medallion.
+            const sIm = $('pcSmeltImg'), sBl = $('pcBellowsImg'), sFb = $('pcSmeltFb');
+            const art = asSmelter ? sIm : sBl;
             if (sIm) sIm.style.display = asSmelter ? 'block' : 'none';
-            if (sFb) { sFb.textContent = asSmelter ? '🏭' : '💨'; sFb.style.display = (asSmelter && sIm) ? 'none' : 'inline-block'; }
+            if (sBl) sBl.style.display = asSmelter ? 'none' : 'block';
+            if (sFb) { sFb.textContent = asSmelter ? '🏭' : '💨'; sFb.style.display = art ? 'none' : 'inline-block'; }
             $('pcSmeltLbl').textContent = asSmelter ? 'Smelter' : 'Bellows';
             smelt.disabled = pcTravelling || (asSmelter && (availableMetals[plannedOre] || 0) <= 0);
             const pour = $('pcBtnPour'); pour.disabled = pcTravelling || pcPoured || !committed || temperature < PC_POUR_TEMP;
