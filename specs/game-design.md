@@ -1,6 +1,8 @@
 # Sword Forge — Game Design (SSOT)
 
-**Single source of truth for game mechanics.** This describes the game *as actually implemented* in `index.html`. When code and this doc disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
+**Single source of truth for game mechanics.** This describes the game *as actually implemented*. When code and this doc disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
+
+> **Two builds.** The **ore → finished-sword crafting & movement loop** — §2 steps 2–4 and all of **§3–§5** — is now canon per the newer **`Swordforge_new_looptest.html`** build (the ore-route / hammer-travel / water-quench loop). **Everything else is unchanged and still reflects `index.html`**: §6 Economy (smelter, NPC customers, day system, quests, shopfront, blueprints), §7 Map reset, §8 UI shell, and onboarding. Where the two disagree about the crafting loop, follow the loop-test. Integration of the loop-test into `index.html`'s screens/economy is still open (see §9).
 
 > The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
 
@@ -12,115 +14,76 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 
 ## 2. Core loop
 
-1. **Smelt** — passively generate metals over time.
-2. **Explore** — spend metals to move/dash across a fog-of-war grid (Purify mini-game).
-3. **Heat** — find hidden traits and play the Heating mini-game to fuse them onto your active blade.
-4. **Forge** — pick a weapon shape, customize its look, and complete the sword into your Vault.
+1. **Smelt** — passively generate metals/ores over time (§6, unchanged).
+2. **Prospect a route** — drag **ores** onto the map to lay the active blade's travel **route** across a fog-of-war world; grinding an ore in the mortar extends how far it reaches (§3).
+3. **Travel & discover** — smelt the ore into a glowing **orb**, place it on the **anvil**, and **hammer to move the sword** along the route (its speed = the orb's heat). Reach a hidden **trait** (a `?` in the fog), align on it, and **pour water from the mug** to acquire it — how centred you are sets the tier. Re-heat and add more ore to stack additional traits (§3, §4).
+4. **Forge** — with ≥1 acquired trait, tap the orb to pick a blade **shape** and hammer it into its finished form (§5).
 5. **Sell** — fulfill NPC requests for Gold + Reputation, or list swords in the passive Shop. Customers arrive **7 per day**; after the day's 7 are handled, tap **End Day** to advance to the next day (see §6 *Day system*).
 6. **Reinvest** — upgrade the Smelter, unlock metals, unlock the Shop, save Blueprints, or reset the map.
 
-## 3. Grid & movement
+## 3. Ore-path map, routes & travel
 
-- **Grid:** 50×50 (2500 cells). Player starts at center **(25, 25)**.
-- **Vision:** radius 3.5; fog clears in a circle around the player as they move.
-- **Hazards:** 20% of cells are explosions (💥), placed by seeded RNG (seed `1337`), never on the center start. **Landing** on one costs **−25 HP** (max 100), a red flash on the cell, and a **warning dialogue box** (`gameAlert`) — *"Avoid the hazard zones! You don't want impurities in your alloy."* (`hitHazard`). It also adds a **−4 gold "impurity" penalty** to the blade being built — **not deducted immediately**, but tallied (`hazardGoldLost`, +4 per hit) and **subtracted from the sword's sale price**. The tally is stamped onto the forged sword (`hazardLoss`) and shown as a red **"−x hazard"** on the forge-result board and the Vault sword-detail view (alongside the green craftsmanship **"+x"**). Damage is only applied to the cell the sword **lands on** — **crossing over** a hazard mid-dash (a 2- or 3-block Purify dash) is harmless, even over multiple hazards in a row. Reaching 0 HP triggers death. A low HP total also **caps the forged sword's quality** (see §4): a battered blade forges a lower-quality sword.
-- **Death:** shatters the active blade — clears active traits and used metals, restores HP to 100, and resets the player to center. Crafted swords, gold, etc. are kept.
-- **8-direction movement**, each direction costs 1 unit of a specific metal:
+The active blade is forged by **moving a sword token along a route** you build from ores, across a fog-of-war world.
 
-  | Direction | Metal | Start state |
-  |-----------|-------|-------------|
-  | Up | steel | unlocked |
-  | Down | iron | unlocked |
-  | Left | magnesium | unlocked |
-  | Right | bronze | unlocked |
-  | Up-Left | titanium | **locked** (50g) |
-  | Up-Right | aluminium | **locked** (50g) |
-  | Down-Left | blackIron | **locked** (50g) |
-  | Down-Right | redIron | **locked** (50g) |
+### The map
 
-  The 4 cardinal metals are available from the start; the 4 diagonal metals must each be unlocked for **50 Gold** (click the locked grid button).
+- **World:** an SVG board **2800×1960** units, viewed through a zoom/pan **viewBox** window.
+- **Home / start:** the sword begins at **(1400, 1030)** — marked 🏠 (`#startMark`), with a faint dashed **tether** (`#tether`) linking home to the live sword.
+- **Fog of war:** a dark overlay hides the world; it's cleared **permanently** in circles (radius `REVEAL_R` **120**) as the sword travels, plus one **starting reveal** (radius `INIT_REVEAL` **440**) around home. Explored areas stay clear.
+- **Zoom / pan:** view width ranges `MIN_W` **360** (most zoomed-in) to `MAX_W` **2200** (out); opens at `INIT_W` **680**, centred on home. Wheel / pinch / on-screen ± zoom; drag to pan (`wireZoomPan`).
+- **Hazards:** dark blotches scattered across the world (`#hazards`). **Currently decorative** — no damage/HP effect in this build (see §9).
 
-  **First-craft tutorial lock:** the game starts with exactly **4 steel + 1 magnesium** and everything else gated — only Steel & Magnesium are usable, the other metal buttons, Record Composition, Chart, and passive metal generation are all disabled. This lock lifts the moment the **first sword is forged** (`tutorialMetalLock`), after which generation resumes and all buttons unlock normally.
+### Ores & routes
 
-### Purify mini-game (movement)
+- **8 ores**, each with a unique fixed **Bézier path** radiating from home. Dropping an ore appends a **route segment** that continues from the previous segment's end (the **✕** mark, `#xmark`); ores **stack**, so the route can chain far across the map (`segs[]`, `addSegment`).
+  - **4 "up" ores** (short single curves): **Copper, Iron, Gold, Aluminium**.
+  - **4 "down" ores** (longer S / C curves): **Ember, Frost, Tide, Gale**. *(Ember/Frost/Tide/Gale currently use generated placeholder gem icons; the others use PNGs in `assets/forge/*_ore.png`.)*
+  - Each ore's path **ends at a signature trait** (§4 catalog): copper→Sharp 🔪, iron→Durable 🛡️, gold→Noble 👑, aluminium→Flexible 〰️; ember→Flame 🔥, frost→Ice ❄️, tide→Water 💧, gale→Storm 🌪️.
+- **Direct vs ground:** dropping an ore straight onto the **furnace** unlocks **50%** of its path; grinding it in the **mortar** (hold the pestle over it) extends the reachable portion toward **100%** (`GRIND_RATE` 0.5/sec), and the ore morphs into a dull sphere as it's crushed. Route extent `tPct = 0.5 + 0.5 × grind`.
+- **Route preview:** click-and-hold / drag an ore to see its full path above the fog — **solid** red for the reachable 0→extent, **dotted** for extent→100%, with the **✕** at the boundary. Grinding advances the ✕ (solid grows, dotted shrinks). On commit only the reachable solid route + ✕ remain.
+- **Erase-behind trail:** as the sword travels, the route behind it is consumed — only the remaining route (sword → ✕) is drawn.
 
-Holding a movement button charges a slider that bounces 0↔100 (speed `0.15`). Releasing resolves the dash distance by where the slider stops:
+### Smelting & the orb
 
-| Slider position | Dash distance |
-|-----------------|---------------|
-| 40–60 (center) | 3 blocks |
-| 25–75 (mid)    | 2 blocks |
-| else (edges)   | 1 block |
+- Drop an ore/orb onto the **furnace** to smelt it: it heats over `SMELT_TIME` **5s** from `BASE_HEAT` **26**. Holding the **bellows** raises heat (`HEAT_RISE` **42**/sec, cap 100); when ready the **furnace gate** glows — tap it to release the **glowing orb** (`ensureMelt` / `openGate`).
+- One `melt` object flows through the stations (furnace → anvil → back). Its `heat` is the fuel for travel; the HUD shows a single 🔥 **heat** gauge.
 
-Cost: exactly **1 metal** of the direction's type (consumed once, regardless of dash distance). The dash stops early at the map edge. Hazards along the way are passed over harmlessly; only the **final landing cell** is checked for hazard damage (and can trigger death).
+### Travel = hammering, speed = heat
 
-While the button is held, a **live path preview** (the green `tile_move.png`) highlights the cells the sword would travel into — 1, 2 or 3 tiles in the move direction — updating in sync with the slider's current zone, and clamped at the map edge. It clears on release, and the actual dash matches the previewed distance. The preview is a **~50% translucent overlay** (`tile_move.png` laid over the cell's real tile), so the tile underneath — hazard, home, path, or a trait glyph — still shows through.
+- Place the glowing orb on the **anvil**. Drag the movable **hammer** onto the anvil — when its head nears the anvil top it rotates and **strikes** (`wireHammer`, `STRIKE_DIST`), driving the sword along the route.
+- **Speed** = `SWORD_SPEED` (0.5) × `max(CRAWL_MIN 0.24, heat/100)` per second along the path. Heat **decays** once the orb leaves the furnace (`HEAT_DECAY` **10**/sec → 100→0 in ~10s), so the sword slows as it cools; at heat 0 it still **creeps** at the 0.24 floor. **Re-insert** the orb into the furnace to re-heat and add more ore.
 
-**Hover directional hint (desktop):** on mouse-hover over any of the 8 direction buttons — *before* pressing — the cells the sword would move into light up with `tile_movepath.png` (a distinct tile from the green held-move preview). It shows **1 tile before the Purify dash is unlocked** (moves are single-block then) and **3 tiles (the max dash) after**, in that button's direction, clamped at the map edge. Like the held-move preview, it's a **~50% translucent overlay** over the cell's real tile, so the underlying tile (hazard, home, path, trait) shows through. It appears for **all 8 buttons including locked diagonals** (a "where would this go" hint), and clears on mouse-leave or the moment a move starts. Touch has no hover, so this is a mouse-only affordance; the held-move preview above covers touch.
+### The dragon (disruptor)
 
-**Cancel a held move** (no movement, no metal spent) by dragging the cursor onto the **cancel button** that appears in the centre of the 3×3 movement grid while holding, sliding a finger over it, or **right-clicking**.
+A free-roaming sprite. **Drag** to reposition; **press-and-hold** (no drag) to **breathe fire**. When the fire lands on the **anvil**, it **pulls** the sword — and its remaining route + ✕ — slowly toward home (`PULL_SPEED` **20**, applied as a `pull` offset). It's a **controlled drag you can stop partway** — release to keep the partial pull; it does **not** reset the sword. Handy for nudging the sword into tighter **alignment** on a trait (§4).
 
-The slider is **locked during the early guided tutorial** (moves are single-block) and unlocked when the tutorial reaches the chart/slider lesson (also unlocked on first craft as a fallback); once unlocked it stays available for the rest of the game.
+## 4. Traits: discovery, alignment & acquisition
 
-## 4. Traits & heating
+- **24 traits** placed across the map (same catalog as the canonical build — Durable 🛡️, Cursed ☠️, Flame 🔥, … Dark 🌑): **8 signature** traits at the ore-path ends + **16 scattered** far out into the fog.
+- **Everything is a `?` until acquired.** Every trait is drawn under the fog showing a **`?`**. The sword's travel clears fog over an area, exposing nearby `?` marks. Aligning the sword on a trait shows a tier-coloured **alignment ring** (`#alignRing`) and a hint (*"an undiscovered trait (?) — alignment Fine…"*) but **does not reveal the trait's identity**.
+- **Alignment → tier.** How centred the sword sits on a trait's centre sets its quality tier (`tierFromDist`, distance in world units): **≤ `ALIGN_EPIC` 9 = Epic**, **≤ `ALIGN_FINE` 20 = Fine**, **≤ `ALIGN_MAX` 34 = Weak** (beyond 34 = not on the trait). Tighten alignment with **grind precision** (the ✕/route-end vs the trait) and the **dragon pull**. Signature traits are nudged **18–26 units off** their exact path-end toward home, so a full grind alone won't hand you Epic — you must fine-tune.
+- **Acquire = discovery — the water bucket.** With the orb on the anvil and the sword aligned on a trait, drag the **mug** from the water bucket over the anvil and **pour**. Pouring:
+  - **quenches** the orb (heat → 0),
+  - **acquires** the trait at its aligned tier (added to the blade),
+  - **reveals** the trait's real symbol on the map — permanently (fog holes never re-close),
+  - pops a **"Trait Acquired!"** popup that stays until you tap *continue*.
 
-- **24 base traits**, each at a fixed coordinate on the map (see `traitCoordinates` in code). Examples: Durable 🛡️, Cursed ☠️, Flame 🔥, Celestial ☄️, Dark 🌑.
-- **Discovery:** stepping onto a trait cell reveals a `❓`; heating it reveals and fuses the trait.
-- **Value scaling:** a trait's base value = `floor(distance_from_center / 35.355 × 100)` (0–100). Farther from center = more valuable.
-- **One-per-blade:** a given trait ID can only be fused onto the active blade once.
-
-### Heating mini-game
-
-Triggered by the **Heat** button while standing on a discovered trait. Interactive forge sequence:
-
-1. **Pulley** — tap to lower the bucket (2s animation).
-2. **Bellows** — **tap or hold** to pump heat. Each tap adds `+16` heat; **holding** raises heat gradually (`+40`/sec while held). Heat decays at `18`/sec, so holding nets ~`+22`/sec.
-3. **Stabilize** — keep heat in the **green zone** for a cumulative **stabilize time**. Above the zone = "Too Hot", below it shows "Use the bellow to heat the furnace." (both bleed stabilization progress). The green band's position/width and the timings **vary per trait** (see below); the default (and every tutorial heat) is zone **40–70**, **2.0s**, decay `18`, pump `+16`.
-
-**Per-trait heating variants:** every trait has a unique heating minigame, all built on the same engine via `heatConfigs` (the coloured band(s) on the meter move to match). Tutorial heats always use the default band so onboarding stays easy.
-
-- **Static tweaks (Tier A):** Flame high band (70–90); Ice low (8–28, gentle, harsh overheat); Floral low/delicate (24–44); Sharp very narrow (50–62); Balanced narrow centre (44–56); Fury fast decay + quick stabilize; Durable wide band + long hold (3.5s); Endurance slow decay + long hold (4.5s); Heavy sluggish; Cruel band hugging the overheat edge (60–72); Grace narrow + quick (1.0s); Blood decay grows with heat.
-- **Dynamic / random (Tier B):** Water, Celestial, Flexible — the band **oscillates** (different centres/speeds); Storm — random **gusts** shove the heat; Savage — the band **jitters** to random spots; Luck — **two** random bands, stabilize in **either**; Accurate — narrow band that **repositions once**; Cursed — band **jumps** repeatedly + heat spikes.
-- **Sequential / hidden (Tier C):** Noble — stabilize a **low then a high** band; Honor — stabilize the **same band twice**; Lightning — a **fast two-strike** (narrow, fast decay, twice); Dark — the marker **flickers hidden** (forge by feel). Between stages the heat is knocked down so each stage is re-earned.
-
-**Guidance cues:** the part to act on pulses with a glow and a bouncing hand points to it — the pulley first, then (after the bucket lowers) the bellows.
-
-On success the trait fuses onto the active blade and a **"`<symbol>` `<name>` trait acquired"** toast appears (game-wide, not tutorial-only). During the tutorial this toast shows first, then the post-heat dialogue follows after a short delay.
-
-**Heat timer → quality.** A countdown runs during the heating (bellows) phase, its length **per trait** (`heatTimers`; e.g. Grace 7.5s, most static traits 9s, dynamic/staged ~11s, Durable 11.5s, Endurance 14s; **tutorial heats get a safe 45s**). **Stabilize before the timer ends → the trait fuses at `Epic`.** If the timer runs out first, the trait still fuses but at `Fine` (one tier down) — no hard failure. The remaining time is shown as a `⏱` readout **right below the heat slider**.
+  The mug only pours when **both** conditions hold — orb on the anvil **and** the sword on a trait. *(This water-bucket step replaces the earlier "firepit" acquire.)*
+- **Stack more traits.** Acquiring doesn't end the run: drag the cooled orb back to the **furnace**, re-heat, add ore, travel further, and acquire more — they accumulate as tier-coloured symbols in the map's trait strip (`#sfTraits`). Or finish the blade (§5).
 
 ### Quality tiers
 
-Three tiers, low→high: **`Weak` (+0) · `Fine` (+10) · `Epic` (+20)** value bonus (added to the trait's distance-based base value; each trait stores `baseValue` + `quality`). The final quality is the result of a **four-stage chain**:
+Three tiers, low→high: **`Weak` · `Fine` · `Epic`**. In the loop-test each acquired trait's tier is set **purely by alignment** at the moment of the water-quench (see above) and is fixed thereafter. *(This replaces the canonical Heating mini-game and its heat-timer → HP-cap → hammer → sharpen quality chain: in the loop-test, heat is only travel **speed** (§3), and the finishing hammer mini-game's misses are cosmetic (§5).)*
 
-1. **Heat outcome** (Epic/Fine above), then
-2. **capped by the blade's HP** at forge time (see §3): HP ≥ 80 → Epic allowed, 40–79 → capped at Fine, < 40 → Weak (`min(heat outcome, HP cap)`), then
-3. **dropped by the hammer penalty** from the Hammering mini-game (see §5): **−1 tier per 2 misses** (`⌊misses / 2⌋` tiers), then
-4. **dropped by the over-honing penalty** from the Sharpening mini-game (see §5): finishing in the **90–110% "keen" window** costs nothing, but grinding past **110%** over-hones the blade for **−1 tier per 10% over** (`⌈(pct − 110) / 10⌉` tiers).
+## 5. Forging the blade
 
-Weak is the floor. The hammer and sharpen drops are combined (`⌊misses / 2⌋ + over-hone tiers`) and applied together. For a **manual forge** the chain runs per trait (each trait keeps its own heated quality through the cap, then the shared hammer + sharpen drop). For an **Auto-Craft** there is no HP cap (no exploration) and a single heat + hammer + sharpen performance sets **one uniform quality across all the sword's traits**. The forged sword's overall quality = its highest-tier trait, which drives the quality overlay (see §5).
+The finished sword comes from the crafting loop above plus a short forge step.
 
-## 5. Forging & weapons
-
-- **Requirement:** at least one **heated trait** on the active blade — the Forge button is disabled until a heating minigame has fused a trait. Also requires ≥1 metal spent (by moving).
-
-Forging runs as a **pipeline of steps** — shape select → hammer → *quench (non-fire only)* → design → sharpen (`forgeSword` for a manual forge; Auto-Craft prepends a heat minigame — see §6):
-
-- **Pause / resume (Close):** every stage's modal has a **Close** button (`closeForge`) that hides the pipeline **without discarding it** — the in-progress forge (`forgeCtx`) stays alive, paused at the current stage. Clicking **Forge** again (`resumeForge`) drops the player straight back into the stage they left, with all earlier stages and in-progress choices remembered: the tentative blade pick (shape), the visual stage + point + accumulated misses (hammer), the chosen fittings (design), and the grind % (sharpen). While a forge is paused the **Forge button stays enabled** so it can reopen the pipeline. A forge is only cleared by **completing** it. *(Auto-Craft's leading heat step is the exception — its "Cancel Forging" still aborts the whole pipeline.)*
-
-**Part 1 — Shape select.** A modal (with the player's **available gold shown at the top**) shows the 10 blade **shapes** only (no fittings), each tile labelled with the **blade's name** below it. Pick one and hit **Continue**.
-- **Shapes (10):** Shortsword, Longsword, Broadsword, Katana, Rapier, Cutlass, Claymore, Saber, Scimitar, Machete. *(Original GDD listed 11 incl. Dagger — Dagger is not in the build.)* For the base (balanced) set, only **Shortsword, Longsword, Broadsword are free**; the other **7 are locked and unlock for 50 gold each** (click the locked thumbnail). Unlocking one pops a celebratory **"&lt;shape&gt; unlocked"** box (e.g. *"Katana unlocked"*) with the blade's art — styled like the "New Trait Discovered!" popup (`showNewShapeModal`, `#newShapeModal`). Trait-skinned blade sets (e.g. Flame) are not locked, and a skinned trait limits the shape list to that skin's blades (Flame → 3 shapes; Ice/Water → Longsword only).
-
-**Part 2 — Hammering mini-game.** A top-down **ingot** (`assets/hammer/ingot.png`) is shown; the player hammers it into the chosen shape by hitting **6 targets across 2 stages**. Each target appears one at a time as a small **shrinking ring** — click it within **~0.65 second** (`HAMMER_RING_MS`), before the ring fully shrinks, or it counts as a **miss** (the tutorial keeps a slower, gentler ring, `HAMMER_RING_MS_TUTORIAL`). A successful hit throws a green **"Perfect!"** that pops at the strike point and arcs out of the stage while fading (`spawnPerfectText`). Stage A: 3 targets on the ingot → the image changes to a **mid-forged blade** (`assets/hammer/balanced_<shape>_midblade.png`; only Shortsword/Longsword/Broadsword have mid art — the other 7 shapes reuse the Longsword mid as a placeholder). Stage B: 3 targets (tip + sides) → the image resolves to the finished blade, then the design step opens. The mini-game always completes (no fail/soft-lock); **misses only cost quality** (−1 tier per 2 misses — see §4). Every **successful hit also adds +1 gold** to the sword's craftsmanship bonus (`hammerHits`, paid on sale — see §6). Tutorial/Auto-Craft-in-tutorial heats keep an easy, slow ring.
-
-**Part 2.5 — Quench (cooling).** For any blade **whose last-acquired trait is not `flame`**, a cooling beat runs after hammering (a fire blade skips it and goes straight to design). The finished blade is shown glowing warm above a **water bucket** (`assets/forge/water_bucket.png`) on the forge scene (`assets/backgrounds/forge_bg.png`); the player **taps to dip** it, the blade slides into the water (steam rises, the glow fades to steel), **soaks for 3 seconds**, rises back out, and the design step opens automatically. **Feel-only — it has no effect on quality or value.** During the tutorial a bouncing hand points to the blade. (`openCoolModal`/`dipBlade`/`finishQuench`; `#coolModal`.)
-
-**Part 3 — Design Desk (fittings).** Customize the sword across 3 part categories — **Grip, Guard, Pommel** — each with selectable art. Purely cosmetic. The **blade is fixed** from Part 1 (shown in the preview, not editable — the Blade tab is gone). An **info (i) button** toggles a hint reminding the player that looks don't affect properties. The **Sharpen** button advances to the sharpening step (Part 4).
-
-**Part 4 — Sharpen (grindstone).** The finished sword — **fully assembled** (blade + grip + guard + pommel as chosen in the Design Desk) — lies horizontal across a front-facing **grindstone** (`assets/forge/grindstone.png` in its wooden stand, on `assets/backgrounds/sharpen_bg.png`). **After a 2-second delay the wheel begins spinning** — a motion-blurred frame (`assets/forge/grindstone_spin.png`) fades in over the still stone and is jittered in place — and **keeps spinning until the player finishes**. The player **slides the sword left↔right across the stone** — with the **joystick** below the stage (drag the knob left/right; the further from centre, the faster it grinds; it springs back on release — `#sharpen-joystick`/`#sharpen-knob`), by dragging the sword directly, or with the ←/→ keys; the blade sweeps nearly the full width each way (`SHARP_TRAVEL`). Travel fills a **sharpness bar 0 → ~120%**, and sparks fly at the contact point while grinding. Zones: **0–90%** "keep sharpening" (Finish locked) · **90–110%** green "keen edge" window (Finish enabled, the player decides how sharp — **no quality penalty**) · **>110%** red "over-honed", which drops quality (**−1 tier per 10% over** — see §4). Sharpen accuracy also grants a **craftsmanship gold bonus** (`sharpenGoldBonus`, paid on sale — see §6): **+3** for finishing at **95–105%**, **+2** for **90–95%** or **105–110%**, **+0** past 110%. The **95–105% "perfect" band is marked in gold** on the meter (`.sharpen-goldzone`) so the player can aim for the +3 zone. **Finish Sharpening** locks in the result and completes the forge → the **"Forging Complete!" board** (with **Add to Vault**) appears. Closing here (like every stage) pauses the forge rather than aborting it (see the pause/resume note above). During the tutorial a bouncing hand slides over the blade. (`openSharpenModal`/`sharpenGrind`/`finishSharpen`; `#sharpenModal`.)
-
-- **Trait-specific part art:** a sword carrying a trait with a defined skin shows that trait's part images in the shape select, Design Desk, and everywhere it's rendered (forge result, etc.). Defined in `traitSkins` and resolved via `partsFor`/`designPartSrc`. Currently the **Flame** trait has a full set: 3 blades (Shortsword/Longsword/Broadsword), 3 grips, 5 guards, 2 pommels (`assets/sword-parts/*/flame_*.png`). **Ice** and **Water** have lean skins: 1 Longsword blade + 1 grip + 1 guard + 1 pommel each (`ice_*` / `water_*`), so an Ice or Water sword forges as a Longsword with that trait's parts. Traits without a skin fall back to the base library.
-- **Completion:** moves the finished sword (shape, design, traits, recipe of used metals, value) into the **Vault** (inventory), clears the active forge, and resets player to center with full HP.
+- **Requirement:** ≥1 **acquired trait** on the blade.
+- **Finalize:** once you have a trait, **tap** the orb on the anvil (a tap, not a drag) to open **Shape select** (`wireOrbDrag` distinguishes tap from drag).
+- **Shape select:** three placeholder shapes — **Shortsword, Longsword, Broadsword** (`selectShape`). *(The canonical build's 10 shapes, shape-locking / unlock-for-gold, and trait-skinned blade sets aren't in this build yet.)*
+- **Hammering mini-game** (ported from `swordforgeV2`): hammer the blade into form over **2 stages × 3 timed targets** — click each shrinking ring before it fades (`HAMMER_RING_MS` **750ms**, gap `HAMMER_GAP_MS` **380ms**): ingot → shape mid-blade → finished. It **always completes**; the hit/miss tally is shown but is **currently cosmetic** (it does not change trait tiers). Ends on a **"Forged a {shape}!"** result (shape + acquired trait symbols + clean-strike count), then the run resets.
+- **Not yet in this build** (canonical forge steps, superseded or absent here): the **quench-cool** beat (now handled by the map's water-bucket acquire, §4), the **Design Desk** (grip/guard/pommel), the **Sharpen** grindstone step, **trait-skinned parts**, and the **crack/sparkle quality overlay** (see §9).
 
 ### Sword value & tiers
 
@@ -218,3 +181,7 @@ Forging runs as a **pipeline of steps** — shape select → hammer → *quench 
 - Map seed is fixed (see §7) — should reset randomize the layout?
 - Dagger shape from original GDD is absent (see §5).
 - Metals expanded 4 → 8 vs the original GDD.
+- **Loop-test integration (§3–§5):** the ore→sword loop lives in a standalone single-screen **9:16** build (`Swordforge_new_looptest.html`); how it plugs into `index.html`'s three-screen shell, Vault, and economy (§6) is still open. The forged sword isn't yet wired to a gold value / Vault / selling.
+- **Loop-test forge gaps:** Design Desk, Sharpen (grindstone), trait-skinned parts, and the crack/sparkle quality overlay from the canonical forge (§5, `index.html`) aren't ported into the loop-test.
+- **Loop-test ores vs metals:** the loop-test uses ores `{copper, iron, gold, aluminium, ember, frost, tide, gale}` as route-definers; reconcile with the economy's movement-metal set `{steel, iron, magnesium, bronze, titanium, aluminium, blackIron, redIron}`.
+- **Hazards decorative:** loop-test hazards are drawn but have no damage/HP effect (no player-HP system in that build).
