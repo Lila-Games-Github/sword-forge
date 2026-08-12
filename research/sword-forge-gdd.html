@@ -211,8 +211,8 @@
       <h1>Sword Forge</h1>
       <p class="tagline">A cozy 2D blacksmith crafting game: explore for magical traits, forge them into custom swords through hands-on minigames, and sell to the townsfolk — as you rebuild a life, one town at a time.</p>
       <div class="meta-grid">
-        <div class="m"><div class="k">Version</div><div class="v">0.2 — draft</div></div>
-        <div class="m"><div class="k">Date</div><div class="v">2026-07-24</div></div>
+        <div class="m"><div class="k">Version</div><div class="v">0.3 — draft</div></div>
+        <div class="m"><div class="k">Date</div><div class="v">2026-08-12</div></div>
         <div class="m"><div class="k">Audience</div><div class="v">Internal team</div></div>
         <div class="m"><div class="k">Platform</div><div class="v">Web (mobile-first)</div></div>
         <div class="m"><div class="k">Build</div><div class="v">Single-file HTML</div></div>
@@ -220,7 +220,7 @@
       </div>
       <div class="note">
         <span class="lbl">How to read this document</span>
-        Every system carries a <strong>status tag</strong> so vision and shipped reality never blur. Numbers are the <em>current</em> tuning (they will move). For the authoritative implemented mechanics, <code>specs/game-design.md</code> is the SSOT; this GDD adds the <em>direction</em> the specs don't yet cover. <strong>Note (v0.2):</strong> the core crafting loop is mid-redesign — the PotionCraft-style <em>Path-Forge</em> (§4, §7) — and the shipped grid loop is flagged "current build — to be replaced."
+        Every system carries a <strong>status tag</strong> so vision and shipped reality never blur. Numbers are the <em>current</em> tuning (they will move). For the authoritative implemented mechanics, <code>specs/game-design.md</code> is the SSOT; this GDD adds the <em>direction</em> the specs don't yet cover. <strong>Note (v0.3):</strong> the PotionCraft-style <em>Path-Forge</em> crafting loop (§4, §7–§12) is now <strong>built</strong> in <code>Swordforge_new_looptest.html</code> and tagged Implemented; the older <code>index.html</code> grid loop remains flagged "current build — to be replaced." Everything outside the ore→sword loop (economy, customers, towns, UX shell) is unchanged.
         <div class="legend">
           <span class="st impl">Implemented</span>
           <span class="st prog">In progress</span>
@@ -266,8 +266,8 @@
 
     <!-- ===================== 4 LOOP ===================== -->
     <section id="loop">
-      <div class="sec-head"><span class="num">4</span><h2>Core Gameplay Loop</h2><span class="st concept">Redesign in progress</span></div>
-      <p class="lead">The loop is being rebuilt around a single <strong>PotionCraft-style navigation puzzle</strong> — the "Path-Forge." Crafting a sword <em>is</em> the exploration: you pilot a molten blade along a path to reach hidden traits, then finish and sell it. (The shipped build still runs the legacy grid loop — see §7.)</p>
+      <div class="sec-head"><span class="num">4</span><h2>Core Gameplay Loop</h2><span class="st impl">Built — loop-test</span></div>
+      <p class="lead">The ore→sword loop is now built as a <strong>PotionCraft-style navigation puzzle</strong> — the "Path-Forge" — in the <strong><code>Swordforge_new_looptest.html</code></strong> build. Crafting a sword <em>is</em> the exploration: you pilot a molten blade along a path to reach hidden traits, acquire them, then finish and sell it. (The older <code>index.html</code> still runs the legacy grid loop — see §7.4.)</p>
       <div class="fig">
         <div class="fs">
           <svg viewBox="0 0 900 250" role="img" aria-label="Core loop: Gather, Smelt and plan, Navigate, Forge, Sell, Reinvest">
@@ -293,7 +293,7 @@
       <ol>
         <li><strong>Gather</strong> — collect ores by hand (a separate activity from crafting).</li>
         <li><strong>Smelt &amp; plan</strong> — pick ores (each a fixed-direction path segment), grind them at the stamp mill to extend reach, and add them to the smelter to lock the path.</li>
-        <li><strong>Navigate</strong> — bellow to set travel speed, pour the bloom to the anvil, hammer to travel the path and pour water to align precisely over a hidden trait, then heat over fire to acquire it. Repeat to collect more traits.</li>
+        <li><strong>Navigate</strong> — bellow to set travel speed, pour the bloom to the anvil, <strong>hammer to travel</strong> the path, nudge with the <strong>dragon's fire</strong> to pull the blade precisely onto a hidden trait, then <strong>pour water from the mug</strong> to acquire it. Repeat to collect more traits.</li>
         <li><strong>Forge</strong> — select a blade shape and hammer it into form.</li>
         <li><strong>Sell</strong> — fulfil a customer's request for gold + reputation, or list in the passive shop.</li>
         <li><strong>Reinvest</strong> — buy ores/materials, upgrade tools, unlock shape-maps &amp; décor, pay rent.</li>
@@ -392,10 +392,10 @@
 
     <!-- ===================== 7 EXPLORATION ===================== -->
     <section id="exploration">
-      <div class="sec-head"><span class="num">7</span><h2>Exploration &amp; Maps</h2><span class="st concept">Redesign</span></div>
+      <div class="sec-head"><span class="num">7</span><h2>Exploration &amp; Maps</h2><span class="st impl">Built — loop-test</span></div>
       <p class="lead">Exploration and crafting are merging into <strong>one PotionCraft-style navigation puzzle</strong>. The grid is gone: you pilot a molten blade along a <em>path</em> across a hand-drawn map to reach hidden traits, and the <strong>ores you choose are the path</strong>.</p>
 
-      <h3>7.1 The Path-Forge map <span class="st concept">New canonical design</span></h3>
+      <h3>7.1 The Path-Forge map <span class="st impl">Built — loop-test canon</span></h3>
       <div class="fig">
         <div class="fs">
           <svg viewBox="0 0 900 262" role="img" aria-label="Path navigation: stacked ore segments from the centre to a hidden trait, routing around a hazard">
@@ -417,26 +417,26 @@
             <text x="740" y="156" text-anchor="middle" font-family="var(--serif-display)" font-weight="700" font-size="16" fill="var(--ember)">?</text>
             <text x="740" y="184" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-3)">hidden trait</text>
             <path d="M726 166 Q 440 246 150 166" fill="none" stroke="var(--fine)" stroke-width="1.5" stroke-dasharray="5 3"/>
-            <text x="425" y="256" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--fine)">water → eases the blade straight back to centre to align exactly</text>
+            <text x="425" y="256" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--fine)">dragon fire → slowly pulls the blade back toward centre to align exactly</text>
             <text x="815" y="40" text-anchor="end" font-family="var(--mono)" font-size="8.5" fill="var(--ink-3)">hammer → travel out · hot = fast, cold = precise</text>
           </svg>
         </div>
-        <span class="cap">Ores stack into a planned route; the hammer travels it, and water eases the blade back to sit exactly on a hidden trait.</span>
+        <span class="cap">Ores stack into a planned route; the hammer travels it, the dragon's fire pulls the blade back to sit exactly on a hidden trait, and water (the mug) acquires it.</span>
       </div>
       <div class="kv">
         <dt>Ore = path</dt><dd>each ore draws a <strong>fixed-direction</strong> path segment (no rotation yet — <strong>rotation ingredients</strong> come later). <strong>Stack many ores</strong> to plan a longer route toward a trait.</dd>
         <dt>Grinding</dt><dd>grinding an ore at the <strong>stamp mill</strong> before smelting <strong>extends its segment</strong> — raw ore reaches ~<strong>50%</strong>, fully ground up to <strong>100%</strong>, scaled by grind amount.</dd>
         <dt>Speed (bellow)</dt><dd><strong>bellowing heats the ore</strong> → sets <strong>travel speed</strong>. The ore <strong>cools over the run so speed decays</strong>: hot = fast but imprecise, cold = slow but exact.</dd>
         <dt>Travel (hammer)</dt><dd>pour the <strong>bloom</strong> to the anvil and <strong>hammer</strong> for smooth forward movement along the path.</dd>
-        <dt>Align (water)</dt><dd><strong>pouring water slowly drags the blade back toward the centre in a straight line</strong> (ignoring the path) — the fine-alignment tool for sitting <em>exactly</em> on a trait.</dd>
-        <dt>Acquire (fire)</dt><dd>aligned on a hidden trait, <strong>heat over open fire</strong> to acquire it. Traits <strong>stack</strong> — collect several per run, then repeat plan → travel → acquire.</dd>
+        <dt>Align (dragon fire)</dt><dd>a <strong>movable dragon</strong> breathes fire on press-and-hold; when the fire lands on the anvil it <strong>slowly drags the blade + its route back toward centre</strong> — a controlled pull you can stop partway (it never resets). The fine-alignment tool for sitting <em>exactly</em> on a trait.</dd>
+        <dt>Acquire (water)</dt><dd>aligned on a hidden trait, <strong>pour water from the mug</strong> over the anvil to acquire it (this also <strong>quenches</strong> the ore, heat → 0). Traits <strong>stack</strong> — collect several per run, then repeat plan → travel → acquire.</dd>
       </div>
-      <div class="note"><span class="lbl">Quality</span> How precisely you land on a trait sets its quality — the speed↔precision trade-off is the core skill (see §10). Fog of war hides traits until reached.</div>
+      <div class="note"><span class="lbl">Quality</span> How precisely you land on a trait sets its quality (align distance → tier: <strong>≤9 Epic · ≤20 Fine · ≤34 Weak</strong>) — the speed↔precision trade-off is the core skill (see §10). The world is a <strong>2800×1960</strong> fog-of-war map; <strong>every trait shows a <code>?</code> until acquired</strong> (see §8).</div>
 
       <h3>7.2 Hazards &amp; the sword's HP <span class="st concept">Concept</span></h3>
       <div class="note warn">
         <span class="lbl">Cozy stakes</span>
-        The map has <strong>hazard zones</strong>. The <strong>smith has no HP</strong> — but the <strong>active sword does</strong>: drifting the molten blade through a hazard damages it, and at 0 HP it <strong>shatters</strong> (losing the in-progress blade &amp; its traits). No player death, no game-over — only lost work-in-progress. Routing <em>around</em> hazards is part of the planning puzzle.
+        The map has <strong>hazard zones</strong>. The <strong>smith has no HP</strong> — but the <strong>active sword does</strong>: drifting the molten blade through a hazard damages it, and at 0 HP it <strong>shatters</strong> (losing the in-progress blade &amp; its traits). No player death, no game-over — only lost work-in-progress. Routing <em>around</em> hazards is part of the planning puzzle. <strong>Loop-test status:</strong> hazard zones are <em>drawn</em> but not yet wired to a sword-HP system — currently decorative.
       </div>
 
       <h3>7.3 The 24 shape maps <span class="st concept">Concept</span></h3>
@@ -452,8 +452,8 @@
 
     <!-- ===================== 8 TRAITS ===================== -->
     <section id="traits">
-      <div class="sec-head"><span class="num">8</span><h2>Traits &amp; Discovery</h2><span class="st concept">Redesign</span></div>
-      <p><strong>24 traits</strong>, each hidden on the trait map under <strong>fog of war</strong>. You reach a trait by <strong>navigating the path</strong> to it (§7) and <strong>acquire it by heating over fire</strong> once aligned; traits <strong>stack</strong>, so you can collect several in one run. Base value still scales with distance from centre — <code>value = floor(distance / 35.355 × 100)</code> → 0–100 — so farther traits are worth more and demand more ore + tighter navigation. A trait fuses onto a blade only once.</p>
+      <div class="sec-head"><span class="num">8</span><h2>Traits &amp; Discovery</h2><span class="st impl">Built — loop-test</span></div>
+      <p><strong>24 traits</strong>, each hidden on the map under <strong>fog of war</strong> — <strong>8 signature</strong> traits at the ore-path ends + <strong>16 scattered</strong> far out. <strong>Every trait shows a <code>?</code> until acquired.</strong> The sword's travel clears fog over an area, exposing nearby <code>?</code> marks; aligning on one shows a tier-coloured ring and its alignment tier but <strong>not</strong> its identity. You <strong>reach</strong> a trait by navigating the path (§7) and <strong>acquire</strong> it by <strong>pouring water from the mug</strong> once aligned — which reveals its real symbol (permanently) and adds it to the blade. Traits <strong>stack</strong>. Alignment sets the tier (§10); each ore path ends at a fixed <strong>signature trait</strong> (copper→Sharp, iron→Durable, gold→Noble, aluminium→Flexible; ember→Flame, frost→Ice, tide→Water, gale→Storm).</p>
       <p><strong>Current build (legacy):</strong> a trait is discovered by stepping on its grid cell and fused via the heating minigame in §9. Its per-trait "difficulty tiers" below describe that legacy minigame; in the new model, per-trait <em>uniqueness</em> shifts toward the crafting chain and bespoke materials (§12).</p>
       <div class="tw"><table>
         <thead><tr><th>Tier</th><th>Behaviour</th><th>Traits</th></tr></thead>
@@ -468,20 +468,21 @@
 
     <!-- ===================== 9 HEATING ===================== -->
     <section id="heating">
-      <div class="sec-head"><span class="num">9</span><h2>Heating — Two Kinds</h2><span class="st concept">Redesign</span></div>
-      <p>The redesign uses <strong>two distinct heats</strong>, and neither sets quality:</p>
+      <div class="sec-head"><span class="num">9</span><h2>Heating — Two Kinds</h2><span class="st impl">Built — loop-test</span></div>
+      <p>Two distinct fires, neither of which sets quality (quality comes from alignment, §10). <strong>Acquiring is done with water</strong> (the mug), not heat:</p>
       <div class="cards">
-        <div class="card"><h4>Bellow-heat <span class="mini">→ speed</span></h4><p>Heats the ore before it travels, setting how fast the blade moves along the path. The ore <strong>cools over the run</strong>, so speed decays — the fast-vs-precise dial. <span class="st concept">Concept</span></p></div>
-        <div class="card"><h4>Fire-heat <span class="mini">→ acquire</span></h4><p>Held over open fire once the blade is <strong>aligned on a hidden trait</strong>, to fuse that trait onto the ingot. <span class="st concept">Concept</span></p></div>
+        <div class="card"><h4>Bellow-heat <span class="mini">→ speed</span></h4><p>Working the bellows heats the ore before it travels, setting <strong>travel speed</strong> (speed = <code>max(0.24, heat/100)</code> × base). The ore <strong>cools once out of the furnace</strong> (~<strong>100→0 in 10s</strong>), so it slows as it goes — the fast-vs-precise dial; re-insert to re-heat. <span class="st impl">Built</span></p></div>
+        <div class="card"><h4>Dragon-fire <span class="mini">→ pull / align</span></h4><p>A movable dragon breathes fire on press-and-hold; when it lands on the anvil it <strong>slowly pulls the blade + route back toward centre</strong> — the controlled fine-alignment tool. <span class="st impl">Built</span></p></div>
       </div>
-      <h3>Legacy heating minigame <span class="st impl">Current build — to be replaced</span></h3>
+      <div class="note"><span class="lbl">Acquire = water</span> With the blade aligned on a hidden trait, <strong>pour water from the mug</strong> over the anvil to acquire it (also quenches the ore). See §7.1 / §8. The old "fire to acquire" concept was replaced by the water/mug quench.</div>
+      <h3>Legacy heating minigame <span class="st impl">Current build (index.html) — to be replaced</span></h3>
       <p>The shipped game fuses a trait with a stabilize-band minigame: <strong>Pulley</strong> (lower the bucket) → <strong>Bellows</strong> (tap +16, or hold +40/s vs. 18/s decay) → <strong>Stabilize</strong> in the green band (default 40–70 for 2.0 s). A per-trait countdown (≈7.5–14 s; tutorial 45 s) set quality: stabilize in time → Epic, else Fine. In the new model, quality comes from <strong>navigation precision (§10)</strong> instead.</p>
     </section>
 
     <!-- ===================== 10 QUALITY ===================== -->
     <section id="quality">
-      <div class="sec-head"><span class="num">10</span><h2>Quality System</h2><span class="st concept">Redesign</span></div>
-      <p class="lead">Quality now comes from one thing: <strong>navigation precision</strong> — how exactly you land the blade on a hidden trait. Three tiers, <strong>Weak (+0) · Fine (+10) · Epic (+20)</strong> value bonus.</p>
+      <div class="sec-head"><span class="num">10</span><h2>Quality System</h2><span class="st impl">Built — loop-test</span></div>
+      <p class="lead">Quality comes from one thing: <strong>navigation precision</strong> — how exactly you land the blade on a hidden trait when you acquire it. Three tiers by align distance: <strong>≤9 Epic · ≤20 Fine · ≤34 Weak</strong> (beyond 34 = not on the trait).</p>
       <div class="fig">
         <div class="fs">
           <svg viewBox="0 0 900 190" role="img" aria-label="Precision-to-quality bullseye: centre Epic, middle Fine, outer Weak">
@@ -493,13 +494,13 @@
             <circle cx="120" cy="95" r="3.5" fill="var(--ember)"/>
             <text x="120" y="176" text-anchor="middle" font-family="var(--mono)" font-size="9" fill="var(--ink-3)">a hidden trait</text>
             <g font-family="var(--mono)" font-size="11">
-              <circle cx="360" cy="55" r="4.5" fill="var(--epic)"/><text x="380" y="59" fill="var(--ink)">Dead-centre → <tspan fill="var(--epic)" font-weight="700">Epic</tspan> · cold, slow, water-aligned</text>
+              <circle cx="360" cy="55" r="4.5" fill="var(--epic)"/><text x="380" y="59" fill="var(--ink)">Dead-centre → <tspan fill="var(--epic)" font-weight="700">Epic</tspan> · cold, slow, dragon-aligned</text>
               <circle cx="360" cy="95" r="4.5" fill="var(--fine)"/><text x="380" y="99" fill="var(--ink)">Close → <tspan fill="var(--fine)" font-weight="700">Fine</tspan> · a small overshoot</text>
               <circle cx="360" cy="135" r="4.5" fill="var(--weak)"/><text x="380" y="139" fill="var(--ink)">Off the mark → <tspan fill="var(--weak)" font-weight="700">Weak</tspan> · hot, fast, overshot</text>
             </g>
           </svg>
         </div>
-        <span class="cap">Hot/fast travel overshoots; cold/slow travel + water fine-alignment lands exactly. Each trait is scored on its own landing, so a run can mix qualities.</span>
+        <span class="cap">Hot/fast travel overshoots; cold/slow travel + the dragon's pull lands exactly. Each trait is scored on its own landing (at the water-quench), so a run can mix qualities.</span>
       </div>
       <div class="note"><span class="lbl">Consequence</span> <strong>Design, Sharpen, and Polish no longer affect quality</strong> — they're purely cosmetic (§11). The whole verdict is made during navigation.</div>
       <h3>Legacy: the four-stage chain <span class="st impl">Current build — to be replaced</span></h3>
@@ -509,7 +510,7 @@
 
     <!-- ===================== 11 FORGING ===================== -->
     <section id="forging">
-      <div class="sec-head"><span class="num">11</span><h2>Forging &amp; Finishing</h2><span class="st concept">Redesign</span></div>
+      <div class="sec-head"><span class="num">11</span><h2>Forging &amp; Finishing</h2><span class="st impl">Shape + Hammer built</span></div>
       <p>By the time navigation (§7) ends, the blade already carries its traits and quality. Finishing is now short — shape it, then optional cosmetics.</p>
       <div class="fig">
         <div class="fs">
@@ -533,21 +534,21 @@
         <span class="cap">Traits &amp; quality are locked in during Navigate. Shape + Hammer finish the blade; Design / Sharpen / Polish are optional cosmetics.</span>
       </div>
       <ul>
-        <li><strong>Shape</strong> — pick 1 of 10 blade shapes. <strong>Cosmetic</strong>, but some customers request a specific shape. Shapes are earned from a trait's shape-map (§7.3).</li>
-        <li><strong>Hammer</strong> — the shaping minigame: a close-up of the blade being hammered into the chosen form. <strong>Distinct</strong> from the navigation hammer.</li>
+        <li><strong>Shape</strong> — tap the orb on the anvil (a tap, not a drag) to pick a blade shape. <strong>Cosmetic</strong>, but some customers request a specific shape. Shapes are earned from a trait's shape-map (§7.3). <span class="st impl">Loop-test: 3 placeholder shapes (Shortsword / Longsword / Broadsword)</span></li>
+        <li><strong>Hammer</strong> — the shaping minigame: hammer the blade into the chosen form over <strong>2 stages × 3 timed targets</strong> (hit each shrinking ring before it fades). <strong>Distinct</strong> from the navigation hammer; the hit/miss tally is currently cosmetic. <span class="st impl">Built (ported from swordforgeV2)</span></li>
         <li><strong>Design</strong> <span class="mini">(optional · cosmetic)</span> — grip / guard / pommel art; trait-skinned parts for Flame/Ice/Water.</li>
         <li><strong>Sharpen</strong> <span class="mini">(optional · cosmetic)</span> — a grindstone flourish; <strong>no longer affects quality</strong>.</li>
         <li><strong>Polish</strong> <span class="mini">(optional · cosmetic)</span> — applies a polish pigment / finish to the blade.</li>
       </ul>
-      <div class="note"><span class="lbl">Retired</span> The old <strong>Quench</strong> step is gone — "water" is now the navigation alignment tool (§7), not a cooling beat.</div>
+      <div class="note"><span class="lbl">Retired</span> The old cosmetic <strong>Quench</strong> step is gone — "water" (the mug) is now the trait-<strong>acquire</strong> quench during navigation (§7 / §8). Fine-alignment is the dragon's fire pull.</div>
     </section>
 
     <!-- ===================== 12 MATERIALS ===================== -->
     <section id="materials">
       <div class="sec-head"><span class="num">12</span><h2>Materials &amp; Gathering</h2><span class="st concept">Redesign</span></div>
 
-      <h3>12.1 Ores — the path ingredients <span class="st concept">Concept</span></h3>
-      <p>Ores are the heart of the new loop. <strong>Each ore type draws a fixed-direction path segment</strong>; the smith <strong>stacks</strong> them to plan a route (§7). <strong>Grinding</strong> an ore at the <strong>stamp mill</strong> before smelting extends its reach (~50% raw → up to 100% ground). The <strong>smelter</strong> then melts the ore into a <strong>bloom</strong> — the molten mass that travels the path. Later: <strong>rotation ingredients</strong> that bend a path's direction.</p>
+      <h3>12.1 Ores — the path ingredients <span class="st impl">Built — loop-test</span></h3>
+      <p>Ores are the heart of the loop. <strong>Each ore type draws a fixed Bézier path segment</strong>; the smith <strong>stacks</strong> them to plan a route (§7). The loop-test ships <strong>8 ores</strong>: 4 "up" (Copper, Iron, Gold, Aluminium) and 4 "down" curvier ones (Ember, Frost, Tide, Gale), each ending at a signature trait (§8). <strong>Grinding</strong> an ore at the mortar before smelting extends its reach (<strong>~50% raw → 100% ground</strong>). The <strong>smelter</strong> then melts it into a glowing <strong>orb</strong> that travels the path. Later: <strong>rotation ingredients</strong> that bend a path's direction. <span class="st plan">(placeholder gem icons for Ember/Frost/Tide/Gale)</span></p>
 
       <h3>12.2 Gathering <span class="st plan">Planned — the leaning direction</span></h3>
       <div class="note">
@@ -689,7 +690,7 @@
         <thead><tr><th>Axis</th><th>PotionCraft</th><th>Sword Forge</th><th>Read</th></tr></thead>
         <tbody>
           <tr><td>Craft metaphor</td><td>Steer a vial along a map with ingredient vectors.</td><td>Steer a molten blade along a path with ore segments.</td><td><strong>Now near-identical.</strong> A proven, validated core — but we must own it, not echo it.</td></tr>
-          <tr><td>Movement controls</td><td>Ingredients (direction) + salt (rotate) + water (reset toward centre).</td><td>Ore (fixed dir) + grind (length) + bellow (speed, decays) + hammer (travel) + water (slow align to centre).</td><td><strong>Ours is richer / smithier.</strong> Heat-as-speed with cooling, and grind-as-length, are genuinely new twists; rotation is deferred.</td></tr>
+          <tr><td>Movement controls</td><td>Ingredients (direction) + salt (rotate) + water (reset toward centre).</td><td>Ore (fixed dir) + grind (length) + bellow (speed, decays) + hammer (travel) + dragon-fire (pull/align) + water/mug (acquire &amp; quench).</td><td><strong>Ours is richer / smithier.</strong> Heat-as-speed with cooling, and grind-as-length, are genuinely new twists; rotation is deferred.</td></tr>
           <tr><td>Precision → outcome</td><td>Land on an effect zone.</td><td>Landing precision on a trait sets Weak/Fine/Epic.</td><td><strong>Similar, but we grade it</strong> — a clean skill-expression hook.</td></tr>
           <tr><td>Exploration</td><td>The map is the craft; no separate world.</td><td>Same now — plus 24 bespoke per-trait shape maps.</td><td><strong>We go wider</strong> — at real content cost (§26).</td></tr>
           <tr><td>Customers &amp; morality</td><td>Serve/refuse; light alignment.</td><td>Good/evil reputation that can <strong>corrupt and destroy the town</strong>.</td><td><strong>Ours is more consequential</strong> — morality reshapes the world.</td></tr>
@@ -707,11 +708,12 @@
       <div class="tw"><table>
         <thead><tr><th>System</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td><strong>Path-Forge navigation loop</strong> (ore-as-path, hammer-travel, water-align)</td><td><span class="st concept">Concept — new core</span></td></tr>
-          <tr><td>Navigation-precision quality (Weak/Fine/Epic)</td><td><span class="st concept">Concept</span></td></tr>
-          <tr><td>Ore path-planning, stamp-mill grinding, bloom smelting</td><td><span class="st concept">Concept</span></td></tr>
-          <tr><td>Bellow-speed + cooling, fire-heat acquire</td><td><span class="st concept">Concept</span></td></tr>
-          <tr><td>Sword-HP + hazard zones on the new map</td><td><span class="st concept">Concept</span></td></tr>
+          <tr><td><strong>Path-Forge navigation loop</strong> (ore-as-path, hammer-travel, dragon-align, water-acquire)</td><td><span class="st impl">Built — loop-test</span></td></tr>
+          <tr><td>Navigation-precision quality (Weak/Fine/Epic)</td><td><span class="st impl">Built — loop-test</span></td></tr>
+          <tr><td>Ore path-planning, mortar grinding, orb smelting</td><td><span class="st impl">Built — loop-test</span></td></tr>
+          <tr><td>Bellow-speed + cooling, dragon-fire pull, water acquire</td><td><span class="st impl">Built — loop-test</span></td></tr>
+          <tr><td>Fog-of-war <code>?</code> traits, acquire-to-reveal</td><td><span class="st impl">Built — loop-test</span></td></tr>
+          <tr><td>Sword-HP + hazard zones on the new map (hazards drawn, HP unwired)</td><td><span class="st concept">Concept</span></td></tr>
           <tr><td>24 shape maps + trader entry</td><td><span class="st concept">Concept</span></td></tr>
           <tr><td>Automation / hiring</td><td><span class="st concept">Concept</span></td></tr>
           <tr><td>Décor / base customization + bedroom</td><td><span class="st concept">Concept</span></td></tr>
@@ -768,7 +770,7 @@
         <dt>Path-Forge</dt><dd>the new core loop — crafting <em>is</em> navigating a molten blade along a path to reach traits.</dd>
         <dt>Ore</dt><dd>an ingredient that draws a fixed-direction path segment; ground at the stamp mill to extend it.</dd>
         <dt>Bloom</dt><dd>the molten mass smelted from ore, poured to the anvil, that travels the path.</dd>
-        <dt>Trait</dt><dd>a magical property hidden on the map, acquired by aligning &amp; fire-heating (24 total).</dd>
+        <dt>Trait</dt><dd>a magical property hidden on the map (a <code>?</code> until acquired), acquired by aligning on it and <strong>pouring water from the mug</strong> (24 total).</dd>
         <dt>Navigation precision</dt><dd>how exactly the blade lands on a trait — sets Weak / Fine / Epic quality.</dd>
         <dt>Composition</dt><dd>a saved trait-set + ore/material recipe (a "blueprint").</dd>
         <dt>Value tier</dt><dd>Common → Legendary — a sword's total worth band.</dd>
@@ -779,6 +781,7 @@
       <p>This GDD supersedes the original vision in <code>archive/Sword_Grid_Game_GDD.md</code> (historical only). For authoritative <em>implemented</em> mechanics, <code>specs/game-design.md</code> is the SSOT — this doc must be reconciled with it as systems ship. Progress is tracked in <code>plan.md</code>.</p>
       <h3>C · Change log</h3>
       <div class="kv">
+        <dt>v0.3</dt><dd>2026-08-12 — Path-Forge loop <strong>built</strong> in <code>Swordforge_new_looptest.html</code>; flipped §4 / §7–§12 / §25 Concept→Implemented. Corrected the fire/water roles to match the build: <strong>dragon-fire = pull/align</strong>, <strong>water (the mug) = acquire + quench</strong> (the earlier "fire-acquire / water-align" was swapped). Added real numbers (2800×1960 world, align tiers ≤9 / ≤20 / ≤34, heat-decay 100→0 in 10 s), fog-of-war <code>?</code>-until-acquired traits, 8 ores (4 up + 4 down → signature traits), and the 3-shape + hammer finish.</dd>
         <dt>v0.2</dt><dd>2026-07-24 — Path-Forge core-loop redesign: crafting = PotionCraft-style path navigation (ore-as-path, grind, bellow-speed + cooling, hammer-travel, water-align, fire-acquire); quality = navigation precision; design/sharpen/polish now cosmetic; legacy grid loop flagged. Reworked §4, §7–§13, §24–§27.</dd>
         <dt>v0.1</dt><dd>2026-07-24 — initial draft: full current-state capture + town/morality/maps/gathering/automation/monetization vision + PotionCraft comparison.</dd>
       </div>
