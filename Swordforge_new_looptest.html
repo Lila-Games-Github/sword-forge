@@ -206,22 +206,22 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
         <div id="sfTraits" title="Traits acquired on this blade"></div>
-        <svg id="board" viewBox="420 311 560 672" preserveAspectRatio="xMidYMid meet" aria-label="Crafting map">
+        <svg id="board" viewBox="1040 620 720 1020" preserveAspectRatio="xMidYMid meet" aria-label="Crafting map">
             <defs>
                 <mask id="fogMask">
-                    <rect x="0" y="0" width="1400" height="980" fill="#fff"/>
+                    <rect x="0" y="0" width="2800" height="1960" fill="#fff"/>
                     <g id="fogHoles" fill="#000"></g>
                 </mask>
             </defs>
-            <rect x="0" y="0" width="1400" height="980" fill="#d8c8a0"/>
+            <rect x="0" y="0" width="2800" height="1960" fill="#d8c8a0"/>
             <g id="terrain">
                 <g id="blobs"></g>
                 <g id="hazards"></g>
                 <g id="traits"></g>
             </g>
-            <rect id="fog" x="0" y="0" width="1400" height="980" fill="#14100a" mask="url(#fogMask)"/>
-            <line id="tether" x1="700" y1="540" x2="700" y2="540" stroke="#dbe9ff" stroke-width="2.5" stroke-dasharray="6 9" stroke-linecap="round" opacity="0.30"/>
-            <g id="startMark" transform="translate(700,540)">
+            <rect id="fog" x="0" y="0" width="2800" height="1960" fill="#14100a" mask="url(#fogMask)"/>
+            <line id="tether" x1="1400" y1="1030" x2="1400" y2="1030" stroke="#dbe9ff" stroke-width="2.5" stroke-dasharray="6 9" stroke-linecap="round" opacity="0.30"/>
+            <g id="startMark" transform="translate(1400,1030)">
                 <circle r="17" fill="rgba(38,28,15,0.9)" stroke="#e6c266" stroke-width="3"/>
                 <text text-anchor="middle" dominant-baseline="central" font-size="17">🏠</text>
             </g>
@@ -363,10 +363,10 @@ const ORES = [
     { id:'gold',      name:'Gold',      color:'#d9b23a', img:'assets/forge/gold_ore.png',      d:'M0,0 C 80,-25 175,-25 245,-75' },
     { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', d:'M0,0 C -40,-60 -120,-110 -175,-175' },
     // 4 new downward ores — curvier S / C paths; no art yet → generated placeholder icons (tinted by colour)
-    { id:'ember', name:'Ember', color:'#e0532a', d:'M0,0 C 40,70 -30,120 -20,180 C -10,250 -120,270 -110,330' },   // S, ends down-left
-    { id:'frost', name:'Frost', color:'#7fd0e6', d:'M0,0 C -120,60 -130,220 -40,300 C -20,325 -30,345 -30,360' },  // C, bows left
-    { id:'tide',  name:'Tide',  color:'#3a86c8', d:'M0,0 C 120,60 130,220 40,300 C 20,325 30,345 30,360' },       // C, bows right
-    { id:'gale',  name:'Gale',  color:'#9aa7b8', d:'M0,0 C -40,70 30,120 20,180 C 10,250 120,270 110,330' }        // S, ends down-right
+    { id:'ember', name:'Ember', color:'#e0532a', d:'M0,0 C 76,133 -57,228 -38,342 C -19,475 -228,513 -209,627' },   // S, ends down-left (~2× longer)
+    { id:'frost', name:'Frost', color:'#7fd0e6', d:'M0,0 C -228,114 -247,418 -76,570 C -38,618 -57,656 -57,684' },  // C, bows left (~2× longer)
+    { id:'tide',  name:'Tide',  color:'#3a86c8', d:'M0,0 C 228,114 247,418 76,570 C 38,618 57,656 57,684' },       // C, bows right (~2× longer)
+    { id:'gale',  name:'Gale',  color:'#9aa7b8', d:'M0,0 C -76,133 57,228 38,342 C 19,475 228,513 209,627' }        // S, ends down-right (~2× longer)
 ];
 const ORE_BY = {}; ORES.forEach(o => ORE_BY[o.id] = o);
 ORES.forEach(o => { if(!o.img) o.img = orePlaceholder(o.color); });   // ores without art get a generated placeholder gem icon
@@ -385,9 +385,9 @@ const TRAITS = [
 ];
 const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
 
-const WORLD_W = 1400, WORLD_H = 980, CENTER = { x:700, y:490 }, START = { x:700, y:540 };
-const REVEAL_R = 90, INIT_REVEAL = 300, TRAIT_R = 30;
-const INIT_W = 560, MIN_W = 340, MAX_W = 800, SWORD_SY = 0.34;
+const WORLD_W = 2800, WORLD_H = 1960, CENTER = { x:1400, y:980 }, START = { x:1400, y:1030 };   // world doubled (2×) & hub recentred; the 4 original ore paths are START-relative so sharp/durable/noble/flexible are unchanged
+const REVEAL_R = 120, INIT_REVEAL = 440, TRAIT_R = 30;
+const INIT_W = 680, MIN_W = 360, MAX_W = 2200, SWORD_SY = 0.34;
 let aspect = 1.4;
 let view = { x: START.x - INIT_W/2, y: START.y - INIT_W*aspect*SWORD_SY, w: INIT_W };
 let seed = 20260811;
@@ -397,7 +397,7 @@ let board, fogHoles, traitsG, hazG, blobsG, swordEl, measure, pathEl, previewEl,
 let marker = { x:START.x, y:START.y }, revLast = {};
 let traits = [], hazards = [];
 
-function traitValue(x,y){ return Math.max(5, Math.min(100, Math.round(Math.hypot(x-CENTER.x, y-CENTER.y)/6))); }
+function traitValue(x,y){ return Math.max(5, Math.min(100, Math.round(Math.hypot(x-CENTER.x, y-CENTER.y)/12))); }
 function setSword(x,y){ marker.x=x; marker.y=y; swordEl.setAttribute('transform','translate('+x+','+y+')'); if(tetherEl){ tetherEl.setAttribute('x2',x); tetherEl.setAttribute('y2',y); } }
 function samplePath(d, frac){ const t=document.createElementNS(NS,'path'); t.setAttribute('d',d); board.appendChild(t); const L=t.getTotalLength(), p=t.getPointAtLength(L*frac); board.removeChild(t); return { x:START.x+p.x, y:START.y+p.y }; }
 function reveal(x,y,key){ key=key||'sword'; const last=revLast[key]; if(last && Math.hypot(x-last.x,y-last.y)<10) return; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',REVEAL_R); c.setAttribute('fill','#000'); fogHoles.appendChild(c); revLast[key]={x:x,y:y}; }
@@ -437,7 +437,7 @@ function initMap(){
     // mottled parchment terrain
     blobsG.innerHTML='';
     const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
-    for(let i=0;i<150;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=26+rnd()*92, ry=18+rnd()*62; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
+    for(let i=0;i<520;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=36+rnd()*128, ry=24+rnd()*86; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
 
     // traits: 4 signature traits at the ore-path ends (shown), the rest scattered far into the fog
     traitsG.innerHTML='';
@@ -448,11 +448,11 @@ function initMap(){
         const ox=p.x+dx/dd*off, oy=p.y+dy/dd*off;
         const obj=addTrait(tr, ox, oy); obj.discovered=true; obj.txtEl.textContent=tr.symbol; obj.txtEl.removeAttribute('font-weight'); });
     const outer = TRAITS.filter(t=>centralIds.indexOf(t.id)===-1);
-    outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35; const r=420+(i%4)*48; let x=CENTER.x+Math.cos(ang)*r, y=CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(60,Math.min(1340,x)); y=Math.max(56,Math.min(924,y)); addTrait(tr,x,y); });
+    outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35+(rnd()-0.5)*0.3; const r=820+(i%4)*95+rnd()*230; let x=CENTER.x+Math.cos(ang)*r, y=CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(90,Math.min(2710,x)); y=Math.max(80,Math.min(1880,y)); addTrait(tr,x,y); });
 
     // dark hazard zones (seeded, spread out, clear of the start + the traits)
     hazG.innerHTML=''; let placed=0, tries=0;
-    while(placed<16 && tries<900){ tries++; const ang=rnd()*Math.PI*2, rad=250+rnd()*270; let hx=CENTER.x+Math.cos(ang)*rad, hy=CENTER.y+Math.sin(ang)*rad*0.72; if(hx<70||hx>1330||hy<64||hy>916) continue; let ok=true; for(const z of hazards){ if(Math.hypot(hx-z.x,hy-z.y)<104){ ok=false; break; } } if(ok) for(const tr of traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<90){ ok=false; break; } } if(!ok) continue; const rr=26+rnd()*22; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); hazG.appendChild(c); const c2=document.createElementNS(NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); hazG.appendChild(c2); hazards.push({x:hx,y:hy,r:rr}); placed++; }
+    while(placed<24 && tries<1800){ tries++; const ang=rnd()*Math.PI*2, rad=430+rnd()*620; let hx=CENTER.x+Math.cos(ang)*rad, hy=CENTER.y+Math.sin(ang)*rad*0.72; if(hx<90||hx>2710||hy<80||hy>1880) continue; let ok=true; for(const z of hazards){ if(Math.hypot(hx-z.x,hy-z.y)<170){ ok=false; break; } } if(ok) for(const tr of traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<120){ ok=false; break; } } if(!ok) continue; const rr=32+rnd()*30; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); hazG.appendChild(c); const c2=document.createElementNS(NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); hazG.appendChild(c2); hazards.push({x:hx,y:hy,r:rr}); placed++; }
 
     // sword at start + a generous starting reveal so the ore paths read clearly
     fogHoles.innerHTML=''; revLast={}; marker={x:START.x,y:START.y}; setSword(START.x,START.y);
