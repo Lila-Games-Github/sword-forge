@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=568, user-scalable=no">
+<title>Swordforge — Loop Test</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 0; }
+
+/* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
+#frame {
+    width: 568px;
+    height: 1010px;
+    background: #14100a;
+    position: relative; overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+}
+
+/* ---- header / HUD ---- */
+#hud { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: linear-gradient(180deg,#2a2016,#1c150d); border-bottom: 1px solid #4a3a22; }
+#hud .title { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #f0d9a4; letter-spacing: .5px; white-space: nowrap; }
+#hud .gauges { margin-left: auto; display: flex; gap: 8px; }
+.gauge { display: flex; align-items: center; gap: 4px; }
+.gauge .lbl { font-size: 12px; }
+.gauge .track { width: 52px; height: 10px; background: #211a11; border: 1px solid #5a4629; border-radius: 6px; overflow: hidden; }
+.gauge .fill { height: 100%; width: 0%; border-radius: 5px; transition: width .12s linear; }
+.gauge .fill.heat { background: linear-gradient(90deg,#b8541f,#ff8c2a,#ffd24a); }
+
+/* ---- MAP (copied look from SwordforgeV2) ---- */
+#map-wrap { flex: 0 0 auto; height: 335px; border-bottom: 3px solid #6a5636; overflow: hidden; background: #000; position: relative; }
+#board { width: 100%; height: 100%; display: block; touch-action: none; }
+.zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
+.zoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid #6a5636; background: rgba(25,20,12,0.8); color: #f0e8d6; font-size: 18px; font-weight: bold; cursor: pointer; line-height: 1; }
+.map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
+
+/* ---- BENCH (crafting stations laid out in sequence) ---- */
+#bench { flex: 1 1 auto; position: relative; overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #3a2c1c 0%, #261c11 55%, #1a130b 100%);
+    box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
+}
+#bench::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 2px, rgba(255,255,255,0.015) 2px 44px); opacity: .5; }
+
+.station { position: absolute; z-index: 2; }
+.station img { display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
+.badge { position: absolute; top: -9px; left: -9px; z-index: 4; width: 22px; height: 22px; border-radius: 50%;
+    background: #c8a84b; color: #241a0c; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #241a0c; box-shadow: 0 2px 4px rgba(0,0,0,.5); }
+.cap { position: absolute; left: 50%; transform: translateX(-50%); bottom: -17px; white-space: nowrap;
+    font-size: 10px; font-weight: bold; color: #e9dcbf; text-shadow: 0 1px 2px #000; letter-spacing: .3px; }
+.cap small { font-weight: normal; color: #b6a684; }
+
+/* ore tray (compact, top-left) */
+#oreShelf { position: absolute; left: 92px; top: 6px; width: 346px; height: 44px; z-index: 3;
+    display: flex; gap: 3px; padding: 6px 5px 4px; border-radius: 9px;
+    background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -3px 6px rgba(0,0,0,.4); }
+#oreShelf .badge { top: -9px; left: -9px; }
+#oreShelf .shelf-cap { position: absolute; right: 7px; top: -8px; font-size: 8px; font-weight: bold; color: #cbb98f; background: #2a2013; padding: 1px 5px; border-radius: 6px; border: 1px solid #5a4526; }
+.ore-slot { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; overflow: hidden; touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
+.ore-slot img { width: 28px; height: 28px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.ore-slot span { font-size: 7px; font-weight: bold; color: #e4d6b4; max-width: 38px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* station image sizes (arranged per reference) */
+.mortar { width: 88px; }                 /* smaller */
+.furnace { width: 100%; display: block; }/* smelter fills its station (station width = size) */
+.anvil { width: 154px; }
+
+/* bellowtop paddle overlaid exactly onto the smelter's own bellow */
+.bellowtop { position: absolute; left: 0; top: 0; width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }
+.bellow-tag { position: absolute; left: 15%; top: 70%; transform: translateX(-50%); z-index: 3; font-size: 9px; font-weight: bold; color: #e9dcbf; background: rgba(20,15,8,0.72); border: 1px solid #6a5636; border-radius: 6px; padding: 1px 5px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+
+/* movable pestle — bigger, stands in the mortar, draggable */
+#pestle { position: absolute; width: 46px; z-index: 5; cursor: grab; touch-action: none; transform: rotate(10deg); transform-origin: bottom center; }
+#pestle img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+#pestle:active { cursor: grabbing; }
+
+/* movable hammer — drag it; near the anvil it rotates & strikes the anvil top */
+#hammerTool { position: absolute; width: 52px; z-index: 8; cursor: grab; touch-action: none; transform: rotate(-50deg); transform-origin: 60% 82%; }
+#hammerTool img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
+#hammerTool:active { cursor: grabbing; }
+#hammerTool.striking { animation: hammerStrike 0.3s ease-in-out infinite; }
+@keyframes hammerStrike { 0%,100% { transform: translateY(-5px) rotate(-56deg); } 55% { transform: translateY(7px) rotate(-30deg); } }
+#hammerSpark { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; pointer-events: none; display: none; z-index: 7; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,244,190,0.95) 0%, rgba(255,186,66,0.6) 42%, rgba(255,140,20,0) 72%); }
+#hammerSpark.on { display: block; animation: sparkPulse 0.32s ease-in-out infinite; }
+@keyframes sparkPulse { 0%,100% { transform: scale(0.45); opacity: 0.35; } 55% { transform: scale(1.15); opacity: 1; } }
+
+/* cropped dragon (visible dragon sits off-centre on a big canvas) */
+.crop { position: relative; overflow: hidden; }
+.crop img { position: absolute; display: block; max-width: none; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
+.dragoncrop { width: 98px; height: 115px; }
+.dragoncrop img { width: 260px; left: -83px; top: 0; }
+
+/* dragon — free-roaming, bottom-left, draggable */
+#dragon { position: absolute; z-index: 6; cursor: grab; touch-action: none; }
+#dragon:active { cursor: grabbing; }
+#dragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
+
+/* ---- 5 · Quench — water bucket: Bucket3_back/_mug/_front share one 1984×2116 canvas; the mug is a movable sibling that interleaves BETWEEN back(z2) and front(z4) so it sits IN the bucket ---- */
+.bucket-layer { position: absolute; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
+#mug { position: absolute; cursor: grab; touch-action: none; transform-origin: 52% 62%; transition: transform .14s ease; }
+#mug img { width: 100%; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+#mug:active { cursor: grabbing; }
+#mug.pouring { transform: rotate(-30deg); }
+.bucket-cap { position: absolute; z-index: 5; transform: translateX(-50%); white-space: nowrap; font-size: 10px; font-weight: bold; color: #e9dcbf; text-shadow: 0 1px 2px #000; letter-spacing: .3px; }
+.bucket-cap small { font-weight: normal; color: #b6a684; }
+/* placeholder pour stream + splash */
+#waterPour { position: absolute; width: 9px; z-index: 23; display: none; pointer-events: none; border-radius: 5px;
+    background-image: repeating-linear-gradient(180deg, rgba(158,222,255,.95) 0 7px, rgba(120,200,255,.35) 7px 15px);
+    background-size: 100% 15px; box-shadow: 0 0 6px rgba(120,200,255,.7); }
+#waterPour.on { display: block; animation: waterFlow .4s linear infinite; }
+@keyframes waterFlow { to { background-position: 0 15px; } }
+#waterSplash { position: absolute; width: 46px; height: 20px; margin: -6px 0 0 -23px; z-index: 23; display: none; pointer-events: none; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 35%, rgba(190,235,255,.9), rgba(120,200,255,.25) 65%, rgba(120,200,255,0) 80%); }
+#waterSplash.on { display: block; animation: splashPulse .4s ease-in-out infinite; }
+@keyframes splashPulse { 0%,100% { transform: scale(.7); opacity: .6; } 50% { transform: scale(1.15); opacity: 1; } }
+
+.legend { position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 3;
+    font-size: 9.5px; color: #b6a684; text-align: center; line-height: 1.4; }
+
+/* ---- crafting mechanics ---- */
+#orb { position: absolute; width: 38px; height: 38px; z-index: 9; display: none; cursor: grab; touch-action: none; }
+#orb.dragging { cursor: grabbing; z-index: 22; }
+#orb-ore { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+#orb-sphere { position: absolute; inset: 3px; border-radius: 50%; opacity: 0; pointer-events: none;
+    background: radial-gradient(circle at 38% 32%, #d9d2c6, #6f6a62 52%, #2a2724 100%);
+    box-shadow: inset -4px -5px 7px rgba(0,0,0,.5), inset 3px 3px 5px rgba(255,255,255,.22); }
+#orb.hot #orb-ore { opacity: 0 !important; }
+#orb.hot #orb-sphere { background: radial-gradient(circle at 40% 34%, #fff2c4, #ff9a3c 44%, #c0431a 100%);
+    box-shadow: 0 0 15px 4px rgba(255,140,40,.8), inset -3px -4px 6px rgba(120,20,0,.5); animation: orbPulse 1s ease-in-out infinite; }
+@keyframes orbPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+#pestle.pounding { animation: pound .26s ease-in-out infinite; }
+@keyframes pound { 0%,100% { transform: rotate(10deg) translateY(0); } 50% { transform: rotate(10deg) translateY(8px); } }
+#bellowHot, #furnaceGate { position: absolute; z-index: 5; cursor: pointer; }
+#bellowHot { left: 1%; top: 56%; width: 27%; height: 23%; }
+#furnaceGate { left: 55%; top: 53%; width: 33%; height: 31%; border-radius: 9px; }
+#furnaceGate.ready { box-shadow: inset 0 0 0 2px rgba(255,180,60,.9), 0 0 16px 4px rgba(255,150,40,.7); animation: gatePulse .95s ease-in-out infinite; }
+@keyframes gatePulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+.bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
+@keyframes pump { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
+#dragonFire { position: absolute; z-index: 7; width: 130px; pointer-events: none; -webkit-user-drag: none; display: none; filter: drop-shadow(0 0 6px rgba(255,140,30,.85)); }
+#sfHint { position: absolute; left: 8px; right: 8px; top: 56px; z-index: 12; text-align: center; font-size: 11px; line-height: 1.35; color: #ffe6b8; background: rgba(20,14,7,0.82); border: 1px solid #6a5636; border-radius: 8px; padding: 5px 9px; text-shadow: 0 1px 2px #000; }
+#sfHint b { color: #ffd98a; }
+#forgeResult { position: absolute; left: 50%; top: 44%; transform: translate(-50%,-50%); z-index: 30; display: none; text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; color: #ffe08a; background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 12px; padding: 14px 22px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+#forgeResult.show { display: block; animation: resultPop .45s ease-out; }
+@keyframes resultPop { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.7); } 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
+
+/* acquired-traits strip (top-right of the map) */
+#sfTraits { position: absolute; right: 8px; top: 8px; z-index: 6; display: flex; gap: 5px; font-size: 17px; line-height: 1; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 7px; padding: 3px 7px; min-height: 0; }
+#sfTraits:empty { display: none; }
+
+/* ---- shape select + hammer minigame (ported from swordforgeV2) ---- */
+.sf-modal { position: absolute; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); }
+.sf-modal.show { display: flex; }
+.sf-modal-box { background: #e8dcc0; border: 2px solid #6a5636; border-radius: 12px; padding: 16px; width: 86%; max-width: 320px; box-shadow: 0 12px 34px rgba(0,0,0,0.55); }
+.sf-modal-h { margin: 0 0 4px; color: #4a3623; font-family: 'Cinzel', serif; text-align: center; font-size: 16px; }
+.sf-modal-sub { margin: 0 0 12px; font-size: 11px; color: #5c4a33; text-align: center; }
+.sf-shape-grid { display: flex; gap: 8px; }
+.sf-shape { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 4px; background: #f3ead6; border: 2px solid #cbb98f; border-radius: 10px; cursor: pointer; font-family: 'Cinzel', serif; color: #4a3623; font-weight: bold; }
+.sf-shape .ic { font-size: 26px; line-height: 1; }
+.sf-shape span { font-size: 10px; }
+.sf-shape:active { background: #e6d7b8; transform: scale(0.97); }
+/* trait acquired popup */
+.sf-acquire-box { max-width: 260px; }
+.sf-acquire-body { text-align: center; margin: 8px 0 6px; }
+.sf-acquire-body .sym { display: block; font-size: 56px; line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+.sf-acquire-body .nm { font-family: 'Cinzel', serif; font-weight: 700; font-size: 19px; color: #4a3623; }
+.sf-acquire-body .tr { font-size: 13px; font-weight: bold; margin-top: 3px; letter-spacing: .3px; }
+.sf-acquire-body .cnt { font-size: 11px; color: #6b573c; margin-top: 6px; }
+.sf-continue { text-align: center; font-size: 12px; font-weight: bold; color: #7a5a2b; cursor: pointer; padding: 8px 0 2px; margin-top: 10px; border-top: 1px solid #cbb98f; letter-spacing: .5px; }
+.sf-continue:hover { color: #4a3623; }
+.hammer-stage { position: relative; width: 100%; aspect-ratio: 1; margin: 8px auto; background: rgba(0,0,0,0.10); border-radius: 6px; border: 2px inset #a6957a; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+.hammer-stage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4)); }
+#hm-targets { position: absolute; inset: 0; }
+.hammer-target { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.hammer-ring { position: absolute; width: 26px; height: 26px; border: 2px solid #ffd27f; border-radius: 50%; box-shadow: 0 0 5px rgba(255,180,30,0.9); pointer-events: none; }
+.hammer-dot { width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, #ff9b30); box-shadow: 0 0 4px #ffb733; pointer-events: none; }
+.hammer-target.hit .hammer-dot { animation: hammerPop 0.2s ease-out forwards; }
+.hammer-target.hit .hammer-ring { border-color: #7CFC00; opacity: 0; transition: opacity 0.15s; }
+.hammer-target.miss .hammer-dot { background: radial-gradient(circle, #999, #555); box-shadow: none; }
+.hammer-target.miss .hammer-ring { border-color: #c0392b; opacity: 0; transition: opacity 0.15s; }
+@keyframes hammerShrink { from { transform: scale(2.6); } to { transform: scale(0.42); } }
+@keyframes hammerPop { from { transform: scale(1); } to { transform: scale(2.2); opacity: 0; } }
+.hammer-perfect { position: absolute; --hx: 90px; transform: translate(-50%, -50%); color: #6dff5b; font-family: 'Cinzel', serif; font-weight: bold; font-size: 18px; text-shadow: 0 0 6px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.8); pointer-events: none; white-space: nowrap; z-index: 6; animation: hammerPerfect 0.9s ease-out forwards; }
+@keyframes hammerPerfect { 0% { transform: translate(-50%,-50%) translate(0,0) scale(0.5); opacity: 0; } 15% { transform: translate(-50%,-50%) translate(0,-6px) scale(1.25); opacity: 1; } 55% { transform: translate(-50%,-50%) translate(calc(var(--hx)*0.55),-48px) scale(1); opacity: 1; } 100% { transform: translate(-50%,-50%) translate(var(--hx),18px) scale(0.85); opacity: 0; } }
+.hm-instr { text-align: center; font-weight: bold; color: #4a3623; font-family: 'Cinzel', serif; font-size: 12px; }
+.hm-miss { text-align: center; font-size: 11px; color: #8a5a2b; min-height: 14px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="frame">
+
+    <div id="hud">
+        <span class="title">⚔️ Swordforge — Loop Test</span>
+        <div class="gauges">
+            <div class="gauge"><span class="lbl">🔥</span><div class="track"><div id="g-heat" class="fill heat"></div></div></div>
+        </div>
+    </div>
+
+    <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
+    <div id="map-wrap">
+        <span class="map-tag">🗺️ Ore-path map</span>
+        <div id="sfTraits" title="Traits acquired on this blade"></div>
+        <svg id="board" viewBox="1040 620 720 1020" preserveAspectRatio="xMidYMid meet" aria-label="Crafting map">
+            <defs>
+                <mask id="fogMask">
+                    <rect x="0" y="0" width="2800" height="1960" fill="#fff"/>
+                    <g id="fogHoles" fill="#000"></g>
+                </mask>
+            </defs>
+            <rect x="0" y="0" width="2800" height="1960" fill="#d8c8a0"/>
+            <g id="terrain">
+                <g id="blobs"></g>
+                <g id="hazards"></g>
+                <g id="traits"></g>
+            </g>
+            <rect id="fog" x="0" y="0" width="2800" height="1960" fill="#14100a" mask="url(#fogMask)"/>
+            <line id="tether" x1="1400" y1="1030" x2="1400" y2="1030" stroke="#dbe9ff" stroke-width="2.5" stroke-dasharray="6 9" stroke-linecap="round" opacity="0.30"/>
+            <g id="startMark" transform="translate(1400,1030)">
+                <circle r="17" fill="rgba(38,28,15,0.9)" stroke="#e6c266" stroke-width="3"/>
+                <text text-anchor="middle" dominant-baseline="central" font-size="17">🏠</text>
+            </g>
+            <path id="pathpreview" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" stroke-dasharray="12 10" opacity="0.5" style="display:none;"/>
+            <path id="pathpreviewsolid" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" opacity="0.78" style="display:none;"/>
+            <path id="pathline" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
+            <g id="xmark" style="display:none;">
+                <line x1="-10" y1="-10" x2="10" y2="10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
+                <line x1="-10" y1="10" x2="10" y2="-10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <circle id="alignRing" r="25" fill="none" stroke-width="4" opacity="0.9" style="display:none;"/>
+            <g id="sword">
+                <circle r="19" fill="#3f7bd6" stroke="#dbe9ff" stroke-width="3.5"/>
+                <text text-anchor="middle" dominant-baseline="central" font-size="21">⚔️</text>
+            </g>
+        </svg>
+        <div class="zoom">
+            <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+            <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+        </div>
+    </div>
+
+    <!-- ===== BENCH (arranged per reference) ===== -->
+    <div id="bench">
+
+        <!-- 1 · Ores (compact tray, top-left) -->
+        <div id="oreShelf">
+            <span class="badge">1</span>
+            <span class="shelf-cap">Ores</span>
+            <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
+        </div>
+
+        <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
+        <div class="station" id="stSmelt" style="left:188px; top:88px; width:288px;">
+            <span class="badge" style="left:auto; right:-9px;">3</span>
+            <img class="furnace" src="assets/forge/blast_furnace.png" alt="Smelter">
+            <img class="bellowtop" id="bellowtop" src="assets/forge/blast_furnace_bellowtop.png" alt="Bellows">
+            <span class="bellow-tag">Bellow</span>
+            <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
+            <div id="bellowHot" title="Hold to pump the bellows"></div>
+            <div id="furnaceGate" title="Open the gate"></div>
+        </div>
+
+        <!-- 2 · Grind — mortar (smaller), left -->
+        <div class="station" id="stMortar" style="left:98px; top:196px; width:88px;">
+            <span class="badge">2</span>
+            <img class="mortar" src="assets/forge/mortar.png" alt="Mortar">
+            <span class="cap">Grind <small>· mortar</small></span>
+        </div>
+        <!-- movable pestle, standing in the mortar -->
+        <div id="pestle" style="left:112px; top:96px;">
+            <img src="assets/forge/pestle.png" alt="Pestle">
+        </div>
+
+        <!-- movable hammer — strikes the anvil when dragged close -->
+        <div id="hammerSpark"></div>
+        <div id="hammerTool" style="left:234px; top:388px;">
+            <img src="assets/forge/hammer.png" alt="Hammer">
+        </div>
+
+        <!-- 4 · Hammer — anvil, a bit in the centre -->
+        <div class="station" id="stAnvil" style="left:202px; top:512px; width:154px;">
+            <span class="badge">4</span>
+            <img class="anvil" src="assets/forge/anvil.png" alt="Anvil">
+            <span class="cap">Hammer <small>· anvil</small></span>
+        </div>
+
+        <!-- 5 · Quench — water bucket (Bucket3_back / _mug / _front share one canvas); the mug interleaves so it sits IN the bucket -->
+        <img id="bucketBack" class="bucket-layer" src="assets/forge/Bucket3_back.png" alt="" style="left:372px; top:450px; width:106px; z-index:2;">
+        <div id="mug" style="left:372px; top:450px; width:106px; z-index:3;"><img src="assets/forge/Bucket3_mug.png" alt="Mug"></div>
+        <img id="bucketFront" class="bucket-layer" src="assets/forge/Bucket3_front.png" alt="Water bucket" style="left:372px; top:450px; width:106px; z-index:4;">
+        <span class="badge" style="left:368px; top:446px;">5</span>
+        <span class="bucket-cap" style="left:425px; top:566px;">Quench <small>· pour on the anvil</small></span>
+
+        <!-- Dragon — free-roaming disruptor, bottom-left -->
+        <div id="dragon" style="left:90px; top:504px;">
+            <div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div>
+            <span class="cap">🐉 drag me · fire resets the sword</span>
+        </div>
+
+        <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
+        <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
+        <img id="dragonFire" src="assets/forge/dragonfire.png" alt="">
+        <div id="waterPour"></div>
+        <div id="waterSplash"></div>
+        <div id="forgeResult"></div>
+        <div id="sfHint"></div>
+
+    </div>
+
+    <!-- ===== Shape select ===== -->
+    <div id="sfShapeModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 class="sf-modal-h">Choose a Blade Shape</h3>
+            <p class="sf-modal-sub">Pick the shape, then hammer it into form.</p>
+            <div class="sf-shape-grid">
+                <button class="sf-shape" onclick="selectShape('Shortsword')"><span class="ic">🗡️</span><span>Shortsword</span></button>
+                <button class="sf-shape" onclick="selectShape('Longsword')"><span class="ic">⚔️</span><span>Longsword</span></button>
+                <button class="sf-shape" onclick="selectShape('Broadsword')"><span class="ic">🔱</span><span>Broadsword</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Hammer minigame (ported from swordforgeV2) ===== -->
+    <div id="sfHammerModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 class="sf-modal-h">Hammer the Blade</h3>
+            <div class="hammer-stage" id="hm-stage">
+                <img id="hm-img" src="" alt="Forging blade">
+                <div id="hm-targets"></div>
+            </div>
+            <div id="hm-instr" class="hm-instr">Strike the glowing marks before they fade!</div>
+            <div id="hm-miss" class="hm-miss"></div>
+        </div>
+    </div>
+
+    <!-- ===== Trait acquired popup (stays until 'continue' is clicked) ===== -->
+    <div id="sfAcquireModal" class="sf-modal">
+        <div class="sf-modal-box sf-acquire-box">
+            <h3 class="sf-modal-h">Trait Acquired!</h3>
+            <div id="sfAcquireBody" class="sf-acquire-body"></div>
+            <div class="sf-continue" onclick="closeAcquire()">continue ›</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ============================================================
+//  MAP  — ported from SwordforgeV2 (vector-path board + fog)
+// ============================================================
+const NS = 'http://www.w3.org/2000/svg';
+
+// The ores, each with its own unique vector path radiating from START.
+// First 4 go UP (left/right, single gentle curve); last 4 go DOWN with curvier S / C shaped paths (placeholder icons).
+const ORES = [
+    { id:'copper',    name:'Copper',    color:'#c8763c', img:'assets/forge/copper_ore.png',    d:'M0,0 C 30,-70 40,-150 110,-215' },
+    { id:'iron',      name:'Iron',      color:'#8a5a33', img:'assets/forge/iron_ore.png',      d:'M0,0 C -80,-30 -170,-30 -240,-80' },
+    { id:'gold',      name:'Gold',      color:'#d9b23a', img:'assets/forge/gold_ore.png',      d:'M0,0 C 80,-25 175,-25 245,-75' },
+    { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', d:'M0,0 C -40,-60 -120,-110 -175,-175' },
+    // 4 new downward ores — curvier S / C paths; no art yet → generated placeholder icons (tinted by colour)
+    { id:'ember', name:'Ember', color:'#e0532a', d:'M0,0 C 76,133 -57,228 -38,342 C -19,475 -228,513 -209,627' },   // S, ends down-left (~2× longer)
+    { id:'frost', name:'Frost', color:'#7fd0e6', d:'M0,0 C -228,114 -247,418 -76,570 C -38,618 -57,656 -57,684' },  // C, bows left (~2× longer)
+    { id:'tide',  name:'Tide',  color:'#3a86c8', d:'M0,0 C 228,114 247,418 76,570 C 38,618 57,656 57,684' },       // C, bows right (~2× longer)
+    { id:'gale',  name:'Gale',  color:'#9aa7b8', d:'M0,0 C -76,133 57,228 38,342 C 19,475 228,513 209,627' }        // S, ends down-right (~2× longer)
+];
+const ORE_BY = {}; ORES.forEach(o => ORE_BY[o.id] = o);
+ORES.forEach(o => { if(!o.img) o.img = orePlaceholder(o.color); });   // ores without art get a generated placeholder gem icon
+function oreImg(id){ return (ORE_BY[id] && ORE_BY[id].img) || ('assets/forge/'+id+'_ore.png'); }
+function orePlaceholder(color){ return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><radialGradient id="g" cx="38%" cy="30%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/><stop offset="45%" stop-color="'+color+'"/><stop offset="100%" stop-color="#1a1209"/></radialGradient></defs><path d="M9 21 L19 8 L34 10 L42 25 L34 40 L15 38 Z" fill="url(#g)" stroke="#241a10" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 8 L24 22 L42 25" fill="none" stroke="#ffffff" stroke-opacity=".28" stroke-width="1.6"/></svg>'); }
+// each ore path ends at a signature trait (the 4 new ores map to 4 formerly-scattered traits)
+const ORE_TRAIT = { copper:'sharp', iron:'durable', gold:'noble', aluminium:'flexible', ember:'flame', frost:'ice', tide:'water', gale:'storm' };
+
+const TRAITS = [
+    { id:'durable', name:'Durable', symbol:'🛡️' }, { id:'cursed', name:'Cursed', symbol:'☠️' }, { id:'heavy', name:'Heavy', symbol:'⚓' }, { id:'balanced', name:'Balanced', symbol:'⚖️' },
+    { id:'floral', name:'Floral', symbol:'🌸' }, { id:'grace', name:'Grace', symbol:'✨' }, { id:'noble', name:'Noble', symbol:'👑' }, { id:'flexible', name:'Flexible', symbol:'〰️' },
+    { id:'sharp', name:'Sharp', symbol:'🔪' }, { id:'fury', name:'Fury', symbol:'💢' }, { id:'accurate', name:'Accurate', symbol:'🎯' }, { id:'luck', name:'Luck', symbol:'🍀' },
+    { id:'honor', name:'Honor', symbol:'🏅' }, { id:'endurance', name:'Endurance', symbol:'🔋' }, { id:'savage', name:'Savage', symbol:'🐅' }, { id:'cruel', name:'Cruel', symbol:'😈' },
+    { id:'blood', name:'Blood', symbol:'🩸' }, { id:'celestial', name:'Celestial', symbol:'☄️' }, { id:'storm', name:'Storm', symbol:'🌪️' }, { id:'ice', name:'Ice', symbol:'❄️' },
+    { id:'flame', name:'Flame', symbol:'🔥' }, { id:'water', name:'Water', symbol:'💧' }, { id:'lightning', name:'Lightning', symbol:'⚡' }, { id:'dark', name:'Dark', symbol:'🌑' }
+];
+const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
+
+const WORLD_W = 2800, WORLD_H = 1960, CENTER = { x:1400, y:980 }, START = { x:1400, y:1030 };   // world doubled (2×) & hub recentred; the 4 original ore paths are START-relative so sharp/durable/noble/flexible are unchanged
+const REVEAL_R = 120, INIT_REVEAL = 440, TRAIT_R = 30;
+const INIT_W = 680, MIN_W = 360, MAX_W = 2200, SWORD_SY = 0.34;
+let aspect = 1.4;
+let view = { x: START.x - INIT_W/2, y: START.y - INIT_W*aspect*SWORD_SY, w: INIT_W };
+let seed = 20260811;
+function rnd(){ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+
+let board, fogHoles, traitsG, hazG, blobsG, swordEl, measure, pathEl, previewEl, previewSolidEl, xmark, tetherEl;
+let marker = { x:START.x, y:START.y }, revLast = {};
+let traits = [], hazards = [];
+
+function traitValue(x,y){ return Math.max(5, Math.min(100, Math.round(Math.hypot(x-CENTER.x, y-CENTER.y)/12))); }
+function setSword(x,y){ marker.x=x; marker.y=y; swordEl.setAttribute('transform','translate('+x+','+y+')'); if(tetherEl){ tetherEl.setAttribute('x2',x); tetherEl.setAttribute('y2',y); } }
+function samplePath(d, frac){ const t=document.createElementNS(NS,'path'); t.setAttribute('d',d); board.appendChild(t); const L=t.getTotalLength(), p=t.getPointAtLength(L*frac); board.removeChild(t); return { x:START.x+p.x, y:START.y+p.y }; }
+function reveal(x,y,key){ key=key||'sword'; const last=revLast[key]; if(last && Math.hypot(x-last.x,y-last.y)<10) return; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',REVEAL_R); c.setAttribute('fill','#000'); fogHoles.appendChild(c); revLast[key]={x:x,y:y}; }
+function addTrait(tr, x, y){
+    const g=document.createElementNS(NS,'g'); g.setAttribute('transform','translate('+x+','+y+')');
+    const bg=document.createElementNS(NS,'circle'); bg.setAttribute('r',17); bg.setAttribute('fill','rgba(0,0,0,0.4)'); g.appendChild(bg);
+    const txt=document.createElementNS(NS,'text'); txt.setAttribute('text-anchor','middle'); txt.setAttribute('y',7); txt.setAttribute('font-size','21'); txt.setAttribute('fill','#f2e6cc'); txt.setAttribute('font-weight','bold'); txt.textContent='?'; g.appendChild(txt);
+    traitsG.appendChild(g);
+    const obj = { trait:tr, x:x, y:y, value:traitValue(x,y), el:g, txtEl:txt, discovered:false };
+    traits.push(obj); return obj;
+}
+
+// ---- zoom / pan: the SVG viewBox is a window into the 1400×980 world ----
+function setView(){ if(board){ const r=board.getBoundingClientRect(); if(r.width>2&&r.height>2) aspect=r.height/r.width; } const maxW=Math.min(MAX_W, WORLD_H/aspect); let w=Math.max(MIN_W, Math.min(maxW, view.w)); let h=w*aspect; let x=Math.max(0, Math.min(WORLD_W-w, view.x)); let y=Math.max(0, Math.min(WORLD_H-h, view.y)); view.w=w; view.x=x; view.y=y; if(board) board.setAttribute('viewBox', x+' '+y+' '+w+' '+h); }
+function zoomAt(factor, wx, wy){ const h=view.w*aspect; if(wx==null){ wx=view.x+view.w/2; wy=view.y+h/2; } const fx=(wx-view.x)/view.w, fy=(wy-view.y)/h; let nw=Math.max(MIN_W, Math.min(MAX_W, view.w*factor)); view.x=wx-fx*nw; view.y=wy-fy*(nw*aspect); view.w=nw; setView(); }
+function clientToWorld(cx,cy){ const r=board.getBoundingClientRect(); const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; return { x:view.x+fx*view.w, y:view.y+fy*(view.w*aspect) }; }
+function wireZoomPan(){
+    board.addEventListener('wheel', ev=>{ ev.preventDefault(); const wp=clientToWorld(ev.clientX,ev.clientY); zoomAt(ev.deltaY<0?0.85:1.18, wp.x, wp.y); }, {passive:false});
+    let pan=null, pinch=null;
+    board.addEventListener('pointerdown', ev=>{ pan={sx:ev.clientX, sy:ev.clientY, vx:view.x, vy:view.y}; try{ board.setPointerCapture(ev.pointerId); }catch(e){} });
+    board.addEventListener('pointermove', ev=>{ if(!pan) return; const r=board.getBoundingClientRect(); view.x=pan.vx-(ev.clientX-pan.sx)/r.width*view.w; view.y=pan.vy-(ev.clientY-pan.sy)/r.height*(view.w*aspect); setView(); });
+    const endPan=()=>{ pan=null; }; board.addEventListener('pointerup', endPan); board.addEventListener('pointercancel', endPan);
+    board.addEventListener('touchmove', ev=>{ if(ev.touches.length===2){ ev.preventDefault(); pan=null; const d=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX, ev.touches[0].clientY-ev.touches[1].clientY); if(pinch){ const mx=(ev.touches[0].clientX+ev.touches[1].clientX)/2, my=(ev.touches[0].clientY+ev.touches[1].clientY)/2, wp=clientToWorld(mx,my); zoomAt(pinch/d, wp.x, wp.y); } pinch=d; } }, {passive:false});
+    board.addEventListener('touchend', ()=>{ pinch=null; });
+    const zi=document.getElementById('zoomIn'), zo=document.getElementById('zoomOut');
+    if(zi) zi.addEventListener('click', ()=>zoomAt(0.82));
+    if(zo) zo.addEventListener('click', ()=>zoomAt(1.22));
+}
+
+function initMap(){
+    board=document.getElementById('board'); if(!board) return;
+    fogHoles=document.getElementById('fogHoles'); traitsG=document.getElementById('traits'); hazG=document.getElementById('hazards'); blobsG=document.getElementById('blobs');
+    swordEl=document.getElementById('sword'); pathEl=document.getElementById('pathline'); previewEl=document.getElementById('pathpreview'); previewSolidEl=document.getElementById('pathpreviewsolid'); xmark=document.getElementById('xmark'); tetherEl=document.getElementById('tether');
+    measure=document.createElementNS(NS,'path'); measure.setAttribute('fill','none'); measure.style.display='none'; board.appendChild(measure);
+    seed=20260811; traits=[]; hazards=[]; revLast={};
+
+    // mottled parchment terrain
+    blobsG.innerHTML='';
+    const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
+    for(let i=0;i<520;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=36+rnd()*128, ry=24+rnd()*86; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
+
+    // traits: 8 signature traits at the ore-path ends + 16 scattered — ALL start hidden in the fog as '?' (identity revealed only on acquisition)
+    traitsG.innerHTML='';
+    const centralIds = Object.values(ORE_TRAIT);
+    ORES.forEach((o,i)=>{ const tr=TRAIT_BY[ORE_TRAIT[o.id]]; if(!tr) return; const p=samplePath(o.d, 1.0);
+        // nudge each trait slightly toward START (off the exact path end) so full grind ≠ Epic — the player must fine-tune (grind + dragon pull) to centre it
+        const dx=START.x-p.x, dy=START.y-p.y, dd=Math.hypot(dx,dy)||1, off=18+(i%3)*4;   // 18–26px off
+        const ox=p.x+dx/dd*off, oy=p.y+dy/dd*off;
+        addTrait(tr, ox, oy); });   // signature traits now also start hidden in the fog as '?' — revealed (symbol shown) only when acquired
+    const outer = TRAITS.filter(t=>centralIds.indexOf(t.id)===-1);
+    outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35+(rnd()-0.5)*0.3; const r=820+(i%4)*95+rnd()*230; let x=CENTER.x+Math.cos(ang)*r, y=CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(90,Math.min(2710,x)); y=Math.max(80,Math.min(1880,y)); addTrait(tr,x,y); });
+
+    // dark hazard zones (seeded, spread out, clear of the start + the traits)
+    hazG.innerHTML=''; let placed=0, tries=0;
+    while(placed<24 && tries<1800){ tries++; const ang=rnd()*Math.PI*2, rad=430+rnd()*620; let hx=CENTER.x+Math.cos(ang)*rad, hy=CENTER.y+Math.sin(ang)*rad*0.72; if(hx<90||hx>2710||hy<80||hy>1880) continue; let ok=true; for(const z of hazards){ if(Math.hypot(hx-z.x,hy-z.y)<170){ ok=false; break; } } if(ok) for(const tr of traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<120){ ok=false; break; } } if(!ok) continue; const rr=32+rnd()*30; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); hazG.appendChild(c); const c2=document.createElementNS(NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); hazG.appendChild(c2); hazards.push({x:hx,y:hy,r:rr}); placed++; }
+
+    // sword at start + a generous starting reveal so the ore paths read clearly
+    fogHoles.innerHTML=''; revLast={}; marker={x:START.x,y:START.y}; setSword(START.x,START.y);
+    const c0=document.createElementNS(NS,'circle'); c0.setAttribute('cx',START.x); c0.setAttribute('cy',START.y); c0.setAttribute('r',INIT_REVEAL); c0.setAttribute('fill','#000'); fogHoles.appendChild(c0);
+    // (no signature-trait pre-reveal — traits stay fogged until the sword's travel clears fog over them; identity stays '?' until acquired)
+
+    view={ x:START.x-INIT_W/2, y:START.y-INIT_W*aspect*SWORD_SY, w:INIT_W }; setView(); wireZoomPan();
+    window.SF = { traits, hazards, ORES, view:()=>view, zoomAt, setSword };
+}
+
+// ============================================================
+//  MOVABLE PROPS — pestle + dragon are draggable (placement preview)
+// ============================================================
+function makeDraggable(el){
+    if(!el) return;
+    let drag=false, dx=0, dy=0;
+    el.addEventListener('pointerdown', e=>{ drag=true; const r=el.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+    el.addEventListener('pointermove', e=>{ if(!drag) return; const b=el.parentElement.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy; x=Math.max(-30, Math.min(b.width-el.offsetWidth+30, x)); y=Math.max(-30, Math.min(b.height-el.offsetHeight+20, y)); el.style.left=x+'px'; el.style.top=y+'px'; el.style.right='auto'; });
+    const end=()=>{ drag=false; }; el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+function wireMovable(){ makeDraggable(document.getElementById('pestle')); makeDraggable(document.getElementById('dragon')); }
+
+// Hammer: draggable, and when its head nears the anvil top it rotates & strikes (with a spark).
+function wireHammer(){
+    const h=document.getElementById('hammerTool'), anvil=document.getElementById('stAnvil'),
+          spark=document.getElementById('hammerSpark'), bench=document.getElementById('bench');
+    if(!h||!anvil||!bench) return;
+    const STRIKE_DIST=66;
+    function strikePoint(){ const br=bench.getBoundingClientRect(), ar=anvil.getBoundingClientRect(); return { x:ar.left+ar.width*0.50-br.left, y:ar.top+ar.height*0.16-br.top }; }  // anvil top face
+    function check(){
+        const br=bench.getBoundingClientRect(), hr=h.getBoundingClientRect();
+        const hx=hr.left+hr.width/2-br.left, hy=hr.top+hr.height/2-br.top, sp=strikePoint();
+        const near=Math.hypot(hx-sp.x, hy-sp.y) < STRIKE_DIST;
+        h.classList.toggle('striking', near);
+        if(near){ spark.style.left=sp.x+'px'; spark.style.top=sp.y+'px'; spark.classList.add('on'); }
+        else spark.classList.remove('on');
+    }
+    let drag=false, dx=0, dy=0;
+    h.addEventListener('pointerdown', e=>{ drag=true; const r=h.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ h.setPointerCapture(e.pointerId); }catch(err){} });
+    h.addEventListener('pointermove', e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-20, Math.min(b.width-h.offsetWidth+20, x)); y=Math.max(-20, Math.min(b.height-h.offsetHeight+20, y)); h.style.left=x+'px'; h.style.top=y+'px'; check(); });
+    const end=()=>{ drag=false; check(); }; h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+}
+
+// ============================================================
+//  CRAFTING MECHANICS — ore → grind → smelt → hammer → quench (pour mug on anvil) ; dragon = pull
+// ============================================================
+const GRIND_RATE=0.5, SMELT_TIME=5, HEAT_RISE=42, BASE_HEAT=26, SWORD_SPEED=0.5, PULL_SPEED=20, HEAT_DECAY=10, CRAWL_MIN=0.24;   // PULL_SPEED slow for fine control; HEAT_DECAY 10/s → 100→0 in 10s; CRAWL_MIN = the sword still creeps (0.24× speed) at heat 0 — 2× the old 0.12 floor
+const ALIGN_MAX=34, ALIGN_EPIC=9, ALIGN_FINE=20;
+const HAMMER_RING_MS=750, HAMMER_GAP_MS=380;   // hammer-minigame timing (ported from swordforgeV2)
+const TOUCH_LIFT=72;   // on TOUCH, float a dragged item this many px above the finger so it isn't hidden under it (mouse/pen = 0)
+function dragLift(e){ return (e && e.pointerType==='touch') ? TOUCH_LIFT : 0; }   // how centred the sword sits on a trait → tier: ≤9 Epic, ≤20 Fine, ≤34 Weak
+let segs=[];                 // stacked route: [{ore,d,len,origin:{x,y},tPct}]  (tPct = 0.5+0.5*grind of that ore's path)
+let sword={seg:0, frac:0};   // sword position along the route
+let melt=null;               // accumulated melt: {heat,smeltT0,stage:'smelting'|'hot'|'onAnvil',reachedTrait,acquiredTrait}
+let prep=null;               // ore being prepped in the mortar: {ore,grind}
+let pull={x:0,y:0};          // dragon-fire drag: an offset applied to the WHOLE rendered route (sword + remaining path + ✕)
+let bellowing=false, pestleGrinding=false, dragonBreathing=false, retreating=false, gateReady=false;
+let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, mugRest={x:372,y:450}, waterTimer=null;
+
+function benchEl(){ return document.getElementById('bench'); }
+function benchRect(el){ const b=benchEl().getBoundingClientRect(), r=el.getBoundingClientRect(); return {L:r.left-b.left,T:r.top-b.top,R:r.right-b.left,B:r.bottom-b.top}; }
+function stationCenter(el,fx,fy){ const r=benchRect(el); return {x:r.L+(r.R-r.L)*fx, y:r.T+(r.B-r.T)*fy}; }
+function hint(t){ const h=document.getElementById('sfHint'); if(h) h.innerHTML=t; }
+
+// --- stacked route geometry (each ore = one segment continuing from the last ✕) ---
+function segPointLocal(seg,frac){ measure.setAttribute('d',seg.d); const p=measure.getPointAtLength(Math.max(0,Math.min(1,frac))*seg.len); return {x:seg.origin.x+p.x, y:seg.origin.y+p.y}; }
+function segPoint(seg,frac){ const l=segPointLocal(seg,frac); return {x:l.x+pull.x, y:l.y+pull.y}; }   // rendered = local + dragon pull
+function routeEndLocal(){ if(!segs.length) return {x:START.x,y:START.y}; const s=segs[segs.length-1]; return segPointLocal(s,s.tPct); }
+function routeEnd(){ const l=routeEndLocal(); return {x:l.x+pull.x, y:l.y+pull.y}; }
+function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); }
+function drawRoute(fromSword){ if(fromSword===undefined) fromSword=true; if(!segs.length){ pathEl.style.display='none'; return; }   // fromSword: draw only the REMAINING route (sword→✕) so the traveled part is erased; false = whole route
+    const ss=fromSword?sword.seg:0, sf=fromSword?sword.frac:0; let d='',first=true;
+    for(let si=ss; si<segs.length; si++){ const s=segs[si], from=(si===ss)?sf:0, to=s.tPct; if(to<=from+0.0001) continue; const steps=Math.max(2,Math.round(s.len*(to-from)/10)); for(let i=0;i<=steps;i++){ const frac=from+(to-from)*i/steps; const p=segPoint(s,frac); d+=(first?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; first=false; } }
+    if(first){ pathEl.style.display='none'; return; }   // sword reached the end → nothing left to draw
+    pathEl.setAttribute('d',d); pathEl.removeAttribute('stroke-dasharray'); pathEl.removeAttribute('transform'); pathEl.style.display=''; }
+function moveX(){ if(!segs.length){ xmark.style.display='none'; return; } const p=routeEnd(); xmark.setAttribute('transform','translate('+p.x+','+p.y+')'); xmark.style.display=''; reveal(p.x,p.y,'x'); }
+function swordPoint(){ if(!segs.length) return {x:START.x,y:START.y}; const s=segs[Math.min(sword.seg,segs.length-1)]; return segPoint(s,sword.frac); }
+function swordOut(){ return sword.seg>0 || sword.frac>0.004; }
+// preview shows the ore's FULL potential path from the current ✕: SOLID 0→solidPct, DOTTED solidPct→1.0, with the ✕ sitting at the boundary. solidPct starts at 0.5 (raw ore) and grows to 1.0 as you grind — so the solid part & ✕ advance together, the dotted tail shrinks. All rendered above the fog (no reveal), so the map stays hidden until the sword actually travels.
+function drawSegmentPreview(oreId,solidPct){ const o=routeEnd(); const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); solidPct=Math.max(0,Math.min(1,solidPct));
+    let sd='',ss=Math.max(2,Math.round(len*solidPct/10)); for(let i=0;i<=ss;i++){ const lp=measure.getPointAtLength(solidPct*i/ss*len); sd+=(i?'L':'M')+(o.x+lp.x).toFixed(1)+','+(o.y+lp.y).toFixed(1)+' '; } previewSolidEl.setAttribute('d',sd); previewSolidEl.removeAttribute('transform'); previewSolidEl.style.display= solidPct>0.002?'':'none';
+    if(solidPct<0.998){ let dd='',ds=Math.max(2,Math.round(len*(1-solidPct)/10)); for(let i=0;i<=ds;i++){ const frac=solidPct+(1-solidPct)*i/ds; const lp=measure.getPointAtLength(frac*len); dd+=(i?'L':'M')+(o.x+lp.x).toFixed(1)+','+(o.y+lp.y).toFixed(1)+' '; } previewEl.setAttribute('d',dd); previewEl.removeAttribute('transform'); previewEl.style.display=''; }
+    else previewEl.style.display='none';
+    const bp=measure.getPointAtLength(solidPct*len); xmark.setAttribute('transform','translate('+(o.x+bp.x)+','+(o.y+bp.y)+')'); xmark.style.display=''; }
+function hidePreviewPaths(){ previewEl.style.display='none'; previewSolidEl.style.display='none'; }
+function drawPrepPreview(){ if(!prep){ hidePreviewPaths(); if(segs.length) moveX(); else xmark.style.display='none'; return; } drawSegmentPreview(prep.ore, 0.5+0.5*prep.grind); }
+
+// --- orb visuals + placement (the #orb element shows the prep ore OR the extracted hot melt) ---
+function updateGauges(){ const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; }
+function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||melt.stage==='onAnvil')){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }
+function placeOrb(cx,cy){ orbEl.style.left=(cx-orbEl.offsetWidth/2)+'px'; orbEl.style.top=(cy-orbEl.offsetHeight/2)+'px'; }
+function orbCenter(){ const r=orbEl.getBoundingClientRect(), b=benchEl().getBoundingClientRect(); return {x:r.left+r.width/2-b.left, y:r.top+r.height/2-b.top}; }
+function placeOrbInMortar(){ const c=stationCenter(stMortar,0.5,0.42); placeOrb(c.x,c.y); }
+function snapToGate(){ const c=stationCenter(stSmelt,0.72,0.72); placeOrb(c.x,c.y); }
+
+// --- targets ---
+function overTarget(c,name){
+    if(name==='mortar'){ const r=benchRect(stMortar); return c.x>r.L&&c.x<r.R&&c.y>r.T&&c.y<r.B; }
+    if(name==='furnaceTop'){ const r=benchRect(stSmelt); return c.x>r.L-6&&c.x<r.R&&c.y>r.T-12&&c.y<r.T+(r.B-r.T)*0.70; }
+    if(name==='anvil'){ const r=benchRect(stAnvil); return c.x>r.L-12&&c.x<r.R+12&&c.y>r.T-24&&c.y<r.T+(r.B-r.T)*0.75; }
+    return false;
+}
+function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
+
+// --- stage transitions ---
+function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
+function startPrep(oreId){ prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('Hold the <b>pestle</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+function addPrep(){ ensureMelt(); addSegment(prep.ore,prep.grind); prep=null; hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+function addOreDirect(oreId){ ensureMelt(); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the glowing orb.'); }
+function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>glowing orb</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
+function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
+function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Drag the hammer onto the anvil</b> to run the sword along the route. Reach a trait, then <b>pour the mug</b> over the anvil to lock it in.'); }
+function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
+function tierColor(t){ return t==='Epic'?'#ffcf3a':(t==='Fine'?'#49b6ff':'#c0a48a'); }
+function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
+function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if(r) r.style.display='none'; }
+function checkTraitReach(p){ if(!melt) return;   // p = sword's rendered position; alignment to the NEAREST trait centre sets the tier
+    let best=null,bestD=Infinity;
+    for(const t of traits){ const d=Math.hypot(p.x-t.x,p.y-t.y); if(d<ALIGN_MAX && d<bestD){ best=t; bestD=d; } }
+    if(best){
+        if(melt.reachedTrait!==best){ reveal(best.x,best.y,'tr'+best.trait.id); }   // clear fog over the spot (shows the '?') — but NOT its identity; that needs acquiring
+        melt.reachedTrait=best; melt.alignDist=bestD; const tier=tierFromDist(bestD); highlightTrait(best,tier);
+        const idLabel = best.discovered ? ('<b>'+best.trait.name+' '+best.trait.symbol+'</b>') : 'an <b>undiscovered trait</b> (?)';
+        hint('On '+idLabel+' — alignment <b style="color:'+tierColor(tier)+'">'+tier+'</b>. Nudge with the dragon for a tighter fit, then <b>pour the mug</b> to '+(best.discovered?'lock it in':'acquire &amp; reveal it')+'.');
+    } else if(melt.reachedTrait){ melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight(); } }
+function showResult(tr,tier){ const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged!<br><span style="font-size:28px;">'+tr.trait.symbol+'</span><br>'+tr.trait.name+'<br><span style="font-size:15px;color:'+tierColor(tier)+';">'+tier+' tier</span>'; el.classList.add('show'); }
+function tryAcquire(){
+    if(melt.reachedTrait){
+        const tier=tierFromDist(melt.alignDist!=null?melt.alignDist:ALIGN_MAX); const rt=melt.reachedTrait, bt=rt.trait;
+        rt.discovered=true; rt.txtEl.textContent=bt.symbol; rt.txtEl.removeAttribute('font-weight'); reveal(rt.x,rt.y,'tr'+bt.id);   // acquiring IS discovery → reveal the real symbol on the map; fog holes are permanent so it stays revealed
+        melt.traits.push({t:bt, tier:tier});
+        melt.heat=0; updateGauges();                                             // the water quenches the orb — re-heat in the furnace to travel further
+        melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight();
+        melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y);
+        updateSfTraits(); showAcquire(bt,tier,melt.traits.length);
+        hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the orb to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the orb</b> on the anvil to choose a shape.');
+    } else { hint('The sword isn\'t sitting on a trait — hammer or pull it onto one first.'); placeOnAnvil(); }
+}
+function updateSfTraits(){ const el=document.getElementById('sfTraits'); if(!el) return; el.innerHTML=(melt&&melt.traits&&melt.traits.length)?melt.traits.map(a=>'<span style="color:'+tierColor(a.tier)+'" title="'+a.t.name+' — '+a.tier+'">'+a.t.symbol+'</span>').join(''):''; }
+function floatAcquired(bt,tier){ const b=benchEl(); const c=stationCenter(stAnvil,0.5,0.05); const f=document.createElement('div'); f.textContent='+'+bt.symbol+' '+tier; f.style.cssText='position:absolute;left:'+c.x+'px;top:'+c.y+'px;transform:translate(-50%,-50%);z-index:40;font-weight:bold;font-size:14px;color:'+tierColor(tier)+';text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;'; b.appendChild(f); f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(-50%,-160%)',opacity:0}],{duration:1200,easing:'ease-out'}).onfinish=()=>f.remove(); }
+// trait-acquired popup — stays open until the player clicks 'continue'
+function showAcquire(bt,tier,total){ const body=document.getElementById('sfAcquireBody'); body.innerHTML='<span class="sym">'+bt.symbol+'</span><div class="nm">'+bt.name+'</div><div class="tr" style="color:'+tierColor(tier)+'">'+tier+' tier</div>'+(total>1?'<div class="cnt">'+total+' traits on this blade</div>':''); document.getElementById('sfAcquireModal').classList.add('show'); }
+function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); }
+
+// --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
+function openShapeSelect(){ document.getElementById('sfShapeModal').classList.add('show'); }
+const HAMMER_POINTS={ 0:[{x:37,y:60},{x:47,y:52},{x:57,y:44}], 1:[{x:72,y:28},{x:52,y:48},{x:41,y:61}] };
+let hmShape='Longsword', hmStage=0, hmIdx=0, hmMiss=0, hmHit=0, hmTimers=[];
+function hmTimeout(fn,ms){ const id=setTimeout(fn,ms); hmTimers.push(id); return id; }
+function hmClear(){ hmTimers.forEach(clearTimeout); hmTimers=[]; const l=document.getElementById('hm-targets'); if(l) l.innerHTML=''; }
+function selectShape(shape){ hmShape=shape; document.getElementById('sfShapeModal').classList.remove('show'); openHammer(); }
+function openHammer(){ hmStage=0; hmIdx=0; hmMiss=0; hmHit=0; hmClear(); document.getElementById('hm-img').src='assets/hammer/ingot.png'; document.getElementById('hm-instr').textContent='Strike the glowing marks before they fade!'; document.getElementById('hm-miss').textContent=''; document.getElementById('sfHammerModal').classList.add('show'); hmTimeout(hmSpawn,550); }
+function hmSpawn(){ const pts=HAMMER_POINTS[hmStage]; if(hmIdx>=pts.length){ hmAdvance(); return; } const p=pts[hmIdx]; const el=document.createElement('div'); el.className='hammer-target'; el.style.left=p.x+'%'; el.style.top=p.y+'%'; el.innerHTML='<div class="hammer-ring"></div><div class="hammer-dot"></div>'; el.querySelector('.hammer-ring').style.animation='hammerShrink '+HAMMER_RING_MS+'ms linear forwards'; let resolved=false; const onHit=e=>{ if(e){e.preventDefault();e.stopPropagation();} if(resolved) return; resolved=true; hmResolve(el,true); }; el.addEventListener('pointerdown',onHit); el._missId=hmTimeout(()=>{ if(resolved) return; resolved=true; hmResolve(el,false); }, HAMMER_RING_MS); document.getElementById('hm-targets').appendChild(el); }
+function hmResolve(el,ok){ if(el._missId) clearTimeout(el._missId); if(ok){ hmHit++; hmPerfect(el.style.left,el.style.top); } else hmMiss++; el.classList.add(ok?'hit':'miss'); document.getElementById('hm-miss').textContent=hmMiss>0?('Misses: '+hmMiss):''; hmTimeout(()=>{ el.remove(); hmIdx++; hmTimeout(hmSpawn,HAMMER_GAP_MS); },200); }
+function hmPerfect(left,top){ const layer=document.getElementById('hm-targets'); if(!layer) return; const t=document.createElement('div'); t.className='hammer-perfect'; t.textContent='Perfect!'; t.style.left=left; t.style.top=top; const hx=(60+Math.random()*80)*(Math.random()<0.5?-1:1); t.style.setProperty('--hx',hx+'px'); layer.appendChild(t); setTimeout(()=>t.remove(),950); }
+function hmAdvance(){ if(hmStage===0){ hmStage=1; hmIdx=0; document.getElementById('hm-img').src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png'; hmTimeout(hmSpawn,550); } else { document.getElementById('hm-instr').textContent='Blade shaped!'; hmTimeout(finishBlade,900); } }
+function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):''; const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged a '+hmShape+'!<br><span style="font-size:26px;">'+syms+'</span><br><span style="font-size:12px;color:#c0a48a;">'+hmHit+' clean strikes'+(hmMiss?' · '+hmMiss+' misses':'')+'</span>'; el.classList.add('show'); setTimeout(resetRun,2600); }
+function resetRun(){ segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ mugEl.style.left=mugRest.x+'px'; mugEl.style.top=mugRest.y+'px'; mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+
+function handleOrbDrop(){ const c=orbCenter();
+    if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
+    if(!melt) return;
+    if(melt.stage==='hot'){ if(overTarget(c,'anvil')){ placeOnAnvil(); return; } if(overTarget(c,'furnaceTop')){ reinsert(); return; } snapToGate(); return; }
+    if(melt.stage==='onAnvil'){ if(overTarget(c,'furnaceTop')){ reinsert(); return; } placeOnAnvil(); return; }
+}
+function orbDraggable(){ return !!prep || (melt && (melt.stage==='hot'||melt.stage==='onAnvil')); }
+
+// --- dragon fire ---
+function fireHitsAnvil(){ if(!fireEl||fireEl.style.display==='none') return false; const a=stAnvil.getBoundingClientRect(), f=fireEl.getBoundingClientRect(); return !(f.right<a.left||f.left>a.right||f.bottom<a.top||f.top>a.bottom); }
+function updateFirePos(){ const d=document.getElementById('dragon'), b=benchEl().getBoundingClientRect(), r=d.getBoundingClientRect(); const mx=r.left+r.width*0.92-b.left, my=r.top+r.height*0.40-b.top; fireEl.style.left=(mx-8)+'px'; fireEl.style.top=(my-fireEl.offsetHeight*0.42)+'px'; }
+function startBreath(){ dragonBreathing=true; fireEl.style.display='block'; updateFirePos(); }
+function stopBreath(){ dragonBreathing=false; fireEl.style.display='none'; }
+function hammerStriking(){ return hammerEl && hammerEl.classList.contains('striking'); }
+
+// --- camera follow ---
+function ensureSwordVisible(){ const mx=0.18,myTop=0.14,myBot=0.62,vw=view.w,vh=vw*aspect; let nx=view.x,ny=view.y; if(marker.x<view.x+vw*mx) nx=marker.x-vw*mx; else if(marker.x>view.x+vw*(1-mx)) nx=marker.x-vw*(1-mx); if(marker.y<view.y+vh*myTop) ny=marker.y-vh*myTop; else if(marker.y>view.y+vh*myBot) ny=marker.y-vh*myBot; if(nx!==view.x||ny!==view.y){ view.x=nx; view.y=ny; setView(); } }
+
+// --- sword travel across the stacked route ---
+function advanceSword(dt){ if(!segs.length || !melt) return; let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
+    while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
+    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); }   // drawRoute() erases the part behind the sword
+
+// --- main loop ---
+let lastT=0;
+function tick(now){
+    const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
+    if(pestleGrinding && prep){ prep.grind=Math.min(1,prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview(); }
+    if(melt && melt.stage==='smelting'){ if(bellowing) melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt); if(!gateReady && (now-melt.smeltT0)/1000>=SMELT_TIME) markGateReady(); updateGauges(); }
+    if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
+    const fireOnAnvil = dragonBreathing && fireHitsAnvil();
+    if(fireOnAnvil && segs.length){   // fire on the anvil PULLS the sword + its remaining path + ✕ toward the centre — gradual & controlled (only while it burns)
+        const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy);
+        if(dist>3){ if(!retreating){ retreating=true; hint('The dragon\'s fire pulls the sword &amp; its path toward the centre — hold to pull more, release to stop.'); }
+            const step=Math.min(dist, PULL_SPEED*dt); pull.x+=dx/dist*step; pull.y+=dy/dist*step;
+            const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); }
+    } else {
+        if(retreating) retreating=false;
+        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt); }   // hammer never fights the fire
+    }
+    requestAnimationFrame(tick);
+}
+
+// --- wiring ---
+function wireOreTray(){ const shelf=document.getElementById('oreShelf'); shelf.querySelectorAll('.ore-slot').forEach(s=>s.remove());   // build one slot per ore in ORES (so adding ores needs no HTML change)
+    ORES.forEach(o=>{ const slot=document.createElement('div'); slot.className='ore-slot'; slot.style.cursor='grab'; slot.innerHTML='<img src="'+o.img+'" alt="'+o.name+'"><span>'+o.name+'</span>';
+        slot.addEventListener('pointerdown', e=>{ if(!canAddOre()){ hint('Put the orb back in the furnace before adding more ore.'); return; } startOreDrag(o.id, e); }); shelf.appendChild(slot); }); }
+function startOreDrag(oreId,e){ e.preventDefault(); const bench=benchEl(), b=bench.getBoundingClientRect(); const ghost=document.createElement('img'); ghost.src=oreImg(oreId); ghost.style.cssText='position:absolute;width:46px;height:46px;object-fit:contain;z-index:25;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 5px rgba(0,0,0,.6));'; bench.appendChild(ghost); drawSegmentPreview(oreId,0.5); const move=ev=>{ ghost.style.left=(ev.clientX-b.left)+'px'; ghost.style.top=(ev.clientY-b.top-dragLift(ev))+'px'; }; move(e); const up=ev=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); ghost.remove(); hidePreviewPaths(); const c={x:ev.clientX-b.left,y:ev.clientY-b.top-dragLift(ev)}; if(canAddOre()&&overTarget(c,'mortar')){ startPrep(oreId); return; } if(canAddOre()&&overTarget(c,'furnaceTop')){ addOreDirect(oreId); return; } if(segs.length) moveX(); else xmark.style.display='none'; }; document.addEventListener('pointermove',move); document.addEventListener('pointerup',up); }
+
+function wirePestle(){ const p=document.getElementById('pestle'), bench=benchEl(); let drag=false,dx,dy; const over=()=>{ const m=stMortar.getBoundingClientRect(), pr=p.getBoundingClientRect(); const px=pr.left+pr.width*0.5, py=pr.bottom-14; return px>m.left&&px<m.right&&py>m.top-6&&py<m.bottom+24; }; p.addEventListener('pointerdown',e=>{ drag=true; const r=p.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{p.setPointerCapture(e.pointerId);}catch(err){} pestleGrinding=over()&&!!prep; p.classList.toggle('pounding',pestleGrinding); }); p.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-30,Math.min(b.width-p.offsetWidth+30,x)); y=Math.max(-30,Math.min(b.height-p.offsetHeight+20,y)); p.style.left=x+'px'; p.style.top=y+'px'; p.style.right='auto'; const g=over()&&!!prep; pestleGrinding=g; p.classList.toggle('pounding',g); }); const end=()=>{ drag=false; pestleGrinding=false; p.classList.remove('pounding'); }; p.addEventListener('pointerup',end); p.addEventListener('pointercancel',end); }
+
+function wireDragon(){ const d=document.getElementById('dragon'), bench=benchEl(); let active=false,sx,sy,dx,dy,mode; d.addEventListener('pointerdown',e=>{ active=true; mode='breath'; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} startBreath(); }); d.addEventListener('pointermove',e=>{ if(!active) return; if(mode==='breath'&&Math.hypot(e.clientX-sx,e.clientY-sy)>7){ mode='drag'; stopBreath(); } if(mode==='drag'){ const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-30,Math.min(b.width-d.offsetWidth+30,x)); y=Math.max(-30,Math.min(b.height-d.offsetHeight+20,y)); d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; } updateFirePos(); }); const end=()=>{ active=false; mode=null; stopBreath(); }; d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
+
+function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
+
+function wireOrbDrag(){ let drag=false,dx,dy,sx,sy,moved;
+    orbEl.addEventListener('pointerdown',e=>{ if(!orbDraggable()) return; e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY; const r=orbEl.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; orbEl.classList.add('dragging'); try{orbEl.setPointerCapture(e.pointerId);}catch(err){} });
+    orbEl.addEventListener('pointermove',e=>{ if(!drag) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6) moved=true; const b=benchEl().getBoundingClientRect(); orbEl.style.left=(e.clientX-b.left-dx)+'px'; orbEl.style.top=(e.clientY-b.top-dy-dragLift(e))+'px'; });
+    const end=()=>{ if(!drag) return; drag=false; orbEl.classList.remove('dragging'); if(!moved && melt && melt.stage==='onAnvil' && melt.traits && melt.traits.length>=1){ openShapeSelect(); return; } handleOrbDrop(); };   // a TAP (no move) on the anvil once you've acquired ≥1 trait → finalize the blade
+    orbEl.addEventListener('pointerup',end); orbEl.addEventListener('pointercancel',end); }
+
+// --- water bucket: the mug is a movable sibling; drag it over the anvil to POUR (quench + acquire the reached trait) ---
+function mugOverAnvil(){ const a=stAnvil.getBoundingClientRect(), r=mugEl.getBoundingClientRect(); const cx=r.left+r.width*0.5, cy=r.top+r.height*0.62; return cx>a.left-14 && cx<a.right+14 && cy>a.top-34 && cy<a.top+a.height*0.72; }
+function canPourQuench(){ return !!(melt && melt.stage==='onAnvil' && melt.reachedTrait); }   // pours ONLY when an ore is on the anvil AND the sword rests on a trait
+function positionWater(){ const b=benchEl().getBoundingClientRect(), mr=mugEl.getBoundingClientRect(), ar=stAnvil.getBoundingClientRect();
+    const sx=mr.left+mr.width*0.40-b.left, sy=mr.top+mr.height*0.60-b.top, topY=ar.top+ar.height*0.26-b.top;
+    const w=document.getElementById('waterPour'); w.style.left=(sx-4.5)+'px'; w.style.top=sy+'px'; w.style.height=Math.max(18,topY-sy)+'px';
+    const s=document.getElementById('waterSplash'); const o=(orbEl.style.display!=='none')?orbCenter():{x:sx,y:topY}; s.style.left=o.x+'px'; s.style.top=o.y+'px'; }
+function showWaterBurst(){ positionWater(); document.getElementById('waterPour').classList.add('on'); document.getElementById('waterSplash').classList.add('on'); if(waterTimer) clearTimeout(waterTimer); waterTimer=setTimeout(hideWater,950); }
+function hideWater(){ const w=document.getElementById('waterPour'), s=document.getElementById('waterSplash'); if(w) w.classList.remove('on'); if(s) s.classList.remove('on'); if(mugEl) mugEl.classList.remove('pouring'); if(waterTimer){ clearTimeout(waterTimer); waterTimer=null; } }
+function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
+    m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
+    m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-40,Math.min(b.width-m.offsetWidth+40,x)); y=Math.max(-40,Math.min(b.height-m.offsetHeight+40,y)); m.style.left=x+'px'; m.style.top=y+'px';
+        if(mugOverAnvil() && canPourQuench()){ m.classList.add('pouring'); showWaterBurst(); tryAcquire(); }   // pour → quench + acquire (fires once: tryAcquire clears reachedTrait)
+        else if(!mugOverAnvil()){ m.classList.remove('pouring'); } });
+    const end=()=>{ if(!drag) return; drag=false; m.style.left=mugRest.x+'px'; m.style.top=mugRest.y+'px'; m.style.zIndex=3; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
+    m.addEventListener('pointerup',end); m.addEventListener('pointercancel',end); }
+
+function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
+    mugRest={x:parseFloat(mugEl.style.left)||372, y:parseFloat(mugEl.style.top)||450};
+    wireOreTray(); wirePestle(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
+    hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
+    requestAnimationFrame(tick);
+    window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
+        routeEnd, swordOut, startPrep, setGrind:g=>{ if(prep){prep.grind=g; updateOrbLook(); drawPrepPreview();} }, addPrep, addOreDirect,
+        ready:markGateReady, setHeat:h=>{ if(melt){melt.heat=h; updateGauges();} }, openGate, placeOnAnvil, reinsert,
+        strike:on=>hammerEl.classList.toggle('striking',!!on), breathe:on=>{ on?startBreath():stopBreath(); }, tryAcquire, reset:resetRun,
+        mugState:()=>({over:mugOverAnvil(), canPour:canPourQuench(), pouring:mugEl.classList.contains('pouring')}), pour:()=>{ if(canPourQuench()){ mugEl.classList.add('pouring'); showWaterBurst(); tryAcquire(); return true; } return false; } };
+}
+
+window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); });
+window.addEventListener('resize', ()=>{ setView(); });
+</script>
+</body>
+</html>
