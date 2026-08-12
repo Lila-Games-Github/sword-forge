@@ -439,14 +439,14 @@ function initMap(){
     const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
     for(let i=0;i<520;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=36+rnd()*128, ry=24+rnd()*86; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
 
-    // traits: 4 signature traits at the ore-path ends (shown), the rest scattered far into the fog
+    // traits: 8 signature traits at the ore-path ends + 16 scattered — ALL start hidden in the fog as '?' (identity revealed only on acquisition)
     traitsG.innerHTML='';
     const centralIds = Object.values(ORE_TRAIT);
     ORES.forEach((o,i)=>{ const tr=TRAIT_BY[ORE_TRAIT[o.id]]; if(!tr) return; const p=samplePath(o.d, 1.0);
         // nudge each trait slightly toward START (off the exact path end) so full grind ≠ Epic — the player must fine-tune (grind + dragon pull) to centre it
         const dx=START.x-p.x, dy=START.y-p.y, dd=Math.hypot(dx,dy)||1, off=18+(i%3)*4;   // 18–26px off
         const ox=p.x+dx/dd*off, oy=p.y+dy/dd*off;
-        const obj=addTrait(tr, ox, oy); obj.discovered=true; obj.txtEl.textContent=tr.symbol; obj.txtEl.removeAttribute('font-weight'); });
+        addTrait(tr, ox, oy); });   // signature traits now also start hidden in the fog as '?' — revealed (symbol shown) only when acquired
     const outer = TRAITS.filter(t=>centralIds.indexOf(t.id)===-1);
     outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35+(rnd()-0.5)*0.3; const r=820+(i%4)*95+rnd()*230; let x=CENTER.x+Math.cos(ang)*r, y=CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(90,Math.min(2710,x)); y=Math.max(80,Math.min(1880,y)); addTrait(tr,x,y); });
 
@@ -457,7 +457,7 @@ function initMap(){
     // sword at start + a generous starting reveal so the ore paths read clearly
     fogHoles.innerHTML=''; revLast={}; marker={x:START.x,y:START.y}; setSword(START.x,START.y);
     const c0=document.createElementNS(NS,'circle'); c0.setAttribute('cx',START.x); c0.setAttribute('cy',START.y); c0.setAttribute('r',INIT_REVEAL); c0.setAttribute('fill','#000'); fogHoles.appendChild(c0);
-    traits.slice(0, ORES.length).forEach((t,i)=>reveal(t.x,t.y,'sig'+i));   // expose every signature trait at its ore-path end (the downward ores end beyond INIT_REVEAL)
+    // (no signature-trait pre-reveal — traits stay fogged until the sword's travel clears fog over them; identity stays '?' until acquired)
 
     view={ x:START.x-INIT_W/2, y:START.y-INIT_W*aspect*SWORD_SY, w:INIT_W }; setView(); wireZoomPan();
     window.SF = { traits, hazards, ORES, view:()=>view, zoomAt, setSword };
@@ -574,14 +574,16 @@ function checkTraitReach(p){ if(!melt) return;   // p = sword's rendered positio
     let best=null,bestD=Infinity;
     for(const t of traits){ const d=Math.hypot(p.x-t.x,p.y-t.y); if(d<ALIGN_MAX && d<bestD){ best=t; bestD=d; } }
     if(best){
-        if(melt.reachedTrait!==best){ best.discovered=true; best.txtEl.textContent=best.trait.symbol; best.txtEl.removeAttribute('font-weight'); reveal(best.x,best.y,'tr'+best.trait.id); }
+        if(melt.reachedTrait!==best){ reveal(best.x,best.y,'tr'+best.trait.id); }   // clear fog over the spot (shows the '?') — but NOT its identity; that needs acquiring
         melt.reachedTrait=best; melt.alignDist=bestD; const tier=tierFromDist(bestD); highlightTrait(best,tier);
-        hint('On <b>'+best.trait.name+' '+best.trait.symbol+'</b> — alignment <b style="color:'+tierColor(tier)+'">'+tier+'</b>. Nudge with the dragon for a tighter fit, then <b>pour the mug</b> over the anvil to lock it in.');
+        const idLabel = best.discovered ? ('<b>'+best.trait.name+' '+best.trait.symbol+'</b>') : 'an <b>undiscovered trait</b> (?)';
+        hint('On '+idLabel+' — alignment <b style="color:'+tierColor(tier)+'">'+tier+'</b>. Nudge with the dragon for a tighter fit, then <b>pour the mug</b> to '+(best.discovered?'lock it in':'acquire &amp; reveal it')+'.');
     } else if(melt.reachedTrait){ melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight(); } }
 function showResult(tr,tier){ const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged!<br><span style="font-size:28px;">'+tr.trait.symbol+'</span><br>'+tr.trait.name+'<br><span style="font-size:15px;color:'+tierColor(tier)+';">'+tier+' tier</span>'; el.classList.add('show'); }
 function tryAcquire(){
     if(melt.reachedTrait){
-        const tier=tierFromDist(melt.alignDist!=null?melt.alignDist:ALIGN_MAX); const bt=melt.reachedTrait.trait;
+        const tier=tierFromDist(melt.alignDist!=null?melt.alignDist:ALIGN_MAX); const rt=melt.reachedTrait, bt=rt.trait;
+        rt.discovered=true; rt.txtEl.textContent=bt.symbol; rt.txtEl.removeAttribute('font-weight'); reveal(rt.x,rt.y,'tr'+bt.id);   // acquiring IS discovery → reveal the real symbol on the map; fog holes are permanent so it stays revealed
         melt.traits.push({t:bt, tier:tier});
         melt.heat=0; updateGauges();                                             // the water quenches the orb — re-heat in the furnace to travel further
         melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight();
