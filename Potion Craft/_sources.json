@@ -1,0 +1,37 @@
+{
+  "game": "Potion Craft",
+  "created": "2026-08-12T18:19:52",
+  "depth": "quick",
+  "providers": {
+    "search": "WebSearch",
+    "reader": "playwright"
+  },
+  "sources": [
+    {
+      "id": "yt-01",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=efNO5kAilxU",
+      "category": "ftue",
+      "approved": true,
+      "status": "fetched",
+      "files": [
+        "Videos/efNO5kAilxU_analysis/ftue-beatsheet.md",
+        "Videos/efNO5kAilxU_analysis/frames",
+        "Videos/efNO5kAilxU_analysis/efNO5kAilxU.mp4"
+      ]
+    },
+    {
+      "id": "yt-02",
+      "type": "youtube",
+      "url": "https://www.youtube.com/watch?v=ZkqzK_NzzQg",
+      "category": "ftue",
+      "approved": true,
+      "status": "fetched",
+      "files": [
+        "Videos/ZkqzK_NzzQg_analysis/transcript.txt",
+        "Videos/ZkqzK_NzzQg_analysis/ftue-insights.md",
+        "Videos/ZkqzK_NzzQg_analysis/ZkqzK_NzzQg.en.vtt"
+      ]
+    }
+  ]
+}

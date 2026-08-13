@@ -1,0 +1,4 @@
+# Heavy raw media — NOT committed. Regenerate via the video-analysis skill (see MANIFEST.md).
+Videos/*/frames/
+Videos/*/*.mp4
+Videos/*/*.info.json
