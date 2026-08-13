@@ -107,6 +107,25 @@ Autonomous generation + wiring up to **$10** total. On reaching it (or finishing
 under it), stop, present every generated asset in full, and ask before any further spend.
 Chroma-key pipeline: green -> alpha via a local script (PIL/ImageMagick), verified per asset.
 
+## Art pass — DONE (actuals, 2026-08-13)
+
+Model `nano-banana-pro` (google/gemini-3-pro-image-preview), owner-authorised. Generated on
+magenta chroma (#FF00FF — safe for green/blue/orange/grey subjects, unlike green), keyed to
+transparent PNG via `scratchpad/chroma_key.py` (magenta metric = min(r,b)-g, despill + autocrop).
+Text-prompt only (no proprietary seed uploaded, per the ref-lock decision). Spend: **~$2.18**
+(8-icon batch $1.94 + bg $0.24) of the $10 AFK budget — well under, list complete.
+
+Wired assets:
+- `assets/backgrounds/forge_room_bg.png` — bench background (opaque).
+- `assets/ui/icon_recipe.png`, `assets/ui/icon_skilltree.png` — HUD buttons.
+- `assets/map/compass.png` — map corner.
+- `assets/forge/ember_ore.png` / `frost_ore.png` / `tide_ore.png` / `gale_ore.png` — ORES[].img,
+  replacing the SVG placeholders in the rail + map.
+- `assets/forge/smoke.png` — furnace smoke (CSS rise animation, decorative).
+
+Verified: all load (naturalWidth > 0, no 404), self-test GREEN, no console errors. Visual match
+to the anchor is the owner's call (no in-harness screenshot).
+
 ## Sequence
 
 1. **Structure pass** (this spec, no spend): zones + rail + HUD + LAYOUT recomposition + CSS.

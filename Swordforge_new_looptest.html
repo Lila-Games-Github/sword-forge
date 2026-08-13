@@ -53,6 +53,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .hud-stars { font-size: 12px; color: #ffd98a; }
 .hud-spacer { margin-left: auto; }
 .hud-btn.back { padding: 3px 10px; font-size: 16px; line-height: 1; }
+.hud-btn .ic-img { width: 18px; height: 18px; object-fit: contain; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+/* compass on the map + furnace smoke (Phase 1 art) */
+#compass { position: absolute; left: 8px; bottom: 8px; width: 62px; height: 62px; z-index: 6; opacity: 0.9; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
+#furnaceSmoke { position: absolute; left: 42%; top: 0%; width: 17%; z-index: 1; opacity: .5; pointer-events: none; transform-origin: bottom center; animation: smokeRise 6s ease-in-out infinite; }
+@keyframes smokeRise { 0% { opacity: 0; transform: translateY(12px) scale(.85); } 40% { opacity: .55; } 100% { opacity: 0; transform: translateY(-16px) scale(1.15); } }
 /* heat gauge — relocated out of the HUD into a small bench overlay near the furnace */
 #heatMini { position: absolute; left: 8px; top: 8px; z-index: 12; display: flex; align-items: center; gap: 4px; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 8px; padding: 3px 6px; }
 .gauge { display: flex; align-items: center; gap: 4px; }
@@ -70,12 +75,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* ---- BENCH (crafting stations laid out in sequence) ---- */
 #bench { position: relative; overflow: hidden;
-    background:
-      radial-gradient(120% 80% at 50% -10%, #3a2c1c 0%, #261c11 55%, #1a130b 100%);
+    background: #1a130b url('assets/backgrounds/forge_room_bg.png') center/cover no-repeat;
     box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
 }
-#bench::after { content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 2px, rgba(255,255,255,0.015) 2px 44px); opacity: .5; }
+#bench::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* soft vignette so layered props stay readable */
+    background: radial-gradient(125% 95% at 50% 42%, transparent 55%, rgba(0,0,0,0.38) 100%); }
 
 .station { position: absolute; z-index: 2; }
 .station img { display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
@@ -237,16 +241,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
     <div id="hud">
         <div class="hud-item gold"><span class="ic">💰</span><span id="goldVal">12,500</span> G</div>
-        <button class="hud-btn" type="button" title="Recipe Book"><span class="ic">📖</span><span class="hb-lbl">Recipe</span></button>
+        <button class="hud-btn" type="button" title="Recipe Book"><img class="ic-img" src="assets/ui/icon_recipe.png" alt=""><span class="hb-lbl">Recipe</span></button>
         <div class="hud-spacer"></div>
         <div class="hud-stars" title="Star Level"><span class="ic">⭐</span>4.2</div>
-        <button class="hud-btn" type="button" title="Skill Tree"><span class="ic">🌳</span><span class="hb-lbl">Skill Tree</span></button>
+        <button class="hud-btn" type="button" title="Skill Tree"><img class="ic-img" src="assets/ui/icon_skilltree.png" alt=""><span class="hb-lbl">Skill Tree</span></button>
         <button class="hud-btn back" type="button" title="Back">‹</button>
     </div>
 
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
+        <img id="compass" src="assets/map/compass.png" alt="">
         <div id="sfTraits" title="Traits acquired on this blade"></div>
         <svg id="board" viewBox="1040 620 720 1020" preserveAspectRatio="xMidYMid meet" aria-label="Crafting map">
             <defs>
@@ -291,6 +296,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
         <!-- heat gauge (loop-test element; relocated from the HUD, absent from the anchor) -->
         <div id="heatMini"><div class="gauge"><span class="lbl">🔥</span><div class="track"><div id="g-heat" class="fill heat"></div></div></div></div>
+
+        <!-- furnace smoke (decorative, rises behind the furnace) -->
+        <img id="furnaceSmoke" src="assets/forge/smoke.png" alt="">
+
 
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
@@ -454,10 +463,10 @@ const ORES = [
     { id:'gold',      name:'Gold',      color:'#d9b23a', img:'assets/forge/gold_ore.png',      d:'M0,0 C 80,-25 175,-25 245,-75' },
     { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', d:'M0,0 C -40,-60 -120,-110 -175,-175' },
     // 4 new downward ores — curvier S / C paths; no art yet → generated placeholder icons (tinted by colour)
-    { id:'ember', name:'Ember', color:'#e0532a', d:'M0,0 C 76,133 -57,228 -38,342 C -19,475 -228,513 -209,627' },   // S, ends down-left (~2× longer)
-    { id:'frost', name:'Frost', color:'#7fd0e6', d:'M0,0 C -228,114 -247,418 -76,570 C -38,618 -57,656 -57,684' },  // C, bows left (~2× longer)
-    { id:'tide',  name:'Tide',  color:'#3a86c8', d:'M0,0 C 228,114 247,418 76,570 C 38,618 57,656 57,684' },       // C, bows right (~2× longer)
-    { id:'gale',  name:'Gale',  color:'#9aa7b8', d:'M0,0 C -76,133 57,228 38,342 C 19,475 228,513 209,627' }        // S, ends down-right (~2× longer)
+    { id:'ember', name:'Ember', color:'#e0532a', img:'assets/forge/ember_ore.png', d:'M0,0 C 76,133 -57,228 -38,342 C -19,475 -228,513 -209,627' },   // S, ends down-left (~2× longer)
+    { id:'frost', name:'Frost', color:'#7fd0e6', img:'assets/forge/frost_ore.png', d:'M0,0 C -228,114 -247,418 -76,570 C -38,618 -57,656 -57,684' },  // C, bows left (~2× longer)
+    { id:'tide',  name:'Tide',  color:'#3a86c8', img:'assets/forge/tide_ore.png', d:'M0,0 C 228,114 247,418 76,570 C 38,618 57,656 57,684' },       // C, bows right (~2× longer)
+    { id:'gale',  name:'Gale',  color:'#9aa7b8', img:'assets/forge/gale_ore.png', d:'M0,0 C -76,133 57,228 38,342 C 19,475 228,513 209,627' }        // S, ends down-right (~2× longer)
 ];
 const ORE_BY = {}; ORES.forEach(o => ORE_BY[o.id] = o);
 ORES.forEach(o => { if(!o.img) o.img = orePlaceholder(o.color); });   // ores without art get a generated placeholder gem icon
