@@ -98,8 +98,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #oreShelf::-webkit-scrollbar { width: 5px; } #oreShelf::-webkit-scrollbar-thumb { background: #5a4526; border-radius: 3px; }
 #oreShelf .badge { display: none; }   /* step-number badge not used in the vertical rail */
 #oreShelf .shelf-cap { position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 9px; font-weight: bold; color: #e9dcbf; letter-spacing: .5px; text-shadow: 0 1px 2px #000; background: none; border: none; padding: 0; }
-.ore-slot { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px; border-radius: 8px;
+.ore-slot { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px 3px; border-radius: 8px;
     background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -2px 4px rgba(0,0,0,.4); overflow: hidden; touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
+.ore-count { position: absolute; right: 3px; bottom: 2px; font-size: 8px; font-weight: bold; color: #fceeb5; background: rgba(0,0,0,0.62); border: 1px solid #5a4526; border-radius: 5px; padding: 0 3px; line-height: 1.4; }
 .ore-slot img { width: 30px; height: 30px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
 .ore-slot span { font-size: 8px; font-weight: bold; color: #e4d6b4; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -261,6 +262,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 </mask>
             </defs>
             <rect x="0" y="0" width="2800" height="1960" fill="#d8c8a0"/>
+            <image id="mapArt" x="0" y="0" width="2800" height="1960" href="assets/map/territory.png" preserveAspectRatio="xMidYMid slice"/>
             <g id="terrain">
                 <g id="blobs"></g>
                 <g id="hazards"></g>
@@ -419,14 +421,14 @@ const NS = 'http://www.w3.org/2000/svg';
 //  Recorded ground truth + invariants: specs/2026-08-13-looptest-layout-skeleton.md
 // ============================================================
 const LAYOUT = {
-    portrait: {   // Phase 1 anchor composition — bench = left column (rail excluded). oreShelf is now the rail (CSS-filled), not a LAYOUT prop.
-        stSmelt:    {x:0.28, y:0.06, w:0.46},   // furnace, upper-center
-        stMortar:   {x:0.62, y:0.30, w:0.20},   // mortar, right
-        pestle:     {x:0.66, y:0.18, w:0.10},   // standing in the mortar
-        hammerTool: {x:0.30, y:0.50, w:0.11},   // near the anvil
-        stAnvil:    {x:0.33, y:0.66, w:0.32},   // anvil, front-center bottom
-        bucket:     {x:0.66, y:0.58, w:0.22},   // water bucket, right
-        dragon:     {x:0.02, y:0.70, w:0.22}    // dragon whelp, bottom-left
+    portrait: {   // Phase 1 anchor composition (loop r1: scaled up + packed to fill the floor like the anchor). bench = left column (rail excluded).
+        stSmelt:    {x:0.24, y:0.04, w:0.54},   // furnace, dominant upper-center
+        stMortar:   {x:0.66, y:0.28, w:0.30},   // mortar, right-mid (bigger)
+        pestle:     {x:0.70, y:0.16, w:0.13},   // standing in the mortar
+        hammerTool: {x:0.28, y:0.52, w:0.13},   // near the anvil
+        stAnvil:    {x:0.30, y:0.60, w:0.40},   // anvil, LARGE front-center bottom
+        bucket:     {x:0.68, y:0.72, w:0.30},   // water bucket, bottom-right corner
+        dragon:     {x:0.01, y:0.74, w:0.24}    // dragon whelp, bottom-left corner (uncropped)
     },
     landscape: {   // PROVISIONAL — parity + in-zone only; tuned to the hori anchor in Phase 2
         stSmelt:    {x:0.360, y:0.120, w:0.300},
@@ -534,8 +536,9 @@ function initMap(){
     measure=document.createElementNS(NS,'path'); measure.setAttribute('fill','none'); measure.style.display='none'; board.appendChild(measure);
     seed=20260811; traits=[]; hazards=[]; revLast={};
 
-    // mottled parchment terrain
-    blobsG.innerHTML='';
+    // mottled parchment terrain — hidden now that the painted territory map (mapArt) is the parchment;
+    // the loop below still runs so the seeded RNG sequence (and thus trait/hazard placement) is unchanged.
+    blobsG.innerHTML=''; blobsG.setAttribute('display','none');
     const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
     for(let i=0;i<520;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=36+rnd()*128, ry=24+rnd()*86; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
 
@@ -756,8 +759,9 @@ function tick(now){
 }
 
 // --- wiring ---
+const ORE_COUNT={ copper:100, iron:100, gold:2, aluminium:5, ember:70, frost:12, tide:8, gale:3 };   // decorative rail counts (anchor-style xNN)
 function wireOreTray(){ const shelf=document.getElementById('oreShelf'); shelf.querySelectorAll('.ore-slot').forEach(s=>s.remove());   // build one slot per ore in ORES (so adding ores needs no HTML change)
-    ORES.forEach(o=>{ const slot=document.createElement('div'); slot.className='ore-slot'; slot.style.cursor='grab'; slot.innerHTML='<img src="'+o.img+'" alt="'+o.name+'"><span>'+o.name+'</span>';
+    ORES.forEach(o=>{ const slot=document.createElement('div'); slot.className='ore-slot'; slot.style.cursor='grab'; slot.innerHTML='<img src="'+o.img+'" alt="'+o.name+'"><span>'+o.name+'</span><span class="ore-count">x'+(ORE_COUNT[o.id]||99)+'</span>';
         slot.addEventListener('pointerdown', e=>{ if(!canAddOre()){ hint('Put the orb back in the furnace before adding more ore.'); return; } startOreDrag(o.id, e); }); shelf.appendChild(slot); }); }
 function startOreDrag(oreId,e){ e.preventDefault(); const bench=benchEl(), b=bench.getBoundingClientRect(); const ghost=document.createElement('img'); ghost.src=oreImg(oreId); ghost.style.cssText='position:absolute;width:46px;height:46px;object-fit:contain;z-index:25;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 5px rgba(0,0,0,.6));'; bench.appendChild(ghost); drawSegmentPreview(oreId,0.5); const move=ev=>{ ghost.style.left=(ev.clientX-b.left)+'px'; ghost.style.top=(ev.clientY-b.top-dragLift(ev))+'px'; }; move(e); const up=ev=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); ghost.remove(); hidePreviewPaths(); const c={x:ev.clientX-b.left,y:ev.clientY-b.top-dragLift(ev)}; if(canAddOre()&&overTarget(c,'mortar')){ startPrep(oreId); return; } if(canAddOre()&&overTarget(c,'furnaceTop')){ addOreDirect(oreId); return; } if(segs.length) moveX(); else xmark.style.display='none'; }; document.addEventListener('pointermove',move); document.addEventListener('pointerup',up); }
 
@@ -809,7 +813,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.03, fails=[];
-    const RECORDED={ stSmelt:{x:0.28,y:0.06,w:0.46}, stMortar:{x:0.62,y:0.30,w:0.20}, pestle:{x:0.66,y:0.18,w:0.10}, hammerTool:{x:0.30,y:0.50,w:0.11}, stAnvil:{x:0.33,y:0.66,w:0.32}, bucket:{x:0.66,y:0.58,w:0.22}, dragon:{x:0.02,y:0.70,w:0.22} };   // Phase 1 anchor composition (oreShelf moved to the rail zone, CSS-filled)
+    const RECORDED={ stSmelt:{x:0.24,y:0.04,w:0.54}, stMortar:{x:0.66,y:0.28,w:0.30}, pestle:{x:0.70,y:0.16,w:0.13}, hammerTool:{x:0.28,y:0.52,w:0.13}, stAnvil:{x:0.30,y:0.60,w:0.40}, bucket:{x:0.68,y:0.72,w:0.30}, dragon:{x:0.01,y:0.74,w:0.24} };   // Phase 1 anchor composition, loop r2 (oreShelf is the rail, CSS-filled)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
@@ -820,8 +824,8 @@ function runLayoutSelfTest(){
         const rk=Object.keys(RECORDED).sort(), pkk=Object.keys(LAYOUT.portrait).sort();
         if(rk.join(',')!==pkk.join(',')) fails.push('drift key-set: portrait ['+pkk+'] != recorded ['+rk+']');   // extra/removed key in portrait, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.portrait[k]; if(!a){ fails.push('missing portrait.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
-        const rl=resolveLayout('bucket','portrait',1000,500);   // resolveLayout math check: 0.66*1000 / 0.58*500 / 0.22*1000
-        if(Math.abs(rl.x-660)>0.6||Math.abs(rl.y-290)>0.6||Math.abs(rl.w-220)>0.6) fails.push('resolve math '+JSON.stringify(rl));
+        const rl=resolveLayout('bucket','portrait',1000,500);   // resolveLayout math check: bucket 0.68*1000 / 0.72*500 / 0.30*1000
+        if(Math.abs(rl.x-680)>0.6||Math.abs(rl.y-360)>0.6||Math.abs(rl.w-300)>0.6) fails.push('resolve math '+JSON.stringify(rl));
     }
     const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
     return { pass, fails };

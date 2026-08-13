@@ -56,17 +56,43 @@ values chosen to match the anchor composition (cross-checked visually + in-zone)
 measured from the old build. `oreShelf` LEAVES the table (it is now the rail, CSS-filled).
 `x,y,w` only (heights art-aspect-driven). Drift test asserts `LAYOUT.portrait` == this table.
 
+Final values after the composition loop (r2). `x,y,w`:
+
 | Prop (id)     | x    | y    | w    | anchor placement |
 |---------------|------|------|------|------------------|
-| `stSmelt`     | 0.28 | 0.06 | 0.46 | furnace, upper-center |
-| `stMortar`    | 0.62 | 0.30 | 0.20 | mortar, right |
-| `pestle`      | 0.66 | 0.18 | 0.10 | standing in the mortar, right |
-| `hammerTool`  | 0.30 | 0.50 | 0.11 | near the anvil, front-center |
-| `stAnvil`     | 0.33 | 0.66 | 0.32 | anvil, front-center bottom |
-| `bucket`      | 0.66 | 0.58 | 0.22 | water bucket, right (below mortar) |
-| `dragon`      | 0.02 | 0.70 | 0.22 | dragon whelp, bottom-left |
+| `stSmelt`     | 0.24 | 0.04 | 0.54 | furnace, dominant upper-center |
+| `stMortar`    | 0.66 | 0.28 | 0.30 | mortar, right-mid |
+| `pestle`      | 0.70 | 0.16 | 0.13 | standing in the mortar |
+| `hammerTool`  | 0.28 | 0.52 | 0.13 | near the anvil |
+| `stAnvil`     | 0.30 | 0.60 | 0.40 | anvil, LARGE front-center bottom |
+| `bucket`      | 0.68 | 0.72 | 0.30 | water bucket, bottom-right corner |
+| `dragon`      | 0.01 | 0.74 | 0.24 | dragon whelp, bottom-left corner |
 
 In-zone check (x>=0, y>=0, x+w<=1, y<=1): all pass.
+
+## Composition loop (art-director gated, 2026-08-13)
+
+A visual art-director subagent (Sonnet, per Model-Selection SSOT for bounded visual review)
+scored each headless-Edge render of the live page against the vert anchor; gate = >=80% or
+5 rounds. Renders via headless MS Edge (`--headless=new --screenshot`, file://) since the
+in-app Browser pane does not composite here.
+
+- **Baseline 55%** — macro zones right, but forge props too small/high (empty floor), map bare.
+- **Round 1 -> 70%** — scaled up + packed the diorama (furnace dominant, anvil/mortar/bucket/
+  dragon larger); added `xNN` count badges to the rail.
+- **Round 2 -> 80% (gate met)** — painted territory map (`assets/map/territory.png`, NB Pro
+  ~$0.24) wired into the SVG world under the ore-path markers/fog (mottled blobs hidden,
+  RNG sequence preserved); lowered bucket + dragon into the bottom corners.
+
+Director verdict at 80%: "clearly the same composition as the anchor." Remaining items are
+either mechanic-intentional (the `?` markers are the hidden-trait reveal; dashed routes are
+the procedural ore-paths, fogged until explored) or optional polish (standalone bellows,
+relocating the tutorial hint box). Stopped at the gate per the owner's rule.
+
+Element extraction from the anchor via `edit_image` was attempted but blocked in this harness
+(input image must be inlined as ~40KB base64 in the tool call; no local-path param and no
+reachable upload host for the image API). The current props are already anchor-style, and the
+director confirmed placement (not prop art) was the gap, so extraction was not needed.
 
 ## LAYOUT — landscape (PROVISIONAL, parity-only)
 
