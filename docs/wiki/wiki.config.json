@@ -1,0 +1,10 @@
+{
+  "profile_version": "1",
+  "code_roots": ["."],
+  "spec_roots": ["docs"],
+  "canon_index": "docs/INDEX.md",
+  "canon_ssot": [],
+  "exclusions": [".claude/worktrees/", "*/bin", "*/obj", ".godot/", "export_templates/", ".git/"],
+  "instruction_files": ["CLAUDE.md", "AGENTS.md"],
+  "anchor_kinds": ["gd-func", "scene-node", "json-key", "gut-test", "file"]
+}

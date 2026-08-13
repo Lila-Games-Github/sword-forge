@@ -1,0 +1,12 @@
+{
+  "profile_version": "1",
+  "files": {
+    "docs/wiki/README.md": "dbaae371ff2adb2e91107998f55b9b0c442d4c2d7a7666ca685a513373d0264c",
+    "docs/wiki/wiki.config.json": "f33f56680af204bf8568c8b27904b08fcf9803c7b81e84b63f8ec223705dab02",
+    "docs/wiki/index.md": "36ea2d3880d56f09c41bb8ba3f61527491892c61e4e4d332f7bdb29276a59579",
+    "docs/wiki/log.md": "ac2a149b84c55f64a0e4b76d44868197f8bf2c902816fd4a97197d55ea650a5f",
+    ".claude/skills/wiki/SKILL.md": "7174facd35e1b5d8047a52432dd789149b33386945f75eb70d6457fd4e742cf1",
+    ".claude/skills/wiki/scripts/search_wiki.py": "c1099a683c53c152223b5db276a003d22f0b190e16c3e6901ee4c2328fa284b0",
+    ".claude/skills/wiki/scripts/wiki_lint.py": "ba1580829e2e58edbf3531e1b6763f4bce4a8b2f7c04f6f8031a2573799efb58"
+  }
+}
