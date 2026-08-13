@@ -547,9 +547,9 @@ function wireHammer(){
     const h=document.getElementById('hammerTool'), anvil=document.getElementById('stAnvil'),
           spark=document.getElementById('hammerSpark'), bench=document.getElementById('bench');
     if(!h||!anvil||!bench) return;
-    const STRIKE_DIST=strikeDist();   // bench-relative (~0.116 × bench width, was 66px @568)
     function strikePoint(){ const br=bench.getBoundingClientRect(), ar=anvil.getBoundingClientRect(); return { x:ar.left+ar.width*0.50-br.left, y:ar.top+ar.height*0.16-br.top }; }  // anvil top face
     function check(){
+        const STRIKE_DIST=strikeDist();   // recompute each check so it tracks the live bench width (survives reflow / orientation swap / resize)
         const br=bench.getBoundingClientRect(), hr=h.getBoundingClientRect();
         const hx=hr.left+hr.width/2-br.left, hy=hr.top+hr.height/2-br.top, sp=strikePoint();
         const near=Math.hypot(hx-sp.x, hy-sp.y) < STRIKE_DIST;
@@ -784,6 +784,8 @@ function runLayoutSelfTest(){
         if(pk.join(',')!==lk.join(',')) fails.push('parity: ['+pk+'] vs ['+lk+']');
         ['portrait','landscape'].forEach(o=>{ for(const k in LAYOUT[o]){ const b=resolveLayout(k,o,1,1);
             if(!(b.x>=-EPS && b.y>=-EPS && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
+        const rk=Object.keys(RECORDED).sort(), pkk=Object.keys(LAYOUT.portrait).sort();
+        if(rk.join(',')!==pkk.join(',')) fails.push('drift key-set: portrait ['+pkk+'] != recorded ['+rk+']');   // extra/removed key in portrait, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.portrait[k]; if(!a){ fails.push('missing portrait.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
         const rl=resolveLayout('stSmelt','portrait',568,641);   // independent truth: inline was left:188px width:288px
         if(Math.abs(rl.x-188)>0.6) fails.push('resolve x '+rl.x+' != 188'); if(Math.abs(rl.w-288)>0.6) fails.push('resolve w '+rl.w+' != 288');
