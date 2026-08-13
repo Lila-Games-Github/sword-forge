@@ -43,17 +43,23 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame.landscape > #rail { display: none; }   /* landscape rail is Phase 2 */
 
 /* ---- header / HUD bar (styled to the vert anchor; placeholders are non-functional) ---- */
-#hud { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: linear-gradient(180deg,#2a2016,#1c150d); border-bottom: 2px solid #6a5636; }
-.hud-item, .hud-btn, .hud-stars { display: flex; align-items: center; gap: 4px; font-family: 'Cinzel', serif; font-weight: 700; color: #f0d9a4; white-space: nowrap; }
-.hud-item.gold { background: rgba(0,0,0,0.45); border: 1px solid #6a5636; border-radius: 14px; padding: 3px 10px; font-size: 12px; color: #fceeb5; }
-.hud-btn { background: linear-gradient(180deg,#3a2c1b,#241a0f); border: 1px solid #6a5636; border-radius: 9px; padding: 4px 7px; font-size: 11px; cursor: pointer; color: #f0d9a4; }
-.hud-btn:active { transform: scale(0.96); }
-.hud-btn .ic, .hud-item .ic, .hud-stars .ic { font-size: 15px; line-height: 1; }
-.hud-btn .hb-lbl { font-size: 10px; }
-.hud-stars { font-size: 12px; color: #ffd98a; }
-.hud-spacer { margin-left: auto; }
-.hud-btn.back { padding: 3px 10px; font-size: 16px; line-height: 1; }
-.hud-btn .ic-img { width: 18px; height: 18px; object-fit: contain; display: block; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+#hud { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: linear-gradient(180deg,#38291a,#211812); border-bottom: 3px solid #7a5f34; box-shadow: inset 0 -2px 5px rgba(0,0,0,.4); }
+.hud-item, .hud-med { display: flex; align-items: center; font-family: 'Cinzel', serif; font-weight: 700; color: #f0d9a4; white-space: nowrap; }
+.hud-item.gold { gap: 5px; background: rgba(0,0,0,0.5); border: 1px solid #7a5f34; border-radius: 15px; padding: 5px 12px; font-size: 13px; color: #fceeb5; }
+.hud-item.gold .ic { font-size: 16px; }
+/* circular medallion buttons (Recipe / Skill Tree) */
+.hud-med { flex-direction: column; gap: 1px; background: none; border: none; cursor: pointer; padding: 0; }
+.hud-med:active { transform: scale(0.95); }
+.hud-med .med-ic { width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 42% 34%,#4a3826,#241a0f); border: 2px solid #c8a84b; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,.55), inset 0 1px 2px rgba(255,220,150,.25); }
+.hud-med .med-ic img { width: 32px; height: 32px; object-fit: contain; }
+.hud-med .med-cap { font-size: 9px; color: #e9dcbf; letter-spacing: .3px; }
+/* centered star level */
+.hud-center { margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 0; font-family: 'Cinzel', serif; color: #ffd98a; }
+.hud-starrow { font-size: 15px; letter-spacing: 1px; color: #ffcf3a; text-shadow: 0 1px 2px #000; line-height: 1; }
+.hud-starrow .half { opacity: .4; }
+.hud-sl { font-size: 9px; font-weight: 700; color: #e9dcbf; letter-spacing: .3px; }
+.hud-btn.back { background: linear-gradient(180deg,#3a2c1b,#241a0f); border: 1px solid #7a5f34; border-radius: 9px; padding: 4px 11px; font-size: 17px; line-height: 1; cursor: pointer; color: #f0d9a4; font-weight: 700; }
+.hud-btn.back:active { transform: scale(0.95); }
 /* compass on the map + furnace smoke (Phase 1 art) */
 #compass { position: absolute; left: 8px; bottom: 8px; width: 62px; height: 62px; z-index: 6; opacity: 0.9; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
 #furnaceSmoke { position: absolute; left: 42%; top: 0%; width: 17%; z-index: 1; opacity: .5; pointer-events: none; transform-origin: bottom center; animation: smokeRise 6s ease-in-out infinite; }
@@ -75,7 +81,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* ---- BENCH (crafting stations laid out in sequence) ---- */
 #bench { position: relative; overflow: hidden;
-    background: #1a130b url('assets/backgrounds/forge_room_bg.png') center/cover no-repeat;
+    background: #1a130b url('assets/backgrounds/anchor_bench_bg.png') center/cover no-repeat;
     box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
 }
 #bench::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* soft vignette so layered props stay readable */
@@ -93,37 +99,36 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* ore tray (compact, top-left) */
 /* ore rail — #oreShelf now fills the right-edge rail zone as a vertical scroll column (Phase 1) */
 #oreShelf { position: absolute; inset: 0; z-index: 3;
-    display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 20px 5px 8px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 7px 5px 8px;
     overflow-y: auto; overflow-x: hidden; background: transparent; border: none; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 #oreShelf::-webkit-scrollbar { width: 5px; } #oreShelf::-webkit-scrollbar-thumb { background: #5a4526; border-radius: 3px; }
-#oreShelf .badge { display: none; }   /* step-number badge not used in the vertical rail */
-#oreShelf .shelf-cap { position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 9px; font-weight: bold; color: #e9dcbf; letter-spacing: .5px; text-shadow: 0 1px 2px #000; background: none; border: none; padding: 0; }
-.ore-slot { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px 3px; border-radius: 8px;
-    background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -2px 4px rgba(0,0,0,.4); overflow: hidden; touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
-.ore-count { position: absolute; right: 3px; bottom: 2px; font-size: 8px; font-weight: bold; color: #fceeb5; background: rgba(0,0,0,0.62); border: 1px solid #5a4526; border-radius: 5px; padding: 0 3px; line-height: 1.4; }
-.ore-slot img { width: 30px; height: 30px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
-.ore-slot span { font-size: 8px; font-weight: bold; color: #e4d6b4; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#oreShelf .badge, #oreShelf .shelf-cap { display: none; }   /* no step badge, no 'Ores' header (anchor rail has neither) */
+.ore-slot { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1px; padding: 5px 2px 4px; border-radius: 9px;
+    background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #6a5636; box-shadow: inset 0 -2px 4px rgba(0,0,0,.4); touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
+.ore-count { position: absolute; right: 3px; top: 3px; font-size: 8px; font-weight: bold; color: #fceeb5; background: rgba(0,0,0,0.68); border: 1px solid #6a5636; border-radius: 5px; padding: 0 3px; line-height: 1.4; }
+.ore-slot img { width: 34px; height: 34px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.ore-slot span { font-size: 8px; font-weight: bold; color: #e4d6b4; max-width: 100%; white-space: normal; text-align: center; line-height: 1.1; }
 
 /* station image sizes (arranged per reference) */
 .mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
 .furnace { width: 100%; display: block; }/* smelter fills its station (station width = size) */
 .anvil { width: 100%; }
 
-/* bellowtop paddle overlaid exactly onto the smelter's own bellow */
-.bellowtop { position: absolute; left: 0; top: 0; width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }
-.bellow-tag { position: absolute; left: 15%; top: 70%; transform: translateX(-50%); z-index: 3; font-size: 9px; font-weight: bold; color: #e9dcbf; background: rgba(20,15,8,0.72); border: 1px solid #6a5636; border-radius: 6px; padding: 1px 5px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+/* bellows — the anchor cut is a standalone prop parked at the furnace's left base (pump anim still applies) */
+.bellowtop { position: absolute; left: -30%; top: 52%; width: 46%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }
+.bellow-tag { position: absolute; left: -8%; top: 88%; transform: translateX(-50%); z-index: 3; font-size: 9px; font-weight: bold; color: #e9dcbf; background: rgba(20,15,8,0.72); border: 1px solid #6a5636; border-radius: 6px; padding: 1px 5px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
 
 /* movable pestle — bigger, stands in the mortar, draggable (width/pos from LAYOUT.*.pestle) */
-#pestle { position: absolute; z-index: 5; cursor: grab; touch-action: none; transform: rotate(10deg); transform-origin: bottom center; }
+#pestle { position: absolute; z-index: 5; cursor: grab; touch-action: none; transform: rotate(50deg); transform-origin: bottom center; }   /* plunged steep into the mortar bowl (anchor) */
 #pestle img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
 #pestle:active { cursor: grabbing; }
 
 /* movable hammer — drag it; near the anvil it rotates & strikes the anvil top */
-#hammerTool { position: absolute; z-index: 8; cursor: grab; touch-action: none; transform: rotate(-50deg); transform-origin: 60% 82%; }   /* width/pos from LAYOUT.*.hammerTool */
+#hammerTool { position: absolute; z-index: 8; cursor: grab; touch-action: none; transform: rotate(0deg); transform-origin: 40% 80%; }   /* anchor hammer art is pre-rotated (head up-right); width/pos from LAYOUT.*.hammerTool */
 #hammerTool img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
 #hammerTool:active { cursor: grabbing; }
 #hammerTool.striking { animation: hammerStrike 0.3s ease-in-out infinite; }
-@keyframes hammerStrike { 0%,100% { transform: translateY(-5px) rotate(-56deg); } 55% { transform: translateY(7px) rotate(-30deg); } }
+@keyframes hammerStrike { 0%,100% { transform: translateY(-5px) rotate(-8deg); } 55% { transform: translateY(7px) rotate(18deg); } }   /* tuned for the pre-rotated anchor hammer */
 #hammerSpark { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; pointer-events: none; display: none; z-index: 7; border-radius: 50%;
     background: radial-gradient(circle, rgba(255,244,190,0.95) 0%, rgba(255,186,66,0.6) 42%, rgba(255,140,20,0) 72%); }
 #hammerSpark.on { display: block; animation: sparkPulse 0.32s ease-in-out infinite; }
@@ -142,10 +147,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* ---- 5 · Quench — water bucket: Bucket3_back/_mug/_front share one 1984×2116 canvas; the mug is a movable sibling that interleaves BETWEEN back(z2) and front(z4) so it sits IN the bucket ---- */
 .bucket-layer { position: absolute; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
-#mug { position: absolute; cursor: grab; touch-action: none; transform-origin: 52% 62%; transition: transform .14s ease; }
+#mug { position: absolute; cursor: grab; touch-action: none; transform: rotate(-32deg); transform-origin: 52% 62%; transition: transform .14s ease; }   /* rest: tipped onto the bucket rim (anchor) */
 #mug img { width: 100%; display: block; -webkit-user-drag: none; user-select: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
 #mug:active { cursor: grabbing; }
-#mug.pouring { transform: rotate(-30deg); }
+#mug.pouring { transform: rotate(-78deg); }   /* tips further to pour */
 .bucket-cap { position: absolute; z-index: 5; transform: translateX(-50%); white-space: nowrap; font-size: 10px; font-weight: bold; color: #e9dcbf; text-shadow: 0 1px 2px #000; letter-spacing: .3px; }
 .bucket-cap small { font-weight: normal; color: #b6a684; }
 /* placeholder pour stream + splash */
@@ -176,14 +181,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #pestle.pounding { animation: pound .26s ease-in-out infinite; }
 @keyframes pound { 0%,100% { transform: rotate(10deg) translateY(0); } 50% { transform: rotate(10deg) translateY(8px); } }
 #bellowHot, #furnaceGate { position: absolute; z-index: 5; cursor: pointer; }
-#bellowHot { left: 1%; top: 56%; width: 27%; height: 23%; }
-#furnaceGate { left: 55%; top: 53%; width: 33%; height: 31%; border-radius: 9px; }
+#bellowHot { left: -30%; top: 50%; width: 46%; height: 34%; }   /* covers the standalone bellows prop */
+#furnaceGate { left: 45%; top: 52%; width: 42%; height: 38%; border-radius: 9px; }   /* the anchor furnace's arched lava mouth */
 #furnaceGate.ready { box-shadow: inset 0 0 0 2px rgba(255,180,60,.9), 0 0 16px 4px rgba(255,150,40,.7); animation: gatePulse .95s ease-in-out infinite; }
 @keyframes gatePulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
 .bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
 @keyframes pump { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
 #dragonFire { position: absolute; z-index: 7; width: 130px; pointer-events: none; -webkit-user-drag: none; display: none; filter: drop-shadow(0 0 6px rgba(255,140,30,.85)); }
-#sfHint { position: absolute; left: 8px; right: 8px; top: 56px; z-index: 12; text-align: center; font-size: 11px; line-height: 1.35; color: #ffe6b8; background: rgba(20,14,7,0.82); border: 1px solid #6a5636; border-radius: 8px; padding: 5px 9px; text-shadow: 0 1px 2px #000; }
+#sfHint { position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 12; text-align: center; font-size: 11px; line-height: 1.35; color: #ffe6b8; background: rgba(20,14,7,0.82); border: 1px solid #6a5636; border-radius: 8px; padding: 5px 9px; text-shadow: 0 1px 2px #000; }   /* moved to the bottom so it stops capping the furnace crown */
 #sfHint b { color: #ffd98a; }
 #forgeResult { position: absolute; left: 50%; top: 44%; transform: translate(-50%,-50%); z-index: 30; display: none; text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; color: #ffe08a; background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 12px; padding: 14px 22px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
 #forgeResult.show { display: block; animation: resultPop .45s ease-out; }
@@ -241,11 +246,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 <div id="frame">
 
     <div id="hud">
-        <div class="hud-item gold"><span class="ic">💰</span><span id="goldVal">12,500</span> G</div>
-        <button class="hud-btn" type="button" title="Recipe Book"><img class="ic-img" src="assets/ui/icon_recipe.png" alt=""><span class="hb-lbl">Recipe</span></button>
-        <div class="hud-spacer"></div>
-        <div class="hud-stars" title="Star Level"><span class="ic">⭐</span>4.2</div>
-        <button class="hud-btn" type="button" title="Skill Tree"><img class="ic-img" src="assets/ui/icon_skilltree.png" alt=""><span class="hb-lbl">Skill Tree</span></button>
+        <div class="hud-item gold"><span class="ic">💰</span><span id="goldVal">12,500</span></div>
+        <button class="hud-med" type="button" title="Recipe Book"><span class="med-ic"><img src="assets/ui/icon_recipe.png" alt=""></span><span class="med-cap">Recipe Book</span></button>
+        <div class="hud-center"><div class="hud-starrow">★★★★<span class="half">★</span></div><div class="hud-sl">Star Level 4.2</div></div>
+        <button class="hud-med" type="button" title="Skill Tree"><span class="med-ic"><img src="assets/ui/icon_skilltree.png" alt=""></span><span class="med-cap">Skill Tree</span></button>
         <button class="hud-btn back" type="button" title="Back">‹</button>
     </div>
 
@@ -306,8 +310,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
-            <img class="furnace" src="assets/forge/blast_furnace.png" alt="Smelter">
-            <img class="bellowtop" id="bellowtop" src="assets/forge/blast_furnace_bellowtop.png" alt="Bellows">
+            <img class="furnace" src="assets/forge/anchor_furnace.png" alt="Smelter">
+            <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.png" alt="Bellows">
             <span class="bellow-tag">Bellow</span>
             <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
             <div id="bellowHot" title="Hold to pump the bellows"></div>
@@ -317,18 +321,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- 2 · Grind — mortar (smaller), left -->
         <div class="station" id="stMortar">
             <span class="badge">2</span>
-            <img class="mortar" src="assets/forge/mortar.png" alt="Mortar">
+            <img class="mortar" src="assets/forge/anchor_mortar.png" alt="Mortar">
             <span class="cap">Grind <small>· mortar</small></span>
         </div>
         <!-- movable pestle, standing in the mortar -->
         <div id="pestle">
-            <img src="assets/forge/pestle.png" alt="Pestle">
+            <img src="assets/forge/anchor_pestle.png" alt="Pestle">
         </div>
 
         <!-- movable hammer — strikes the anvil when dragged close -->
         <div id="hammerSpark"></div>
         <div id="hammerTool">
-            <img src="assets/forge/hammer.png" alt="Hammer">
+            <img src="assets/forge/anchor_hammer.png" alt="Hammer">
         </div>
 
         <!-- 4 · Hammer — anvil, a bit in the centre -->
@@ -339,9 +343,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
 
         <!-- 5 · Quench — water bucket (Bucket3_back / _mug / _front share one canvas); the mug interleaves so it sits IN the bucket -->
-        <img id="bucketBack" class="bucket-layer" src="assets/forge/Bucket3_back.png" alt="" style="z-index:2;">
-        <div id="mug" style="z-index:3;"><img src="assets/forge/Bucket3_mug.png" alt="Mug"></div>
-        <img id="bucketFront" class="bucket-layer" src="assets/forge/Bucket3_front.png" alt="Water bucket" style="z-index:4;">
+        <img id="bucketBack" class="bucket-layer" src="assets/forge/anchor_bucket.png" alt="Water bucket" style="z-index:2;">
+        <div id="mug" style="z-index:3;"><img src="assets/forge/anchor_mug.png" alt="Mug"></div>
+        <img id="bucketFront" class="bucket-layer" src="assets/forge/anchor_bucket.png" alt="" style="z-index:4; display:none;"><!-- anchor bucket is a single cut; front layer unused -->
         <span class="badge" style="left:368px; top:446px;">5</span>
         <span class="bucket-cap" style="left:425px; top:566px;">Quench <small>· pour on the anvil</small></span>
 
@@ -421,14 +425,15 @@ const NS = 'http://www.w3.org/2000/svg';
 //  Recorded ground truth + invariants: specs/2026-08-13-looptest-layout-skeleton.md
 // ============================================================
 const LAYOUT = {
-    portrait: {   // Phase 1 anchor composition (loop r1: scaled up + packed to fill the floor like the anchor). bench = left column (rail excluded).
-        stSmelt:    {x:0.24, y:0.04, w:0.54},   // furnace, dominant upper-center
-        stMortar:   {x:0.66, y:0.28, w:0.30},   // mortar, right-mid (bigger)
-        pestle:     {x:0.70, y:0.16, w:0.13},   // standing in the mortar
-        hammerTool: {x:0.28, y:0.52, w:0.13},   // near the anvil
-        stAnvil:    {x:0.30, y:0.60, w:0.40},   // anvil, LARGE front-center bottom
-        bucket:     {x:0.68, y:0.72, w:0.30},   // water bucket, bottom-right corner
-        dragon:     {x:0.01, y:0.74, w:0.24}    // dragon whelp, bottom-left corner (uncropped)
+    portrait: {   // Phase 1 anchor composition (loop r3: anchor-cut props packed with edge bleeds per the Opus art director). bench = left column (rail excluded).
+        stSmelt:    {x:0.25, y:-0.02, w:0.46},  // furnace, crown clears the hint box
+        stMortar:   {x:0.60, y:0.14,  w:0.30},  // mortar, top-right (full bowl + legs visible, touches furnace)
+        pestle:     {x:0.66, y:0.06,  w:0.13},  // plunged into the mortar bowl (CSS ~50deg)
+        hammerTool: {x:0.28, y:0.46,  w:0.17},  // hero hammer across the anvil face
+        stAnvil:    {x:0.13, y:0.48,  w:0.40},  // anvil, large left mass (lifted to close the mid band)
+        bucket:     {x:0.63, y:0.53,  w:0.27},  // water bucket, dense bottom-right cluster
+        mug:        {x:0.70, y:0.52,  w:0.17},  // copper mug, tipped over the bucket rim (CSS rotate)
+        dragon:     {x:-0.01,y:0.42,  w:0.17}   // dragon whelp, bleeds off the left, overlaps anvil flank
     },
     landscape: {   // PROVISIONAL — parity + in-zone only; tuned to the hori anchor in Phase 2
         stSmelt:    {x:0.360, y:0.120, w:0.300},
@@ -437,11 +442,12 @@ const LAYOUT = {
         hammerTool: {x:0.230, y:0.560, w:0.070},
         stAnvil:    {x:0.300, y:0.680, w:0.190},
         bucket:     {x:0.560, y:0.640, w:0.140},
+        mug:        {x:0.595, y:0.615, w:0.075},
         dragon:     {x:0.070, y:0.700, w:0.130}
     }
 };
 // one LAYOUT key can drive several DOM ids (the bucket is three stacked layers sharing one box)
-const PROP_ELS = { bucket:['bucketBack','mug','bucketFront'] };
+const PROP_ELS = { bucket:['bucketBack','bucketFront'] };   // mug has its own LAYOUT key now (anchor art: bucket + mug are separate cuts)
 function propIds(name){ return PROP_ELS[name] || [name]; }
 let SF_ORIENT = 'portrait';
 // pure: fraction entry + zone dims -> pixel box. No clamping — the self-test guards in-zone.
@@ -450,7 +456,7 @@ function resolveLayout(name, orient, zoneW, zoneH){ const e=LAYOUT[orient] && LA
 function applyLayout(orient){ orient=orient||SF_ORIENT; const L=LAYOUT[orient]; if(!L) return; for(const name in L){ const e=L[name]; propIds(name).forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.style.left=(e.x*100).toFixed(3)+'%'; el.style.top=(e.y*100).toFixed(3)+'%'; el.style.width=(e.w*100).toFixed(3)+'%'; el.style.right='auto'; }); } }
 function setOrientation(orient){ SF_ORIENT=orient; const f=document.getElementById('frame'); if(f) f.classList.toggle('landscape', orient==='landscape'); applyLayout(orient); }
 // snap the movable mug back into the bucket, straight from LAYOUT (orientation-aware, no captured px)
-function homeMug(){ const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].bucket, mug=document.getElementById('mug'); if(!e||!mug) return; mug.style.left=(e.x*100).toFixed(3)+'%'; mug.style.top=(e.y*100).toFixed(3)+'%'; mug.style.width=(e.w*100).toFixed(3)+'%'; mug.style.right='auto'; }
+function homeMug(){ const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].mug, mug=document.getElementById('mug'); if(!e||!mug) return; mug.style.left=(e.x*100).toFixed(3)+'%'; mug.style.top=(e.y*100).toFixed(3)+'%'; mug.style.width=(e.w*100).toFixed(3)+'%'; mug.style.right='auto'; }
 // bench-relative constants (scale-independent) — read from the live bench box
 function benchDims(){ const b=document.getElementById('bench'); return b?{w:b.clientWidth,h:b.clientHeight}:{w:568,h:641}; }
 function strikeDist(){ return benchDims().w*0.116; }   // was 66px @ bench width 568
@@ -812,8 +818,8 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 //  recorded portrait LAYOUT is specs/2026-08-13-looptest-layout-skeleton.md.
 // ============================================================
 function runLayoutSelfTest(){
-    const EPS=0.03, fails=[];
-    const RECORDED={ stSmelt:{x:0.24,y:0.04,w:0.54}, stMortar:{x:0.66,y:0.28,w:0.30}, pestle:{x:0.70,y:0.16,w:0.13}, hammerTool:{x:0.28,y:0.52,w:0.13}, stAnvil:{x:0.30,y:0.60,w:0.40}, bucket:{x:0.68,y:0.72,w:0.30}, dragon:{x:0.01,y:0.74,w:0.24} };   // Phase 1 anchor composition, loop r2 (oreShelf is the rail, CSS-filled)
+    const EPS=0.08, fails=[];   // allows intentional edge bleeds (furnace pokes above, dragon/anvil bleed left) while still catching gross off-zone errors
+    const RECORDED={ stSmelt:{x:0.25,y:-0.02,w:0.46}, stMortar:{x:0.60,y:0.14,w:0.30}, pestle:{x:0.66,y:0.06,w:0.13}, hammerTool:{x:0.28,y:0.46,w:0.17}, stAnvil:{x:0.13,y:0.48,w:0.40}, bucket:{x:0.63,y:0.53,w:0.27}, mug:{x:0.70,y:0.52,w:0.17}, dragon:{x:-0.01,y:0.42,w:0.17} };   // Phase 1 anchor composition, loop r5 (packed, mid-band closed)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
@@ -824,8 +830,8 @@ function runLayoutSelfTest(){
         const rk=Object.keys(RECORDED).sort(), pkk=Object.keys(LAYOUT.portrait).sort();
         if(rk.join(',')!==pkk.join(',')) fails.push('drift key-set: portrait ['+pkk+'] != recorded ['+rk+']');   // extra/removed key in portrait, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.portrait[k]; if(!a){ fails.push('missing portrait.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
-        const rl=resolveLayout('bucket','portrait',1000,500);   // resolveLayout math check: bucket 0.68*1000 / 0.72*500 / 0.30*1000
-        if(Math.abs(rl.x-680)>0.6||Math.abs(rl.y-360)>0.6||Math.abs(rl.w-300)>0.6) fails.push('resolve math '+JSON.stringify(rl));
+        const rl=resolveLayout('bucket','portrait',1000,500);   // resolveLayout math check: bucket 0.63*1000 / 0.53*500 / 0.27*1000
+        if(Math.abs(rl.x-630)>0.6||Math.abs(rl.y-265)>0.6||Math.abs(rl.w-270)>0.6) fails.push('resolve math '+JSON.stringify(rl));
     }
     const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
     return { pass, fails };

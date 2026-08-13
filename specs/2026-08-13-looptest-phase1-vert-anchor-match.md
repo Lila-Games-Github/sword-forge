@@ -89,10 +89,28 @@ either mechanic-intentional (the `?` markers are the hidden-trait reveal; dashed
 the procedural ore-paths, fogged until explored) or optional polish (standalone bellows,
 relocating the tutorial hint box). Stopped at the gate per the owner's rule.
 
-Element extraction from the anchor via `edit_image` was attempted but blocked in this harness
-(input image must be inlined as ~40KB base64 in the tool call; no local-path param and no
-reachable upload host for the image API). The current props are already anchor-style, and the
-director confirmed placement (not prop art) was the gap, so extraction was not needed.
+### Rounds 3-5 — exact anchor-cut props + Opus art director (owner-directed 2026-08-14)
+
+Owner directed literal element extraction from the anchor (not style-match) + a stricter
+element-level director. Element art now comes FROM the anchor:
+
+- Anchor regions cropped locally, **uploaded to the LILA image-host repo** (owner authorized
+  anchors/seeds there 2026-08-14) and passed to NB Pro `edit_image` by raw URL to redraw each
+  element isolated + completed on magenta, then chroma-keyed. **No base64 inputs** (global
+  policy updated: always host, never base64). Assets: `assets/forge/anchor_{furnace,bellows,
+  anvil,hammer,mortar,pestle,bucket,mug}.png`, `assets/backgrounds/anchor_bench_bg.png`
+  (thin dark wall + stone floor), map re-toned to `assets/map/territory.png` (parchment).
+- Mechanics preserved through the art swap: bellows is now a standalone left prop (pump anim +
+  `#bellowHot` moved); `#furnaceGate` re-aimed at the anchor furnace's lava mouth; the mug is a
+  separate cut with its own `LAYOUT.mug` key and CSS tip, bucket is a single cut (front layer
+  hidden); hammer/pestle pre-posed.
+- **Opus** art director (Model-Selection SSOT: judgment task) scored element identity + composition
+  each round; **Sonnet** did the earlier composition rounds. r3 62% -> r4 81% (PASS: >=80 and no
+  element < 60) -> r5 polish (closed the empty mid-floor band by lifting the anvil group, un-clipped
+  the mortar, cleared the furnace crown, steepened the pestle, moved the hint box to the bottom).
+- In-zone EPS relaxed to 0.08 to allow intentional edge bleeds (furnace crown, dragon/anvil off-left).
+
+Phase 1 art spend ~$4.9 of the $10 budget. Anchor seed crops pruned from the host repo after use.
 
 ## LAYOUT — landscape (PROVISIONAL, parity-only)
 
