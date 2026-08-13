@@ -1,0 +1,128 @@
+# Loop-test Phase 1 — portrait match to the vert anchor
+
+Status: canon (active build spec for `Swordforge_new_looptest.html`, portrait)
+Date: 2026-08-13
+Branch: `sword-forge/dual-orientation-anchor-rework`
+Builds on: [2026-08-13-looptest-layout-skeleton.md](2026-08-13-looptest-layout-skeleton.md) (Phase 0 skeleton)
+Anchor: `assets/Anchor-images/sword-forge-anchor-vert.jpg`
+
+## Goal
+
+Make the **portrait** loop-test read like the vert anchor, on top of the Phase 0
+data-driven skeleton. Two sub-passes:
+
+1. **Structure pass** (no art spend) — new zones (HUD bar + vertical right rail),
+   diorama re-composition via the `LAYOUT` table, cozy CSS. Uses existing assets +
+   emoji/CSS placeholders for anything missing.
+2. **Art pass** (AFK, NB Pro, <= $10) — generate the missing art on a green screen,
+   chroma-key to transparent PNG, wire in, replacing placeholders. Show all, then ask.
+
+Scope decisions (owner-approved 2026-08-13):
+- **Map**: keep the ore-path fog mechanic; only cozy the parchment + add a compass.
+- **HUD**: add the anchor's top bar (Gold, Recipe Book, Star Level, Skill Tree, back) as
+  **styled non-functional placeholders** (this is a loop-test).
+- **Ore rail**: move the horizontal ore shelf to a **vertical right-edge rail** (makes the
+  Phase 0 "rail zone" real for portrait).
+- **Art**: NB Pro (`nano-banana-pro`), green-screen elements + opaque backgrounds,
+  chroma-keyed. AFK budget **$10**; beyond that, show everything and ask.
+
+## Zones (portrait)
+
+Grid of `#frame` becomes 2-column so the rail runs down the right beside both map and bench:
+
+```
+grid-template-columns: 1fr var(--rail-w)      /* --rail-w ~ 15% (~86px @568) */
+grid-template-rows:    auto 42% 1fr           /* hud / map / bench */
+grid-template-areas:
+  "hud  hud"
+  "map  rail"
+  "bench rail"
+```
+
+- `hud` (full width): Gold pill | Recipe Book | Star Level (stars) | Skill Tree | back. The
+  heat gauge relocates to a small overlay in the bench near the furnace (loop-test element,
+  absent from the anchor).
+- `map` (left, ~42%): ore-path map, cozied parchment + compass.
+- `bench` (left, remainder): the diorama. Now narrower (rail took the right strip).
+- `rail` (right, spans map+bench): `#oreShelf` moves here, becomes a vertical scroll column
+  of metal tiles (icon + count). Zone-filling (CSS), not a `LAYOUT` prop.
+
+Landscape stays the Phase 0 stub (parity only); real landscape is Phase 2.
+
+## LAYOUT — portrait (RECORDED, Phase 1 composition)
+
+Fractions of the **bench** zone (bench = left column, rail excluded). These are DESIGN
+values chosen to match the anchor composition (cross-checked visually + in-zone), not
+measured from the old build. `oreShelf` LEAVES the table (it is now the rail, CSS-filled).
+`x,y,w` only (heights art-aspect-driven). Drift test asserts `LAYOUT.portrait` == this table.
+
+| Prop (id)     | x    | y    | w    | anchor placement |
+|---------------|------|------|------|------------------|
+| `stSmelt`     | 0.28 | 0.06 | 0.46 | furnace, upper-center |
+| `stMortar`    | 0.62 | 0.30 | 0.20 | mortar, right |
+| `pestle`      | 0.66 | 0.18 | 0.10 | standing in the mortar, right |
+| `hammerTool`  | 0.30 | 0.50 | 0.11 | near the anvil, front-center |
+| `stAnvil`     | 0.33 | 0.66 | 0.32 | anvil, front-center bottom |
+| `bucket`      | 0.66 | 0.58 | 0.22 | water bucket, right (below mortar) |
+| `dragon`      | 0.02 | 0.70 | 0.22 | dragon whelp, bottom-left |
+
+In-zone check (x>=0, y>=0, x+w<=1, y<=1): all pass.
+
+## LAYOUT — landscape (PROVISIONAL, parity-only)
+
+Same 7 keys (drop `oreShelf`). Values rough, in-zone; tuned in Phase 2.
+
+## Invariants (self-test, unchanged from Phase 0 + updated RECORDED)
+
+`?test` self-test: in-zone (both orientations), parity (portrait keys == landscape keys),
+drift (portrait == RECORDED table above, key-set + per-value). `oreShelf` removed from
+RECORDED. `?wire` overlay still draws zone + prop boxes.
+
+## Art pass — generation plan (NB Pro, green-screen, chroma-keyed)
+
+Model: `nano-banana-pro` (owner-named this turn; overrides the default-nano cost policy for
+this task). Verify the id via `list_models` before the first call. Generate on a solid
+**green** background for foreground elements (chroma-key green -> alpha -> PNG); backgrounds
+are opaque full images. Save to `assets/` sub-folders; wire by relative path.
+
+Candidate assets (finalize + cost before spending; est ~8-12 imgs x ~$0.24 ~= $2-3):
+
+1. Background panel: wooden wall + stone floor behind the diorama (opaque). `assets/backgrounds/`
+2. HUD icons: Recipe Book, Skill Tree, gear, back arrow (green-screen). `assets/ui/`
+3. Compass rose (green-screen) for the map. `assets/map/`
+4. Metal icons: ember / frost / tide / gale (green-screen), replacing the SVG placeholders. `assets/forge/`
+5. Furnace smoke / steam puff (green-screen). `assets/forge/`
+
+### Ref-lock constraint (recorded decision)
+
+The image-hosting policy forbids uploading proprietary/unreleased art to the PUBLIC GitHub
+host. The anchor + existing game assets are proprietary, so they are **NOT** uploaded as
+generation seeds. Generations are **text-prompt-driven** to match a described style (cozy
+hand-illustrated, warm ember-lit, painterly parchment). Style match is close, **not
+pixel-locked**. Tighter lock would need a private host (owner can provide one later).
+
+### Budget / AFK rule
+
+Autonomous generation + wiring up to **$10** total. On reaching it (or finishing the list
+under it), stop, present every generated asset in full, and ask before any further spend.
+Chroma-key pipeline: green -> alpha via a local script (PIL/ImageMagick), verified per asset.
+
+## Sequence
+
+1. **Structure pass** (this spec, no spend): zones + rail + HUD + LAYOUT recomposition + CSS.
+   Verify (self-test GREEN, ore tray builds in the rail, drag targeting + pipeline intact,
+   no console errors). Commit.
+2. **Art pass** (AFK <= $10): generate -> chroma-key -> wire -> show all -> ask. Commit.
+
+## Verification
+
+Blind visual critic can't run in-harness (Browser pane does not composite here). Owner is
+the visual judge. In-harness: self-test, geometry/in-zone via `javascript_tool`, console
+errors, ore-tray + drag + pipeline smoke.
+
+## Non-goals (Phase 1)
+
+- Landscape tuning (Phase 2).
+- Wiring Recipe Book / Skill Tree / Star Level functionality (placeholders only).
+- Reworking the ore-path map mechanic (kept; parchment cozied only).
+- Minigame-feel tuning (Task 2, separate).

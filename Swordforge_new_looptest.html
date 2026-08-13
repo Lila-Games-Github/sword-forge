@@ -20,10 +20,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     position: relative; overflow: hidden;
     border-radius: 14px;
     box-shadow: 0 12px 34px rgba(0,0,0,0.6);
+    --rail-w: 15%;
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 33.17% 1fr;
-    grid-template-areas: "hud" "map" "bench";
+    grid-template-columns: 1fr var(--rail-w);
+    grid-template-rows: auto 42% 1fr;
+    grid-template-areas:
+      "hud  hud"
+      "map  rail"
+      "bench rail";
 }
 /* landscape (Phase 2 target: map + bench left, ore rail right) — provisional, parity-only for now */
 #frame.landscape {
@@ -34,11 +38,23 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame > #hud { grid-area: hud; }
 #frame > #map-wrap { grid-area: map; min-height: 0; }
 #frame > #bench { grid-area: bench; min-height: 0; }
+#frame > #rail { grid-area: rail; min-height: 0; position: relative; overflow: hidden;
+    background: linear-gradient(180deg,#2a2013,#1c1509); border-left: 3px solid #6a5636; }
+#frame.landscape > #rail { display: none; }   /* landscape rail is Phase 2 */
 
-/* ---- header / HUD ---- */
-#hud { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: linear-gradient(180deg,#2a2016,#1c150d); border-bottom: 1px solid #4a3a22; }
-#hud .title { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #f0d9a4; letter-spacing: .5px; white-space: nowrap; }
-#hud .gauges { margin-left: auto; display: flex; gap: 8px; }
+/* ---- header / HUD bar (styled to the vert anchor; placeholders are non-functional) ---- */
+#hud { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: linear-gradient(180deg,#2a2016,#1c150d); border-bottom: 2px solid #6a5636; }
+.hud-item, .hud-btn, .hud-stars { display: flex; align-items: center; gap: 4px; font-family: 'Cinzel', serif; font-weight: 700; color: #f0d9a4; white-space: nowrap; }
+.hud-item.gold { background: rgba(0,0,0,0.45); border: 1px solid #6a5636; border-radius: 14px; padding: 3px 10px; font-size: 12px; color: #fceeb5; }
+.hud-btn { background: linear-gradient(180deg,#3a2c1b,#241a0f); border: 1px solid #6a5636; border-radius: 9px; padding: 4px 7px; font-size: 11px; cursor: pointer; color: #f0d9a4; }
+.hud-btn:active { transform: scale(0.96); }
+.hud-btn .ic, .hud-item .ic, .hud-stars .ic { font-size: 15px; line-height: 1; }
+.hud-btn .hb-lbl { font-size: 10px; }
+.hud-stars { font-size: 12px; color: #ffd98a; }
+.hud-spacer { margin-left: auto; }
+.hud-btn.back { padding: 3px 10px; font-size: 16px; line-height: 1; }
+/* heat gauge — relocated out of the HUD into a small bench overlay near the furnace */
+#heatMini { position: absolute; left: 8px; top: 8px; z-index: 12; display: flex; align-items: center; gap: 4px; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 8px; padding: 3px 6px; }
 .gauge { display: flex; align-items: center; gap: 4px; }
 .gauge .lbl { font-size: 12px; }
 .gauge .track { width: 52px; height: 10px; background: #211a11; border: 1px solid #5a4629; border-radius: 6px; overflow: hidden; }
@@ -71,14 +87,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cap small { font-weight: normal; color: #b6a684; }
 
 /* ore tray (compact, top-left) */
-#oreShelf { position: absolute; height: 44px; z-index: 3;   /* left/top/width set by applyLayout (LAYOUT.*.oreShelf) */
-    display: flex; gap: 3px; padding: 6px 5px 4px; border-radius: 9px;
-    background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -3px 6px rgba(0,0,0,.4); }
-#oreShelf .badge { top: -9px; left: -9px; }
-#oreShelf .shelf-cap { position: absolute; right: 7px; top: -8px; font-size: 8px; font-weight: bold; color: #cbb98f; background: #2a2013; padding: 1px 5px; border-radius: 6px; border: 1px solid #5a4526; }
-.ore-slot { flex: 0 0 38px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; overflow: hidden; touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
-.ore-slot img { width: 28px; height: 28px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
-.ore-slot span { font-size: 7px; font-weight: bold; color: #e4d6b4; max-width: 38px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ore rail — #oreShelf now fills the right-edge rail zone as a vertical scroll column (Phase 1) */
+#oreShelf { position: absolute; inset: 0; z-index: 3;
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 20px 5px 8px;
+    overflow-y: auto; overflow-x: hidden; background: transparent; border: none; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+#oreShelf::-webkit-scrollbar { width: 5px; } #oreShelf::-webkit-scrollbar-thumb { background: #5a4526; border-radius: 3px; }
+#oreShelf .badge { display: none; }   /* step-number badge not used in the vertical rail */
+#oreShelf .shelf-cap { position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 9px; font-weight: bold; color: #e9dcbf; letter-spacing: .5px; text-shadow: 0 1px 2px #000; background: none; border: none; padding: 0; }
+.ore-slot { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px; border-radius: 8px;
+    background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -2px 4px rgba(0,0,0,.4); overflow: hidden; touch-action: none; }   /* touch-action:none so a touch-drag isn't hijacked as a page scroll */
+.ore-slot img { width: 30px; height: 30px; object-fit: contain; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.ore-slot span { font-size: 8px; font-weight: bold; color: #e4d6b4; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* station image sizes (arranged per reference) */
 .mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
@@ -207,7 +226,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .hm-miss { text-align: center; font-size: 11px; color: #8a5a2b; min-height: 14px; margin-top: 2px; }
 
 /* ---- wireframe / debug skeleton overlay (#frame.wire — via ?wire or the 'w' key) ---- */
-#frame.wire #hud, #frame.wire #map-wrap, #frame.wire #bench { outline: 2px dashed rgba(80,220,255,0.85); outline-offset: -2px; }
+#frame.wire #hud, #frame.wire #map-wrap, #frame.wire #bench, #frame.wire #rail { outline: 2px dashed rgba(80,220,255,0.85); outline-offset: -2px; }
 #frame.wire .station, #frame.wire #pestle, #frame.wire #hammerTool, #frame.wire #dragon, #frame.wire #oreShelf, #frame.wire #bucketFront, #frame.wire #mug { outline: 1px solid rgba(255,120,180,0.95); }
 #frame.wire .station::after, #frame.wire #pestle::after, #frame.wire #hammerTool::after, #frame.wire #dragon::after, #frame.wire #oreShelf::after, #frame.wire #mug::after {
     content: attr(id); position: absolute; left: 0; top: -12px; font-size: 8px; font-weight: bold; color: #ff9ecb; background: rgba(0,0,0,0.72); padding: 0 3px; border-radius: 3px; white-space: nowrap; z-index: 50; pointer-events: none; }
@@ -217,10 +236,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 <div id="frame">
 
     <div id="hud">
-        <span class="title">⚔️ Swordforge — Loop Test</span>
-        <div class="gauges">
-            <div class="gauge"><span class="lbl">🔥</span><div class="track"><div id="g-heat" class="fill heat"></div></div></div>
-        </div>
+        <div class="hud-item gold"><span class="ic">💰</span><span id="goldVal">12,500</span> G</div>
+        <button class="hud-btn" type="button" title="Recipe Book"><span class="ic">📖</span><span class="hb-lbl">Recipe</span></button>
+        <div class="hud-spacer"></div>
+        <div class="hud-stars" title="Star Level"><span class="ic">⭐</span>4.2</div>
+        <button class="hud-btn" type="button" title="Skill Tree"><span class="ic">🌳</span><span class="hb-lbl">Skill Tree</span></button>
+        <button class="hud-btn back" type="button" title="Back">‹</button>
     </div>
 
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
@@ -268,12 +289,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== BENCH (arranged per reference) ===== -->
     <div id="bench">
 
-        <!-- 1 · Ores (compact tray, top-left) -->
-        <div id="oreShelf">
-            <span class="badge">1</span>
-            <span class="shelf-cap">Ores</span>
-            <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
-        </div>
+        <!-- heat gauge (loop-test element; relocated from the HUD, absent from the anchor) -->
+        <div id="heatMini"><div class="gauge"><span class="lbl">🔥</span><div class="track"><div id="g-heat" class="fill heat"></div></div></div></div>
 
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
@@ -333,6 +350,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
     </div>
 
+    <!-- ===== Ore rail (right edge, vertical) ===== -->
+    <div id="rail">
+        <div id="oreShelf">
+            <span class="badge">1</span>
+            <span class="shelf-cap">Ores</span>
+            <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
+        </div>
+    </div>
+
     <!-- ===== Shape select ===== -->
     <div id="sfShapeModal" class="sf-modal">
         <div class="sf-modal-box">
@@ -384,18 +410,16 @@ const NS = 'http://www.w3.org/2000/svg';
 //  Recorded ground truth + invariants: specs/2026-08-13-looptest-layout-skeleton.md
 // ============================================================
 const LAYOUT = {
-    portrait: {
-        oreShelf:   {x:0.162, y:0.009, w:0.609},
-        stSmelt:    {x:0.331, y:0.137, w:0.507},
-        stMortar:   {x:0.172, y:0.306, w:0.155},
-        pestle:     {x:0.197, y:0.150, w:0.081},
-        hammerTool: {x:0.412, y:0.605, w:0.092},
-        stAnvil:    {x:0.356, y:0.799, w:0.271},
-        bucket:     {x:0.655, y:0.702, w:0.187},
-        dragon:     {x:0.158, y:0.786, w:0.173}
+    portrait: {   // Phase 1 anchor composition — bench = left column (rail excluded). oreShelf is now the rail (CSS-filled), not a LAYOUT prop.
+        stSmelt:    {x:0.28, y:0.06, w:0.46},   // furnace, upper-center
+        stMortar:   {x:0.62, y:0.30, w:0.20},   // mortar, right
+        pestle:     {x:0.66, y:0.18, w:0.10},   // standing in the mortar
+        hammerTool: {x:0.30, y:0.50, w:0.11},   // near the anvil
+        stAnvil:    {x:0.33, y:0.66, w:0.32},   // anvil, front-center bottom
+        bucket:     {x:0.66, y:0.58, w:0.22},   // water bucket, right
+        dragon:     {x:0.02, y:0.70, w:0.22}    // dragon whelp, bottom-left
     },
     landscape: {   // PROVISIONAL — parity + in-zone only; tuned to the hori anchor in Phase 2
-        oreShelf:   {x:0.760, y:0.040, w:0.210},
         stSmelt:    {x:0.360, y:0.120, w:0.300},
         stMortar:   {x:0.140, y:0.300, w:0.110},
         pestle:     {x:0.150, y:0.150, w:0.060},
@@ -776,7 +800,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.03, fails=[];
-    const RECORDED={ oreShelf:{x:0.162,y:0.009,w:0.609}, stSmelt:{x:0.331,y:0.137,w:0.507}, stMortar:{x:0.172,y:0.306,w:0.155}, pestle:{x:0.197,y:0.150,w:0.081}, hammerTool:{x:0.412,y:0.605,w:0.092}, stAnvil:{x:0.356,y:0.799,w:0.271}, bucket:{x:0.655,y:0.702,w:0.187}, dragon:{x:0.158,y:0.786,w:0.173} };
+    const RECORDED={ stSmelt:{x:0.28,y:0.06,w:0.46}, stMortar:{x:0.62,y:0.30,w:0.20}, pestle:{x:0.66,y:0.18,w:0.10}, hammerTool:{x:0.30,y:0.50,w:0.11}, stAnvil:{x:0.33,y:0.66,w:0.32}, bucket:{x:0.66,y:0.58,w:0.22}, dragon:{x:0.02,y:0.70,w:0.22} };   // Phase 1 anchor composition (oreShelf moved to the rail zone, CSS-filled)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
@@ -787,8 +811,8 @@ function runLayoutSelfTest(){
         const rk=Object.keys(RECORDED).sort(), pkk=Object.keys(LAYOUT.portrait).sort();
         if(rk.join(',')!==pkk.join(',')) fails.push('drift key-set: portrait ['+pkk+'] != recorded ['+rk+']');   // extra/removed key in portrait, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.portrait[k]; if(!a){ fails.push('missing portrait.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
-        const rl=resolveLayout('stSmelt','portrait',568,641);   // independent truth: inline was left:188px width:288px
-        if(Math.abs(rl.x-188)>0.6) fails.push('resolve x '+rl.x+' != 188'); if(Math.abs(rl.w-288)>0.6) fails.push('resolve w '+rl.w+' != 288');
+        const rl=resolveLayout('bucket','portrait',1000,500);   // resolveLayout math check: 0.66*1000 / 0.58*500 / 0.22*1000
+        if(Math.abs(rl.x-660)>0.6||Math.abs(rl.y-290)>0.6||Math.abs(rl.w-220)>0.6) fails.push('resolve math '+JSON.stringify(rl));
     }
     const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
     return { pass, fails };
