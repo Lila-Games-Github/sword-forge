@@ -1,0 +1,339 @@
+<style>
+  :root{
+    --ground:#f3ead6; --panel:#ece1c8; --panel-2:#e4d6b6; --ink:#2a2117; --ink-soft:#5c4d38;
+    --line:#cdb98d; --ember:#c65a17; --gold:#9a7418; --gem:#3c6690; --ambient:#efe6d0;
+    --shadow:rgba(60,44,20,.14);
+    --r-normal:#8a8175; --r-superior:#3f8a4a; --r-flawless:#3a72b0; --r-epic:#8a4fb8; --r-legendary:#c47a1a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#17120e; --panel:#211a13; --panel-2:#2a2119; --ink:#efe3cf; --ink-soft:#b8a684;
+      --line:#3d3123; --ember:#e0742a; --gold:#d4a537; --gem:#6ea3d0; --ambient:#1d1710;
+      --shadow:rgba(0,0,0,.5);
+      --r-normal:#9b9081; --r-superior:#5cbf6c; --r-flawless:#5c9fe0; --r-epic:#b982e8; --r-legendary:#eaa63c;
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#f3ead6; --panel:#ece1c8; --panel-2:#e4d6b6; --ink:#2a2117; --ink-soft:#5c4d38;
+    --line:#cdb98d; --ember:#c65a17; --gold:#9a7418; --gem:#3c6690; --ambient:#efe6d0;
+    --shadow:rgba(60,44,20,.14);
+    --r-normal:#8a8175; --r-superior:#3f8a4a; --r-flawless:#3a72b0; --r-epic:#8a4fb8; --r-legendary:#c47a1a;
+  }
+  :root[data-theme="dark"]{
+    --ground:#17120e; --panel:#211a13; --panel-2:#2a2119; --ink:#efe3cf; --ink-soft:#b8a684;
+    --line:#3d3123; --ember:#e0742a; --gold:#d4a537; --gem:#6ea3d0; --ambient:#1d1710;
+    --shadow:rgba(0,0,0,.5);
+    --r-normal:#9b9081; --r-superior:#5cbf6c; --r-flawless:#5c9fe0; --r-epic:#b982e8; --r-legendary:#eaa63c;
+  }
+
+  *{box-sizing:border-box}
+  .stx{background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    font-size:17px;-webkit-font-smoothing:antialiased;padding:0;margin:0}
+  .stx .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+  .stx a{color:var(--ember);text-decoration:none;border-bottom:1px solid transparent}
+  .stx a:hover{border-bottom-color:currentColor}
+  .stx :focus-visible{outline:2px solid var(--ember);outline-offset:3px;border-radius:2px}
+
+  /* ---- Hero ---- */
+  .stx .hero{position:relative;overflow:hidden;border-bottom:2px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 50% -10%, color-mix(in srgb,var(--ember) 22%, transparent), transparent 60%),
+      var(--ambient);}
+  .stx .hero .wrap{padding:72px 24px 56px;text-align:center;position:relative;z-index:1}
+  .stx .anvil{width:100%;height:1px;margin:0 auto}
+  .stx .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 20px}
+  .stx h1{font-family:var(--serif);font-weight:700;font-size:clamp(38px,7vw,68px);line-height:1.02;
+    margin:0;letter-spacing:-.01em;text-wrap:balance;color:var(--ink)}
+  .stx .sub{font-family:var(--serif);font-style:italic;font-size:clamp(17px,2.4vw,21px);
+    color:var(--ink-soft);margin:16px auto 0;max-width:60ch;text-wrap:balance}
+  .stx .statline{display:flex;flex-wrap:wrap;justify-content:center;gap:0;margin:38px auto 0;
+    max-width:680px;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--panel)}
+  .stx .statline .s{flex:1 1 130px;padding:16px 12px;border-right:1px solid var(--line)}
+  .stx .statline .s:last-child{border-right:0}
+  .stx .statline .n{font-family:var(--serif);font-weight:700;font-size:26px;color:var(--gold);
+    font-variant-numeric:tabular-nums;line-height:1}
+  .stx .statline .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);margin-top:7px}
+  .stx .meta-row{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);
+    margin-top:26px;text-transform:uppercase}
+
+  /* ---- Sections ---- */
+  .stx section{padding:52px 0;border-bottom:1px solid var(--line)}
+  .stx .sec-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 10px;display:flex;align-items:center;gap:12px}
+  .stx .sec-eyebrow::before{content:"";width:22px;height:1px;background:var(--ember)}
+  .stx h2{font-family:var(--serif);font-weight:700;font-size:clamp(26px,4vw,36px);margin:0 0 8px;
+    letter-spacing:-.01em;text-wrap:balance;color:var(--ink)}
+  .stx h3{font-family:var(--serif);font-weight:700;font-size:20px;margin:30px 0 10px;color:var(--ink)}
+  .stx p{margin:0 0 15px;max-width:66ch}
+  .stx .lede{font-size:19px;color:var(--ink-soft);font-family:var(--serif);font-style:italic;max-width:64ch}
+  .stx ul{margin:0 0 16px;padding-left:0;list-style:none;max-width:66ch}
+  .stx ul li{position:relative;padding-left:22px;margin:0 0 9px}
+  .stx ul li::before{content:"◆";position:absolute;left:0;top:0;color:var(--ember);font-size:11px;top:5px}
+  .stx strong{color:var(--ink);font-weight:700}
+  .stx .k{font-weight:700;color:var(--gold)}
+
+  /* source tags */
+  .stx .src{font-family:var(--mono);font-size:10.5px;letter-spacing:.02em;color:var(--ink-soft);
+    background:color-mix(in srgb,var(--gem) 15%,transparent);border:1px solid color-mix(in srgb,var(--gem) 40%,transparent);
+    padding:1px 6px;border-radius:3px;white-space:nowrap;vertical-align:baseline}
+  .stx .src.assumed{color:var(--ember);background:color-mix(in srgb,var(--ember) 12%,transparent);
+    border-color:color-mix(in srgb,var(--ember) 35%,transparent)}
+  .stx .src.unknown{color:var(--r-normal);background:transparent;border-style:dashed}
+
+  /* callout */
+  .stx .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--ember);
+    border-radius:3px;padding:20px 22px;margin:22px 0}
+  .stx .callout .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 8px}
+  .stx .callout.gem{border-left-color:var(--gem)}
+  .stx .callout.gem .tag{color:var(--gem)}
+
+  /* tables / ledger */
+  .stx .ledger{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;
+    border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .stx .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .stx .ledger th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    text-align:left;padding:11px 14px;background:var(--panel-2);color:var(--ink-soft);border-bottom:1px solid var(--line)}
+  .stx .ledger td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  .stx .ledger tr:last-child td{border-bottom:0}
+  .stx .ledger td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--gold);text-align:right}
+  .stx .ledger tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 45%,transparent)}
+
+  /* rarity showcase */
+  .stx .rarity{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:20px 0}
+  .stx .rar{border:1px solid var(--line);border-radius:4px;padding:14px 10px;text-align:center;background:var(--panel)}
+  .stx .rar .name{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+  .stx .rar .odds{font-family:var(--serif);font-weight:700;font-size:19px;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+  .stx .rar .mult{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .stx .rar.normal{border-top:3px solid var(--r-normal)} .stx .rar.normal .name,.stx .rar.normal .odds{color:var(--r-normal)}
+  .stx .rar.superior{border-top:3px solid var(--r-superior)} .stx .rar.superior .name,.stx .rar.superior .odds{color:var(--r-superior)}
+  .stx .rar.flawless{border-top:3px solid var(--r-flawless)} .stx .rar.flawless .name,.stx .rar.flawless .odds{color:var(--r-flawless)}
+  .stx .rar.epic{border-top:3px solid var(--r-epic)} .stx .rar.epic .name,.stx .rar.epic .odds{color:var(--r-epic)}
+  .stx .rar.legendary{border-top:3px solid var(--r-legendary)} .stx .rar.legendary .name,.stx .rar.legendary .odds{color:var(--r-legendary)}
+
+  /* takeaway grid for Sword Forge */
+  .stx .forge-note{background:
+      radial-gradient(140% 120% at 100% 0%, color-mix(in srgb,var(--ember) 14%,transparent),transparent 55%),
+      var(--panel);border:1px solid var(--line);border-radius:4px;padding:26px;margin-top:8px}
+
+  .stx .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.stx .two,.stx .rarity{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.stx .two,.stx .rarity{grid-template-columns:1fr}.stx .statline .s{flex-basis:45%}}
+
+  .stx .toggle{position:fixed;top:14px;right:14px;z-index:10;font-family:var(--mono);font-size:11px;
+    letter-spacing:.1em;text-transform:uppercase;background:var(--panel);color:var(--ink-soft);
+    border:1px solid var(--line);border-radius:20px;padding:7px 14px;cursor:pointer}
+  .stx .toggle:hover{color:var(--ember);border-color:var(--ember)}
+
+  .stx footer{padding:40px 0 64px;text-align:center;color:var(--ink-soft);font-family:var(--mono);
+    font-size:11.5px;letter-spacing:.06em}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="stx">
+  <button class="toggle" id="stx-toggle" aria-label="Toggle light and dark">⚒ theme</button>
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Competitive Teardown · Craft-Shop Tycoon</p>
+      <h1>Shop&nbsp;Titans</h1>
+      <p class="sub">How a cozy-looking blacksmith sim earns <strong>$7M a year</strong> from ~48,000 players — and what a crafting game should steal from it.</p>
+      <div class="statline" role="list">
+        <div class="s" role="listitem"><div class="n">$7.0M</div><div class="l">Revenue / 12mo</div></div>
+        <div class="s" role="listitem"><div class="n">105k</div><div class="l">Downloads / 12mo</div></div>
+        <div class="s" role="listitem"><div class="n">$66.96</div><div class="l">Rev / Download</div></div>
+        <div class="s" role="listitem"><div class="n">16%</div><div class="l">D30 Retention</div></div>
+        <div class="s" role="listitem"><div class="n">~48k</div><div class="l">Monthly Actives</div></div>
+      </div>
+      <p class="meta-row">Kabam Games · Live since 2019 · iOS / Android / Steam / Epic · Sensor Tower est., trailing 12mo</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <section>
+      <p class="sec-eyebrow">Snapshot</p>
+      <h2>What kind of game this is</h2>
+      <p class="lede">A shopkeeping + crafting management sim with an idle/clicker rhythm and a hero-collection RPG bolted on. Craft gear, sell it to heroes, send heroes to farm the materials for better gear. <span class="src">yt-05</span> <span class="src">yt-01</span></p>
+      <ul>
+        <li><strong>Lane:</strong> craft-shop tycoon, cozy surface, whale-driven economy underneath. <span class="src assumed">assumed</span></li>
+        <li><strong>Scale:</strong> ~105k downloads &amp; ~$7.0M IAP revenue in 12 months; ~48k MAU. Small audience, extreme monetization. <span class="src">market-downloads-revenue</span> <span class="src">market-active-users</span></li>
+        <li><strong>Shape:</strong> mature 7-year live game, revenue flat-to-stable, near-zero paid user acquisition. <span class="src">market-downloads-revenue</span> <span class="src">market-acquisition</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">The Loop</p>
+      <h2>Craft → sell → quest → craft</h2>
+      <p>Tap Craft (a short timer), sell the item to a customer at the counter, bank gold; crit-crafts throw a <strong>“MASTERPIECE!”</strong> popup with an <em>Upgrade to EPIC</em> button. Timers run 2–3s early, ~35 min at Tier 6. Selling spends <strong>Energy</strong>, regained through customer chatter, discounts, décor and pets. <span class="src">yt-01</span> <span class="src">yt-05</span> <span class="src">yt-03</span></p>
+      <p>Top players frame it as five things kept always-running: <span class="k">craft</span> (“slots always full and spinning”), <span class="k">upgrade</span>, <span class="k">rush</span> (spend energy to refill), <span class="k">sell</span>, <span class="k">quest</span>. <span class="src">web-02</span></p>
+      <div class="callout">
+        <p class="tag">Selling is its own mini-game</p>
+        <p style="margin:0">A ~75% <strong>Small Talk</strong> roll refills energy; <strong>Surcharge</strong> sells above base price for a slice of missing energy. Full throughput needs three caps aligned — shop size (max <strong>12 customers / 9 expansions</strong>), counter level (5 → 8 → 12), and <strong>90–105 display items</strong>. <span class="src">web-02</span></p>
+      </div>
+      <p class="lede">“You craft items, you sell them, then you do it all over again… a fancy clicker. Relaxing. Cozy.” <span class="src">yt-05</span></p>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">Progression &amp; Meta</p>
+      <h2>Seven systems feeding one triangle</h2>
+      <p>Shop expansion + furniture (racks = energy/selling, bins = crafting), blueprint/tier mastery, workers, a hero roster, <strong>Ascension</strong> specialization, guilds with shared town buildings, and seasons. The spine: crafting needs materials → materials come from hero quests → heroes need <em>your</em> crafted gear to clear quests → loot funds more crafting. Gear also <strong>wears out and must be repaired</strong> — the endgame's biggest gold sink. <span class="src">yt-02</span> <span class="src">yt-03</span> <span class="src">yt-05</span> <span class="src">web-10</span></p>
+
+      <h3>Crafting quality — the signature RNG</h3>
+      <p>Every craft rolls a quality tier with sharp odds and steep value multipliers. This is the mechanic closest to Sword Forge's own quality overlays — here are the real numbers to benchmark against. <span class="src">web-02</span></p>
+      <div class="rarity">
+        <div class="rar normal"><div class="name">Normal</div><div class="odds">95.04%</div><div class="mult">1×</div></div>
+        <div class="rar superior"><div class="name">Superior</div><div class="odds">3.97%</div><div class="mult">1.25×</div></div>
+        <div class="rar flawless"><div class="name">Flawless</div><div class="odds">0.67%</div><div class="mult">2×</div></div>
+        <div class="rar epic"><div class="name">Epic</div><div class="odds">0.27%</div><div class="mult">3×</div></div>
+        <div class="rar legendary"><div class="name">Legendary</div><div class="odds">0.05%</div><div class="mult">5×</div></div>
+      </div>
+      <p><strong>Multicraft</strong> (two items at once) is additive: +10% ascension, +5% at 21 stars, +25% events → up to 40%. <strong>Fusion</strong> upgrades quality (Superior/Flawless/Epic 100%, Legendary 50%) and is <strong>gem-only to rush</strong>. <span class="src">web-02</span></p>
+
+      <h3>Tier gating — the pacing skeleton</h3>
+      <ul>
+        <li>Shop equipment tiers unlock by merchant level: <strong>T2 @ L7 → T15 @ L65</strong>. <span class="src">web-02</span></li>
+        <li>Hero gear tiers unlock by hero level: <strong>T2 @ L3 → T15 @ L38</strong>. <span class="src">web-02</span></li>
+        <li>Ascension: first push <strong>15 stars in every line</strong> (~165 shards/line) for a 10% surcharge-energy cut, then specialize to 51 (titan bonuses) or 21 (multicraft). <span class="src">web-02</span></li>
+      </ul>
+      <p><strong>Power curve:</strong> fast early (shop L1→3 in ~12 min), tiers 4–5 quick to master, then a widely-reported paywall around L20+ and again ~L50 as repair costs outrun income. Endgame flips from “craft to progress” to “optimize the selling machine.” <span class="src">yt-01</span> <span class="src">yt-02</span> <span class="src">web-09</span> <span class="src">web-10</span> <span class="src">yt-03</span></p>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">Monetization</p>
+      <h2>The subscription is the fulcrum</h2>
+      <p>F2P + IAP + a monthly subscription; negligible ads. The community-named <strong>“Royal Merchant” (~$10/mo)</strong> lets you repair gear with gold and grants event rewards — without it, post-L50 repair costs make the game “unfun.” One player: a subbed account earned <strong>x30</strong> a free one. <span class="src">market-iap</span> <span class="src">web-10</span></p>
+      <div class="tw">
+      <table class="ledger">
+        <thead><tr><th>SKU</th><th>Price</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td>Gem Offers 1–5</td><td class="num">$1.99 – $29.99</td><td>hard-currency packs</td></tr>
+          <tr><td>30 Day Boost (“Royal Merchant”)</td><td class="num">$9.99/mo</td><td>subscription</td></tr>
+          <tr><td>Item bundles (Light → Marvelous)</td><td class="num">$3.99 – $19.99</td><td>offers</td></tr>
+          <tr><td>Gem sacks (community-reported)</td><td class="num">up to $99</td><td>hard-currency packs</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout gem">
+        <p class="tag">Gem-sink psychology</p>
+        <p style="margin:0 0 8px">Anchor rule pushed by top players: <strong>1 gem ≈ 10,000 gold</strong>, reframing every price as a bargain. Best sinks collapse a multi-day timer + gold cost + level gate at once:</p>
+        <ul style="margin:0">
+          <li>Shop expansion: 2,000 gems ≈ 100M gold / L50 / 1d23h → 4,000 gems ≈ 500M gold / L75 / 4d23h. <span class="src">yt-04</span></li>
+          <li>Crafting slots: 1,000 → 2,500 gems each. <span class="src">yt-04</span></li>
+          <li>50-gem “Magic Unlock” chest beats the 150-gem one on EV — trains cheap-tier repeat spend. <span class="src">yt-04</span></li>
+          <li>$100 ≈ 18,000 gems; starter bundles “totally worth buying.” <span class="src">yt-04</span></li>
+        </ul>
+      </div>
+      <p><strong>Currency sprawl</strong> — gold, gems, spin tickets, champion coins, guild coins, renown, fortune tokens, ascension shards — critics call it deliberately confusing (“Confusion Coins”). An always-on gem <em>+</em> button and an in-world king (Reinhold) pitch limited-time offers. <span class="src">yt-05</span> <span class="src">yt-01</span></p>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">Retention</p>
+      <h2>The hooks that bring players back</h2>
+      <div class="two">
+        <div>
+          <h3 style="margin-top:0">Daily &amp; time-gated</h3>
+          <ul>
+            <li>Timed collection reward (a 10:23h countdown seeded in the FTUE), daily boss, log-in-and-queue-8-crafts. <span class="src">yt-01</span> <span class="src">yt-02</span></li>
+            <li>Craft timers (to ~35 min), furniture-upgrade timers (guild-assist + gems), the gear-repair economy. <span class="src">yt-04</span> <span class="src">yt-03</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin-top:0">Social &amp; competitive</h3>
+          <ul>
+            <li>Guild town buildings — the shown high-level guild ran <strong>+25% craft / +50% resource / +51% worker</strong>. <span class="src">yt-02</span></li>
+            <li>Global + national + guild <strong>leaderboards</strong> drive spend-to-rank competition. <span class="src">web-10</span></li>
+          </ul>
+        </div>
+      </div>
+      <p><strong>Named live-ops:</strong> Tower of Titans (solo, monthly 2nd–30th, Titan's Soul reward); guild events King's Caprice, Dragon Invasion, Lost City of Gold (L25+); real-world Full Moon fusion windows. <span class="src">web-02</span></p>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">First Week → Day 30</p>
+      <h2>The onboarding, walked</h2>
+      <p><strong>D0:</strong> deep avatar customization <em>before</em> any gameplay; mentor “Wallace” narrates atomic actions via in-world dialogue (no modal overlays); one persistent goal (“Sell items to reach level 2”); the first crit teaches the <em>Upgrade to EPIC — Free</em> button; a separate Hero Creation flow recruits a combat hero; shop L1→3 in ~12 min. <span class="src">yt-01</span></p>
+      <p><strong>~L4:</strong> guilds + chat unlock (own guild costs 500 gems ≈ $5). <strong>D2–7:</strong> the craft→sell→quest triangle opens; “wash, rinse, repeat” sets in; monetization pressure builds ~L20+. <span class="src">yt-05</span> <span class="src">web-09</span></p>
+      <div class="statline" style="max-width:520px;margin:24px 0 6px">
+        <div class="s"><div class="n">56.5%</div><div class="l">D1 retention</div></div>
+        <div class="s"><div class="n">30.4%</div><div class="l">D7 retention</div></div>
+        <div class="s"><div class="n">16.0%</div><div class="l">D30 retention</div></div>
+        <div class="s"><div class="n">9.7%</div><div class="l">D60 retention</div></div>
+      </div>
+      <p style="font-family:var(--mono);font-size:12px;color:var(--ink-soft)">iOS US cohort · elite for the genre · <span class="src">market-retention</span></p>
+      <p><strong>Late game / whale path:</strong> buy the subscription for gold-repairs + event rewards, gem-rush shop expansion &amp; crafting slots, chase leaderboard rank. Churn wall ~L50: “money goes to zero from repair costs — pay or leave.” <span class="src">web-10</span> <span class="src">yt-04</span></p>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">Unlock &amp; Pacing</p>
+      <h2>What opens when</h2>
+      <div class="tw">
+      <table class="ledger">
+        <thead><tr><th>Milestone</th><th>Unlock</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>D0</td><td>avatar creation, craft→sell loop, first hero, L1→3</td><td><span class="src">yt-01</span></td></tr>
+          <tr><td>~L4</td><td>guilds + chat (own guild = 500 gems)</td><td><span class="src">yt-05</span></td></tr>
+          <tr><td>First ~2wk</td><td>master T4–5; ~1 day / building level; “decent” L7–8 baseline</td><td><span class="src">yt-02</span></td></tr>
+          <tr><td>Merchant L7</td><td>equipment Tier 2 (climbs to T15 @ L65)</td><td><span class="src">web-02</span></td></tr>
+          <tr><td>Merchant L20</td><td>Tower of Titans (Alpha); monetization pressure ramps</td><td><span class="src">web-02</span> <span class="src">web-09</span></td></tr>
+          <tr><td>Merchant L25</td><td>guild events (King's Caprice, Dragon Invasion, Lost City)</td><td><span class="src">web-02</span></td></tr>
+          <tr><td>~L44–50</td><td>higher hero tiers; repair-cost wall; subscription pressure peaks</td><td><span class="src">yt-04</span> <span class="src">web-10</span></td></tr>
+          <tr><td>Endgame</td><td>shop-layout optimization, roster perfection, leaderboard/season chase</td><td><span class="src">yt-03</span></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section>
+      <p class="sec-eyebrow">What Players Say</p>
+      <h2>Loved and resented, in the same breath</h2>
+      <p>Reviews are sharply <strong>bimodal</strong> — long-tenured fans versus a pay-to-win revolt. Android Play listing sits at <strong>3.95★</strong> with 94,846 five-stars against 25,314 one-stars; Metacritic reads <strong>42</strong> (“Generally Unfavorable”). <span class="src">review-playstore</span> <span class="src">web-09</span> <span class="src">market-reviews</span></p>
+      <div class="two">
+        <div class="callout" style="border-left-color:var(--r-superior)">
+          <p class="tag" style="color:var(--r-superior)">Praise</p>
+          <p style="margin:0">Cozy, relaxing; “complexity beyond casual”; genuinely playable F2P <em>with patience + a good guild</em>; deeply loyal veterans. <span class="src">yt-05</span> <span class="src">web-09</span></p>
+        </div>
+        <div class="callout" style="border-left-color:var(--r-legendary)">
+          <p class="tag" style="color:var(--r-legendary)">Complaints</p>
+          <p style="margin:0">Aggressive monetization (“puts up obstacles and sells you the solution”), repair-cost wall, currency bloat, paywalled friend-play, offer spam, thin story. <span class="src">web-09</span> <span class="src">web-10</span> <span class="src">yt-05</span></p>
+        </div>
+      </div>
+    </section>
+
+    <section style="border-bottom:0">
+      <p class="sec-eyebrow">So What — For Sword Forge</p>
+      <h2>What to steal, what to avoid</h2>
+      <div class="forge-note">
+        <ul style="margin:0">
+          <li><strong>Steal the interlock.</strong> The craft↔hero↔guild triangle is why 48k players pay $7M — every login has a next upgrade. Elite D30 (16%) is the engine, not install volume. <span class="src">yt-02</span> <span class="src">market-retention</span></li>
+          <li><strong>Steal the crit-craft juice.</strong> The MASTERPIECE popup + rarity multipliers (1×→5×) turn a routine craft into a slot-machine pull — directly applicable to Sword Forge's quality overlays. <span class="src">yt-01</span> <span class="src">web-02</span></li>
+          <li><strong>Steal the cozy-diegetic tutorial.</strong> Mentor dialogue teaching one atomic action at a time, no modal walls. <span class="src">yt-01</span></li>
+          <li><strong>Avoid the currency sprawl &amp; repair wall.</strong> The same aggression that prints money caps the audience and drives the ~L50 churn cliff. <span class="src">yt-05</span> <span class="src">web-10</span> <span class="src assumed">assumed</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>Sword Forge competitive research · Shop Titans deep teardown · built from Sensor Tower market data, 5 gameplay videos, 8 web guides, 400+ wiki pages &amp; the Play Store review corpus.<br>
+      Revenue figures are Sensor Tower estimates (IAP/store only). Source ids resolve in <span style="color:var(--gold)">design-doc.md</span>. Reddit sentiment unavailable (access-blocked).</p>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var b=document.getElementById('stx-toggle');
+    if(!b)return;
+    b.addEventListener('click',function(){
+      var r=document.documentElement;
+      var cur=r.getAttribute('data-theme');
+      if(!cur){var d=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;cur=d?'dark':'light';}
+      r.setAttribute('data-theme', cur==='dark'?'light':'dark');
+    });
+  })();
+</script>
