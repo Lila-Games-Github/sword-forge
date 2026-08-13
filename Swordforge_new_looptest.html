@@ -10,6 +10,9 @@
 body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 0; }
 
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
+/* SKELETON: a CSS grid of named zones (hud / map / bench). Two grid-template-areas — portrait
+   (default) and landscape (#frame.landscape) — flip the whole layout. Props are placed INSIDE
+   zones by the data-driven LAYOUT table (see the script), never by hardcoded pixels. */
 #frame {
     width: 568px;
     height: 1010px;
@@ -17,8 +20,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     position: relative; overflow: hidden;
     border-radius: 14px;
     box-shadow: 0 12px 34px rgba(0,0,0,0.6);
-    display: flex; flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 33.17% 1fr;
+    grid-template-areas: "hud" "map" "bench";
 }
+/* landscape (Phase 2 target: map + bench left, ore rail right) — provisional, parity-only for now */
+#frame.landscape {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 40% 1fr;
+    grid-template-areas: "hud" "map" "bench";
+}
+#frame > #hud { grid-area: hud; }
+#frame > #map-wrap { grid-area: map; min-height: 0; }
+#frame > #bench { grid-area: bench; min-height: 0; }
 
 /* ---- header / HUD ---- */
 #hud { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: linear-gradient(180deg,#2a2016,#1c150d); border-bottom: 1px solid #4a3a22; }
@@ -31,14 +46,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .gauge .fill.heat { background: linear-gradient(90deg,#b8541f,#ff8c2a,#ffd24a); }
 
 /* ---- MAP (copied look from SwordforgeV2) ---- */
-#map-wrap { flex: 0 0 auto; height: 335px; border-bottom: 3px solid #6a5636; overflow: hidden; background: #000; position: relative; }
+#map-wrap { border-bottom: 3px solid #6a5636; overflow: hidden; background: #000; position: relative; }
 #board { width: 100%; height: 100%; display: block; touch-action: none; }
 .zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
 .zoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid #6a5636; background: rgba(25,20,12,0.8); color: #f0e8d6; font-size: 18px; font-weight: bold; cursor: pointer; line-height: 1; }
 .map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
 
 /* ---- BENCH (crafting stations laid out in sequence) ---- */
-#bench { flex: 1 1 auto; position: relative; overflow: hidden;
+#bench { position: relative; overflow: hidden;
     background:
       radial-gradient(120% 80% at 50% -10%, #3a2c1c 0%, #261c11 55%, #1a130b 100%);
     box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
@@ -56,7 +71,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cap small { font-weight: normal; color: #b6a684; }
 
 /* ore tray (compact, top-left) */
-#oreShelf { position: absolute; left: 92px; top: 6px; width: 346px; height: 44px; z-index: 3;
+#oreShelf { position: absolute; height: 44px; z-index: 3;   /* left/top/width set by applyLayout (LAYOUT.*.oreShelf) */
     display: flex; gap: 3px; padding: 6px 5px 4px; border-radius: 9px;
     background: linear-gradient(180deg,#3a2c1b,#2a2013); border: 1px solid #5a4526; box-shadow: inset 0 -3px 6px rgba(0,0,0,.4); }
 #oreShelf .badge { top: -9px; left: -9px; }
@@ -66,21 +81,21 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .ore-slot span { font-size: 7px; font-weight: bold; color: #e4d6b4; max-width: 38px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* station image sizes (arranged per reference) */
-.mortar { width: 88px; }                 /* smaller */
+.mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
 .furnace { width: 100%; display: block; }/* smelter fills its station (station width = size) */
-.anvil { width: 154px; }
+.anvil { width: 100%; }
 
 /* bellowtop paddle overlaid exactly onto the smelter's own bellow */
 .bellowtop { position: absolute; left: 0; top: 0; width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }
 .bellow-tag { position: absolute; left: 15%; top: 70%; transform: translateX(-50%); z-index: 3; font-size: 9px; font-weight: bold; color: #e9dcbf; background: rgba(20,15,8,0.72); border: 1px solid #6a5636; border-radius: 6px; padding: 1px 5px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
 
-/* movable pestle — bigger, stands in the mortar, draggable */
-#pestle { position: absolute; width: 46px; z-index: 5; cursor: grab; touch-action: none; transform: rotate(10deg); transform-origin: bottom center; }
+/* movable pestle — bigger, stands in the mortar, draggable (width/pos from LAYOUT.*.pestle) */
+#pestle { position: absolute; z-index: 5; cursor: grab; touch-action: none; transform: rotate(10deg); transform-origin: bottom center; }
 #pestle img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
 #pestle:active { cursor: grabbing; }
 
 /* movable hammer — drag it; near the anvil it rotates & strikes the anvil top */
-#hammerTool { position: absolute; width: 52px; z-index: 8; cursor: grab; touch-action: none; transform: rotate(-50deg); transform-origin: 60% 82%; }
+#hammerTool { position: absolute; z-index: 8; cursor: grab; touch-action: none; transform: rotate(-50deg); transform-origin: 60% 82%; }   /* width/pos from LAYOUT.*.hammerTool */
 #hammerTool img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
 #hammerTool:active { cursor: grabbing; }
 #hammerTool.striking { animation: hammerStrike 0.3s ease-in-out infinite; }
@@ -190,6 +205,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes hammerPerfect { 0% { transform: translate(-50%,-50%) translate(0,0) scale(0.5); opacity: 0; } 15% { transform: translate(-50%,-50%) translate(0,-6px) scale(1.25); opacity: 1; } 55% { transform: translate(-50%,-50%) translate(calc(var(--hx)*0.55),-48px) scale(1); opacity: 1; } 100% { transform: translate(-50%,-50%) translate(var(--hx),18px) scale(0.85); opacity: 0; } }
 .hm-instr { text-align: center; font-weight: bold; color: #4a3623; font-family: 'Cinzel', serif; font-size: 12px; }
 .hm-miss { text-align: center; font-size: 11px; color: #8a5a2b; min-height: 14px; margin-top: 2px; }
+
+/* ---- wireframe / debug skeleton overlay (#frame.wire — via ?wire or the 'w' key) ---- */
+#frame.wire #hud, #frame.wire #map-wrap, #frame.wire #bench { outline: 2px dashed rgba(80,220,255,0.85); outline-offset: -2px; }
+#frame.wire .station, #frame.wire #pestle, #frame.wire #hammerTool, #frame.wire #dragon, #frame.wire #oreShelf, #frame.wire #bucketFront, #frame.wire #mug { outline: 1px solid rgba(255,120,180,0.95); }
+#frame.wire .station::after, #frame.wire #pestle::after, #frame.wire #hammerTool::after, #frame.wire #dragon::after, #frame.wire #oreShelf::after, #frame.wire #mug::after {
+    content: attr(id); position: absolute; left: 0; top: -12px; font-size: 8px; font-weight: bold; color: #ff9ecb; background: rgba(0,0,0,0.72); padding: 0 3px; border-radius: 3px; white-space: nowrap; z-index: 50; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -255,7 +276,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
 
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
-        <div class="station" id="stSmelt" style="left:188px; top:88px; width:288px;">
+        <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
             <img class="furnace" src="assets/forge/blast_furnace.png" alt="Smelter">
             <img class="bellowtop" id="bellowtop" src="assets/forge/blast_furnace_bellowtop.png" alt="Bellows">
@@ -266,38 +287,38 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
 
         <!-- 2 · Grind — mortar (smaller), left -->
-        <div class="station" id="stMortar" style="left:98px; top:196px; width:88px;">
+        <div class="station" id="stMortar">
             <span class="badge">2</span>
             <img class="mortar" src="assets/forge/mortar.png" alt="Mortar">
             <span class="cap">Grind <small>· mortar</small></span>
         </div>
         <!-- movable pestle, standing in the mortar -->
-        <div id="pestle" style="left:112px; top:96px;">
+        <div id="pestle">
             <img src="assets/forge/pestle.png" alt="Pestle">
         </div>
 
         <!-- movable hammer — strikes the anvil when dragged close -->
         <div id="hammerSpark"></div>
-        <div id="hammerTool" style="left:234px; top:388px;">
+        <div id="hammerTool">
             <img src="assets/forge/hammer.png" alt="Hammer">
         </div>
 
         <!-- 4 · Hammer — anvil, a bit in the centre -->
-        <div class="station" id="stAnvil" style="left:202px; top:512px; width:154px;">
+        <div class="station" id="stAnvil">
             <span class="badge">4</span>
             <img class="anvil" src="assets/forge/anvil.png" alt="Anvil">
             <span class="cap">Hammer <small>· anvil</small></span>
         </div>
 
         <!-- 5 · Quench — water bucket (Bucket3_back / _mug / _front share one canvas); the mug interleaves so it sits IN the bucket -->
-        <img id="bucketBack" class="bucket-layer" src="assets/forge/Bucket3_back.png" alt="" style="left:372px; top:450px; width:106px; z-index:2;">
-        <div id="mug" style="left:372px; top:450px; width:106px; z-index:3;"><img src="assets/forge/Bucket3_mug.png" alt="Mug"></div>
-        <img id="bucketFront" class="bucket-layer" src="assets/forge/Bucket3_front.png" alt="Water bucket" style="left:372px; top:450px; width:106px; z-index:4;">
+        <img id="bucketBack" class="bucket-layer" src="assets/forge/Bucket3_back.png" alt="" style="z-index:2;">
+        <div id="mug" style="z-index:3;"><img src="assets/forge/Bucket3_mug.png" alt="Mug"></div>
+        <img id="bucketFront" class="bucket-layer" src="assets/forge/Bucket3_front.png" alt="Water bucket" style="z-index:4;">
         <span class="badge" style="left:368px; top:446px;">5</span>
         <span class="bucket-cap" style="left:425px; top:566px;">Quench <small>· pour on the anvil</small></span>
 
         <!-- Dragon — free-roaming disruptor, bottom-left -->
-        <div id="dragon" style="left:90px; top:504px;">
+        <div id="dragon">
             <div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div>
             <span class="cap">🐉 drag me · fire resets the sword</span>
         </div>
@@ -354,6 +375,52 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 //  MAP  — ported from SwordforgeV2 (vector-path board + fog)
 // ============================================================
 const NS = 'http://www.w3.org/2000/svg';
+
+// ============================================================
+//  LAYOUT SKELETON — data-driven placement (Phase 0)
+//  Every prop is positioned as FRACTIONS of the bench zone. Two orientation
+//  variants; applyLayout() writes them to the DOM as percentages (so they
+//  auto-reflow on resize). To MOVE a prop, edit one number here — nothing else.
+//  Recorded ground truth + invariants: specs/2026-08-13-looptest-layout-skeleton.md
+// ============================================================
+const LAYOUT = {
+    portrait: {
+        oreShelf:   {x:0.162, y:0.009, w:0.609},
+        stSmelt:    {x:0.331, y:0.137, w:0.507},
+        stMortar:   {x:0.172, y:0.306, w:0.155},
+        pestle:     {x:0.197, y:0.150, w:0.081},
+        hammerTool: {x:0.412, y:0.605, w:0.092},
+        stAnvil:    {x:0.356, y:0.799, w:0.271},
+        bucket:     {x:0.655, y:0.702, w:0.187},
+        dragon:     {x:0.158, y:0.786, w:0.173}
+    },
+    landscape: {   // PROVISIONAL — parity + in-zone only; tuned to the hori anchor in Phase 2
+        oreShelf:   {x:0.760, y:0.040, w:0.210},
+        stSmelt:    {x:0.360, y:0.120, w:0.300},
+        stMortar:   {x:0.140, y:0.300, w:0.110},
+        pestle:     {x:0.150, y:0.150, w:0.060},
+        hammerTool: {x:0.230, y:0.560, w:0.070},
+        stAnvil:    {x:0.300, y:0.680, w:0.190},
+        bucket:     {x:0.560, y:0.640, w:0.140},
+        dragon:     {x:0.070, y:0.700, w:0.130}
+    }
+};
+// one LAYOUT key can drive several DOM ids (the bucket is three stacked layers sharing one box)
+const PROP_ELS = { bucket:['bucketBack','mug','bucketFront'] };
+function propIds(name){ return PROP_ELS[name] || [name]; }
+let SF_ORIENT = 'portrait';
+// pure: fraction entry + zone dims -> pixel box. No clamping — the self-test guards in-zone.
+function resolveLayout(name, orient, zoneW, zoneH){ const e=LAYOUT[orient] && LAYOUT[orient][name]; if(!e) return {x:0,y:0,w:0}; return { x:e.x*zoneW, y:e.y*zoneH, w:e.w*zoneW }; }
+// write every prop's position as a PERCENT of the bench zone
+function applyLayout(orient){ orient=orient||SF_ORIENT; const L=LAYOUT[orient]; if(!L) return; for(const name in L){ const e=L[name]; propIds(name).forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.style.left=(e.x*100).toFixed(3)+'%'; el.style.top=(e.y*100).toFixed(3)+'%'; el.style.width=(e.w*100).toFixed(3)+'%'; el.style.right='auto'; }); } }
+function setOrientation(orient){ SF_ORIENT=orient; const f=document.getElementById('frame'); if(f) f.classList.toggle('landscape', orient==='landscape'); applyLayout(orient); }
+// snap the movable mug back into the bucket, straight from LAYOUT (orientation-aware, no captured px)
+function homeMug(){ const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].bucket, mug=document.getElementById('mug'); if(!e||!mug) return; mug.style.left=(e.x*100).toFixed(3)+'%'; mug.style.top=(e.y*100).toFixed(3)+'%'; mug.style.width=(e.w*100).toFixed(3)+'%'; mug.style.right='auto'; }
+// bench-relative constants (scale-independent) — read from the live bench box
+function benchDims(){ const b=document.getElementById('bench'); return b?{w:b.clientWidth,h:b.clientHeight}:{w:568,h:641}; }
+function strikeDist(){ return benchDims().w*0.116; }   // was 66px @ bench width 568
+// ---- wireframe / debug overlay (?wire, or press 'w') — draw the skeleton, no art needed ----
+function toggleWireframe(on){ const f=document.getElementById('frame'); if(!f) return; if(on===undefined) f.classList.toggle('wire'); else f.classList.toggle('wire', !!on); }
 
 // The ores, each with its own unique vector path radiating from START.
 // First 4 go UP (left/right, single gentle curve); last 4 go DOWN with curvier S / C shaped paths (placeholder icons).
@@ -480,7 +547,7 @@ function wireHammer(){
     const h=document.getElementById('hammerTool'), anvil=document.getElementById('stAnvil'),
           spark=document.getElementById('hammerSpark'), bench=document.getElementById('bench');
     if(!h||!anvil||!bench) return;
-    const STRIKE_DIST=66;
+    const STRIKE_DIST=strikeDist();   // bench-relative (~0.116 × bench width, was 66px @568)
     function strikePoint(){ const br=bench.getBoundingClientRect(), ar=anvil.getBoundingClientRect(); return { x:ar.left+ar.width*0.50-br.left, y:ar.top+ar.height*0.16-br.top }; }  // anvil top face
     function check(){
         const br=bench.getBoundingClientRect(), hr=h.getBoundingClientRect();
@@ -502,15 +569,14 @@ function wireHammer(){
 const GRIND_RATE=0.5, SMELT_TIME=5, HEAT_RISE=42, BASE_HEAT=26, SWORD_SPEED=0.5, PULL_SPEED=20, HEAT_DECAY=10, CRAWL_MIN=0.24;   // PULL_SPEED slow for fine control; HEAT_DECAY 10/s → 100→0 in 10s; CRAWL_MIN = the sword still creeps (0.24× speed) at heat 0 — 2× the old 0.12 floor
 const ALIGN_MAX=34, ALIGN_EPIC=9, ALIGN_FINE=20;
 const HAMMER_RING_MS=750, HAMMER_GAP_MS=380;   // hammer-minigame timing (ported from swordforgeV2)
-const TOUCH_LIFT=72;   // on TOUCH, float a dragged item this many px above the finger so it isn't hidden under it (mouse/pen = 0)
-function dragLift(e){ return (e && e.pointerType==='touch') ? TOUCH_LIFT : 0; }   // how centred the sword sits on a trait → tier: ≤9 Epic, ≤20 Fine, ≤34 Weak
+function dragLift(e){ return (e && e.pointerType==='touch') ? benchDims().h*0.112 : 0; }   // on TOUCH, float a dragged item ~11% of bench height above the finger (was 72px @641); mouse/pen = 0
 let segs=[];                 // stacked route: [{ore,d,len,origin:{x,y},tPct}]  (tPct = 0.5+0.5*grind of that ore's path)
 let sword={seg:0, frac:0};   // sword position along the route
 let melt=null;               // accumulated melt: {heat,smeltT0,stage:'smelting'|'hot'|'onAnvil',reachedTrait,acquiredTrait}
 let prep=null;               // ore being prepped in the mortar: {ore,grind}
 let pull={x:0,y:0};          // dragon-fire drag: an offset applied to the WHOLE rendered route (sword + remaining path + ✕)
 let bellowing=false, pestleGrinding=false, dragonBreathing=false, retreating=false, gateReady=false;
-let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, mugRest={x:372,y:450}, waterTimer=null;
+let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, waterTimer=null;
 
 function benchEl(){ return document.getElementById('bench'); }
 function benchRect(el){ const b=benchEl().getBoundingClientRect(), r=el.getBoundingClientRect(); return {L:r.left-b.left,T:r.top-b.top,R:r.right-b.left,B:r.bottom-b.top}; }
@@ -611,7 +677,7 @@ function hmResolve(el,ok){ if(el._missId) clearTimeout(el._missId); if(ok){ hmHi
 function hmPerfect(left,top){ const layer=document.getElementById('hm-targets'); if(!layer) return; const t=document.createElement('div'); t.className='hammer-perfect'; t.textContent='Perfect!'; t.style.left=left; t.style.top=top; const hx=(60+Math.random()*80)*(Math.random()<0.5?-1:1); t.style.setProperty('--hx',hx+'px'); layer.appendChild(t); setTimeout(()=>t.remove(),950); }
 function hmAdvance(){ if(hmStage===0){ hmStage=1; hmIdx=0; document.getElementById('hm-img').src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png'; hmTimeout(hmSpawn,550); } else { document.getElementById('hm-instr').textContent='Blade shaped!'; hmTimeout(finishBlade,900); } }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):''; const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged a '+hmShape+'!<br><span style="font-size:26px;">'+syms+'</span><br><span style="font-size:12px;color:#c0a48a;">'+hmHit+' clean strikes'+(hmMiss?' · '+hmMiss+' misses':'')+'</span>'; el.classList.add('show'); setTimeout(resetRun,2600); }
-function resetRun(){ segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ mugEl.style.left=mugRest.x+'px'; mugEl.style.top=mugRest.y+'px'; mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+function resetRun(){ segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -688,11 +754,11 @@ function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
     m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-40,Math.min(b.width-m.offsetWidth+40,x)); y=Math.max(-40,Math.min(b.height-m.offsetHeight+40,y)); m.style.left=x+'px'; m.style.top=y+'px';
         if(mugOverAnvil() && canPourQuench()){ m.classList.add('pouring'); showWaterBurst(); tryAcquire(); }   // pour → quench + acquire (fires once: tryAcquire clears reachedTrait)
         else if(!mugOverAnvil()){ m.classList.remove('pouring'); } });
-    const end=()=>{ if(!drag) return; drag=false; m.style.left=mugRest.x+'px'; m.style.top=mugRest.y+'px'; m.style.zIndex=3; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
+    const end=()=>{ if(!drag) return; drag=false; homeMug(); m.style.zIndex=3; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
     m.addEventListener('pointerup',end); m.addEventListener('pointercancel',end); }
 
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
-    mugRest={x:parseFloat(mugEl.style.left)||372, y:parseFloat(mugEl.style.top)||450};
+    setOrientation('portrait');   // place all props from LAYOUT (data-driven; no hardcoded px)
     wireOreTray(); wirePestle(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
     hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
     requestAnimationFrame(tick);
@@ -703,7 +769,35 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
         mugState:()=>({over:mugOverAnvil(), canPour:canPourQuench(), pouring:mugEl.classList.contains('pouring')}), pour:()=>{ if(canPourQuench()){ mugEl.classList.add('pouring'); showWaterBurst(); tryAcquire(); return true; } return false; } };
 }
 
-window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); });
+// ============================================================
+//  LAYOUT SELF-TEST — drift + in-zone + parity guard (Phase 0)
+//  Runs only with ?test in the URL. Single source of truth for the
+//  recorded portrait LAYOUT is specs/2026-08-13-looptest-layout-skeleton.md.
+// ============================================================
+function runLayoutSelfTest(){
+    const EPS=0.03, fails=[];
+    const RECORDED={ oreShelf:{x:0.162,y:0.009,w:0.609}, stSmelt:{x:0.331,y:0.137,w:0.507}, stMortar:{x:0.172,y:0.306,w:0.155}, pestle:{x:0.197,y:0.150,w:0.081}, hammerTool:{x:0.412,y:0.605,w:0.092}, stAnvil:{x:0.356,y:0.799,w:0.271}, bucket:{x:0.655,y:0.702,w:0.187}, dragon:{x:0.158,y:0.786,w:0.173} };
+    if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
+    if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
+    if(!fails.length){
+        const pk=Object.keys(LAYOUT.portrait).sort(), lk=Object.keys(LAYOUT.landscape).sort();
+        if(pk.join(',')!==lk.join(',')) fails.push('parity: ['+pk+'] vs ['+lk+']');
+        ['portrait','landscape'].forEach(o=>{ for(const k in LAYOUT[o]){ const b=resolveLayout(k,o,1,1);
+            if(!(b.x>=-EPS && b.y>=-EPS && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
+        for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.portrait[k]; if(!a){ fails.push('missing portrait.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
+        const rl=resolveLayout('stSmelt','portrait',568,641);   // independent truth: inline was left:188px width:288px
+        if(Math.abs(rl.x-188)>0.6) fails.push('resolve x '+rl.x+' != 188'); if(Math.abs(rl.w-288)>0.6) fails.push('resolve w '+rl.w+' != 288');
+    }
+    const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
+    return { pass, fails };
+}
+
+window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics();
+    if(window.SFM){ window.SFM.setOrientation=setOrientation; window.SFM.applyLayout=applyLayout; window.SFM.runLayoutSelfTest=runLayoutSelfTest; window.SFM.toggleWireframe=toggleWireframe; }
+    if(location.search.indexOf('wire')>=0) toggleWireframe(true);
+    if(location.search.indexOf('test')>=0) runLayoutSelfTest();
+});
+window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
 window.addEventListener('resize', ()=>{ setView(); });
 </script>
 </body>
