@@ -46,22 +46,25 @@ grid-template-areas:
   background), ore icon + small bottom-corner count badge, no name labels.
 - **Bench**: the diorama, props spread horizontally (below).
 
-## LAYOUT — landscape (RECORDED, loop r10)
+## LAYOUT — landscape (RECORDED, loop r12)
 
 Fractions of the **bench** zone (`x`=left, `y`=top, `w`=width; edge bleeds allowed, self-test
-`EPS=0.08`). Drift test in `runLayoutSelfTest()` asserts `LAYOUT.landscape == RECORDED` (key-set +
-per-value) and the `bucket` resolveLayout math. Parity: `LAYOUT.portrait` keys == `LAYOUT.landscape` keys.
+`EPS=0.08`, with a `-0.35` up-bleed exemption for `stSmelt`+`dragon`). Drift test in
+`runLayoutSelfTest()` asserts `LAYOUT.landscape == RECORDED` (key-set + per-value) and the `bucket`
+resolveLayout math. Parity: `LAYOUT.portrait` keys == `LAYOUT.landscape` keys. **r11–r12 sizes are
+owner-directed and deliberately exceed the anchor element-% (bigger hero props) — the objective
+element_size gate no longer applies to these; the owner's composition wins.**
 
-| Prop (id)     | x     | y     | w    | anchor placement |
+| Prop (id)     | x     | y     | w    | placement (owner-directed r11–r12) |
 |---------------|-------|-------|------|------------------|
-| `stSmelt`     | 0.48  | -0.08 | 0.21 | furnace, dominant hero, centre (crucible bleeds up); w matched to anchor 0.18/frame |
+| `stSmelt`     | 0.43  | -0.30 | 0.315| furnace **1.5× hero** + moved 5% left; bleeds up into the map, base on the floor |
 | `stMortar`    | 0.72  | 0.12  | 0.28 | grinding wheel (anchor cut), right; bleeds into the rail |
 | `pestle`      | 0.75  | 0.24  | 0.09 | hidden in landscape (parity only) |
-| `hammerTool`  | 0.22  | 0.28  | 0.13 | hammer across the anvil |
-| `stAnvil`     | 0.15  | 0.34  | 0.20 | anvil, chunky left mass; w matched to anchor 0.17/frame |
-| `bucket`      | 0.01  | 0.60  | 0.15 | water bucket, bottom-left (below dragon, left of anvil); the mug sits in its mouth |
-| `mug`         | 0.02  | 0.70  | 0.06 | copper mug, bottom-left, inside the bucket |
-| `dragon`      | 0.00  | 0.02  | 0.19 | dragon whelp, far-left, breathing right |
+| `hammerTool`  | 0.22  | 0.28  | 0.195| hammer **1.5×**, across the anvil |
+| `stAnvil`     | 0.15  | 0.34  | 0.30 | anvil **1.5×**, chunky left mass |
+| `bucket`      | 0.01  | 0.50  | 0.15 | water bucket, bottom-left, moved up so it reads; z9 |
+| `mug`         | 0.03  | 0.55  | 0.12 | copper mug **2× + flipped**, in FRONT of the bucket resting on the water (z10) |
+| `dragon`      | -0.04 | -0.18 | 0.19 | dragon whelp, moved up-left (clips off the edge), **layered above everything** (z30); art 2×−15% via `.dragoncrop` |
 
 `stMortar` renders `assets/forge/anchor_grindwheel.png` (the cut) instead of the mortar; the
 `pestle` is hidden (`#pestle{display:none}`). The smelter (`assets/forge/anchor_furnace.png`) was
@@ -72,6 +75,19 @@ own element-% (furnace/anvil/wheel ≈ 1.0×). Bench floor warmed back toward th
 flagstone (`#bench::before` wash reduced to 0.09). Map palette fixed by neutralising the
 over-saturation filter (0.325 FAIL → 0.155) + a torn parchment deckle (`#board` clip-path) on a
 dark forge-wall backing (`#map-wrap`).
+
+**Owner-directed polish (r11–r12).** Sizes bumped past the anchor for a bigger hero read (furnace/
+anvil/hammer 1.5×, mug 2×, dragon 2× then −15%); furnace moved 5% left and its base anchored to the
+floor while it bleeds up into the map; map row extended 52% → **54%**. The **bellows was re-cut from
+the anchor** (`assets/forge/anchor_bellows.png`) — the prior asset was a flat paddle; the new cut is
+the full leather+wood accordion (nozzle + ring handle), placed front-right with the nozzle into the
+furnace (Opus audit **79/100 SHIP** after adding a `#stSmelt{z-index:3}` so the wheel stops occluding
+the ring). Layering: **dragon z30** (above everything), **furnace z3** (above the wheel), **mug z10 >
+bucket z9** (mug rests in front on the water). Removed a faint seam across the furnace at the map/
+bench boundary — three overlapping causes: `#map-wrap` `border-bottom`, the `#bench::before` grey
+wash (only covered the bench half of the crossing prop), and the `#map-wrap::after` bottom inset
+band; all cleared. **`?clean`** URL flag hides loop-test/tutorial chrome (badges, hint bar, gauge,
+station captions, zoom) for anchor-match renders — gameplay untouched.
 
 ## Anchor-cut assets (this phase)
 
