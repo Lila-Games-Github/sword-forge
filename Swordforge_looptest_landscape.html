@@ -147,6 +147,19 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cauldron { position: absolute; left: 22%; top: -13%; width: 56%; z-index: 3; -webkit-user-drag: none; pointer-events: none;
     filter: drop-shadow(0 0 10px rgba(255,150,40,.75)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); animation: cauldronGlow 2.4s ease-in-out infinite; }
 @keyframes cauldronGlow { 0%,100% { filter: drop-shadow(0 0 8px rgba(255,140,40,.6)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); } 50% { filter: drop-shadow(0 0 15px rgba(255,175,60,.9)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); } }
+/* ---- station JUICE (Phase B feel) ---- */
+#grindHot { position: absolute; left: 22%; top: 4%; width: 56%; height: 56%; z-index: 6; cursor: pointer; }
+.mortar.grinding { animation: grindShake .11s linear infinite; }   /* the wheel judders as it grinds */
+@keyframes grindShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-1px,.5px); } 75% { transform: translate(1px,-.5px); } }
+/* furnace heat glow — opacity is driven live from the heat gauge (0→1) */
+.furnaceGlow { position: absolute; left: 30%; top: 40%; width: 44%; height: 52%; z-index: 1; pointer-events: none; opacity: 0; border-radius: 50%;
+    background: radial-gradient(circle at 50% 62%, rgba(255,180,70,.85), rgba(255,120,30,.4) 45%, rgba(255,90,20,0) 72%); mix-blend-mode: screen; }
+.anvil.recoil { animation: anvilRecoil .12s ease-out; }   /* the anvil takes the blow */
+@keyframes anvilRecoil { 0% { transform: translateY(0); } 40% { transform: translateY(3px) scaleY(.985); } 100% { transform: translateY(0); } }
+#quenchFlash { position: absolute; z-index: 24; width: 90px; height: 60px; margin: -30px 0 0 -45px; border-radius: 50%; display: none; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.95), rgba(210,235,255,.5) 50%, rgba(190,220,255,0) 78%); }
+#quenchFlash.on { display: block; animation: quenchPop .5s ease-out; }
+@keyframes quenchPop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
 .anvil { width: 100%; }
 
 /* bellows — the anchor cut is a standalone prop parked at the furnace's left base (pump anim still applies) */
@@ -347,6 +360,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
             <img class="furnace" src="assets/forge/anchor_furnace.png" alt="Smelter">
+            <div class="furnaceGlow" id="furnaceGlow"></div>
             <img class="cauldron" src="assets/forge/anchor_cauldron.png" alt="Cauldron">
             <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.png" alt="Bellows">
             <span class="bellow-tag">Bellow</span>
@@ -359,6 +373,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="station" id="stMortar">
             <span class="badge">2</span>
             <img class="mortar" src="assets/forge/anchor_grindwheel.png" alt="Grinding wheel">
+            <div id="grindHot" title="Hold to spin the wheel — grinds the ore, extending its path"></div>
             <span class="cap">Grind <small>· wheel</small></span>
         </div>
         <!-- movable pestle, standing in the mortar -->
@@ -397,6 +412,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <img id="dragonFire" src="assets/forge/dragonfire.png" alt="">
         <div id="waterPour"></div>
         <div id="waterSplash"></div>
+        <div id="quenchFlash"></div>
         <div id="forgeResult"></div>
         <div id="sfHint"></div>
 
@@ -687,7 +703,7 @@ function hidePreviewPaths(){ previewEl.style.display='none'; previewSolidEl.styl
 function drawPrepPreview(){ if(!prep){ hidePreviewPaths(); if(segs.length) moveX(); else xmark.style.display='none'; return; } drawSegmentPreview(prep.ore, 0.5+0.5*prep.grind); }
 
 // --- orb visuals + placement (the #orb element shows the prep ore OR the extracted hot melt) ---
-function updateGauges(){ const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; }
+function updateGauges(){ const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; const fg=document.getElementById('furnaceGlow'); if(fg) fg.style.opacity=(h/100*0.9).toFixed(2); }   // furnace mouth glows brighter as it heats (bellows feedback)
 function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||melt.stage==='onAnvil')){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }
 function placeOrb(cx,cy){ orbEl.style.left=(cx-orbEl.offsetWidth/2)+'px'; orbEl.style.top=(cy-orbEl.offsetHeight/2)+'px'; }
 function orbCenter(){ const r=orbEl.getBoundingClientRect(), b=benchEl().getBoundingClientRect(); return {x:r.left+r.width/2-b.left, y:r.top+r.height/2-b.top}; }
@@ -705,7 +721,7 @@ function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
 
 // --- stage transitions ---
 function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
-function startPrep(oreId){ prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('Hold the <b>pestle</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+function startPrep(oreId){ prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
 function addPrep(){ ensureMelt(); addSegment(prep.ore,prep.grind); prep=null; hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ ensureMelt(); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the glowing orb.'); }
@@ -786,10 +802,14 @@ function advanceSword(dt){ if(!segs.length || !melt) return; let step=SWORD_SPEE
 let lastT=0;
 function tick(now){
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
-    if(pestleGrinding && prep){ prep.grind=Math.min(1,prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview(); }
-    if(melt && melt.stage==='smelting'){ if(bellowing) melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt); if(!gateReady && (now-melt.smeltT0)/1000>=SMELT_TIME) markGateReady(); updateGauges(); }
+    if(pestleGrinding && prep){ prep.grind=Math.min(1,prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();
+        fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
+    if(melt && melt.stage==='smelting'){ if(bellowing){ melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt);
+            fxAcc.bellow+=dt; if(fxAcc.bellow>0.13){ fxAcc.bellow=0; const m=fxPt(document.querySelector('#stSmelt .furnace'),0.5,0.60); fxBurst(m.x,m.y,{n:3,kind:'ember',ang:-Math.PI/2,spread:0.85,dist:42,size:5,dur:660}); } }
+        if(!gateReady && (now-melt.smeltT0)/1000>=SMELT_TIME) markGateReady(); updateGauges(); }
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
     const fireOnAnvil = dragonBreathing && fireHitsAnvil();
+    if(dragonBreathing){ fxAcc.fire+=dt; if(fxAcc.fire>0.08){ fxAcc.fire=0; const f=document.getElementById('dragonFire'); if(f&&f.style.display!=='none'){ const bb=benchEl().getBoundingClientRect(), fr=f.getBoundingClientRect(); fxBurst(fr.right-bb.left-6, fr.top+fr.height*0.5-bb.top, {n:2,kind:'ember',ang:0.1,spread:0.7,dist:28,size:4,dur:520}); } } }
     if(fireOnAnvil && segs.length){   // fire on the anvil PULLS the sword + its remaining path + ✕ toward the centre — gradual & controlled (only while it burns)
         const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy);
         if(dist>3){ if(!retreating){ retreating=true; hint('The dragon\'s fire pulls the sword &amp; its path toward the centre — hold to pull more, release to stop.'); }
@@ -797,7 +817,8 @@ function tick(now){
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); }
     } else {
         if(retreating) retreating=false;
-        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt); }   // hammer never fights the fire
+        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);   // hammer never fights the fire
+            fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
     }
     requestAnimationFrame(tick);
 }
@@ -815,6 +836,23 @@ function wireDragon(){ const d=document.getElementById('dragon'), bench=benchEl(
 
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
+// ---- JUICE: particle bursts + interactive grind wheel (Phase B station feel) ----
+let fxAcc={grind:0,bellow:0,fire:0,strike:0};
+function fxPt(el,fx,fy){ const b=benchEl().getBoundingClientRect(), r=el.getBoundingClientRect(); return {x:r.left+r.width*fx-b.left, y:r.top+r.height*fy-b.top}; }
+function fxBurst(x,y,o){ o=o||{}; const b=benchEl(), n=o.n||8, kind=o.kind||'spark', base=(o.ang!=null?o.ang:-Math.PI/2), spread=(o.spread!=null?o.spread:Math.PI*0.8);
+    for(let i=0;i<n;i++){ const a=base+(Math.random()-0.5)*spread, dist=(o.dist||34)*(0.5+Math.random()), dxp=Math.cos(a)*dist, dyp=Math.sin(a)*dist, sz=(o.size||5)*(0.6+Math.random()*0.8);
+        let bg='radial-gradient(circle at 40% 35%,#fff,#ffb733 55%,#ff7a1a 82%)', glow='rgba(255,140,30,.8)';
+        if(kind==='ember'){ bg='radial-gradient(circle,#ffe6a8,#ff7a1a 72%)'; }
+        if(kind==='steam'){ bg='radial-gradient(circle,rgba(242,247,255,.92),rgba(200,215,235,.12) 76%)'; glow='rgba(200,215,235,.5)'; }
+        const p=document.createElement('div'); p.style.cssText='position:absolute;left:'+x+'px;top:'+y+'px;width:'+sz.toFixed(1)+'px;height:'+sz.toFixed(1)+'px;border-radius:50%;z-index:28;pointer-events:none;background:'+bg+';filter:drop-shadow(0 0 3px '+glow+');';
+        b.appendChild(p); const dur=(o.dur||520)*(0.7+Math.random()*0.6), endS=(kind==='steam'?1.9:0.3), lift=(kind==='steam'?-26:14);
+        p.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+dxp.toFixed(1)+'px),calc(-50% + '+(dyp+lift).toFixed(1)+'px)) scale('+endS+')',opacity:0}],{duration:dur,easing:'cubic-bezier(.2,.6,.3,1)'}).onfinish=()=>p.remove(); }
+}
+function wireGrindWheel(){ const gh=document.getElementById('grindHot'), wheel=document.querySelector('#stMortar .mortar'); if(!gh) return;
+    const startG=e=>{ e.preventDefault(); if(prep){ pestleGrinding=true; if(wheel) wheel.classList.add('grinding'); } else hint('Drag an <b>ore</b> onto the <b>wheel</b> first, then hold to grind.'); };
+    const stopG=()=>{ pestleGrinding=false; if(wheel) wheel.classList.remove('grinding'); };
+    gh.addEventListener('pointerdown',startG); gh.addEventListener('pointerup',stopG); gh.addEventListener('pointercancel',stopG); gh.addEventListener('pointerleave',stopG); }
+
 function wireOrbDrag(){ let drag=false,dx,dy,sx,sy,moved;
     orbEl.addEventListener('pointerdown',e=>{ if(!orbDraggable()) return; e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY; const r=orbEl.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; orbEl.classList.add('dragging'); try{orbEl.setPointerCapture(e.pointerId);}catch(err){} });
     orbEl.addEventListener('pointermove',e=>{ if(!drag) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6) moved=true; const b=benchEl().getBoundingClientRect(); orbEl.style.left=(e.clientX-b.left-dx)+'px'; orbEl.style.top=(e.clientY-b.top-dy-dragLift(e))+'px'; });
@@ -828,7 +866,11 @@ function positionWater(){ const b=benchEl().getBoundingClientRect(), mr=mugEl.ge
     const sx=mr.left+mr.width*0.40-b.left, sy=mr.top+mr.height*0.60-b.top, topY=ar.top+ar.height*0.26-b.top;
     const w=document.getElementById('waterPour'); w.style.left=(sx-4.5)+'px'; w.style.top=sy+'px'; w.style.height=Math.max(18,topY-sy)+'px';
     const s=document.getElementById('waterSplash'); const o=(orbEl.style.display!=='none')?orbCenter():{x:sx,y:topY}; s.style.left=o.x+'px'; s.style.top=o.y+'px'; }
-function showWaterBurst(){ positionWater(); document.getElementById('waterPour').classList.add('on'); document.getElementById('waterSplash').classList.add('on'); if(waterTimer) clearTimeout(waterTimer); waterTimer=setTimeout(hideWater,950); }
+function showWaterBurst(){ positionWater(); document.getElementById('waterPour').classList.add('on'); document.getElementById('waterSplash').classList.add('on');
+    const o=(orbEl.style.display!=='none')?orbCenter():stationCenter(stAnvil,0.5,0.2);   // quench feedback: white flash + rising steam at the blade
+    const qf=document.getElementById('quenchFlash'); if(qf){ qf.style.left=o.x+'px'; qf.style.top=o.y+'px'; qf.classList.remove('on'); void qf.offsetWidth; qf.classList.add('on'); }
+    fxBurst(o.x,o.y,{n:12,kind:'steam',ang:-Math.PI/2,spread:1.7,dist:40,size:9,dur:920});
+    if(waterTimer) clearTimeout(waterTimer); waterTimer=setTimeout(hideWater,950); }
 function hideWater(){ const w=document.getElementById('waterPour'), s=document.getElementById('waterSplash'); if(w) w.classList.remove('on'); if(s) s.classList.remove('on'); if(mugEl) mugEl.classList.remove('pouring'); if(waterTimer){ clearTimeout(waterTimer); waterTimer=null; } }
 function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
     m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
@@ -840,7 +882,7 @@ function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
 
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
-    wireOreTray(); wirePestle(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
+    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
     hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
     requestAnimationFrame(tick);
     window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
