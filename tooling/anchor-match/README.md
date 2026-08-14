@@ -77,6 +77,27 @@ screen: headless render ->  screen_gate(anchor, spec-regions)  ->  per-region sc
 ```
 Never score a raw (un-keyed) prop. Never trust a single whole-frame SSIM (art differs at the pixel level).
 
+## Measured (2026-08-14) — the loop, proven
+
+`screen_gate` on the landscape build vs the hori anchor. Evidence in `evidence/` (review
+heatmaps + result JSON, MC-style).
+
+| Region | baseline hist | after rail cut | note |
+|--------|--------------:|---------------:|------|
+| rail | **0.552 FAIL** | **0.197 ok** | was near-black; cut the anchor's warm wood board (`assets/ui/rail_wood.png`) as the rail bg |
+| map | 0.324 FAIL | 0.324 FAIL | still the worst; partly region-box alignment vs the anchor map framing |
+| skilltree | 0.345 FAIL | 0.292 ok | improved as the rail wood toned the adjacent box |
+| hud_left | 0.254 ok | 0.254 ok | passing, but CSS plaques ≠ anchor's carved chrome — next cut |
+| **overall palette** | **75.1/100** | **80.6/100** | +5.5 from one objectively-targeted cut |
+
+This is the whole point: the gate localized the worst region (rail), an anchor-cut fixed it,
+and the re-measure moved the number — no subjective scoring. `luma_correlation` stays low
+across the board (~0.2): expected, because the render is different art than the anchor at the
+pixel level; that is why palette distance, not luminance correlation, is the headline.
+
+**Next objectively-targeted cuts (by current hist):** map framing (0.32), HUD plaque chrome
+(hud_left 0.25 + skilltree). Same recipe: cut from the anchor, re-run `screen_gate`, watch the number.
+
 ## Build on it (future)
 
 1. Wire `screen_gate` as the **loop metric** for anchor-match rounds (replaces the Opus 0–100 as
