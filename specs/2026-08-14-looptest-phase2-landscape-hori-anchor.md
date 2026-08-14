@@ -46,7 +46,7 @@ grid-template-areas:
   background), ore icon + small bottom-corner count badge, no name labels.
 - **Bench**: the diorama, props spread horizontally (below).
 
-## LAYOUT — landscape (RECORDED, loop r7)
+## LAYOUT — landscape (RECORDED, loop r10)
 
 Fractions of the **bench** zone (`x`=left, `y`=top, `w`=width; edge bleeds allowed, self-test
 `EPS=0.08`). Drift test in `runLayoutSelfTest()` asserts `LAYOUT.landscape == RECORDED` (key-set +
@@ -54,20 +54,24 @@ per-value) and the `bucket` resolveLayout math. Parity: `LAYOUT.portrait` keys =
 
 | Prop (id)     | x     | y     | w    | anchor placement |
 |---------------|-------|-------|------|------------------|
-| `stSmelt`     | 0.42  | -0.08 | 0.30 | furnace, dominant hero, centre (crucible bleeds up) |
-| `stMortar`    | 0.68  | 0.12  | 0.30 | grinding wheel (anchor cut), right |
+| `stSmelt`     | 0.48  | -0.08 | 0.21 | furnace, dominant hero, centre (crucible bleeds up); w matched to anchor 0.18/frame |
+| `stMortar`    | 0.72  | 0.12  | 0.28 | grinding wheel (anchor cut), right; bleeds into the rail |
 | `pestle`      | 0.75  | 0.24  | 0.09 | hidden in landscape (parity only) |
-| `hammerTool`  | 0.20  | 0.28  | 0.14 | hammer across the anvil |
-| `stAnvil`     | 0.10  | 0.34  | 0.27 | anvil, chunky left mass |
-| `bucket`      | 0.63  | 0.52  | 0.16 | water bucket, lower-right of the furnace |
-| `mug`         | 0.02  | 0.70  | 0.08 | copper pot, bottom-left corner |
+| `hammerTool`  | 0.22  | 0.28  | 0.13 | hammer across the anvil |
+| `stAnvil`     | 0.15  | 0.34  | 0.20 | anvil, chunky left mass; w matched to anchor 0.17/frame |
+| `bucket`      | 0.01  | 0.60  | 0.15 | water bucket, bottom-left (below dragon, left of anvil); the mug sits in its mouth |
+| `mug`         | 0.02  | 0.70  | 0.06 | copper mug, bottom-left, inside the bucket |
 | `dragon`      | 0.00  | 0.02  | 0.19 | dragon whelp, far-left, breathing right |
 
 `stMortar` renders `assets/forge/anchor_grindwheel.png` (the cut) instead of the mortar; the
-`pestle` is hidden (`#pestle{display:none}`). A glowing **cauldron** (`assets/forge/anchor_cauldron.png`,
-cut from the anchor) is seated on the furnace crown as `.cauldron` inside `#stSmelt` (decorative,
-not a LAYOUT key — keeps the 8-key parity). Bench floor is cooled toward grey flagstone via
-`#bench::before`.
+`pestle` is hidden (`#pestle{display:none}`). The smelter (`assets/forge/anchor_furnace.png`) was
+**re-cut from the anchor** (r10) as one tall unit — tapered stone tower + crossed A-frame + the
+molten **pot baked into the flared rim** — so the separate `.cauldron` overlay is now
+`display:none` (Opus art-director audit 38→71→80/100). Element-size widths matched to the anchor's
+own element-% (furnace/anvil/wheel ≈ 1.0×). Bench floor warmed back toward the anchor's brown
+flagstone (`#bench::before` wash reduced to 0.09). Map palette fixed by neutralising the
+over-saturation filter (0.325 FAIL → 0.155) + a torn parchment deckle (`#board` clip-path) on a
+dark forge-wall backing (`#map-wrap`).
 
 ## Anchor-cut assets (this phase)
 
@@ -98,11 +102,27 @@ also run via headless Edge with `--enable-logging=stderr` and grepped for the GR
 - **r6 → 77** — **HUD restructured** to the left wood-plaque column + Skill Tree top-right; **cauldron** on the furnace crown; cooled floor; rail darkened, labels dropped.
 - **r7 → 77** (map 87, bench 86, hud 62, rail 64) — rail wood-plank panel + tucked count badges; map torn-edge vignette; compass hidden; dragon un-clipped. **7-loop cap reached → stop.**
 
-Verdict at r7: "reads as the same blacksmith landscape screen." The **ceiling** is the HUD
-plate-chrome and the rail wood-grain/gem-cube treatment — bespoke UI *texture* art, not layout,
-which would need more image-gen for framed-plate and wood-grain assets. Deferred (see below). This
-matches the honest pre-run flag that 95% was unreachable in 7 loops and the cap would land in the low 80s
-on the art-heavy regions (map/bench 86–87) with the whole-screen average dragged down by HUD/rail chrome.
+### Objective-gate era (r8–r10) — subjective Opus score retired
+
+Owner rejected the drifting subjective 0–100 ("not matching"). Replaced it with **deterministic gates**
+(`tooling/anchor-match/`: `screen_gate` per-region palette histogram distance + `element_size` pixel-%),
+the subjective score kept only as an art-director tie-breaker. See that folder's README.
+
+- **r8** — pixel-% size fix: `element_size` exposed the earlier critic's overshoot (furnace 1.42×, anvil
+  1.35× too big; bellows 0.77× too small) → widths matched to the anchor's element-% (≈1.0×). Rail bg =
+  **anchor-cut wood board** (`assets/ui/rail_wood.png`, rail region 0.552→0.197). `#bench overflow:visible`
+  → cauldron/wheel cross-zone bleed. Furnace flipped.
+- **r9** — bellows enlarged (height ratio 0.54→0.99).
+- **r10** — map over-saturation filter neutralised (**map palette 0.325 FAIL → 0.155**); torn parchment
+  deckle on a dark-wall backing; HUD chrome = **anchor-cut grey-stone plaque** (9-slice `border-image`,
+  `assets/ui/plaque_stone.png`) + gold gear on Skill Tree; rail narrowed + dark wall gutter + filled board;
+  floor warmed; **bucket moved bottom-left** (mug seats in it); **smelter re-cut** as one tall seated-pot
+  unit (Opus audit 38→71→**80/100**); **dragon re-cut** to the anchor's winged whelp; **`?clean` render
+  mode** hides loop-test/tutorial chrome. **Overall palette 78→~81, all 9 regions PASS.**
+
+Verdict at r10: reads as the anchor blacksmith screen with objective per-region backing. Residual harsh-eye
+nits (not gated): HUD icons are emoji vs the anchor's shield/pouch/scroll; rail right column is ore vs the
+anchor's polished gems; the smelter pot reads slightly large vs the anchor's tower. Each needs a bespoke cut.
 
 ## Functional verification
 
