@@ -106,7 +106,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
 
 /* ---- BENCH (crafting stations laid out in sequence) ---- */
-#bench { position: relative; overflow: hidden;
+#bench { position: relative; overflow: visible;   /* let props BLEED across zones (furnace crucible into the map, wheel into the rail) like the anchor; #frame still clips the outer bounds */
     background: #1a130b url('assets/backgrounds/anchor_bench_bg.png') center/cover no-repeat;
     box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
 }
@@ -140,7 +140,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* station image sizes (arranged per reference) */
 .mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
-.furnace { width: 100%; display: block; }/* smelter fills its station (station width = size) */
+.furnace { width: 100%; display: block; transform: scaleX(-1); }/* smelter fills its station; flipped horizontally to match the anchor's orientation */
 /* glowing copper cauldron cut from the anchor, seated on the furnace crown (hero focal point) */
 .cauldron { position: absolute; left: 22%; top: -13%; width: 56%; z-index: 3; -webkit-user-drag: none; pointer-events: none;
     filter: drop-shadow(0 0 10px rgba(255,150,40,.75)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); animation: cauldronGlow 2.4s ease-in-out infinite; }
@@ -161,7 +161,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .anvil { width: 100%; }
 
 /* bellows — the anchor cut is a standalone prop parked at the furnace's left base (pump anim still applies) */
-.bellowtop { position: absolute; left: -22%; top: 58%; width: 33%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }   /* r3: smaller + tucked at the furnace's left base so the furnace stays the hero */
+.bellowtop { position: absolute; left: -34%; top: 50%; width: 62%; display: block; -webkit-user-drag: none; pointer-events: none; z-index: 2; }   /* r8: bigger vs the shrunk furnace (element_size: bellows was 0.77x too small; furnace also shrank so % raised) */
 .bellow-tag { position: absolute; left: -6%; top: 92%; transform: translateX(-50%); z-index: 3; font-size: 9px; font-weight: bold; color: #e9dcbf; background: rgba(20,15,8,0.72); border: 1px solid #6a5636; border-radius: 6px; padding: 1px 5px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
 
 /* movable pestle — bigger, stands in the mortar, draggable (width/pos from LAYOUT.*.pestle) */
@@ -227,8 +227,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #pestle.pounding { animation: pound .26s ease-in-out infinite; }
 @keyframes pound { 0%,100% { transform: rotate(10deg) translateY(0); } 50% { transform: rotate(10deg) translateY(8px); } }
 #bellowHot, #furnaceGate { position: absolute; z-index: 5; cursor: pointer; }
-#bellowHot { left: -22%; top: 56%; width: 33%; height: 30%; }   /* covers the standalone bellows prop (r3: resized) */
-#furnaceGate { left: 45%; top: 52%; width: 42%; height: 38%; border-radius: 9px; }   /* the anchor furnace's arched lava mouth */
+#bellowHot { left: -34%; top: 48%; width: 62%; height: 36%; }   /* covers the standalone bellows prop (r8: bigger) */
+#furnaceGate { left: 13%; top: 52%; width: 42%; height: 38%; border-radius: 9px; }   /* lava mouth mirrored to the left after the furnace flip */
 #furnaceGate.ready { box-shadow: inset 0 0 0 2px rgba(255,180,60,.9), 0 0 16px 4px rgba(255,150,40,.7); animation: gatePulse .95s ease-in-out infinite; }
 @keyframes gatePulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
 .bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
@@ -487,14 +487,14 @@ const LAYOUT = {
         dragon:     {x:-0.01,y:0.42,  w:0.17}   // dragon whelp, bleeds off the left, overlaps anvil flank
     },
     landscape: {   // hori-anchor composition (loop r0 start). bench = wide bottom band (rail excluded). x,y,w = fractions of bench.
-        stSmelt:    {x:0.42,  y:-0.08, w:0.30},  // furnace, dominant hero (r5: bigger, taller bench)
-        stMortar:   {x:0.68,  y:0.12,  w:0.30},  // grinding wheel (anchor cut), hugging the right edge (r6)
+        stSmelt:    {x:0.48,  y:-0.08, w:0.21},  // furnace, sized to anchor 0.18/frame (r8: element_size said 1.42x too big)
+        stMortar:   {x:0.72,  y:0.12,  w:0.28},  // grinding wheel, pushed right to BLEED into the rail (anchor overlap)
         pestle:     {x:0.75,  y:0.24,  w:0.09},  // vestigial (hidden in landscape) — kept in-zone for parity
-        hammerTool: {x:0.20,  y:0.28,  w:0.14},  // hammer leaning across the anvil
-        stAnvil:    {x:0.10,  y:0.34,  w:0.27},  // anvil, chunky left mass (r5: bigger)
-        bucket:     {x:0.63,  y:0.52,  w:0.16},  // water bucket, lower-right, off the furnace mouth (r6)
-        mug:        {x:0.02,  y:0.70,  w:0.08},  // copper pot, hard bottom-left corner (r6)
-        dragon:     {x:0.00,  y:0.02,  w:0.19}   // dragon whelp, far-left, off the clip + bigger (r7)
+        hammerTool: {x:0.22,  y:0.28,  w:0.13},  // hammer leaning across the anvil (follows the anvil)
+        stAnvil:    {x:0.15,  y:0.34,  w:0.20},  // anvil, sized to anchor 0.17/frame (r8: was 1.35x too big)
+        bucket:     {x:0.62,  y:0.52,  w:0.15},  // water bucket, lower-right of the furnace
+        mug:        {x:0.02,  y:0.70,  w:0.06},  // copper pot, sized to anchor 0.05/frame (r8: was 1.86x too big)
+        dragon:     {x:0.00,  y:0.02,  w:0.19}   // dragon whelp, bottom-left (art size = .dragoncrop, enlarged in CSS)
     }
 };
 // one LAYOUT key can drive several DOM ids (the bucket is three stacked layers sharing one box)
@@ -878,6 +878,16 @@ function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
     const end=()=>{ if(!drag) return; drag=false; homeMug(); m.style.zIndex=3; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
     m.addEventListener('pointerup',end); m.addEventListener('pointercancel',end); }
 
+// element footprints as FRACTIONS of #frame (the game side of the anchor pixel-% size match).
+// Compared against the anchor element boxes in tooling/anchor-match/spec.hori.json by element_size.py.
+const FRAME_BOX_SEL={ furnace:'#stSmelt .furnace', cauldron:'#stSmelt .cauldron', bellows:'#stSmelt .bellowtop',
+    anvil:'#stAnvil .anvil', wheel:'#stMortar .mortar', dragon:'#dragon .crop', bucket:'#bucketBack',
+    mug:'#mug', hud:'#hud', rail:'#rail', map:'#map-wrap', skilltree:'#skillBtn' };
+function frameBoxes(){ const f=document.getElementById('frame'); if(!f) return {}; const fr=f.getBoundingClientRect(); const out={};
+    for(const name in FRAME_BOX_SEL){ const el=document.querySelector(FRAME_BOX_SEL[name]); if(!el) continue; const r=el.getBoundingClientRect();
+        out[name]={ x:+((r.left-fr.left)/fr.width).toFixed(4), y:+((r.top-fr.top)/fr.height).toFixed(4), w:+(r.width/fr.width).toFixed(4), h:+(r.height/fr.height).toFixed(4) }; }
+    return out; }
+
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
     wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
@@ -897,7 +907,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.08, fails=[];   // allows intentional edge bleeds (furnace pokes above, dragon/anvil bleed left) while still catching gross off-zone errors
-    const RECORDED={ stSmelt:{x:0.42,y:-0.08,w:0.30}, stMortar:{x:0.68,y:0.12,w:0.30}, pestle:{x:0.75,y:0.24,w:0.09}, hammerTool:{x:0.20,y:0.28,w:0.14}, stAnvil:{x:0.10,y:0.34,w:0.27}, bucket:{x:0.63,y:0.52,w:0.16}, mug:{x:0.02,y:0.70,w:0.08}, dragon:{x:0.00,y:0.02,w:0.19} };   // hori-anchor LANDSCAPE composition, loop r6 (left-column HUD, cauldron, wheel/bucket/mug nudged)
+    const RECORDED={ stSmelt:{x:0.48,y:-0.08,w:0.21}, stMortar:{x:0.72,y:0.12,w:0.28}, pestle:{x:0.75,y:0.24,w:0.09}, hammerTool:{x:0.22,y:0.28,w:0.13}, stAnvil:{x:0.15,y:0.34,w:0.20}, bucket:{x:0.62,y:0.52,w:0.15}, mug:{x:0.02,y:0.70,w:0.06}, dragon:{x:0.00,y:0.02,w:0.19} };   // hori-anchor LANDSCAPE composition, loop r8 (element-size matched to anchor %: furnace/anvil/mug shrunk, wheel bleeds into rail)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
@@ -908,8 +918,8 @@ function runLayoutSelfTest(){
         const rk=Object.keys(RECORDED).sort(), lkk=Object.keys(LAYOUT.landscape).sort();
         if(rk.join(',')!==lkk.join(',')) fails.push('drift key-set: landscape ['+lkk+'] != recorded ['+rk+']');   // extra/removed key in landscape, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.landscape[k]; if(!a){ fails.push('missing landscape.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
-        const rl=resolveLayout('bucket','landscape',1000,500);   // resolveLayout math check: bucket 0.63*1000 / 0.52*500 / 0.16*1000
-        if(Math.abs(rl.x-630)>0.6||Math.abs(rl.y-260)>0.6||Math.abs(rl.w-160)>0.6) fails.push('resolve math '+JSON.stringify(rl));
+        const rl=resolveLayout('bucket','landscape',1000,500);   // resolveLayout math check: bucket 0.62*1000 / 0.52*500 / 0.15*1000
+        if(Math.abs(rl.x-620)>0.6||Math.abs(rl.y-260)>0.6||Math.abs(rl.w-150)>0.6) fails.push('resolve math '+JSON.stringify(rl));
     }
     const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
     return { pass, fails };
@@ -919,6 +929,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics();
     if(window.SFM){ window.SFM.setOrientation=setOrientation; window.SFM.applyLayout=applyLayout; window.SFM.runLayoutSelfTest=runLayoutSelfTest; window.SFM.toggleWireframe=toggleWireframe; }
     if(location.search.indexOf('wire')>=0) toggleWireframe(true);
     if(location.search.indexOf('test')>=0) runLayoutSelfTest();
+    if(location.search.indexOf('bbox')>=0) console.log('FRAMEBOXES '+JSON.stringify(frameBoxes()));
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
 window.addEventListener('resize', ()=>{ setView(); });

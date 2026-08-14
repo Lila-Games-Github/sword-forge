@@ -98,6 +98,33 @@ pixel level; that is why palette distance, not luminance correlation, is the hea
 **Next objectively-targeted cuts (by current hist):** map framing (0.32), HUD plaque chrome
 (hud_left 0.25 + skilltree). Same recipe: cut from the anchor, re-run `screen_gate`, watch the number.
 
+## Element SIZE match — the pixel-% method (added 2026-08-14)
+
+The owner's question: *"are we matching each element's pixel size as a % of the anchor vs the
+same % of the game?"* Answer was **no** — LAYOUT widths were eyeballed via the Opus critic. Now:
+
+- `SFM.frameBoxes()` (via `?bbox`) emits each game element's footprint as a fraction of `#frame`.
+- `spec.hori.json > element_boxes` records each element's footprint as a fraction of the anchor.
+- `element_size.py > size_deltas` reports `w_ratio = game_w / anchor_w` per element (>1 too big).
+
+First run exposed the drift the eye had caught — and the earlier critic's overcorrection:
+
+| element | before (ratio) | after r8 | fix |
+|---|--:|--:|---|
+| furnace | 1.42 too big | **0.99** | LAYOUT w 0.30 → 0.21 |
+| anvil | 1.35 too big | **1.00** | LAYOUT w 0.27 → 0.20 |
+| bellows | 0.77 too small | **1.01** | .bellowtop 33% → 62% (of the now-smaller furnace) |
+| wheel | 1.06 | **0.99** | w 0.30 → 0.28 |
+| mug | 1.86 | 1.39* | w 0.08 → 0.06 (*bbox inflated by the mug's rotate; visual size matches) |
+
+The Opus critic had said "props too small, make them bigger" and I overshot; the pixel-% method
+proved furnace/anvil were then 1.4x too big and corrected them objectively. This is the headline
+reason the earlier match was "off on sizes."
+
+Also this round (anchor overlaps + orientation, owner-directed): `#bench overflow: visible` so the
+furnace **cauldron bleeds up into the map** and the **wheel bleeds into the rail** (cross-zone
+overlap like the anchor); `.furnace` flipped `scaleX(-1)` to match the anchor smelter orientation.
+
 ## Build on it (future)
 
 1. Wire `screen_gate` as the **loop metric** for anchor-match rounds (replaces the Opus 0–100 as
