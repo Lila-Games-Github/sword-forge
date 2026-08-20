@@ -20,7 +20,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     position: relative; overflow: hidden;
     border-radius: 14px;
     box-shadow: 0 12px 34px rgba(0,0,0,0.6);
-    --rail-w: 13%;
+    --rail-w: 21%;   /* r20: right column widened to match the owner's UI reference (was 13%) */
     display: grid;
     grid-template-columns: 1fr var(--rail-w);
     grid-template-rows: auto 42% 1fr;
@@ -32,7 +32,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* landscape (hori-anchor target: wide map top, wide diorama bench bottom, ore rail down the right) */
 #frame.landscape {
     grid-template-columns: 1fr var(--rail-w);
-    grid-template-rows: 54% 1fr;   /* r11: map extended a bit to cover more area (owner feedback); enlarged props bleed up over it */
+    grid-template-rows: 75.5% 1fr;   /* r13: map grown to the reference 0.755 height (was 54%); props stand on the floor line and bleed up over the parchment */
     grid-template-areas:
       "map  rail"
       "bench rail";
@@ -58,8 +58,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .plaque.lvl { gap: 6px; } .plaque.lvl .pk { color: #ffcf6a; font-weight: 900; } .plaque.lvl .pv { font-size: 10px; letter-spacing: 1px; color: #d8bd86; }
 .plaque.btn { cursor: pointer; } .plaque.btn:active { transform: scale(.96); }
 .plaque.btn img { width: 22px; height: 22px; object-fit: contain; }
-#frame.landscape #skillBtn { position: absolute; right: 16px; top: 10px; z-index: 20; font-size: 15px; padding: 9px 16px; }   /* chunkier carved plaque, pushed to the far right (over the rail's dark top strip) so it fills the top-right region like the anchor */
-#frame.landscape #skillBtn .ic.gear { font-size: 21px; }
+/* r20: #skillBtn moved inside #statPanel in the right column (see the right-column block below). */
 #frame.landscape .map-tag { display: none; }   /* hide the debug map label under the floating HUD */
 #frame.landscape #compass { display: none; }   /* hori anchor has no compass rose */
 #frame.landscape .zoom button { width: 24px; height: 24px; font-size: 15px; }   /* smaller zoom controls */
@@ -103,7 +102,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame.landscape #map-wrap::after { content: ""; position: absolute; inset: 0; z-index: 8; pointer-events: none;   /* torn dark edge + corner vignette so the parchment reads like the anchor map, bled to the panel edges */
     box-shadow: inset 0 0 46px rgba(48,30,10,.5); }   /* r11b: dropped the strong bottom inset band — it drew a dark line across the whole map/bench boundary */
 #board { width: 100%; height: 100%; display: block; touch-action: none; }
-#mapArt { filter: saturate(1.08) contrast(1.04) brightness(1.0); }   /* near-neutral: over-saturation was skewing the map palette away from the anchor */
+/* r16: the painted territory art (#mapArt) was removed - the board is now the flat beige base rect, so traits/hazards can be placed truthfully instead of being hidden behind a picture. */
 .zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
 .zoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid #6a5636; background: rgba(25,20,12,0.8); color: #f0e8d6; font-size: 18px; font-weight: bold; cursor: pointer; line-height: 1; }
 .map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
@@ -178,6 +177,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hammerTool { position: absolute; z-index: 8; cursor: grab; touch-action: none; transform: rotate(0deg); transform-origin: 40% 80%; }   /* anchor hammer art is pre-rotated (head up-right); width/pos from LAYOUT.*.hammerTool */
 #hammerTool img { width: 100%; display: block; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
 #hammerTool:active { cursor: grabbing; }
+.dragging { z-index: 35 !important; }   /* r22: a prop dragged up over the map/HUD stays visible */
 #hammerTool.striking { animation: hammerStrike 0.3s ease-in-out infinite; }
 @keyframes hammerStrike { 0%,100% { transform: translateY(-5px) rotate(-8deg); } 55% { transform: translateY(7px) rotate(18deg); } }   /* tuned for the pre-rotated anchor hammer */
 #hammerSpark { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; pointer-events: none; display: none; z-index: 7; border-radius: 50%;
@@ -188,7 +188,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* cropped dragon (visible dragon sits off-centre on a big canvas) */
 .crop { position: relative; overflow: hidden; }
 .crop img { position: absolute; display: block; max-width: none; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(0,0,0,.55)); }
-.dragoncrop { width: 255px; height: 230px; overflow: visible; }   /* r11b: dragon 2x then -15% (owner feedback); new anchor dragon cut (winged, whole image) */
+.dragoncrop { width: 100%; aspect-ratio: 255 / 230; height: auto; overflow: visible; }   /* r13: was a hardcoded 255x230 px, so LAYOUT.dragon.w never sized it (only positioned it) - now %-driven like every other prop, aspect preserved */
 .dragoncrop img { width: 100%; height: 100%; object-fit: contain; left: 0; top: 0; }
 
 /* dragon — free-roaming, bottom-left, draggable */
@@ -233,7 +233,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes pound { 0%,100% { transform: rotate(10deg) translateY(0); } 50% { transform: rotate(10deg) translateY(8px); } }
 #bellowHot, #furnaceGate { position: absolute; z-index: 5; cursor: pointer; }
 #bellowHot { left: 52%; top: 60%; width: 78%; height: 34%; }   /* covers the fresh anchor-cut bellows (r12) */
-#furnaceGate { left: 12%; top: 58%; width: 30%; height: 28%; border-radius: 9px; }   /* lava mouth: centre-left arch of the re-cut tall smelter */
+#furnaceGate { left: 12%; top: 58%; width: 30%; height: 28%; border-radius: 9px; }   /* lava mouth: centre-left arch of the re-cut tall smelter. r23b: an attempted "realignment" to 41% was REVERTED - it came from a pixel scan whose furnace box was measured at an 800px viewport but applied to a 1080px render, so it scanned the wrong region. This original box is on the arch; owner confirmed. */
 #furnaceGate.ready { box-shadow: inset 0 0 0 2px rgba(255,180,60,.9), 0 0 16px 4px rgba(255,150,40,.7); animation: gatePulse .95s ease-in-out infinite; }
 @keyframes gatePulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
 .bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
@@ -246,8 +246,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes resultPop { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.7); } 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
 
 /* acquired-traits strip (top-right of the map) */
-#sfTraits { position: absolute; right: 8px; top: 8px; z-index: 6; display: flex; gap: 5px; font-size: 17px; line-height: 1; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 7px; padding: 3px 7px; min-height: 0; }
-#sfTraits:empty { display: none; }
+/* r21: #sfTraits (acquired-trait strip over the map) replaced by #bladePanel top-left. */
+/* blade integrity (r16) — hazard zones damage the active sword */
+#sfHp { position: absolute; right: 8px; top: 8px; z-index: 6; display: none; align-items: center; gap: 6px; padding: 4px 7px; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 8px; }
+#sfHp .lbl { font-size: 13px; color: #e8dcc0; }
+#sfHp .bar { display: block; width: 84px; height: 7px; background: #2a2016; border: 1px solid #6a5636; border-radius: 4px; overflow: hidden; }
+#sfHp .fill { display: block; height: 100%; width: 100%; background: #5fd35f; transition: width .12s linear, background .2s linear; }
+#sword.hurt { animation: swordHurt .5s ease-in-out infinite; }
+@keyframes swordHurt { 0%,100% { filter: drop-shadow(0 0 3px #ff3b30); } 50% { filter: drop-shadow(0 0 12px #ff3b30); } }
 
 /* ---- shape select + hammer minigame (ported from swordforgeV2) ---- */
 .sf-modal { position: absolute; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); }
@@ -293,26 +299,94 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     content: attr(id); position: absolute; left: 0; top: -12px; font-size: 8px; font-weight: bold; color: #ff9ecb; background: rgba(0,0,0,0.72); padding: 0 3px; border-radius: 3px; white-space: nowrap; z-index: 50; pointer-events: none; }
 
 /* ---- clean render mode (#frame.clean — via ?clean): hide loop-test/tutorial chrome absent from the anchor marketing art (step badges, station captions, zoom buttons, hint bar, heat gauge). Gameplay untouched; visual-only. ---- */
-#frame.clean .badge, #frame.clean .cap, #frame.clean .bucket-cap, #frame.clean .bellow-tag, #frame.clean .zoom, #frame.clean #sfHint, #frame.clean #heatMini, #frame.clean .map-tag { display: none !important; }
+#frame.clean .badge, #frame.clean .cap, #frame.clean .bucket-cap, #frame.clean .bellow-tag, #frame.clean .zoom, #frame.clean #sfHint, #frame.clean #heatMini, #frame.clean #sfHp, #frame.clean .map-tag { display: none !important; }
+
+/* ===== right column (r20) - structured from the owner's UI reference:
+   4 map-selection tabs overlapping the map edge, a day/gold/popularity box, SKILL TREE,
+   and a MATERIALS inventory holding every ore. Palette stays the build's warm parchment/wood
+   (the reference is a greyscale wireframe, so it drives structure + proportion, not colour). ===== */
+#frame.landscape > #rail { display: flex; flex-direction: column; gap: 8px; padding: 12px 9px 42px;
+    background: #1b120c url('assets/ui/rail_wood.png') center center / 100% 100% no-repeat; }
+.railCard { background: linear-gradient(180deg,#efe1bc,#d6c396); border: 3px solid #241a0c; border-radius: 9px;
+    box-shadow: 0 3px 7px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); }
+#statPanel { flex: 0 0 auto; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+.statRow { display: flex; gap: 6px; align-items: stretch; }
+.dayTile { flex: 0 0 34%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #f7edd4; border: 2px solid #241a0c; border-radius: 5px; padding: 3px 0; }
+.dayTile .n { font-family: 'Cinzel', serif; font-weight: 900; font-size: 21px; line-height: 1; color: #241a0c; }
+.dayTile .l { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1.5px; color: #4a381c; }
+.statCol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
+.statPill { display: flex; align-items: center; gap: 5px; background: #f7edd4; border: 2px solid #241a0c; border-radius: 5px;
+    padding: 3px 6px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #241a0c; white-space: nowrap; }
+.statPill .ic { font-size: 13px; }
+#skillBtn { width: 100%; display: block; text-align: center; cursor: pointer; font-family: 'Cinzel', serif; font-weight: 900;
+    font-size: 14px; letter-spacing: .6px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
+    border: 2px solid #241a0c; border-radius: 5px; padding: 5px 0; box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+#skillBtn:active { transform: scale(.97); }
+#matPanel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 7px; }
+#matTabs { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin: -14px 0 7px; }
+.matTab { height: 23px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
+    border-radius: 4px 4px 0 0; cursor: pointer; }
+.matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
+#xpRow { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+#xpRow .star { font-size: 16px; line-height: 1; color: #4a381c; }
+.xpBar { flex: 1 1 auto; height: 10px; background: #b3a075; border: 2px solid #241a0c; border-radius: 6px; overflow: hidden; }
+.xpFill { display: block; height: 100%; width: 45%; background: #f7edd4; }
+.matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
+    color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
+#frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
+    grid-auto-rows: minmax(0,1fr); gap: 5px; padding: 0; align-content: stretch; overflow: hidden; }
+#frame.landscape .ore-slot { background: linear-gradient(180deg,#c4b189,#ab9770); border: 2px solid #241a0c;
+    border-radius: 5px; box-shadow: inset 0 1px 0 rgba(255,255,255,.28); padding: 4px 2px; }
+#frame.landscape .ore-slot { justify-content: center; }
+#frame.landscape .ore-slot img { width: auto; height: auto; max-width: 100%; max-height: 100%; min-height: 0; flex: 0 1 auto; }
+#frame.landscape .ore-slot.empty { background: linear-gradient(180deg,#b6a37c,#9d8a64); }
+/* blade-trait panel (r21) - top-left, per the reference: 5 trait slots over cancel / save.
+   A trait of tier N fills N slots with its icon, so the row doubles as the blade's capacity meter. */
+#bladePanel { width: 156px; padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+#traitSlots { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
+.tslot { display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 5px;
+    background: #f7edd4; border: 2px solid #241a0c; font-size: 17px; line-height: 1; }
+.tslot:not(.filled)::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #7c6a45; }
+.bladeBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.bladeBtns button { height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 18px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
+    border: 2px solid #241a0c; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+.bladeBtns button:active { transform: scale(.96); }
+/* 4 map-selection tabs - sit on the map's right edge, tucked against the column (reference) */
+#mapTabs { position: absolute; z-index: 21; right: var(--rail-w); top: 2%; display: flex; flex-direction: column; gap: 3px; }
+.mapTab { width: 43px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-family: 'Cinzel', serif; font-weight: 900; font-size: 16px; color: #f7edd4;
+    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 6px 0 0 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.55); }
+.mapTab.is-on { background: linear-gradient(180deg,#a8823f,#7a5c28); color: #fff8e0; }
+.mapTab:active { transform: scale(.96); }
 </style>
 </head>
 <body>
 <div id="frame" class="landscape">
 
     <div id="hud">
-        <div class="plaque lvl"><span class="pk">Lv.15</span><span class="pv">LEVEL</span></div>
-        <div class="plaque"><span class="ic">☀️</span><span>Day 7</span></div>
-        <div class="plaque gold"><span class="ic">💰</span><span id="goldVal">12,500 G</span></div>
-        <button class="plaque btn" type="button" title="Recipe Book"><img src="assets/ui/icon_recipe.png" alt=""><span>Recipe Book</span></button>
-        <button class="plaque btn" type="button" title="Guide"><span class="ic">❓</span><span>Guide</span></button>
+        <div id="bladePanel" class="railCard">
+            <div id="traitSlots" title="Traits on this blade — a tier-N trait fills N slots"></div>
+            <div class="bladeBtns">
+                <button id="cancelCraft" type="button" title="Cancel crafting — resets the sword">✕</button>
+                <button id="saveBlade" type="button" title="Save (placeholder)">💾</button>
+            </div>
+        </div>
     </div>
-    <button id="skillBtn" class="plaque btn" type="button" title="Skill Tree"><span class="ic gear">⚙</span><span>Skill Tree</span></button>
+    <div id="mapTabs" title="Map selection (placeholder)">
+        <button class="mapTab is-on" type="button">1</button>
+        <button class="mapTab" type="button">2</button>
+        <button class="mapTab" type="button">3</button>
+        <button class="mapTab" type="button">4</button>
+    </div>
 
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
         <img id="compass" src="assets/map/compass.png" alt="">
-        <div id="sfTraits" title="Traits acquired on this blade"></div>
+        <div id="sfHp" title="Blade integrity — hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
         <svg id="board" viewBox="0 250 2800 1400" preserveAspectRatio="xMidYMid slice" aria-label="Crafting map">
             <defs>
                 <mask id="fogMask">
@@ -321,7 +395,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 </mask>
             </defs>
             <rect x="0" y="0" width="2800" height="1960" fill="#d8c8a0"/>
-            <image id="mapArt" x="0" y="325" width="2800" height="1310" href="assets/map/territory_hori.png" preserveAspectRatio="xMidYMid meet"/>
             <g id="terrain">
                 <g id="blobs"></g>
                 <g id="hazards"></g>
@@ -427,10 +500,30 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
     <!-- ===== Ore rail (right edge, vertical) ===== -->
     <div id="rail">
-        <div id="oreShelf">
-            <span class="badge">1</span>
-            <span class="shelf-cap">Ores</span>
-            <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
+        <div id="statPanel" class="railCard">
+            <div class="statRow">
+                <div class="dayTile"><span class="n" id="dayNum">4</span><span class="l">DAY</span></div>
+                <div class="statCol">
+                    <div class="statPill" title="Gold"><span class="ic">🪙</span><span id="goldVal">246</span></div>
+                    <div class="statPill" title="Popularity"><span class="ic">⭐</span><span id="popVal">9/15</span></div>
+                </div>
+            </div>
+            <button id="skillBtn" type="button" title="Skill Tree">SKILL TREE</button>
+        </div>
+        <div id="matPanel" class="railCard">
+            <div id="matTabs">
+                <button class="matTab is-on" type="button" title="Materials"></button>
+                <button class="matTab" type="button"></button>
+                <button class="matTab" type="button"></button>
+                <button class="matTab" type="button"></button>
+            </div>
+            <div id="xpRow"><span class="star">✦</span><span class="xpBar"><span class="xpFill"></span></span></div>
+            <div class="matHead">◆ MATERIALS ◆</div>
+            <div id="oreShelf">
+                <span class="badge">1</span>
+                <span class="shelf-cap">Ores</span>
+                <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
+            </div>
         </div>
     </div>
 
@@ -495,15 +588,15 @@ const LAYOUT = {
         mug:        {x:0.70, y:0.52,  w:0.17},  // copper mug, tipped over the bucket rim (CSS rotate)
         dragon:     {x:-0.01,y:0.42,  w:0.17}   // dragon whelp, bleeds off the left, overlaps anvil flank
     },
-    landscape: {   // hori-anchor composition (loop r0 start). bench = wide bottom band (rail excluded). x,y,w = fractions of bench.
-        stSmelt:    {x:0.43,  y:-0.30, w:0.315}, // r11: furnace 1.5x larger + moved 5% left (owner feedback); bleeds up into the map, base on the floor
-        stMortar:   {x:0.72,  y:0.12,  w:0.28},  // grinding wheel, pushed right to BLEED into the rail (anchor overlap)
-        pestle:     {x:0.75,  y:0.24,  w:0.09},  // vestigial (hidden in landscape) — kept in-zone for parity
-        hammerTool: {x:0.22,  y:0.28,  w:0.195}, // r11: hammer 1.5x (follows the anvil)
-        stAnvil:    {x:0.15,  y:0.34,  w:0.30},  // r11: anvil 1.5x larger (owner feedback)
-        bucket:     {x:0.01,  y:0.50,  w:0.15},  // r11b: water bucket moved up (owner: "so we know it's there"); mug nests inside it
-        mug:        {x:0.03,  y:0.55,  w:0.12},  // r11b: mug nested INTO the bucket (behind the front face, only the top shows); 2x + flipped
-        dragon:     {x:-0.04, y:-0.18, w:0.19}   // r11b: moved up-left (owner: "clipping off the boundary is fine"); art size = .dragoncrop (15% smaller in CSS)
+    landscape: {   // r13: sizes + positions matched to assets/Anchor-images/landscape-scale-ref.png. bench = wide bottom band (rail excluded). x,y,w = fractions of bench.
+        stSmelt:    {x:0.539, y:-0.816, w:0.24}, // r13: furnace scaled to the ref 0.190 of frame width (was 1.44x too big); bleeds up over the map, base on the floor
+        stMortar:   {x:0.795, y:-0.289, w:0.23}, // r15: grinder -30% (owner); grounded
+        pestle:     {x:0.837, y:0.300, w:0.053}, // vestigial (hidden in landscape) - kept in-zone for parity
+        hammerTool: {x:0.247, y:0.449, w:0.165}, // r15: hammer +75% (owner); anchored by its box top
+        stAnvil:    {x:0.187, y:-0.249, w:0.191}, // r15: anvil -20% (owner); grounded
+        bucket:     {x:0.019, y:0.041, w:0.171}, // r13: bucket was already on-scale (0.97x); x/y re-grounded to the new floor line
+        mug:        {x:0.054, y:-0.025, w:0.11}, // r14: mug 2x (owner); scaled about its centre so it stays seated in the bucket
+        dragon:     {x:0.081, y:-0.989, w:0.228} // r14: dragon 1.5x (owner); grounded, rises further over the map
     }
 };
 // one LAYOUT key can drive several DOM ids (the bucket is three stacked layers sharing one box)
@@ -530,32 +623,48 @@ const ORES = [
     { id:'iron',      name:'Iron',      color:'#8a5a33', img:'assets/forge/iron_ore.png',      d:'M0,0 C -80,-30 -170,-30 -240,-80' },
     { id:'gold',      name:'Gold',      color:'#d9b23a', img:'assets/forge/gold_ore.png',      d:'M0,0 C 80,-25 175,-25 245,-75' },
     { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', d:'M0,0 C -40,-60 -120,-110 -175,-175' },
-    // 4 new downward ores — curvier S / C paths; no art yet → generated placeholder icons (tinted by colour)
-    { id:'ember', name:'Ember', color:'#e0532a', img:'assets/forge/ember_ore.png', d:'M0,0 C 76,133 -57,228 -38,342 C -19,475 -228,513 -209,627' },   // S, ends down-left (~2× longer)
-    { id:'frost', name:'Frost', color:'#7fd0e6', img:'assets/forge/frost_ore.png', d:'M0,0 C -228,114 -247,418 -76,570 C -38,618 -57,656 -57,684' },  // C, bows left (~2× longer)
-    { id:'tide',  name:'Tide',  color:'#3a86c8', img:'assets/forge/tide_ore.png', d:'M0,0 C 228,114 247,418 76,570 C 38,618 57,656 57,684' },       // C, bows right (~2× longer)
-    { id:'gale',  name:'Gale',  color:'#9aa7b8', img:'assets/forge/gale_ore.png', d:'M0,0 C -76,133 57,228 38,342 C 19,475 228,513 209,627' }        // S, ends down-right (~2× longer)
+    // 4 downward ores — curvier S / C paths. r18/r19: every path coordinate scaled x0.5 twice (owner), so each of these routes now covers a QUARTER of its original distance.
+    { id:'ember', name:'Ember', color:'#e0532a', img:'assets/forge/ember_ore.png', d:'M0,0 C 19,33.25 -14.25,57 -9.5,85.5 C -4.75,118.75 -57,128.25 -52.25,156.75' },   // S, ends down-left (r19: halved again — now x0.25 of the original)
+    { id:'frost', name:'Frost', color:'#7fd0e6', img:'assets/forge/frost_ore.png', d:'M0,0 C -57,28.5 -61.75,104.5 -19,142.5 C -9.5,154.5 -14.25,164 -14.25,171' },  // C, bows left (r19: halved again — now x0.25 of the original)
+    { id:'tide',  name:'Tide',  color:'#3a86c8', img:'assets/forge/tide_ore.png', d:'M0,0 C 57,28.5 61.75,104.5 19,142.5 C 9.5,154.5 14.25,164 14.25,171' },       // C, bows right (r19: halved again — now x0.25 of the original)
+    { id:'gale',  name:'Gale',  color:'#9aa7b8', img:'assets/forge/gale_ore.png', d:'M0,0 C -19,33.25 14.25,57 9.5,85.5 C 4.75,118.75 57,128.25 52.25,156.75' }        // S, ends down-right (r19: halved again — now x0.25 of the original)
 ];
 const ORE_BY = {}; ORES.forEach(o => ORE_BY[o.id] = o);
 ORES.forEach(o => { if(!o.img) o.img = orePlaceholder(o.color); });   // ores without art get a generated placeholder gem icon
 function oreImg(id){ return (ORE_BY[id] && ORE_BY[id].img) || ('assets/forge/'+id+'_ore.png'); }
 function orePlaceholder(color){ return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><radialGradient id="g" cx="38%" cy="30%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/><stop offset="45%" stop-color="'+color+'"/><stop offset="100%" stop-color="#1a1209"/></radialGradient></defs><path d="M9 21 L19 8 L34 10 L42 25 L34 40 L15 38 Z" fill="url(#g)" stroke="#241a10" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 8 L24 22 L42 25" fill="none" stroke="#ffffff" stroke-opacity=".28" stroke-width="1.6"/></svg>'); }
 // each ore path ends at a signature trait (the 4 new ores map to 4 formerly-scattered traits)
-const ORE_TRAIT = { copper:'sharp', iron:'durable', gold:'noble', aluminium:'flexible', ember:'flame', frost:'ice', tide:'water', gale:'storm' };
+const ORE_TRAIT = { copper:'swift', iron:'durable', gold:'noble', aluminium:'flexible', ember:'fire', frost:'ice', tide:'water', gale:'gale' };   // r17: NO LONGER DRIVES TRAIT PLACEMENT (positions come from TRAIT_POS). Kept only so the ore->signature-trait idea survives the pending ore rework; sharp/flame/storm were repointed to swift/fire/gale so nothing dangles. NOTE the 'gale' ore and 'gale' trait now share a name.
 
-const TRAITS = [
-    { id:'durable', name:'Durable', symbol:'🛡️' }, { id:'cursed', name:'Cursed', symbol:'☠️' }, { id:'heavy', name:'Heavy', symbol:'⚓' }, { id:'balanced', name:'Balanced', symbol:'⚖️' },
-    { id:'floral', name:'Floral', symbol:'🌸' }, { id:'grace', name:'Grace', symbol:'✨' }, { id:'noble', name:'Noble', symbol:'👑' }, { id:'flexible', name:'Flexible', symbol:'〰️' },
-    { id:'sharp', name:'Sharp', symbol:'🔪' }, { id:'fury', name:'Fury', symbol:'💢' }, { id:'accurate', name:'Accurate', symbol:'🎯' }, { id:'luck', name:'Luck', symbol:'🍀' },
-    { id:'honor', name:'Honor', symbol:'🏅' }, { id:'endurance', name:'Endurance', symbol:'🔋' }, { id:'savage', name:'Savage', symbol:'🐅' }, { id:'cruel', name:'Cruel', symbol:'😈' },
-    { id:'blood', name:'Blood', symbol:'🩸' }, { id:'celestial', name:'Celestial', symbol:'☄️' }, { id:'storm', name:'Storm', symbol:'🌪️' }, { id:'ice', name:'Ice', symbol:'❄️' },
-    { id:'flame', name:'Flame', symbol:'🔥' }, { id:'water', name:'Water', symbol:'💧' }, { id:'lightning', name:'Lightning', symbol:'⚡' }, { id:'dark', name:'Dark', symbol:'🌑' }
+const TRAITS = [   // r17: catalog redrawn from the owner's trait-map sketch (25 traits).
+    // centre ring (inside the opening reveal)
+    { id:'swift', name:'Swift', symbol:'🪶' }, { id:'balanced', name:'Balanced', symbol:'⚖️' }, { id:'durable', name:'Durable', symbol:'🛡️' },
+    { id:'flexible', name:'Flexible', symbol:'〰️' }, { id:'heavy', name:'Heavy', symbol:'⚓' },
+    // outer field (in the fog)
+    { id:'celestial', name:'Celestial', symbol:'☄️' }, { id:'cloud', name:'Cloud', symbol:'☁️' }, { id:'rainbow', name:'Rainbow', symbol:'🌈' },
+    { id:'luck', name:'Luck', symbol:'🍀' }, { id:'lightning', name:'Lightning', symbol:'⚡' }, { id:'noble', name:'Noble', symbol:'👑' },
+    { id:'grace', name:'Grace', symbol:'✨' }, { id:'gale', name:'Gale', symbol:'🌪️' }, { id:'floral', name:'Floral', symbol:'🌸' },
+    { id:'fury', name:'Fury', symbol:'💢' }, { id:'ice', name:'Ice', symbol:'❄️' }, { id:'fire', name:'Fire', symbol:'🔥' },
+    { id:'water', name:'Water', symbol:'💧' }, { id:'magma', name:'Magma', symbol:'🌋' }, { id:'mist', name:'Mist', symbol:'🌫️' },
+    { id:'poison', name:'Poison', symbol:'🧪' }, { id:'savage', name:'Savage', symbol:'🐅' }, { id:'blood', name:'Blood', symbol:'🩸' },
+    { id:'cursed', name:'Cursed', symbol:'☠️' }, { id:'dark', name:'Dark', symbol:'🌑' }
 ];
+// Trait positions, measured off the owner's sketch in ITS OWN pixel space and converted here, so a
+// redrawn sketch is a re-measure rather than a rewrite. REF_C = where the sketch's 5 sector lines
+// converge (= home / START); REF_S = sketch px -> world units. The sketch's circle is the opening reveal.
+const REF_C = { x:1018, y:615 }, REF_S = 1.5;
+const TRAIT_POS = {
+    swift:{x:916,y:510}, balanced:{x:1131,y:510}, durable:{x:874,y:656}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},
+    celestial:{x:1085,y:41}, cloud:{x:633,y:150}, rainbow:{x:877,y:160}, luck:{x:1400,y:147}, lightning:{x:369,y:291},
+    noble:{x:1147,y:312}, grace:{x:1721,y:333}, gale:{x:776,y:361}, floral:{x:1400,y:435}, fury:{x:200,y:517},
+    ice:{x:1775,y:579}, fire:{x:632,y:681}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
+    poison:{x:996,y:939}, savage:{x:369,y:1007}, blood:{x:1379,y:1041}, cursed:{x:640,y:1074}, dark:{x:1037,y:1175}
+};
 const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
 
 const WORLD_W = 2800, WORLD_H = 1960, CENTER = { x:1400, y:980 }, START = { x:1400, y:1030 };   // world doubled (2×) & hub recentred; the 4 original ore paths are START-relative so sharp/durable/noble/flexible are unchanged
-const REVEAL_R = 120, INIT_REVEAL = 1500, TRAIT_R = 30;   // landscape: reveal covers the whole framed band so the baked anchor map (territory_hori.png) reads fully
-const INIT_W = 2800, MIN_W = 360, MAX_W = 2800, SWORD_SY = 0.50;   // landscape: full-width framing so the whole anchor treasure-map (fire→tornado, all icons) is visible
+const REVEAL_R = 120, INIT_REVEAL = 430, TRAIT_R = 30;   // r16: opening reveal now lights ONLY the centre (was 1500 = effectively no fog, sized for the baked map). The 5 starter traits sit inside it; everything else waits in the fog.
+const INIT_W = 1100, MIN_W = 360, MAX_W = 2800, SWORD_SY = 0.50;   // r16: framing tightened (was 2800, sized to show the whole painting). At 2800 a trait disc rendered ~6px and its '?' was illegible; MAX_W still allows zooming right out.
 let aspect = 1.4;
 let view = { x: START.x - INIT_W/2, y: START.y - INIT_W*aspect*SWORD_SY, w: INIT_W };
 let seed = 20260811;
@@ -608,20 +717,19 @@ function initMap(){
     const tans=['#cdbb8e','#c4ac7c','#d6c7a1','#bda877','#c9b98c'];
     for(let i=0;i<520;i++){ const bx=rnd()*WORLD_W, by=rnd()*WORLD_H, rx=36+rnd()*128, ry=24+rnd()*86; const e=document.createElementNS(NS,'ellipse'); e.setAttribute('cx',bx); e.setAttribute('cy',by); e.setAttribute('rx',rx); e.setAttribute('ry',ry); e.setAttribute('fill', tans[Math.floor(rnd()*tans.length)]); e.setAttribute('opacity',(0.1+rnd()*0.22).toFixed(2)); blobsG.appendChild(e); }
 
-    // traits: 8 signature traits at the ore-path ends + 16 scattered — ALL start hidden in the fog as '?' (identity revealed only on acquisition)
-    traitsG.innerHTML=''; traitsG.setAttribute('display','none');   // landscape look: baked anchor map already shows the element icons; hide the game's '?' trait discs (logic preserved)
-    const centralIds = Object.values(ORE_TRAIT);
-    ORES.forEach((o,i)=>{ const tr=TRAIT_BY[ORE_TRAIT[o.id]]; if(!tr) return; const p=samplePath(o.d, 1.0);
-        // nudge each trait slightly toward START (off the exact path end) so full grind ≠ Epic — the player must fine-tune (grind + dragon pull) to centre it
-        const dx=START.x-p.x, dy=START.y-p.y, dd=Math.hypot(dx,dy)||1, off=18+(i%3)*4;   // 18–26px off
-        const ox=p.x+dx/dd*off, oy=p.y+dy/dd*off;
-        addTrait(tr, ox, oy); });   // signature traits now also start hidden in the fog as '?' — revealed (symbol shown) only when acquired
-    const outer = TRAITS.filter(t=>centralIds.indexOf(t.id)===-1);
-    outer.forEach((tr,i)=>{ const ang=(i/outer.length)*Math.PI*2+0.35+(rnd()-0.5)*0.3; const r=820+(i%4)*95+rnd()*230; let x=CENTER.x+Math.cos(ang)*r, y=CENTER.y+Math.sin(ang)*r*0.72; x=Math.max(90,Math.min(2710,x)); y=Math.max(80,Math.min(1880,y)); addTrait(tr,x,y); });
+    // traits (r17): every position comes straight from the owner's sketch via TRAIT_POS — the ore-path
+    // derivation is gone (owner: "ignore the ore paths for now"). NEAR/FAR is no longer a hand-kept list:
+    // it falls out of the geometry, so whatever lands inside the opening reveal IS the starter set.
+    traitsG.innerHTML='';
+    const NEAR_IDS=[];
+    TRAITS.forEach(tr=>{ const p=TRAIT_POS[tr.id]; if(!p){ console.warn('[map] no TRAIT_POS for '+tr.id); return; }
+        const wx=START.x+(p.x-REF_C.x)*REF_S, wy=START.y+(p.y-REF_C.y)*REF_S;
+        if(Math.hypot(wx-START.x, wy-START.y)<=INIT_REVEAL) NEAR_IDS.push(tr.id);
+        addTrait(tr, Math.max(90,Math.min(2710,wx)), Math.max(80,Math.min(1880,wy))); });
 
     // dark hazard zones (seeded, spread out, clear of the start + the traits)
-    hazG.innerHTML=''; hazG.setAttribute('display','none'); let placed=0, tries=0;   // landscape look: hide the dark hazard discs (not in the anchor); RNG/logic preserved
-    while(placed<24 && tries<1800){ tries++; const ang=rnd()*Math.PI*2, rad=430+rnd()*620; let hx=CENTER.x+Math.cos(ang)*rad, hy=CENTER.y+Math.sin(ang)*rad*0.72; if(hx<90||hx>2710||hy<80||hy>1880) continue; let ok=true; for(const z of hazards){ if(Math.hypot(hx-z.x,hy-z.y)<170){ ok=false; break; } } if(ok) for(const tr of traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<120){ ok=false; break; } } if(!ok) continue; const rr=32+rnd()*30; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); hazG.appendChild(c); const c2=document.createElementNS(NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); hazG.appendChild(c2); hazards.push({x:hx,y:hy,r:rr}); placed++; }
+    hazG.innerHTML=''; let placed=0, tries=0;   // r16: hazards are drawn again (they deal real damage now); still sit under the fog until travel reveals them
+    while(placed<24 && tries<1800){ tries++; const ang=rnd()*Math.PI*2, rad=430+rnd()*620; let hx=CENTER.x+Math.cos(ang)*rad, hy=CENTER.y+Math.sin(ang)*rad*0.72; if(hx<90||hx>2710||hy<80||hy>1880) continue; let ok=true; for(const z of hazards){ if(Math.hypot(hx-z.x,hy-z.y)<170){ ok=false; break; } } if(ok) for(const tr of traits){ if(Math.hypot(hx-tr.x,hy-tr.y)<120){ ok=false; break; } } if(!ok) continue; const rr=32+rnd()*30; const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',hx); c.setAttribute('cy',hy); c.setAttribute('r',rr); c.setAttribute('fill','#3a2b1b'); c.setAttribute('stroke','#211710'); c.setAttribute('stroke-width','3'); hazG.appendChild(c); const c2=document.createElementNS(NS,'circle'); c2.setAttribute('cx',hx); c2.setAttribute('cy',hy); c2.setAttribute('r',(rr*0.55).toFixed(1)); c2.setAttribute('fill','#241a10'); hazG.appendChild(c2); hazards.push({x:hx,y:hy,r:rr,el:c}); placed++; }
 
     // sword at start + a generous starting reveal so the ore paths read clearly
     fogHoles.innerHTML=''; revLast={}; marker={x:START.x,y:START.y}; setSword(START.x,START.y);
@@ -630,18 +738,25 @@ function initMap(){
 
     view={ x:0, y:0, w:INIT_W }; setView();   // first pass establishes `aspect` from the live board box (was stale at 1.4 → clamped y to 0)
     view.x = START.x - view.w/2; view.y = START.y - view.w*aspect*SWORD_SY; setView(); wireZoomPan();
-    window.SF = { traits, hazards, ORES, view:()=>view, zoomAt, setSword };
+    window.SF = { traits, hazards, ORES, NEAR_IDS, view:()=>view, zoomAt, setSword };
 }
 
 // ============================================================
 //  MOVABLE PROPS — pestle + dragon are draggable (placement preview)
 // ============================================================
+// r22: drag bounds = the whole FRAME, not the bench band. Props live inside #bench (overflow:visible),
+// so the frame box is translated into bench-local coords. Without this a prop stops a few px above the
+// bench top, which since r16 is ~75% of the way DOWN the screen.
+function dragBox(el, b, bleed){ bleed=(bleed==null)?20:bleed;
+    const fr=document.getElementById('frame').getBoundingClientRect();
+    return { x0: fr.left-b.left-bleed,  x1: fr.right-b.left-el.offsetWidth+bleed,
+             y0: fr.top-b.top-bleed,    y1: fr.bottom-b.top-el.offsetHeight+bleed }; }
 function makeDraggable(el){
     if(!el) return;
     let drag=false, dx=0, dy=0;
-    el.addEventListener('pointerdown', e=>{ drag=true; const r=el.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
-    el.addEventListener('pointermove', e=>{ if(!drag) return; const b=el.parentElement.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy; x=Math.max(-30, Math.min(b.width-el.offsetWidth+30, x)); y=Math.max(-30, Math.min(b.height-el.offsetHeight+20, y)); el.style.left=x+'px'; el.style.top=y+'px'; el.style.right='auto'; });
-    const end=()=>{ drag=false; }; el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    el.addEventListener('pointerdown', e=>{ drag=true; el.classList.add('dragging'); const r=el.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+    el.addEventListener('pointermove', e=>{ if(!drag) return; const b=el.parentElement.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy; const q=dragBox(el,b,30); x=Math.max(q.x0, Math.min(q.x1, x)); y=Math.max(q.y0, Math.min(q.y1, y)); el.style.left=x+'px'; el.style.top=y+'px'; el.style.right='auto'; });
+    const end=()=>{ drag=false; el.classList.remove('dragging'); }; el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 }
 function wireMovable(){ makeDraggable(document.getElementById('pestle')); makeDraggable(document.getElementById('dragon')); }
 
@@ -661,8 +776,8 @@ function wireHammer(){
         else spark.classList.remove('on');
     }
     let drag=false, dx=0, dy=0;
-    h.addEventListener('pointerdown', e=>{ drag=true; const r=h.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ h.setPointerCapture(e.pointerId); }catch(err){} });
-    h.addEventListener('pointermove', e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-20, Math.min(b.width-h.offsetWidth+20, x)); y=Math.max(-20, Math.min(b.height-h.offsetHeight+20, y)); h.style.left=x+'px'; h.style.top=y+'px'; check(); });
+    h.addEventListener('pointerdown', e=>{ drag=true; h.classList.add('dragging'); const r=h.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{ h.setPointerCapture(e.pointerId); }catch(err){} });
+    h.addEventListener('pointermove', e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(h,b,20); x=Math.max(q.x0, Math.min(q.x1, x)); y=Math.max(q.y0, Math.min(q.y1, y)); h.style.left=x+'px'; h.style.top=y+'px'; check(); });
     const end=()=>{ drag=false; check(); }; h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
 }
 
@@ -671,6 +786,7 @@ function wireHammer(){
 // ============================================================
 const GRIND_RATE=0.5, SMELT_TIME=5, HEAT_RISE=42, BASE_HEAT=26, SWORD_SPEED=0.5, PULL_SPEED=20, HEAT_DECAY=10, CRAWL_MIN=0.24;   // PULL_SPEED slow for fine control; HEAT_DECAY 10/s → 100→0 in 10s; CRAWL_MIN = the sword still creeps (0.24× speed) at heat 0 — 2× the old 0.12 floor
 const ALIGN_MAX=34, ALIGN_EPIC=9, ALIGN_FINE=20;
+const BLADE_HP_MAX=100, HAZARD_DPS=26;   // r16: hazards are real — the active blade loses HAZARD_DPS integrity per second while travelling through one; at 0 it shatters. First-pass tuning.
 const HAMMER_RING_MS=750, HAMMER_GAP_MS=380;   // hammer-minigame timing (ported from swordforgeV2)
 function dragLift(e){ return (e && e.pointerType==='touch') ? benchDims().h*0.112 : 0; }   // on TOUCH, float a dragged item ~11% of bench height above the finger (was 72px @641); mouse/pen = 0
 let segs=[];                 // stacked route: [{ore,d,len,origin:{x,y},tPct}]  (tPct = 0.5+0.5*grind of that ore's path)
@@ -710,12 +826,15 @@ function hidePreviewPaths(){ previewEl.style.display='none'; previewSolidEl.styl
 function drawPrepPreview(){ if(!prep){ hidePreviewPaths(); if(segs.length) moveX(); else xmark.style.display='none'; return; } drawSegmentPreview(prep.ore, 0.5+0.5*prep.grind); }
 
 // --- orb visuals + placement (the #orb element shows the prep ore OR the extracted hot melt) ---
-function updateGauges(){ const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; const fg=document.getElementById('furnaceGlow'); if(fg) fg.style.opacity=(h/100*0.9).toFixed(2); }   // furnace mouth glows brighter as it heats (bellows feedback)
+function updateGauges(){ updateHpPill(); const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; const fg=document.getElementById('furnaceGlow'); if(fg) fg.style.opacity=(h/100*0.9).toFixed(2); }   // furnace mouth glows brighter as it heats (bellows feedback)
 function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||melt.stage==='onAnvil')){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }
 function placeOrb(cx,cy){ orbEl.style.left=(cx-orbEl.offsetWidth/2)+'px'; orbEl.style.top=(cy-orbEl.offsetHeight/2)+'px'; }
 function orbCenter(){ const r=orbEl.getBoundingClientRect(), b=benchEl().getBoundingClientRect(); return {x:r.left+r.width/2-b.left, y:r.top+r.height/2-b.top}; }
 function placeOrbInMortar(){ const c=stationCenter(stMortar,0.5,0.42); placeOrb(c.x,c.y); }
-function snapToGate(){ const c=stationCenter(stSmelt,0.72,0.72); placeOrb(c.x,c.y); }
+function snapToGate(){ /* r23: the released orb sits at the smelter DOOR. Derived from #furnaceGate (the lava-mouth hotspot) so art re-cuts move both together; the old hardcoded 0.72 across put it on the far right of the smelter, i.e. on top of the bellows. Fallback matches the gate CSS centre (left 12% + width 30%/2 = 27%). */
+    const g=document.getElementById('furnaceGate');
+    if(g){ const r=benchRect(g); placeOrb(r.L+(r.R-r.L)*0.62, r.T+(r.B-r.T)*0.70); return; }   /* r23b: gate-relative, not dead centre - the arch OPENING sits right-of-and-below the hotspot centre, so 0.5/0.5 parked the orb on the left pillar */
+    const c=stationCenter(stSmelt,0.27,0.72); placeOrb(c.x,c.y); }
 
 // --- targets ---
 function overTarget(c,name){
@@ -727,7 +846,7 @@ function overTarget(c,name){
 function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
 
 // --- stage transitions ---
-function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
+function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,hp:BLADE_HP_MAX,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
 function startPrep(oreId){ prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
 function addPrep(){ ensureMelt(); addSegment(prep.ore,prep.grind); prep=null; hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ ensureMelt(); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
@@ -739,6 +858,25 @@ function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Wea
 function tierColor(t){ return t==='Epic'?'#ffcf3a':(t==='Fine'?'#49b6ff':'#c0a48a'); }
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
 function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if(r) r.style.display='none'; }
+function updateHpPill(){ const el=document.getElementById('sfHp'); if(!el) return;
+    if(!melt || !swordOut()){ el.style.display='none'; return; }
+    const pct=Math.max(0, Math.min(100, (melt.hp/BLADE_HP_MAX)*100)), f=el.querySelector('.fill');
+    el.style.display='flex'; if(f){ f.style.width=pct.toFixed(1)+'%'; f.style.background = pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c'); } }
+function clearHazardFx(){ hazards.forEach(h=>{ if(h.el){ h.el.setAttribute('stroke','#211710'); h.el.setAttribute('stroke-width','3'); } }); if(swordEl) swordEl.classList.remove('hurt'); }
+// r16: hazards are real. Travelling through one drains blade integrity; at 0 the blade shatters and the run (with its
+// acquired traits) is lost. Damage is applied only while the sword MOVES through a hazard — parking is safe, so furnace
+// work never kills you passively.
+function checkHazard(p,dt){ if(!melt || !dt) return;
+    let inside=null; for(const h of hazards){ if(Math.hypot(p.x-h.x,p.y-h.y)<=h.r){ inside=h; break; } }
+    hazards.forEach(h=>{ if(h.el){ const on=(h===inside); h.el.setAttribute('stroke', on?'#ff5a3c':'#211710'); h.el.setAttribute('stroke-width', on?'6':'3'); } });
+    if(swordEl) swordEl.classList.toggle('hurt', !!inside);
+    if(!inside) return;
+    melt.hp=Math.max(0, melt.hp-HAZARD_DPS*dt); updateHpPill();
+    if(melt.hp<=0) shatterBlade();
+    else if(!melt._hazHint){ melt._hazHint=1; hint('⚠️ The sword is in a <b style="color:#e2503c">hazard zone</b> — it is losing integrity. Hammer on through or pull it clear with the dragon.'); } }
+function shatterBlade(){ const n=(melt&&melt.traits)?melt.traits.length:0;
+    clearHazardFx(); resetRun();
+    hint('💥 The blade <b style="color:#e2503c">shattered</b> in a hazard zone'+(n?' — '+n+' acquired trait'+(n>1?'s':'')+' lost':'')+'. Grind an ore to start a new blade.'); }
 function checkTraitReach(p){ if(!melt) return;   // p = sword's rendered position; alignment to the NEAREST trait centre sets the tier
     let best=null,bestD=Infinity;
     for(const t of traits){ const d=Math.hypot(p.x-t.x,p.y-t.y); if(d<ALIGN_MAX && d<bestD){ best=t; bestD=d; } }
@@ -761,7 +899,18 @@ function tryAcquire(){
         hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the orb to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the orb</b> on the anvil to choose a shape.');
     } else { hint('The sword isn\'t sitting on a trait — hammer or pull it onto one first.'); placeOnAnvil(); }
 }
-function updateSfTraits(){ const el=document.getElementById('sfTraits'); if(!el) return; el.innerHTML=(melt&&melt.traits&&melt.traits.length)?melt.traits.map(a=>'<span style="color:'+tierColor(a.tier)+'" title="'+a.t.name+' — '+a.tier+'">'+a.t.symbol+'</span>').join(''):''; }
+const TIER_PIPS={ Weak:1, Fine:2, Epic:3 };   // r21: a tier-N trait shows its icon N times (owner: "3 fire icons for a tier 3 fire")
+const BLADE_SLOTS=5;
+function bladePips(){ const out=[]; if(melt&&melt.traits) melt.traits.forEach(a=>{ const n=TIER_PIPS[a.tier]||1; for(let i=0;i<n;i++) out.push(a); }); return out; }
+function updateSfTraits(){ const el=document.getElementById('traitSlots'); if(!el) return;
+    const pips=bladePips(); let h='';
+    for(let i=0;i<BLADE_SLOTS;i++){ const p=pips[i];
+        h += p ? '<span class="tslot filled" style="color:'+tierColor(p.tier)+'" title="'+p.t.name+' — '+p.tier+'">'+p.t.symbol+'</span>'
+               : '<span class="tslot"></span>'; }
+    el.innerHTML=h; }
+function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=document.getElementById('saveBlade');
+    if(c) c.addEventListener('click', ()=>{ resetRun(); hint('Crafting cancelled — the blade and its traits are gone. Grind an ore to start again.'); });
+    if(sv) sv.addEventListener('click', ()=>{ hint('Save is a placeholder — nothing is stored yet.'); }); }
 function floatAcquired(bt,tier){ const b=benchEl(); const c=stationCenter(stAnvil,0.5,0.05); const f=document.createElement('div'); f.textContent='+'+bt.symbol+' '+tier; f.style.cssText='position:absolute;left:'+c.x+'px;top:'+c.y+'px;transform:translate(-50%,-50%);z-index:40;font-weight:bold;font-size:14px;color:'+tierColor(tier)+';text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;'; b.appendChild(f); f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(-50%,-160%)',opacity:0}],{duration:1200,easing:'ease-out'}).onfinish=()=>f.remove(); }
 // trait-acquired popup — stays open until the player clicks 'continue'
 function showAcquire(bt,tier,total){ const body=document.getElementById('sfAcquireBody'); body.innerHTML='<span class="sym">'+bt.symbol+'</span><div class="nm">'+bt.name+'</div><div class="tr" style="color:'+tierColor(tier)+'">'+tier+' tier</div>'+(total>1?'<div class="cnt">'+total+' traits on this blade</div>':''); document.getElementById('sfAcquireModal').classList.add('show'); }
@@ -780,7 +929,7 @@ function hmResolve(el,ok){ if(el._missId) clearTimeout(el._missId); if(ok){ hmHi
 function hmPerfect(left,top){ const layer=document.getElementById('hm-targets'); if(!layer) return; const t=document.createElement('div'); t.className='hammer-perfect'; t.textContent='Perfect!'; t.style.left=left; t.style.top=top; const hx=(60+Math.random()*80)*(Math.random()<0.5?-1:1); t.style.setProperty('--hx',hx+'px'); layer.appendChild(t); setTimeout(()=>t.remove(),950); }
 function hmAdvance(){ if(hmStage===0){ hmStage=1; hmIdx=0; document.getElementById('hm-img').src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png'; hmTimeout(hmSpawn,550); } else { document.getElementById('hm-instr').textContent='Blade shaped!'; hmTimeout(finishBlade,900); } }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):''; const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged a '+hmShape+'!<br><span style="font-size:26px;">'+syms+'</span><br><span style="font-size:12px;color:#c0a48a;">'+hmHit+' clean strikes'+(hmMiss?' · '+hmMiss+' misses':'')+'</span>'; el.classList.add('show'); setTimeout(resetRun,2600); }
-function resetRun(){ segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+function resetRun(){ clearHazardFx(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -803,7 +952,7 @@ function ensureSwordVisible(){ const mx=0.18,myTop=0.14,myBot=0.62,vw=view.w,vh=
 // --- sword travel across the stacked route ---
 function advanceSword(dt){ if(!segs.length || !melt) return; let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
     while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
-    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); }   // drawRoute() erases the part behind the sword
+    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); checkHazard(p,dt); }   // drawRoute() erases the part behind the sword
 
 // --- main loop ---
 let lastT=0;
@@ -821,7 +970,7 @@ function tick(now){
         const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy);
         if(dist>3){ if(!retreating){ retreating=true; hint('The dragon\'s fire pulls the sword &amp; its path toward the centre — hold to pull more, release to stop.'); }
             const step=Math.min(dist, PULL_SPEED*dt); pull.x+=dx/dist*step; pull.y+=dy/dist*step;
-            const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); }
+            const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); }
     } else {
         if(retreating) retreating=false;
         if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);   // hammer never fights the fire
@@ -832,16 +981,16 @@ function tick(now){
 
 // --- wiring ---
 const ORE_COUNT={ copper:100, iron:100, gold:2, aluminium:5, ember:70, frost:12, tide:8, gale:3 };   // decorative rail counts (anchor-style xNN)
-const RAIL_FILLER=[ {id:'gold',n:'x4'},{id:'aluminium',n:'x9'},{id:'copper',n:'x33'},{id:'iron',n:'x18'} ];   // decorative-only slots so the ore board reads full to the bottom like the anchor (non-interactive)
+const MAT_CELLS=12;   // r20: the reference inventory is a 3x4 grid. All 8 ORES are shown and the remainder are EMPTY cells - the old RAIL_FILLER invented duplicate materials, which a real inventory should not do. (non-interactive)
 function wireOreTray(){ const shelf=document.getElementById('oreShelf'); shelf.querySelectorAll('.ore-slot').forEach(s=>s.remove());   // build one slot per ore in ORES (so adding ores needs no HTML change)
     ORES.forEach(o=>{ const slot=document.createElement('div'); slot.className='ore-slot'; slot.style.cursor='grab'; slot.innerHTML='<img src="'+o.img+'" alt="'+o.name+'"><span>'+o.name+'</span><span class="ore-count">x'+(ORE_COUNT[o.id]||99)+'</span>';
         slot.addEventListener('pointerdown', e=>{ if(!canAddOre()){ hint('Put the orb back in the furnace before adding more ore.'); return; } startOreDrag(o.id, e); }); shelf.appendChild(slot); });
-    RAIL_FILLER.forEach(f=>{ const slot=document.createElement('div'); slot.className='ore-slot filler'; slot.innerHTML='<img src="'+oreImg(f.id)+'" alt=""><span></span><span class="ore-count">'+f.n+'</span>'; shelf.appendChild(slot); }); }
+    for(let i=ORES.length;i<MAT_CELLS;i++){ const slot=document.createElement('div'); slot.className='ore-slot empty'; shelf.appendChild(slot); } }
 function startOreDrag(oreId,e){ e.preventDefault(); const bench=benchEl(), b=bench.getBoundingClientRect(); const ghost=document.createElement('img'); ghost.src=oreImg(oreId); ghost.style.cssText='position:absolute;width:46px;height:46px;object-fit:contain;z-index:25;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 5px rgba(0,0,0,.6));'; bench.appendChild(ghost); drawSegmentPreview(oreId,0.5); const move=ev=>{ ghost.style.left=(ev.clientX-b.left)+'px'; ghost.style.top=(ev.clientY-b.top-dragLift(ev))+'px'; }; move(e); const up=ev=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); ghost.remove(); hidePreviewPaths(); const c={x:ev.clientX-b.left,y:ev.clientY-b.top-dragLift(ev)}; if(canAddOre()&&overTarget(c,'mortar')){ startPrep(oreId); return; } if(canAddOre()&&overTarget(c,'furnaceTop')){ addOreDirect(oreId); return; } if(segs.length) moveX(); else xmark.style.display='none'; }; document.addEventListener('pointermove',move); document.addEventListener('pointerup',up); }
 
 function wirePestle(){ const p=document.getElementById('pestle'), bench=benchEl(); let drag=false,dx,dy; const over=()=>{ const m=stMortar.getBoundingClientRect(), pr=p.getBoundingClientRect(); const px=pr.left+pr.width*0.5, py=pr.bottom-14; return px>m.left&&px<m.right&&py>m.top-6&&py<m.bottom+24; }; p.addEventListener('pointerdown',e=>{ drag=true; const r=p.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{p.setPointerCapture(e.pointerId);}catch(err){} pestleGrinding=over()&&!!prep; p.classList.toggle('pounding',pestleGrinding); }); p.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-30,Math.min(b.width-p.offsetWidth+30,x)); y=Math.max(-30,Math.min(b.height-p.offsetHeight+20,y)); p.style.left=x+'px'; p.style.top=y+'px'; p.style.right='auto'; const g=over()&&!!prep; pestleGrinding=g; p.classList.toggle('pounding',g); }); const end=()=>{ drag=false; pestleGrinding=false; p.classList.remove('pounding'); }; p.addEventListener('pointerup',end); p.addEventListener('pointercancel',end); }
 
-function wireDragon(){ const d=document.getElementById('dragon'), bench=benchEl(); let active=false,sx,sy,dx,dy,mode; d.addEventListener('pointerdown',e=>{ active=true; mode='breath'; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} startBreath(); }); d.addEventListener('pointermove',e=>{ if(!active) return; if(mode==='breath'&&Math.hypot(e.clientX-sx,e.clientY-sy)>7){ mode='drag'; stopBreath(); } if(mode==='drag'){ const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-30,Math.min(b.width-d.offsetWidth+30,x)); y=Math.max(-30,Math.min(b.height-d.offsetHeight+20,y)); d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; } updateFirePos(); }); const end=()=>{ active=false; mode=null; stopBreath(); }; d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
+function wireDragon(){ const d=document.getElementById('dragon'), bench=benchEl(); let active=false,sx,sy,dx,dy,mode; d.addEventListener('pointerdown',e=>{ active=true; mode='breath'; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} startBreath(); }); d.addEventListener('pointermove',e=>{ if(!active) return; if(mode==='breath'&&Math.hypot(e.clientX-sx,e.clientY-sy)>7){ mode='drag'; stopBreath(); d.classList.add('dragging'); } if(mode==='drag'){ const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(d,b,30); x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y)); /* r22: frame-wide bounds; wireDragon is the LIVE dragon handler (makeDraggable/wireMovable are dead code) */ d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; } updateFirePos(); }); const end=()=>{ active=false; mode=null; stopBreath(); d.classList.remove('dragging'); }; d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
 
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
@@ -883,7 +1032,7 @@ function showWaterBurst(){ positionWater(); document.getElementById('waterPour')
 function hideWater(){ const w=document.getElementById('waterPour'), s=document.getElementById('waterSplash'); if(w) w.classList.remove('on'); if(s) s.classList.remove('on'); if(mugEl) mugEl.classList.remove('pouring'); if(waterTimer){ clearTimeout(waterTimer); waterTimer=null; } }
 function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
     m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
-    m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); x=Math.max(-40,Math.min(b.width-m.offsetWidth+40,x)); y=Math.max(-40,Math.min(b.height-m.offsetHeight+40,y)); m.style.left=x+'px'; m.style.top=y+'px';
+    m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(m,b,40); x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y)); m.style.left=x+'px'; m.style.top=y+'px';
         if(mugOverAnvil() && canPourQuench()){ m.classList.add('pouring'); showWaterBurst(); tryAcquire(); }   // pour → quench + acquire (fires once: tryAcquire clears reachedTrait)
         else if(!mugOverAnvil()){ m.classList.remove('pouring'); } });
     const end=()=>{ if(!drag) return; drag=false; homeMug(); m.style.zIndex=3; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
@@ -892,7 +1041,7 @@ function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
 // element footprints as FRACTIONS of #frame (the game side of the anchor pixel-% size match).
 // Compared against the anchor element boxes in tooling/anchor-match/spec.hori.json by element_size.py.
 const FRAME_BOX_SEL={ furnace:'#stSmelt .furnace', cauldron:'#stSmelt .cauldron', bellows:'#stSmelt .bellowtop',
-    anvil:'#stAnvil .anvil', wheel:'#stMortar .mortar', dragon:'#dragon .crop', bucket:'#bucketBack',
+    anvil:'#stAnvil .anvil', wheel:'#stMortar .mortar', dragon:'#dragon .crop', bucket:'#bucketBack', hammer:'#hammerTool',
     mug:'#mug', hud:'#hud', rail:'#rail', map:'#map-wrap', skilltree:'#skillBtn' };
 function frameBoxes(){ const f=document.getElementById('frame'); if(!f) return {}; const fr=f.getBoundingClientRect(); const out={};
     for(const name in FRAME_BOX_SEL){ const el=document.querySelector(FRAME_BOX_SEL[name]); if(!el) continue; const r=el.getBoundingClientRect();
@@ -901,14 +1050,15 @@ function frameBoxes(){ const f=document.getElementById('frame'); if(!f) return {
 
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
-    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug();
+    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); updateSfTraits();
     hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
     requestAnimationFrame(tick);
     window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
         routeEnd, swordOut, startPrep, setGrind:g=>{ if(prep){prep.grind=g; updateOrbLook(); drawPrepPreview();} }, addPrep, addOreDirect,
         ready:markGateReady, setHeat:h=>{ if(melt){melt.heat=h; updateGauges();} }, openGate, placeOnAnvil, reinsert,
         strike:on=>hammerEl.classList.toggle('striking',!!on), breathe:on=>{ on?startBreath():stopBreath(); }, tryAcquire, reset:resetRun,
-        mugState:()=>({over:mugOverAnvil(), canPour:canPourQuench(), pouring:mugEl.classList.contains('pouring')}), pour:()=>{ if(canPourQuench()){ mugEl.classList.add('pouring'); showWaterBurst(); tryAcquire(); return true; } return false; } };
+        pips:()=>bladePips().map(p=>p.t.id+':'+p.tier), grantTrait:(id,tier)=>{ const t=TRAIT_BY[id]; if(!melt||!t) return false; melt.traits.push({t:t,tier:tier}); updateSfTraits(); return true; },
+        hp:()=>melt?melt.hp:null, hazards:()=>hazards.map(h=>({x:h.x,y:h.y,r:h.r})), damage:(d)=>{ if(melt){ melt.hp=Math.max(0,melt.hp-d); updateHpPill(); if(melt.hp<=0) shatterBlade(); } }, mugState:()=>({over:mugOverAnvil(), canPour:canPourQuench(), pouring:mugEl.classList.contains('pouring')}), pour:()=>{ if(canPourQuench()){ mugEl.classList.add('pouring'); showWaterBurst(); tryAcquire(); return true; } return false; } };
 }
 
 // ============================================================
@@ -918,20 +1068,20 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.08, fails=[];   // allows intentional edge bleeds (furnace pokes above, dragon/anvil bleed left) while still catching gross off-zone errors
-    const RECORDED={ stSmelt:{x:0.43,y:-0.30,w:0.315}, stMortar:{x:0.72,y:0.12,w:0.28}, pestle:{x:0.75,y:0.24,w:0.09}, hammerTool:{x:0.22,y:0.28,w:0.195}, stAnvil:{x:0.15,y:0.34,w:0.30}, bucket:{x:0.01,y:0.50,w:0.15}, mug:{x:0.03,y:0.55,w:0.12}, dragon:{x:-0.04,y:-0.18,w:0.19} };   // hori-anchor LANDSCAPE composition, loop r11b (owner feedback: bucket up + mug nested, dragon moved up-left)
+    const RECORDED={ stSmelt:{x:0.539,y:-0.816,w:0.24}, stMortar:{x:0.795,y:-0.289,w:0.23}, pestle:{x:0.837,y:0.30,w:0.053}, hammerTool:{x:0.247,y:0.449,w:0.165}, stAnvil:{x:0.187,y:-0.249,w:0.191}, bucket:{x:0.019,y:0.041,w:0.171}, mug:{x:0.054,y:-0.025,w:0.11}, dragon:{x:0.081,y:-0.989,w:0.228} };   // hori-anchor LANDSCAPE composition, loop r20 (rebased to the 21% rail; frame-relative prop sizes preserved)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
         const pk=Object.keys(LAYOUT.portrait).sort(), lk=Object.keys(LAYOUT.landscape).sort();
         if(pk.join(',')!==lk.join(',')) fails.push('parity: ['+pk+'] vs ['+lk+']');
         ['portrait','landscape'].forEach(o=>{ for(const k in LAYOUT[o]){ const b=resolveLayout(k,o,1,1);
-            const yMin = (o==='landscape' && (k==='stSmelt'||k==='dragon')) ? -0.35 : -EPS;   // r11: furnace + dragon intentionally bleed up into/off the map (overflow:visible)
+            const yMin = (o==='landscape') ? -1.30 : -EPS;   // r14: bench band is 24.5% of the frame, so props standing on the floor rise ~0.8 bench-heights over the map (overflow:visible); still catches gross off-zone errors
             if(!(b.x>=-EPS && b.y>=yMin && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
         const rk=Object.keys(RECORDED).sort(), lkk=Object.keys(LAYOUT.landscape).sort();
         if(rk.join(',')!==lkk.join(',')) fails.push('drift key-set: landscape ['+lkk+'] != recorded ['+rk+']');   // extra/removed key in landscape, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.landscape[k]; if(!a){ fails.push('missing landscape.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
-        const rl=resolveLayout('bucket','landscape',1000,500);   // resolveLayout math check: bucket 0.01*1000 / 0.50*500 / 0.15*1000
-        if(Math.abs(rl.x-10)>0.6||Math.abs(rl.y-250)>0.6||Math.abs(rl.w-150)>0.6) fails.push('resolve math '+JSON.stringify(rl));
+        const bl=LAYOUT.landscape.bucket, rl=resolveLayout('bucket','landscape',1000,500);   // resolveLayout math check: expectations derived from the table (RECORDED already pins the values), so a deliberate layout change cannot leave a stale hardcoded number here
+        if(Math.abs(rl.x-bl.x*1000)>0.6||Math.abs(rl.y-bl.y*500)>0.6||Math.abs(rl.w-bl.w*1000)>0.6) fails.push('resolve math '+JSON.stringify(rl));
     }
     const pass=fails.length===0; (pass?console.log:console.error)('[layout selftest] '+(pass?'GREEN ✓':'RED ✗ ('+fails.length+')'), fails);
     return { pass, fails };

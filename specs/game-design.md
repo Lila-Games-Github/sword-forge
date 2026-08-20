@@ -30,8 +30,11 @@ The active blade is forged by **moving a sword token along a route** you build f
 - **World:** an SVG board **2800×1960** units, viewed through a zoom/pan **viewBox** window.
 - **Home / start:** the sword begins at **(1400, 1030)** — marked 🏠 (`#startMark`), with a faint dashed **tether** (`#tether`) linking home to the live sword.
 - **Fog of war:** a dark overlay hides the world; it's cleared **permanently** in circles (radius `REVEAL_R` **120**) as the sword travels, plus one **starting reveal** (radius `INIT_REVEAL` **440**) around home. Explored areas stay clear.
+  - **Landscape divergence (2026-08-18):** `Swordforge_looptest_landscape.html` uses `INIT_REVEAL` **430** and `INIT_W` **1100** (was 1500 / 2800 — a reveal that large left the build effectively fog-free, sized to show the old painted map). Because the map zone is wide and short (~0.42 aspect), a reveal big enough to light the 5 starter traits overflows the viewport vertically, so **fog reads left/right, not up/down**, at the opening zoom.
 - **Zoom / pan:** view width ranges `MIN_W` **360** (most zoomed-in) to `MAX_W` **2200** (out); opens at `INIT_W` **680**, centred on home. Wheel / pinch / on-screen ± zoom; drag to pan (`wireZoomPan`).
-- **Hazards:** dark blotches scattered across the world (`#hazards`). **Currently decorative** — no damage/HP effect in this build (see §9).
+- **Hazards:** dark blotches scattered across the world (`#hazards`), 24 of them, seeded at radius 430–1050 from centre and kept ≥120 clear of every trait.
+  - **Portrait:** still **decorative** — no damage effect.
+  - **Landscape (2026-08-18):** **real**. The active blade has integrity `BLADE_HP_MAX` **100**; travelling through a hazard drains `HAZARD_DPS` **26**/second (`checkHazard`). Damage applies **only while the sword moves** — hammer travel or dragon-fire pull — so parking is safe and furnace work never kills you passively. The hazard rings red, the sword pulses, and an integrity bar (`#sfHp`) shows over the map. At 0 the blade **shatters**: the run resets and every trait acquired on it is lost (`shatterBlade`).
 
 ### Ores & routes
 
@@ -60,6 +63,8 @@ A free-roaming sprite. **Drag** to reposition; **press-and-hold** (no drag) to *
 ## 4. Traits: discovery, alignment & acquisition
 
 - **24 traits** placed across the map (same catalog as the canonical build — Durable 🛡️, Cursed ☠️, Flame 🔥, … Dark 🌑): **8 signature** traits at the ore-path ends + **16 scattered** far out into the fog.
+  - **Landscape catalog divergence (2026-08-18, r17):** landscape now runs a **25-trait** catalog redrawn from the owner's map sketch — added Swift 🪶, Cloud ☁️, Rainbow 🌈, Magma 🌋, Mist 🌫️, Poison 🧪; renamed Flame→**Fire** and Storm→**Gale**; removed Sharp, Accurate, Honor, Endurance, Cruel. Positions come from a `TRAIT_POS` table measured in the sketch's pixel space (`world = START + (px − REF_C) × REF_S`), **not** from ore-path ends — the signature-trait derivation is suspended pending the ore rework, and `ORE_TRAIT` is inert. Centre ring: Swift · Balanced · Durable · Flexible · Heavy; the other 20 sit in the fog (nearest 487 units out). **Portrait keeps the old 24-trait catalog.**
+  - *(superseded r16 placement)* placement was **5 starter traits inside the opening reveal** — Sharp 🔪, Durable 🛡️, Flexible 〰️ (at their short ore-path ends) plus Heavy ⚓ and Balanced ⚖️ (authored at ±330 off home) — and the other **19 scattered far out** under the fog (nearest ≥ 639 units from home). Trait and hazard discs are **visible again** in landscape (`traitsG`/`hazG` were `display:none` while the painted map stood in for them). ⚠️ **Noble 👑 no longer terminates the gold ore path** — gold's path is short, so its end fell inside the reveal and Noble was pushed out with the rest; gold is the one ore whose route no longer ends at its signature trait. To be resolved in the trait rework.
 - **Everything is a `?` until acquired.** Every trait is drawn under the fog showing a **`?`**. The sword's travel clears fog over an area, exposing nearby `?` marks. Aligning the sword on a trait shows a tier-coloured **alignment ring** (`#alignRing`) and a hint (*"an undiscovered trait (?) — alignment Fine…"*) but **does not reveal the trait's identity**.
 - **Alignment → tier.** How centred the sword sits on a trait's centre sets its quality tier (`tierFromDist`, distance in world units): **≤ `ALIGN_EPIC` 9 = Epic**, **≤ `ALIGN_FINE` 20 = Fine**, **≤ `ALIGN_MAX` 34 = Weak** (beyond 34 = not on the trait). Tighten alignment with **grind precision** (the ✕/route-end vs the trait) and the **dragon pull**. Signature traits are nudged **18–26 units off** their exact path-end toward home, so a full grind alone won't hand you Epic — you must fine-tune.
 - **Acquire = discovery — the water bucket.** With the orb on the anvil and the sword aligned on a trait, drag the **mug** from the water bucket over the anvil and **pour**. Pouring:
@@ -70,6 +75,10 @@ A free-roaming sprite. **Drag** to reposition; **press-and-hold** (no drag) to *
 
   The mug only pours when **both** conditions hold — orb on the anvil **and** the sword on a trait. *(This water-bucket step replaces the earlier "firepit" acquire.)*
 - **Stack more traits.** Acquiring doesn't end the run: drag the cooled orb back to the **furnace**, re-heat, add ore, travel further, and acquire more — they accumulate as tier-coloured symbols in the map's trait strip (`#sfTraits`). Or finish the blade (§5).
+
+### Blade-trait panel (landscape, 2026-08-19)
+
+The landscape build shows the blade's traits as **5 slots** top-left (`#bladePanel`). An empty slot is a dot; an acquired trait of tier N fills **N slots** with its element icon (`TIER_PIPS` Weak 1 / Fine 2 / Epic 3), so the row doubles as a capacity meter. Below it sit a **cancel-crafting** button (`resetRun()` — blade and traits lost) and a **placeholder save** button. This replaced the old `#sfTraits` strip over the map. ⚠️ Capacity is **display-only**: acquisition is not capped at 5 points, so a 6th pip is silently dropped.
 
 ### Quality tiers
 
@@ -184,4 +193,5 @@ The finished sword comes from the crafting loop above plus a short forge step.
 - **Loop-test integration (§3–§5):** the ore→sword loop lives in a standalone single-screen **9:16** build (`Swordforge_new_looptest.html`); how it plugs into `index.html`'s three-screen shell, Vault, and economy (§6) is still open. The forged sword isn't yet wired to a gold value / Vault / selling.
 - **Loop-test forge gaps:** Design Desk, Sharpen (grindstone), trait-skinned parts, and the crack/sparkle quality overlay from the canonical forge (§5, `index.html`) aren't ported into the loop-test.
 - **Loop-test ores vs metals:** the loop-test uses ores `{copper, iron, gold, aluminium, ember, frost, tide, gale}` as route-definers; reconcile with the economy's movement-metal set `{steel, iron, magnesium, bronze, titanium, aluminium, blackIron, redIron}`.
-- **Hazards decorative:** loop-test hazards are drawn but have no damage/HP effect (no player-HP system in that build).
+- ~~Hazards decorative~~ — **resolved for landscape (2026-08-18):** hazards now damage the active blade (§3). **Portrait is unchanged** and still has decorative hazards, so the two loop-test builds now diverge on map, fog, traits and hazards.
+- **Loop-test builds diverged (2026-08-18):** the landscape build owns the reworked map/traits/hazards; `Swordforge_new_looptest.html` (portrait) was deliberately left on the old behaviour. `TRAITS`/`ORE_TRAIT`/`ORES` are still duplicated verbatim in both files — a trait rework has to touch both, or portrait should be retired.
