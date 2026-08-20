@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Sword Forge — Map v2 (Potion-Craft path prototype)</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: #2a2620; color: #f0e8d6; font-family: "Trebuchet MS", "Segoe UI", sans-serif; }
+  #app { max-width: 680px; margin: 0 auto; padding: 12px; position: relative; }
+  h1 { font-size: 17px; margin: 4px 0 2px; }
+  .sub { font-size: 12px; color: #b8ab8e; margin: 0 0 10px; line-height: 1.5; }
+
+  #board-wrap { border: 3px solid #6a5636; border-radius: 10px; overflow: hidden; background: #000; }
+  #board { display: block; width: 100%; height: auto; touch-action: none; }
+
+  #dock { display: flex; gap: 10px; align-items: stretch; margin-top: 12px; }
+  #bucket-zone {
+    width: 150px; flex: 0 0 150px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px dashed transparent; border-radius: 12px; padding: 4px; transition: border-color .12s, background .12s;
+  }
+  #bucket-zone.hot { border-color: #ffcf5a; background: rgba(255,207,90,.12); }
+  #bucket-zone img { width: 128px; height: auto; pointer-events: none; user-select: none; -webkit-user-drag: none; transform-origin: 50% 80%; }
+  #bucket-zone .cap { font-size: 11px; color: #b8ab8e; margin-top: 2px; }
+
+  #inv { flex: 1; display: flex; gap: 8px; background: #fbf6e9; border-radius: 12px; padding: 10px; }
+  .ore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: 1; align-content: start; }
+  .tile {
+    background: #efe4cf; border: 1px solid #cbb98f; border-radius: 10px; padding: 8px 4px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: grab; user-select: none; touch-action: none;
+  }
+  .tile:active { cursor: grabbing; }
+  .sphere { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset -6px -7px 10px rgba(0,0,0,.45), inset 4px 4px 7px rgba(255,255,255,.35); }
+  .tile .nm { font-size: 10.5px; color: #5a4a2a; font-weight: bold; }
+  .tile .dir { font-size: 9px; color: #8a7448; }
+
+  .reagents { display: flex; flex-direction: column; gap: 8px; width: 96px; background: #17140f; border-radius: 10px; padding: 8px; }
+  .rtile { background: #241f18; border: 1px solid #3a3226; border-radius: 8px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; user-select: none; touch-action: none; transition: transform .08s, background .08s; }
+  .rtile:active, .rtile.held { transform: scale(.95); background: #34291a; border-color: #7a5d33; }
+  .rtile .nm { font-size: 10px; color: #e7ddc7; font-weight: bold; }
+  .rtile .fx { font-size: 8.5px; color: #9c9078; text-align: center; line-height: 1.15; }
+
+  #readout { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-size: 13px; align-items: center; }
+  #readout .k { color: #b8ab8e; }
+  #readout .v { font-weight: bold; }
+  #reset { margin-left: auto; background: #4a4033; color: #f0e8d6; border: 1px solid #6a5636; border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  #reset:active { transform: scale(.97); }
+  #log { margin-top: 8px; font-size: 12px; color: #9c9078; min-height: 16px; }
+
+  .drag-ghost { position: absolute; z-index: 60; pointer-events: none; opacity: .9; transform: translate(-50%,-50%); }
+  .toss-chunk { position: absolute; width: 15px; height: 15px; border-radius: 50%; pointer-events: none; z-index: 55; transform: translate(-50%,-50%); box-shadow: inset -3px -3px 4px rgba(0,0,0,.5); }
+  .float-text { position: absolute; z-index: 58; font-weight: bold; font-size: 17px; pointer-events: none; transform: translate(-50%,-50%); text-shadow: 0 1px 2px rgba(0,0,0,.7); }
+  #traitPopup { display: none; position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.55); align-items: center; justify-content: center; }
+  .popup-box { background: #efe4cf; border: 3px solid #7a5d33; border-radius: 14px; padding: 22px 26px; max-width: 300px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .popup-box .pt { font-size: 19px; font-weight: bold; color: #5a3a1a; margin-bottom: 6px; }
+  .popup-box .ps { font-size: 13px; color: #6a5636; margin-bottom: 15px; line-height: 1.45; }
+  .popup-box button { background: #7a5d33; color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; cursor: pointer; }
+  .popup-box button:active { transform: scale(.97); }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>Sword Forge — Map v2 · vector-path prototype</h1>
+  <p class="sub">Drag a <b>metal ore</b> onto the bucket to plot its path (a red <b>✕</b> lands at the midpoint). <b>Press and hold Charcoal</b> to move the sword smoothly along the path — it <b>stops at the ✕</b>. <b>Press and hold Limestone</b> to push the ✕ toward the end. The fog clears as the sword travels; every 10% throws a chunk into the bucket.</p>
+
+  <div id="board-wrap">
+    <svg id="board" viewBox="0 0 600 380" width="600" height="380" aria-label="Crafting map">
+      <defs>
+        <mask id="fogMask">
+          <rect x="0" y="0" width="600" height="380" fill="#fff"/>
+          <g id="fogHoles" fill="#000"></g>
+        </mask>
+      </defs>
+
+      <rect x="0" y="0" width="600" height="380" fill="#050505"/>
+      <g id="terrain">
+        <rect x="0" y="0" width="600" height="380" fill="#c9bd93"/>
+        <g fill="#000" opacity=".07">
+          <ellipse cx="130" cy="90" rx="70" ry="42"/><ellipse cx="470" cy="120" rx="85" ry="50"/>
+          <ellipse cx="250" cy="250" rx="95" ry="55"/><ellipse cx="500" cy="300" rx="70" ry="45"/>
+          <ellipse cx="70" cy="300" rx="60" ry="40"/><ellipse cx="360" cy="60" rx="55" ry="34"/>
+        </g>
+        <g id="greenDots"></g>
+        <g id="trait" transform="translate(300,145)"><circle r="11" fill="#7a4fa0"/><text id="trait-glyph" y="4" text-anchor="middle" font-size="13" fill="#fff">?</text></g>
+      </g>
+
+      <rect id="fog" x="0" y="0" width="600" height="380" fill="#050505" mask="url(#fogMask)"/>
+
+      <path id="pathpreview" d="" fill="none" stroke="#e0392b" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 7" opacity="0.5" style="display:none;"/>
+      <path id="pathline" d="" fill="none" stroke="#e0392b" stroke-width="4" stroke-linecap="round" style="display:none;"/>
+      <g id="xmark" style="display:none;">
+        <line x1="-7" y1="-7" x2="7" y2="7" stroke="#e0392b" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="-7" y1="7" x2="7" y2="-7" stroke="#e0392b" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+      <g id="sword">
+        <rect x="-11" y="-11" width="22" height="22" rx="5" fill="#3f7bd6" stroke="#dbe9ff" stroke-width="2"/>
+        <rect x="-3.5" y="-3.5" width="7" height="7" rx="2" fill="#dbe9ff"/>
+      </g>
+    </svg>
+  </div>
+
+  <div id="dock">
+    <div id="bucket-zone">
+      <img id="bucket-img" src="../assets/forge/bucket.png" alt="Bucket"/>
+      <div class="cap">drop ore here</div>
+    </div>
+
+    <div id="inv">
+      <div class="ore-grid" id="oreGrid"></div>
+      <div class="reagents">
+        <div class="rtile" data-type="charcoal">
+          <div class="sphere" style="width:30px;height:30px;background:#2e2b28;"></div>
+          <div class="nm">Charcoal</div>
+          <div class="fx">hold: move sword</div>
+        </div>
+        <div class="rtile" data-type="limestone">
+          <div class="sphere" style="width:30px;height:30px;background:#e6e2d2;"></div>
+          <div class="nm">Limestone</div>
+          <div class="fx">hold: move ✕</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="readout">
+    <span><span class="k">Ore:</span> <span class="v" id="ro-ore">—</span></span>
+    <span><span class="k">Sword:</span> <span class="v" id="ro-sword">0%</span></span>
+    <span><span class="k">✕ target:</span> <span class="v" id="ro-x">—</span></span>
+    <span><span class="k">Charcoal:</span> <span class="v" id="ro-char">0</span></span>
+    <span><span class="k">Limestone:</span> <span class="v" id="ro-lime">0</span></span>
+    <span><span class="k">XP:</span> <span class="v" id="ro-xp">0</span></span>
+    <button id="reset">Reset</button>
+  </div>
+  <div id="log"></div>
+
+  <div id="traitPopup">
+    <div class="popup-box">
+      <div class="pt">✨ You discovered a trait!</div>
+      <div class="ps">The sword reached a hidden trait on the map. In the full game, this is where you'd learn and fuse its power.</div>
+      <button id="traitPopupClose">Nice!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  var ORES = [
+    { id:"steel",  name:"Steel",  color:"#9aa6b4", dir:"S · up",        d:"M0,0 C 60,-48 -60,-100 0,-155" },
+    { id:"iron",   name:"Iron",   color:"#8a5a33", dir:"curve · left",  d:"M0,0 C -52,-14 -122,-30 -168,8" },
+    { id:"copper", name:"Copper", color:"#c8763c", dir:"arc · up-right",d:"M0,0 C 55,-30 120,-55 165,-120" },
+    { id:"bronze", name:"Bronze", color:"#c39a52", dir:"arc · down-right",d:"M0,0 C 40,40 110,55 160,108" },
+    { id:"cobalt", name:"Cobalt", color:"#4a67a0", dir:"arc · down-left",d:"M0,0 C -40,40 -110,55 -160,108" },
+    { id:"silver", name:"Silver", color:"#c2cad2", dir:"hook · up-left", d:"M0,0 C -70,-30 -60,-122 20,-140" }
+  ];
+  var ORE_BY_ID = {}; ORES.forEach(function(o){ ORE_BY_ID[o.id]=o; });
+
+  var SWORD_RATE = 0.18;   // fraction of the path per second while charcoal is held (slow, tunable)
+  var X_RATE     = 0.18;   // fraction of the path per second while limestone is held
+  var REVEAL_R   = 56;     // fog-clear radius around the sword
+  var COLLECT_R  = 20;     // pickup radius for green dots
+  var COLLECT_R_TRAIT = 26;
+
+  var board  = document.getElementById("board");
+  var pathEl = document.getElementById("pathline");
+  var pathPreview = document.getElementById("pathpreview");
+  var xmark  = document.getElementById("xmark");
+  var sword  = document.getElementById("sword");
+  var app    = document.getElementById("app");
+  var bucket = document.getElementById("bucket-zone");
+  var bucketImg = document.getElementById("bucket-img");
+  var fogHoles  = document.getElementById("fogHoles");
+  var greenDotsG = document.getElementById("greenDots");
+  var traitG    = document.getElementById("trait");
+  var traitGlyph = document.getElementById("trait-glyph");
+  var traitPopup = document.getElementById("traitPopup");
+  var logEl  = document.getElementById("log");
+
+  var START = { x:300, y:212 };
+  var marker = { x:START.x, y:START.y };
+  var state = {
+    ore: null, origin: null, len: 0,
+    swordPct: 0,          // 0..1 sword progress (capped at xPct)
+    xPct: 0.5,            // 0.5..1 ✕ target position
+    charcoal: 0, limestone: 0,
+    lastSwordTenth: 0,    // tenths of path the sword has passed (drives charcoal toss)
+    lastXTenth: 5,        // tenths the ✕ sits at (starts at 5 = 50%; drives limestone toss)
+    xp: 0, traitDiscovered: false
+  };
+  var lastRev = null;
+
+  function setSword(x,y){ marker.x=x; marker.y=y; sword.setAttribute("transform","translate("+x+","+y+")"); }
+  function ptAt(pct){ var p = pathEl.getPointAtLength(pct*state.len); return { x: state.origin.x + p.x, y: state.origin.y + p.y }; }
+  function log(m){ logEl.textContent = m; }
+
+  function refresh(){
+    document.getElementById("ro-ore").textContent   = state.ore ? state.ore.name : "—";
+    document.getElementById("ro-sword").textContent = Math.round(state.swordPct*100) + "%";
+    document.getElementById("ro-x").textContent     = state.ore ? Math.round(state.xPct*100) + "%" : "—";
+    document.getElementById("ro-char").textContent  = state.charcoal;
+    document.getElementById("ro-lime").textContent  = state.limestone;
+    document.getElementById("ro-xp").textContent    = state.xp;
+  }
+
+  function revealFog(x,y){
+    if(lastRev && Math.hypot(x-lastRev.x, y-lastRev.y) < 9) return;
+    var c = document.createElementNS(SVGNS,"circle");
+    c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",REVEAL_R); c.setAttribute("fill","#000");
+    fogHoles.appendChild(c);
+    lastRev = { x:x, y:y };
+  }
+
+  // ---- collectibles: green dots (XP) + one trait, sampled onto the ore paths so a route can reach them ----
+  function samplePath(d, frac){
+    var tmp = document.createElementNS(SVGNS,"path");
+    tmp.setAttribute("d", d); board.appendChild(tmp);
+    var L = tmp.getTotalLength(), pt = tmp.getPointAtLength(L*frac);
+    board.removeChild(tmp);
+    return { x: START.x + pt.x, y: START.y + pt.y };
+  }
+  var TRAIT = samplePath(ORE_BY_ID.steel.d, 0.44);   // on the steel path (the natural first ore)
+  traitG.setAttribute("transform", "translate("+TRAIT.x+","+TRAIT.y+")");
+  var dots = [];
+  ORES.forEach(function(o,i){
+    [{f:0.52, v:1+(i%3)}, {f:0.84, v:3+(i%3)}].forEach(function(s){   // farther along = paths have diverged
+      var p = samplePath(o.d, s.f);
+      if(Math.hypot(p.x-TRAIT.x, p.y-TRAIT.y) < 30) return;                                       // don't sit on the trait
+      for(var q=0;q<dots.length;q++){ if(Math.hypot(p.x-dots[q].x, p.y-dots[q].y) < 26) return; } // keep them spread
+      var c = document.createElementNS(SVGNS,"circle");
+      c.setAttribute("cx",p.x); c.setAttribute("cy",p.y); c.setAttribute("r",6); c.setAttribute("fill","#5c7d3a");
+      greenDotsG.appendChild(c);
+      dots.push({ x:p.x, y:p.y, v:s.v, el:c, collected:false });
+    });
+  });
+
+  function floatText(svgX, svgY, str, color){
+    var br = board.getBoundingClientRect(), ar = app.getBoundingClientRect(), scale = br.width/600;
+    var el = document.createElement("div");
+    el.className = "float-text"; el.textContent = str; el.style.color = color;
+    el.style.left = (br.left + svgX*scale - ar.left) + "px";
+    el.style.top  = (br.top  + svgY*scale - ar.top)  + "px";
+    app.appendChild(el);
+    el.animate([
+      { transform:"translate(-50%,-50%) translateY(0)",     opacity:1 },
+      { transform:"translate(-50%,-50%) translateY(-34px)", opacity:0 }
+    ], { duration:820, easing:"ease-out" }).onfinish = function(){ el.remove(); };
+  }
+  function showTraitPopup(){ traitPopup.style.display = "flex"; }
+  document.getElementById("traitPopupClose").addEventListener("click", function(){ traitPopup.style.display = "none"; });
+
+  function collectAt(x,y){
+    for(var k=0;k<dots.length;k++){
+      var d = dots[k];
+      if(d.collected) continue;
+      if(Math.hypot(x-d.x, y-d.y) < COLLECT_R){
+        d.collected = true; d.el.style.display = "none";
+        state.xp += d.v; refresh();
+        floatText(d.x, d.y, "+"+d.v, "#9be04f");
+      }
+    }
+    if(!state.traitDiscovered && Math.hypot(x-TRAIT.x, y-TRAIT.y) < COLLECT_R_TRAIT){
+      state.traitDiscovered = true;
+      traitGlyph.textContent = "✓";
+      traitG.querySelector("circle").setAttribute("fill", "#3f8f4a");
+      showTraitPopup();
+    }
+  }
+
+  function moveXmark(){ var p = ptAt(state.xPct); xmark.setAttribute("transform","translate("+p.x+","+p.y+")"); }
+
+  // translucent preview of where an ore's path would go, from the sword's current spot
+  function showPreview(ore){
+    pathPreview.setAttribute("d", ore.d);
+    pathPreview.setAttribute("transform", "translate("+marker.x+","+marker.y+")");
+    pathPreview.style.display = "";
+  }
+  function hidePreview(){ pathPreview.style.display = "none"; }
+
+  function plotOre(ore){
+    state.ore = ore;
+    state.origin = { x: marker.x, y: marker.y };   // path continues from where the sword sits
+    state.swordPct = 0; state.xPct = 0.5;
+    state.lastSwordTenth = 0; state.lastXTenth = 5;
+    pathEl.setAttribute("d", ore.d);
+    pathEl.setAttribute("transform", "translate("+state.origin.x+","+state.origin.y+")");
+    pathEl.style.display = "";
+    state.len = pathEl.getTotalLength();
+    moveXmark(); xmark.style.display = "";
+    setSword(state.origin.x, state.origin.y);
+    revealFog(marker.x, marker.y);
+    refresh();
+    log(ore.name + " path plotted · ✕ set at the midpoint (50%). Hold Charcoal to advance.");
+  }
+
+  // Advance the sword along the path (capped at the ✕). delta = fraction of path.
+  function advanceSword(delta){
+    if(!state.ore || state.swordPct >= state.xPct) return false;
+    state.swordPct = Math.min(state.xPct, state.swordPct + delta);
+    var p = ptAt(state.swordPct); setSword(p.x, p.y);
+    revealFog(p.x, p.y);
+    collectAt(p.x, p.y);
+    var tenth = Math.floor(state.swordPct*10 + 1e-9);
+    while(state.lastSwordTenth < tenth){ state.lastSwordTenth++; state.charcoal++; tossToBucket("charcoal"); }
+    refresh();
+    return state.swordPct < state.xPct;   // still room to move?
+  }
+
+  // Push the ✕ forward along the path (50% -> 100%). delta = fraction of path.
+  function advanceX(delta){
+    if(!state.ore || state.xPct >= 1) return false;
+    state.xPct = Math.min(1, state.xPct + delta);
+    moveXmark();
+    var tenth = Math.floor(state.xPct*10 + 1e-9);
+    while(state.lastXTenth < tenth){ state.lastXTenth++; state.limestone++; tossToBucket("limestone"); }
+    refresh();
+    return state.xPct < 1;
+  }
+
+  // ---- press-and-hold loop ----
+  var holding = null, holdLast = null;
+  function holdFrame(ts){
+    if(!holding) return;
+    if(holdLast === null) holdLast = ts;
+    var dt = Math.min(0.05, (ts - holdLast)/1000); holdLast = ts;   // clamp dt so a stalled tab can't jump
+    if(holding === "charcoal"){ if(!advanceSword(SWORD_RATE*dt)){ log("The ✕ blocks the sword — hold Limestone to move it forward."); } }
+    else if(holding === "limestone"){ advanceX(X_RATE*dt); }
+    requestAnimationFrame(holdFrame);
+  }
+  function startHold(kind){
+    if(holding) return;
+    if(!state.ore){ log("Drop a metal ore first to plot a path."); return; }
+    if(kind === "charcoal" && state.swordPct >= state.xPct){ log("The sword is already at the ✕ — hold Limestone to move the ✕ forward first."); return; }
+    if(kind === "limestone" && state.xPct >= 1){ log("The ✕ is already at the end of the path (100%)."); return; }
+    holding = kind; holdLast = null;
+    requestAnimationFrame(holdFrame);
+  }
+  function stopHold(){ holding = null; holdLast = null; }
+
+  // ---- chunk tossed into the bucket every 10% ----
+  function tossToBucket(kind){
+    var src = document.querySelector('.rtile[data-type="'+kind+'"]');
+    if(!src) return;
+    var s = src.getBoundingClientRect(), b = bucket.getBoundingClientRect(), a = app.getBoundingClientRect();
+    var x0 = s.left + s.width/2 - a.left, y0 = s.top + s.height/2 - a.top;
+    var x1 = b.left + b.width*0.42 - a.left, y1 = b.top + b.height*0.40 - a.top;
+    var chunk = document.createElement("div");
+    chunk.className = "toss-chunk";
+    chunk.style.background = kind === "charcoal" ? "#2e2b28" : "#e6e2d2";
+    chunk.style.left = x0 + "px"; chunk.style.top = y0 + "px";
+    app.appendChild(chunk);
+    var anim = chunk.animate([
+      { transform:"translate(-50%,-50%) translate(0,0) scale(1)" },
+      { transform:"translate(-50%,-50%) translate("+((x1-x0)*0.5)+"px,"+((y1-y0)*0.5-46)+"px) scale(1.15)", offset:0.5 },
+      { transform:"translate(-50%,-50%) translate("+(x1-x0)+"px,"+(y1-y0)+"px) scale(0.55)", opacity:0.35 }
+    ], { duration:460, easing:"ease-in" });
+    anim.onfinish = function(){ chunk.remove(); bucketBob(); };
+  }
+  function bucketBob(){
+    bucketImg.animate([
+      { transform:"translateY(0) scaleY(1)" },
+      { transform:"translateY(2px) scaleY(.97)", offset:.4 },
+      { transform:"translateY(0) scaleY(1)" }
+    ], { duration:220, easing:"ease-out" });
+  }
+
+  // ---- build ore tiles ----
+  var grid = document.getElementById("oreGrid");
+  ORES.forEach(function(o){
+    var t = document.createElement("div");
+    t.className = "tile"; t.setAttribute("data-type","ore"); t.setAttribute("data-id",o.id);
+    t.innerHTML = '<div class="sphere" style="background:'+o.color+'"></div><div class="nm">'+o.name+'</div><div class="dir">'+o.dir+'</div>';
+    grid.appendChild(t);
+  });
+
+  // ---- reset ----
+  document.getElementById("reset").addEventListener("click", function(){
+    stopHold();
+    state.ore=null; state.origin=null; state.len=0; state.swordPct=0; state.xPct=0.5;
+    state.charcoal=0; state.limestone=0; state.lastSwordTenth=0; state.lastXTenth=5;
+    state.xp=0; state.traitDiscovered=false;
+    dots.forEach(function(d){ d.collected=false; d.el.style.display=""; });
+    traitGlyph.textContent="?"; traitG.querySelector("circle").setAttribute("fill","#7a4fa0");
+    traitPopup.style.display="none";
+    pathEl.style.display="none"; xmark.style.display="none";
+    fogHoles.innerHTML=""; lastRev=null;
+    setSword(START.x, START.y); revealFog(START.x, START.y); refresh(); log("Reset.");
+  });
+
+  // ---- ore drag & drop (Pointer Events — mouse + touch) ----
+  var ghost=null, dragId=null;
+  function overBucket(cx,cy){ var r=bucket.getBoundingClientRect(); return cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom; }
+  function placeGhost(cx,cy){ var r=app.getBoundingClientRect(); ghost.style.left=(cx-r.left)+"px"; ghost.style.top=(cy-r.top)+"px"; }
+  function oreDown(el, ev){
+    ev.preventDefault();
+    dragId = el.getAttribute("data-id");
+    ghost = el.cloneNode(true); ghost.classList.add("drag-ghost"); ghost.style.width = el.offsetWidth+"px";
+    app.appendChild(ghost); placeGhost(ev.clientX, ev.clientY);
+    showPreview(ORE_BY_ID[dragId]);   // show the ore's path preview while dragging
+    try { el.setPointerCapture(ev.pointerId); } catch(e){}
+    el.addEventListener("pointermove", oreMove); el.addEventListener("pointerup", oreUp); el.addEventListener("pointercancel", oreUp);
+  }
+  function oreMove(ev){ if(!ghost) return; placeGhost(ev.clientX, ev.clientY); bucket.classList.toggle("hot", overBucket(ev.clientX, ev.clientY)); }
+  function oreUp(ev){
+    if(ghost){ ghost.remove(); ghost=null; }
+    bucket.classList.remove("hot");
+    hidePreview();
+    this.removeEventListener("pointermove", oreMove); this.removeEventListener("pointerup", oreUp); this.removeEventListener("pointercancel", oreUp);
+    if(dragId && overBucket(ev.clientX, ev.clientY)){ plotOre(ORE_BY_ID[dragId]); }
+    dragId=null;
+  }
+  document.querySelectorAll(".tile").forEach(function(el){ el.addEventListener("pointerdown", function(ev){ oreDown(el, ev); }); });
+
+  // ---- charcoal / limestone press-and-hold ----
+  document.querySelectorAll(".rtile").forEach(function(el){
+    var kind = el.getAttribute("data-type");
+    function down(ev){ ev.preventDefault(); el.classList.add("held"); try{ el.setPointerCapture(ev.pointerId); }catch(e){} startHold(kind); }
+    function up(){ el.classList.remove("held"); stopHold(); }
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+  });
+
+  setSword(START.x, START.y); revealFog(START.x, START.y); refresh();
+
+  // debug hook (research prototype) — lets tooling drive movement without the rAF hold loop
+  window.mapv2 = { state:state, advanceSword:advanceSword, advanceX:advanceX, plotOre:plotOre, ptAt:ptAt, fogHoles:fogHoles, ORE_BY_ID:ORE_BY_ID };
+})();
+</script>
+</body>
+</html>
