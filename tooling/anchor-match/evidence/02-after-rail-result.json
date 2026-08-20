@@ -1,0 +1,71 @@
+{
+  "overall_palette_score": 80.6,
+  "overall_structure_score": 16.6,
+  "regions": [
+    {
+      "name": "hud_left",
+      "hist_distance": 0.2541,
+      "luma_correlation": -0.1558,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "skilltree",
+      "hist_distance": 0.2923,
+      "luma_correlation": 0.038,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "map",
+      "hist_distance": 0.3244,
+      "luma_correlation": 0.2913,
+      "passed": false,
+      "failures": [
+        "hist_distance: 0.3244 > max 0.3"
+      ]
+    },
+    {
+      "name": "rail",
+      "hist_distance": 0.1973,
+      "luma_correlation": 0.2117,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "bench",
+      "hist_distance": 0.0964,
+      "luma_correlation": 0.3255,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "dragon",
+      "hist_distance": 0.2125,
+      "luma_correlation": -0.017,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "anvil",
+      "hist_distance": 0.1138,
+      "luma_correlation": 0.0773,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "furnace",
+      "hist_distance": 0.1249,
+      "luma_correlation": 0.2487,
+      "passed": true,
+      "failures": []
+    },
+    {
+      "name": "wheel",
+      "hist_distance": 0.1329,
+      "luma_correlation": 0.4784,
+      "passed": true,
+      "failures": []
+    }
+  ]
+}

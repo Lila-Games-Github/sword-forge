@@ -1,0 +1,4 @@
+{
+  "_note": "Prop-cut fidelity thresholds (starting values 2026-08-14). Gate a NEW generation of a prop vs its approved canonical cutout.",
+  "thresholds": { "minimums": { "alpha_iou": 0.90, "luminance_correlation": 0.85 }, "maximums": { "rgb_mean_absolute_error": 0.10 } }
+}
