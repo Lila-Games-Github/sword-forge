@@ -395,6 +395,31 @@ gate frac of furnace: x 0.123-0.421  y 0.581-0.860   (the left arch, as drawn)
 orbInGate=true  orbOverBellows=false  selftest=true
 ```
 
+## r24 — cauldron overlay removed from the scene (2026-08-20)
+
+`<img class="cauldron" src="assets/forge/anchor_cauldron.png">` and its CSS (`.cauldron` +
+`@keyframes cauldronGlow`) are gone, along with the now-pointless `cauldron` entry in
+`FRAME_BOX_SEL`.
+
+**This is a no-op visually.** The overlay had been `display: none` since **r10**, when the smelter was
+re-cut as one tall unit with the molten pot **baked into `anchor_furnace.png`**. The glowing pot on the
+furnace crown is part of the furnace art and is unaffected — removing the overlay only deletes dead
+markup, dead CSS and a dead measurement hook.
+
+If the intent was to remove the **visible** pot, that is a different job: it means editing
+`anchor_furnace.png` (masking the pot out of the painted art), not touching the scene markup.
+
+`assets/forge/anchor_cauldron.png` is left on disk but is now **referenced by nothing** — a deletion
+candidate alongside the other unreferenced assets tracked in `plan.md`.
+
+### Measured (r24)
+
+```
+selftest=true fails=[]   .cauldron element ABSENT
+furnace unchanged: w 0.190 h 0.393   pipeline ore->heat->gate->anvil OK
+resource load errors: [] both before and after the change
+```
+
 ## Verification
 
 Run headless (see note below) with a DOM probe:

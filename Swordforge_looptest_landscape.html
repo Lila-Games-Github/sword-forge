@@ -144,11 +144,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
 .furnace { width: 100%; display: block; }/* smelter fills its station; new anchor-cut smelter (crossed A-frame bracing, centre-left arch, flared rim) is already anchor-oriented — no flip */
 #frame.landscape #stSmelt { z-index: 3; }   /* r12: furnace+bellows above the wheel (stMortar) so the bellows ring handle at the back-right isn't occluded (Opus audit fix) */
-/* glowing copper cauldron cut from the anchor, seated on the furnace crown (hero focal point) */
-.cauldron { display: none;   /* r10: the molten pot is now baked into the re-cut smelter (anchor_furnace.png), no separate overlay */
-    position: absolute; left: 26%; top: 1%; width: 48%; z-index: 3; -webkit-user-drag: none; pointer-events: none;
-    filter: drop-shadow(0 0 10px rgba(255,150,40,.75)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); animation: cauldronGlow 2.4s ease-in-out infinite; }
-@keyframes cauldronGlow { 0%,100% { filter: drop-shadow(0 0 8px rgba(255,140,40,.6)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); } 50% { filter: drop-shadow(0 0 15px rgba(255,175,60,.9)) drop-shadow(0 3px 4px rgba(0,0,0,.5)); } }
+/* r24: the separate .cauldron overlay (assets/forge/anchor_cauldron.png) was removed from the scene.
+   It had been display:none since r10, when the molten pot was baked into the re-cut anchor_furnace.png,
+   so it drew nothing — the glowing pot you see on the furnace crown is part of the furnace art. */
 /* ---- station JUICE (Phase B feel) ---- */
 #grindHot { position: absolute; left: 22%; top: 4%; width: 56%; height: 56%; z-index: 6; cursor: pointer; }
 .mortar.grinding { animation: grindShake .11s linear infinite; }   /* the wheel judders as it grinds */
@@ -440,7 +438,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <span class="badge" style="left:auto; right:-9px;">3</span>
             <img class="furnace" src="assets/forge/anchor_furnace.png" alt="Smelter">
             <div class="furnaceGlow" id="furnaceGlow"></div>
-            <img class="cauldron" src="assets/forge/anchor_cauldron.png" alt="Cauldron">
             <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.png" alt="Bellows">
             <span class="bellow-tag">Bellow</span>
             <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
@@ -1040,7 +1037,7 @@ function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
 
 // element footprints as FRACTIONS of #frame (the game side of the anchor pixel-% size match).
 // Compared against the anchor element boxes in tooling/anchor-match/spec.hori.json by element_size.py.
-const FRAME_BOX_SEL={ furnace:'#stSmelt .furnace', cauldron:'#stSmelt .cauldron', bellows:'#stSmelt .bellowtop',
+const FRAME_BOX_SEL={ furnace:'#stSmelt .furnace', bellows:'#stSmelt .bellowtop',
     anvil:'#stAnvil .anvil', wheel:'#stMortar .mortar', dragon:'#dragon .crop', bucket:'#bucketBack', hammer:'#hammerTool',
     mug:'#mug', hud:'#hud', rail:'#rail', map:'#map-wrap', skilltree:'#skillBtn' };
 function frameBoxes(){ const f=document.getElementById('frame'); if(!f) return {}; const fr=f.getBoundingClientRect(); const out={};
