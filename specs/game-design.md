@@ -76,6 +76,15 @@ A free-roaming sprite. **Drag** to reposition; **press-and-hold** (no drag) to *
   The mug only pours when **both** conditions hold — orb on the anvil **and** the sword on a trait. *(This water-bucket step replaces the earlier "firepit" acquire.)*
 - **Stack more traits.** Acquiring doesn't end the run: drag the cooled orb back to the **furnace**, re-heat, add ore, travel further, and acquire more — they accumulate as tier-coloured symbols in the map's trait strip (`#sfTraits`). Or finish the blade (§5).
 
+### Books / XP (landscape, 2026-08-27)
+
+Scattered pickups after Potion Craft. **96 books** on the landscape map — 70 small (**+60 XP**) and 26
+large (**+120 XP**), 7,320 XP in total. They sit under the fog and are collected by travelling within
+~30 world units of one; the total banks toward the skill tree and shows as `📖 n XP` under the SKILL
+TREE button. 30% of them sit **inside hazard zones**, so reaching those trades blade integrity for XP.
+⚠️ XP currently buys nothing — the XP → skill-point conversion and the skill tree are placeholders — and
+it is **not lost when a blade shatters**. **Portrait has no books.**
+
 ### Blade-trait panel (landscape, 2026-08-19)
 
 The landscape build shows the blade's traits as **5 slots** top-left (`#bladePanel`). An empty slot is a dot; an acquired trait of tier N fills **N slots** with its element icon (`TIER_PIPS` Weak 1 / Fine 2 / Epic 3), so the row doubles as a capacity meter. Below it sit a **cancel-crafting** button (`resetRun()` — blade and traits lost) and a **placeholder save** button. This replaced the old `#sfTraits` strip over the map. ⚠️ Capacity is **display-only**: acquisition is not capped at 5 points, so a 6th pip is silently dropped.
