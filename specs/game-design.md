@@ -2,7 +2,7 @@
 
 **Single source of truth for game mechanics.** This describes the game *as actually implemented*. When code and this doc disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
 
-> **Two builds.** The **ore → finished-sword crafting & movement loop** — §2 steps 2–4 and all of **§3–§5** — is now canon per the newer **`Swordforge_new_looptest.html`** build (the ore-route / hammer-travel / water-quench loop). **Everything else is unchanged and still reflects `index.html`**: §6 Economy (smelter, NPC customers, day system, quests, shopfront, blueprints), §7 Map reset, §8 UI shell, and onboarding. Where the two disagree about the crafting loop, follow the loop-test. Integration of the loop-test into `index.html`'s screens/economy is still open (see §9).
+> **Two builds.** The **ore → finished-sword crafting & movement loop** — §2 steps 2–4 and all of **§3–§5** — is now canon per the canonical build **`Swordforge_looptest_landscape.html`** (the landscape ore-route / hammer-travel / water-quench loop-test; decided 2026-09-07, superseding `Swordforge_new_looptest.html`, its diverged portrait sibling, see §9). **Everything else is unchanged and still reflects `index.html`**: §6 Economy (smelter, NPC customers, day system, quests, shopfront, blueprints), §7 Map reset, §8 UI shell, and onboarding. Where the two disagree about the crafting loop, follow the loop-test. Integration of the loop-test into `index.html`'s screens/economy is still open (see §9).
 
 > The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
 
