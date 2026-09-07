@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1080, user-scalable=no">
 <title>Swordforge — Loop Test</title>
+<!-- perf: the two CSS backgrounds that paint the first screen (rail wood, bench floor). As CSS url()s they are only
+     requested once the imported font stylesheet resolves; preloading lets them start with the HTML. -->
+<link rel="preload" as="image" href="assets/ui/rail_wood.png">
+<link rel="preload" as="image" href="assets/backgrounds/anchor_bench_bg.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -470,7 +474,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
-        <img id="compass" src="assets/map/compass.png" alt="">
+        <img id="compass" src="assets/map/compass.png" alt="" loading="lazy">
         <div id="sfHp" title="Blade integrity — hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
         <svg id="board" viewBox="0 250 2800 1400" preserveAspectRatio="xMidYMid slice" aria-label="Crafting map">
             <defs>
@@ -498,7 +502,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <!-- r25: painted parchment base for the whole world. Cover-fit ("slice") because map_base.png is
                  square (2948x2948) and the world is 2800x1960 - stretching it to the world box would distort
                  the border art. The flat #d8c8a0 rect stays underneath as the load/fallback colour. -->
-            <image id="mapBase" x="0" y="0" width="2800" height="1960" href="assets/map/map_base.png" preserveAspectRatio="xMidYMid slice"/>
+            <image id="mapBase" x="0" y="0" width="2800" height="1960" data-href="assets/map/map_base.png" preserveAspectRatio="xMidYMid slice"/><!-- perf: href set by loadMapBase() after the bench art has landed; the #d8c8a0 rect + fog stand in meanwhile -->
             <g id="terrain">
                 <g id="blobs"></g>
                 <g id="hazards"></g>
@@ -594,7 +598,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
         <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
-        <img id="dragonFire" src="assets/forge/dragonfire.png" alt="">
+        <img id="dragonFire" src="assets/forge/dragonfire.png" alt="" loading="lazy">
         <div id="waterPour"></div>
         <div id="waterSplash"></div>
         <div id="quenchFlash"></div>
@@ -649,20 +653,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Hammer minigame (ported from swordforgeV2) ===== -->
     <div id="sfHammerModal" class="sf-modal hm-modal">
         <div class="hm-scene" id="hmScene">
-            <img class="hm-layer" src="assets/hammer/hammer_bg.png" alt="">
+            <img class="hm-layer" src="assets/hammer/hammer_bg.png" alt="" loading="lazy">
             <div id="hmWork">
                 <div id="hmOrb"><div class="cold"></div><div class="hot"></div></div>
                 <img id="hmRough" src="" alt="">
                 <div id="hmMorph"></div>
-                <img class="hm-layer" id="hmFinal" src="assets/hammer/hammer_sword.png" alt="">
+                <img class="hm-layer" id="hmFinal" src="assets/hammer/hammer_sword.png" alt="" loading="lazy">
             </div>
             <div id="hmDragon">
-                <img src="assets/hammer/hammer_dragon.png" alt="">
-                <img id="hmFire" src="assets/forge/dragonfire.png" alt="">
+                <img src="assets/hammer/hammer_dragon.png" alt="" loading="lazy">
+                <img id="hmFire" src="assets/forge/dragonfire.png" alt="" loading="lazy">
                 <div id="hmSnout"></div><div id="hmAim"></div>
                 <div id="hmHead" title="hold on the metal to heat it"></div>
             </div>
-            <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.png" alt="">
+            <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.png" alt="" loading="lazy">
             <div id="hmGrip" title="drag the hammer"></div>
             <div id="hmFx"></div>
             <div class="hm-hud">
@@ -1181,7 +1185,7 @@ function startPrep(oreId){ prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId);
 function addPrep(){ ensureMelt(); addSegment(prep.ore,prep.grind); prep=null; hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ ensureMelt(); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the glowing orb.'); }
-function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>glowing orb</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
+function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } melt.stage='hot'; prefetchHammerArt(); document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>glowing orb</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
 function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Drag the hammer onto the anvil</b> to run the sword along the route. Reach a trait, then <b>pour the mug</b> over the anvil to lock it in.'); }
 function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
@@ -1508,6 +1512,16 @@ function tick(now){
 // --- wiring ---
 const ORE_COUNT={ iron:100, manganese:12, copper:100, aluminium:5, nickel:8, tin:33, zinc:18 };   // decorative rail counts (anchor-style xNN)
 const MAT_CELLS=12;   // r20: the reference inventory is a 3x4 grid. All 8 ORES are shown and the remainder are EMPTY cells - the old RAIL_FILLER invented duplicate materials, which a real inventory should not do. (non-interactive)
+// ---- perf: load order. Nothing below changes a mechanic; it only decides WHEN art is fetched. ----
+// First paint = bench props + rail + ore slots (all static <img>/CSS). Everything else is deferred:
+//   map_base.png (16 MB) is fetched once the first-paint set has landed (window 'load'), the flat parchment rect + fog showing meanwhile;
+//   the hammer scene + dragon fire are loading="lazy" in the markup and warmed with new Image() while the player is still on the bench.
+const PREFETCHED={};
+function prefetch(urls){ urls.forEach(u=>{ if(PREFETCHED[u]) return; const im=new Image(); im.src=u; PREFETCHED[u]=im; }); }
+const HAMMER_ART=['assets/forge/dragonfire.png','assets/hammer/hammer_bg.png','assets/hammer/hammer_sword.png','assets/hammer/hammer_dragon.png','assets/hammer/hammer_hammer.png','assets/hammer/balanced_shortsword_midblade.png','assets/hammer/balanced_longsword_midblade.png','assets/hammer/balanced_broadsword_midblade.png'];
+function prefetchHammerArt(){ prefetch(HAMMER_ART); }
+function loadMapBase(){ const mb=document.getElementById('mapBase'); if(!mb||mb.getAttribute('href')) return; const done=()=>prefetchHammerArt();   // chain: map first, then the next stage's art, so the two never compete for bandwidth
+    mb.addEventListener('load',done,{once:true}); mb.addEventListener('error',done,{once:true}); mb.setAttribute('href', mb.dataset.href); }
 function wireOreTray(){ const shelf=document.getElementById('oreShelf'); shelf.querySelectorAll('.ore-slot').forEach(s=>s.remove());   // build one slot per ore in ORES (so adding ores needs no HTML change)
     ORES.forEach(o=>{ const slot=document.createElement('div'); slot.className='ore-slot'; slot.style.cursor='grab'; slot.innerHTML='<img src="'+o.img+'" alt="'+o.name+'"><span>'+o.name+'</span><span class="ore-count">x'+(ORE_COUNT[o.id]||99)+'</span>';
         slot.addEventListener('pointerdown', e=>{ if(!canAddOre()){ hint('Put the orb back in the furnace before adding more ore.'); return; } startOreDrag(o.id, e); }); shelf.appendChild(slot); });
@@ -1613,7 +1627,7 @@ function runLayoutSelfTest(){
     return { pass, fails };
 }
 
-window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); wireHmDragon(); wireHmHammer(); hmLayout();
+document.addEventListener('DOMContentLoaded', ()=>{ initMap(); wireHammer(); initMechanics(); wireHmDragon(); wireHmHammer(); hmLayout();   // perf: was window 'load', which held the whole game until every image (incl. the 16 MB map base) had downloaded; nothing here reads an image's natural size
     if(window.SFM){ window.SFM.setOrientation=setOrientation; window.SFM.applyLayout=applyLayout; window.SFM.runLayoutSelfTest=runLayoutSelfTest; window.SFM.toggleWireframe=toggleWireframe; }
     if(location.search.indexOf('wire')>=0) toggleWireframe(true);
     if(location.search.indexOf('test')>=0) runLayoutSelfTest();
@@ -1621,6 +1635,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
+window.addEventListener('load', loadMapBase);   // perf: first-paint art is in; now fetch the map base, then warm the hammer scene
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
 window.addEventListener('resize', ()=>{ setView(); });
 </script>

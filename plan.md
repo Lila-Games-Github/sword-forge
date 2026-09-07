@@ -93,6 +93,11 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 
 ---
 
+### Session 2026-09-07 — landscape build canonical, first-paint load order
+- [x] **Canonical build is `Swordforge_looptest_landscape.html`** (captain decision, 2026-09-07); README + specs headers updated. CLAUDE.md / ONBOARDING.md banners still name `swordforgeV2.html` (follow-up).
+- [x] **Lazy load / load order in the landscape build** (perf audit risk 1, no asset re-encoding): init moved from `load` to `DOMContentLoaded`; `map_base.png` (16 MB) fetched after the first-paint set lands (flat parchment + fog as placeholder); hammer scene, dragon fire and the hidden compass are `loading="lazy"`; hammer art prefetched via `new Image()` after the map arrives or when the furnace gate opens; `<link rel="preload">` for the rail-wood and bench-floor CSS backgrounds. First-paint bytes 44.9 MB -> 20.9 MB.
+- [ ] Follow-ups from the audit: offline downscale/WebP of the ore PNGs (11.5 MB visible in the rail at first paint) and `map_base.png`; self-host or preload the fonts (`@import` is render-blocking); `cache-control: max-age=600` on Pages.
+
 ## 🔜 Next up
 
 - [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Must now cover a lot: gold/vault/metals/compositions/upgrades/tutorial progress **+ day state** (`currentDay`, `customersToday`, `refusalsToday`) **+ quests + diary (`diaryGiven`) + shop ledger (`shopLedger`) + per-sword `craftBonus`/`hazardLoss`**.
