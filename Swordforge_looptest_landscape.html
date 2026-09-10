@@ -32,18 +32,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* landscape (hori-anchor target: wide map top, wide diorama bench bottom, ore rail down the right) */
 #frame.landscape {
     grid-template-columns: 1fr var(--rail-w);
-    grid-template-rows: 75.5% 1fr;   /* r13: map grown to the reference 0.755 height (was 54%); props stand on the floor line and bleed up over the parchment */
+    grid-template-rows: 79.58% 1fr;   /* r36: map grown again to the updated wireframe's 0.7958 (was 0.755). The bench band is now 20.42% of the frame, which every LAYOUT.landscape y is a fraction of. */
     grid-template-areas:
       "map  rail"
       "bench rail";
 }
 /* landscape HUD floats over the map (anchor style): vertical wood-plaque stack top-left + Skill Tree top-right */
-#frame.landscape > #hud { position: absolute; left: 12px; top: 12px; z-index: 20; width: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 0; background: none; border: none; box-shadow: none; }
+#frame.landscape > #hud { position: absolute; left: 6px; top: 1px; z-index: 20; width: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 0; background: none; border: none; box-shadow: none; }
 #frame > #hud { grid-area: hud; }
 #frame > #map-wrap { grid-area: map; min-height: 0; }
 #frame > #bench { grid-area: bench; min-height: 0; }
 #frame > #rail { grid-area: rail; min-height: 0; position: relative; overflow: hidden;
-    background: #211610 url('assets/ui/rail_wood.png') center bottom / 100% 94% no-repeat;   /* anchor: thin dark forge-wall gap at the very top, warm wood ore board fills the rest (board top warm, not a big dark void) */
+    background: #211610;   /* r47: rail_wood.png was removed from the repo in r46 - reference dropped so it stops 404-ing (this rule never paints anyway; #frame ships with class="landscape") */
     border-left: 4px solid #6a4a24; box-shadow: inset 3px 0 7px rgba(0,0,0,.45); }
 #frame.landscape > #rail { display: block; }   /* landscape ore rail visible (hori anchor) */
 
@@ -86,8 +86,39 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .hud-btn.back:active { transform: scale(0.95); }
 /* compass on the map + furnace smoke (Phase 1 art) */
 #compass { position: absolute; left: 8px; bottom: 8px; width: 62px; height: 62px; z-index: 6; opacity: 0.9; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
-#furnaceSmoke { position: absolute; left: 37%; top: 2%; width: 13%; z-index: 5; opacity: .6; pointer-events: none; transform-origin: bottom center; animation: smokeRise 6s ease-in-out infinite; }   /* vents up from the furnace crucible mouth, above the furnace, inside the visible bench */
-@keyframes smokeRise { 0% { opacity: 0; transform: translateY(12px) scale(.85); } 40% { opacity: .55; } 100% { opacity: 0; transform: translateY(-16px) scale(1.15); } }
+/* r38: inside #stSmelt, so it tracks the furnace. left/bottom put it on the crucible mouth —
+   centre 51% and rim top 25% of anchor_furnace.png; left = 51 - width/2. Hidden with no animation
+   running until .on, which wireBellowGate adds while the bellows are actually being pumped. */
+#furnaceSmoke { position: absolute; left: 34%; bottom: 74%; width: 34%; z-index: 2; opacity: 0;
+    pointer-events: none; transform-origin: bottom center; animation: none;
+    filter: none; }   /* .station img casts a drop-shadow; smoke must not */
+#furnaceSmoke.on { animation: smokeRise 2.2s ease-in-out infinite; }
+@keyframes smokeRise { 0% { opacity: 0; transform: translateY(14px) scale(.8); } 35% { opacity: .6; } 100% { opacity: 0; transform: translateY(-26px) scale(1.25); } }
+/* r39 — idle nudge arrow. arrow.png is pure white on transparent, so it needs a shadow to read against
+   the parchment. The sheen is a band mask 3x the element's width swept across it: at mask-position 100%
+   the band sits just off the left edge, at 0% just off the right, so 100% -> 0% travels LEFT TO RIGHT. */
+#hintArrow { position: absolute; z-index: 15; display: none; opacity: 0; pointer-events: none;
+    -webkit-user-drag: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,.7));
+    -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 42%, #000 58%, transparent 70%);
+            mask-image: linear-gradient(90deg, transparent 30%, #000 42%, #000 58%, transparent 70%);
+    -webkit-mask-size: 320% 100%;   mask-size: 320% 100%;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+#hintArrow.on { display: block; animation: arrowSheen 2.1s ease-in-out infinite; }
+@keyframes arrowSheen {
+    0%   { opacity: 0;   -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+    28%  { opacity: .95; }
+    72%  { opacity: .95; }
+    100% { opacity: 0;   -webkit-mask-position: 0% 0;   mask-position: 0% 0; }
+}
+/* r40 — the "tap the ore" nudge. visibility+opacity rather than display, so it can fade in; the bob
+   owns transform outright (unlike #hintArrow, this one needs no rotation to aim). */
+#hintDown { position: absolute; z-index: 15; display: none; opacity: 0; pointer-events: none;
+    -webkit-user-drag: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
+/* the fade is a KEYFRAME, not a transition: a transition off visibility:hidden never fired here, so the
+   arrow stayed at opacity 0 forever. Two animations, one per property - same trick #hintArrow uses. */
+#hintDown.on { display: block; animation: hintBob 1.1s ease-in-out infinite, hintFade .35s ease-out forwards; }
+@keyframes hintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes hintFade { from { opacity: 0; } to { opacity: .95; } }
 /* heat gauge — relocated out of the HUD into a small bench overlay near the furnace */
 #heatMini { position: absolute; left: 41%; top: 10%; transform: translateX(-50%); z-index: 12; display: flex; align-items: center; gap: 4px; background: rgba(20,15,8,0.7); border: 1px solid #6a5636; border-radius: 8px; padding: 3px 6px; }   /* centered over the furnace, lowered 10% */
 .gauge { display: flex; align-items: center; gap: 4px; }
@@ -128,7 +159,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* ore tray (compact, top-left) */
 /* ore rail — #oreShelf now fills the right-edge rail zone as a vertical scroll column (Phase 1) */
-#oreShelf { position: absolute; top: 11%; left: 0; right: 0; bottom: 0; z-index: 3;
+#oreShelf { position: relative; flex: 1 1 auto; min-height: 0; z-index: 3;
     display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 6px; padding: 8px 5px 8px;
     overflow-y: auto; overflow-x: hidden; background: transparent; border: none; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 #oreShelf::-webkit-scrollbar { width: 5px; } #oreShelf::-webkit-scrollbar-thumb { background: #5a4526; border-radius: 3px; }
@@ -237,14 +268,133 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
 @keyframes pump { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
 #dragonFire { position: absolute; z-index: 7; width: 130px; pointer-events: none; -webkit-user-drag: none; display: none; filter: drop-shadow(0 0 6px rgba(255,140,30,.85)); }
-#sfHint { position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 12; text-align: center; font-size: 11px; line-height: 1.35; color: #ffe6b8; background: rgba(20,14,7,0.82); border: 1px solid #6a5636; border-radius: 8px; padding: 5px 9px; text-shadow: 0 1px 2px #000; }   /* moved to the bottom so it stops capping the furnace crown */
-#sfHint b { color: #ffd98a; }
 #forgeResult { position: absolute; left: 50%; top: 44%; transform: translate(-50%,-50%); z-index: 30; display: none; text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; color: #ffe08a; background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 12px; padding: 14px 22px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
 #forgeResult.show { display: block; animation: resultPop .45s ease-out; }
 @keyframes resultPop { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.7); } 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
 
 /* acquired-traits strip (top-right of the map) */
 /* r21: #sfTraits (acquired-trait strip over the map) replaced by #bladePanel top-left. */
+/* ============================================================
+   r42 — SKILL TREE. Same left-section centring as r33/r41. .st-panel IS the drawn sheet; the base art
+   is near full-bleed so it only needs a ~1.5% nudge to sit its torn edge on the container.
+   ============================================================ */
+.st-panel { position: relative; width: 75.97%; max-width: 840px; aspect-ratio: 1488 / 1031;
+    margin-right: 18.1%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
+.st-sheet { position: absolute; width: 103.50%; left: -1.54%; top: -1.46%; pointer-events: none; -webkit-user-drag: none; }
+.st-panel > *:not(.st-sheet) { position: absolute; z-index: 2; }
+/* the central skill, and the twelve placeholder nodes */
+.st-core { left: 50.05%; top: 49.91%; width: 16.89%; aspect-ratio: 1; transform: translate(-50%,-50%); }
+.st-core img { width: 100%; display: block; -webkit-user-drag: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,.45)); }
+.st-node { width: 6.38%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%,-50%);
+    border: 3px solid; box-shadow: 0 2px 5px rgba(0,0,0,.35), inset 0 2px 4px rgba(255,255,255,.4); }
+.st-node.y { background: #f6e2a6; border-color: #a8842a; }
+.st-node.g { background: #cfeccb; border-color: #47893c; }
+.st-node.b { background: #cddff5; border-color: #37699f; }
+/* talent-points readout — a bounding box for now, like the book's slots */
+.st-points { left: 41.95%; top: 2.34%; width: 16.10%; height: 8.72%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px dashed rgba(122,96,52,.55); border-radius: 6px; background: rgba(255,248,225,.30);
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
+/* paper buttons — width from the wireframe cell, height from the asset's own aspect (neither stacks,
+   so nothing can collide, and driving off width keeps Reset inside the sheet's left edge) */
+.st-btn { border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px; letter-spacing: .3px; color: #4a3623; }
+.st-reset { left: 1.13%; top: 2.34%; width: 12.36%; aspect-ratio: 143 / 51;
+    background-image: url('assets/ui/Paper_button_wide.png'); }
+.st-close { left: -0.46%; top: 92.78%; width: 7.94%; aspect-ratio: 213 / 97;
+    background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
+.st-btn:hover { filter: brightness(1.06); }
+.st-btn:active { transform: translateY(1px) scale(.99); }
+
+/* ============================================================
+   r41 — COMPOSITION BOOK. Same left-section centring as the r33 popup (margin-right shifts a centred
+   flex item by half its value). .cb-book IS the drawn page area; the base PNG is scaled up and pushed
+   out behind it so the artwork's opaque region lands exactly on that box.
+   ============================================================ */
+.cb-book { position: relative; width: 70.15%; max-width: 780px; aspect-ratio: 980 / 645;
+    margin-right: 18.1%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
+.cb-page { position: absolute; width: 137.53%; left: -4.66%; top: -9.15%; pointer-events: none; -webkit-user-drag: none; z-index: 1; }
+.cb-book > *:not(.cb-page):not(.cb-marks) { z-index: 2; }
+/* bookmarks sit BEHIND the page, so only the tab pokes out */
+.cb-marks { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cb-mark { position: absolute; width: 5.3%; }
+.cb-mark img { display: block; width: 100%; -webkit-user-drag: none; }
+.cb-mark span { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 13px; line-height: 1; }
+.cb-marks-side .cb-mark { width: 5.4%; transform: rotate(90deg); }
+/* titles */
+.cb-title { position: absolute; margin: 0; transform: translateX(-50%); white-space: nowrap;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #4a3623; top: 3.6%; }
+.cb-title-l { left: 24%; }
+.cb-title-r { left: 74%; }
+/* the empty content boxes — bounding boxes only, contents come later */
+.cb-slot { position: absolute; border: 2px dashed rgba(122,96,52,.55); border-radius: 6px;
+    background: rgba(255,248,225,.30); }
+/* the default-design sword: four 512-square parts, pre-registered, stacked at inset 0 */
+.cb-sword { position: absolute; left: 4.08%; top: 11.47%; width: 20%; height: 62.17%; overflow: hidden;
+    border: 2px dashed rgba(122,96,52,.55); border-radius: 6px; background: rgba(255,248,225,.30); }
+/* the parts are drawn on a 45-deg diagonal inside their 512 squares; rotating the WRAPPER keeps all
+   four registered and stands the blade up in the tall box. A square turned 45deg needs ~1/1.41 the room. */
+.cb-sword-art { position: absolute; left: 50%; top: 50%; height: 70%; aspect-ratio: 1; transform: translate(-50%,-50%) rotate(-45deg); }
+.cb-sword-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; }
+.cb-gear { position: absolute; left: 4.08%; top: 62.32%; width: 6.12%; height: 11.32%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 17px; color: #f7edd4;
+    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+.cb-gear:active { transform: scale(.94); }
+/* paper buttons: width follows the wireframe cell's HEIGHT through the asset's own aspect, so nothing
+   is stretched and the two button rows cannot collide */
+.cb-btn { position: absolute; border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: .3px; color: #4a3623; }
+.cb-btn.red { background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; aspect-ratio: 213 / 97; }
+.cb-btn.wide { background-image: url('assets/ui/Paper_button_wide.png'); aspect-ratio: 143 / 51; }
+.cb-btn:hover { filter: brightness(1.06); }
+.cb-btn:active { transform: translateY(1px) scale(.99); }
+.cb-erase  { left: 56.64%; top: 77.19%; width: 12.33%; }
+.cb-craft5 { left: 77.69%; top: 77.19%; width: 15.75%; }
+.cb-cont   { left: 54.78%; top: 87.04%; width: 16.05%; font-size: 8.5px; }
+.cb-craft1 { left: 77.54%; top: 87.04%; width: 16.05%; }
+.cb-close  { left: -6.77%; top: 95.34%; width: 14.13%; }
+
+/* ============================================================
+   r33 — UPDATE COMPOSITION popup. Assembled from the owner's torn-paper UI set:
+     Small_paperbox       849x533  -> the window
+     Small_paperbox_dark  320x252  -> the Recorded / New panels
+     Paper_button_red     213x97   -> Cancel
+     Paper_button_wider   453x97   -> Update
+   Each piece keeps its native aspect via aspect-ratio and is sized in % of its parent, so the whole
+   window scales with the frame and none of the art is stretched. Contents are placeholders.
+   ============================================================ */
+/* The wireframe does not centre this window on the frame — it sits clear of the right rail, with its
+   centre at 40.95% of the frame width (measured). Padding the flex container on the right shifts the
+   centring box by exactly that much, so the window stays centred on the play area at any frame size. */
+/* margin on the BOX, not padding on the modal: padding would shrink the flex container, and the
+   box's own 38.3% width resolves against it — the window came out 18% smaller. A margin-right of 18.1%
+   against a centred flex item shifts it left by half that, i.e. 9.05% of the frame, size untouched. */
+.comp-box { position: relative; width: 38.3%; max-width: 430px; margin-right: 18.1%; aspect-ratio: 849 / 533;
+    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 14px 30px rgba(0,0,0,.6));
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 23px 16px; gap: 8px; }   /* px, not %: percentage padding resolves against the MODAL's width, not the box's, which forced the paper taller than its native aspect and stretched the texture */
+.comp-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 900; font-size: 15px;
+    letter-spacing: .4px; color: #5a4224; text-align: center; line-height: 1.1; }
+.comp-slots { display: flex; width: 100%; gap: 20px; justify-content: center; }
+.comp-slot { flex: 0 0 46%; aspect-ratio: 320 / 252; border: 0; padding: 0; cursor: pointer;
+    background: url('assets/ui/Small_paperbox_dark.png') center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623; }
+.comp-btns { display: flex; width: 100%; gap: 5px; justify-content: center; align-items: flex-end; margin-top: auto; }
+.paperBtn { border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: .3px; color: #4a3623; }
+.paperBtn.red  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
+.paperBtn.wide { flex: 0 0 68%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.png'); }
+.comp-slot:hover, .paperBtn:hover { filter: brightness(1.06); }
+.comp-slot:active { transform: scale(.985); }
+.paperBtn:active { transform: translateY(1px) scale(.99); }
+.comp-slot:focus-visible, .paperBtn:focus-visible { outline: 2px solid #c8a84b; outline-offset: 2px; }
+
 /* r32 — book pickups. The CSS animations sit on an INNER <g>: the outer group already carries a
    transform="translate(x,y)" attribute, and a CSS transform would replace it, teleporting the book to
    the world origin mid-pop. SVG transform-origin defaults to 0 0, so the inner scale is about the
@@ -255,12 +405,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .bookXp { font-family: 'Cinzel', serif; font-weight: 700; fill: #ffe9a8; paint-order: stroke;
     stroke: rgba(20,14,7,.92); stroke-width: 5px; animation: bookXp 1.15s ease-out forwards; }
 @keyframes bookXp { 0% { opacity: 0; transform: translateY(2px) scale(.7); } 16% { opacity: 1; transform: translateY(-10px) scale(1.12); } 100% { opacity: 0; transform: translateY(-52px) scale(1); } }
-#expRow { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 6px;
-    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #e8d3a4; letter-spacing: .4px; }
-#expRow .ic { font-size: 12px; }
-#expRow .u { color: #a68d63; font-size: 9px; }
-#expRow.bump { animation: expBump .45s ease-out; }
-@keyframes expBump { 0%,100% { transform: scale(1); color: #e8d3a4; } 35% { transform: scale(1.22); color: #ffe08a; } }
 
 /* blade integrity (r16) — hazard zones damage the active sword */
 #sfHp { position: absolute; right: 8px; top: 8px; z-index: 6; display: none; align-items: center; gap: 6px; padding: 4px 7px; background: rgba(20,15,8,0.62); border: 1px solid #6a5636; border-radius: 8px; }
@@ -381,39 +525,428 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     content: attr(id); position: absolute; left: 0; top: -12px; font-size: 8px; font-weight: bold; color: #ff9ecb; background: rgba(0,0,0,0.72); padding: 0 3px; border-radius: 3px; white-space: nowrap; z-index: 50; pointer-events: none; }
 
 /* ---- clean render mode (#frame.clean — via ?clean): hide loop-test/tutorial chrome absent from the anchor marketing art (step badges, station captions, zoom buttons, hint bar, heat gauge). Gameplay untouched; visual-only. ---- */
-#frame.clean .badge, #frame.clean .cap, #frame.clean .bucket-cap, #frame.clean .bellow-tag, #frame.clean .zoom, #frame.clean #sfHint, #frame.clean #heatMini, #frame.clean #sfHp, #frame.clean .map-tag { display: none !important; }
+#frame.clean .badge, #frame.clean .cap, #frame.clean .bucket-cap, #frame.clean .bellow-tag, #frame.clean .zoom, #frame.clean #panPad, #frame.clean #heatMini, #frame.clean #sfHp, #frame.clean .map-tag { display: none !important; }
 
 /* ===== right column (r20) - structured from the owner's UI reference:
    4 map-selection tabs overlapping the map edge, a day/gold/popularity box, SKILL TREE,
    and a MATERIALS inventory holding every ore. Palette stays the build's warm parchment/wood
    (the reference is a greyscale wireframe, so it drives structure + proportion, not colour). ===== */
-#frame.landscape > #rail { display: flex; flex-direction: column; gap: 8px; padding: 12px 9px 42px;
-    background: #1b120c url('assets/ui/rail_wood.png') center center / 100% 100% no-repeat; }
+#frame.landscape > #rail { display: flex; flex-direction: column; gap: 0; padding: 0 3px 5px 12px;
+    background: #1b120c; }   /* r46: rail_wood.png dropped. Its stone caps and slot recesses showed through the rail's own padding, and the cards on top now carry their own parchment + slot grid, so the board was redundant. */
 .railCard { background: linear-gradient(180deg,#efe1bc,#d6c396); border: 3px solid #241a0c; border-radius: 9px;
     box-shadow: 0 3px 7px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.35); }
-#statPanel { flex: 0 0 auto; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
-.statRow { display: flex; gap: 6px; align-items: stretch; }
-.dayTile { flex: 0 0 34%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+#statPanel { flex: 0 0 auto; padding: 0 3px 0; display: flex; flex-direction: column; gap: 2px; }
+.statRow { display: flex; gap: 13px; align-items: stretch; }
+.dayTile { flex: 0 0 30%; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: #f7edd4; border: 2px solid #241a0c; border-radius: 5px; padding: 3px 0; }
 .dayTile .n { font-family: 'Cinzel', serif; font-weight: 900; font-size: 21px; line-height: 1; color: #241a0c; }
 .dayTile .l { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1.5px; color: #4a381c; }
-.statCol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
+.statCol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
 .statPill { display: flex; align-items: center; gap: 5px; background: #f7edd4; border: 2px solid #241a0c; border-radius: 5px;
-    padding: 3px 6px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #241a0c; white-space: nowrap; }
+    height: 18px; padding: 0 6px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #241a0c; white-space: nowrap; }
 .statPill .ic { font-size: 13px; }
 #skillBtn { width: 100%; display: block; text-align: center; cursor: pointer; font-family: 'Cinzel', serif; font-weight: 900;
     font-size: 14px; letter-spacing: .6px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
-    border: 2px solid #241a0c; border-radius: 5px; padding: 5px 0; box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+    border: 2px solid #241a0c; border-radius: 5px; height: 50px; padding: 0; line-height: 47px; box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
 #skillBtn:active { transform: scale(.97); }
-#matPanel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 7px; }
-#matTabs { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin: -14px 0 7px; }
-.matTab { height: 23px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
+/* r34 — Recipe book (under the blade panel) and Diary / Quest (foot of the rail). Same carved-wood
+   treatment as #skillBtn so the three read as one family. All placeholders. */
+#recipeBtn, #railBtns button { display: block; width: 100%; text-align: center; cursor: pointer;
+    font-family: 'Cinzel', serif; font-weight: 900; letter-spacing: .5px; color: #f7edd4;
+    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 5px;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+#recipeBtn { height: 41px; font-size: 13px; padding: 0; line-height: 41px; }
+#railBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; flex: 0 0 auto; }
+#railBtns button { height: 43px; font-size: 12px; padding: 0; }
+#recipeBtn:active, #railBtns button:active { transform: scale(.97); }
+/* r36 — the top-left group folds to a single tab. #hud is already a flex column in landscape, so the
+   tab simply sits under the panel and becomes the only thing left when the panel is hidden. */
+#hudToggle { margin-top: 3px; width: 34px; height: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 11px; line-height: 1; color: #f7edd4;
+    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 5px;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+#hudToggle:active { transform: scale(.94); }
+#hud.collapsed #bladePanel { display: none; }
+/* r34 — map pan arrows. The pad covers the LEFT SECTION only (frame minus the rail), so the arrows sit
+   on that section's edges exactly as the wireframe places them, and follow --rail-w if it changes. */
+/* r43 — placeholder screens. Above the forge's own content, below the rail (the plates leave the rail's
+   strip blank on purpose) and well below the modals. */
+#screenLayer { position: absolute; inset: 0; z-index: 40; display: none; background: #0a0806; }
+#screenLayer.on { display: block; }
+#screenArt { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }   /* r47: scoped to the plate - as '#screenLayer img' it was also forcing height:100%/cover onto the prop images */
+#screenLayer .tag { position: absolute; left: 12px; bottom: 10px; font-family: 'Cinzel', serif; font-weight: 700;
+    font-size: 11px; letter-spacing: 1px; color: #f0dcb0; background: rgba(12,8,4,.72);
+    border: 1px solid #6a5636; border-radius: 6px; padding: 4px 10px; }
+#frame.landscape > #rail { z-index: 45; }
+/* r44 — clickable things on a placeholder plate. Invisible until hovered, so the art stays clean but
+   the hotspots are still discoverable. */
+/* r47 — scene props sitting on a placeholder plate: above the art, below the hotspots */
+#screenProps { position: absolute; inset: 0; z-index: 41; pointer-events: none; }
+#screenProps img { position: absolute; display: block; -webkit-user-drag: none;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
+#screenProps img.hot { pointer-events: auto; cursor: pointer; transition: filter .16s; }
+#screenProps img.hot:hover { filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)) brightness(1.14); }
+#screenHots { position: absolute; inset: 0; z-index: 42; pointer-events: none; }   /* r48c: an EMPTY #screenHots still swallowed every click on the props below it */
+/* r49 — chrome that belongs to a screen rather than to the forge. Same carved-wood treatment as
+   #recipeBtn and #railBtns so it reads as one family. */
+#screenUi { position: absolute; inset: 0; z-index: 43; pointer-events: none; }
+/* r55 — a screen's own panel cluster. One container per screen, shown by the sc-<name> class that
+   goScreen() puts on #screenLayer, so the markup can live in the page without leaking onto other screens. */
+#screenLayer > .sc-panels { display: none; position: absolute; inset: 0; z-index: 44; pointer-events: none; }
+#screenLayer.sc-customer > #csPanel { display: block; }
+#csPanel > * { pointer-events: auto; }
+.cs-dlg { position: absolute; left: 31.68%; top: 6.36%; width: 44.92%; aspect-ratio: 1074 / 425;
+    background: url('assets/ui/Dialogue_box.png') center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center; padding: 14px 34px 22px; }
+.cs-dlg p { margin: 0; font-size: 12px; line-height: 1.5; color: #4a3623; text-align: center; }   /* Dialogue_box.png is pale parchment, so the text has to be dark */
+.cs-resp { position: absolute; left: 31.68%; top: 39.41%; width: 44.92%; aspect-ratio: 453 / 97;
+    background: url('assets/ui/Paper_button_wider.png') center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11.5px; color: #5c4a33; text-align: center; }
+.cs-btn { position: absolute; bottom: 36.58%; border: 0; padding: 0; cursor: pointer;
+    background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
+.cs-btn:hover { filter: brightness(1.06); }
+.cs-btn:active { transform: translateY(1px) scale(.99); }
+.cs-sell { left: 59.81%; width: 8.90%; aspect-ratio: 143 / 51; background-image: url('assets/ui/Paper_button_wide.png'); }
+.cs-deny { left: 68.40%; width: 8.27%; aspect-ratio: 213 / 97; color: #6d2a22;
+    background-image: url('assets/ui/Paper_button_red.png'); }
+/* The sword on display: same lay-flat trick as the racks, in a box the prop layer positions. NOT
+   clipped - it is sized to the drawn LENGTH, so its guard reaches past the box's height on purpose. */
+.cs-swordbox { overflow: visible; }
+.cs-sword { position: absolute; left: 50%; top: 50%; width: var(--s, 90%); aspect-ratio: 1;
+    transform: translate(calc(-50% + var(--sx, 0%)), -50%) rotate(45deg); }
+.cs-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-user-drag: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,.5)); }
+.sc-btn { position: absolute; pointer-events: auto; cursor: pointer; padding: 0 4px; gap: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 900; letter-spacing: .3px; color: #f7edd4;
+    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 4px 10px rgba(0,0,0,.5); }
+.sc-btn:hover { filter: brightness(1.08); }
+.sc-btn:active { transform: scale(.97); }
+.sc-btn img { height: 62%; width: auto; display: block; -webkit-user-drag: none;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.sc-btn .sc-gl { font-size: 21px; line-height: 1; }     /* placeholder until a ledger icon exists */
+/* NOT .cap - that class is the bench stations' caption and is position:absolute (and hidden in clean mode) */
+.sc-btn .sc-cap { font-size: 9px; line-height: 1.15; text-align: center; }
+.sc-hot { position: absolute; pointer-events: auto; cursor: pointer; border-radius: 12px; transition: background .18s, box-shadow .18s; }
+.sc-hot:hover { background: rgba(255,225,150,.13); box-shadow: inset 0 0 0 2px rgba(255,214,130,.55); }
+.eh-heart { position: absolute; z-index: 46; pointer-events: none; font-size: 20px; line-height: 1;
+    animation: ehRise 1.15s ease-out forwards; }
+@keyframes ehRise {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4); }
+    18%  { opacity: 1; transform: translate(-50%,-50%) translateY(-8px) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%,-50%) translate(var(--hx,0px), -74px) scale(.9); }
+}
+/* end-day dialog — same paper construction as the Update Composition popup */
+.eod-box { position: relative; width: 35.25%; max-width: 400px; aspect-ratio: 849 / 533;
+    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    margin-right: 18.1%; filter: drop-shadow(0 14px 30px rgba(0,0,0,.6));
+    display: flex; flex-direction: column; align-items: center; padding: 20px 26px 16px; gap: 6px; }
+.eod-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 900; font-size: 16px; color: #5a4224; text-align: center; }
+.eod-p { margin: 0; font-size: 11.5px; line-height: 1.45; color: #5c4a33; text-align: center; max-width: 90%; }
+.eod-btns { display: flex; width: 100%; gap: 5px; justify-content: center; align-items: flex-end; margin-top: auto; }
+.eod-btn { border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623; }
+.eod-btn.no  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
+.eod-btn.yes { flex: 0 0 64%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.png'); }
+.eod-btn:hover { filter: brightness(1.06); }
+.eod-btn:active { transform: translateY(1px) scale(.99); }
+/* r48 — Racks window. The scrim covers the LEFT SECTION only, so the rail's inventory and SWORDS tab
+   stay lit exactly as the wireframe draws them. Children are % of this box = % of the left section. */
+#sfRackModal { right: var(--rail-w); display: none; }
+#sfRackModal.show { display: block; }
+/* rack.png is a PORTRAIT asset (241x427) and the window is landscape, so the base is stretched ~2x
+   horizontally. It reads as the window's frame; a wide rack variant would drop straight in. */
+#rwRack { position: absolute; left: 7.83%; top: 6.89%; width: 68.12%; height: 85.21%;
+    background: url('assets/Game-elements/rack.png') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 16px 34px rgba(0,0,0,.65)); }
+#rwView { position: absolute; left: 9.83%; top: 10.03%; width: 85.52%; height: 80.33%; overflow: hidden; }
+#rwTrack { position: absolute; inset: 0; transition: transform .12s linear; }
+.rw-row { position: absolute; left: 0; width: 100%; height: 22.31%; }
+.rw-slot { position: absolute; left: 0; top: 0; width: 75.08%; height: 100%; overflow: hidden;
+    border-radius: 8px; cursor: pointer; transition: background .16s; }
+.rw-slot:hover { background: rgba(255,225,150,.12); }
+/* the part art is drawn along the 45 degree diagonal of a 512 square, so rotate(45deg) lays it flat.
+   --s / --sx are per-row: see the r48b note - each combo is sized so neither its tips nor its guard can
+   reach the slot's edges, and nudged so the art (not the canvas) is centred. */
+.rw-sword { position: absolute; left: 50%; top: 50%; width: var(--s, 80%); aspect-ratio: 1;
+    transform: translate(calc(-50% + var(--sx, 0%)), -50%) rotate(45deg); pointer-events: none; }
+.rw-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-user-drag: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+.rw-det { position: absolute; left: 76.50%; top: 0; width: 23.60%; height: 100%; border: 0; padding: 6px 12px;
+    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    font-family: 'Cinzel', serif; color: #5a4224; }
+.rw-det:hover { filter: brightness(1.06); }
+.rw-det:active { transform: translateY(1px) scale(.995); }
+.rw-det .lab { font-weight: 700; font-size: 12px; }
+.rw-det .open { display: none; font-size: 10.5px; line-height: 1.35; color: #5c4a33; text-align: center; }
+.rw-det .em  { font-size: 15px; line-height: 1; }
+.rw-det.is-open .lab { display: none; }
+.rw-det.is-open .open { display: block; }
+#rwBar { position: absolute; left: 96.48%; top: 8.40%; width: 3.22%; height: 81.33%;
+    background: #757575; border-radius: 6px; }
+#rwThumb { position: absolute; left: 0; width: 100%; background: #1e1e1e; border-radius: 6px; cursor: grab; }
+#rwClose { position: absolute; left: 4.09%; bottom: 1.63%; width: 11.5%; aspect-ratio: 213 / 97;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
+#rwClose:hover { filter: brightness(1.06); }
+#rwClose:active { transform: translateY(1px) scale(.99); }
+/* ============================================================
+   r50 — LEDGER. Same construction as the Composition Book (see the r41 block): .lb-book is the drawn
+   page area, the base PNG is oversized and offset behind it. Dims the whole frame, like its sibling.
+   ============================================================ */
+.lb-book { position: relative; width: 74.50%; max-width: 830px; aspect-ratio: 1396 / 918;
+    margin-right: 14.68%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
+.lb-page { position: absolute; width: 137.53%; left: -4.66%; top: -9.15%; pointer-events: none; -webkit-user-drag: none; z-index: 1; }
+.lb-book > *:not(.lb-page) { z-index: 2; }
+.lb-day { position: absolute; left: 6.18%; top: 2.33%; width: 37.92%; height: 12.17%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 900; font-size: 17px; letter-spacing: 1px; color: #5a4224;
+    border-bottom: 2px solid rgba(122,96,52,.45); }
+.lb-sold { position: absolute; left: 6.18%; top: 16.33%; width: 37.92%; height: 76.83%;
+    border: 2px dashed rgba(122,96,52,.5); border-radius: 6px; }
+.lb-sold-h { position: absolute; left: 0; right: 0; top: 8px; text-align: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #6b5330; }
+/* the rows are siblings of .lb-sold, not children, so their % are PAGE-BOX % straight off the wireframe */
+#lbRows { position: absolute; inset: 0; pointer-events: none; }
+.lb-row { position: absolute; left: 8.23%; width: 33.80%; height: 10.50%; }
+.lb-slot { position: absolute; left: 0; top: 0; width: 76.92%; height: 100%; overflow: hidden; }
+.lb-sword { position: absolute; left: 50%; top: 50%; width: var(--s, 90%); aspect-ratio: 1;
+    transform: translate(calc(-50% + var(--sx, 0%)), -50%) rotate(45deg); }
+.lb-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-user-drag: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+.lb-val { position: absolute; left: 76.92%; top: 0; width: 23.08%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 900; font-size: 12px; color: #7a5a1e;
+    border-left: 2px dashed rgba(122,96,52,.5); }
+.lb-det { position: absolute; left: 58.40%; top: 17.67%; width: 31.85%; height: 64.33%;
+    border: 2px dashed rgba(122,96,52,.5); border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px;
+    font-size: 11.5px; color: #5c4a33; text-align: center; }
+.lb-det h4 { margin: 0 0 6px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #5a4224; }
+.lb-close { position: absolute; left: -1.41%; bottom: -4.67%; width: 11.5%; aspect-ratio: 213 / 97;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
+.lb-close:hover { filter: brightness(1.06); }
+.lb-close:active { transform: translateY(1px) scale(.99); }
+/* ============================================================
+   r52 — DESIGN DESK. Full-frame window: every child is a % of the modal, which is the whole frame.
+   ============================================================ */
+#sfDesignModal { display: none; background: rgba(0,0,0,.55); }
+#sfDesignModal.show { display: block; }
+#ddStage { position: absolute; left: 0; top: 0; width: 100%; height: 58.96%;
+    background: radial-gradient(120% 100% at 50% 8%, #2c2013 0%, #17100a 62%, #0d0906 100%);
+    box-shadow: inset 0 -3px 0 #241a0c; }
+/* the wireframe box is 10.52% / 31.11% of the FRAME, but these % resolve against #ddStage (58.96%
+   of the frame tall), so the vertical pair is re-based: 10.52/58.96 and 31.11/58.96 */
+.dd-swordbox { position: absolute; left: 13.98%; top: 17.84%; width: 74.77%; height: 52.76%; overflow: hidden;
+    border: 2px solid rgba(122,96,52,.45); border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255,225,160,.05), rgba(0,0,0,.18)); }
+/* the part art runs along the 45deg diagonal of its canvas, so rotate(45deg) lays the sword flat */
+.dd-sword { position: absolute; left: 50%; top: 50%; width: var(--s, 70%); aspect-ratio: 1;
+    transform: translate(calc(-50% + var(--sx, 0%)), -50%) rotate(45deg); pointer-events: none; }
+.dd-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-user-drag: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,.55)); }
+.dd-btn { position: absolute; top: 51.41%; border: 0; padding: 0; cursor: pointer;
+    background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623;
+    background-image: url('assets/ui/Paper_button_wide.png'); aspect-ratio: 143 / 51; }
+.dd-btn:hover { filter: brightness(1.06); }
+.dd-btn:active { transform: translateY(1px) scale(.99); }
+.dd-cancel { left: -0.17%; width: 9.96%; aspect-ratio: 213 / 97; color: #6d2a22;
+    background-image: url('assets/ui/Paper_button_red.png'); }
+.dd-tab.is-on { transform: translateY(-2px); filter: brightness(1.12) saturate(1.08) drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+.dd-tab.is-on:active { transform: translateY(-1px) scale(.99); }
+#ddPanel { position: absolute; left: 0; top: 59.11%; width: 100%; height: 40.89%; overflow: hidden;
+    background: linear-gradient(180deg,#241a0c,#1b120c); box-shadow: inset 0 3px 0 rgba(255,220,150,.10); }
+#ddTrack { position: absolute; inset: 0; transition: transform .12s linear; }
+.dd-tile { position: absolute; width: 12.82%; height: 48.91%; cursor: pointer; padding: 0; border: 2px solid #241a0c;
+    border-radius: 5px; background: linear-gradient(180deg,#c4b189,#ab9770);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.28); }
+.dd-tile:hover { filter: brightness(1.08); }
+.dd-tile.is-on { border-color: #e6c266; box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 0 0 2px rgba(230,194,102,.55); }
+/* a square holder, so the % offsets that centre the part's opaque box mean the same in both axes */
+.dd-part { position: absolute; left: 50%; top: 50%; height: 100%; aspect-ratio: 1;
+    transform: translate(-50%,-50%); overflow: hidden; pointer-events: none; }
+.dd-part img { position: absolute; -webkit-user-drag: none; }
+#ddBar { position: absolute; left: 96.86%; top: 4.35%; width: 2.65%; height: 94.20%;
+    background: #4a3a22; border: 2px solid #241a0c; border-radius: 6px; }
+#ddThumb { position: absolute; left: 0; width: 100%; background: #8a6a34; border-radius: 5px; cursor: grab; }
+/* ============================================================
+   r53 — SHARPENING. Full-frame window; every child is a % of the modal, which is the whole frame.
+   ============================================================ */
+#sfSharpModal { display: none; background: radial-gradient(120% 100% at 50% 4%, #2c2013 0%, #17100a 60%, #0b0805 100%); }
+#sfSharpModal.show { display: block; }
+#shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
+    background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
+    box-shadow: inset 0 1px 0 rgba(255,200,170,.25); }
+.sh-zone { position: absolute; top: 0; bottom: 0; left: 80.00%; width: 10.10%;
+    background: linear-gradient(180deg,#78c964,#3d8b41); box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+#shMark { position: absolute; top: 47%; width: 4.54%; aspect-ratio: 1; transform: translateX(-50%);
+    background: #17100a; clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+/* both grindstone frames live on one 1701x1536 sheet, so they stack at inset:0 in a container sized to
+   that sheet - that is what registers the motion frame on the wheel 1:1 */
+.sh-grind { position: absolute; left: 0.93%; top: 51.75%; width: 49.23%; aspect-ratio: 1701 / 1536;
+    transform: translateY(-54.195%); pointer-events: none;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.55)); }
+.sh-grind img { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-user-drag: none; }
+/* the motion frame rests on the base and jitters; harder while the blade is actually cutting */
+.sh-spin { animation: shJit .42s ease-in-out infinite; }
+#sfSharpModal.grinding .sh-spin { animation: shJitOn .07s steps(3,end) infinite; }
+@keyframes shJit   { 0%,100% { transform: translate(0,0); } 50% { transform: translate(.10%,-.08%); } }
+@keyframes shJitOn { 0% { transform: translate(-.28%,.14%); } 33% { transform: translate(.26%,-.20%); }
+                     66% { transform: translate(.08%,.28%); } 100% { transform: translate(-.28%,.14%); } }
+#shFx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+#shFx > * { position: absolute; pointer-events: none; }
+/* the wrapper hugs the FLAT sword, so it is what the pointer hits; only .sh-art is rotated */
+#shSword { position: absolute; transform: translate(-50%,-50%); cursor: grab; touch-action: none; }
+#shSword.dragging { cursor: grabbing; }
+.sh-art { position: absolute; pointer-events: none; }
+.sh-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-user-drag: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,.55)); }
+.sh-btn { position: absolute; top: 87.67%; border: 0; padding: 0; cursor: pointer;
+    background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623; }
+.sh-btn:hover { filter: brightness(1.06); }
+.sh-btn:active { transform: translateY(1px) scale(.99); }
+.sh-cancel { left: 2.63%; width: 10.03%; aspect-ratio: 213 / 97; color: #6d2a22;
+    background-image: url('assets/ui/Paper_button_red.png'); }
+.sh-done { left: 84.03%; width: 12.83%; aspect-ratio: 143 / 51;
+    background-image: url('assets/ui/Paper_button_wide.png'); }
+/* ============================================================
+   r56 — DIARY. Third book on the shared 1920x1080 sheet, so the same construction as the Composition
+   Book (r41) and the Ledger (r50): .dy-book is the drawn page area, the base PNG oversized behind it.
+   ============================================================ */
+.dy-book { position: relative; width: 70.23%; max-width: 790px; aspect-ratio: 1396 / 918;
+    margin-right: 22.71%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
+.dy-page-img { position: absolute; width: 137.53%; left: -4.66%; top: -9.15%; pointer-events: none; -webkit-user-drag: none; z-index: 1; }
+.dy-book > *:not(.dy-page-img) { z-index: 2; }
+.dy-title { position: absolute; left: 24.95%; top: 4.51%; transform: translateX(-50%); margin: 0;
+    white-space: nowrap; font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #5a4224; }
+/* a character the player has met, or a slot they have not filled yet */
+.dy-slot { position: absolute; width: 19.06%; height: 26.44%; border-radius: 8px;
+    border: 2px solid rgba(122,96,52,.75); background: rgba(255,236,189,.30);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #5a4224; }
+.dy-slot.unknown { border-style: dashed; border-color: rgba(122,96,52,.45); background: rgba(255,236,189,.14);
+    color: #8a7350; font-size: 18px; }
+.dy-tabs { position: absolute; inset: 0; pointer-events: none; }
+/* bookmark_paper.png is portrait; a 90deg turn makes it a side tab, so the image is sized 73.39% of the
+   wrapper's WIDTH (the rotation swaps its extents, which lands it exactly on the wrapper) */
+.dy-tab { position: absolute; left: 101.71%; width: 5.25%; aspect-ratio: 124 / 91; border: 0; padding: 0;
+    background: none; cursor: pointer; pointer-events: auto;
+    display: flex; align-items: center; justify-content: center; }
+.dy-tab img { position: absolute; left: 50%; top: 50%; width: 73.39%; aspect-ratio: 91 / 124;
+    transform: translate(-50%,-50%) rotate(90deg); -webkit-user-drag: none;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.45)); }
+.dy-tab span { position: relative; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #6b5330; }
+.dy-tab:hover img { filter: drop-shadow(0 3px 5px rgba(0,0,0,.45)) brightness(1.06); }
+.dy-tab.is-on { transform: translateX(4%); }
+.dy-tab.is-on span { color: #4a3623; }
+/* r59 — the character page: another sheet in the same book, reached by clicking a character rather
+   than by a tab. Boxes are % of the page box, straight off Diary_character_page.png. */
+.dy-slot.known { cursor: pointer; transition: background .16s, box-shadow .16s; }
+.dy-slot.known:hover { background: rgba(255,236,189,.55); box-shadow: 0 0 0 2px rgba(230,194,102,.5); }
+.dyc-box { position: absolute; border-radius: 8px; border: 2px solid rgba(122,96,52,.7);
+    background: rgba(255,236,189,.30); display: flex; align-items: center; justify-content: center;
+    text-align: center; font-size: 11px; color: #5a4224; padding: 0 6px; }
+.dyc-box.q { border-style: dashed; border-color: rgba(122,96,52,.45); background: rgba(0,0,0,.05);
+    color: #8a7350; font-size: 18px; }
+.dyc-box.reward { border-color: rgba(90,150,90,.75); background: rgba(190,235,195,.35); color: #35603a;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; line-height: 1.25; }
+.dyc-portrait { left: 4.41%; top: 12.82%; width: 24.54%; height: 44.41%; overflow: hidden; padding: 0; }
+.dyc-portrait img { position: absolute; -webkit-user-drag: none; }
+.dyc-last  { left: 31.93%; top: 28.47%; width: 14.89%; height: 13.41%; }
+.dyc-req   { left: 4.41%;  top: 61.25%; width: 42.40%; height: 13.41%; }
+.dyc-rel   { left: 4.41%;  top: 77.35%; width: 42.40%; height: 13.41%; gap: 3px; }
+.dyc-rel .h { font-size: 14px; line-height: 1; }
+.dyc-rel .h.on { color: #c9436b; }
+.dyc-rel .h.off { color: #b6a894; }
+.dyc-gift  { left: 54.62%; top: 12.82%; width: 16.53%; height: 22.50%; font-size: 34px; }
+.dyc-rew   { left: 77.31%; top: 12.82%; width: 16.53%; height: 22.50%; }
+.dyc-q1    { left: 54.62%; top: 41.88%; width: 16.53%; height: 22.50%; }
+.dyc-q2    { left: 77.31%; top: 41.88%; width: 16.53%; height: 22.50%; }
+.dyc-q3    { left: 65.20%; top: 70.79%; width: 16.53%; height: 22.50%; }
+.dy-sheet { position: absolute; inset: 0; display: none; }
+.dy-sheet.is-on { display: block; }
+.dy-blank { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); white-space: nowrap;
+    font-size: 12px; color: #8a7350; font-style: italic; }
+.dy-close { position: absolute; left: -2.03%; bottom: -3.42%; width: 12.5%; aspect-ratio: 213 / 97;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
+.dy-close:hover { filter: brightness(1.06); }
+.dy-close:active { transform: translateY(1px) scale(.99); }
+/* ============================================================
+   r58 — QUESTS. Quest_base.png is a plain parchment sheet whose art fills the canvas, so the sheet IS
+   the content area: the wireframe's white panel maps straight onto it (left 20.94%, width 36.16% of
+   the frame) and .qs-page is simply inset:0.
+   ============================================================ */
+.qs-board { position: relative; width: 36.16%; max-width: 420px; aspect-ratio: 644 / 933;
+    margin-right: 21.96%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
+.qs-bg { position: absolute; width: 100.16%; left: 0; top: -0.11%; pointer-events: none; -webkit-user-drag: none; z-index: 1; }
+.qs-board > *:not(.qs-bg) { z-index: 2; }
+.qs-page { position: absolute; inset: 0; }
+.qs-title { position: absolute; left: 49.89%; top: 4.21%; transform: translateX(-50%); margin: 0;
+    white-space: nowrap; font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #5a4224; }
+.qs-row { position: absolute; height: 12.30%; border-radius: 7px;
+    border: 2px solid rgba(122,96,52,.7); background: rgba(255,236,189,.34);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    text-align: center; color: #5a4224; }
+.qs-quest { left: 4.99%; width: 55.53%; padding: 0 5px; }
+.qs-quest .lab { font-family: 'Cinzel', serif; font-weight: 700; font-size: 9.5px; line-height: 1.15; }
+.qs-quest .prog { font-size: 9px; color: #7a6034; }
+.qs-reward { left: 62.69%; width: 32.10%; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #7a5a1e; }
+.qs-none { position: absolute; left: 50%; top: 40%; transform: translate(-50%,-50%); white-space: nowrap;
+    font-size: 11px; font-style: italic; color: #8a7350; }
+/* the pager: the current page is the big centre chip and pages shrink outward */
+.qs-chip { position: absolute; top: 92.56%; transform: translate(-50%,-50%); padding: 0; border-radius: 5px;
+    border: 2px solid rgba(122,96,52,.6); background: rgba(255,236,189,.34); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif; font-weight: 700; color: #6b5330; }
+.qs-chip:hover { filter: brightness(1.06); }
+.qs-chip.is-on { border-color: rgba(122,96,52,.95); background: rgba(255,201,67,.42); color: #4a3623; }
+.qs-chip.blank { pointer-events: none; }
+/* the pager's own controls, so they wear the chip's look at exactly the drawn box (a paper button at
+   this width would be a 13px-tall strip) */
+.qs-pgbtn { position: absolute; top: 92.64%; height: 4.21%; transform: translateY(-50%); padding: 0;
+    border-radius: 5px; border: 2px solid rgba(122,96,52,.7); background: rgba(255,236,189,.42);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; line-height: 1; color: #5a4224; }
+.qs-pgbtn:hover { filter: brightness(1.06); }
+.qs-pgbtn:active { transform: translateY(-50%) scale(.96); }
+.qs-pgbtn:disabled { opacity: .4; cursor: default; }
+.qs-prev { left: -2.39%; width: 10.20%; }
+.qs-next { left: 92.41%; width: 9.98%; }
+/* the wireframe's own spot, off the panel's bottom-left corner - but at -3.5% rather than the drawn
+   -6.63%, because the sheet leaves only 28px below it before the frame's edge */
+.qs-close { position: absolute; left: -5.21%; bottom: -3.5%; width: 16.27%; aspect-ratio: 213 / 97;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #6d2a22; }
+.qs-close:hover { filter: brightness(1.06); }
+.qs-close:active { transform: translateY(1px) scale(.99); }
+#panPad { position: absolute; z-index: 50; left: 0; right: var(--rail-w); top: 0; bottom: 0; pointer-events: none; }
+#panPad button.dead { display: none; }
+#panPad button { position: absolute; pointer-events: auto; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 15px; font-weight: bold; line-height: 1;
+    color: #f0e8d6; background: rgba(25,20,12,0.8); border: 1px solid #6a5636; border-radius: 7px; }
+#panPad button:hover { background: rgba(60,45,22,0.92); }
+#panPad button:active { filter: brightness(1.45); }
+#panUp, #panDown { width: 36px; height: 24px; left: 50%; margin-left: -18px; }
+#panUp { top: 5px; }
+#panDown { bottom: 5px; }
+#panLeft, #panRight { width: 24px; height: 36px; top: 50%; margin-top: -18px; }
+#panLeft { left: 5px; }
+#panRight { right: 5px; }
+#matPanel { flex: 1 1 auto; min-height: 0; margin-top: -6px; position: relative; display: flex; flex-direction: column; padding: 3px; }
+#matTabs { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; margin: 0; }
+.matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
-#xpRow { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
-#xpRow .star { font-size: 16px; line-height: 1; color: #4a381c; }
-.xpBar { flex: 1 1 auto; height: 10px; background: #b3a075; border: 2px solid #241a0c; border-radius: 6px; overflow: hidden; }
-.xpFill { display: block; height: 100%; width: 45%; background: #f7edd4; }
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
@@ -428,24 +961,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .zoom button.on { background: rgba(150,90,25,0.9); border-color: #d8a94e; }   /* fog cheat active */   /* r26: sink the bright tan crack texture so hazards read dark against the parchment */
 /* blade-trait panel (r21) - top-left, per the reference: 5 trait slots over cancel / save.
    A trait of tier N fills N slots with its icon, so the row doubles as the blade's capacity meter. */
-#bladePanel { width: 156px; padding: 6px; display: flex; flex-direction: column; gap: 6px; }
-#traitSlots { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
-.tslot { display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 5px;
+#bladePanel { width: 142px; padding: 1px; display: flex; flex-direction: column; gap: 2px; }
+#traitSlots { display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; }
+.tslot { display: flex; align-items: center; justify-content: center; height: 32px; border-radius: 5px;
     background: #f7edd4; border: 2px solid #241a0c; font-size: 17px; line-height: 1; }
 .tslot:not(.filled)::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #7c6a45; }
-.bladeBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.bladeBtns button { height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-size: 18px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
+.bladeBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.bladeBtns button { height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 17px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
     border: 2px solid #241a0c; border-radius: 5px; box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
 .bladeBtns button:active { transform: scale(.96); }
 /* 4 map-selection tabs - sit on the map's right edge, tucked against the column (reference) */
-#mapTabs { position: absolute; z-index: 21; right: var(--rail-w); top: 2%; display: flex; flex-direction: column; gap: 3px; }
-.mapTab { width: 43px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-family: 'Cinzel', serif; font-weight: 900; font-size: 16px; color: #f7edd4;
-    background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 6px 0 0 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,.55); }
-.mapTab.is-on { background: linear-gradient(180deg,#a8823f,#7a5c28); color: #fff8e0; }
-.mapTab:active { transform: scale(.96); }
 </style>
 </head>
 <body>
@@ -458,13 +984,125 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <button id="cancelCraft" type="button" title="Cancel crafting — resets the sword">✕</button>
                 <button id="saveBlade" type="button" title="Save (placeholder)">💾</button>
             </div>
+            <button id="recipeBtn" type="button" title="Recipe book (placeholder)">RECIPE BOOK</button>
+        </div>
+        <button id="hudToggle" type="button" title="Collapse the blade panel" aria-expanded="true">&#9650;</button>
+    </div>
+    <div id="screenLayer"><img id="screenArt" src="" alt=""><div id="screenProps"></div><div id="screenHots"></div><div id="screenUi"></div>
+        <div id="csPanel" class="sc-panels">
+            <div class="cs-dlg"><p>"I need a blade by sundown, smith. Something with a bite to it."</p></div>
+            <div class="cs-resp">Response &mdash; placeholder</div>
+            <button class="cs-btn cs-sell" type="button" title="Sell (placeholder)">SELL</button>
+            <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
+        </div><span class="tag" id="screenTag"></span></div>
+    <!-- ===== End day (r44) ===== -->
+    <div id="sfEndDayModal" class="sf-modal">
+        <div class="eod-box">
+            <h3 class="eod-h">Go to bed?</h3>
+            <p class="eod-p">Are you sure you want to go to bed and start a new day?</p>
+            <div class="eod-btns">
+                <button class="eod-btn no"  type="button" onclick="closeEndDay()">NO</button>
+                <button class="eod-btn yes" type="button" onclick="confirmEndDay()">YES</button>
+            </div>
         </div>
     </div>
-    <div id="mapTabs" title="Map selection (placeholder)">
-        <button class="mapTab is-on" type="button">1</button>
-        <button class="mapTab" type="button">2</button>
-        <button class="mapTab" type="button">3</button>
-        <button class="mapTab" type="button">4</button>
+    <!-- ===== Sharpening (r53) - the sword is sized and placed by shLayout() ===== -->
+    <div id="sfSharpModal" class="sf-modal">
+        <div id="shMeter"><div class="sh-zone"></div><div id="shMark"></div></div>
+        <div class="sh-grind">
+            <img src="assets/forge/grindstone.png" alt="">
+            <img class="sh-spin" src="assets/forge/grindstone_spin.png" alt="">
+        </div>
+        <div id="shFx"></div>
+        <div id="shSword"><div class="sh-art" id="shArt"></div></div>
+        <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
+        <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
+    </div>
+    <!-- ===== Design Desk (r52) - tiles are built by buildDesign() ===== -->
+    <div id="sfDesignModal" class="sf-modal">
+        <div id="ddStage">
+            <div class="dd-swordbox"><div class="dd-sword" id="ddSword"></div></div>
+        </div>
+        <button class="dd-btn dd-cancel" type="button" onclick="closeDesign(true)">CANCEL</button>
+        <button class="dd-btn dd-tab is-on" type="button" style="left:28.78%; width:12.74%;" onclick="ddTab('grip',this)">HANDLE</button>
+        <button class="dd-btn dd-tab"       type="button" style="left:43.51%; width:12.82%;" onclick="ddTab('guard',this)">GUARD</button>
+        <button class="dd-btn dd-tab"       type="button" style="left:57.65%; width:12.82%;" onclick="ddTab('pommel',this)">POMMEL</button>
+        <button class="dd-btn"              type="button" style="left:87.26%; width:12.74%;" onclick="closeDesign(false)">DONE</button>
+        <div id="ddPanel">
+            <div id="ddTrack"></div>
+            <div id="ddBar"><div id="ddThumb"></div></div>
+        </div>
+    </div>
+    <!-- ===== Quests (r57) - rows and pager are built by buildQuests() ===== -->
+    <div id="sfQuestModal" class="sf-modal">
+        <div class="qs-board">
+            <img class="qs-bg" src="assets/ui/Quest_base.png" alt="">
+            <div class="qs-page">
+                <h3 class="qs-title">Quests</h3>
+                <div id="qsRows"></div>
+                <div id="qsPager"></div>
+                <button class="qs-pgbtn qs-prev" type="button" title="Previous page" onclick="qsPage(-1)">&#9664;</button>
+                <button class="qs-pgbtn qs-next" type="button" title="Next page" onclick="qsPage(1)">&#9654;</button>
+            </div>
+            <button class="qs-close" type="button" onclick="closeQuests()">Close</button>
+        </div>
+    </div>
+    <!-- ===== Diary (r56) - slots and tabs are built by buildDiary() ===== -->
+    <div id="sfDiaryModal" class="sf-modal">
+        <div class="dy-book">
+            <img class="dy-page-img" src="assets/ui/Diary_base.png" alt="">
+            <div class="dy-sheet is-on" id="dySheet1">
+                <h3 class="dy-title">Characters</h3>
+                <div id="dySlots"></div>
+            </div>
+            <div class="dy-sheet" id="dySheet2"><span class="dy-blank">Nothing written here yet.</span></div>
+            <div class="dy-sheet" id="dySheet3"><span class="dy-blank">Nothing written here yet.</span></div>
+            <div class="dy-sheet" id="dySheet4"><span class="dy-blank">Nothing written here yet.</span></div>
+            <div class="dy-sheet" id="dySheetChar">
+                <h3 class="dy-title" id="dycName">Character Name</h3>
+                <div class="dyc-box dyc-portrait"><img id="dycImg" src="" alt=""></div>
+                <div class="dyc-box dyc-last">Last visited<br>&mdash;</div>
+                <div class="dyc-box dyc-req">Swords requested &mdash; placeholder</div>
+                <div class="dyc-box dyc-rel"><span>Relationship</span><span class="h on">&#9829;</span><span class="h on">&#9829;</span><span class="h on">&#9829;</span><span class="h off">&#9829;</span><span class="h off">&#9829;</span></div>
+                <div class="dyc-box dyc-gift">&#127873;</div>
+                <div class="dyc-box reward dyc-rew" id="dycRew">Craft a swift sword.</div>
+                <div class="dyc-box q dyc-q1">?</div>
+                <div class="dyc-box q dyc-q2">?</div>
+                <div class="dyc-box q dyc-q3">?</div>
+            </div>
+            <div class="dy-tabs" id="dyTabs"></div>
+            <button class="dy-close" type="button" onclick="closeDiary()">Close</button>
+        </div>
+    </div>
+    <!-- ===== Ledger (r50) - the sold list is built by buildLedger() ===== -->
+    <div id="sfLedgerModal" class="sf-modal">
+        <div class="lb-book">
+            <img class="lb-page" src="assets/ui/ledger_book_base.png" alt="">
+            <div class="lb-day" id="lbDay">DAY 1</div>
+            <div class="lb-sold"><div class="lb-sold-h">Swords sold</div></div>
+            <div id="lbRows"></div>
+            <div class="lb-det">
+                <h4>Details</h4>
+                <div>Amount sold and value</div>
+                <div>Total sale</div>
+                <div>Gold spent</div>
+                <div>Total profit</div>
+            </div>
+            <button class="lb-close" type="button" onclick="closeLedger()">Close</button>
+        </div>
+    </div>
+    <!-- ===== Racks window (r48) - rows are built by buildRacks() ===== -->
+    <div id="sfRackModal" class="sf-modal">
+        <div id="rwRack"></div>
+        <div id="rwView"><div id="rwTrack"></div></div>
+        <div id="rwBar"><div id="rwThumb"></div></div>
+        <button id="rwClose" type="button" onclick="closeRacks()">Close</button>
+    </div>
+    <div id="panPad">
+        <button id="panUp"    type="button" title="Pan up"    aria-label="Pan up">▲</button>
+        <button id="panDown"  type="button" title="Pan down"  aria-label="Pan down">▼</button>
+        <button id="panLeft"  type="button" title="Pan left"  aria-label="Pan left">◀</button>
+        <button id="panRight" type="button" title="Pan right" aria-label="Pan right">▶</button>
     </div>
 
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
@@ -537,14 +1175,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- heat gauge (loop-test element; relocated from the HUD, absent from the anchor) -->
         <div id="heatMini"><div class="gauge"><span class="lbl">🔥</span><div class="track"><div id="g-heat" class="fill heat"></div></div></div></div>
 
-        <!-- furnace smoke (decorative, rises behind the furnace) -->
-        <img id="furnaceSmoke" src="assets/forge/smoke.png" alt="">
-
 
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
             <img class="furnace" src="assets/forge/anchor_furnace.png" alt="Smelter">
+            <img id="furnaceSmoke" src="assets/forge/smoke.png" alt=""><!-- r38: vents from the crucible, only while bellowing -->
             <div class="furnaceGlow" id="furnaceGlow"></div>
             <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.png" alt="Bellows">
             <span class="bellow-tag">Bellow</span>
@@ -598,8 +1234,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div id="waterPour"></div>
         <div id="waterSplash"></div>
         <div id="quenchFlash"></div>
+        <img id="hintArrow" src="assets/ui/arrow.png" alt=""><!-- r39: idle nudge, ore -> smelter -->
+        <img id="hintDown" src="assets/ui/arrow_point_down.png" alt=""><!-- r40: idle nudge, tap the ore -->
         <div id="forgeResult"></div>
-        <div id="sfHint"></div>
 
     </div>
 
@@ -610,25 +1247,27 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div class="dayTile"><span class="n" id="dayNum">4</span><span class="l">DAY</span></div>
                 <div class="statCol">
                     <div class="statPill" title="Gold"><span class="ic">🪙</span><span id="goldVal">246</span></div>
+                    <div class="statPill" title="Reputation"><span class="ic">🛡️</span><span id="repVal">72</span></div>
                     <div class="statPill" title="Popularity"><span class="ic">⭐</span><span id="popVal">9/15</span></div>
                 </div>
             </div>
             <button id="skillBtn" type="button" title="Skill Tree">SKILL TREE</button>
-            <div id="expRow" title="Experience from books collected on the map"><span class="ic">📖</span><span id="expVal">0</span><span class="u">XP</span></div>
         </div>
         <div id="matPanel" class="railCard">
             <div id="matTabs">
-                <button class="matTab is-on" type="button" title="Materials"></button>
-                <button class="matTab" type="button"></button>
-                <button class="matTab" type="button"></button>
-                <button class="matTab" type="button"></button>
+                <button class="matTab is-on" type="button" title="Ingredients">INGRE&shy;DIENTS</button>
+                <button class="matTab" type="button" title="Ingots">INGOTS</button>
+                <button class="matTab" type="button" title="Swords">SWORDS</button>
+                <button class="matTab" type="button" title="Items and Decor">ITEMS &amp; DECOR</button>
             </div>
-            <div id="xpRow"><span class="star">✦</span><span class="xpBar"><span class="xpFill"></span></span></div>
-            <div class="matHead">◆ MATERIALS ◆</div>
             <div id="oreShelf">
                 <span class="badge">1</span>
                 <span class="shelf-cap">Ores</span>
                 <!-- .ore-slot items are built from the ORES array in wireOreTray() -->
+            </div>
+            <div id="railBtns">
+                <button id="diaryBtn" type="button" title="Diary">DIARY</button>
+                <button id="questBtn" type="button" title="Quests">QUEST</button>
             </div>
         </div>
     </div>
@@ -673,6 +1312,65 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </div>
 
     <!-- ===== Trait acquired popup (stays until 'continue' is clicked) ===== -->
+    <!-- ===== Skill Tree (r42) — placeholder contents ===== -->
+    <div id="sfSkillModal" class="sf-modal">
+        <div class="st-panel">
+            <img class="st-sheet" src="assets/ui/Skill_tree_base.png" alt="">
+            <button class="st-btn st-reset" type="button">RESET TALENT</button>
+            <div class="st-points">Talent points &ndash; X</div>
+            <div class="st-core"><img src="assets/ui/icon_skilltree.png" alt=""></div>
+            <button class="st-btn st-close" type="button" onclick="closeSkills()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- ===== Composition Book (r41) — placeholder contents ===== -->
+    <div id="sfBookModal" class="sf-modal">
+        <div class="cb-book">
+            <img class="cb-page" src="assets/ui/Composition_book_base.png" alt="">
+            <div class="cb-marks cb-marks-top" id="cbMarksTop"></div>
+            <div class="cb-marks cb-marks-side" id="cbMarksSide"></div>
+            <h3 class="cb-title cb-title-l">Balanced Sword</h3>
+            <h3 class="cb-title cb-title-r">Recorded Composition</h3>
+            <div class="cb-sword">
+                <div class="cb-sword-art">
+                    <img src="assets/sword-parts/blades/balanced_longsword_blade.png" alt="">
+                    <img src="assets/sword-parts/guards/guard1.png" alt="">
+                    <img src="assets/sword-parts/grips/grip1.png" alt="">
+                    <img src="assets/sword-parts/pommels/pommel1.png" alt="">
+                </div>
+            </div>
+            <button class="cb-gear" type="button" title="Change default design">&#9881;</button>
+            <div class="cb-slot" style="left:25.30%; top:11.47%; width:18.26%; height:10.39%;"></div>
+            <div class="cb-slot" style="left:25.30%; top:24.34%; width:18.26%; height:10.39%;"></div>
+            <div class="cb-slot" style="left:25.30%; top:37.05%; width:18.26%; height:10.39%;"></div>
+            <div class="cb-slot" style="left:25.30%; top:50.07%; width:18.26%; height:10.39%;"></div>
+            <div class="cb-slot" style="left:25.30%; top:63.25%; width:18.26%; height:10.39%;"></div>
+            <div class="cb-slot" style="left:4.18%;  top:77.19%; width:39.39%; height:18.75%;"></div>
+            <div class="cb-slot" style="left:52.85%; top:11.47%; width:42.65%; height:34.72%;"></div>
+            <div class="cb-slot" style="left:52.85%; top:48.52%; width:42.65%; height:25.11%;"></div>
+            <button class="cb-btn red  cb-erase"  type="button">ERASE</button>
+            <button class="cb-btn wide cb-craft5" type="button">CRAFT 5</button>
+            <button class="cb-btn wide cb-cont"   type="button">CONTINUE<br>FROM HERE</button>
+            <button class="cb-btn wide cb-craft1" type="button">CRAFT 1</button>
+            <button class="cb-btn red  cb-close"  type="button" onclick="closeBook()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- ===== Update Composition (r33) — placeholder contents ===== -->
+    <div id="sfCompModal" class="sf-modal">
+        <div class="comp-box">
+            <h3 class="comp-h">Update Composition</h3>
+            <div class="comp-slots">
+                <button class="comp-slot" type="button">Recorded</button>
+                <button class="comp-slot" type="button">New</button>
+            </div>
+            <div class="comp-btns">
+                <button class="paperBtn red" type="button" onclick="closeComp()">Cancel</button>
+                <button class="paperBtn wide" type="button" onclick="confirmComp()">Update</button>
+            </div>
+        </div>
+    </div>
+
     <div id="sfAcquireModal" class="sf-modal">
         <div class="sf-modal-box sf-acquire-box">
             <h3 class="sf-modal-h">Trait Acquired!</h3>
@@ -708,14 +1406,14 @@ const LAYOUT = {
         dragon:     {x:-0.01,y:0.42,  w:0.17}   // dragon whelp, bleeds off the left, overlaps anvil flank
     },
     landscape: {   // r13: sizes + positions matched to assets/Anchor-images/landscape-scale-ref.png. bench = wide bottom band (rail excluded). x,y,w = fractions of bench.
-        stSmelt:    {x:0.539, y:-0.816, w:0.24}, // r13: furnace scaled to the ref 0.190 of frame width (was 1.44x too big); bleeds up over the map, base on the floor
-        stMortar:   {x:0.795, y:-0.289, w:0.23}, // r15: grinder -30% (owner); grounded
+        stSmelt:    {x:0.496, y:-1.218, w:0.243}, // r37: art x 39.2-58.3% of frame, crucible rim at y 64.3%
+        stMortar:   {x:0.728, y:-0.744, w:0.243}, // r37: art x 57.7-76.5%, base at y 93.1%
         pestle:     {x:0.837, y:0.300, w:0.053}, // vestigial (hidden in landscape) - kept in-zone for parity
-        hammerTool: {x:0.247, y:0.449, w:0.165}, // r15: hammer +75% (owner); anchored by its box top
-        stAnvil:    {x:0.187, y:-0.249, w:0.191}, // r15: anvil -20% (owner); grounded
-        bucket:     {x:0.019, y:0.041, w:0.171}, // r13: bucket was already on-scale (0.97x); x/y re-grounded to the new floor line
-        mug:        {x:0.054, y:-0.025, w:0.11}, // r14: mug 2x (owner); scaled about its centre so it stays seated in the bucket
-        dragon:     {x:0.081, y:-0.989, w:0.228} // r14: dragon 1.5x (owner); grounded, rises further over the map
+        hammerTool: {x:0.302, y:0.381, w:0.148}, // r37: head lying on the floor right of the anvil, handle cut by the frame
+        stAnvil:    {x:0.169, y:-0.438, w:0.186}, // r37: art x 13.5-27.9%, feet at y 92.6%
+        bucket:     {x:-0.010, y:-0.103, w:0.177}, // r37: bleeds off the left edge as the reference does
+        mug:        {x:0.034, y:0.188, w:0.067}, // r37: smaller, sitting deeper in the bucket
+        dragon:     {x:0.014, y:-2.718, w:0.228} // r36: dragon off the bench entirely - it now sits up in the map band on the left
     }
 };
 // one LAYOUT key can drive several DOM ids (the bucket is three stacked layers sharing one box)
@@ -839,10 +1537,8 @@ function addBook(K,x,y){
     outer.appendChild(g); booksG.appendChild(outer);
     books.push({ x:x, y:y, xp:K.xp, kind:K.id, r:BOOK_R*K.s, el:outer, inner:g, taken:false });
 }
-function updateExp(bump){ const v=document.getElementById('expVal'), row=document.getElementById('expRow');
-    if(v) v.textContent=exp; if(bump && row){ row.classList.remove('bump'); void row.offsetWidth; row.classList.add('bump'); } }
 function takeBook(b){
-    b.taken=true; exp+=b.xp; updateExp(true);
+    b.taken=true; exp+=b.xp;   // r34: exp still banks, it just has no readout since the XP row came out
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
     const t=document.createElementNS(NS,'text'); t.setAttribute('class','bookXp'); t.setAttribute('text-anchor','middle');
@@ -869,6 +1565,691 @@ function addTrait(tr, x, y){
 // ---- zoom / pan: the SVG viewBox is a window into the 1400×980 world ----
 function setView(){ if(board){ const r=board.getBoundingClientRect(); if(r.width>2&&r.height>2) aspect=r.height/r.width; } const maxW=Math.min(MAX_W, WORLD_H/aspect); let w=Math.max(MIN_W, Math.min(maxW, view.w)); let h=w*aspect; let x=Math.max(0, Math.min(WORLD_W-w, view.x)); let y=Math.max(0, Math.min(WORLD_H-h, view.y)); view.w=w; view.x=x; view.y=y; if(board) board.setAttribute('viewBox', x+' '+y+' '+w+' '+h); }
 function zoomAt(factor, wx, wy){ const h=view.w*aspect; if(wx==null){ wx=view.x+view.w/2; wy=view.y+h/2; } const fx=(wx-view.x)/view.w, fy=(wy-view.y)/h; let nw=Math.max(MIN_W, Math.min(MAX_W, view.w*factor)); view.x=wx-fx*nw; view.y=wy-fy*(nw*aspect); view.w=nw; setView(); }
+// r43 — the arrows move between screens (they used to pan the map; the map still pans by drag and
+// zooms with +/-). The forge sits at the centre of a plus; every other screen has exactly one way back.
+const SCREENS = {
+    forge:    { up:'bedroom', down:'basement', left:'customer', right:'cave' },
+    bedroom:  { down:'forge' },
+    basement: { up:'forge' },
+    customer: { right:'forge', left:'shop' },
+    cave:     { left:'forge' },
+    shop:     { right:'customer' }          // r45: one step further left than the counter
+};
+const SCREEN_ART = {
+    bedroom:  ['assets/backgrounds/bedroom_background.png',            'BEDROOM'],
+    basement: ['assets/backgrounds/basement_background.png',           'BASEMENT WORKSTATION'],
+    customer: ['assets/backgrounds/customer_counter_background.png',   'CUSTOMER COUNTER'],
+    cave:     ['assets/backgrounds/cave_background.png',               'CAVE'],
+    shop:     ['assets/backgrounds/shop_background.png',               'SHOP']
+};
+let SF_SCREEN = 'forge';
+// Clickable regions per screen, as % of the frame. Read off the plate art; the plates share the frame's
+// aspect so object-fit:cover crops nothing and these map straight across.
+const SCREEN_HOTS = {
+    bedroom: [
+        { x:13.0, y:43.6, w:24.5, h:38.5, title:'Go to bed', act:'bed' },
+        { x:50.8, y:54.9, w:19.8, h:20.1, title:'Pet the dragon', act:'dragon' }
+    ]
+};
+// Chrome that belongs to a screen, as % of the FRAME (read off the screen wireframes, which place these
+// against the frame's edges and the rail - so unlike SCREEN_PROPS they are not anchored to the plate art).
+const SCREEN_UI = {
+    shop: [
+        { x:1.00,  y:2.09,  w:8.24,  h:8.50,  ic:'assets/ui/icon_recipe.png', cap:'RECIPE<br>BOOK', title:'Recipe book', act:'book' },
+        { x:65.31, y:83.61, w:11.90, h:11.18, gl:'\ud83e\uddfe',             cap:'LEDGER',        title:'Ledger', act:'ledger' }
+    ],
+    customer: [
+        { x:0.79, y:0.85, w:8.20, h:8.47, ic:'assets/ui/icon_recipe.png', cap:'RECIPE<br>BOOK', title:'Recipe book', act:'book' }
+    ]
+};
+function buildScreenUi(name){
+    const box=document.getElementById('screenUi'); if(!box) return;
+    box.innerHTML='';
+    (SCREEN_UI[name]||[]).forEach(b=>{ const el=document.createElement('button');
+        el.type='button'; el.className='sc-btn'; el.title=b.title||'';
+        el.style.left=b.x+'%'; el.style.top=b.y+'%'; el.style.width=b.w+'%'; el.style.height=b.h+'%';
+        el.innerHTML=(b.ic? '<img src="'+b.ic+'" alt="">' : '<span class="sc-gl">'+b.gl+'</span>')
+                    +'<span class="sc-cap">'+b.cap+'</span>';
+        if(b.act==='book') el.addEventListener('click', openBook);
+        else if(b.act==='ledger') el.addEventListener('click', openLedger);
+        box.appendChild(el); });
+}
+// Props drawn onto a plate. l / w / b are the prop's VISIBLE ART left, width and bottom as a % of the
+// plate image — exactly what a diff of the owner's reference against the bare plate measures.
+const SCREEN_PROPS = {
+    shop: [
+        { src:'assets/Game-elements/rack.png', l:19.41, w:12.69, b:73.91, act:'rack', title:'Sword rack' },
+        { src:'assets/Game-elements/rack.png', l:37.08, w:12.69, b:73.91, act:'rack', title:'Sword rack' },
+        { src:'assets/Game-elements/rack.png', l:56.19, w:12.69, b:73.91, act:'rack', title:'Sword rack' }
+    ],
+    basement: [
+        { src:'assets/Game-elements/design_desk.png',      l:0.15,  w:24.11, b:85.41, act:'designDesk', title:'Assembly bench' },
+        { src:'assets/Game-elements/sharpening_stone.png', l:32.93, w:20.05, b:80.68, act:'sharpen',    title:'Sharpening stone' }
+    ],
+    /* DOM order is paint order: the customer is listed first, so the counter covers its base */
+    customer: [
+        { src:'assets/customer/man1.png',              l:7.97,  w:20.99, b:86.16 },
+        { src:'assets/Game-elements/counter.png',      l:0,     w:100,   b:110.70 },
+        { src:'assets/Game-elements/stand.png',        l:33.20, w:14.18, b:98.87 },
+        { kind:'sword',                                l:17.35, w:46.00, b:95.34, h:9.89 }
+    ]
+};
+// each prop asset's opaque box inside its PNG, plus its aspect — needed to turn an art target into the
+// element box that CSS actually positions
+const PROP_OPQ = {
+    'assets/Game-elements/rack.png':              { ox:0.0041, oy:0, ow:0.9834, oh:0.9977, ar:241/427 },
+    'assets/Game-elements/design_desk.png':       { ox:0,      oy:0, ow:0.9528, oh:1,      ar:487/495 },   /* ar is the CANVAS aspect (it sizes the ELEMENT); the opaque fractions then place the art inside it */
+    'assets/Game-elements/sharpening_stone.png':  { ox:0,      oy:0, ow:1,      oh:1,      ar:384/444 },
+    'assets/Game-elements/counter.png':           { ox:0,      oy:0.0171, ow:1, oh:0.9800, ar:2235/350 },
+    'assets/Game-elements/stand.png':             { ox:0.0283, oy:0.0500, ow:0.9457, oh:0.9455, ar:460/220 },
+    'assets/customer/man1.png':                   { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 }
+};
+// what a prop's click does, if anything. A prop with an act gets the hover sheen and a pointer whether
+// or not there is a handler yet - the basement's two workstations have no windows behind them so far.
+const PROP_ACTS = { rack: ()=>openRacks(), designDesk: ()=>openDesign(), sharpen: ()=>openSharpen() };
+function buildScreenProps(name){
+    const box=document.getElementById('screenProps'); if(!box) return;
+    box.innerHTML='';
+    (SCREEN_PROPS[name]||[]).forEach(p=>{
+        /* r55: a prop can also be a plain BOX (l/w/b/h in plate-%) holding built content, for things
+           that are not a single PNG - the sword on display is assembled from four part images. */
+        if(p.kind==='sword'){ const d=document.createElement('div'); d.className='cs-swordbox'; d._prop=p;
+            d.style.position='absolute';
+            const art=document.createElement('div'); art.className='cs-sword';
+            const list=['assets/sword-parts/blades/'+DD_BLADE+'.png', ddSrc('guard',DD_SEL.guard),
+                        ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)];
+            list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
+            d._list=list; d.appendChild(art); box.appendChild(d);
+            return; }                                     /* sized by layoutScreenProps, which knows the box */
+        const im=document.createElement('img');
+        im._prop=p; im.src=p.src; im.alt='';
+        if(p.act){ im.classList.add('hot'); im.title=p.title||'';
+            const fn=PROP_ACTS[p.act]; if(fn) im.addEventListener('click', fn); }
+        box.appendChild(im); });
+    layoutScreenProps();
+}
+// resolve every prop against the plate's cover box, so props stay glued to the art at any frame size
+function layoutScreenProps(){
+    const box=document.getElementById('screenProps'), art=document.getElementById('screenArt');
+    if(!box||!art||!art.naturalWidth||!box.children.length) return;
+    const lr=document.getElementById('screenLayer').getBoundingClientRect();
+    if(lr.width<2) return;
+    const s=Math.max(lr.width/art.naturalWidth, lr.height/art.naturalHeight);   // object-fit: cover
+    const aw=art.naturalWidth*s, ah=art.naturalHeight*s;
+    const ax=(lr.width-aw)/2, ay=(lr.height-ah)/2;
+    [...box.children].forEach(im=>{ const p=im._prop; if(!p) return;
+        if(p.kind){                                       /* a plain box: l/w/b/h are the box itself */
+            const eW=(p.w/100)*aw, eH=(p.h/100)*ah;
+            im.style.width=eW.toFixed(1)+'px'; im.style.height=eH.toFixed(1)+'px';
+            im.style.left =(ax+(p.l/100)*aw).toFixed(1)+'px';
+            im.style.top  =(ay+(p.b/100)*ah - eH).toFixed(1)+'px';
+            if(im._list && eH>2){ const art=im.querySelector('.cs-sword');
+                /* length-only fit: the drawn box is 8.3:1 but a sword laid flat is ~4.4:1, so fitting
+                   both axes would have shrunk it to half the drawn length */
+                comboExtent(im._list, e=>{ art.style.setProperty('--s', (0.98/e.len*100).toFixed(1)+'%');
+                                           art.style.setProperty('--sx', (-e.cx*100).toFixed(2)+'%'); }); }
+            return; }
+        const o=PROP_OPQ[p.src]; if(!o) return;
+        const eW=(p.w/100)/o.ow*aw, eH=eW/o.ar;
+        im.style.width=eW.toFixed(1)+'px';
+        im.style.left =(ax+(p.l/100)*aw - o.ox*eW).toFixed(1)+'px';
+        im.style.top  =(ay+(p.b/100)*ah - (o.oy+o.oh)*eH).toFixed(1)+'px'; });
+}
+function buildScreenHots(name){
+    const box=document.getElementById('screenHots'); if(!box) return;
+    box.innerHTML='';
+    (SCREEN_HOTS[name]||[]).forEach(h=>{ const d=document.createElement('div');
+        d.className='sc-hot'; d.title=h.title;
+        d.style.left=h.x+'%'; d.style.top=h.y+'%'; d.style.width=h.w+'%'; d.style.height=h.h+'%';
+        d.addEventListener('click', e=>{ if(h.act==='bed') openEndDay(); else if(h.act==='dragon') popHearts(e); });
+        box.appendChild(d); });
+}
+// ---- r53: Sharpening ------------------------------------------------------------------------------
+const SH_ZONE = [80.0, 90.1];               // the wireframe's green band, as % of the track
+const SH_LEN  = 74.85;                      // the sword's flat length, as % of the frame width
+const SH_REST = { x:49.96, y:43.84 };       // where it lies at rest, as % of the frame
+const SH_GAIN = 0.055;                      // sharpness per px dragged while the blade is on the stone
+let SH_VAL = 69.8, SH_WAS = 69.8;           // the wireframe draws the marker at 69.8% of the track
+let SH_POS = null, SH_GEO = null, SH_DRAG = null, SH_GRIND_T = null, SH_SPARK = 0;
+// the BASE frame's opaque box inside the shared 1701x1536 sheet - the stone the blade actually touches
+const SH_GRIND_OPQ = { ox:0.3004, oy:0.1790, ow:0.5091, oh:0.7259 };
+function shStoneRect(){
+    const g=document.querySelector('.sh-grind'); if(!g) return null;
+    const r=g.getBoundingClientRect(); if(r.width<2) return null;
+    const O=SH_GRIND_OPQ;
+    return { left:r.left+O.ox*r.width, right:r.left+(O.ox+O.ow)*r.width,
+             top: r.top +O.oy*r.height, bottom:r.top +(O.oy+O.oh)*r.height };
+}
+function shParts(){ return ['assets/sword-parts/blades/'+DD_BLADE+'.png', ddSrc('guard',DD_SEL.guard),
+                            ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)]; }
+// lay the sword out: the wrapper hugs the flat blade, the inner square carries the rotated art
+function shLayout(){
+    const m=document.getElementById('sfSharpModal'), sw=document.getElementById('shSword'), art=document.getElementById('shArt');
+    if(!m||!sw||!art) return;
+    const R=m.getBoundingClientRect(); if(R.width<2) return;
+    const list=shParts();
+    art.innerHTML=''; list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
+    comboExtent(list, e=>{
+        const LW=SH_LEN/100*R.width, W=LW/e.len, TH=e.th*W;      // wrapper size, inner square side
+        SH_GEO={ LW, TH, W, e };
+        sw.style.width=LW.toFixed(1)+'px'; sw.style.height=TH.toFixed(1)+'px';
+        art.style.width=W.toFixed(1)+'px'; art.style.height=W.toFixed(1)+'px';
+        art.style.left='50%'; art.style.top='50%';
+        /* 225deg = the 45deg lay-flat turned end-for-end, so the handle is on the RIGHT. R(225) = -R(45),
+           so the art-centring offsets flip sign. */
+        art.style.transform='translate(calc(-50% + '+(e.cx*W).toFixed(1)+'px), calc(-50% + '+(e.cy*W).toFixed(1)+'px)) rotate(225deg)';
+        if(!SH_POS) SH_POS={ x:R.left+SH_REST.x/100*R.width, y:R.top+SH_REST.y/100*R.height };
+        shPlace(); });
+}
+function shPlace(){
+    const m=document.getElementById('sfSharpModal'), sw=document.getElementById('shSword');
+    if(!m||!sw||!SH_POS) return;
+    const R=m.getBoundingClientRect();
+    sw.style.left=(SH_POS.x-R.left).toFixed(1)+'px';
+    sw.style.top =(SH_POS.y-R.top ).toFixed(1)+'px';
+}
+function shMark(){
+    const el=document.getElementById('shMark'); if(el) el.style.left=Math.max(0,Math.min(100,SH_VAL)).toFixed(2)+'%';
+}
+// the handle is 4% in from the flat sword's RIGHT end (r54 flipped it), on its centre line
+function shHandleOffset(){ return SH_GEO? { dx:0.46*SH_GEO.LW, dy:0 } : { dx:0, dy:0 }; }
+function shBladePt(){                                   // roughly the middle of the blade
+    const h=shHandleOffset();
+    return { x:SH_POS.x + h.dx - 0.65*SH_GEO.LW, y:SH_POS.y + h.dy };
+}
+function shOnStone(){
+    const s=shStoneRect(); if(!s||!SH_GEO||!SH_POS) return false;
+    const b=shBladePt();
+    return b.x>=s.left && b.x<=s.right && b.y>=s.top && b.y<=s.bottom;
+}
+// sparks off the contact point, reusing the hammering scene's .hm-spark
+function shSparks(){
+    const layer=document.getElementById('shFx'), m=document.getElementById('sfSharpModal');
+    if(!layer||!m) return;
+    const R=m.getBoundingClientRect(), b=shBladePt();
+    const n=2+Math.floor(Math.random()*3);
+    for(let i=0;i<n;i++){
+        const px=2+Math.random()*3.4;
+        const d=document.createElement('div'); d.className='hm-spark';
+        d.style.left=(b.x-R.left).toFixed(1)+'px'; d.style.top=(b.y-R.top).toFixed(1)+'px';
+        d.style.width=px.toFixed(1)+'px'; d.style.height=px.toFixed(1)+'px';
+        d.style.background='radial-gradient(circle,#fffdf2,#ffb347)';
+        d.style.boxShadow='0 0 '+Math.round(3+px)+'px '+(px/3).toFixed(1)+'px rgba(255,170,60,.8)';
+        d.style.setProperty('--sx', Math.round((Math.random()*2-1)*70)+'px');
+        d.style.setProperty('--sy', Math.round(-18-Math.random()*55)+'px');
+        d.style.setProperty('--sf', Math.round(34+Math.random()*46)+'px');
+        d.style.setProperty('--sd', (0.34+Math.random()*0.24).toFixed(2)+'s');
+        layer.appendChild(d); setTimeout(()=>d.remove(), 900); }
+}
+// hold the wheel "spinning" for a moment after the last move, so it does not strobe on and off
+function shGrinding(){
+    const m=document.getElementById('sfSharpModal'); if(!m) return;
+    m.classList.add('grinding');
+    clearTimeout(SH_GRIND_T); SH_GRIND_T=setTimeout(()=>m.classList.remove('grinding'), 150);
+}
+function openSharpen(){
+    SH_WAS=SH_VAL; SH_POS=null;
+    document.getElementById('sfSharpModal').classList.add('show');
+    shMark(); shLayout(); setTimeout(shLayout,0);          // the modal has no size until it is shown
+}
+function closeSharpen(revert){
+    if(revert) SH_VAL=SH_WAS;
+    SH_DRAG=null;
+    document.getElementById('shSword').classList.remove('dragging');
+    clearTimeout(SH_GRIND_T);
+    const fx=document.getElementById('shFx'); if(fx) fx.innerHTML='';
+    document.getElementById('sfSharpModal').classList.remove('grinding','show');
+    shMark();
+}
+function wireSharpen(){
+    const sw=document.getElementById('shSword'); if(!sw) return;
+    sw.addEventListener('pointerdown', e=>{
+        e.preventDefault();
+        const h=shHandleOffset();
+        SH_POS={ x:e.clientX-h.dx, y:e.clientY-h.dy };     // grabbing anywhere snaps the handle to the cursor
+        SH_DRAG={ x:e.clientX, y:e.clientY };
+        sw.classList.add('dragging');
+        try{ sw.setPointerCapture(e.pointerId); }catch(err){}   /* never let an odd pointer abort the grab */
+        shPlace(); });
+    sw.addEventListener('pointermove', e=>{
+        if(!SH_DRAG) return;
+        const dx=e.clientX-SH_DRAG.x, dy=e.clientY-SH_DRAG.y;
+        const h=shHandleOffset();
+        SH_POS={ x:e.clientX-h.dx, y:e.clientY-h.dy };
+        SH_DRAG={ x:e.clientX, y:e.clientY };
+        shPlace();
+        /* cap one event's travel: a pointer that jumps (or leaves and re-enters) must not bank a
+           whole screen's worth of sharpening in a single move */
+        if(shOnStone()){
+            SH_VAL=Math.max(0, Math.min(100, SH_VAL + Math.min(Math.hypot(dx,dy),40)*SH_GAIN)); shMark();
+            shGrinding();
+            const t=performance.now(); if(t-SH_SPARK>45){ SH_SPARK=t; shSparks(); } } });
+    const end=()=>{ SH_DRAG=null; sw.classList.remove('dragging');
+        clearTimeout(SH_GRIND_T); document.getElementById('sfSharpModal').classList.remove('grinding'); };
+    sw.addEventListener('pointerup', end);
+    sw.addEventListener('pointercancel', end);
+}
+
+// ---- r52: Design Desk -----------------------------------------------------------------------------
+const DD_PARTS = {
+    grip:   ['grip1','grip2','grip3','grip4','flame_grip1','flame_grip2','flame_grip3','ice_grip1','water_grip1'],
+    guard:  ['guard1','guard2','guard3','guard4','flame_guard1','flame_guard2','flame_guard3','flame_guard4','flame_guard5','ice_guard1','water_guard1'],
+    pommel: ['pommel1','pommel2','pommel3','pommel4','pommel5','flame_pommel1','flame_pommel2','ice_pommel1','water_pommel1']
+};
+const DD_DIR = { grip:'grips', guard:'guards', pommel:'pommels' };
+// tile grid, as % of #ddPanel - straight off the wireframe
+const DD_COLS = [1.41, 15.05, 28.70, 42.35, 56.00, 69.64, 83.29], DD_ROWTOP = 4.35, DD_ROWPITCH = 52.90, DD_TILEH = 48.91;
+let DD_TAB = 'grip', DD_SEL = { grip:'grip1', guard:'guard1', pommel:'pommel1' }, DD_WAS = null;
+let DD_BLADE = 'balanced_longsword_blade';                 // placeholder: the blade comes from forging
+let DD_SCROLL = 0, DD_MAX = 0;
+const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.png';
+
+// --- measuring the art at runtime, so no hand-kept table of boxes can go stale ---
+const PART_BOX = {}, COMBO_FIT = {};
+function partBox(src, cb){
+    if(PART_BOX[src]) return cb(PART_BOX[src]);
+    const im=new Image();
+    im.onload=()=>{ const N=64, c=document.createElement('canvas'); c.width=c.height=N;
+        let b={ox:0,oy:0,ow:1,oh:1};
+        try{ const g=c.getContext('2d'); g.drawImage(im,0,0,N,N);
+            const d=g.getImageData(0,0,N,N).data;
+            let x0=N,x1=-1,y0=N,y1=-1;
+            for(let y=0;y<N;y++) for(let x=0;x<N;x++){ if(d[(y*N+x)*4+3]<20) continue;
+                if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+            if(x1>=0) b={ ox:x0/N, oy:y0/N, ow:(x1-x0+1)/N, oh:(y1-y0+1)/N };
+        }catch(e){}                                        // tainted canvas over file://
+        PART_BOX[src]=b; cb(b); };
+    im.onerror=()=>cb(PART_BOX[src]={ox:0,oy:0,ow:1,oh:1});
+    im.src=src;
+}
+// Union the four parts on one canvas and take the +45deg ROTATED extent - the length, thickness and
+// centre of the sword once it is laid flat, in units of the element's side. Everything that lays a sword
+// flat (r48 racks, r50 ledger, r52 design desk, r53 sharpening) needs these four numbers.
+const COMBO_EXT = {};
+function comboExtent(list, cb){
+    const key=list.join('|');
+    if(COMBO_EXT[key]) return cb(COMBO_EXT[key]);
+    const N=96, c=document.createElement('canvas'); c.width=c.height=N;
+    const g=c.getContext('2d'); let left=list.length;
+    list.forEach(src=>{ const im=new Image();
+        const done=()=>{ try{ g.drawImage(im,0,0,N,N); }catch(e){}
+            if(--left) return;
+            let e={len:1, th:0.25, cx:0, cy:0};                 // fallback: tainted canvas over file://
+            try{ const d=g.getImageData(0,0,N,N).data, K=Math.SQRT1_2, cc=N/2;
+                let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+                for(let y=0;y<N;y++) for(let x=0;x<N;x++){ if(d[(y*N+x)*4+3]<20) continue;
+                    const dx=x+0.5-cc, dy=y+0.5-cc, ax=K*(dx-dy), ay=K*(dx+dy);
+                    if(ax<x0)x0=ax; if(ax>x1)x1=ax; if(ay<y0)y0=ay; if(ay>y1)y1=ay; }
+                if(x1>x0 && y1>y0) e={ len:(x1-x0)/N, th:(y1-y0)/N, cx:(x0+x1)/2/N, cy:(y0+y1)/2/N };
+            }catch(err){}
+            COMBO_EXT[key]=e; cb(e); };
+        im.onload=done; im.onerror=done; im.src=src; });
+}
+// size a flat sword to fill a box of the given width:height ratio without clipping its tips or its guard
+function comboFit(list, ratio, cb){
+    const key=list.join('|')+'@'+ratio.toFixed(3);
+    if(COMBO_FIT[key]) return cb(COMBO_FIT[key]);
+    comboExtent(list, e=>{
+        const fit = (e.len>0 && e.th>0)
+            ? { s:+(Math.min(0.98/e.len, 0.90/ratio/e.th)*100).toFixed(1), sx:+(-e.cx*100).toFixed(2) }
+            : { s:60, sx:0 };
+        COMBO_FIT[key]=fit; cb(fit); });
+}
+function ddRenderSword(){
+    const box=document.getElementById('ddSword'); if(!box) return;
+    const list=['assets/sword-parts/blades/'+DD_BLADE+'.png', ddSrc('guard',DD_SEL.guard),
+                ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)];
+    box.innerHTML=''; list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; box.appendChild(im); });
+    const r=box.parentElement.getBoundingClientRect();
+    comboFit(list, (r.height>2? r.width/r.height : 4.16), f=>{
+        box.style.setProperty('--s', f.s+'%'); box.style.setProperty('--sx', f.sx+'%'); });
+}
+function buildDesign(){
+    const tr=document.getElementById('ddTrack'); if(!tr) return;
+    tr.innerHTML='';
+    const files=DD_PARTS[DD_TAB];
+    files.forEach((f,i)=>{
+        const b=document.createElement('button'); b.type='button'; b.className='dd-tile';
+        b.style.left=DD_COLS[i%7]+'%';
+        b.style.top=(DD_ROWTOP+Math.floor(i/7)*DD_ROWPITCH).toFixed(2)+'%';
+        b.title=f;
+        if(DD_SEL[DD_TAB]===f) b.classList.add('is-on');
+        const holder=document.createElement('div'); holder.className='dd-part';
+        const im=document.createElement('img'); im.alt=''; im.src=ddSrc(DD_TAB,f);
+        holder.appendChild(im); b.appendChild(holder);
+        partBox(im.src, o=>{                               // crop to the part, not to its empty canvas
+            const s=Math.min(0.86/o.ow, 0.86/o.oh);
+            im.style.width=(s*100).toFixed(2)+'%'; im.style.height=(s*100).toFixed(2)+'%';
+            im.style.left=((0.5-s*(o.ox+o.ow/2))*100).toFixed(2)+'%';
+            im.style.top =((0.5-s*(o.oy+o.oh/2))*100).toFixed(2)+'%'; });
+        b.addEventListener('click', ()=>{ DD_SEL[DD_TAB]=f;
+            [...tr.children].forEach(t=>t.classList.remove('is-on')); b.classList.add('is-on');
+            ddRenderSword(); });
+        tr.appendChild(b); });
+    const rows=Math.ceil(files.length/7);
+    DD_MAX = Math.max(0, (rows-1)*DD_ROWPITCH + DD_TILEH + DD_ROWTOP - 100);
+    ddScrollTo(0);
+}
+function ddScrollTo(v){
+    DD_SCROLL=Math.max(0, Math.min(DD_MAX, v));
+    const tr=document.getElementById('ddTrack'), th=document.getElementById('ddThumb'); if(!tr||!th) return;
+    tr.style.transform='translateY('+(-DD_SCROLL).toFixed(2)+'%)';
+    const c=100+DD_MAX;
+    th.style.height=(100/c*100).toFixed(2)+'%';
+    th.style.top=(DD_MAX? DD_SCROLL/c*100 : 0).toFixed(2)+'%';
+}
+function ddTab(k, el){
+    DD_TAB=k;
+    [...document.querySelectorAll('.dd-tab')].forEach(t=>t.classList.toggle('is-on', t===el));
+    buildDesign();
+}
+function openDesign(){
+    DD_WAS=Object.assign({}, DD_SEL);                      // Cancel puts the selection back
+    buildDesign(); ddRenderSword();
+    document.getElementById('sfDesignModal').classList.add('show');
+    setTimeout(ddRenderSword, 0);                          // the box has no size until it is shown
+}
+function closeDesign(revert){
+    if(revert && DD_WAS) DD_SEL=Object.assign({}, DD_WAS);
+    document.getElementById('sfDesignModal').classList.remove('show');
+}
+function wireDesign(){
+    const p=document.getElementById('ddPanel'), bar=document.getElementById('ddBar'), th=document.getElementById('ddThumb');
+    if(!p||!bar||!th) return;
+    p.addEventListener('wheel', e=>{ e.preventDefault(); ddScrollTo(DD_SCROLL + (e.deltaY>0? 8 : -8)); }, {passive:false});
+    let drag=null;
+    th.addEventListener('pointerdown', e=>{ drag={y:e.clientY, s:DD_SCROLL, h:bar.getBoundingClientRect().height};
+        th.setPointerCapture(e.pointerId); e.preventDefault(); });
+    th.addEventListener('pointermove', e=>{ if(drag) ddScrollTo(drag.s + (e.clientY-drag.y)/drag.h*(100+DD_MAX)); });
+    th.addEventListener('pointerup', ()=>{ drag=null; });
+}
+
+// ---- r57: Quests ----------------------------------------------------------------------------------
+// The five one-off goals from the older builds (index.html / swordforgeV2.html, `const quests`), each
+// worth the same QUEST_REWARD they paid there.
+const QUEST_REWARD = 20;
+const QUESTS = [
+    { id:'epic5',       label:'Craft 5 Epic swords',                              goal:5, progress:0 },
+    { id:'noRefuseDay', label:'Survive a day without turning any customer away',  goal:1, progress:0 },
+    { id:'discover3',   label:'Discover 3 new traits',                            goal:3, progress:0 },
+    { id:'update3',     label:'Update 3 recorded compositions',                   goal:3, progress:0 },
+    { id:'openShop',    label:'Open the shop front',                              goal:1, progress:0 }
+];
+const QS_TOP0 = 12.78, QS_PITCH = 13.47;            // % of the page box, off the wireframe
+// the pager's nine chips: centre x and size, all % of the page box
+const QS_CHIPS = [
+    { c:13.67, w:3.69, h:2.75 }, { c:18.33, w:3.90, h:3.40 }, { c:27.01, w:5.21, h:6.31 },
+    { c:37.20, w:6.94, h:8.09 }, { c:49.89, w:10.20, h:9.22 },
+    { c:62.58, w:6.94, h:8.09 }, { c:72.78, w:5.21, h:6.31 }, { c:81.56, w:4.12, h:3.40 },
+    { c:86.12, w:3.69, h:2.75 }
+];
+const QS_PAGES = 3;                                  // page 1 holds the quests; 2 and 3 are empty for now
+let QS_PAGE = 1;
+function buildQuests(){
+    const rows=document.getElementById('qsRows'); if(!rows) return;
+    rows.innerHTML='';
+    if(QS_PAGE===1){
+        QUESTS.forEach((q,i)=>{
+            const a=document.createElement('div'); a.className='qs-row qs-quest';
+            a.style.top=(QS_TOP0+i*QS_PITCH).toFixed(2)+'%';
+            a.innerHTML='<span class="lab">'+q.label+'</span><span class="prog">progress '+q.progress+'/'+q.goal+'</span>';
+            const b=document.createElement('div'); b.className='qs-row qs-reward';
+            b.style.top=(QS_TOP0+i*QS_PITCH).toFixed(2)+'%';
+            b.textContent='\ud83e\ude99 '+QUEST_REWARD+'g';
+            rows.appendChild(a); rows.appendChild(b); });
+    } else {
+        const d=document.createElement('div'); d.className='qs-none';
+        d.textContent='No quests on this page yet.'; rows.appendChild(d);
+    }
+    buildQsPager();
+}
+function buildQsPager(){
+    const box=document.getElementById('qsPager'); if(!box) return;
+    box.innerHTML='';
+    QS_CHIPS.forEach((c,i)=>{
+        const off=i-4, n=QS_PAGE+off;                 // the centre chip is the current page
+        const b=document.createElement('button'); b.type='button';
+        b.className='qs-chip'+(off===0?' is-on':'')+((Math.abs(off)>2||n<1||n>QS_PAGES)?' blank':'');
+        b.style.left=c.c+'%'; b.style.width=c.w+'%'; b.style.height=c.h+'%';
+        b.style.fontSize=(Math.abs(off)===0? 12 : Math.abs(off)===1? 10 : 8)+'px';
+        b.textContent = (n<1||n>QS_PAGES) ? '' : (Math.abs(off)<=1 ? String(n) : (Math.abs(off)===2 ? '\u00b7' : ''));
+        if(n>=1 && n<=QS_PAGES && off!==0) b.addEventListener('click', ()=>qsGo(n));
+        box.appendChild(b); });
+    document.querySelector('.qs-prev').disabled = QS_PAGE<=1;
+    document.querySelector('.qs-next').disabled = QS_PAGE>=QS_PAGES;
+}
+function qsGo(n){ QS_PAGE=Math.max(1, Math.min(QS_PAGES, n)); buildQuests(); }
+function qsPage(d){ qsGo(QS_PAGE+d); }
+function openQuests(){ QS_PAGE=1; buildQuests(); document.getElementById('sfQuestModal').classList.add('show'); }
+function closeQuests(){ document.getElementById('sfQuestModal').classList.remove('show'); }
+
+// ---- r56: Diary -----------------------------------------------------------------------------------
+// Seven slots, laid out exactly as the wireframe draws them: four across the top (two per page) and
+// three below. The wireframe's own names were placeholders, so the two filled slots use the game's real
+// story customers instead.
+const DIARY_SLOTS = [
+    { l:4.07,  t:17.73, name:'Bram', img:'assets/customer/Bram.png', rew:'Craft a swift sword.' },
+    { l:26.77, t:17.73, name:'June', img:'assets/customer/June.png', rew:'Craft a sharp sword.' },
+    { l:53.10, t:17.73 },
+    { l:75.80, t:17.73 },
+    { l:4.07,  t:50.54 },
+    { l:26.77, t:50.54 },
+    { l:53.10, t:50.54 }
+];
+const DIARY_TABS = [-4.82, 1.56, 7.93, 14.15];      // tab tops, % of the page box (pitch 6.33)
+function buildDiary(){
+    const box=document.getElementById('dySlots'), tabs=document.getElementById('dyTabs');
+    if(!box||!tabs) return;
+    box.innerHTML='';
+    DIARY_SLOTS.forEach(s=>{ const d=document.createElement('div');
+        d.className='dy-slot'+(s.name?'':' unknown');
+        d.style.left=s.l+'%'; d.style.top=s.t+'%';
+        d.textContent=s.name||'?';
+        if(s.name){ d.title=s.name; d.classList.add('known');
+            d.addEventListener('click', ()=>dyChar(s)); }
+        box.appendChild(d); });
+    tabs.innerHTML='';
+    DIARY_TABS.forEach((t,i)=>{ const b=document.createElement('button');
+        b.type='button'; b.className='dy-tab'+(i===0?' is-on':''); b.style.top=t+'%';
+        b.title='Page '+(i+1);
+        b.innerHTML='<img src="assets/ui/bookmark_paper.png" alt=""><span>'+(i+1)+'</span>';
+        b.addEventListener('click', ()=>dyTab(i));
+        tabs.appendChild(b); });
+}
+function dyShow(id){                                   // one sheet at a time, character page included
+    [...document.querySelectorAll('.dy-sheet')].forEach(sh=>sh.classList.toggle('is-on', sh.id===id));
+}
+function dyTab(i){
+    [...document.querySelectorAll('#dyTabs .dy-tab')].forEach((t,k)=>t.classList.toggle('is-on', k===i));
+    dyShow('dySheet'+(i+1));
+}
+// The character page is NOT one of the four tabs: it takes over the book with every tab deselected, so
+// the tabs stay visible and clicking any of them goes back to that page.
+function dyChar(s){
+    document.getElementById('dycName').textContent=s.name;
+    document.getElementById('dycRew').textContent=s.rew||'\u2014';
+    [...document.querySelectorAll('#dyTabs .dy-tab')].forEach(t=>t.classList.remove('is-on'));
+    dyShow('dySheetChar');
+    dycPortrait(document.getElementById('dycImg'), s.img);
+}
+// Crop-fit a portrait to its opaque box: the canvases are 1504x2832 with the figure in a sub-region, so
+// object-fit:contain would size the empty canvas instead of the person. partBox() is r52's runtime
+// canvas measurement, so a portrait added later needs no table entry.
+function dycPortrait(imgEl, src){
+    if(!imgEl||!src) return;
+    const box=imgEl.parentElement, r=box.getBoundingClientRect();
+    const ratio=(r.width>2? r.height/r.width : 1.19);   // fixed by the book's aspect; read live anyway
+    partBox(src, o=>{
+        const probe=new Image();
+        probe.onload=()=>{
+            const car=probe.naturalWidth/probe.naturalHeight;
+            const wc=Math.min(0.92/o.ow, 0.96*ratio*car/o.oh);   // canvas width, in box widths
+            const hc=wc/car;                                     // canvas height, in box widths
+            imgEl.src=src;
+            imgEl.style.width=(wc*100).toFixed(2)+'%';
+            imgEl.style.aspectRatio=probe.naturalWidth+' / '+probe.naturalHeight;
+            imgEl.style.left=((0.5-(o.ox+o.ow/2)*wc)*100).toFixed(2)+'%';
+            imgEl.style.top =((0.5-(o.oy+o.oh/2)*hc/ratio)*100).toFixed(2)+'%'; };
+        probe.src=src; });
+}
+function openDiary(){ buildDiary(); dyTab(0); document.getElementById('sfDiaryModal').classList.add('show'); }
+function closeDiary(){ document.getElementById('sfDiaryModal').classList.remove('show'); }
+
+// ---- r50: Ledger ----------------------------------------------------------------------------------
+// Placeholder sales. sx is the same measured per-combo art-centring offset the Racks window uses; s is
+// recomputed for this slot's 3.79 aspect, where every combo is LENGTH-limited, so s = 0.98/len.
+const LEDGER_SOLD = [
+    { blade:'balanced_longsword_blade', guard:'guard1',       grip:'grip1',       pommel:'pommel1',       s:89.3,  sx:-5.19, gold:40 },
+    { blade:'balanced_cutlass_blade',   guard:'guard3',       grip:'grip3',       pommel:'pommel3',       s:110.0, sx:7.66,  gold:18 },
+    { blade:'balanced_claymore_blade',  guard:'flame_guard1', grip:'flame_grip1', pommel:'flame_pommel1', s:82.5,  sx:-7.74, gold:70 }
+];
+const LB_TOP0 = 23.33, LB_PITCH = 12.08;             // % of the page box, off the wireframe
+function buildLedger(){
+    const box=document.getElementById('lbRows'); if(!box) return;
+    box.innerHTML='';
+    LEDGER_SOLD.forEach((it,i)=>{
+        const row=document.createElement('div'); row.className='lb-row';
+        row.style.top=(LB_TOP0+i*LB_PITCH).toFixed(2)+'%';
+        const slot=document.createElement('div'); slot.className='lb-slot';
+        const art=document.createElement('div'); art.className='lb-sword';
+        art.style.setProperty('--s', it.s+'%'); art.style.setProperty('--sx', it.sx+'%');
+        [['blades',it.blade],['guards',it.guard],['grips',it.grip],['pommels',it.pommel]].forEach(([d,f])=>{
+            const im=document.createElement('img'); im.src='assets/sword-parts/'+d+'/'+f+'.png'; im.alt=''; art.appendChild(im); });
+        slot.appendChild(art); row.appendChild(slot);
+        const val=document.createElement('div'); val.className='lb-val'; val.textContent=it.gold+'g';
+        row.appendChild(val); box.appendChild(row); });
+}
+function openLedger(){
+    const d=document.getElementById('dayNum');
+    document.getElementById('lbDay').textContent='DAY '+((d&&d.textContent.trim())||'1');
+    buildLedger();
+    document.getElementById('sfLedgerModal').classList.add('show');
+}
+function closeLedger(){ document.getElementById('sfLedgerModal').classList.remove('show'); }
+
+// ---- r48: Racks window ----------------------------------------------------------------------------
+// Placeholder stock. Parts come from the Design Desk set; the names and prices are made up for now.
+const RACK_STOCK = [
+    { blade:'balanced_longsword_blade', guard:'guard1',       grip:'grip1',       pommel:'pommel1',       s:72.1, sx:-5.19, em:'\u26a1',        name:'Sharp Steel',  shape:'Longsword', price:40 },
+    { blade:'balanced_rapier_blade',    guard:'guard4',       grip:'grip4',       pommel:'pommel4',       s:80.6, sx:-3.25, em:'\u2728',        name:'Fine Steel',   shape:'Rapier',    price:32 },
+    { blade:'balanced_claymore_blade',  guard:'flame_guard1', grip:'flame_grip1', pommel:'flame_pommel1', s:78.2, sx:-7.74, em:'\ud83d\udd25', name:'Epic Fire',    shape:'Claymore',  price:70 },
+    { blade:'balanced_cutlass_blade',   guard:'guard3',       grip:'grip3',       pommel:'pommel3',       s:110.0, sx:7.66, em:'\ud83c\udf3f', name:'Plain Steel',  shape:'Cutlass',   price:18 },
+    { blade:'balanced_saber_blade',     guard:'guard1',       grip:'grip2',       pommel:'pommel5',       s:72.1, sx:-4.91, em:'\ud83d\udc51', name:'Noble Steel',  shape:'Saber',     price:48 },
+    { blade:'balanced_machete_blade',   guard:'guard3',       grip:'grip4',       pommel:'pommel2',       s:92.3, sx:-0.76, em:'\ud83d\udee1\ufe0f', name:'Sturdy Steel', shape:'Machete', price:22 }
+];
+const RW_ROWH = 22.31, RW_PITCH = 25.90;             // % of the viewport, measured off the wireframe
+let RW_SCROLL = 0, RW_MAX = 0, RW_TAB = 0;
+function rwContent(){ return (RACK_STOCK.length-1)*RW_PITCH + RW_ROWH; }
+function buildRacks(){
+    const tr=document.getElementById('rwTrack'); if(!tr) return;
+    tr.innerHTML='';
+    RACK_STOCK.forEach((it,i)=>{
+        const row=document.createElement('div'); row.className='rw-row'; row.style.top=(i*RW_PITCH).toFixed(2)+'%';
+        const slot=document.createElement('div'); slot.className='rw-slot'; slot.title=it.name+' '+it.shape;
+        const art=document.createElement('div'); art.className='rw-sword';
+        art.style.setProperty('--s', it.s+'%'); art.style.setProperty('--sx', it.sx+'%');
+        [['blades',it.blade],['guards',it.guard],['grips',it.grip],['pommels',it.pommel]].forEach(([d,f])=>{
+            const im=document.createElement('img'); im.src='assets/sword-parts/'+d+'/'+f+'.png'; im.alt=''; art.appendChild(im); });
+        slot.appendChild(art); row.appendChild(slot);
+        const det=document.createElement('button'); det.type='button'; det.className='rw-det';
+        det.innerHTML='<span class="lab">Details</span><span class="open"><span class="em">'+it.em+'</span><br>'+
+            it.name+'<br>'+it.shape+'<br>'+it.price+'g</span>';
+        det.addEventListener('click', ()=>det.classList.toggle('is-open'));
+        slot.addEventListener('click', ()=>det.classList.toggle('is-open'));
+        row.appendChild(det); tr.appendChild(row); });
+    RW_MAX = Math.max(0, rwContent()-100);
+    rwScrollTo(0);
+}
+function rwScrollTo(v){
+    RW_SCROLL = Math.max(0, Math.min(RW_MAX, v));
+    const tr=document.getElementById('rwTrack'), th=document.getElementById('rwThumb'); if(!tr||!th) return;
+    tr.style.transform='translateY('+(-RW_SCROLL).toFixed(2)+'%)';
+    const c=rwContent();
+    th.style.height=Math.min(100, 100/c*100).toFixed(2)+'%';
+    th.style.top=(RW_MAX? RW_SCROLL/c*100 : 0).toFixed(2)+'%';
+}
+function openRacks(){
+    buildRacks();
+    document.getElementById('sfRackModal').classList.add('show');
+    const tabs=[...document.querySelectorAll('#matTabs .matTab')];       // the rail stays lit; show its SWORDS tab
+    RW_TAB = Math.max(0, tabs.findIndex(t=>t.classList.contains('is-on')));
+    tabs.forEach((t,i)=>t.classList.toggle('is-on', i===2));
+}
+function closeRacks(){
+    document.getElementById('sfRackModal').classList.remove('show');
+    const tabs=[...document.querySelectorAll('#matTabs .matTab')];
+    tabs.forEach((t,i)=>t.classList.toggle('is-on', i===RW_TAB));
+}
+function wireRacks(){
+    const vp=document.getElementById('rwView'), bar=document.getElementById('rwBar'), th=document.getElementById('rwThumb');
+    if(!vp||!bar||!th) return;
+    vp.addEventListener('wheel', e=>{ e.preventDefault(); rwScrollTo(RW_SCROLL + (e.deltaY>0? 6 : -6)); }, {passive:false});
+    let drag=null;
+    th.addEventListener('pointerdown', e=>{ drag={y:e.clientY, s:RW_SCROLL, h:bar.getBoundingClientRect().height};
+        th.setPointerCapture(e.pointerId); e.preventDefault(); });
+    th.addEventListener('pointermove', e=>{ if(!drag) return;
+        rwScrollTo(drag.s + (e.clientY-drag.y)/drag.h*rwContent()); });
+    th.addEventListener('pointerup', ()=>{ drag=null; });
+    bar.addEventListener('pointerdown', e=>{ if(e.target===th) return;
+        const r=bar.getBoundingClientRect(); rwScrollTo(((e.clientY-r.top)/r.height)*rwContent() - 50); });
+}
+function openEndDay(){ document.getElementById('sfEndDayModal').classList.add('show'); }
+function closeEndDay(){ document.getElementById('sfEndDayModal').classList.remove('show'); }
+function confirmEndDay(){
+    closeEndDay();
+    const d=document.getElementById('dayNum');            // cosmetic: there is no day system behind this yet
+    if(d) d.textContent = (parseInt(d.textContent,10)||0) + 1;
+    goScreen('forge');
+}
+// hearts burst from the click and drift up
+function popHearts(e){
+    const layer=document.getElementById('screenLayer'), r=layer.getBoundingClientRect();
+    const x=e.clientX-r.left, y=e.clientY-r.top;
+    for(let i=0;i<6;i++){ const h=document.createElement('div'); h.className='eh-heart'; h.textContent='\u2764\uFE0F';
+        h.style.left=(x+(Math.random()*44-22)).toFixed(0)+'px';
+        h.style.top =(y+(Math.random()*18-9)).toFixed(0)+'px';
+        h.style.fontSize=(15+Math.random()*11).toFixed(0)+'px';
+        h.style.setProperty('--hx', Math.round(Math.random()*40-20)+'px');
+        h.style.animationDelay=Math.round(Math.random()*260)+'ms';
+        layer.appendChild(h); setTimeout(()=>h.remove(), 1600); }
+}
+function goScreen(name){
+    if(!SCREENS[name] || name===SF_SCREEN) return;
+    SF_SCREEN = name;
+    const layer=document.getElementById('screenLayer');
+    if(name==='forge'){ layer.classList.remove('on'); }
+    else { const [src,tag]=SCREEN_ART[name];
+        const art=document.getElementById('screenArt');
+        art.onload=layoutScreenProps;                     // naturalWidth is 0 until the plate decodes
+        art.src=src;
+        document.getElementById('screenTag').textContent=tag+' \u00b7 placeholder';
+        layer.classList.add('on'); }
+    /* one sc-<name> class drives that screen's own panel cluster */
+    [...layer.classList].filter(c=>c.indexOf('sc-')===0).forEach(c=>layer.classList.remove(c));
+    layer.classList.add('sc-'+name);
+    buildScreenProps(name);
+    buildScreenHots(name);
+    buildScreenUi(name);
+    updateScreenArrows();
+}
+// an arrow with nowhere to go is hidden rather than left dead, so the way back is never ambiguous
+function updateScreenArrows(){
+    const exits=SCREENS[SF_SCREEN]||{};
+    [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{
+        const b=document.getElementById(id); if(b) b.classList.toggle('dead', !exits[dir]); });
+}
+function screenStep(dir){
+    if(document.querySelector('.sf-modal.show')) return;   // never navigate out from under a modal
+    const to=(SCREENS[SF_SCREEN]||{})[dir]; if(to) goScreen(to);
+}
+function wirePan(){ wireRacks(); wireDesign(); wireSharpen();
+    [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{
+        const b=document.getElementById(id); if(b) b.addEventListener('click', ()=>screenStep(dir)); });
+    const KEY={ ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+    window.addEventListener('keydown', e=>{ const d=KEY[e.key]; if(!d) return;
+        e.preventDefault(); noteAction(); screenStep(d); });
+    updateScreenArrows();
+}
 function clientToWorld(cx,cy){ const r=board.getBoundingClientRect(); const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; return { x:view.x+fx*view.w, y:view.y+fy*(view.w*aspect) }; }
 function wireZoomPan(){
     board.addEventListener('wheel', ev=>{ ev.preventDefault(); const wp=clientToWorld(ev.clientX,ev.clientY); zoomAt(ev.deltaY<0?0.85:1.18, wp.x, wp.y); }, {passive:false});
@@ -1060,7 +2441,6 @@ function initMap(){
             if(ok) for(const b of books){ if(Math.hypot(bx-b.x, by-b.y) < 58){ ok=false; break; } }
             if(!ok) continue;
             addBook(K,bx,by); got++; } });
-    updateExp(false);
 
     // sword at start + a generous starting reveal so the ore paths read clearly
     fogHoles.innerHTML=''; revLast={}; marker={x:START.x,y:START.y}; setSword(START.x,START.y);
@@ -1130,7 +2510,10 @@ let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammer
 function benchEl(){ return document.getElementById('bench'); }
 function benchRect(el){ const b=benchEl().getBoundingClientRect(), r=el.getBoundingClientRect(); return {L:r.left-b.left,T:r.top-b.top,R:r.right-b.left,B:r.bottom-b.top}; }
 function stationCenter(el,fx,fy){ const r=benchRect(el); return {x:r.L+(r.R-r.L)*fx, y:r.T+(r.B-r.T)*fy}; }
-function hint(t){ const h=document.getElementById('sfHint'); if(h) h.innerHTML=t; }
+// r34: the bottom hint bar was removed from the screen, so this no longer renders anywhere. The ~20
+// call sites are left intact deliberately — they are the only guidance copy the build has, and pointing
+// them at a new surface later is a one-line change right here.
+function hint(t){ /* no surface — see r34 */ }
 
 // --- stacked route geometry (each ore = one segment continuing from the last ✕) ---
 function segPointLocal(seg,frac){ measure.setAttribute('d',seg.d); const p=measure.getPointAtLength(Math.max(0,Math.min(1,frac))*seg.len); return {x:seg.origin.x+p.x, y:seg.origin.y+p.y}; }
@@ -1240,12 +2623,57 @@ function updateSfTraits(){ const el=document.getElementById('traitSlots'); if(!e
         h += p ? '<span class="tslot filled" style="color:'+tierColor(p.tier)+'" title="'+p.t.name+' — '+p.tier+'">'+p.t.symbol+'</span>'
                : '<span class="tslot"></span>'; }
     el.innerHTML=h; }
+function toggleHud(){ const h=document.getElementById('hud'), b=document.getElementById('hudToggle');
+    const nowCollapsed=h.classList.toggle('collapsed');
+    b.innerHTML = nowCollapsed ? '&#9660;' : '&#9650;';
+    b.setAttribute('aria-expanded', String(!nowCollapsed));
+    b.title = nowCollapsed ? 'Expand the blade panel' : 'Collapse the blade panel'; }
 function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=document.getElementById('saveBlade');
+    const tg=document.getElementById('hudToggle'); if(tg) tg.addEventListener('click', toggleHud);
     if(c) c.addEventListener('click', ()=>{ resetRun(); hint('Crafting cancelled — the blade and its traits are gone. Grind an ore to start again.'); });
-    if(sv) sv.addEventListener('click', ()=>{ hint('Save is a placeholder — nothing is stored yet.'); }); }
+    if(sv) sv.addEventListener('click', openComp);
+    const rb=document.getElementById('recipeBtn'); if(rb) rb.addEventListener('click', openBook);
+    const db=document.getElementById('diaryBtn'); if(db) db.addEventListener('click', openDiary);
+    const qb=document.getElementById('questBtn'); if(qb) qb.addEventListener('click', openQuests);
+    const sk=document.getElementById('skillBtn'); if(sk) sk.addEventListener('click', openSkills); }
 function floatAcquired(bt,tier){ const b=benchEl(); const c=stationCenter(stAnvil,0.5,0.05); const f=document.createElement('div'); f.textContent='+'+bt.symbol+' '+tier; f.style.cssText='position:absolute;left:'+c.x+'px;top:'+c.y+'px;transform:translate(-50%,-50%);z-index:40;font-weight:bold;font-size:14px;color:'+tierColor(tier)+';text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;'; b.appendChild(f); f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(-50%,-160%)',opacity:0}],{duration:1200,easing:'ease-out'}).onfinish=()=>f.remove(); }
 // trait-acquired popup — stays open until the player clicks 'continue'
 function showAcquire(bt,tier,total){ const body=document.getElementById('sfAcquireBody'); body.innerHTML='<span class="sym">'+bt.symbol+'</span><div class="nm">'+bt.name+'</div><div class="tr" style="color:'+tierColor(tier)+'">'+tier+' tier</div>'+(total>1?'<div class="cnt">'+total+' traits on this blade</div>':''); document.getElementById('sfAcquireModal').classList.add('show'); }
+// r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
+// element symbols of each recorded composition.
+const CB_MARKS = ['\u2696\uFE0F','\uD83D\uDD25','\uD83D\uDD25','\u26A1',''];
+function buildBookMarks(){
+    const top=document.getElementById('cbMarksTop'), side=document.getElementById('cbMarksSide');
+    if(!top||!side||top.childElementCount) return;
+    const mk=(icon)=>{ const d=document.createElement('div'); d.className='cb-mark';
+        d.innerHTML='<img src="assets/ui/bookmark_paper.png" alt=""><span>'+icon+'</span>'; return d; };
+    for(let i=0;i<10;i++){ const d=mk(CB_MARKS[i%CB_MARKS.length]);
+        d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%'; top.appendChild(d); }
+    for(let i=0;i<5;i++){ const d=mk(CB_MARKS[i%CB_MARKS.length]);
+        d.style.left='99.9%'; d.style.top=(-0.31+i*11.63).toFixed(2)+'%'; side.appendChild(d); }
+}
+// r42 — twelve placeholder nodes on three arcs about the centre. Positions are % of .st-panel,
+// derived from an ellipse (rx 260, ry 175 on an 820x568 sheet) so the spread matches the sheet's
+// proportions instead of bunching into a circle.
+const ST_NODES = [
+    ['y',19.02,43.66], ['y',23.66,32.75], ['y',32.32,24.47], ['y',43.41,19.89],   // top-left
+    ['g',56.59,19.89], ['g',67.68,24.47], ['g',76.34,32.75], ['g',80.98,43.66],   // top-right
+    ['b',32.68,75.88], ['b',43.90,80.28], ['b',56.10,80.28], ['b',67.32,75.88]    // bottom
+];
+function buildSkillNodes(){
+    const p=document.querySelector('#sfSkillModal .st-panel'); if(!p||p.querySelector('.st-node')) return;
+    const core=p.querySelector('.st-core');
+    ST_NODES.forEach(([kind,x,y])=>{ const d=document.createElement('div');
+        d.className='st-node '+kind; d.style.left=x+'%'; d.style.top=y+'%';
+        p.insertBefore(d, core); });   // behind the core, so the big icon always reads on top
+}
+function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); }
+function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); }
+function openBook(){ buildBookMarks(); document.getElementById('sfBookModal').classList.add('show'); }
+function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); }
+function openComp(){ document.getElementById('sfCompModal').classList.add('show'); }
+function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); }
+function confirmComp(){ closeComp(); hint('<b>Update Composition</b> is a placeholder — nothing is stored yet.'); }
 function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); }
 
 // --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
@@ -1455,7 +2883,7 @@ function wireHmHammer(){
     paint();
 }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):''; const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged a '+hmShape+'!<br><span style="font-size:26px;">'+syms+'</span>'; el.classList.add('show'); setTimeout(resetRun,2600); }
-function resetRun(){ clearHazardFx(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+function resetRun(){ clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -1480,6 +2908,70 @@ function advanceSword(dt){ if(!segs.length || !melt) return; let step=SWORD_SPEE
     while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); checkHazard(p,dt); checkBooks(p); }   // drawRoute() erases the part behind the sword
 
+// ---- r39: the idle nudge arrow ----
+// Tip fractions measured off arrow.png (409x158): the tail is bottom-left, the head upper-right, and the
+// tail->head axis already sits at -4.4deg inside the image, so that bias is subtracted from the rotation.
+const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.404, ratio:158/409 };
+const HINT_IDLE_MS = 4000;
+let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
+function noteAction(){ lastActAt = performance.now(); }
+function swordAtRouteEnd(){ if(!segs.length) return false;
+    const last = segs.length-1;
+    return sword.seg >= last && sword.frac >= segs[last].tPct - 0.001; }
+// stuck: the ore is out on the anvil, the route is spent, nothing is under the sword, and the player has
+// gone quiet. Re-heating at the furnace is the only way forward, so point at it.
+function hintArrowWanted(){
+    if(SF_SCREEN!=='forge') return false;
+    if(!melt || melt.stage!=='onAnvil' || melt.reachedTrait) return false;
+    if(melt.traits && melt.traits.length) return false;   // r40: a trait is banked - the down-arrow owns this state
+    if(anyModalOpen()) return false;
+    if(!swordAtRouteEnd()) return false;
+    return performance.now() - lastActAt >= HINT_IDLE_MS; }
+// tip of arrow_point_down.png (234x396), as a fraction of the image
+const DOWN = { tip:[0.4487,0.952], ratio:396/234 };
+function anyModalOpen(){ return !!document.querySelector('.sf-modal.show'); }
+// the trait is in the bag: the only move left on the anvil is to tap the ore and pick a shape
+function hintDownWanted(){
+    if(SF_SCREEN!=='forge') return false;
+    if(!melt || melt.stage!=='onAnvil') return false;
+    if(!(melt.traits && melt.traits.length)) return false;
+    if(anyModalOpen()) return false;
+    return performance.now() - lastActAt >= HINT_IDLE_MS; }
+function placeHintDown(){
+    const a=document.getElementById('hintDown'); if(!a||!orbEl) return;
+    const b=benchEl().getBoundingClientRect(), o=orbEl.getBoundingClientRect();
+    const H=o.height*2.0, W=H/DOWN.ratio;                       // twice the orb tall, so it reads at a glance
+    const tipX=o.left+o.width/2-b.left, tipY=o.top-o.height*0.25-b.top;   // just clear of the orb's crown
+    a.style.width=W.toFixed(1)+'px';
+    a.style.left=(tipX-DOWN.tip[0]*W).toFixed(1)+'px';
+    a.style.top =(tipY-DOWN.tip[1]*H).toFixed(1)+'px'; }
+function placeHintArrow(){
+    const a=document.getElementById('hintArrow'); if(!a||!orbEl||!stSmelt) return;
+    const b=benchEl().getBoundingClientRect(), o=orbEl.getBoundingClientRect(), f=stSmelt.getBoundingClientRect();
+    const tail={ x:o.left+o.width/2-b.left, y:o.top+o.height/2-b.top };
+    const head={ x:f.left+f.width*0.51-b.left, y:f.top+f.height*0.25-b.top };   // crucible mouth (51% across, 25% down anchor_furnace.png)
+    const dx=head.x-tail.x, dy=head.y-tail.y, D=Math.hypot(dx,dy); if(D<8) return;
+    const W=D/ARROW.axis, H=W*ARROW.ratio;
+    a.style.width=W.toFixed(1)+'px';
+    a.style.left=(tail.x-ARROW.tail[0]*W).toFixed(1)+'px';
+    a.style.top =(tail.y-ARROW.tail[1]*H).toFixed(1)+'px';
+    a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
+    a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
+function updateHintArrow(){
+    const want=hintArrowWanted();
+    if(want) placeHintArrow();                       // re-place every frame: the orb and the furnace both move
+    if(want!==hintArrowOn){ hintArrowOn=want;
+        const a=document.getElementById('hintArrow'); if(a) a.classList.toggle('on', want); }
+    const wantD=hintDownWanted();
+    if(wantD) placeHintDown();
+    if(wantD!==hintDownOn){ hintDownOn=wantD;
+        const d=document.getElementById('hintDown'); if(d) d.classList.toggle('on', wantD); } }
+function wireIdleNudge(){
+    const f=document.getElementById('frame'); if(!f) return;
+    ['pointerdown','pointerup','wheel','keydown'].forEach(t=>f.addEventListener(t, noteAction, true));
+    f.addEventListener('pointermove', e=>{ if(e.buttons) noteAction(); }, true);   // a drag counts, a hover does not
+}
+
 // --- main loop ---
 let lastT=0;
 function tick(now){
@@ -1502,6 +2994,7 @@ function tick(now){
         if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);   // hammer never fights the fire
             fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
     }
+    updateHintArrow();
     requestAnimationFrame(tick);
 }
 
@@ -1518,7 +3011,8 @@ function wirePestle(){ const p=document.getElementById('pestle'), bench=benchEl(
 
 function wireDragon(){ const d=document.getElementById('dragon'), bench=benchEl(); let active=false,sx,sy,dx,dy,mode; d.addEventListener('pointerdown',e=>{ active=true; mode='breath'; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} startBreath(); }); d.addEventListener('pointermove',e=>{ if(!active) return; if(mode==='breath'&&Math.hypot(e.clientX-sx,e.clientY-sy)>7){ mode='drag'; stopBreath(); d.classList.add('dragging'); } if(mode==='drag'){ const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(d,b,30); x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y)); /* r22: frame-wide bounds; wireDragon is the LIVE dragon handler (makeDraggable/wireMovable are dead code) */ d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; } updateFirePos(); }); const end=()=>{ active=false; mode=null; stopBreath(); d.classList.remove('dragging'); }; d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
 
-function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
+function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const smoke=document.getElementById('furnaceSmoke');
+    const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
 // ---- JUICE: particle bursts + interactive grind wheel (Phase B station feel) ----
 let fxAcc={grind:0,bellow:0,fire:0,strike:0};
@@ -1576,7 +3070,7 @@ function frameBoxes(){ const f=document.getElementById('frame'); if(!f) return {
 
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
-    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); updateSfTraits();
+    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
     hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
     requestAnimationFrame(tick);
     window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
@@ -1594,15 +3088,16 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.08, fails=[];   // allows intentional edge bleeds (furnace pokes above, dragon/anvil bleed left) while still catching gross off-zone errors
-    const RECORDED={ stSmelt:{x:0.539,y:-0.816,w:0.24}, stMortar:{x:0.795,y:-0.289,w:0.23}, pestle:{x:0.837,y:0.30,w:0.053}, hammerTool:{x:0.247,y:0.449,w:0.165}, stAnvil:{x:0.187,y:-0.249,w:0.191}, bucket:{x:0.019,y:0.041,w:0.171}, mug:{x:0.054,y:-0.025,w:0.11}, dragon:{x:0.081,y:-0.989,w:0.228} };   // hori-anchor LANDSCAPE composition, loop r20 (rebased to the 21% rail; frame-relative prop sizes preserved)
+    const RECORDED={ stSmelt:{x:0.496,y:-1.218,w:0.243}, stMortar:{x:0.728,y:-0.744,w:0.243}, pestle:{x:0.837,y:0.30,w:0.053}, hammerTool:{x:0.302,y:0.381,w:0.148}, stAnvil:{x:0.169,y:-0.438,w:0.186}, bucket:{x:-0.010,y:-0.103,w:0.177}, mug:{x:0.034,y:0.188,w:0.067}, dragon:{x:0.014,y:-2.718,w:0.228} };   // hori-anchor LANDSCAPE composition, loop r20 (rebased to the 21% rail; frame-relative prop sizes preserved)
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
         const pk=Object.keys(LAYOUT.portrait).sort(), lk=Object.keys(LAYOUT.landscape).sort();
         if(pk.join(',')!==lk.join(',')) fails.push('parity: ['+pk+'] vs ['+lk+']');
         ['portrait','landscape'].forEach(o=>{ for(const k in LAYOUT[o]){ const b=resolveLayout(k,o,1,1);
-            const yMin = (o==='landscape') ? -1.30 : -EPS;   // r14: bench band is 24.5% of the frame, so props standing on the floor rise ~0.8 bench-heights over the map (overflow:visible); still catches gross off-zone errors
-            if(!(b.x>=-EPS && b.y>=yMin && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
+            const yMin = (o==='landscape') ? -2.80 : -EPS;   // r14: bench band is 24.5% of the frame, so props standing on the floor rise ~0.8 bench-heights over the map (overflow:visible); still catches gross off-zone errors
+            const xMin = (o==='landscape') ? -0.02 : -EPS;   // r37: the bucket bleeds off the left edge, as the reference art does
+            if(!(b.x>=xMin && b.y>=yMin && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
         const rk=Object.keys(RECORDED).sort(), lkk=Object.keys(LAYOUT.landscape).sort();
         if(rk.join(',')!==lkk.join(',')) fails.push('drift key-set: landscape ['+lkk+'] != recorded ['+rk+']');   // extra/removed key in landscape, not just per-value drift
         for(const k in RECORDED){ const r=RECORDED[k], a=LAYOUT.landscape[k]; if(!a){ fails.push('missing landscape.'+k); continue; } ['x','y','w'].forEach(ax=>{ if(Math.abs(a[ax]-r[ax])>0.0005) fails.push('drift '+k+'.'+ax+' '+a[ax]+' != '+r[ax]); }); }
@@ -1613,7 +3108,7 @@ function runLayoutSelfTest(){
     return { pass, fails };
 }
 
-window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); wireHmDragon(); wireHmHammer(); hmLayout();
+window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); wireHmDragon(); wireHmHammer(); hmLayout(); wirePan();
     if(window.SFM){ window.SFM.setOrientation=setOrientation; window.SFM.applyLayout=applyLayout; window.SFM.runLayoutSelfTest=runLayoutSelfTest; window.SFM.toggleWireframe=toggleWireframe; }
     if(location.search.indexOf('wire')>=0) toggleWireframe(true);
     if(location.search.indexOf('test')>=0) runLayoutSelfTest();
@@ -1622,7 +3117,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
-window.addEventListener('resize', ()=>{ setView(); });
+window.addEventListener('resize', ()=>{ setView(); layoutScreenProps(); if(SF_SCREEN&&document.getElementById('sfSharpModal').classList.contains('show')) shLayout(); });
 </script>
 </body>
 </html>
