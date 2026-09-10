@@ -1019,3 +1019,1423 @@ dropping the page fill to `#e0d0a6` and darkening the line work.
   the books you picked up on that run. That seemed the kinder default; say if it should be lost.
 - Books do not respawn. A new map (`initMap`) makes a fresh set.
 - **Landscape only.**
+
+## r33 — Update Composition popup (2026-09-08)
+
+The blade panel's 💾 button was a stub that only printed a hint. It now opens a modal built from the
+owner's torn-paper UI set, laid out to `assets/Anchor-images/Update_composition_wireframe.png`.
+**Contents are placeholders** — the two panels hold nothing and Update stores nothing.
+
+| piece | asset | native | used for |
+|---|---|---|---|
+| window | `Small_paperbox.png` | 849×533 | the sheet |
+| panels ×2 | `Small_paperbox_dark.png` | 320×252 | Recorded / New |
+| Cancel | `Paper_button_red.png` | 213×97 | closes |
+| Update | `Paper_button_wider.png` | 453×97 | closes + placeholder hint |
+
+Each piece is its PNG as a `background` with `aspect-ratio` set to the file's own dimensions, so the art
+is never stretched — verified in the browser at **0.00% deviation on all four**. Sizes are percentages of
+the parent, so the whole window scales with the frame.
+
+### The percentage-padding trap
+
+`padding: 7% 8.5% 8%` on the box produced 75.6px / 91.8px / 86.4px, not the ~42px expected — **percentage
+padding resolves against the containing block's width (the modal, 1080px), not the element's own**. The
+box was forced past its aspect-ratio height and the paper texture came out 6.6% vertically stretched.
+Fixed with px spacing, which the rest of this file uses anyway since the frame is a fixed 1080×600.
+
+### Wiring
+
+`openComp()` / `closeComp()` / `confirmComp()`. `#saveBlade` opens it; `resetRun()` closes it alongside
+every other modal, so it cannot survive a shattered blade.
+
+### Still open
+
+- The two panels are inert. They should eventually show the recorded composition against the current
+  blade, which is what `#compositionsModal` already does in V2 (portrait) — port rather than rebuild.
+- Update writes nothing. There is no composition store in the landscape build.
+- The six paper assets in `assets/ui/` (`Small_paperbox`, `Small_paperbox_dark`, `Paper_button_red`,
+  `Paper_button_wide`, `Paper_button_wider`, `bookmark_paper`) were **untracked** until this change and
+  must ship with it or the popup renders as bare boxes.
+
+### r33b — sized to the wireframe
+
+The first build was 56% of the frame wide; the owner called it too big. Geometry re-derived by pixel-
+scanning `Update_composition_wireframe.png` (1398x775) rather than eyeballing it — the popup is pure
+white against the screenshot behind it, so a bbox of near-white pixels gives the window exactly, and the
+panels and buttons fall out by hue.
+
+| | wireframe | built | note |
+|---|---:|---:|---|
+| window, % of frame width | 38.34 | **38.3** | 414x260 px at 1080x600 |
+| panel, % of window | 40.9 | **40.9** | each |
+| Cancel, % of window | 26.7 | **26.7** | |
+| Update, % of window | 60.6 | **60.4** | |
+
+Every piece still renders at its native aspect — measured stretch **0.00–0.02% on all four**.
+
+One deliberate divergence: the wireframe window is AR **1.485**, `Small_paperbox.png` is **1.593**. Matching
+the wireframe exactly would stretch the paper 7% vertically, so the window matches the wireframe on
+**width** and keeps the paper native, coming out ~19px shorter than a straight proportional scale. That is
+why the internal spacing is tighter than the wireframe: there is less vertical room to spend.
+
+**Harness note:** the canvas pixel-scan would not run in the Browser pane — a hidden pane throttles the
+work and `javascript_tool` timed out at 45s twice. Running the same scan as a standalone page under
+headless Edge with `--dump-dom` returned it instantly.
+
+### r33c — shifted off centre
+
+The wireframe does not centre the window on the frame: its centre sits at **40.95% of the frame width**
+(measured), clear of the right rail. Built to match exactly.
+
+First attempt used `padding-right: 18.1%` on the modal. That shifted it correctly but **shrank the window
+18%** — the box's own `width: 38.3%` resolves against the flex container, which the padding had narrowed,
+and the fixed px spacing inside then forced the paper 3% off its native aspect. Corrected to
+`margin-right: 18.1%` on the box itself: a margin on a centred flex item shifts it left by half its
+value (9.05% of the frame) while the width still resolves against the full modal.
+
+Verified: centre 40.95% exactly, window back to 414x260 (38.3% of frame), all four pieces at 0.00-0.02%
+stretch, clears the rail by 204px, and the other modals are untouched at 50%.
+
+## r34 — main forge screen to the wireframe (2026-09-08)
+
+Built to `assets/Anchor-images/Main_forge_wireframe.png`, which splits the frame into a large **left
+section** (map + bench) and the narrow right rail, with every expandable window centred on the left
+section — the rule r33c already follows.
+
+### Out
+
+| | was | note |
+|---|---|---|
+| map tabs 1–4 | `#mapTabs` | never had a handler |
+| inventory bar | `#xpRow` | decorative, frozen at 45% |
+| bottom hint bar | `#sfHint` | see below |
+| XP readout | `#expRow` / `#expVal` | `exp` still banks, it just has no display |
+
+### In
+
+| | id | state |
+|---|---|---|
+| Recipe book | `#recipeBtn` | placeholder, under the blade panel |
+| Reputation | `#repVal` | new third stat: Gold · **Reputation** · Popularity |
+| Diary / Quest | `#diaryBtn` `#questBtn` | placeholders, foot of the rail |
+| Pan arrows | `#panUp/Down/Left/Right` | **live** — 22% of the view per press |
+
+`#panPad` spans the left section only (`right: var(--rail-w)`), so the arrows sit on that section's edges
+as the wireframe places them and follow the rail if its width changes. `setView()` already clamps to the
+world, so a press past an edge simply stops — verified clamping at (0,0) and at x+w = 2800.
+
+### Three things the removals dragged with them
+
+1. **`hint()` lost its surface.** It is now a no-op, but all ~20 call sites are left intact — that copy is
+   the only guidance the build has, and pointing it at a new surface is a one-line change in `hint()`.
+2. **`updateExp()` is gone**, along with its two call sites. `exp` still accumulates in `takeBook`, so
+   book XP is not lost, only invisible.
+3. **`#frame.clean`** listed `#sfHint` in its hide-list; that slot now hides `#panPad` instead, so the
+   clean screenshot mode still strips the floating chrome.
+
+### Watch
+
+The **Down arrow sits over the bench**, per the wireframe — it overlaps the Bellow caption and is close
+to the furnace drag targets. It is a small button in dead space now the hint bar is gone, but if bench
+dragging near the centre-bottom starts feeling fiddly, this is why.
+
+## r35 — scale and placement matched to the forge wireframe (2026-09-08)
+
+Geometry taken from `Main_forge_wireframe.png` (1045×585) by **hue-segmenting** it into components: a
+box's border and its fill share a hue and differ only in lightness, so bucketing by hue and running a
+connected-component pass returns each box's true outer bounds in one go. Fifteen boxes, no eyeballing.
+
+Everything below is now within **0.62 percentage points** of the wireframe, most within 0.4 — under 7px
+on the 1080×600 frame.
+
+| element | wireframe x / y / w / h (% of frame) | built |
+|---|---|---|
+| blade panel | 0.96 / 1.20 / 13.11 / 15.04 | 0.93 / 1.17 / 13.15 / 15.50 |
+| tier slot | 1.63 / 1.88 / 1.72 / 4.62 | 1.48 / 2.17 / 1.81 / 4.67 |
+| cancel · update | — / 7.52 / 5.93 / 3.08 | — / 7.33 / 5.79 / 3.17 |
+| recipe book | 1.34 / 11.11 / 12.44 / 4.62 | 1.48 / 11.00 / 12.04 / 4.67 |
+| day tile | 80.67 / 3.76 / 5.36 / 10.94 | 81.04 / 3.67 / 5.44 / 11.00 |
+| stat pill | 87.27 / 3.76 / 11.96 / 3.25 | 87.68 / 3.67 / 11.49 / 3.33 |
+| skill tree | 80.67 / 15.21 / 18.56 / 3.25 | 81.04 / 15.17 / 18.13 / 3.33 |
+| tabs | 80.67 / 20.51 / 18.56 / 8.38 | 81.04 / 20.50 / 18.13 / 8.33 |
+| inventory | 80.67 / 28.21 / 18.56 / — | 81.04 / 28.83 / 18.13 / — |
+| diary | 80.67 / 90.94 / 8.80 / 7.18 | 81.04 / 91.00 / 8.79 / 7.17 |
+| quest | 90.33 / 90.94 / 8.90 / 7.18 | 90.38 / 91.00 / 8.79 / 7.17 |
+
+### What changed structurally
+
+- **`#oreShelf` stopped being absolutely positioned.** It was `position:absolute` against `#rail` with a
+  `top:11%` offset that existed only to clear the MATERIALS caption. The wireframe has no such caption,
+  so the caption is gone and the shelf is an ordinary `flex:1` child of `#matPanel` — which is what lets
+  Diary/Quest sit at the true bottom instead of floating.
+- **The tabs grew from 23px to 50px** and gained the wireframe's labels (Ingredients / Ingots / Swords /
+  Items & Decor). At 23px with no text they read as decoration; the wireframe treats them as real
+  category buttons.
+- **The rail's own padding does the alignment.** `13px 3px 5px 12px` with `gap: 0` puts the card *inner*
+  edges on the wireframe's 80.67% / 99.23% — the wireframe draws the controls, not the card behind them,
+  so the inner edge is what has to line up. A first pass with symmetric padding put every rail element
+  0.92pp too far right at once, which is the signature of getting this wrong.
+
+### Watch
+
+- **The ✕ and 💾 buttons are now 19px tall**, down from 42px — that is the wireframe's 3.08%, but the
+  emoji glyphs are cramped at that size. Real icons would sit better than emoji here.
+- **The pan arrows were not touched** and are still off the wireframe: it wants Up/Down at 6.99% × 3.93%
+  (≈75×24px) and Left/Right at 5.26% × 7.18% (≈57×43px); the build has 36×24 and 24×36. Left alone since
+  this pass was scoped to the top-left panel, Diary/Quest and the rail.
+
+## r36 — forge screen re-matched to the updated wireframe (2026-09-09)
+
+Owner supplied a revised `Main_forge_wireframe.png` plus `Main_forge_wireframe_forge.png` (the same
+layout with real art dropped in), both 1200×666. Three asks: match the screen, rework the top-left group
+and **make it collapsible**, and re-arrange the bench.
+
+Measured the same way as r35 — hue-segment the flat wireframe into connected components — but this time
+on **border strokes only** (`l < 0.74`). Fills bridge adjacent boxes and merged Day + Popularity + Skill
+Tree into one blob; the border ring of each box stays separate.
+
+### Layout changes
+
+- **The map grew**: `grid-template-rows` 75.5% → **79.58%**. The bench band is now 20.42% of the frame,
+  which every `LAYOUT.landscape` y is a fraction of — so all the bench numbers moved even where the prop
+  did not.
+- **Skill Tree went from a strip to a block**: 3.25% → **8.26%** tall, and the whole rail stack now
+  starts flush with the frame's top edge (Day tile at y 0.45%, was 3.76%).
+- **The bench re-arranged.** Dragon off the bench entirely and up into the map band on the left; mug and
+  bucket lifted to sit on the frame's bottom edge; anvil, hammer, furnace and grinder all re-centred.
+
+| prop | LAYOUT before | after | frame position now (centre-x / bottom) |
+|---|---|---|---|
+| dragon | 0.081 / −0.989 | **0.014 / −2.718** | 10.11 / 53.31 |
+| stAnvil | 0.187 / −0.249 | **0.199 / −0.597** | 23.26 / 90.25 |
+| hammerTool | 0.247 / 0.449 | **0.309 / −0.276** | 30.93 / 99.25 |
+| stSmelt | 0.539 / −0.816 | **0.540 / −1.294** | 52.14 / 94.61 |
+| stMortar | 0.795 / −0.289 | **0.802 / −0.760** | 72.44 / 91.58 |
+| bucket | 0.019 / 0.041 | **0.045 / −0.766** | 10.31 / 100.01 |
+| mug | 0.054 / −0.025 | **0.064 / −0.409** | 10.26 / 89.94 |
+
+Sizes untouched — the owner said the *arrangement* changed. Targets were each prop's wireframe box
+centre-x and bottom; the deltas were measured off the live build and divided by the new bench zone, so
+every prop lands within **0.03pp** of target. UI elements are within **0.74pp**.
+
+### The collapsible group
+
+`#hudToggle` is a 34×20 tab under the blade panel. `#hud.collapsed #bladePanel { display:none }` leaves
+only the tab, which flips ▲/▼ and swaps its `title`/`aria-expanded`. `#hud` was already a flex column in
+landscape, so the tab needed no positioning of its own.
+
+### Two guards this tripped
+
+1. **`RECORDED` is a second copy of the table** and the drift check compares against it — it has to be
+   updated in the same edit or the self-test goes red. The first patch only rewrote the head of that
+   one-line object and left the mug/dragon entries stale.
+2. **The in-zone guard's `yMin` was −1.30.** With a shorter bench *and* the dragon moved up into the map,
+   props now rise up to 2.72 bench-heights above the floor line. Raised to **−2.80**.
+
+### Watch
+
+- **`#heatMini`** (the 🔥 gauge) is bench-positioned and now sits over the anvil. Not in the wireframe;
+  needs a home.
+- The bench captions (`Hammer anvil`, `Bellow`, `Smelt furnace`, `Grind wheel`) overlap the re-arranged
+  props more than before.
+- **The pan arrows are still off-scale** (r35 note stands): the wireframe wants ~75×24 and ~57×43.
+
+### r37 — props matched to the reference ART, position and scale
+
+r36 placed the props from the flat wireframe's placeholder boxes. Those boxes are **not** the art bounds —
+the dragon's box is 10.17% of the frame where its art is 17.33% — so this pass re-measured against
+`Main_forge_wireframe_forge.png`, the version with the real assets dropped in.
+
+**The step that made it work:** the element box `LAYOUT` sets is not the visible art, because the PNGs
+carry transparent padding. Measured each asset's opaque box first:
+
+| asset | ox | oy | ow | oh |
+|---|---:|---:|---:|---:|
+| anchor_furnace | 0 | **0.2284** | 1 | **0.7716** |
+| anchor_anvil | .0088 | .0091 | .9824 | .9804 |
+| anchor_grindwheel | .0080 | .0108 | .9829 | .9783 |
+| anchor_bucket | .0126 | .0085 | .9748 | .9915 |
+| anchor_mug | .0089 | .0091 | .9821 | .9817 |
+| anchor_hammer | .0099 | .0080 | .9803 | .9829 |
+
+Everything is ~98% opaque except the **furnace, whose top 23% is empty sky** — placing it by its element
+box would have hung it 57px too high. With the opaque box known, target art bounds invert cleanly to
+element bounds: `W = artW / ow`, `left = artLeft − ox·W`, `top = artBottom − (oy+oh)·H`.
+
+| prop | LAYOUT x / y / w | art now vs reference |
+|---|---|---|
+| stAnvil | 0.169 / −0.438 / 0.186 | L −0.02, W +0.01, B +0.02 |
+| stSmelt | 0.496 / −1.218 / 0.243 | L +0.01, T +0.03, W +0.03 |
+| stMortar | 0.728 / −0.744 / 0.243 | L 0.00, W +0.04, B +0.05 |
+| bucket | −0.010 / −0.103 / 0.177 | R −0.06, T +0.01 |
+| mug | 0.034 / 0.188 / 0.067 | L −0.01, T +0.34, W +0.15, B −0.23 |
+| hammerTool | 0.302 / 0.381 / 0.148 | L −0.14, T −0.18, W +0.27 |
+
+All seven within **0.34pp**. The bellows is not a `LAYOUT` prop — it is `.bellowtop` inside `#stSmelt`,
+so it rode along with the furnace and needed no separate move (verified still overlapping it).
+
+Two guard changes: **`xMin` −0.02** for landscape, because the bucket deliberately bleeds off the left
+edge as the reference does; and the mug and hammer are CSS-rotated, so their rendered bbox is wider than
+their element box — they were matched bbox-to-bbox against the reference rather than through the opaque
+maths.
+
+**Watch:** the hammer's rest position is now 176px from the anvil's strike point against a 99px strike
+radius (was 125px). It is a parked position and dragging still reaches, but there is less slack than
+before.
+
+### r38 — furnace smoke: on the crucible, and only while bellowing
+
+The smoke was a bench-positioned overlay pinned at `left:37%; top:2%` with a 6s loop running forever. Two
+problems: those bench coordinates were set when the furnace was somewhere else, so r36/r37 left it
+adrift; and it puffed away with the forge cold and idle.
+
+- **Re-parented into `#stSmelt`**, so it travels with the furnace and cannot drift again. Placed on the
+  crucible mouth — `left: 34%; bottom: 74%; width: 34%` — from the asset: `anchor_furnace.png` (638×775)
+  has its pot rim spanning x 200–450 (centre **51%**) with the rim top at y 195 (**25%** down).
+- **Gated on the bellows.** Base state is `opacity: 0; animation: none`; `wireBellowGate` adds `.on`
+  alongside `bellowing` and removes it on pointer-up/cancel. `resetRun()` clears both as well, so a
+  pointer lost mid-pump cannot leave it smoking. The loop tightened 6s → 2.2s, which reads as active
+  pumping rather than an idle chimney.
+- **`filter: none`.** `.station img` applies a drop-shadow to every image in a station — correct for the
+  furnace, wrong for smoke, which was casting a hard shadow.
+
+**Measurement note:** checking the placement right after adding `.on` reads the animation's first
+keyframe (`scale(.8) translateY(14px)`), which made the smoke look 20% too small and 5.6% too low. Pin
+the animation (`a.currentTime = …; a.pause()`) before measuring anything that animates on entry.
+
+## r39 — idle nudge arrow (2026-09-09)
+
+`assets/ui/arrow.png` shown arcing from the ore on the anvil to the smelter's crucible, to unstick a
+player who has run out of route and has not realised the orb needs re-heating.
+
+### When it shows
+
+All four must hold, checked every frame in `tick`:
+
+1. `melt.stage === 'onAnvil'` — the ore is out on the anvil
+2. `!melt.reachedTrait` — the sword is not parked on a trait
+3. `swordAtRouteEnd()` — `sword.seg` is the last segment and `sword.frac >= tPct`
+4. `performance.now() - lastActAt >= 4000`
+
+`lastActAt` is refreshed by `pointerdown`, `pointerup`, `wheel` and `keydown` on `#frame` (capture), plus
+`pointermove` **only while a button is held** — a hover is not an action, a drag is. Because any click
+resets the timer, "hides when the player clicks something" and the 4-second gate are the same mechanism
+rather than two that can disagree.
+
+### Aiming it
+
+The arrow is placed by its own tips, not by a bounding box. Measured off the 409×158 asset:
+**tail (3.1%, 98.1%)**, **head (95.4%, 79.7%)** — and the tail→head axis already sits at **−4.404°**
+inside the image, which is subtracted from the rotation.
+
+```
+W = distance / 0.9257          // axis length as a fraction of the width
+left/top  = tail − tip·(W,H)   // put the tail tip on the ore
+transform-origin = the tail tip;  rotate(atan2(dy,dx) − (−4.404°))
+```
+
+Tail lands on the orb's centre and head on the crucible mouth (51% across, 25% down
+`anchor_furnace.png`) to within **0.1px**. It re-places every frame while visible, because both the orb
+and the furnace can be dragged.
+
+### The sheen
+
+The art is pure white on transparent, so the sweep is a **band mask**: `mask-size: 320%` with the opaque
+band at 42–58% of the mask, animated `mask-position` **100% → 0%**, which travels the band left to right
+(an oversized mask offsets by `P × (elementW − maskW)`, so a *falling* percentage moves it right). The
+band is centred on the arrow at the animation's midpoint. Opacity ramps 0 → .95 → 0 over the same 2.1s,
+so it reads as a fade-in-and-out with the highlight travelling from tail to head.
+
+First attempt used a 300% mask with a 40%-wide band — **1.2× the arrow's own width**, so the whole arrow
+lit at once and the direction was invisible. Verified by pinning the animation at three phases.
+
+### Note
+
+`filter: drop-shadow(...)` is needed: pure white on the pale parchment has almost no contrast otherwise.
+
+## r40 — second idle nudge: "tap the ore" (2026-09-09)
+
+`assets/ui/arrow_point_down.png` bobs over the ore once a trait is banked, because the next move —
+tapping the orb to open the shape picker — is not signposted anywhere.
+
+### Shows when
+
+`melt.stage === 'onAnvil'` · `melt.traits.length >= 1` · no modal open · idle ≥ 4s. Same `lastActAt`
+timer as r39, so any input hides it and it returns after another 4s of quiet.
+
+### The two nudges are now mutually exclusive
+
+This is the part that needed care. Acquiring a trait clears `melt.reachedTrait` and leaves the sword
+parked at the end of its route — **exactly r39's condition** — so both arrows would have fired together.
+`hintArrowWanted()` now also requires that no trait has been banked:
+
+| state | nudge |
+|---|---|
+| route spent, nothing acquired | r39 arc → re-heat at the furnace |
+| a trait acquired | r40 down-arrow → tap the ore |
+
+Both are additionally suppressed while any `.sf-modal.show` is up, which r39 was missing.
+
+### Placing it
+
+Tip of the asset is **(44.87%, 95.2%)** of its 234×396 box. Sized to twice the orb's height, tip parked
+`orbH × 0.25` above the orb's crown and horizontally centred — lands within **0.1px**, re-placed every
+frame since the orb moves.
+
+### ⚠️ Harness note — this cost two false "it's broken" readings
+
+**Headless Edge and the hidden Browser pane do not advance CSS animations.** An element whose opacity
+lives in a keyframe therefore renders at its 0% value — invisible — no matter how long the virtual-time
+budget is. Both the live `getComputedStyle` check and the screenshot reported `opacity: 0` for a working
+element. `#hintArrow` (r39) only ever appeared in screenshots because its animation was pinned for a
+different reason.
+
+**Always pin every animation that carries opacity before judging whether something renders:**
+`a.currentTime = <end>; a.pause();`
+
+Separately, `a.getAnimations()` returns **transitions as well as animations** — pausing the lot freezes
+transitions mid-flight and poisons every later reading in that page session.
+
+The fade is a keyframe (`hintFade`) rather than a `transition`, because a transition off
+`visibility: hidden` did not fire at all here. Two animations on the element, one per property.
+
+## r41 — Composition Book (2026-09-09)
+
+Opened by **RECIPE BOOK** in the top-left panel (which had no handler until now). Built to
+`Composition_book_wireframe.png` (1397×775), hue-segmented for the box geometry.
+
+### Fitting the base art to the wireframe's page
+
+`Composition_book_base.png` is 1920×1080 but the drawn book occupies only `ox .0339 oy .0778 ow .7271
+oh .85` of it. `.cb-book` **is** the page area (70.15% × 83.23% of the frame, matching the wireframe's
+white panel); the base image is then oversized to `137.53%` and pushed to `left:-4.66% top:-9.15%` so its
+opaque region lands exactly on that box. Its aspect (1396:918 = 1.521) matches the wireframe panel
+(980:645 = 1.519) to within 0.1%, so nothing is stretched.
+
+Every child is positioned in **% of `.cb-book`**, converted from the wireframe with
+`container% = (frame% − origin%) / span% × 100`.
+
+### Contents
+
+| | |
+|---|---|
+| base | `Composition_book_base.png` — its own gutter replaces the wireframe's divider |
+| bookmarks | `bookmark_paper.png` ×10 along the top, ×5 down the right, **behind** the page so only the tab shows; side ones rotated 90° |
+| yellow boxes | 8 empty dashed bounding boxes — 5 traits, ores used, recipe, shapes discovered |
+| sword | the four default parts stacked (`balanced_longsword_blade` + `guard1` + `grip1` + `pommel1`) |
+| change default design | ⚙ icon button at the sword box's bottom-left |
+| erase · close | `Paper_button_red.png` |
+| craft 5 · craft 1 · continue from here | `Paper_button_wide.png` |
+
+### Two things worth recording
+
+- **The sword parts are pre-registered** — all four are 512×512 and stack at `inset:0`, like the hammer
+  scene layers. They are also drawn on a 45° diagonal, so the *wrapper* is rotated −45° to stand the
+  blade up in the tall box; rotating the wrapper keeps the four parts aligned. A square turned 45° needs
+  ~1/1.41 the room, hence `height: 70%`.
+- **Buttons take their width from the wireframe cell's HEIGHT** through the asset's own aspect ratio,
+  not from the cell's width. Sizing them by width would have made the red button 69px tall against a
+  43px cell and collided the two button rows. All five measure ≤ **0.03%** stretch.
+
+### Placement
+
+Centred on the **left section** (`margin-right: 18.1%` on a centred flex item → centre at 40.95%), per
+the owner. The wireframe itself sits at 39.94%, so every element reads **+1.01pp** against it by design;
+sizes match to 0.00 and vertical positions to ≤0.13pp.
+
+### Still open
+
+Nothing is wired but open and close. Erase, the two Craft buttons, Continue from here, the gear, and all
+eight content boxes are inert, and the bookmark icons are a repeating placeholder set — the real ones
+will be each recorded composition's element symbols.
+
+## r42 — Skill Tree (2026-09-09)
+
+Opened by the rail's **SKILL TREE** button, which had no handler until now.
+
+Geometry from `Skilltree_wireframe.png` (1161×644), hue-segmented: the white panel is frame
+x 2.07–78.04%, y 3.11–95.66%, and every child is a % of that box.
+
+| | |
+|---|---|
+| sheet | `Skill_tree_base.png` — near full-bleed (opaque .966 × .955), so it needs only a ~1.5% nudge |
+| centre | `icon_skilltree.png` at 16.89% of the sheet width, dead centre (measured 50.05 / 49.91) |
+| nodes | 12 placeholder circles: **4 yellow top-left, 4 green top-right, 4 blue bottom** |
+| reset talent | `Paper_button_wide.png` |
+| close | `Paper_button_red.png` |
+| talent points | a dashed bounding box, like the book's slots |
+
+### The wireframe has six nodes; the brief asked for twelve
+
+So the nodes are **laid out, not traced**. Three elliptical arcs about the centre — `rx 260 / ry 175` on
+an 820×568 sheet — so the spread follows the sheet's proportions instead of bunching into a circle.
+Verified: no node overlaps the core (min gap **80px**) and none runs off the sheet.
+
+### Two deliberate divergences
+
+- **Height is 1.4pp under the wireframe panel.** The base art's opaque aspect is 1.4433 against the
+  wireframe panel's 1.478. Matching the panel exactly would stretch the parchment 2.4%, so the sheet
+  matches on **width** (Δ 0.00) and keeps its own aspect.
+- **x is +0.9pp**, because the window is centred on the **left section** (40.95%) like every other modal,
+  where the wireframe sits at ~40.06%.
+
+Buttons take their width from the wireframe cell and their height from the asset's aspect — both measure
+≤ **0.03%** stretch. Driving off width (rather than height, as the Composition Book does) keeps RESET
+TALENT inside the sheet's left edge; neither button stacks, so nothing can collide.
+
+### Still open
+
+Only open and close are wired. Reset talent, the twelve nodes, the core and the talent-points readout
+are all inert.
+
+### Harness note
+
+The Browser pane's viewport collapsed to `innerWidth: 0` this session — every measurement came back
+`NaN`, and a resize plus reload did not recover it. Headless Edge with `--dump-dom` and an in-page probe
+`<div>` measured fine. That fallback is the reliable one when the pane misbehaves.
+
+## r43 — the arrows navigate between screens (2026-09-09)
+
+The four arrows stop panning the map and become screen navigation. The forge sits at the centre of a
+plus; every other screen has exactly one way back.
+
+```
+              bedroom
+                 |
+    customer -- forge -- cave
+                 |
+             basement
+```
+
+| direction from forge | screen | plate |
+|---|---|---|
+| up | bedroom | `bedroom_background.png` |
+| down | basement workstation | `basement_background.png` |
+| left | customer counter | `customer_counter_background.png` |
+| right | cave | `cave_background.png` |
+
+Driven by both the **on-screen arrows and the keyboard arrow keys** — "arrow keys" was ambiguous between
+the two, and wiring both costs one listener.
+
+### Stacking
+
+The plates are 1920×1066 (aspect 1.801 against the frame's 1.800) and **leave their right ~20% blank —
+that is the rail's slot**, so the art is authored to sit under it. `#screenLayer` is therefore z-index
+40, `#rail` was given **45** so it stays on top, and `#panPad` **50** so the way back is always
+clickable. Modals at 1000 are untouched.
+
+### Details worth keeping
+
+- **An arrow with nowhere to go is hidden**, not left dead — on the bedroom only ▼ shows. Verified each
+  placeholder exposes exactly one exit and that a dead direction is a no-op.
+- **Navigation is blocked while any modal is open**, so you cannot walk out from under the skill tree.
+- **Both idle nudges are now forge-only** (`SF_SCREEN !== 'forge'` short-circuits them). Their state
+  conditions could otherwise still hold while a placeholder plate was up, and they would have drawn
+  over it.
+- `panBy()` is gone. The map still pans by **drag** and zooms with **+/−**; only the arrow-key panning
+  was displaced.
+
+### Still open
+
+The four screens are inert plates with a corner tag. The rail stays live over them, which is right per
+the r30-era mockups, but nothing else on those screens exists yet.
+
+## r44 — bedroom interactions (2026-09-09)
+
+Two clickable things on the bedroom plate, driven by a per-screen hotspot table (`SCREEN_HOTS`) that is
+rebuilt on every `goScreen`. Hit areas are % of the frame, read off `bedroom_background.png` — the plate
+shares the frame's aspect, so `object-fit: cover` crops nothing and the percentages map straight across.
+
+| | area (% of frame) | on click |
+|---|---|---|
+| bed | 13.0 / 43.6 / 24.5 / 38.5 | end-day confirmation |
+| dragon | 50.8 / 54.9 / 19.8 / 20.1 | six hearts pop and drift up |
+
+Hotspots are invisible until hovered (a faint warm wash + inset ring), so the art stays clean but the
+interactions are still findable.
+
+### The dialog
+
+Built from the same paper set as the r33 Update Composition popup, which the wireframe's proportions
+already matched. Width **35.25%** of the frame = the wireframe exactly; the box keeps `Small_paperbox`'s
+native 1.593 aspect and centres on the left section at **40.95%**.
+
+**Button choice was measured, not guessed:** the wireframe draws Yes ≈ 2.1× the width of No at equal
+height. `Paper_button_red` (2.196) with `Paper_button_wider` (4.670) gives 2.13:1; pairing it with
+`Paper_button_wide` (2.804) would only give 1.28:1. Both measure ≤ **0.02%** stretch.
+
+- **No** closes and leaves you in the bedroom.
+- **Yes** closes, **increments the day tile** and returns to the forge. ⚠️ The increment is *cosmetic* —
+  there is no day system behind it, and `#dayNum` was a hardcoded dummy before this.
+
+### Harness note (third time this pattern has bitten)
+
+The hearts screenshot came back empty twice. Headless Edge fast-forwards virtual time, so `popHearts`'
+own `setTimeout(…, 1600)` cleanup fired and removed every heart before the frame was captured — and
+separately, CSS animations do not advance, so unpinned hearts render at their 0% opacity.
+
+**Both stubs are needed, in this order:** replace `window.setTimeout` *before* triggering the effect (so
+cleanup never schedules), then pin each element's animations with `currentTime` + `pause()`. Stubbing
+after the trigger is too late.
+
+## r45 — shop screen (2026-09-09)
+
+Added one step left of the customer counter, using `shop_background.png` (1920x1066, same format as the
+other plates).
+
+```
+                       bedroom
+                          |
+  shop -- customer --  forge -- cave
+                          |
+                      basement
+```
+
+The counter is now the only screen with **two** exits (left to the shop, right back to the forge); the
+arrow-hiding rule surfaces that automatically. Verified the full route out and back by both arrows and
+keyboard, that the shop ignores its three dead directions, and that all five screens are still reachable
+from the forge.
+
+Inert plate, no hotspots.
+
+## r46 — the wood board behind the rail is gone (2026-09-09)
+
+Owner flagged a sliver of image showing at the rail's left edge on the placeholder screens.
+
+**It was not the screen plate bleeding through.** `#rail` is opaque and `elementFromPoint` confirmed it is
+the topmost element right across that strip; `#map-wrap` has `overflow: hidden`, so the map traits whose
+bounding boxes reach into the rail are clipped and never painted there.
+
+The culprit was **`rail_wood.png`**, the rail's own background: a wooden ore board with **pale stone caps
+top and bottom** and its own grid of slot recesses. The rail's 12px left padding left a strip of it
+visible, and the stone cap is what read as a stray image. It was redundant anyway — `#statPanel` and
+`#matPanel` sitting on top now carry their own parchment and their own slot grid, so the board underneath
+had nothing left to do.
+
+Dropped from `#frame.landscape > #rail`, leaving the flat `#1b120c`. The rail edge is now a clean dark
+seam on every screen.
+
+The base `#frame > #rail` rule still references the board, but `#frame` ships with `class="landscape"` in
+the markup so that rule never paints in this build — left alone as the portrait-lineage fallback.
+
+## r47 — three racks on the shop screen (2026-09-09)
+
+`assets/Game-elements/rack.png` ×3, placed to `Skilltree`-style measurement rather than by eye.
+
+### Isolating the placement
+
+The owner shipped a **new `shop_background.png` in the same drop** (2770×1536, was 1920×1066 — the wall
+swords are gone, leaving a blank wall for these to stand in front of). That made the reference easy to
+read: **diff `shop_racks.png` against `shop_background.png`** and everything that differs is the racks.
+
+In the reference's 1324×736 space all three share **bottom y = 544 (73.91%)** and width ≈168, with left
+edges **257 / 491 / 744**. The spacing is *not* uniform (pitch 234 then 253) — reproduced as measured,
+since the owner placed them by hand.
+
+A first pass merged the leftmost rack into rescaling noise from the window wall; restricting the diff to
+x 230–960 / y 225–565 separated all three.
+
+### Props are anchored to the ART, not the frame
+
+`#frame`'s width is **responsive** — it measured **1039×600**, not the 1080×600 the CSS implies, so the
+frame's aspect is not fixed. The plate is drawn `object-fit: cover`, so the art is scaled and side-cropped
+by an amount that depends on the frame's aspect (at 1039 wide the shop plate renders 1082×600, cropped
+22px each side).
+
+Two consequences, both real bugs in the first attempt:
+
+1. A prop pinned in frame-% **drifts off the art** whenever the window changes width.
+2. The vertical anchor was **1.55pp out** even at rest, because an element's height derives from its
+   *width* (a % of frame WIDTH) while its `top` was a % of frame HEIGHT.
+
+So `SCREEN_PROPS` now stores each prop's **art left / art width / art bottom as a % of the plate image**,
+and `layoutScreenProps()` resolves them in px against the plate's cover box, recomputed with the same
+maths `object-fit: cover` uses. It re-runs on the plate's `onload` (`naturalWidth` is 0 before the decode)
+and on `resize`. Measured back in plate-image space: **dL 0.00, dW 0.00, dB −0.02** on all three, aspect
+exactly native.
+
+### Two things this turn also fixed
+
+- **`#screenLayer img` was leaking onto the props**, forcing `height:100%; object-fit:cover` on them — the
+  racks rendered as three horizontal slivers. Scoped to `#screenArt`.
+- **`rail_wood.png` was deleted from the repo** after r46, leaving the base `#frame > #rail` rule
+  pointing at a missing file. Reference dropped (that rule never paints — `#frame` ships with
+  `class="landscape"` — but it was a 404 on every load).
+
+## r48 — the Racks window
+
+Clicking any rack on the shop screen opens a window listing the swords on it: `rack.png` as the base,
+placeholder swords lying horizontally across it, a Details panel per sword, a Close button, and a
+scrollbar. The rail keeps its own light.
+
+Built to `assets/Anchor-images/Racks_window.png` — a **full-frame** capture (1455x798: it carries a 1px
+grey border and the green inventory placeholder runs to the right edge), so every number below is a % of
+the **left section** (0.79 x 1455 = 1149.45 wide, 798 tall), which is exactly the window's own box.
+
+| element | wireframe px | % of left section |
+|---|---|---|
+| list viewport | x 113-1096, y 80-720 | left 9.83, top 10.03, w 85.52, h 80.33 |
+| sword slot | x 113-850 | left 0, w 75.08 *(of the viewport)* |
+| details panel | x 865-1096 | left 76.50, w 23.60 *(of the viewport)* |
+| row box / pitch | 738x143, pitch 166 | h 22.31, pitch 25.90 *(of the viewport)* |
+| scrollbar | x 1109-1145, y 67-716 | left 96.48, top 8.40, w 3.22, h 81.33 |
+| close | x 47-131, y 722-785 | left 4.09, bottom 1.63 |
+| rack base | behind the sword column | left 7.83, top 6.89, w 68.12, h 85.21 |
+
+Measured back in the browser at 1039x600: **every one of those lands on its target to 0.00pp**, and at
+max scroll the last row's bottom is flush with the viewport bottom (0.0px).
+
+Details panels are `Small_paperbox.png` (849x533) in a 232x143 box — a 1.8% stretch. Close is
+`Paper_button_red.png` at its native 213:97; the wireframe draws that slot nearly square, so the button
+is anchored by its left edge and bottom and takes its height from the asset.
+
+### The dark overlay stops at the rail
+
+The owner's one explicit constraint. `.sf-modal` is `inset: 0` and would dim the rail (z-index 45) from
+z-index 1000, so `#sfRackModal` overrides `right: var(--rail-w)` — the same trick `#panPad` uses.
+Verified by diffing a screenshot with the window open against one without: column luminance falls to
+**0.44x from x=20 through x=815** and is **exactly 1.000x from x=825 on**, with the rail's left edge at
+821. Opening the window also selects the rail's existing SWORDS tab (and restores the previous tab on
+close).
+
+### Why the scrollbar is hand-built
+
+A native bar's width is fixed in px, which would have eaten into the viewport's content box and pushed
+the details column off its measured %. So `#rwBar`/`#rwThumb` are plain elements at the wireframe's
+coordinates and the row track is moved with `translateY(-RW_SCROLL%)`; because `#rwTrack` is `inset: 0`
+its height *is* the viewport height, so a % of scroll and a % of content share one unit. Wheel, thumb
+drag and track paging all route through `rwScrollTo`. The wireframe is drawn mid-scroll (its first row is
+clipped by 49px); the build opens at scroll 0, which is state rather than layout.
+
+### Sizing the placeholder swords from the art
+
+The part set is drawn along the 45-degree diagonal of a 512 square, so `rotate(45deg)` lays a sword flat
+(the Composition Book uses `rotate(-45deg)` to stand one up). One uniform size does not work: after
+rotation an assembled sword's **thickness** varies 3x across the set (a slim machete is 0.142 of the
+element side, `ice_guard1` 0.402) while its **length** barely moves (0.83-1.19). At `width: 96%` the fat
+combos overran the 108px row and were squared off by the slot's `overflow: hidden` — hard rectangular
+cuts on the ice and water rows.
+
+So each row carries its own size, computed by rotating the opaque pixels of all four parts by +45 degrees
+about the canvas centre and taking the extent:
+
+    s  = min(0.98/len, 0.88/4.88/th)     0.98 leaves a sliver at the tips
+                                         4.88 = slot 527 / row 108 at the measured frame
+                                         0.88 = 12% headroom, so a wider frame cannot clip
+    sx = -cx                             the art's own centre offset, so it sits centred in the slot
+
+`ice_guard1` and `water_guard1` are out of the placeholder set — keeping them would have forced every
+sword down to ~40% of its slot. `flame_guard1` is slim and stays.
+
+### Harness note (again)
+
+A first reading said the scroll clamp was 250px short. It was not: the **hidden Browser pane does not
+advance CSS transitions**, so `#rwTrack`'s `transition: transform .12s` had not run and the measurement
+caught the start value. The inline style and the *computed* matrix were already right; pinning with
+`getAnimations()` gave a flush 0.0px. Read the computed transform, not the laid-out box, when a
+transition is in flight.
+
+### r48c — the racks were not actually clickable
+
+Shipped broken and the owner caught it. `#screenHots` (z-index 42) sits above `#screenProps` (41) and
+is `inset: 0` with default `pointer-events: auto`, so **even with no children** it covered the whole
+plate and swallowed every click on the props beneath. `elementsFromPoint` over a rack read
+`DIV#screenHots` first, then the rack image. Fixed with `pointer-events: none` on `#screenHots` and
+`pointer-events: auto` on `.sc-hot`, so the bedroom's bed and dragon still take clicks.
+
+**Why the r48 verification missed it:** it called `el.click()` on the rack image, which dispatches
+straight at the element and skips hit-testing entirely. A click that a user could not make still passed.
+Verify clicks with `document.elementFromPoint(x,y).dispatchEvent(new MouseEvent('click',...))` — if the
+wrong element comes back from that lookup, the test fails the way the user would. All three racks now
+hit-test to `IMG.hot` and open the window.
+
+One more trap in the same check: probing a prop's box in the same tick as `goScreen('shop')` reads a
+zero-height rect, because `layoutScreenProps()` bails until the plate has decoded and only the
+`art.onload` pass places the props. Wait for it before measuring.
+
+### Known gaps
+
+- **`rack.png` is a portrait asset** (241x427) and the window is landscape, so the base is stretched
+  ~2x horizontally. It reads as the window's frame, but its hooks no longer line up with the sword rows;
+  a wide rack variant would drop straight in with no code change.
+- `RACK_STOCK` is six invented swords. Nothing connects the window to real inventory, all three racks
+  open the same list, and Details only toggles between the label and the placeholder stats.
+
+## r49 — Recipe book and Ledger on the shop screen
+
+From `assets/Anchor-images/Shop_wireframe.png`, measured by isolating the wireframe's orange **border**
+colour (255,158,66) and taking connected components, so neighbouring fills cannot bridge. In its
+1202x671 space:
+
+| element | wireframe px | % of frame |
+|---|---|---|
+| Recipe book | x 12-110 (99), y 14-70 (57) | left 1.00, top 2.09, w 8.24, h 8.50 |
+| Ledger | x 785-927 (143), y 561-635 (75) | left 65.31, top 83.61, w 11.90, h 11.18 |
+
+Measured back in the browser at 1039x600: **0.00pp on all four numbers for both** (86x51 and 124x67 px).
+
+The same pass also read the wireframe's three tall racks (x 143 / 406 / 647) and the rail's Skill tree /
+Diary / Quest boxes, which the build already has. Note the wireframe draws **five** racks (three tall,
+two wide) where the build has three — the owner asked only for the two icons, so the racks are untouched.
+
+### Frame-anchored, not art-anchored
+
+New `#screenUi` layer (z-index 43, above `#screenProps` 41 and `#screenHots` 42, `pointer-events: none`
+with the buttons re-enabling it), populated per screen from `SCREEN_UI`. It lives *inside*
+`#screenLayer`, so its percentages are frame percentages and it disappears with the screen.
+
+This is deliberately **not** the `SCREEN_PROPS` treatment: the wireframe places these against the frame's
+top-left corner and against the rail (its rail column starts at 80.3%, the build's at 79%), not against
+anything in the scene art, so they should not follow the plate's `object-fit: cover` crop.
+
+Recipe book uses `assets/ui/icon_recipe.png` and opens the existing Composition Book (`openBook`), the
+same window the forge's own RECIPE BOOK button opens. Ledger is inert — no ledger window exists yet — and
+carries a glyph placeholder, since there is no `icon_ledger` asset. Both wear the carved-wood treatment
+of `#recipeBtn` / `#railBtns` so they read as one family. Racks still open the Racks window (all three
+verified after this layer went in).
+
+### r49b/r49c — a class-name collision, and a wrong diagnosis on the way
+
+The icon and caption came out **stacked**, with the caption hanging 15px below the button. Cause:
+**`.cap` is already taken** — the bench stations' caption class, `position: absolute; left: 50%;
+transform: translateX(-50%); bottom: -17px`. `.sc-btn .cap` only set font-size and line-height, so the
+existing rule's `position: absolute` won and the caption left the flex flow entirely.
+(`#frame.clean .cap { display: none !important }` would have hidden it in clean mode too.) Renamed to
+`.sc-cap` / `.sc-gl`.
+
+r49b had blamed something else first — that `display: flex` on a `<button>` never reaches its children
+because the UA wraps them in an anonymous content box — and added an inner wrapper that changed nothing.
+A controlled probe in the live page settled it: a `<button>` with `display: flex` puts its children side
+by side, with or without a wrapper. The wrapper is gone again and the flex row is back on the button.
+
+**The lesson worth keeping:** when a computed `display: flex` demonstrably is not flexing, read the
+computed style of the *children*, not the container. `position: absolute` on one child from an unrelated
+rule looks exactly like a broken flex container. And in a single-file build with ~200 short class names,
+check a new class name against the file before using it.
+
+## r50 — the Ledger window
+
+The shop screen's LEDGER button opens it. `ledger_book_base.png` is the base, the left page lists the
+day's sold swords with their gold, the right page carries the wireframe's placeholder text, and there is
+a Close button.
+
+### The asset shares the Composition Book's canvas
+
+`ledger_book_base.png` has **exactly** the same opaque fractions as `Composition_book_base.png` —
+ox .0339, oy .0778, ow .7271, oh .8500 of a 1920x1080 sheet, art 1396x918 = 1.5207 — so it is built with
+the r41 construction verbatim: `.lb-book` *is* the drawn page area, and the base PNG is scaled to
+`1/ow = 137.53%` and pushed out by `-ox/ow = -4.66%` and `-oy/oh = -9.15%` so its opaque region lands on
+that box. Measured back: the art's opaque region hits the page box to within **0.03px** on all four edges.
+
+The spine needs no element — it is part of the art. The wireframe's spine sits at 48.6% of its panel
+width and the asset's at 48.7%, which is how we know the wireframe was drawn over this exact sheet.
+
+### Geometry
+
+Measured off `Ledger_wireframe.png` (1239x676) by exact-colour components, converted against the drawn
+panel (x 67-989 = 923 wide, y 38-637 = 600 tall):
+
+| element | wireframe px | % of the page box | measured back |
+|---|---|---|---|
+| Day bar | x 124-473, y 52-124 | 6.18 / 2.33 / 37.92 / 12.17 | **0.00pp** |
+| Swords sold | x 124-473, y 136-596 | 6.18 / 16.33 / 37.92 / 76.83 | **0.00pp** |
+| sold rows | x 143-454, y 178/251/323 | 8.23 / 23.33 / 33.80 / 10.50, pitch 12.08 | **0.00pp** x3 |
+| row split | sword x 143-382, gold x 383-454 | 76.92% / 23.08%, abutting | 76.92 / 23.08 |
+| Details | x 606-899, y 144-529 | 58.40 / 17.67 / 31.85 / 64.33 | **0.00pp** |
+| Close | x 54-125, y 613-666 | left -1.41, bottom -4.67 | **0.00pp** (89x41 px) |
+
+The page box is **width**-anchored (74.50% of the frame, left 5.41% — both exactly the wireframe's) so the
+art is never stretched. Its height then follows the art's aspect and comes out 84.83% of the frame height
+against the wireframe's 88.76%: the wireframe frame is 1239x676 (aspect 1.833) and the build's is
+1039x600 (1.732), so the same width-% cannot also be the same height-%. It stays vertically centred —
+measured top 7.58% / bottom 7.59% — which is what the wireframe does too (5.62 / 5.77).
+
+Close is `Paper_button_red.png` at its native 213:97. The wireframe draws that slot nearly square
+(72x54), so as with the Racks window the button is anchored by its left edge and bottom and takes a
+readable width (11.5% of the page box) from the asset.
+
+### Contents
+
+- **Day** reads the live `#dayNum`, so it tracks the end-day counter rather than being a constant.
+- **Sold rows** are three placeholder swords, laid flat with the same `rotate(45deg)` technique and the
+  same measured per-combo `sx` offsets as the Racks window. `s` is recomputed for this slot's 3.79
+  aspect, where every combo is **length**-limited (all their length:thickness ratios exceed 3.79), so
+  `s = 0.98/len` throughout — no thickness clipping is possible here.
+- **Details** is the wireframe's text verbatim (Amount sold and value / Total sale / Gold spent / Total
+  profit) inside a dashed bounding box. Nothing is computed.
+- The scrim is a plain `.sf-modal`, so it dims the whole frame including the rail — the same as its
+  sibling the Composition Book, and unlike the Racks window, where the owner asked for the rail to stay
+  lit. Verified: the rail dims to 0.449x and the shop's own Recipe book button to 0.550x.
+
+### Known gaps
+
+Nothing behind it. `LEDGER_SOLD` is three invented sales, the Details figures are labels rather than
+numbers, and the day's sales are not recorded anywhere for it to read.
+
+## r51 — design_desk and sharpening_stone as basement props
+
+The owner repainted `basement_background.png` with both objects removed and supplied them as separate
+PNGs, so they can carry the rack's hover sheen and drop shadow instead of being baked into the plate.
+Placed to `assets/Anchor-images/Basement_design.png`.
+
+### Located by template matching, not by diffing
+
+The racks (r47) were found by diffing the reference against the bare plate. That does not work here: the
+inpainting that removed these two objects left grey/white clouds **bigger than the objects**, plus their
+old cast shadows, so a diff mask would have been far larger than either prop.
+
+Instead each prop PNG is matched against the reference by coarse-to-fine RGB template matching,
+parameterised by the prop's rendered **art width** in reference pixels: a full search on an 8x pyramid,
+refined at 2x and then 1:1, scoring mean |dRGB| over the template's opaque pixels only. Whole run: 6s.
+
+Confirmed by compositing each prop back onto the resampled plate and scoring against the reference
+*inside its own box* — the placement has to explain the pixels, not merely look right:
+
+| prop | MAD, plate alone | MAD, with the prop |
+|---|---|---|
+| design_desk | 25.31 | **8.91** |
+| sharpening_stone | 43.49 | **6.88** |
+
+Reference 1327x735, plate 1920x1066 cover-fitted into it at scale 0.69115 (offset 0, -0.88), which
+converts the art-space hits straight into the plate-% form `SCREEN_PROPS` stores:
+
+| prop | art box in the reference | plate-% (l / w / b) | measured back in-browser |
+|---|---|---|---|
+| design_desk | 2,287  320x341.4 | 0.15 / 24.11 / 85.41 | dl 0.003, dw 0.004, db 0.004, stretch 0 |
+| sharpening_stone | 437,286  266x307.6 | 32.93 / 20.05 / 80.68 | dl -0.003, dw 0.001, db -0.008, stretch 0.0001 |
+
+### `PROP_OPQ.ar` is the CANVAS aspect, not the art aspect
+
+First pass put `ar: 464/495` for the desk — its *art* aspect — and the prop came out **2.30pp low with a
+5% stretch**. `layoutScreenProps()` uses `ar` to derive the **element** height from the element width
+(`eH = eW/ar`), and the element is the whole PNG; the `ox/oy/ow/oh` fractions then place the art inside
+it. `design_desk.png` is the first prop with a meaningfully non-opaque canvas (23 transparent px down
+its right edge, ow .9528), which is why the rack never exposed the ambiguity — its `ar: 241/427` was
+already the canvas aspect. Corrected to `487/495`, and the field is now commented.
+
+### Prop actions are generic now
+
+`buildScreenProps` used to hard-code `if(p.act==='rack')`. It now adds the `hot` class (hover brighten +
+pointer) to **any** prop with an `act` and looks the handler up in a new `PROP_ACTS` map, so a prop can
+have the sheen before it has a window. The basement's two workstations are exactly that case: they hover
+and take a title, and clicking them does nothing yet — no design-desk or sharpening window exists.
+Verified that a click on them throws nothing and opens nothing, and that all three shop racks still land
+to within 0.02pp and still open the Racks window.
+
+### Known gap
+
+The desk sits at plate-% left 0.15, i.e. flush against the plate's left edge, so `object-fit: cover`
+crops it. The reference frame is 1327x735 (aspect 1.805) and crops nothing; the build's 1039x600 (1.732)
+crops 20.8px each side, so in-game the desk loses about 1.9pp of art width off its left. That is correct
+behaviour for an art-anchored prop — it stays glued to its spot on the wall — and the reference already
+shows the desk running off the frame edge, but it is more cropped in the build than in the reference.
+
+## r52 — the Design Desk window
+
+Clicking the basement's assembly bench opens it. Full-frame window: a stage with the assembled sword
+laid flat across the top, a row of Cancel / Handle / Guard / Pommel / Done, and a scrolling grid of part
+tiles below with a slider on the right.
+
+### Geometry
+
+Measured by exact-colour components in `Designdesk_wireframe.png` (1209x675, no rail drawn - hence
+full-frame), as % of the frame:
+
+| element | wireframe px | % of frame | measured back |
+|---|---|---|---|
+| stage | x 0-1209, y 0-398 | 0 / 0 / 100 / 58.96 | **0.00pp** |
+| sword box | x 169-1072, y 71-280 | 13.98 / 10.52 / 74.77 / 31.11 | 0.00 / 0.00 / 0.00 / -0.01 |
+| button row | y 347-399 | top 51.41 | **0.00pp** |
+| Cancel | x -2-151 | left -0.17 | 0.00 (103x47 px) |
+| Handle / Guard / Pommel | x 348 / 526 / 697 | 28.78 / 43.51 / 57.65, w 12.74-12.82 | **0.00pp** |
+| Done | x 1055-1208 | left 87.26, w 12.74 | 0.00 |
+| parts panel | y 399-675 | 0 / 59.11 / 100 / 40.89 | **0.00pp** |
+| tiles (of the panel) | 155x135, pitch 165 / 146 | w 12.82, h 48.91, lefts 1.41-83.29, tops 4.35 / 57.25 | **0.00pp** |
+| slider | x 1171-1202 | left 96.86, w 2.65 | **0.00pp** |
+
+Cancel is `Paper_button_red.png` and the other four are `Paper_button_wide.png`. The wide asset's 143:51
+lands the row at 47px against the wireframe's 46.2 — a 0.9px match, so the buttons take their height
+from the asset and keep the drawn lefts. Red is 213:97, so Cancel is narrowed to 9.96% (103px) to sit at
+the same height as the rest rather than standing 13px taller than its row.
+
+### Two departures from the greybox
+
+1. The flat grey / white / green are a **greybox, not a colour spec**, so the stage and panel take the
+   game's own treatments — a dark forge gradient and `.ore-slot` tan tiles — as every previous round has.
+2. The drawn slider starts **29% down the panel** (y 480 of 399-675) with white above it, which reads as
+   a mock artefact rather than intent, so the track spans the grid (top 4.35%, height 94.20%). Its **x is
+   exactly as drawn**.
+
+### The art is measured at runtime, not tabulated
+
+Two canvas passes, both cached, both with fallbacks if `getImageData` throws (it does over `file://` —
+tainted canvas):
+
+- `partBox(src)` finds a part PNG's opaque box on a 64px canvas, so each tile **crops to the part**
+  instead of showing a mostly-empty 512 canvas. The part sits in a square holder inside the (non-square)
+  tile, so the % offsets that centre its opaque box mean the same length in both axes.
+- `comboFit(list, ratio)` unions the four selected parts on a 96px canvas and takes the **+45 degree
+  rotated extent**, then sizes with `min(0.98/len, 0.90/ratio/th)` — the same maths as the Racks window's
+  per-row sizing, but for a combo that changes while the window is open. Picking `guard4` moved the
+  preview from 86.3% to 89.3% of its box on its own.
+
+A table would have gone stale the moment a part was added; this way new part files just work.
+
+### Behaviour
+
+Tabs swap the grid (9 grips / 11 guards / 9 pommels — `sparkle.png` is excluded, it is a quality
+overlay, not a pommel). Clicking a tile selects it and re-renders the preview. **Cancel** restores the
+selection as it was on open, **Done** keeps it — verified: pick `flame_grip2`, Cancel -> `grip1`;
+pick again, Done -> `flame_grip2`. Wheel, thumb drag and the clamp all work (at max scroll the last
+tile's bottom is flush with the panel, 0.0px).
+
+### Bug caught in verification
+
+`.dd-swordbox` was first given the wireframe's `top: 10.52%` / `height: 31.11%` verbatim, but those
+percentages resolve against `#ddStage` (58.96% of the frame tall), not the frame — the box came out
+**4.32pp high and 12.77pp short**, and `comboFit` then honestly sized the sword to fill a box that was
+the wrong shape (50.9% instead of 86.3%). Re-based to 10.52/58.96 and 31.11/58.96. Worth remembering
+whenever a wireframe number is measured against the frame but applied inside a nested panel.
+
+### Known gaps
+
+- The blade is a fixed `balanced_longsword_blade` placeholder; nothing connects the window to the blade
+  the player actually forged, and `DD_SEL` is not read by anything outside this window.
+- The stage's lower half is empty, exactly as the wireframe leaves it — that is where desk art or a
+  stats readout would go.
+
+## r53 — the Sharpening window
+
+Clicking the basement's grindstone opens it. Full-frame window: a sharpness meter with a green target
+band across the top, the stone left of centre, and a sword you drag across it by the handle.
+
+### Geometry
+
+Measured by exact-colour components in `Sharpening_wireframe.png` (1177x657):
+
+| element | wireframe px | target | measured back |
+|---|---|---|---|
+| meter | x 258-919, y 21-51 | 21.92 / 3.20 / 56.16 / 4.57 (% of frame) | **0.00pp** |
+| green zone | x 786-852 of the track x 262-916 | **80.00% - 90.10% of the track** | 80.00 - 90.10 |
+| marker | x 705-734, y 34-63 | apex at 69.80% of the track | 69.80 |
+| stone | x 185-479, y 135-545 | left 15.72, w 25.06, centred on y 51.75 | dl 0.00, dw 0.00, cy 51.75, stretch 0 |
+| sword at rest | x 148-1028, y 199-377 | centre 49.96 / 43.84, length 74.85% of the frame | 49.96 / 43.83, len 74.85 |
+| Cancel | x 31-181, y 576-628 | left 2.63, top 87.67 | 0.00 / 0.00 (104x47) |
+| Done | x 989-1139, y 576-628 | left 84.03, top 87.67, w 12.83 | **0.00pp** (133x48) |
+
+The green band is the spec for the "correct sharpness percentage range": **80-90%**, read straight off
+the wireframe rather than chosen.
+
+The two grey boxes become the real `sharpening_stone.png`, as every greybox this far has become the
+matching asset. Its 384:444 does not match the drawn 295x411, so it is **width**-anchored to the drawn
+295 and centred on the drawn shape's vertical centre; `translateY(-50%)` keeps that true at any frame
+aspect, so the art is never stretched (measured 0.0000). Note the two boxes each appear as two
+components in the segmentation — the sword lies across them, splitting the wide rect (x 185-479) into
+y 180-198 + y 379-545 and the pale upright rect (x 289-375) into y 135-198 + y 379-446.
+
+Done is `Paper_button_wide`, whose 143:51 matches the drawn 151x53 to within a pixel. Cancel is
+`Paper_button_red` narrowed to 10.03% so it stands at the same height as Done instead of 13px taller.
+
+### The sword's box hugs the sword
+
+Everything else in the build that lays a sword flat rotates a square element 45 degrees and clips it.
+That will not do here, because the sword has to be **grabbable**: a rotated square's bounding box is
+mostly empty, so a pointerdown in the corner would count as grabbing the blade.
+
+So `#shSword` is a **non-rotated wrapper** sized to the flat sword (`len x th` of the measured extent)
+with only the inner `.sh-art` rotated, offset so the art's own centre lands on the wrapper's centre.
+Pointer hits then land on the sword.
+
+The numbers come from `comboExtent()`, factored out of r52's `comboFit()` in this round: one canvas pass
+that unions the four part PNGs and takes the **+45 degree rotated extent**, returning `len`, `th`, `cx`,
+`cy` in units of the element side. Four windows now share it (r48 racks, r50 ledger, r52 design desk,
+r53 sharpening), and `comboFit` is a thin wrapper over it.
+
+### Grabbing by the handle
+
+The handle sits 4% in from the flat sword's left end, on its centre line, so its offset from the
+wrapper's centre is `(-0.46 * len * W, 0)`. `pointerdown` **anywhere** on the sword sets the wrapper's
+position so that point lands under the cursor — which is what the owner asked for. Verified by grabbing
+30px from the tip: the handle moved under the cursor to **0.0px in both axes**.
+
+Sharpness rises only while the middle of the blade is over the stone and the pointer is moving:
+60px of travel on the stone gave **+3.3**, the same travel off it gave **+0.00**, and the marker tracks
+the value. Cancel restores the value as it was on open, Done keeps it (50 -> 50 and 52.75 -> 52.75).
+
+### r53b — two things hardening the drag
+
+- **`setPointerCapture` threw** on a pointerId with no active pointer, and because it ran before
+  `shPlace()` the whole grab aborted. Now wrapped in try/catch: verified that an unknown pointerId
+  throws nothing and the handle still snaps.
+- **One event's travel is capped at 40px.** A pointer that jumps — leaving the window and re-entering,
+  or a synthetic teleport — banked a whole screen's width of sharpening in a single move (0 to 100 in
+  one event during testing). Verified: a 900px jump onto the stone now grants exactly 40 x 0.055 = 2.2.
+
+### Known gaps
+
+- The **contact test is the stone's whole bounding box**, not its wheel. The wireframe's pale upright
+  rect is the surface the author drew, but it does not map cleanly onto the asset's wheel (it sticks
+  above where the art box starts), and segmenting the wheel out of the art by colour caught wood
+  highlights and sparks too. Worth revisiting when the mechanic is designed.
+- `SH_GAIN` (0.055 per px) and the resting value (69.8, the wireframe's marker) are unplaytested, and
+  nothing outside the window reads `SH_VAL`. Over-sharpening past 90% has no consequence yet.
+- The blade is the same fixed `DD_BLADE` placeholder as the design desk, and the window shows whatever
+  parts the design desk last selected.
+
+## r54 — the real grindstone, a flipped sword, and sparks
+
+Owner's revision of r53: use `assets/forge/grindstone.png` + `grindstone_spin.png` instead of
+`sharpening_stone.png`, base plus motion frame on top with a slight jitter; turn the sword round so the
+handle is on the right; throw sparks while sharpening.
+
+### Registering the two frames
+
+The pair shares ONE 1701x1536 canvas (CLAUDE.md), but their opaque boxes are **different** — base
+ox .3004 oy .1790 ow .5091 oh .7259 (art 866x1115), spin ox .4239 oy .1497 ow .1458 oh .5007 (art
+248x769, just the wheel). So they must be stacked at the **same canvas-sized box** (`inset: 0` inside one
+container), never at their own art boxes, or the motion frame lands off the wheel. Measured back: the two
+`<img>` boxes agree to **0.0px on all four edges**.
+
+The container is then placed so the BASE's art lands on the wireframe's grey shape:
+
+    W    = artW / ow      = 25.06% / .5091 = 49.23% of the frame
+    left = artLeft - ox*W = 15.72 - .3004 x 49.23 = 0.93%
+    the art's vertical centre is (oy + oh/2) = 54.195% down the container, so top: 51.75% with
+    translateY(-54.195%) holds it on the drawn shape's centre at any frame aspect
+
+Measured back: base art **dl 0.00, dw 0.00, centre y 0.00** against r53's targets. `shStoneRect()` now
+derives the contact box from those opaque fractions, so the blade is tested against the *stone*, not
+against the much larger sheet.
+
+Idle jitter is `shJit` (.42s, ~0.1% translate); while the blade is cutting, `#sfSharpModal.grinding`
+swaps in `shJitOn` (.07s, steps(3), ~0.28%). The class is held 150ms past the last move so the wheel does
+not strobe on and off, and is cleared on release and on close.
+
+### Flipping the sword
+
+`rotate(225deg)` instead of `45deg` — a 180 degree turn rather than a mirror, so no bevel or highlight
+is flipped. Since R(225) = -R(45), `comboExtent`'s `len` and `th` are unchanged while `cx`/`cy` negate:
+the art-centring offsets change sign, the handle moves from -0.46*len to **+0.46*len** (the right-hand
+end) and the blade middle from +0.65 to **-0.65** of the length off the handle.
+
+Verified: handle at 84.4% of the frame against the tip at 15.5%, and grabbing 25px from the *tip* still
+snaps the handle under the cursor to **0.0px in both axes**.
+
+### Sparks
+
+Reuse `.hm-spark` and `@keyframes hmSpark` from the hammering scene rather than a second spark
+implementation; only `#shFx` (a positioned layer) is new. 2-4 sparks per burst at the blade/stone
+contact point, throttled to one burst per 45ms while cutting, self-removing after 900ms and cleared
+wholesale on close. Verified a spark's centre lands **inside** `shStoneRect()`, and a driven drag moved
+the meter 69.8 -> 73.3 with sparks on screen.
+
+### Two harness notes
+
+- **Top-level `let`/`const` are not properties of the window.** A probe page reading
+  `iframe.contentWindow.SH_GEO` got `null` and the whole driven drag silently did nothing — twice —
+  because `SH_GEO` is a `let`. Function declarations *are* window properties, which is why
+  `w.shStoneRect()` worked and masked the problem. Drive the page with `contentWindow.eval(...)`, which
+  runs in the page's own scope. (The Browser pane's `javascript_tool` never hit this: it already
+  evaluates inside the page.)
+- **The file has mixed line endings.** r53b was applied with a `node -e` one-liner whose replacement
+  text carried bare LFs, so a handful of lines in an otherwise CRLF file end in LF alone, and r54's
+  multi-line anchors failed against them. The patch helper now tries the CRLF form of an anchor, then
+  the raw LF form, and always inserts CRLF so the file converges back.
+
+### Still open
+
+The contact test is the stone's whole art box rather than its wheel, `SH_GAIN` is unplaytested, and
+over-sharpening past the 80-90% band has no consequence yet — all unchanged from r53.
+
+## r55 — the customer counter screen
+
+Built to `Customer_screen_wireframe.png` on the owner's new `customer_counter_background.png`
+(2754x1536, aspect 1.7930 against the wireframe's 1.7924), so the cover fit into the wireframe crops
+essentially nothing (art 1269.4x708.0, offset -0.2, 0) and wireframe pixels convert straight to plate
+percentages.
+
+### Art-anchored: customer, counter, stand, sword
+
+`SCREEN_PROPS.customer`, all measured back in-browser to within **0.015pp** with zero stretch:
+
+| prop | drawn | plate-% (l / w / b) |
+|---|---|---|
+| customer (`man1.png`) | x 80-388, y 150-584 | 7.97 / 20.99 / 86.16 |
+| counter (`counter.png`) | x 1-1021, y 589-704 | 0 / 100 / 110.70 |
+| stand (`stand.png`) | not in the wireframe | 33.20 / 14.18 / 98.87 |
+| sword (built, not a PNG) | x 220-803, y 606-675 | 17.35 / 46.00 / 95.34, h 9.89 |
+
+**The customer sits behind the counter**, which the owner asked for explicitly. DOM order is paint order,
+so listing the customer first in the table puts the counter over it — no z-index needed. It is
+height-anchored to the drawn 435 and centred on the drawn box, then pushed down to `b 86.16` so its base
+actually disappears behind the counter's top surface rather than stopping 5px short of it.
+
+**`counter.png` cannot be both full-width and as short as drawn.** Its art is 2235x343 (aspect 6.52)
+while the drawn box is 8.8:1. Spanning the full plate width and letting the lower front face run off the
+bottom (`b 110.70`, i.e. below the plate) keeps its **top edge on the drawn y 589** and guarantees no gap
+at either frame edge when `object-fit: cover` crops the sides — verified: it overhangs **18.4px past each
+frame edge** at 1039x600. Stopping it at the drawn x 1021 would have left a 1.6pp gap on the left.
+
+The stand is not in the wireframe. It is centred under the sword and sized so the blade lands on its
+cradle: measured, the sword's centre line sits **33.6% down the stand**, which is where the carved arms are.
+
+### A prop can now be a box, not just a PNG
+
+The display sword is assembled from four part images, so `SCREEN_PROPS` gained a `kind:'sword'` entry
+whose `l/w/b/h` describe the **box itself** (no opaque-box maths), and `layoutScreenProps` grew a branch
+for it. It stays art-anchored like every other prop, which is what keeps the sword on the counter as the
+frame resizes.
+
+### Frame-anchored: the dialogue cluster
+
+A screen's panel cluster lives in the page as `#csPanel` and is shown by an `sc-<name>` class that
+`goScreen()` now puts on `#screenLayer` — verified `display: block` on customer and `none` on all five
+other screens. Every element landed **0.00pp** on its target:
+
+| element | drawn | % of frame | asset |
+|---|---|---|---|
+| recipe book | x 10-113, y 6-65 | 0.79 / 0.85 / 8.20 / 8.47 | `icon_recipe.png` (opens the Composition Book) |
+| dialogues | x 402-972, y 45-279 | left 31.68, top 6.36, w 44.92 | **`Dialogue_box.png`** (1074x425) |
+| response | x 402-972, y 279-401 | left 31.68, top 39.41, w 44.92 | `Paper_button_wider` - its 453/97 = 4.67 *is* the drawn 570/122 = 4.67 |
+| sell | x 759-871, y 399-449 | left 59.81, w 8.90, bottom 36.58 | `Paper_button_wide` |
+| deny | x 868-972, y 399-449 | left 68.40, w 8.27, bottom 36.58 | `Paper_button_red` (2.196 vs the drawn 2.10) |
+
+### r55b/r55c — two things verification caught
+
+- **The dialogue text was invisible.** I gave it the parchment-on-dark colour (`#f0e0bb`) used elsewhere,
+  but `Dialogue_box.png` is *pale* parchment. Darkened to `#4a3623`.
+- **The display sword filled 47% of its box.** `comboFit()` fits both axes, and the drawn box is 8.34:1
+  while a sword laid flat is ~4.4:1, so the box's *height* was binding and the blade came out 234px long
+  in a 495px box. For a sword resting in a stand the **length** is what should match the drawing and its
+  guard reaching past a notional box is correct, so that box now sizes by length alone
+  (`s = 0.98/len`) and no longer clips. Measured: **98% of the drawn box width**.
+
+### Not built
+
+- The two **waiting benches** in the wireframe — there is no asset for them.
+- The rail column and the Left/Right arrows, which the build already has.
+- SELL renders 92x33 and DENY 86x39: the two paper assets have different aspects, so at the drawn widths
+  their heights differ by 6px. They are bottom-aligned on the row. Matching them exactly would mean
+  giving DENY the non-red asset, which loses the wireframe's colour coding.
+- Nothing behind any of it: the dialogue line is invented, Response is a label, and SELL/DENY are inert.
+
+## r56 — the Diary
+
+The rail's DIARY button opens it (it was inert until now). `Diary_base.png` is the base, the first page
+lists characters the player has met, and four bookmark tabs run down the outside edge.
+
+### The third book on the same sheet
+
+`Diary_base.png` has the same canvas fractions as `Composition_book_base.png` and `ledger_book_base.png`
+— ox .0339, oy .0778, ow .7271, oh .8500 of a 1920x1080 sheet, art 1396x918 — so it uses the r41/r50
+construction verbatim. Measured back: the art's opaque region hits the page box to within **0.03px** on
+all four edges. The spine is part of the art; the wireframe's hand-drawn spine sits at 49.9% of its
+panel against the asset's 48.7%.
+
+### Geometry
+
+Measured by exact-colour components in `Diary_wireframe.png` (1330x742), converted against the drawn
+page panel (x 47-980 = 934 wide, y 47-689 = 643 tall). Everything landed **0.00pp**:
+
+| element | drawn | % of the page box |
+|---|---|---|
+| character slots | 178x170 | w 19.06, h 26.44 |
+| slot columns | x 85 / 297 / 543 / 755 | 4.07 / 26.77 / 53.10 / 75.80 |
+| slot rows | y 161 / 372 | 17.73 / 50.54 |
+| title | centred x 280, y 76 | 24.95 / 4.51 |
+| tabs | x 997-1045, tops y 16 / 57 / 98 / 138 | left 101.71, w 5.25, tops -4.82 / 1.56 / 7.93 / 14.15 |
+| close | x 28-106, y 653-711 | left -2.03, bottom -3.42 (91x42 px) |
+
+Seven slots, four across the top and three below, exactly as drawn — two per page on the top row and
+the seventh alone on the lower left page.
+
+### Turning a portrait bookmark into a side tab
+
+`bookmark_paper.png` is **portrait** (91x124) and these tabs are landscape, so each tab is a landscape
+wrapper (`aspect-ratio: 124/91`) holding the image rotated 90 degrees — the same trick
+`.cb-marks-side` uses in the Composition Book.
+
+Rotating a w x h box by 90 degrees swaps its visual extents, so for the image to end up exactly filling
+the wrapper it must be sized **73.39% of the wrapper's WIDTH** with `aspect-ratio: 91/124`: that makes
+it 0.7339W wide and 1.0W tall before the turn, hence W wide and 0.7339W = H tall after it. Verified: the
+rotated image fills its tab to **0.0px in both axes** on all four tabs.
+
+### Behaviour
+
+Tab 1 holds the Characters page and is active on open; tabs 2-4 show an empty page, as the owner asked.
+Verified by hit-tested clicks: the rail's DIARY button opens the window, each tab switches both the
+active marker and the visible sheet, and Close closes it.
+
+### Note on the names
+
+The wireframe's two filled slots read "Bran" and "Garric", neither of which exists in the build. They
+are placeholders for "a character you have met", so the two filled slots use the game's own first two
+story customers instead — **Bram** and **June** (`assets/customer/`). Say the word if the wireframe's
+names are meant literally.
+
+### Known gaps
+
+Nothing behind it: `DIARY_SLOTS` is a fixed list, no slot unlocks as the player meets someone, clicking
+a character does nothing, and pages 2-4 have no content planned yet.
+
+## r57 — the Quests window
+
+The rail's QUEST button opens it (it was inert until now). Title, five quests with their gold reward,
+a page slider with left/right controls, and a close button.
+
+### The base asset, and why the parchment is the content area
+
+The owner named no base, so this uses **`Chart_background.png`** — a framed parchment board that had
+been sitting unused in `assets/ui`. Its outer aspect (0.755) is within 1.2% of the wireframe's plain
+white panel (461x618 = 0.746), which is what pointed at it.
+
+Its **parchment interior**, though, is 0.851 — measured by scanning outward from the board's centre
+until the stone frame goes dark: x 9.55%-90.65%, y 13.45%-84.75% of the 979x1309 canvas, which as
+fractions of the asset's opaque box is **left 8.866%, top 12.926%, w 82.36%, h 73.06%**.
+
+So the wireframe's white rectangle is read as the **content area** (the parchment), not the whole board:
+the content keeps the drawn proportions and the frame is added around it. Everything the wireframe draws
+is then a % of `.qs-page`, and the board's `margin-right` is derived so the **content's** centre lands
+on the drawn 38.98% of the frame — measured back at exactly **38.98%**.
+
+### Geometry
+
+Measured by exact-colour components in `Quests_wireframe.png` (1275x708), as % of the drawn panel
+(x 267-727 = 461 wide, y 44-661 = 618 tall). All ten boxes landed **0.00pp**:
+
+| element | drawn | % of the page box |
+|---|---|---|
+| quest box | x 290-545, tops y 123/206/289/373/456 | 4.99 / 12.78 / 55.53 / 12.30, pitch 13.47 |
+| reward box | x 556-703 | left 62.69, w 32.10 |
+| title | centred x 497, y 70 | 49.89 / 4.21 |
+| pager chips | centres x 330 / 351.5 / 391.5 / 438.5 / 497 / 555.5 / 602.5 / 643 / 664 | widths 3.69-10.20, heights 2.75-9.22, row centre 92.56 |
+| left / right | x 256-302 / 693-738 | left -2.39 w 10.20 / left 92.41 w 9.98 |
+
+The "slider" is the wireframe's nine-chip carousel: the **current page is the big centre chip** and
+pages shrink outward, numbered on the centre and its two neighbours, a middot at plus/minus two, and
+blank chips beyond.
+
+### The quests
+
+The five one-off goals lifted from the older builds (`const quests` in `index.html` and
+`swordforgeV2.html`), with their real goals and the same `QUEST_REWARD` of 20g:
+
+| quest | goal |
+|---|---|
+| Craft 5 Epic swords | 5 |
+| Survive a day without turning any customer away | 1 |
+| Discover 3 new traits | 3 |
+| Update 3 recorded compositions | 3 |
+| Open the shop front | 1 |
+
+(The wireframe's uniform "progress 0/5" was filler; each row shows its own goal.)
+
+### r58 — Quest_base.png replaces Chart_background
+
+The owner supplied a base for this window after the fact: `Quest_base.png`, a plain parchment sheet
+(645x934, art filling the canvas at ox 0, oy .0011, ow .9984, oh .9989).
+
+That removes the whole complication r57 worked around. `Chart_background` is a FRAMED board whose
+parchment interior is inset 9% at the sides and 13%/15% top and bottom, so the wireframe's white panel
+had to be mapped onto that interior with the frame added around it. The new sheet **is** the content
+area, so the drawn panel maps straight onto it: `.qs-board` is the drawn panel (left 20.94%, width
+36.16% of the frame) and `.qs-page` is simply `inset: 0`.
+
+Measured back: board **dl 0.00 / dw 0.00**, 376x544 px with 28px clear top and bottom, the sheet's art
+on the board box to within **0.01px**, and all ten quest/reward boxes still **0.00pp**.
+
+Two consequences worth noting:
+
+- The sheet's aspect is 0.6902 against the drawn panel's 0.7460, so width-anchoring makes the page 8%
+  taller than drawn. Children are fractions of the drawn panel, so their relative layout is unchanged -
+  the rows just get slightly more vertical room.
+- Close returns to the wireframe's own spot off the panel's bottom-left, but at **-3.5%** rather than
+  the drawn -6.63%: the drawn overhang is 36px and the sheet leaves only 28px before the frame's edge,
+  so the full drop would clip it.
+
+### r57b — three things the first render got wrong
+
+- **The board was taller than the frame.** Sizing it so the parchment kept the drawn content width made
+  it 43.9% of the frame wide = **604px tall in a 600px frame**, clipping its top and pushing anything
+  anchored below it off-screen. Narrowed to 40.10% — 417x552 with 24px clear top and bottom.
+- **Close used the page's percentages but is a child of the board**, so -5.21% / -6.63% resolved against
+  the board and put it off the bottom of the frame. Re-anchored to the board's own bottom-left corner,
+  which is where the wireframe hangs it relative to its white panel.
+- **LEFT / RIGHT were `Paper_button_wide` at the drawn 38px width**, which its 2.8:1 aspect turns into
+  a 13px-tall strip with the words spilling out. They are the pager's own controls, so they now wear the
+  pager chip's look at exactly the drawn box, with arrow glyphs instead of the words.
+
+### Verified
+
+Hit-tested: the rail's QUEST button opens it, the right arrow walks 1 to 2 to 3 and **clamps** (its
+button disables at the last page, the left one at the first), the centre chip tracks the page, page 1
+holds the five quests and 2-3 read "No quests on this page yet.", and Close closes it. `resetRun`
+clears it. The Diary still opens.
+
+### Known gaps
+
+Three pages exist only so the pager is demonstrably live — page 1 is the real content and 2-3 are
+empty. Nothing advances a quest (`progress` is fixed at 0 and there is no `bumpQuest` wired into the
+loop yet), and completing one pays nothing.
+
+## r59 — the Diary's character page
+
+Clicking a named character on the Diary's tab 1 opens it, from `Diary_character_page.png`.
+
+### Not a fifth tab
+
+The owner was explicit that this is not one of the four tabs, so it is **another sheet in the same
+book**, shown with every tab deselected. That keeps the four tabs visible exactly as the wireframe draws
+them, and clicking any of them goes back to that page. `dyTab()` and the new `dyChar()` both route
+through one `dyShow(id)` helper, so only ever one sheet is on. Close is the Diary's own button.
+
+### Geometry
+
+The wireframe (1386x767) draws the same book in the same place as `Diary_wireframe` — its page panel is
+x 51-1024 (974) y 50-720 (671), **70.27%** of the frame wide against the Diary's 70.23% — so `.dy-book`
+is reused untouched. Children as % of that panel; all nine boxes measured back at **0.00pp**:
+
+| element | drawn | % of the page box |
+|---|---|---|
+| character image | x 94-332, y 136-433 | 4.41 / 12.82 / 24.54 / 44.41 |
+| last visited | x 362-506, y 241-330 | 31.93 / 28.47 / 14.89 / 13.41 |
+| swords requested | x 94-506, y 461-550 | 4.41 / 61.25 / 42.40 / 13.41 |
+| relationship | x 94-506, y 569-658 | 4.41 / 77.35 / 42.40 / 13.41 |
+| gift | x 583-743, y 136-286 | 54.62 / 12.82 / 16.53 / 22.50 |
+| reward text | x 804-964, y 136-286 | 77.31 / 12.82 / 16.53 / 22.50 |
+| three "?" boxes | x 583 / 804 y 331-481, x 686 y 525-675 | 54.62 & 77.31 / 41.88, 65.20 / 70.79 |
+
+### Crop-fitting the portrait
+
+The customer portraits are **1504x2832 canvases with the figure in a sub-region** (Bram ow .5785
+oh .5102, June .5625/.4650), so `object-fit: contain` would have sized the empty canvas rather than the
+person and left them tiny and off-centre. `dycPortrait()` instead scales the whole canvas so the
+**opaque box** fills the frame box and offsets it so that box's centre lands on the box's centre:
+
+    wc = min(0.92/ow, 0.96 * boxH/boxW * canvasAR / oh)     canvas width, in box widths
+    left = 50% - (ox + ow/2) * wc
+    top  = 50% - (oy + oh/2) * (wc/canvasAR) / (boxH/boxW)
+
+with `overflow: hidden` clipping the surrounding empty canvas. Everything is a percentage of the box,
+so it survives a resize. The opaque box comes from `partBox()` — r52's runtime canvas measurement — so
+a portrait added later needs no table entry. Measured: Bram renders at 117.66% canvas width, filling
+96% of the box height.
+
+### Verified
+
+Hit-tested: Bram and June each open their own page with their own portrait and reward line; an unknown
+"?" slot does nothing; clicking tab 1 or tab 3 from a character page returns to that page with the tab
+selected; Close closes the Diary.
+
+### r59b — a class that never existed
+
+The gift emoji rendered at 11px. The rule was written `.dyc-box.gift` but the element carries
+`dyc-gift`, not `gift`, so it never matched and the base `.dyc-box` font-size won. Folded the size into
+the `.dyc-gift` rule. Worth remembering: in this file the positional class and the modifier class are
+often near-homographs, and a mis-typed compound selector fails silently.
+
+### Known gaps
+
+Last visited, Swords requested, the gift and the three "?" boxes are placeholders; Relationship is a
+fixed 3-of-5. Only the two named slots open a page, and nothing writes to any of these fields yet.
