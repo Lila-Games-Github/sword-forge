@@ -39,8 +39,8 @@ continuation prompt printed at close time.
    ask before implementing (that is a standing instruction). D43 currently ends at the record-craft
    choice — the natural next beat is shaping/hammering the second sword and selling it.
 2. **A swift Broadsword is a visible seam** — swift grip/guard/pommel on a *balanced* broadsword
-   blade, because `swift_broadsword_blade.png` does not exist. Ice and water are thinner still (one
-   part each, longsword blade only).
+   blade, because `swift_broadsword_blade.png` does not exist. Ice and water are thinner still: a longsword blade plus
+   exactly one grip, one guard and one pommel each.
 3. **`assets/ui/dragon_icon.png` is referenced nowhere** — committed but unused; ask the owner where
    it goes.
 4. **19 `hint()` calls are dead.** `hint()` has been a no-op since r34, so a lot of instructional text
@@ -94,8 +94,9 @@ specs.
    check the wording and ask before implementing. Nothing in the repo predicts the next line.
 2. **PR #10 (`fm/sf-lazy-load`, open since 2026-09-07) — land, rebase or close?** It defers
    non-first-paint art *and* renames the landscape build canonical across `INDEX.md`, `README.md`,
-   `plan.md`, `specs/README.md`, `specs/game-design.md`. **It overlaps PR #13 on `INDEX.md`,
-   `plan.md` and the build file**, so whichever merges second will conflict. It is also the change
+   `plan.md`, `specs/README.md`, `specs/game-design.md`. **It is already `CONFLICTING`/`DIRTY` against `main` today** — independently of PR #13, and `main`
+   has not moved since PR #12 — so "just land it" is not available without a rebase. It also overlaps
+   PR #13 on `INDEX.md`, `plan.md` and the build file. It is also the change
    that would have prevented the canonical-build confusion below.
 3. **Do D44+ commits stack on `sword-forge/tutorial-script-and-craft-systems`, or start a new branch
    off it?** PR #13 is already +8182/−3120 across 31 files. Stacking makes it harder to review;
@@ -119,6 +120,10 @@ others are untouched (some are inside PR #10's scope, so they were left alone de
 - `docs/wiki/` describes `index.html`/`swordforgeV2.html`, including a `Tutorial Flow` page about the
   `tutorialFlow` array, which the landscape build does not have. Its search script needs Python, which
   is not installed here.
+- `README.md` and `specs/README.md` still name `swordforgeV2.html` / `Swordforge_new_looptest.html`
+  canonical. Both are inside **PR #10's** file list, so they were left alone here rather than creating
+  more conflict. `ONBOARDING.md` is in **no** PR and is what CLAUDE.md tells a new agent to read first —
+  it got a dated banner on 2026-09-18 instead.
 - `AGENTS.md` carries a "Delegation preference" (delegate implementation to cheaper subagents) that
   CLAUDE.md does not mention. Weigh it against the first gotcha below — a mid-line `//` in this file
   silently deletes the rest of the line and once destroyed `wireDragon`. Delegate edits to this file

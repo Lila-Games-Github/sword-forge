@@ -1,5 +1,12 @@
 # Sword Forge — Onboarding / Handoff
 
+> ⚠️ **Canon update (2026-09-18) — read this before the banners below.** The build under active
+> development is **`Swordforge_looptest_landscape.html`** (landscape loop-test, guided tutorial
+> D1–D43). `swordforgeV2.html` and `index.html` are earlier builds; `Swordforge_new_looptest.html`
+> (portrait) is deliberately never edited. See `HANDOFF.md` for current state and the open questions.
+> Screenshots of the game **do** work (they fail only while the app window is minimised) — the
+> "do not depend on screenshots" note below is outdated.
+
 You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. This doc gives a zero-context agent everything needed to be productive. Read `specs/game-design.md` next — it's the mechanics SSOT.
 
 > ⚠️ **Canon update (2026-08-10):** the canonical build is now **`swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial); `index.html` is V1, kept for historical reference and still serving as the deployed Pages entry point until V2 is promoted. The sections below describe V1 systems — most concepts carry over, but verify against V2 before relying on specifics.

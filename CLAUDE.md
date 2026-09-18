@@ -9,7 +9,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 ## Canonical files
 
 - **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (D1–D43) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. Note PR #10 (`fm/sf-lazy-load`, open) also proposes naming this build canonical across the docs.
-- **`swordforgeV2.html`** — the earlier canonical build (V2: path-map furnace build + guided tutorial). Always edit this.
+- **`swordforgeV2.html`** — the **previous** canonical build (V2: path-map furnace build + guided tutorial). Historical unless a task names it; the landscape loop-test above is what is under development.
 - **`index.html`** — V1, kept for historical reference only. Do not develop here. ⚠️ It is still the GitHub Pages entry point (the site root serves V1; V2 is reachable at `/swordforgeV2.html`) — promoting V2 to the root is a pending decision.
 - **`specs/`** — Single source of truth (SSOT) for game design. See `specs/game-design.md`. Keep it in sync whenever mechanics change.
 - **`research/`** — experiments and design docs, not shipped (chalk-map prototype, potioncraft reference, `sword-forge-gdd.html`).
@@ -19,12 +19,12 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 ## How to run / deploy
 
-- Run locally: open `swordforgeV2.html` in a browser (no server required), or use the `/run` skill. (`index.html` = V1, historical.)
+- Run locally: use the `/run` skill, or `preview_start` (`.claude/launch.json`, name `sword-forge`, port 5678) and **navigate explicitly** to `http://localhost:5678/Swordforge_looptest_landscape.html` — the server maps `/` to `index.html`, which is **V1**, so the root URL silently loads the wrong game.
 - Deploy: pushing to `main` auto-deploys to GitHub Pages via `.github/workflows/deploy.yml`. Commit/push only when asked.
 
 ## Working conventions
 
-- **Keep it single-file.** Do not split `swordforgeV2.html` into separate JS/CSS files or add a toolchain unless explicitly asked.
+- **Keep it single-file.** Do not split the build you are editing (`Swordforge_looptest_landscape.html`, or `swordforgeV2.html`) into separate JS/CSS files or add a toolchain unless explicitly asked.
 - **Match the existing style.** The code uses terse, semicolon-dense vanilla JS with many statements per line, global mutable state, and direct DOM manipulation. Follow the surrounding idiom rather than refactoring to a framework.
 - **Update the spec with the code.** Any change to a mechanic, number, or system must be reflected in `specs/game-design.md` in the same change.
 - **Assets live in `assets/`** (PNGs/JPGs referenced by relative path from the HTML builds). When adding art, place it in the correct sub-folder and reference it as `assets/<folder>/<file>`:

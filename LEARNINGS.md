@@ -2,7 +2,7 @@
 
 Lessons from building Sword Forge.
 
-- **Browser screenshot tools time out on this game** — the continuous ember/`requestAnimationFrame` loop keeps the page from going idle. Verify via the preview tools (`javascript_tool`, `read_console_messages`) instead; resize to mobile (375px) before measuring layout or the headless viewport reports width 0.
+- **Browser screenshot tools are flaky on this game, not broken** *(revised 2026-09-18: they return fine when the app window is visible; they fail while it is minimised — retry once, then fall back)* — the continuous ember/`requestAnimationFrame` loop keeps the page from going idle. Verify via the preview tools (`javascript_tool`, `read_console_messages`) instead; resize to mobile (375px) before measuring layout or the headless viewport reports width 0.
 - **The preview static server drops between turns** — a `navigate` fails or the tab reverts to `file://`; restart with `preview_start` and re-`navigate` (same port, 5678).
 - **Data-driven tutorial beats scattered flags** — *(this describes `swordforgeV2.html`; the landscape loop-test uses a different system — a `DIALOGUE` id map + `SAY_SEQ` + `TUT_STAGE` — and has no `tutorialFlow`)* — dialogue steps, actions, and `waitAction` gates in one array; gameplay functions advance it by checking the current step's `waitAction`.
 - **An SSOT must track the *live direction*, not a superseded build** — `specs/game-design.md` documented the V1 grid game long after the design pivoted to Path-Forge, so reviews were checked against the wrong game. Fixed 2026-08-12 by making the loop-test canon for the craft loop. Lesson: when the design pivots, reconcile the SSOT *in the same push* as the new build lands, or the spec silently rots.

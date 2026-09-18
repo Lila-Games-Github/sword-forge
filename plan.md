@@ -94,6 +94,9 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 ---
 
 ## 🔜 Next up
+> ⚠️ **V1/V2 scope.** These items are for `index.html`/`swordforgeV2.html`, not the landscape
+> loop-test under active development — see the tutorial section further down and `HANDOFF.md`.
+
 
 - [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Must now cover a lot: gold/vault/metals/compositions/upgrades/tutorial progress **+ day state** (`currentDay`, `customersToday`, `refusalsToday`) **+ quests + diary (`diaryGiven`) + shop ledger (`shopLedger`) + per-sword `craftBonus`/`hazardLoss`**.
 - [~] **Customer variety** — mostly done: named story customers **Bram / June / Roland** with branching dialogue + locked **Diary** pages, plus a 7-portrait no-repeat pool. Still open: **later-day story progression for June & Roland** (only their first appearance exists; Bram already returns on Day 2), and more archetypes/dialogue.
@@ -137,7 +140,7 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
 - [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
 - [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
 
-> ⚠️ **Scope note (2026-09-18):** the "Next up" / save-load items below are **V1/V2 scope**
+> ⚠️ **Scope note (2026-09-18):** the "🔜 Next up" / save-load items **earlier in this file** are **V1/V2 scope**
 > (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,
 > `shopLedger`) do not exist in the landscape loop-test, which is the build under active development —
 > see the section above and `HANDOFF.md`.
