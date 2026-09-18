@@ -19,3 +19,33 @@ Lessons from building Sword Forge.
 - **Prefer re-crop over asking the image model to restructure a good cut** — asking NB to "make the tower ~18% taller" regressed the already-good pot seating (floated again). Revert and re-crop instead; and NB isolates often leave one adjacent object (a wooden box) in frame — paint that region magenta *before* chroma-keying.
 - **`?clean` render mode** — a URL flag adds `#frame.clean` to hide loop-test/tutorial chrome (step badges, hint bar, heat gauge, station captions, zoom) so headless renders read like the marketing anchor; gameplay is untouched.
 - **Drift-guard upkeep is easy to forget** — every `LAYOUT` y beyond `EPS` needs a per-prop exemption in `runLayoutSelfTest()`'s in-zone check, and any `bucket` y change must also update the hard-coded `resolveLayout` math assertion (a bucket-y move flipped the self-test RED until the `y*500` literal was updated).
+
+## Verifying a UI you cannot see (tutorial build-out, 2026-09-18)
+
+- **Content is not visibility.** `textContent` returns the text of a `display:none` element, so a check
+  that asserts on it passes on a build where nothing is on screen. A customer's whole line was typed
+  into a hidden box and the check went green. For "is it visible", also assert `offsetParent !== null`,
+  a non-zero box, containment in the frame, and that `elementFromPoint` at its centre returns **that
+  element** rather than something covering it.
+- **A transparent box still takes the pointer.** Art is mostly empty canvas, and the element's box is
+  what hit-tests — not the pixels. This bit three times: the pickaxe swallowed cave seams, sword-part
+  images covered the craft window's title and close button, and the dragon (moved to the corner)
+  swallowed the blade panel's buttons. Always probe with `elementFromPoint`; z-index alone tells you
+  nothing about what the player can actually hit.
+- **Never test an accumulated float for exact equality.** "Fully ground" was `grind >= 1`, but the
+  grind is a running sum — 72 increments of 1/72 land on 0.9999999999999999, which `Math.min(1, x)`
+  never rounds up, and the step waits forever. The previous round's test passed *on the same knife
+  edge by luck*. Use a tolerance (`>= 0.999`).
+- **Exercise the route the player will take.** A heat threshold was watched in the cooling path but not
+  in the strike path, so a strike that carried heat across it was silent. The check cooled the metal by
+  *sitting still* — the one branch that worked — and passed. A test that reaches the mechanism by a
+  route the player won't take can pass on a broken build.
+- **Measure art only after it has loaded.** An unsized `<img>` measured 17.5% of its scene before decode
+  and 794px after, so a hit test built on the early number was hundreds of pixels off. Give props an
+  explicit width and re-measure post-load.
+- **A rebuild destroys anything mid-animation inside it.** Bell ripples parented to the prop layer
+  vanished a frame later because the customer's arrival rebuilt that layer. Parent transient effects to
+  a container that survives, and trigger them *after* the rebuild.
+- **An overlay is clipped by its frame.** A guide arrow aimed at a target near the top edge started
+  62px *above* it — outside `#frame`'s `overflow:hidden`, so it drew nothing. Check the whole arrow
+  path lands inside the clip box, not just its target.

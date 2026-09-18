@@ -122,5 +122,20 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
 - Full design notes + open questions: [`research/chalk-map-design.md`](research/chalk-map-design.md).
 - **Not ported to `index.html`.** Next: decide the ore→ingot material system + skill-tree nodes, then plan the port.
 
+## 🐉 Landscape loop-test — guided tutorial (active, 2026-09-18)
+The live line of work is `Swordforge_looptest_landscape.html`. Script SSOT:
+[`specs/2026-09-15-looptest-landscape-tutorial-script.md`](specs/2026-09-15-looptest-landscape-tutorial-script.md);
+build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](specs/2026-08-18-looptest-landscape-map-traits-hazards.md).
+- [x] **D1–D43** — first craft, the counter + Bram sale, the bell + second customer, and a second
+      forge run teaching grinding and recording a craft.
+- [x] Smelter gate on **heat**, grinding wheel on **angle swept**, minigame fire aimed by holding the
+      metal, quench mug finish, Sword Crafted window, per-trait Design Desk sets, counter bell.
+- [ ] **Continue the script past D43** — owner supplies each line; check wording, ask, then implement.
+- [ ] `swift_broadsword_blade.png` missing → a swift Broadsword wears a balanced blade. Ice/water
+      have one part each.
+- [ ] 19 dead `hint()` calls (no-op since r34) — restore a surface or convert to `toast()`.
+- [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
+- [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
+
 ## Open questions
 - Target platform — web-only, or a mobile wrapper later?
