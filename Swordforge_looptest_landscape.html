@@ -5829,6 +5829,7 @@ function sayAgain(){
     say(SAY_LAST);
     return true;
 }
+function sayStart(){ if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
     if(TUT_PAUSE){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }   /* r85: the click that closes D8 restarts the world */
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
@@ -5839,7 +5840,7 @@ function sayNext(){
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
     wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
-    setTimeout(sayNext, 600);                             // r75: placeholder - the tutorial flow will own this
+    setTimeout(sayStart, 600);                            /* r75/r107: the opening line, not a 'next' */
     setTimeout(dragonCap, 60);
     if(!CAVE_NODES.length) rollCaveNodes();               // r68: the cave has seams from the first day
     startShopLoop();                                      // r72: idles until the shopfront is open

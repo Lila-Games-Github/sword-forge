@@ -4893,3 +4893,23 @@ Each fixed in isolation and then in the run: a finished run stays closed on furt
 off-sequence line closes on one tap; a real click on the customer's line advances D60 → D62 and moves
 the stage to `to-cave`; the mug arrow draws from `#mug` to `#orb` at D10 with the metal on the anvil;
 one Balanced entry after repeated quenches. Console clean.
+
+---
+
+## r107 — the opening lines came back
+
+Reported by the owner: D1–D4 stopped appearing. A regression from r106, introduced the same round.
+
+`SAY_I = -1` meant two different things: **not started yet** and **finished**. `sayNext()` treated both
+the same, restarting at `SAY_SEQ[0]`, and `initMechanics` leaned on exactly that to *open* the tutorial
+with `setTimeout(sayNext, 600)`. r106 stopped the restart — correctly, because a stale tap was replaying
+D1 over Bram — and took the opening with it.
+
+Starting is now its own call. `sayStart()` sets the cursor to the first line and speaks it; `sayNext()`
+keeps hiding a finished run, so `-1` only ever means finished.
+
+### Verification
+
+Fresh load shows D1 by itself. Real clicks walk D1 → D2 → D3, with the ore arrow going up on D3, and
+putting the four ores in gives D4 with the bellows lit. The r106 behaviour is intact: ending a run and
+tapping twice more leaves it closed rather than replaying D1.
