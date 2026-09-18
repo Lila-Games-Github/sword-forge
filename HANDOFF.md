@@ -85,7 +85,22 @@ retry once on timeout; they fail while the window is minimised.
   `requestAnimationFrame`** — drive `tick()`/`hmTick()` by hand when verifying anything time-based.
 - Console **retains errors from earlier loads**; check the URL stamp before believing one.
 
-## Before you start — open questions for the owner
+## Owner answers (2026-09-18, at session close)
+
+The three questions below were put to the owner and answered. Kept for the reasoning; the answers
+supersede them.
+
+1. **D44 onward — the dialogue lives in Figma** and the owner will send it in sequence next session.
+   So the tutorial resumes the moment they paste the next line. Do not invent or draft D44.
+2. **PR #10 (`fm/sf-lazy-load`) was closed**, to be reopened later. The branch is **not deleted**
+   (`dadada47` on the remote), so reopening is a click. It was `CONFLICTING` and needs a rebase first.
+   Its canonical-build rename is now redundant — that was applied directly on the PR #13 branch — but
+   its deferred-art/lazy-load work is not.
+3. **D44+ commits start a new branch** off `sword-forge/tutorial-script-and-craft-systems`, rather than
+   stacking onto it. (Owner: "they are new" — read as a new branch; if that is wrong, the only cost is
+   a rebase, so confirm before the first commit.)
+
+## The questions as asked (superseded by the answers above)
 
 Three things a fresh agent cannot resolve alone. Ask these first; everything else is workable from the
 specs.
@@ -126,9 +141,9 @@ others are untouched (some are inside PR #10's scope, so they were left alone de
   divergence" notes. **In practice this session recorded mechanics in the dated round spec
   (`specs/2026-08-18-...md`) and the tutorial script SSOT, not in `game-design.md`** — keep doing that
   until someone reconciles the header, and say so in the commit.
-- `README.md` and `specs/README.md` still name `swordforgeV2.html` / `Swordforge_new_looptest.html`
-  canonical. Both are inside **PR #10's** file list, so they were left alone here rather than creating
-  more conflict. `ONBOARDING.md` is in **no** PR and is what CLAUDE.md tells a new agent to read first —
+- `specs/README.md` still names `Swordforge_new_looptest.html` canonical; `README.md` now carries a
+  dated banner but its body still says `swordforgeV2.html`. Both were inside PR #10's file list; that PR is now **closed** (reopenable), and both files got a
+  dated banner pointing at this one on 2026-09-18. `ONBOARDING.md` is in **no** PR and is what CLAUDE.md tells a new agent to read first —
   it got a dated banner on 2026-09-18 instead.
 - `AGENTS.md` carries a "Delegation preference" (delegate implementation to cheaper subagents) that
   CLAUDE.md does not mention. Weigh it against the first gotcha below — a mid-line `//` in this file
