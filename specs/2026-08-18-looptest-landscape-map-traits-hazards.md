@@ -4721,3 +4721,81 @@ Screenshots of the basement, the sharpening panel and the counter. Console clean
 The sell button and the dragon's speech bubble can overlap at the counter while a line is still up; the
 bubble closes on a tap, so the price is readable before the player acts. "Polishing", named by the owner
 alongside sharpening and designing, has no system yet and adds nothing.
+
+---
+
+## r104 — the sale reaction, the adventurer, the fire route, and the cave (D56–D65)
+
+Owner-supplied beat (2026-09-18). The sale that r103 ended the script on now continues: the customer
+reacts to the price, the dragon counts the bonus, the bell brings an adventurer who wants a **fire
+sword**, and the cave is stocked for it.
+
+### Copy that quotes computed numbers
+
+D56 ("...{g}g for your efforts.") and D57 ("We got {b}g bonus this time!") are the first lines carrying
+a value the game works out. `say()` now fills `{...}` tokens from `SAY_VARS`, which `sellCounter()` sets
+from `swordPriceParts()`. The owner's draft said 51g; the tutorial blade is Balanced (map value 24), so
+it actually sells for **31g or 41g** depending on the tier it lands, plus the 7g sharpening — a literal
+number would have been wrong nearly always. Verified: a Fine tutorial sword paid 41g and the two lines
+read "41g" and "7g".
+
+### The fire route, measured
+
+The cave for this stage holds only iron and manganese, but the customer asks for fire. The owner's call
+was that **2 fully ground iron + 2 manganese at about three quarters** should reach it, with the
+manganese capped so the route cannot run past, and fire nudged "slightly up and right". Measuring the
+route (`tPct = 0.5 + 0.5·grind`) put its end at:
+
+| manganese grind | route end | note |
+| --- | --- | --- |
+| 100% | (838, 1006) | **inside** the `island` hazard at (839, 1011) — 5 units from its centre |
+| 90% | (837, 1032) | still inside that hazard |
+| 80% | (835, 1057) | clear |
+| 75% | (836, 1070) | clear |
+| 70% | (837, 1083) | clear |
+| 60% | (847, 1107) | clear |
+
+Fire was at (821, 1129). It moves to the **75% end, (836, 1070)** — up 59 and right 15, exactly the
+direction the owner predicted. In sketch space, which is where `TRAIT_POS` is authored, that is
+`{x:632,y:681}` → `{x:642,y:642}`; world = `START + (p − REF_C)·REF_S` still reproduces it.
+
+Nothing else is disturbed: the nearest other trait is Balanced at 288 units, and 65–85% of grind is
+clear of every hazard.
+
+`GRIND_FIRE_CAP = 0.80` holds the grind while `TUT_FIRE_RUN` is on, and **only for manganese** —
+a blanket cap would break the other half of the same recipe, which needs iron ground fully.
+Against `ALIGN_MAX` 34 / `ALIGN_FINE` 20 that gives an acquiring band of roughly **63% to the cap**,
+so the player is not hunting one exact percentage.
+
+### The scripted cave
+
+`setTutorialCave()` replaces the usual five random seams of seven with **one iron seam and one
+manganese seam of 2 each**, and puts the pickaxe on the floor (`PICK_OUT`) rather than in ITEMS & DECOR.
+The seams sit on the right half of the plate and the pickaxe low centre, because the dragon and his
+speech bubble own the left: at the first placement the line described a pickaxe the line itself covered.
+
+### The customer panel is no longer Bram's alone
+
+The two-choice panel was hardwired to Bram — his name in the markup, his two buttons, his state machine.
+It now rebuilds its buttons for whoever is standing there and sets the speaker label (`#custWho`), and
+the sell/deny pair stays disabled until the customer has actually asked for something.
+
+The second line of each branch **waits for a tap**. Chained through `typeAfter` it replaced the first
+line the instant that finished typing, so the branch the player had just chosen was unreadable.
+
+### Verification
+
+Driven end to end in the preview: sale pays 41g → D56 with "41g" and a **Thank you.** response → the
+customer leaves → D57 with "7g" → D58 lights the bell → ringing it brings `woman1` under the label
+CUSTOMER with both replies and SELL disabled → either branch holds its first line until tapped, then
+gives the fire request → D64 with arrows counter → forge → cave → arrival gives D65, the pickaxe on the
+floor and the arrow from it to a seam. The grind cap holds manganese at 0.80 during the run, leaves iron
+at 1.0, and lifts outside the run. `Object.keys(DIALOGUE).length === 65`, `lastLine() === "D65"`.
+Screenshots of the counter and the cave. Console clean.
+
+### Open
+
+- **The dragon becomes a pet at D65**, since that is now the script's last line, while the player still
+  has to mine, forge and sell the fire sword. This resolves itself when the next lines land.
+- **The customer has no name.** The panel says CUSTOMER; `woman1` needs one if she is to be a character.
+- **Nothing still enforces the trait request** — she asks for fire and will buy anything.

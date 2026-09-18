@@ -526,3 +526,96 @@ There are now three surfaces. The bench bubble, the screen bubble (which follows
 **basement** as well as the counter), and, inside the sharpening panel where he cannot stand, his
 **icon** (`assets/ui/dragon_icon.png`) top-left with the line to its right. All three advance on a tap
 and show the same "tap to continue" / "tap to close".
+
+---
+
+## The sale reaction, the adventurer, and the cave — D56–D65
+
+**D56** — Customer
+> "Hmm. I see. Not bad. {g}g for your efforts."
+
+*Trigger: the sale going through. `{g}` is the price actually paid. A response button reads
+**"Thank you."**; tapping it sends the customer away.*
+
+**D57** — Dragon
+> "We got {b}g bonus this time! Let's make a lot of money, then we can buy whatever we want! Muwahaha"
+
+*`{b}` is the sharpening and design bonus actually earned.*
+
+*Note: the owner wrote "whatever we want!. Muwahaha" — the stray full stop after the exclamation mark
+is dropped.*
+
+**D58** — Dragon
+> "Ring the bell! I am ready for more!"
+
+*Showing this line lights the bell.*
+
+**D59** — Customer (`woman1`)
+> "Hello. Anyone here? I heard the sound of a hammer striking an anvil here. Are you a blacksmith? This
+> forge has not been in use for so long. Are you new?"
+
+*Trigger: ringing the bell. Two replies:*
+
+> **"I'm a blacksmith. Do you need a sword?"** → D60, then D62
+> **"I am new. Do you know who used to live here before me?"** → D61, then D63
+
+**D60** — Customer
+> "Oh, another blacksmith! An old blacksmith used to live here. His swords were good, as far as I know.
+> But he just vanished one day."
+
+**D61** — Customer
+> "Oh! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished
+> one day. Sorry, I don't know much."
+
+*Note: the owner wrote "But, he just vanished" in both; the comma is dropped.*
+
+**D62** — Customer
+> "Do you have a fire sword? I am actually part of an adventurer group that is going on a hunt for ice
+> drakes."
+
+**D63** — Customer
+> "Anyways, can you give me a fire sword? I am actually part of an adventurer group that is going on a
+> hunt for ice drakes."
+
+*Each branch's second line waits for a **tap**; it does not replace the first on its own.*
+
+**D64** — Dragon
+> "Hmm, we are out of ores. But there is a cave just nearby. We should go there."
+
+*Literally true: the game starts with exactly 2 iron and 2 manganese, D3 spends all four, D32 grants
+exactly 1 of each and the second craft spends both. Arrows lead counter → forge → cave.*
+
+*Note: the owner said "the mine". The screen is the **CAVE** and the word "mine" appears nowhere in the
+game, so cave it is — confirmed by the owner.*
+
+**D65** — Dragon
+> "I see a pickaxe. How lucky! Pick it up and drag it to the ores."
+
+*Trigger: arriving in the cave. For this stage the pickaxe lies **on the cave floor** rather than in
+ITEMS & DECOR, and the cave holds exactly one iron seam and one manganese seam of **2 ore each**.*
+
+### Numbers in the copy
+
+D56 and D57 are the first lines that quote a number the game computes. `{g}` and `{b}` are filled at
+speak time from the sale, because the price depends on the sword's traits, its tier, the popularity
+multiplier and the two bonuses. A literal "51g" would have been wrong for nearly every sword: the
+tutorial blade is Balanced (map value 24), so it sells for 31g or 41g depending on the tier it lands.
+
+### The fire request, and why the map moved
+
+The adventurer asks for a **fire sword**, and the cave for this stage holds only iron and manganese. The
+owner's route is **2 fully ground iron + 2 manganese at roughly three quarters**, with the manganese
+grind capped so the route cannot overshoot. Fire moved up and to the right to sit on that route's end.
+Measured band, against fire's new position:
+
+| manganese grind | distance to fire | result |
+| --- | --- | --- |
+| 60% | 38 | missed |
+| 65% | 26 | Weak |
+| 70% | 13 | Fine |
+| 75% | 0 | Epic |
+| 80% (the cap) | 13 | Fine |
+
+So any grind from about 63% to the cap acquires fire — a band, not a fixed percentage, which is what the
+owner asked for. Beyond the cap the route would end **inside** the hazard at (839, 1011): at a full
+grind it lands 5 units from its centre.

@@ -1351,7 +1351,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cs-resp">Response &mdash; placeholder</div>
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
-            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="typeDone()" title="click to finish the line"><span class="who">BRAM</span><p id="bramLine"></p></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
+            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
         </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
@@ -1904,7 +1904,7 @@ const TRAIT_POS = {
     swift:{x:916,y:510}, balanced:{x:831,y:608}, durable:{x:1131,y:510}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},   /* r80: Balanced sits on the tutorial route's landing point; Durable takes its old seat so the y=510 row keeps its shape */
     celestial:{x:1085,y:41}, cloud:{x:633,y:150}, rainbow:{x:877,y:160}, luck:{x:1400,y:147}, lightning:{x:369,y:291},
     noble:{x:1147,y:312}, grace:{x:1721,y:333}, gale:{x:776,y:361}, floral:{x:1400,y:435}, fury:{x:200,y:517},
-    ice:{x:1775,y:579}, fire:{x:632,y:681}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
+    ice:{x:1775,y:579}, fire:{x:642,y:642}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
     poison:{x:996,y:939}, savage:{x:369,y:1007}, blood:{x:1379,y:1041}, cursed:{x:640,y:1074}, dark:{x:1037,y:1175}
 };
 const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
@@ -2244,7 +2244,8 @@ function sellCounter(){
     if(bram && TUT_BRAM_STATE!=='counter-ready' && TUT_BRAM_STATE!=='give') return;
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
-    const w=COUNTER, g=swordPrice(w), tier=swordBestTier(w);
+    const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
+    SAY_VARS.g=g; SAY_VARS.b=P.sharp+P.design;   /* r104: D56 and D57 quote the real numbers */
     GOLD += g; REP += 1;
     POP += (POP_GAIN[tier]||0);
     let levelled=false;
@@ -2447,6 +2448,12 @@ const CAVE_SPOTS=[ {x:36.34,y:58.41}, {x:41.30,y:58.41}, {x:59.47,y:62.48}, {x:1
 let CAVE_NODES=[];        // [{metal, spot, left}]
 let PICK_OUT=null;        // {x,y} in plate-% while the pickaxe lies in the cave, else null
 function gainOre(id,n){ ORE_COUNT[id]=(ORE_COUNT[id]||0)+(n||1); }
+/* r104: the scripted cave. The fire craft needs exactly 2 iron and 2 manganese, so this stage
+   stocks exactly that - two seams of two - instead of the usual five seams of seven. */
+function setTutorialCave(){
+    CAVE_NODES=[{ metal:'iron', spot:2, left:2 }, { metal:'manganese', spot:7, left:2 }];
+    PICK_OUT={ x:40.0, y:88.0 };   /* lying on the cave floor, not in the bag */
+}
 function rollCaveNodes(){
     const idx=CAVE_SPOTS.map((s,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
@@ -3846,6 +3853,12 @@ function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!me
 /* r101: the ore leaves the shelf HERE, not at the smelter. Once it is on the wheel it is committed -
    nothing puts it back - so a shelf still counting it was just wrong. */
 function startPrep(oreId){ if(!oreLeft(oreId)) return; spendOre(oreId); prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+/* r104: the fire route is 2 fully ground iron + 2 manganese at roughly three quarters. Past ~85%
+   the route overshoots fire, and at 90-100% it ends INSIDE the 'island' hazard at (839,1011) -
+   measured, not guessed. So while the fire craft is being taught the manganese cannot be ground
+   past GRIND_FIRE_CAP. Iron is untouched, because that half of the recipe needs a full grind. */
+const GRIND_FIRE_CAP = 0.80;
+function grindCap(){ return (TUT_FIRE_RUN && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
 function addPrep(){ if(!prep) return; const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g); hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ if(!oreLeft(oreId)) return; ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
@@ -4640,7 +4653,7 @@ let lastT=0;
 function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
-    if(pestleGrinding && prep){ prep.grind=Math.min(1,prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();
+    if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
     if(melt && melt.stage==='smelting'){ if(bellowing){ melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt);
             fxAcc.bellow+=dt; if(fxAcc.bellow>0.13){ fxAcc.bellow=0; const m=fxPt(document.querySelector('#stSmelt .furnace'),0.5,0.60); fxBurst(m.x,m.y,{n:3,kind:'ember',ang:-Math.PI/2,spread:0.85,dist:42,size:5,dur:660}); } }
@@ -4874,7 +4887,7 @@ function wireGrindWheel(){
         const a=ang(e); let d=a-last; while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI;
         last=a;
         const turn=Math.abs(d)/(2*Math.PI); if(turn<0.0005) return;
-        prep.grind=Math.min(1, prep.grind + turn/GRIND_TURNS);
+        prep.grind=Math.min(grindCap(), prep.grind + turn/GRIND_TURNS);   /* r104 */
         spin(true);
         if(idle) clearTimeout(idle);
         idle=setTimeout(()=>spin(false), 140);          /* the wheel coasts to a stop when the hand does */
@@ -4985,7 +4998,17 @@ const DIALOGUE = {
     D52: "Ooh, sharp!",
     D53: "Tap 'done' to finish.",
     D54: "Put the sword back in the inventory.",
-    D55: "Back to the counter now."
+    D55: "Back to the counter now.",
+    D56: "Hmm. I see. Not bad. {g}g for your efforts.",
+    D57: "We got {b}g bonus this time! Let's make a lot of money, then we can buy whatever we want! Muwahaha",
+    D58: "Ring the bell! I am ready for more!",
+    D59: "Hello. Anyone here? I heard the sound of a hammer striking an anvil here. Are you a blacksmith? This forge has not been in use for so long. Are you new?",
+    D60: "Oh, another blacksmith! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day.",
+    D61: "Oh! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day. Sorry, I don't know much.",
+    D62: "Do you have a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes.",
+    D63: "Anyways, can you give me a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes.",
+    D64: "Hmm, we are out of ores. But there is a cave just nearby. We should go there.",
+    D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5165,13 +5188,16 @@ function tutBasementStep(){
 }
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
-    if(!TUT_SHARP_RUN) return;
+    if(!TUT_SHARP_RUN && !TUT_FIRE_RUN) return;   /* r104 */
     if(name==='basement' && TUT_STAGE==='to-basement'){
         TUT_STAGE='base-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
         SAY_I=SAY_SEQ.indexOf('D49'); say('D49');
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
+    if(name==='forge' && TUT_STAGE==='to-cave'){
+        tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }); return; }
+    if(name==='cave'){ tutCaveArrived(); return; }
     if(name==='forge' && TUT_STAGE==='base-back'){
         tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
     if(name==='customer' && TUT_STAGE==='base-back'){
@@ -5217,9 +5243,97 @@ function tutWorkTaken(){
     setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
 }
 /* the sale that closes the run: this, not a line, is where the dragon becomes a pet */
+/* r104: the sale no longer ends the script - the customer reacts to the price, the dragon counts
+   the bonus, and the bell brings the adventurer who asks for a fire sword. */
+let TUT_FIRE_RUN=false, TUT_FIRE_STATE=null;
 function tutSold2(){
     if(TUT_STAGE!=='sell2') return;
-    TUT_SHARP_RUN=false; TUT_STAGE=null; tutArrow(null,null); TUT_SEEN_END=true; sayHide();
+    TUT_SHARP_RUN=false; TUT_STAGE='paid'; tutArrow(null,null); sayHide();
+    setTimeout(()=>{
+        custLine(null, sayFill(DIALOGUE.D56));
+        const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
+              re=document.querySelector('#csPanel > .cs-resp');
+        if(se) se.style.display='none'; if(de) de.style.display='none';
+        if(re){ re.textContent='Thank you.'; re.style.display='flex'; re.onclick=tutThankYou; }
+    }, 0);
+}
+/* the customer leaves, and the dragon does the sums out loud */
+function tutThankYou(){
+    if(TUT_STAGE!=='paid') return;
+    typeStop();
+    const re=document.querySelector('#csPanel > .cs-resp');
+    if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
+    CUSTOMER=null; TUT_STAGE='bonus'; refreshCounter(); counterUi();
+    ['D57','D58'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    SAY_I=SAY_SEQ.indexOf('D57'); say('D57');
+}
+/* D58 arms the bell for the second time */
+function tutBell2(){
+    if(TUT_STAGE!=='bonus') return;
+    TUT_STAGE='bell2'; bellShow(true);
+    setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
+}
+/* ---- the adventurer: one line, two replies, the same request either way ---- */
+function tutFireCustomer(){
+    if(TUT_STAGE!=='bell2') return;
+    TUT_STAGE='fire-meet'; TUT_FIRE_STATE='awaiting'; tutUnglow(); sayHide();
+    CUSTOMER={ portrait:'assets/customer/woman1.png', tid:'fire', name:null };
+    buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
+    const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
+    /* nothing to sell her until she has said what she wants */
+    const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
+    if(se) se.disabled=true; if(de) de.disabled=true;
+    tutFireButtons(true);
+    custLine(document.getElementById('bramLine'), DIALOGUE.D59);
+}
+/* the panel's two buttons are Bram's markup, rebuilt for whoever is standing there */
+function tutFireButtons(on){
+    const r=document.getElementById('bramResponses'); if(!r) return;
+    r.style.display = on ? '' : 'none';
+    if(!on) return;
+    r.innerHTML='';
+    [["I'm a blacksmith. Do you need a sword?",'smith'],
+     ['I am new. Do you know who used to live here before me?','new']].forEach(([label,key])=>{
+        const b=document.createElement('button'); b.type='button'; b.textContent=label;
+        b.addEventListener('click', ()=>chooseFire(key)); r.appendChild(b); });
+}
+let TUT_FIRE_NEXT=null;
+function chooseFire(key){
+    if(TUT_FIRE_STATE!=='awaiting') return;
+    TUT_FIRE_STATE='told'; typeDone(); tutFireButtons(false);
+    const l=document.getElementById('bramLine');
+    TUT_FIRE_NEXT = key==='smith' ? 'D62' : 'D63';
+    typeAfter(null);
+    custLine(l, DIALOGUE[key==='smith' ? 'D60' : 'D61']);
+}
+/* a tap finishes the line that is typing, then a second tap moves to the one waiting behind it */
+function custDlgTap(){
+    if(TYPE_T){ typeDone(); return; }
+    if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null;
+        typeAfter(()=>tutFireAsked());
+        custLine(document.getElementById('bramLine'), DIALOGUE[id]); return; }
+    typeDone();
+}
+/* the request is made: out of ore, so the cave */
+function tutFireAsked(){
+    TUT_FIRE_STATE='asked'; TUT_FIRE_RUN=true; TUT_STAGE='to-cave';
+    (()=>{ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
+        if(se) se.disabled=false; if(de) de.disabled=false; })();   /* r104: now there is an order to fill */
+    const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
+    updateTutorialCounterUi();
+    setTutorialCave();
+    if(SAY_SEQ.indexOf('D64')<0) SAY_SEQ.push('D64');
+    SAY_I=SAY_SEQ.indexOf('D64'); say('D64');
+    setTimeout(()=>tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }), 0);
+}
+function tutCaveArrived(){
+    if(TUT_STAGE!=='to-cave' && TUT_STAGE!=='to-cave-forge') return;
+    TUT_STAGE='cave-pick'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D65')<0) SAY_SEQ.push('D65');
+    SAY_I=SAY_SEQ.indexOf('D65'); say('D65');
+    setTimeout(()=>tutArrow(()=>document.querySelector('#caveLayer .cv-pick'),
+                           ()=>document.querySelector('#caveLayer .cv-node'),
+                           { tfx:0.5, tfy:0.4, bow:0.18, back:24 }), 0);
 }
 function tutHmStep(){
     if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
@@ -5256,6 +5370,7 @@ function tutCounterArrival(){
 function finishD19(){
     if(TUT_STAGE!=='counter' || TUT_BRAM_STATE) return;
     TUT_STAGE='bram-intro'; TUT_BRAM_STATE='awaiting';
+    (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; })();   /* r104 */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
     if(r) r.style.display='flex'; if(p) p.classList.add('show'); buildScreenProps('customer');
@@ -5373,6 +5488,7 @@ function ringBell(){
     /* r96b: whoever answers rebuilds the props, so ring AFTER that - otherwise the shake is applied
        to an element that is replaced a frame later and the player sees nothing. */
     if(TUT_STAGE==='bell') tutBellRung();                     /* the scripted first customer */
+    else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
     else nextCustomer();
     bellFx();
 }
@@ -5382,7 +5498,9 @@ function updateTutorialCounterUi(){
     if(layer) layer.classList.toggle('tut-counter', !!on);
     if(layer) layer.classList.toggle('tut-dragon', onScreenDragon());   /* r103 */
     const sd=document.getElementById('screenDragonSay'); if(!on && !TUT_BRAM_STATE && !onScreenDragon() && sd) sd.classList.remove('show');   /* r103 */
-    const bi=document.getElementById('bramIntro'); if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done');   /* r103 */
+    const bi=document.getElementById('bramIntro');
+    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || (TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked');   /* r104 */
+    if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!scripted);
 }
 /* r96 - the bell beats. D27 puts it on the counter lit, D28 asks for the tap, and ringing it brings
    the first customer, who speaks before the dragon comments. */
@@ -5576,9 +5694,10 @@ function tutAnvilStep(){
 }   // SAY_LAST outlives dismissal: the dragon can be asked again
 /* r103: the stages during which the dragon stands on a SCREEN rather than at the bench. Adding a
    stage here is all it takes to bring him along to a new screen. */
-const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2'];
+const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
+                           'paid','bonus','bell2','fire-meet','to-cave','cave-pick'];   /* r104 */
 function onScreenDragon(){
-    if(SF_SCREEN==='basement') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;
+    if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
     if(SF_SCREEN!=='customer') return false;
     return (TUT_COUNTER_VISITED || !!TUT_BRAM_STATE) && (TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0 || !!TUT_BRAM_STATE);
 }
@@ -5630,7 +5749,7 @@ function say(id){
     const line=DIALOGUE[id]; if(!box||!t||!line) return;
     Object.keys(SAY_BOXES).forEach(k=>{ if(k===where) return;
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
-    SAY_ON=id; SAY_LAST=id; t.textContent=line; box.classList.add('show');
+    SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
     /* r103: the guide-to-pet switch still keys off the script's last line, but a scripted TAIL can
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
@@ -5642,6 +5761,7 @@ function say(id){
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
     if(id==='D35'){ tutFakePath(false); TUT_STAGE='regrind-grind'; }
+    if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
     sayLayout(); requestAnimationFrame(sayLayout);        // again once the text has wrapped and set the height
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
@@ -5656,6 +5776,10 @@ function sayHide(){ SAY_ON=null; ['dragonSay','screenDragonSay','shSayWrap'].for
    just made and place it on the counter") popped hearts instead of repeating the instruction, at
    exactly the moment a stuck player taps it. As the final key it needs no maintenance when lines are
    added, and the dragon guides right through D26. */
+/* r104: {g} and {b} are filled at speak time - the sale price and the bonus are computed, so a
+   hardcoded number in the copy would be wrong for most swords. */
+let SAY_VARS={};
+function sayFill(s){ return s.replace(/\{(\w+)\}/g, (m,k)=> (SAY_VARS[k]!=null? SAY_VARS[k] : m)); }
 function lastLine(){ const k=Object.keys(DIALOGUE); return k[k.length-1]; }
 let TUT_SEEN_END=false;
 function tutOver(){ return TUT_SEEN_END; }
