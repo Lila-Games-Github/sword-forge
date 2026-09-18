@@ -8,7 +8,8 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 ## Canonical files
 
-- **`swordforgeV2.html`** — THE game. The canonical build (V2: path-map furnace build + guided tutorial). Always edit this.
+- **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (D1–D43) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. Note PR #10 (`fm/sf-lazy-load`, open) also proposes naming this build canonical across the docs.
+- **`swordforgeV2.html`** — the earlier canonical build (V2: path-map furnace build + guided tutorial). Always edit this.
 - **`index.html`** — V1, kept for historical reference only. Do not develop here. ⚠️ It is still the GitHub Pages entry point (the site root serves V1; V2 is reachable at `/swordforgeV2.html`) — promoting V2 to the root is a pending decision.
 - **`specs/`** — Single source of truth (SSOT) for game design. See `specs/game-design.md`. Keep it in sync whenever mechanics change.
 - **`research/`** — experiments and design docs, not shipped (chalk-map prototype, potioncraft reference, `sword-forge-gdd.html`).
@@ -41,12 +42,13 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 ## Verifying changes
 
-- The browser **screenshot tool times out on this game** — a continuous ember/`requestAnimationFrame` loop keeps the page from ever going idle. Don't rely on screenshots.
+- **Screenshots work, but flakily.** The continuous ember/`requestAnimationFrame` loop can keep the page from going idle, and a capture fails outright while the app window is minimised or hidden. Retry once on timeout; if it fails twice, fall back to `read_page`/`javascript_tool` measurements rather than burning turns.
 - Instead verify with the Claude Preview tools via `.claude/launch.json` (`preview_start`, config name `sword-forge` → Node static server on port 5678). Exact tool names vary by environment; in the current one they are the `mcp__Claude_Browser__*` set: `javascript_tool` to drive functions directly and read `getBoundingClientRect`/computed styles/canvas pixels, `read_console_messages` for errors, `resize_window` for the viewport. Resize to mobile (375px) before measuring layout, since the headless viewport otherwise reports width 0.
 - The preview server can drop between turns (a `navigate` fails or the tab reverts to `file://`) — restart with `preview_start` and re-`navigate`; it returns on the same port.
 - **Drive controls the way a player does, and check what a player can see.** Click through `document.elementFromPoint(x,y).dispatchEvent(...)` rather than `el.click()` — an element's box hit-tests even where its art is transparent, so props routinely cover controls. For "is it on screen", `textContent` is not enough (it reads through `display:none`): also assert `offsetParent !== null`, a non-zero box, and that `elementFromPoint` at its centre returns that element.
 - A **hidden preview pane freezes `requestAnimationFrame`** — drive `tick()`/`hmTick()` by hand when verifying anything time-based, and never gate game state on `animation.onfinish`. The console also retains errors from earlier loads; check the URL stamp before believing one.
-- The **tutorial is a data-driven `tutorialFlow` array**: each step is a dialogue (`text`/`title`/`frame`), an `action`, or a `waitAction` gate; gates also carry an optional `hand` spec for the on-screen pointer. Gameplay functions advance it by checking `tutorialFlow[tutorialStep].waitAction`.
+- The **tutorial differs by build.** In `Swordforge_looptest_landscape.html` (the active one) there is **no `tutorialFlow`** — it is a `DIALOGUE` map of permanent ids (D1…), a `SAY_SEQ` run, and a `TUT_STAGE` string, with `lastLine()` returning the final key so the guide-to-pet switch needs no maintenance. Script SSOT: `specs/2026-09-15-looptest-landscape-tutorial-script.md`. The array below describes **`swordforgeV2.html`** only.
+- In `swordforgeV2.html`, the **tutorial is a data-driven `tutorialFlow` array**: each step is a dialogue (`text`/`title`/`frame`), an `action`, or a `waitAction` gate; gates also carry an optional `hand` spec for the on-screen pointer. Gameplay functions advance it by checking `tutorialFlow[tutorialStep].waitAction`.
 
 ## Project tracking
 
@@ -74,6 +76,10 @@ spec chain. BEFORE answering an architecture question, editing an unfamiliar
 subsystem, or locating where behavior lives, consult `docs/wiki/index.md` and run:
 
     python .claude/skills/wiki/scripts/search_wiki.py docs/wiki "<terms>"
+
+⚠️ Python is **not installed** on the current dev machine, so that command and the
+`tooling/anchor-match` test suite cannot run here. The wiki pages also still describe
+`index.html`/`swordforgeV2.html`, not the landscape build — treat them as stale for it.
 
 Maintainer schema: `docs/wiki/README.md`. Pages are maps into the code, not canon;
 the dated spec chain wins on any conflict.

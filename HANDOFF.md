@@ -45,11 +45,14 @@ continuation prompt printed at close time.
    it goes.
 4. **19 `hint()` calls are dead.** `hint()` has been a no-op since r34, so a lot of instructional text
    never appears — including "Still heating — keep pumping the bellows", the only feedback for tapping
-   a cold gate. Either restore a hint surface or convert the ones that matter to `toast()`.
+   a cold gate. Either restore a hint surface or convert the ones that matter to `toast()`. **Why it went:** r34 cut
+   the `#sfHint` bottom bar to match `Main_forge_wireframe.png`; `#sfToast` is the surviving surface.
+   Rationale at `specs/2026-08-18-...md` lines ~1112/1130/2550 — do not rebuild the bar blindly.
 5. **Customers ask for a trait but nothing enforces it** — the sale pays for whatever sword is on the
    counter, match or not. Matching, refusal, patience and price effects are a customer system, not a
    bell. Spontaneous (unrung) arrivals are also unbuilt.
-6. Older, still open: no day system behind END DAY; talent points buy nothing on the 8 yellow/green
+6. Older, still open: no day system behind the end-of-day flow (`openEndDay()`, reached by clicking the
+   **bed** on the bedroom screen — there is no "END DAY" button; that string is V1/V2); talent points buy nothing on the 8 yellow/green
    skill nodes; the manganese ore *image* still uses the r29 guess (`gale_ore.png`); tutorial state is
    not in the save.
 
@@ -60,8 +63,12 @@ git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');new Function(s.match(/<script>([\s\S]*)<\/script>/)[1]);console.log('parses OK')"
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
-Then open the build with the preview tools (`preview_start` name `sword-forge`, port 5678) and read
-`DIALOGUE`, `lastLine()`, `TUT_STAGE` from the console. **Screenshots work** if the pane is visible —
+Then `preview_start` (name `sword-forge`, port 5678) **and navigate explicitly to**
+`http://localhost:5678/Swordforge_looptest_landscape.html` — the server maps `/` to `index.html`, which
+is **V1**, where `DIALOGUE`/`lastLine()`/`TUT_STAGE` are all `undefined` and the build looks broken.
+With the right URL loaded, expect `Object.keys(DIALOGUE).length === 43` and `lastLine() === "D43"`.
+The living-docs audit prints **10 pre-existing `ORPHAN` lines** for `docs/wiki/` and exits 0 — that is
+the expected baseline, not a regression. **Screenshots work** if the pane is visible —
 retry once on timeout; they fail while the window is minimised.
 
 ## Gotchas
@@ -77,3 +84,42 @@ retry once on timeout; they fail while the window is minimised.
 - The Browser pane reports `innerWidth: 0` until `resize_window`, and a **hidden pane freezes
   `requestAnimationFrame`** — drive `tick()`/`hmTick()` by hand when verifying anything time-based.
 - Console **retains errors from earlier loads**; check the URL stamp before believing one.
+
+## Before you start — open questions for the owner
+
+Three things a fresh agent cannot resolve alone. Ask these first; everything else is workable from the
+specs.
+
+1. **What is D44?** The owner supplies dialogue one line at a time and the standing instruction is to
+   check the wording and ask before implementing. Nothing in the repo predicts the next line.
+2. **PR #10 (`fm/sf-lazy-load`, open since 2026-09-07) — land, rebase or close?** It defers
+   non-first-paint art *and* renames the landscape build canonical across `INDEX.md`, `README.md`,
+   `plan.md`, `specs/README.md`, `specs/game-design.md`. **It overlaps PR #13 on `INDEX.md`,
+   `plan.md` and the build file**, so whichever merges second will conflict. It is also the change
+   that would have prevented the canonical-build confusion below.
+3. **Do D44+ commits stack on `sword-forge/tutorial-script-and-craft-systems`, or start a new branch
+   off it?** PR #13 is already +8182/−3120 across 31 files. Stacking makes it harder to review;
+   branching means two open PRs on the same file. Not decided. Remember **merging to `main` deploys
+   Pages**, so this is not a private choice.
+
+**If the owner is away**, the ranked fallback is: (a) next-step 4 (the 19 dead `hint()` calls — a
+self-contained fix); then (b) next-step 2 (`swift_broadsword_blade.png`, needs art, so prepare the
+fallback instead); then (c) next-step 5 (enforce the customer's trait request — but that invents
+economy rules, so write the proposal rather than the code). Do **not** start D44+ without the line.
+
+## Documentation drift you will hit
+
+Several repo docs still describe the *older* builds. Corrected in CLAUDE.md on 2026-09-18, but the
+others are untouched (some are inside PR #10's scope, so they were left alone deliberately):
+
+- `INDEX.md` line ~13 still routes "craft/movement loop" to `Swordforge_new_looptest.html` — the
+  portrait build that is never edited. `plan.md`'s "🔜 Next up" section is likewise V1/V2 scope: its
+  save/load keys (`currentDay`, `customersToday`, `diaryGiven`, `shopLedger`) appear **nowhere** in the
+  landscape build.
+- `docs/wiki/` describes `index.html`/`swordforgeV2.html`, including a `Tutorial Flow` page about the
+  `tutorialFlow` array, which the landscape build does not have. Its search script needs Python, which
+  is not installed here.
+- `AGENTS.md` carries a "Delegation preference" (delegate implementation to cheaper subagents) that
+  CLAUDE.md does not mention. Weigh it against the first gotcha below — a mid-line `//` in this file
+  silently deletes the rest of the line and once destroyed `wireDragon`. Delegate edits to this file
+  with care, or not at all.

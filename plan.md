@@ -137,5 +137,10 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
 - [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
 - [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
 
+> ⚠️ **Scope note (2026-09-18):** the "Next up" / save-load items below are **V1/V2 scope**
+> (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,
+> `shopLedger`) do not exist in the landscape loop-test, which is the build under active development —
+> see the section above and `HANDOFF.md`.
+
 ## Open questions
 - Target platform — web-only, or a mobile wrapper later?
