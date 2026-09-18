@@ -446,3 +446,83 @@ that sword is crafted rather than waiting on the script's last line being seen.*
 The build is a mobile game, so no player-facing string says "click". Corrected with this beat: **D12**
 ("Click on the metal to select the shape of the sword blade.") and the dialogue bubble's own
 "click to continue" / "click to close" affordance.
+
+---
+
+## The basement and the sharpening wheel — D48–D55, then D23 again
+
+**D48** — Dragon
+> "There is a sharpening wheel in the basement. Let's go see if we can use it."
+
+*Trigger: closing the **Sword Crafted** window on the second craft. An arrow points at the down arrow.*
+
+**D49** — Dragon
+> "Drag and drop the sword from the inventory onto the table."
+
+*Trigger: arriving in the basement. The inventory switches to its SWORDS tab and an arrow runs from the
+sword to the workstation table.*
+
+*Note: the owner wrote "on the table", which reads as the sword already being there.*
+
+**D50** — Dragon
+> "Tap on the sharpening wheel."
+
+*Trigger: the sword landing on the table. An arrow points at the wheel.*
+
+**D51** — Dragon
+> "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel."
+
+*Trigger: the sharpening panel opening. Spoken through the **dragon icon**, not the dragon.*
+
+*Note: the owner wrote "move it left and right"; movement in any direction over the stone sharpens.*
+
+**D52** — Dragon
+> "Ooh, sharp!"
+
+*Trigger: the edge reaching the **green band** (80% of the track). During the tutorial the edge is
+capped at the far side of that band (90.1%), so the beat cannot be overshot.*
+
+**D53** — Dragon
+> "Tap 'done' to finish."
+
+*Follows D52 on a tap, with an arrow at DONE.*
+
+**D54** — Dragon
+> "Put the sword back in the inventory."
+
+*Trigger: DONE (not CANCEL, which returns to D50). An arrow runs from the sword to the inventory.*
+
+**D55** — Dragon
+> "Back to the counter now."
+
+*Trigger: the sword going back in the bag. An arrow points up, then left at the counter once the forge
+is reached.*
+
+**D23 again** — Dragon
+> "Find the sword in your inventory and place it on the counter."
+
+*Trigger: arriving at the counter. Its wording was changed for this second airing: it used to read
+"Find the sword you just made…", which stopped being true once the sword had been forged, shaped,
+quenched and sharpened several steps earlier. The line still reads correctly in its first position.*
+
+*The sale that follows ends the guided script; that sale, not a line, is what turns the dragon into a
+pet, because **D55 is the last key in `DIALOGUE` yet D23 is spoken after it**.*
+
+### Three names for two objects, settled
+
+The owner's draft called the basement object a "grindstone" and then a "Sharpening wheel", while the
+forge station the player met in D35 was the "grinding wheel". Settled by the owner:
+
+| object | name everywhere |
+| --- | --- |
+| the forge station (D35, its own caption) | **grindstone** |
+| the basement station (D48, D50, D51, its prop title) | **sharpening wheel** |
+
+D35 and the forge station's caption were changed to match.
+
+### Where the dragon speaks
+
+There are now three surfaces. The bench bubble, the screen bubble (which follows him onto the
+**basement** as well as the counter), and, inside the sharpening panel where he cannot stand, his
+**icon** (`assets/ui/dragon_icon.png`) top-left with the line to its right. All three advance on a tap
+and show the same "tap to continue" / "tap to close".

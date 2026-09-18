@@ -830,6 +830,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenLayer.sc-customer > #csPanel { display: block; }
 #screenLayer.tut-counter > #csPanel { display: none; }
 #screenLayer.tut-counter > #screenDragon { display: block; }
+#screenLayer.tut-dragon > #screenDragon { display: block; }   /* r103: and onto the basement */
 #screenDragon { position: absolute; left: 2.5%; bottom: 11%; width: 23%; z-index: 46; display: none; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
 #screenDragon.dragging { cursor: grabbing; }
 #screenDragon .dragoncrop { width: 100%; }
@@ -871,7 +872,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
 .cs-btn:hover { filter: brightness(1.06); }
 .cs-btn:active { transform: translateY(1px) scale(.99); }
-.cs-sell { left: 59.81%; width: 8.90%; aspect-ratio: 143 / 51; background-image: url('assets/ui/Paper_button_wide.png'); }
+/* r103: the label grew from SELL to 'Sell for 44g + 7g + 7g'. The width and the aspect-ratio grow
+   together, so the paper stretches sideways at the same rendered height; the right-hand edge stays
+   at 68.71%, where it always was, just clear of DENY. */
+.cs-sell { left: 52.21%; width: 16.50%; aspect-ratio: 265 / 51; white-space: nowrap; font-size: 10px;
+    background-image: url('assets/ui/Paper_button_wide.png'); }
 .cs-deny { left: 68.40%; width: 8.27%; aspect-ratio: 213 / 97; color: #6d2a22;
     background-image: url('assets/ui/Paper_button_red.png'); }
 .cs-deny:disabled { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }
@@ -1119,6 +1124,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    ============================================================ */
 #sfSharpModal { display: none; background: radial-gradient(120% 100% at 50% 4%, #2c2013 0%, #17100a 60%, #0b0805 100%); }
 #sfSharpModal.show { display: block; }
+/* r103: the dragon cannot follow into this panel, so his icon speaks for him - top-left, line to
+   its right, and the whole block advances on a tap like the other two surfaces. */
+#shSayWrap { position: absolute; left: 2.2%; top: 3.4%; z-index: 9; display: none;
+    align-items: flex-start; gap: 9px; cursor: pointer; }
+#shSayWrap.show { display: flex; }
+#shIcon { width: 74px; height: auto; display: block; -webkit-user-drag: none; user-select: none;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+#shSay { position: relative; width: 300px; padding: 10px 14px 13px;
+    background: #f3e7c6; border: 2px solid #6a5636; border-radius: 11px;
+    box-shadow: 0 10px 22px rgba(0,0,0,.55); }
+#shSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 9px;
+    letter-spacing: .12em; color: #8a6d3f; margin-bottom: 3px; }
+#shSay p { margin: 0; font-size: 12px; line-height: 1.34; color: #3a2b18; }
+#shSay .go { position: absolute; right: 10px; bottom: 3px; font-size: 8px; color: #8a6d3f; }
 #shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
     background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
     box-shadow: inset 0 1px 0 rgba(255,200,170,.25); }
@@ -1353,6 +1372,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="sh-spin" src="assets/forge/grindstone_spin.png" alt="">
         </div>
         <div id="shFx"></div>
+        <div id="shSayWrap" onclick="sayNext()"><img id="shIcon" src="assets/ui/dragon_icon.png" alt="Dragon"><div id="shSay"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
         <div id="shSword"><div class="sh-art" id="shArt"></div></div>
         <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
         <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
@@ -1559,12 +1579,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div id="furnaceGate" title="Open the gate"></div>
         </div>
 
-        <!-- 2 · Grind — grinding wheel (cut from the hori anchor), right side -->
+        <!-- 2 · Grind — the grindstone (cut from the hori anchor), right side -->
         <div class="station" id="stMortar">
             <span class="badge">2</span>
-            <img class="mortar" src="assets/forge/anchor_grindwheel.png" alt="Grinding wheel">
+            <img class="mortar" src="assets/forge/anchor_grindwheel.png" alt="Grindstone">
             <div id="grindHot" title="Hold to spin the wheel — grinds the ore, extending its path"></div>
-            <span class="cap">Grind <small>· wheel</small></span>
+            <span class="cap">Grind <small>· stone</small></span>
         </div>
         <!-- movable pestle, standing in the mortar -->
         <div id="pestle">
@@ -2131,7 +2151,7 @@ const SCREEN_PROPS = {
     ],
     basement: [
         { src:'assets/Game-elements/design_desk.png',      l:0.15,  w:24.11, b:85.41, act:'designDesk', title:'Assembly bench' },
-        { src:'assets/Game-elements/sharpening_stone.png', l:32.93, w:20.05, b:80.68, act:'sharpen',    title:'Sharpening stone' }
+        { src:'assets/Game-elements/sharpening_stone.png', l:32.93, w:20.05, b:80.68, act:'sharpen',    title:'Sharpening wheel' }
     ],
     /* DOM order is paint order: the customer is listed first, so the counter covers its base */
     customer: [
@@ -2164,6 +2184,9 @@ const PROP_OPQ = {
 // or not there is a handler yet - the basement's two workstations have no windows behind them so far.
 // ---- r64: gold, reputation and popularity ----------------------------------------------------------
 const QUALITY_BONUS = { Weak:0, Fine:10, Epic:20 };      // index.html verbatim
+/* r103: flat gold a sword earns for work done to it after forging. Flat, and added AFTER the
+   popularity/reputation multipliers, so the sell button can show them as separate terms. */
+const SHARP_BONUS = 7, DESIGN_BONUS = 7;
 const POP_GAIN = { Weak:0, Fine:1, Epic:2 };             // popularity a sale is worth, by best tier
 const POP_CAP = 20;                                      // bar length at every level
 const POP_STEP = 1.10;                                   // each level raises every sword's value by 10%
@@ -2184,10 +2207,28 @@ function swordBestTier(w){
 }
 function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
 // the price a sword fetches right now, with both multipliers applied
-function swordPrice(w){
+function swordBase(w){
     let g = swordValue(w) * popMul();
     if(REP < 0) g = g*0.8; else if(REP > 10) g = g*1.2;
     return Math.max(1, Math.floor(g));
+}
+/* r103: what the sell button spells out - base, then the sharpening, then the design desk. A term
+   is earned or it is absent; nothing shows a 0g. */
+function swordPriceParts(w){
+    const base=swordBase(w);
+    const sharp=(w && (w.sharp||0) >= SH_ZONE_LO) ? SHARP_BONUS : 0;
+    const design=(w && w.designed) ? DESIGN_BONUS : 0;
+    return { base:base, sharp:sharp, design:design, total:base+sharp+design };
+}
+function swordPrice(w){ return swordPriceParts(w).total; }
+function priceLabel(w){
+    const p=swordPriceParts(w), t=[p.base+'g'];
+    if(p.sharp) t.push(p.sharp+'g'); if(p.design) t.push(p.design+'g');
+    return 'Sell for '+t.join(' + ');
+}
+function sellLabel(){
+    const b=document.querySelector('#csPanel .cs-sell'); if(!b) return;
+    b.textContent = COUNTER ? priceLabel(COUNTER) : 'SELL';
 }
 function updateHud(){
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -2195,10 +2236,13 @@ function updateHud(){
     updateXpHud();
 }
 function sellCounter(){
-    if(TUT_BRAM_SOLD) return;
-    if(TUT_BRAM_STATE && TUT_BRAM_STATE!=='counter-ready' && TUT_BRAM_STATE!=='give') return;
+    /* r103: this used to open with `if(TUT_BRAM_SOLD) return;`, which locked the counter for the
+       rest of the game the moment Bram was served - every later customer the bell brought could be
+       given a sword but never sold one. Bram's own states still gate his scripted sale; 'done'
+       means he has left and the counter is ordinary again. */
+    const bram = TUT_BRAM_STATE && TUT_BRAM_STATE!=='done';
+    if(bram && TUT_BRAM_STATE!=='counter-ready' && TUT_BRAM_STATE!=='give') return;
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
-    if(TUT_BRAM_SOLD) return;
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     const w=COUNTER, g=swordPrice(w), tier=swordBestTier(w);
     GOLD += g; REP += 1;
@@ -2208,6 +2252,7 @@ function sellCounter(){
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:g });
     COUNTER=null; CUSTOMER=null; refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide();   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
+    tutSold2();   /* r103 */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
@@ -2220,7 +2265,7 @@ function placeCounter(sw){
 }
 function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }
-function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); }
+function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); sellLabel(); }   /* r103 */
 
 // ---- r61: the sword on the basement workstation table ----------------------------------------------
 let WORK = null;                                        // the sword on the table, or null
@@ -2267,9 +2312,10 @@ function placeWork(sw){
     if(WORK) INV.swords.push(WORK);                     // owner's call: a second sword SWAPS
     WORK=sw; refreshWork();
     toast('&#9876;&#65039; ' + sw.shape + ' on the workstation');
+    tutWorkPlaced();   /* r103 */
 }
 function takeWork(){ if(!WORK) return; INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2);
-    toast('Back in your inventory'); }
+    toast('Back in your inventory'); tutWorkTaken(); }   /* r103 */
 function requireWork(){ if(WORK) return true; toast('Put a sword on the workstation table first'); return false; }
 // r62: the table's sword drags back to the rail. A tap with no movement still takes it back.
 function wireWorkDrag(el, kind){
@@ -2343,6 +2389,7 @@ function buildScreenProps(name){
                         ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)];
             list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
             d._list=list; d.appendChild(art);
+            if(p.act) d.dataset.act=p.act;   /* r103: the tutorial points at props by act */
             if(p.act==='work'||p.act==='counter'){ d.classList.add('hot'); d.title=p.title||''; wireWorkDrag(d, p.act); }
             else if(p.act){ d.classList.add('hot'); d.title=p.title||'';
                 const fn=PROP_ACTS[p.act]; if(fn) d.addEventListener('click', fn); }
@@ -2350,6 +2397,7 @@ function buildScreenProps(name){
             return; }                                     /* sized by layoutScreenProps, which knows the box */
         const im=document.createElement('img');
         im._prop=p; im.src=p.src; im.alt='';
+        if(p.act) im.dataset.act=p.act;   /* r103 */
         if(p.act){ im.classList.add('hot'); im.title=p.title||'';
             if(p.act==='rack') im.addEventListener('click', ()=>openRacks(p.rack||0));   // r70: this rack, not "the racks"
             else { const fn=PROP_ACTS[p.act]; if(fn) im.addEventListener('click', fn); } }
@@ -2700,6 +2748,9 @@ const SH_ZONE = [80.0, 90.1];               // the wireframe's green band, as % 
 const SH_LEN  = 74.85;                      // the sword's flat length, as % of the frame width
 const SH_REST = { x:49.96, y:43.84 };       // where it lies at rest, as % of the frame
 const SH_GAIN = 0.055;                      // sharpness per px dragged while the blade is on the stone
+/* r103: the green band, as the .sh-zone rule draws it (left 80%, width 10.10%). An edge inside it
+   is what "sharpened" means, both for the dialogue and for the gold it adds. */
+const SH_ZONE_LO = 80.0, SH_ZONE_HI = 90.1;
 let SH_VAL = 69.8, SH_WAS = 69.8;           // the wireframe draws the marker at 69.8% of the track
 let SH_POS = null, SH_GEO = null, SH_DRAG = null, SH_GRIND_T = null, SH_SPARK = 0;
 // the BASE frame's opaque box inside the shared 1701x1536 sheet - the stone the blade actually touches
@@ -2784,6 +2835,7 @@ function openSharpen(){
     SH_WAS=SH_VAL; SH_POS=null;
     document.getElementById('sfSharpModal').classList.add('show');
     shMark(); shLayout(); setTimeout(shLayout,0);          // the modal has no size until it is shown
+    tutSharpOpen();   /* r103 */
 }
 function closeSharpen(revert){
     if(revert) SH_VAL=SH_WAS;
@@ -2794,7 +2846,13 @@ function closeSharpen(revert){
     const fx=document.getElementById('shFx'); if(fx) fx.innerHTML='';
     document.getElementById('sfSharpModal').classList.remove('grinding','show');
     shMark();
+    tutHm2Clear();   /* r103: the DONE pointer and its z-lift go with the panel */
+    sayHide();   /* the icon surface goes with the panel, BEFORE the next line is spoken */
+    if(!revert) tutSharpDone();   /* r103: CANCEL is not finishing */
+    else if(TUT_STAGE==='base-sharp'){ TUT_SAIDSHARP=false; tutWorkPlaced2(); }
 }
+/* backing out of the panel puts the player back where D50 left them */
+function tutWorkPlaced2(){ TUT_STAGE='base-table'; tutWorkPlaced(); }
 function wireSharpen(){
     const sw=document.getElementById('shSword'); if(!sw) return;
     sw.addEventListener('pointerdown', e=>{
@@ -2815,7 +2873,11 @@ function wireSharpen(){
         /* cap one event's travel: a pointer that jumps (or leaves and re-enters) must not bank a
            whole screen's worth of sharpening in a single move */
         if(shOnStone()){
-            SH_VAL=Math.max(0, Math.min(100, SH_VAL + Math.min(Math.hypot(dx,dy),40)*SH_GAIN)); shMark();
+            /* r103: during the tutorial the edge cannot run past the green band - the beat is
+               'you hit green', so overshooting it would leave the player nothing to react to. */
+            const cap = (TUT_STAGE==='base-sharp') ? SH_ZONE_HI : 100;
+            SH_VAL=Math.max(0, Math.min(cap, SH_VAL + Math.min(Math.hypot(dx,dy),40)*SH_GAIN)); shMark();
+            if(SH_VAL>=SH_ZONE_LO) tutSharpGreen();
             shGrinding();
             const t=performance.now(); if(t-SH_SPARK>45){ SH_SPARK=t; shSparks(); } } });
     const end=()=>{ SH_DRAG=null; sw.classList.remove('dragging');
@@ -2984,7 +3046,7 @@ function openDesign(){
     setTimeout(ddRenderSword, 0);                          // the box has no size until it is shown
 }
 function closeDesign(revert){
-    if(!revert && ddWork()){ ddWork().design=Object.assign({}, DD_SEL); refreshWork(); }   // r61: Done saves onto the sword
+    if(!revert && ddWork()){ ddWork().design=Object.assign({}, DD_SEL); ddWork().designed=true; refreshWork(); }   /* r61: Done saves onto the sword. r103: and marks it designed, which is worth gold */
     if(revert && DD_WAS) DD_SEL=Object.assign({}, DD_WAS);
     DD_FORCE_DEFAULT=false;                                 // the flag lasts one visit
     document.getElementById('sfDesignModal').classList.remove('show');
@@ -3431,7 +3493,7 @@ function goScreen(name){
     if(name==='forge'){ layer.classList.remove('on'); }
     else { const [src,tag]=SCREEN_ART[name];
         const art=document.getElementById('screenArt');
-        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); };   // naturalWidth is 0 until the plate decodes
+        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); };   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
         art.src=src;
         document.getElementById('screenTag').textContent=tag+' \u00b7 placeholder';
         layer.classList.add('on'); }
@@ -3447,6 +3509,7 @@ function goScreen(name){
     updateScreenArrows();
     updateTutorialCounterUi();
     if(name==='customer') setTimeout(tutCounterArrival, 0);
+    setTimeout(()=>tutScreenArrived(name), 0);   /* r103 */
 }
 // an arrow with nowhere to go is hidden rather than left dead, so the way back is never ambiguous
 function updateScreenArrows(){
@@ -4473,8 +4536,9 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     gainExp(XP_CRAFT,'craft');                            // r73
     if(cTraits.some(a=>a.tier==='Epic')) bumpQuest('epic5');
     invTab(2);                                                        // show it land in the SWORDS tab
+    const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
-    showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun(); tutCounterStep(); });           // r90: the bench resets when the window closes
+    showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun(); if(second) tutBasementStep(); else tutCounterStep(); });   /* r90/r103 */
 }
 function resetRun(){ clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
@@ -4889,7 +4953,7 @@ const DIALOGUE = {
     D20: "Oh, God, save me! I didn't think I would find anyone here. Who are you?",
     D21: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me.",
     D22: "You don’t need to know who I am! Assassins are after me. I lost my sword too!",
-    D23: "Find the sword you just made in your inventory and place it on the counter",
+    D23: "Find the sword in your inventory and place it on the counter.",
     D24: "He looks pleased and he is offering gold! Tap the sell button to confirm the trade.",
     D25: "Thanks! If I survive the night I will come back to thank you properly.",
     D26: "Phew- that was a lot of hard work.",
@@ -4901,7 +4965,7 @@ const DIALOGUE = {
     D32: "I found 1 iron and 1 manganese. Last time we used 2 of each.",
     D33: "We won't get the balanced trait we discovered last time if we forge this sword in the same way.",
     D34: "But don't worry, if we grind them properly, we can still craft a good sword.",
-    D35: "Drag one iron to the grinding wheel. Hold the handle and rotate the wheel. Note how the path on the map is getting longer.",
+    D35: "Drag one iron to the grindstone. Hold the handle and turn the stone. Note how the path on the map is getting longer.",
     D36: "Drag the ground ore to the smelter.",
     D37: "Do the same with manganese ore.",
     D38: "Great, the path is going all the way to the balanced trait we discovered last time.",
@@ -4913,7 +4977,15 @@ const DIALOGUE = {
     D44: "Tap on the metal to select a shape.",
     D45: "You remember what to do, right? Go ahead, I'm ready!",
     D46: "Tell me where to FIRE, and hammer the blade.",
-    D47: "Splash water to cool the blade and finish crafting."
+    D47: "Splash water to cool the blade and finish crafting.",
+    D48: "There is a sharpening wheel in the basement. Let's go see if we can use it.",
+    D49: "Drag and drop the sword from the inventory onto the table.",
+    D50: "Tap on the sharpening wheel.",
+    D51: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel.",
+    D52: "Ooh, sharp!",
+    D53: "Tap 'done' to finish.",
+    D54: "Put the sword back in the inventory.",
+    D55: "Back to the counter now."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -4921,9 +4993,13 @@ let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
 function tutEl(sel){ return (typeof sel==='function') ? sel() : (typeof sel==='string' ? document.querySelector(sel) : sel); }
 function tutRect(sel){
     const el=tutEl(sel); if(!el) return null;
-    const r=el.getBoundingClientRect(); if(r.width<1 || r.height<1) return null;
+    /* r103: a target may also be a plain viewport rect (zoneRect()), for drop zones that have no
+       element of their own until something is being dragged over them. */
+    const r=el.getBoundingClientRect ? el.getBoundingClientRect() : el;
+    const w=(r.width!=null? r.width : r.right-r.left), h=(r.height!=null? r.height : r.bottom-r.top);
+    if(!(w>1) || !(h>1)) return null;
     const f=document.getElementById('frame').getBoundingClientRect();
-    return { x:r.left-f.left, y:r.top-f.top, w:r.width, h:r.height };
+    return { x:r.left-f.left, y:r.top-f.top, w:w, h:h };
 }
 let TUT_ARROW=null;
 function tutArrow(from, to, opt){ TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null; tutDrawArrow(); }
@@ -5058,6 +5134,7 @@ let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false;
 /* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
    and it re-speaks on every further HINT_IDLE_MS of nothing. D46 covers fire+hammer, D47 the mug. */
 let TUT_HM2=false, TUT_HM2_AT=0;
+function tutHm2WasOn(){ return TUT_HM2; }   /* r103 */
 function tutHm2Clear(){ const a=document.getElementById('tutArrow'); if(a) a.classList.remove('above'); tutArrow(null,null); }
 function tutHm2Idle(){
     if(TUT_STAGE!=='forge2' || hmQuenching) return;
@@ -5071,7 +5148,79 @@ function tutHm2Idle(){
         tutArrow('#hmMug', '#hmWork', { tfx:0.5, tfy:0.45, bow:0.18, back:24 }); }
     else tutHm2Clear();
 }
-function tutHm2Done(){ if(!TUT_HM2) return; TUT_HM2=false; TUT_STAGE=null; tutHm2Clear(); TUT_SEEN_END=true; }
+/* r103: the second craft no longer ENDS the script - it hands over to the basement beat, so the
+   pet switch moves to the sale that closes it. */
+function tutHm2Done(){ if(!TUT_HM2) return; TUT_HM2=false; TUT_STAGE=null; tutHm2Clear(); }
+/* ---- r103: D48-D55, the sharpening run ---- */
+let TUT_SHARP_RUN=false, TUT_SAIDSHARP=false;
+function tutTail(){ return TUT_SHARP_RUN; }   /* a scripted line still follows the script's last key */
+function tutSwordSlot(){ return document.querySelector('#oreShelf .ore-slot:not(.empty)') || document.getElementById('oreShelf'); }
+function tutSharpProp(){ return document.querySelector("#screenProps [data-act='sharpen']"); }
+function tutWorkSword(){ return document.querySelector("#screenProps [data-act='work']"); }
+function tutBasementStep(){
+    TUT_SHARP_RUN=true; TUT_STAGE='to-basement';
+    if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');
+    SAY_I=SAY_SEQ.indexOf('D48'); say('D48');
+    tutArrow(null, '#panDown', { tfx:0.5, tfy:0.5, ox:-4, oy:-102, bow:0.18, back:20 });
+}
+/* every arrival in the run, in one place: goScreen calls it after the screen is built */
+function tutScreenArrived(name){
+    if(!TUT_SHARP_RUN) return;
+    if(name==='basement' && TUT_STAGE==='to-basement'){
+        TUT_STAGE='base-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
+        if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
+        SAY_I=SAY_SEQ.indexOf('D49'); say('D49');
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        return; }
+    if(name==='forge' && TUT_STAGE==='base-back'){
+        tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
+    if(name==='customer' && TUT_STAGE==='base-back'){
+        TUT_STAGE='sell2'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
+        if(SAY_SEQ.indexOf('D23')<0) SAY_SEQ.push('D23');
+        SAY_I=SAY_SEQ.indexOf('D23'); say('D23');
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        return; }
+}
+function tutWorkPlaced(){
+    if(TUT_STAGE!=='base-table') return;
+    TUT_STAGE='base-tap'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D50')<0) SAY_SEQ.push('D50');
+    SAY_I=SAY_SEQ.indexOf('D50'); say('D50');
+    setTimeout(()=>{ const p=tutSharpProp(); if(p) tutArrow(null, ()=>p, { tfx:0.5, tfy:0.4, ox:-96, oy:-84, bow:0.18, back:22 }); }, 0);
+}
+function tutSharpOpen(){
+    if(TUT_STAGE!=='base-tap') return;
+    TUT_STAGE='base-sharp'; TUT_SAIDSHARP=false; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D51')<0) SAY_SEQ.push('D51');
+    SAY_I=SAY_SEQ.indexOf('D51'); say('D51');
+}
+/* the edge reaching the green band is the beat - D52 reacts, D53 points at DONE */
+function tutSharpGreen(){
+    if(TUT_STAGE!=='base-sharp' || TUT_SAIDSHARP) return; TUT_SAIDSHARP=true;
+    ['D52','D53'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    SAY_I=SAY_SEQ.indexOf('D52'); say('D52');
+    setTimeout(()=>{ const a=document.getElementById('tutArrow'); if(a) a.classList.add('above');
+        tutArrow(null, '.sh-done', { tfx:0.5, tfy:0.4, ox:-92, oy:-78, bow:0.18, back:22 }); }, 0);
+}
+function tutSharpDone(){
+    if(TUT_STAGE!=='base-sharp') return;
+    TUT_STAGE='base-take'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D54')<0) SAY_SEQ.push('D54');
+    SAY_I=SAY_SEQ.indexOf('D54'); say('D54');
+    setTimeout(()=>{ const w=tutWorkSword(); if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0);
+}
+function tutWorkTaken(){
+    if(TUT_STAGE!=='base-take') return;
+    TUT_STAGE='base-back'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D55')<0) SAY_SEQ.push('D55');
+    SAY_I=SAY_SEQ.indexOf('D55'); say('D55');
+    setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
+}
+/* the sale that closes the run: this, not a line, is where the dragon becomes a pet */
+function tutSold2(){
+    if(TUT_STAGE!=='sell2') return;
+    TUT_SHARP_RUN=false; TUT_STAGE=null; tutArrow(null,null); TUT_SEEN_END=true; sayHide();
+}
 function tutHmStep(){
     if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
@@ -5199,6 +5348,7 @@ function counterUi(){
     if(dlg) dlg.style.display = here ? '' : 'none';
     document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{
         b.style.display = here ? '' : 'none'; if(here) b.disabled=false; });
+    sellLabel();   /* r103 */
 }
 /* r97: a line nobody can see is worse than no line - never type into a hidden box.
    r98: and the dragon steps back while a customer is speaking. */
@@ -5230,8 +5380,9 @@ function updateTutorialCounterUi(){
     const layer=document.getElementById('screenLayer');
     const on=SF_SCREEN==='customer' && TUT_COUNTER_VISITED && (TUT_STAGE==='counter-guide' || TUT_STAGE==='counter');
     if(layer) layer.classList.toggle('tut-counter', !!on);
-    const sd=document.getElementById('screenDragonSay'); if(!on && !TUT_BRAM_STATE && sd) sd.classList.remove('show');
-    const bi=document.getElementById('bramIntro'); if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!TUT_BRAM_STATE);
+    if(layer) layer.classList.toggle('tut-dragon', onScreenDragon());   /* r103 */
+    const sd=document.getElementById('screenDragonSay'); if(!on && !TUT_BRAM_STATE && !onScreenDragon() && sd) sd.classList.remove('show');   /* r103 */
+    const bi=document.getElementById('bramIntro'); if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done');   /* r103 */
 }
 /* r96 - the bell beats. D27 puts it on the counter lit, D28 asks for the tap, and ringing it brings
    the first customer, who speaks before the dragon comments. */
@@ -5423,8 +5574,25 @@ function tutAnvilStep(){
     tutArrow('#furnaceGate', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 });
     tutGlow('#stAnvil .anvil', true);
 }   // SAY_LAST outlives dismissal: the dragon can be asked again
+/* r103: the stages during which the dragon stands on a SCREEN rather than at the bench. Adding a
+   stage here is all it takes to bring him along to a new screen. */
+const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2'];
+function onScreenDragon(){
+    if(SF_SCREEN==='basement') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;
+    if(SF_SCREEN!=='customer') return false;
+    return (TUT_COUNTER_VISITED || !!TUT_BRAM_STATE) && (TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0 || !!TUT_BRAM_STATE);
+}
+const SAY_BOXES = { bench:['dragonSay','dragonSayText','dragonSayGo'],
+                    screen:['screenDragonSay','screenDragonSayText','screenDragonSayGo'],
+                    sharp:['shSayWrap','shSayText','shSayGo'] };
+function sayWhere(){
+    const sh=document.getElementById('sfSharpModal');
+    if(sh && sh.classList.contains('show')) return 'sharp';
+    return onScreenDragon() ? 'screen' : 'bench';
+}
 function sayLayout(){
-    const onScreen=SF_SCREEN==='customer' && (TUT_COUNTER_VISITED || !!TUT_BRAM_STATE) && (TUT_STAGE==='counter-guide' || TUT_STAGE==='counter' || !!TUT_BRAM_STATE);
+    if(sayWhere()==='sharp') return;   /* r103: the icon surface is placed by CSS */
+    const onScreen=onScreenDragon();
     const box=document.getElementById(onScreen?'screenDragonSay':'dragonSay'), b=onScreen?document.getElementById('screenLayer'):benchEl(), f=document.getElementById('frame');
     if(!box||!b||!f) return;
     /* r87: inside the hammer modal the bench dragon is behind a z-1000 panel, so the bubble follows the
@@ -5457,13 +5625,16 @@ function sayLayout(){
     box.style.left=(x-host.left).toFixed(0)+'px'; box.style.top=(y-host.top).toFixed(0)+'px';
 }
 function say(id){
-    const onScreen=SF_SCREEN==='customer' && (TUT_COUNTER_VISITED || !!TUT_BRAM_STATE) && (TUT_STAGE==='counter-guide' || TUT_STAGE==='counter' || !!TUT_BRAM_STATE);
-    const box=document.getElementById(onScreen?'screenDragonSay':'dragonSay'), t=document.getElementById(onScreen?'screenDragonSayText':'dragonSayText');
+    const where=sayWhere(), B=SAY_BOXES[where];
+    const box=document.getElementById(B[0]), t=document.getElementById(B[1]);
     const line=DIALOGUE[id]; if(!box||!t||!line) return;
-    const other=document.getElementById(onScreen?'dragonSay':'screenDragonSay'); if(other) other.classList.remove('show');
+    Object.keys(SAY_BOXES).forEach(k=>{ if(k===where) return;
+        const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; t.textContent=line; box.classList.add('show');
-    if(id===lastLine()) TUT_SEEN_END=true;
-    const go=document.getElementById(onScreen?'screenDragonSayGo':'dragonSayGo');
+    /* r103: the guide-to-pet switch still keys off the script's last line, but a scripted TAIL can
+       follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
+    if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
+    const go=document.getElementById(B[2]);
     if(go) go.textContent = (SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue';
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D11' && TUT_STAGE==='quench') tutMugPointer();
@@ -5475,7 +5646,7 @@ function say(id){
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
-function sayHide(){ SAY_ON=null; ['dragonSay','screenDragonSay'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }
+function sayHide(){ SAY_ON=null; ['dragonSay','screenDragonSay','shSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
 /* r87: the dragon is a guide while the script still has something to say, and a pet afterwards. The

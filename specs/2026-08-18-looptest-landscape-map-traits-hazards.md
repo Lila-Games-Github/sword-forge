@@ -4637,3 +4637,87 @@ second call in the same window does **not** re-fire; pushing both clocks back re
 `hmProg = 2` the prompt becomes D47 and draws the mug→work arrow at `z-index: 1090` over the
 `z-index: 1000` modal (screenshot); `noteAction()` clears it. `Object.keys(DIALOGUE).length === 47`,
 `lastLine() === "D47"`. Script body parses. Console clean.
+
+---
+
+## r103 — the basement beat (D48–D55), sharpening and design worth gold, and two locks broken
+
+Owner-supplied beat (2026-09-18), checked line by line before implementing. The second sword leaves the
+forge, is sharpened in the basement and is sold at the counter, which closes the guided script.
+
+### The run
+
+`tutBasementStep` → `tutScreenArrived('basement')` → `tutWorkPlaced` → `tutSharpOpen` →
+`tutSharpGreen` → `tutSharpDone` → `tutWorkTaken` → `tutScreenArrived('forge'/'customer')` →
+`tutSold2`. Every step points an arrow and every step is driven by the gameplay function that already
+did the work (`placeWork`, `openSharpen`, `closeSharpen`, `takeWork`, `goScreen`, `sellCounter`), so
+nothing new polls.
+
+`TUT_SCREEN_STAGES` is the list of stages during which the dragon stands on a screen rather than at the
+bench; adding a stage to it is all it takes to bring him to a new screen. `onScreenDragon()` replaces
+the predicate that `say()` and `sayLayout()` each carried a private copy of.
+
+### A third dialogue surface
+
+The dragon cannot stand inside the sharpening panel, so `assets/ui/dragon_icon.png` speaks for him:
+top-left, line to its right, advancing on a tap. This is the file HANDOFF listed as committed but
+referenced nowhere. `say()` now picks between three surfaces through `sayWhere()`/`SAY_BOXES` instead of
+a two-way ternary.
+
+### Sharpening and a custom design are worth real gold
+
+`swordValue()` summed traits and nothing else — `WORK.sharp` and `w.design` never reached the price, so
+both stations were cosmetic. Now `swordPriceParts()` returns `{base, sharp, design, total}`:
+**+7g** for an edge in the green band (`SH_ZONE_LO`, 80% — the same threshold D52 reacts to) and **+7g**
+for a sword the player actually took through the Design Desk (`closeDesign` sets `designed`). Both are
+flat and added **after** the popularity/reputation multipliers, so the sell button can print them as
+separate terms, and each term is absent rather than `0g` when unearned.
+
+The SELL button, which read the single word SELL, now reads **"Sell for 44g + 7g + 7g"**. Its width goes
+8.90% → 16.50% with the aspect-ratio stretched to match (143/51 → 265/51), so the paper widens at an
+unchanged rendered height and its right edge stays at 68.71%, clear of DENY. Measured at 169×33 px.
+
+### The tutorial caps the edge at the green band
+
+`SH_VAL` is clamped to `SH_ZONE_HI` (90.1) while `TUT_STAGE==='base-sharp'`. Without it a player who
+kept grinding would sail past the band the beat is about. Outside the tutorial the cap is 100, as before.
+
+### Two locks this beat walked straight into
+
+- **No counter sale was possible after Bram's.** `sellCounter()` opened with `if(TUT_BRAM_SOLD) return;`,
+  so from the moment Bram was served every customer the bell brought could be handed a sword but never
+  sold one. It was never noticed because the scripted path had no second sale until now. Bram's own
+  states still gate his scripted sale; `'done'` now means he has left and the counter is ordinary.
+  Verified: with `TUT_BRAM_SOLD` true a sale pays out, where it previously paid nothing.
+- **Bram's intro panel came back every visit.** `updateTutorialCounterUi` toggled it on `!!TUT_BRAM_STATE`,
+  and that state ends at the truthy string `'done'` — so returning to the counter re-showed his dialogue
+  and his two response buttons with no Bram behind them. `takeCare()` had hidden the panel by hand and
+  the next `updateTutorialCounterUi()` undid it. Now excluded explicitly.
+
+### Three smaller faults found by driving it
+
+- **`#workZone` has no box until something is dragged over it**, so an arrow aimed at it drew nothing.
+  `tutRect` now accepts a plain viewport rect as well as an element, and the table/counter arrows aim at
+  `zoneRect()`.
+- **`sayHide()` ran after `tutSharpDone()`** in `closeSharpen`, wiping the D54 it had just put up.
+- **The DONE pointer was under the panel** — `#tutArrow` at z-70 against a z-1000 modal, the same trap
+  r102 hit with the mug. It takes the same `.above` lift, dropped when the panel closes.
+
+`goScreen` also redraws the arrow on the plate's `onload`, because the props it may be aiming at move
+when the art decodes.
+
+### Verification
+
+Driven end to end in the preview: crafted → D48 with the down arrow → basement arrival shows the dragon
+(`tut-dragon`) with D49 and the inventory→table arrow → `placeWork` gives D50 and the wheel arrow →
+`openSharpen` gives D51 on the icon surface → the edge crossing 80 gives D52 and the DONE arrow over the
+panel → DONE gives D54 with `WORK.sharp === 84` → `takeWork` gives D55 and the up arrow → forge shows the
+left arrow → counter gives D23 → the sale pays **58g** (44 + 7 + 7) and ends the run
+(`tutOver() === true`, stage null). `Object.keys(DIALOGUE).length === 55`, `lastLine() === "D55"`.
+Screenshots of the basement, the sharpening panel and the counter. Console clean.
+
+### Open
+
+The sell button and the dragon's speech bubble can overlap at the counter while a line is still up; the
+bubble closes on a tap, so the price is readable before the player acts. "Polishing", named by the owner
+alongside sharpening and designing, has no system yet and adds nothing.
