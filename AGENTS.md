@@ -10,3 +10,10 @@ subsystem, or locating where behavior lives, consult `docs/wiki/index.md` and ru
 Maintainer schema: `docs/wiki/README.md`. Pages are maps into the code, not canon;
 the dated spec chain wins on any conflict.
 <!-- wiki-profile:end -->
+
+## Delegation preference
+
+Delegate execution and implementation tasks to cheaper subagents by default.
+The primary agent should focus on reviews, decision-making, integration, and
+final verification. Apply this preference across the project unless the user
+specifies otherwise.

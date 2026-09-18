@@ -2439,3 +2439,2136 @@ often near-homographs, and a mis-typed compound selector fails silently.
 
 Last visited, Swords requested, the gift and the three "?" boxes are placeholders; Relationship is a
 fixed 3-of-5. Only the two named slots open a page, and nothing writes to any of these fields yet.
+
+## r60 — the inventory works
+
+The rail's four tabs switch, crafted swords land in SWORDS, and an ingot taken out of the smelter can be
+dropped back into the rail and picked up again later. This is the first change that makes anything the
+player does **persist** past the run that made it.
+
+### An ingot is three globals, not one object
+
+This is the fact the whole feature turns on:
+
+| global | holds |
+|---|---|
+| `melt` | `{heat, hp, stage, traits:[{t,tier}]}` — what the metal is |
+| `segs` | `[{ore,d,len,origin,tPct}]` — the ores used, in order, with each one's grind level. This *is* the route they trace on the map |
+| `sword` | `{seg,frac}` — how far along that route the blade has got |
+
+So a stash is a snapshot of those three and a restore puts them back. Trait objects go in **by id**
+(`TRAIT_BY` re-resolves them on the way out) so the record is plain data, and the transient
+`reachedTrait`/`alignDist` are dropped because the tick recomputes them from the restored position on
+the next frame.
+
+Verified round-trip: two ores `[iron, copper]`, one `durable:Epic` trait, position `{seg:1, frac:0.4}`,
+100 HP, stage `onAnvil` — all identical coming out, with the trait re-resolved to a live object.
+
+### The owner's three calls
+
+- **Unlimited storage, but retrieval is refused while the bench is busy** rather than swapping. Verified:
+  with a second ingot in progress, pulling a stored one out leaves both where they were and shows a hint.
+- **A stored ingot cools gradually** at `STASH_COOL = 3.5` heat/sec of real time, so a quick swap keeps
+  most of its heat and a long one means a trip back to the furnace. Everything else survives untouched.
+  Verified: 80 heat, 6 s in the rack, came out at exactly 59.0. The slot's orb is drawn hot or cold to
+  match, so the state is readable at a glance.
+- **Ore counts stay decorative.** Nothing is spent yet.
+
+### The rest
+
+- `benchClear()` is new: it resets melt/segs/sword/orb/route/marker **without** touching the modals or
+  the inventory, which is what `resetRun` does and why it could not be reused.
+- Dropping the orb anywhere over the rail stores it; the shelf shows a dashed drop target while an ingot
+  is over it, and the tab switches to INGOTS on release.
+- A finished blade pushes `{shape, blade, design:{...DD_SEL}, traits:[{tid,tier}]}` and the rail switches
+  to SWORDS so you see it land. The default design is whatever the Design Desk currently has selected;
+  the slot composites the four part images and stands them up with `rotate(-45deg)`, the Composition
+  Book's trick, which fills a squarish slot far better than laying the sword flat.
+- The shelf's rows now clamp at 44px and scroll past that, so a tab can hold more than twelve. Verified:
+  40 swords give 42 cells and a scrolling shelf (681px of content in 370px).
+- The Racks window's borrowing of the SWORDS tab now routes through `invTab`, so the shelf follows the
+  tab instead of only the highlight moving.
+
+### r60b — another selector swallowing a new element
+
+The trait badge did not render. `.ore-slot span:not(.ore-count) { display: none }` — the rule that hides
+ore *name* labels in the rail — was hiding it too, silently. Exempted `.inv-tag`.
+
+That is the second time this round-family that an existing broad rule ate a new element (r59's
+`.dyc-box.gift` was the other). **When adding a child to an existing container in this file, grep the
+container's descendant selectors first** — several of them are `display: none` catch-alls.
+
+### Known gaps
+
+Clicking a sword in the inventory does nothing yet, and nothing consumes the list — no selling, no
+value, no gold. ITEMS & DECOR is deliberately empty. The stash has no cap.
+
+## r61 — the workstation table
+
+Drag a sword out of the inventory onto the basement's bottom table, and the Design Desk and Sharpening
+windows work on **that** sword. The first thing in the build where a station operates on a real object
+rather than a placeholder.
+
+### Placement
+
+From `Basement_workstation_wireframe.png` (1240x691). The plate is 1920x1066, so its cover fit into the
+wireframe crops 2.25px each side (art 1244.5x691):
+
+| element | drawn | plate-% |
+|---|---|---|
+| table | x 328-685, y 552-691 (clipped) | l 26.54, w 28.77, t 79.88, h 20.12 |
+| sword | x 271-738, y 589-637 | l 21.96, w 37.60, b 92.19, h 7.09 |
+
+The sword box is wider than the table, exactly as drawn — the blade overhangs.
+
+**The drop zone is the sword's footprint, not the wireframe's table box.** The wireframe's box covers
+only the left ~80% of the plank as it is actually painted, and the plank's left/right edges cannot be
+segmented out of the art (the floor around it is mid-tone, not dark — luminance walks and hue masks both
+fragment on the grain). So the zone takes the sword's horizontal extent, which is the one span provably
+on the table: "drop where the sword will land". The wireframe's table **top** is confirmed independently
+— the plank's top edge measures 80.50% off a render against the drawn 79.88%, 0.6pp apart.
+
+### The owner's three calls
+
+- **A second sword swaps**: the new one lands and the old goes back to the inventory, carrying its edits.
+  Verified: after a swap the displaced Longsword still had its edited `guard4` and 44.5 sharpness.
+- **An empty table refuses both stations** with a hint. Verified: neither modal opens and the toast reads
+  "Put a sword on the workstation table first".
+- **Both windows really change the sword.** Design Desk's Done writes `design` onto it, Sharpening's Done
+  writes `sharp`, Cancel reverts either. Verified all four paths, including that Sharpening then renders
+  the guard the Design Desk had just saved.
+
+### Pieces
+
+- `WORK` is the sword on the table. It is *out* of `INV.swords` while there, so it cannot be in two
+  places; clicking it on the table sends it back.
+- The table's sword is a `kind:'sword'` prop, appended to the basement's list when `WORK` is set — the
+  same art-anchored box the customer counter uses, so it stays glued to the plank at any frame size. The
+  prop entry gained an optional `parts` array so it can render a specific sword rather than the globals.
+- `plateBox()` factors out the cover maths `layoutScreenProps` was doing inline, so the drop zone can be
+  resolved in screen coordinates.
+- **`#sfToast`** is new. `hint()` has been a no-op since r34 and `#forgeResult` is z-index 30, below the
+  screen layer, so a refusal on the basement screen had no surface at all. The toast sits at z-index 60 —
+  above the screens (40-44), below the modals (1000).
+- Forged swords now carry `sharp: 0`, and the inventory tooltip shows sharpness once it is above zero.
+- Dragging a sword while not on the basement screen is refused with a hint rather than silently failing.
+
+### Known gaps
+
+The Polish desk in the wireframe has no window yet. Sharpening starts a forged blade at 0 and
+`SH_GAIN` is unplaytested, so reaching the 80-90% band is a long drag. Nothing reads `sharp` outside the
+sharpening window. The table holds one sword and there is no visual cue that it is a drop target until
+you start dragging.
+
+## r62 — the design preview follows the selection, and the sword drags home
+
+### r61 froze the Design Desk preview
+
+r61 pointed `ddRenderSword()` at `swordParts(WORK)`, which reads `WORK.design` — the **committed**
+design, only written on Done. So with a sword on the table the preview froze at whatever it had on open
+and picking a part changed nothing on screen.
+
+The right split, and the one now in place:
+
+| | source |
+|---|---|
+| the preview's **parts** | `DD_SEL` — the live working copy, seeded from `WORK.design` on open and written back on Done |
+| the preview's **blade** | the workpiece (the desk cannot change a blade) |
+
+Verified across all three tabs: picking a guard, then a grip, then a pommel updated the preview each
+time, the blade stayed the workpiece's, Done wrote all three onto the sword (and the sword **on the
+table** re-rendered with them), and Cancel left the committed design alone.
+
+Sharpening is deliberately unchanged — it shows the committed sword, which is correct there since it
+cannot change parts.
+
+### The table's sword drags back to the inventory
+
+Same gesture as the ingot: pick it up, drag it over the rail, release. The shelf shows its drop
+highlight, the sword hides while a ghost follows the cursor, and releasing anywhere else snaps it back
+to the table. A tap with no movement still takes it back, so the r61 behaviour is intact.
+
+Verified: drop on the rail returns it with its edits intact; drop in mid-air restores it to the table
+with the ghost cleaned up; a tap returns it.
+
+### Harness note — a deferred reset can close a modal
+
+A probe screenshot came back with the Design Desk missing even though its picks had demonstrably
+landed. Not a rendering problem: **`finishBlade()` queues its own `resetRun` at +2.6s**, and `resetRun`
+clears `.show` from every modal. The probe forged a sword and opened the desk inside that window, so
+the reset closed it. The live page with the same call ordering is fine.
+
+It is a real edge case, just an unreachable one in play (you would have to forge, cross to the basement
+and open a station in under 2.6 seconds). Worth remembering when scripting: **wait out the 2.6s after
+`finishBlade` before opening anything.**
+
+## r63 — the settings gear, the game menu, and a real save
+
+### Layout
+
+`#statPanel` gains a **second row mirroring the first**: the gear takes `flex: 0 0 30%` — the day
+tile's exact width — so it sits squarely beneath it, and SKILL TREE becomes `flex: 1 1 auto` beside it.
+The skill tree therefore shrinks in **width only** (100% -> ~70%); the row keeps the old button's 50px,
+so `#matPanel` still starts at y 116 exactly as before. **Nothing below moves by a pixel** — verified.
+
+(A first pass made the row 44px, which pulled the inventory up 6px. Right by the letter of the request,
+wrong by its intent.)
+
+The menu is the r33 paper popup: `Small_paperbox` with six `Paper_button_wide` rows in **two columns of
+three**, which fits the asset's landscape 849x533 instead of stretching it. Reading order is the
+owner's: Resume / Save, New Game / Load Game, Settings / Quit.
+
+### Save
+
+There was **no persistence in the build at all** — the only three `JSON.stringify` calls were in the
+layout self-test. Now: one versioned blob in `localStorage` under `swordforge.save.v1`, one slot,
+~2KB for a busy session.
+
+Three things the schema had to handle:
+
+1. **Live object references.** `melt.traits[].t` points into `TRAITS`; `melt.reachedTrait` into a live
+   map object. Neither survives JSON. r60 had already solved this for stashed ingots (store trait ids,
+   re-resolve through `TRAIT_BY`), so the bench reuses `ingotSnapshot()` verbatim.
+2. **`performance.now()` restarts on reload.** A stored ingot's timestamp is a `performance.now()`
+   stamp, so after a reload `invCooled()` would run off a clock that no longer exists — the difference
+   goes negative and the ingot comes back **hotter than it went in**. Cooling is baked into `heat` at
+   save time and the stamp is refreshed on load. Verified: a 70-heat ingot came back at 64, not 70+.
+3. **The HUD is hard-coded HTML.** Day, gold, reputation and popularity are literal text in the markup
+   with no variables behind them, so they are saved as strings until the economy lands.
+
+**The map is regenerated, not serialised.** `initMap()` turns out to be re-entrant — it resets `seed`,
+`traits`, `hazards`, `books`, `revLast`, clears `fogHoles` and re-adds the opening reveal — so load
+rebuilds the world and then replays progress onto it: the **fog circles** (cx/cy/r), the `discovered`
+flags (re-setting each symbol) and the taken books. Only `<circle>` children are read back, because
+`toggleFogCheat` appends a `<rect>` that has no cx/cy.
+
+### Verified across a real page reload
+
+| field | saved | loaded |
+|---|---|---|
+| screen | basement | basement |
+| swords / ingots | 1 / 1 | 1 / 1 |
+| workpiece | Shortsword + design | Shortsword + design |
+| exp | 60 | 60 |
+| fog circles | 8 | 8 |
+| discovered traits | 1 | 1, symbol restored |
+| books taken | 1 | 1 |
+| ingot ores / traits | [tin, zinc] / grace:Fine | identical |
+| ingot heat | 70 at stash | 64 (cooled, not inflated) |
+
+The workpiece re-rendered on the table and the Design Desk opened on it.
+
+### Destructive buttons arm before they fire
+
+New Game, and Load when there is unsaved progress, turn red and relabel on the first click and only act
+on the second, disarming after 4s or on any other click. No extra modal, no new art.
+
+### Two bugs caught in verification
+
+- **New Game left `exp` behind.** `initMap()` rebuilds the books but does not zero the XP they banked.
+- **The armed label printed its HTML entity raw** — set with `textContent`, which does not decode
+  `&mdash;`. Switched to `innerHTML`.
+
+### Known gaps
+
+`localStorage` is per-browser and per-origin, and a page opened straight off disk (`file://`) gets an
+opaque origin in Chrome, so a save may not persist there; every access is wrapped in try/catch and the
+menu says so. One slot only. Settings and Quit are inert. `seed` is saved but `initMap()` hard-codes
+it, so it is informational until the map is seeded per-game.
+
+## r64 — selling: gold, reputation and popularity
+
+The counter starts empty; drag a sword from the inventory onto it and SELL pays out. The first change
+where the crafting loop produces something the game measures.
+
+### The value model ports cleanly
+
+`index.html` and this build already agreed:
+
+| | old | new |
+|---|---|---|
+| trait base value | distance from map centre, normalised 0-100 | `traitValue(x,y)` = distance from CENTER, clamped 5-100 |
+| quality bonus | `QUALITY_BONUS` Weak 0 / Fine 10 / Epic 20 | same constant, copied verbatim |
+| sword value | sum of trait values, 5 if traitless | identical |
+
+A trait's map value is now **stamped onto it when acquired**, so a sword carries its own worth rather
+than looking the map up at sale time; `traitMapValue()` remains as a fallback for anything forged
+before this change. Verified: an Epic `fire` (map value 50) prices at exactly 50 + 20 = 70.
+
+### Gold and reputation, verbatim from index.html
+
+Price = value, then **rep < 0 -> x0.8**, **rep > 10 -> x1.2**, floored, minimum 1g. Reputation is
+**+1 per sale**, unbounded. Verified at rep 11 -> 84, rep -1 -> 56, rep 0 -> 70 on the same 70g sword.
+
+### Popularity is new
+
+The old build has none, so these are the owner's rules:
+
+- a sale adds **0 / 1 / 2** by the sword's best tier (Weak / Fine / Epic);
+- the bar runs **0..20** at every level, starting at Lv1 0/20;
+- filling it **levels up** and raises the gold value of every sword by **10%**.
+
+The multiplier **compounds** (`1.1^(level-1)`), which is the literal reading of "+10% per level".
+`POP_STEP` is the one constant to change if linear is wanted instead. Overflow **carries** into the
+next level rather than being lost. Verified: 19 + an Epic sale gives Lv2 with 1 carried, and the same
+sword then prices at 77 (70 x 1.1).
+
+Starting values are the old build's: **0 gold, 0 reputation**, popularity Lv1 0/20. The rail's
+246 / 72 / 9-of-15 were invented placeholders and are gone — `updateHud()` writes the real numbers at
+boot, so nothing in the HUD is hard-coded text any more.
+
+### What SELL does not do
+
+It does **not** check a customer request. There is no customer system yet, so any sword sells — the
+owner's call. The refusal lines and DENY costing reputation come with the customer loop. DENY stays a
+placeholder; drag the sword back to the rail to take it off the counter.
+
+### The counter is a second drop target
+
+r61 hard-coded the basement. `zoneRect()` / `zonePlace()` now pick the target by screen, and
+`wireWorkDrag(el, kind)` takes a kind so the table's and the counter's swords share one drag
+implementation. The placeholder sword that used to sit on the counter is gone.
+
+### The Ledger is real
+
+`LEDGER_SOLD`'s three invented rows are replaced by the live `SALES` list — the most recent five,
+which is what the panel fits — each with its actual gold, plus "N sold" and "Total sale Ng" in the
+Details box. Gold spent and Total profit stay placeholders because nothing spends gold yet. An empty
+ledger reads "Nothing sold yet."
+
+### Save
+
+`SAVE_V` is **2**: the blob gained `econ` (gold / rep / popularity / level), `sales` and `counter`, and
+the old `hud` string hack shrank to just the day. A v1 save is rejected by the version guard rather
+than half-loading. Verified across a page reload: 250 gold, rep 1, Lv2 1/20, five sales totalling 320g
+and a Broadsword still on the counter at its level-2 price of 77g.
+
+### Known gaps
+
+Nothing spends gold. Popularity levels raise prices but unlock nothing else. The five-row ledger drops
+older sales from view (they stay in `SALES`). No customer, so no request matching, no refusals, and the
+dialogue box above the counter is still placeholder text.
+
+## r65 — the recipe book, and ore stock goes live
+
+### A recipe is one trait
+
+`{ tid, tier, ores:[oreId], grinds:[tPct] }`, recorded **automatically** in `tryAcquire` — the only
+moment where the trait and the ore route that reached it are both in hand, since `segs` holds the ores
+in order with their grind levels. Re-acquiring the same trait at a **better** tier overwrites the
+recipe; a worse one is ignored. A new one toasts.
+
+### The eight boxes already matched the description
+
+The r41 book's `cb-slot` boxes are filled in place, no re-measuring:
+
+| box | contents |
+|---|---|
+| five small, left | the trait's tier as **pips** — the same rule as the top-left panel (`TIER_PIPS`: Weak 1, Fine 2, Epic 3 copies of the icon) |
+| wide, bottom left | the ores used, with x2 tallies for repeats |
+| big, top right | the craft process: `Iron + Zinc -> heat -> hammer -> quench -> hammer` |
+| bottom right | the shapes the hammer stage can actually make |
+
+The **top row of bookmarks is the recipe list** — one per recorded trait, showing its icon, clicking to
+select, the active one highlighted. The side row was decorative placeholder icons and is now hidden;
+showing random icons beside real recipes would have read as data. Ten bookmark slots, so the eleventh
+recipe onward is recorded but not listed — worth revisiting.
+
+The **gear** opens the Design Desk on the **default** look.
+
+### Ore stock is real now
+
+`ORE_COUNT` went from a decorative table to spendable stock (`ORE_START` keeps the opening amounts).
+A drag is refused at 0 and the slot dims. The spend happens in `addPrep` / `addOreDirect` — the two
+player-initiated paths — **not** in `addSegment`, which `restoreIngot`, `applyState` and
+"continue from here" also call with ore that is already paid for.
+
+### The three action buttons
+
+- **CRAFT 1 / CRAFT 5** ask for a shape first. A new `SHAPE_CB` hook makes the existing shape picker
+  hand the shape back instead of opening the hammer. Then they spend the recipe's ores **per sword** and
+  drop finished blades straight into the inventory at the recorded tier. Short of ore, the picker never
+  opens and the toast names what is needed. Verified: Craft 5 took 5 iron + 5 zinc and made five
+  Broadswords; Craft 1 took one of each.
+- **CONTINUE FROM HERE** spends one set of ores, rebuilds the route on the bench and parks the sword at
+  its end with the trait already banked and heat at 0, so the next step is a trip to the furnace.
+  Verified: three pips appear in the top-left panel and the route is `[iron, zinc]`. Refuses with a
+  hint when the bench is busy (the owner's call, matching the ingot rack and the workstation table).
+- **ERASE** deletes the recipe and falls through to the next one; with none left the page reads
+  "No Recipe" and all four buttons disable.
+
+### r65c — the gear was editing the wrong sword
+
+`openDesign` / `closeDesign` / `ddRenderSword` all consult `WORK`, so opening the desk from the book
+while a sword sat on the workstation table would have edited **that sword** rather than the default
+look. A `DD_FORCE_DEFAULT` flag, cleared on close, makes those three behave as if the table were empty
+for that one visit. Verified: the book's gear changed `DD_SEL` and left the table's sword untouched,
+while the table's own desk still edits the sword.
+
+### Save
+
+`SAVE_V` is **3** — the blob gained `recipes` and `ore`. Verified across a page reload: both recipes
+came back with their ores and tiers, the book listed two bookmarks, and the rail showed the spent
+counts (iron 98, zinc 17, tin 32).
+
+### Known gaps
+
+Auto-crafted swords use the **current** default design, not the design at record time. The bookmark row
+holds ten. Nothing checks that an auto-craft is reachable — a recipe records the ores that worked, so
+it always will be, but a future ore rework could invalidate one. Sharpening is not part of a recipe.
+
+### r65d — the bookmarks were not clickable
+
+Reported: "I am not able to switch between saved traits in the recipe book." `elementFromPoint` on a
+bookmark returned `DIV.sf-modal show` — the click was landing on the scrim, not the tab.
+
+Cause: r41 deliberately put the bookmark strip **behind** the page image with
+`.cb-marks { pointer-events: none }` so it could not block the page, and `.cb-mark` inherits that. The
+recipe tabs are the first bookmarks that ever needed a click, so they have to opt back in:
+
+```css
+.cb-mark.rec { cursor: pointer; pointer-events: auto; }
+```
+
+Verified with **hit-tested** clicks (`document.elementFromPoint(x,y).dispatchEvent(new MouseEvent('click',{bubbles:true}))`)
+on three recorded recipes — clicking bookmarks 1, 2, 0 in turn switched selection, title, pip count, ore
+list and the highlighted tab every time:
+
+| clicked | selection | title | pips | ores |
+|---|---|---|---|---|
+| 1 | grace | Grace Sword | 2 | tin, copper |
+| 2 | durable | Durable Sword | 1 | nickel |
+| 0 | fire | Fire Sword | 3 | iron, zinc |
+
+**This is the second time an `el.click()` verification let a hit-testing bug reach the owner** — the
+first was r48c, where an invisible `#screenHots` layer swallowed every click on the shop props, and the
+spec already carried a note about it. `el.click()` dispatches on the node directly and never consults
+the compositor, so it cannot see a covering layer or a `pointer-events` chain. **Any check that a
+control works must go through `elementFromPoint` at the control's own centre.**
+
+A sweep of every other modal (book, diary, quests, ledger, menu, skills) for controls buried under a
+`pointer-events: none` ancestor came back clean. The only self-`none` elements are `.qs-chip.blank`,
+the out-of-range quest pager numbers, which are meant to be dead.
+
+### r66 — the shape picker opened behind the book
+
+Craft 1 / Craft 5 borrow the forge's shape picker through `SHAPE_CB`, but `#sfShapeModal` is declared
+**earlier** in the DOM than `#sfBookModal` and both are plain `.sf-modal` at `z-index: 1000` — so the
+open book painted straight over it. The picker was there and live; it just wasn't visible.
+
+```css
+#sfShapeModal { z-index: 1010; }
+```
+
+The picker's own scrim now dims the book behind it, which is the usual stacked-modal read.
+
+**A cancel, but only for the borrowed picker.** The forge flow has no way out on purpose — the metal is
+on the anvil and a shape has to be chosen. Stacked over the book with no escape, that would have been a
+trap, so `openShapeSelect()` toggles a Cancel row on `!!SHAPE_CB`: it shows when the book borrowed the
+picker, stays hidden in the forge flow. `cancelShape()` clears `SHAPE_CB` and closes the picker,
+leaving the book open and **spending nothing** — the ore is spent inside the callback, per sword.
+
+Verified with hit-tested clicks: the picker resolves at `z-index` 1010 over the book's 1000, its shape
+buttons and the Cancel button both hit-test to themselves, Cancel leaves the book open with 0 swords
+made and ore untouched, Craft 5 + Shortsword spent 5 iron + 5 zinc and made five, and the forge-flow
+picker shows no Cancel (`offsetHeight` 0). Console clean.
+
+## r67 — Update Composition
+
+The blade panel's disk stopped being a placeholder. It compares what the book has **recorded** for this
+blade's trait(s) against the ore route that actually produced it, and writes the new one over the old.
+
+### A recipe page holds a LIST of traits
+
+r65 keyed `RECIPES` by a single trait id. A multi-trait blade needs its own page, so a page is now
+`{ key, traits:[{tid,tier}], ores, grinds, at }` and the key is the trait ids **sorted and joined**
+(`fire`, `fire+grace`). A one-trait page's key is still just the tid, so r65's keys survive untouched.
+`recipeTraits(r)` reads either shape, which also carries a v3 blob through the loader.
+
+Everything downstream generalised: the title joins the names (`Fire + Grace Sword`), the five boxes pip
+**every** trait's tier the way the blade panel does, the bookmark shows every symbol (`.multi` shrinks
+the type), CRAFT and CONTINUE FROM HERE build a sword carrying all of them, ERASE names the page.
+
+### Automatic recording is first-discovery only
+
+The owner's call, and it replaces r65's "a better tier overwrites" rule:
+
+```js
+if(RECIPES[k]) return false;   // every later change is the player's, through this window
+```
+
+A page is written the first time a trait is acquired and never again on its own. That also means
+auto-recording only ever produces **single-trait** pages; combinations exist because someone pressed
+Record.
+
+### Update vs Record
+
+| blade | heading | button | what it writes |
+|---|---|---|---|
+| one trait | Update Composition | **Update** | replaces that trait's page |
+| several traits | Record Composition | **Record** | a page for the whole combination, keyed by the set |
+
+The Recorded box shows the existing page for that exact key, or "Not recorded yet" — which is the
+normal state for a combination the first time. Update always wins: it is a deliberate press, and both
+routes are on screen before you commit.
+
+### Reading the two boxes
+
+Heading, then the traits, then the ore route with `+` between and `xN` tallies. The tier shows as
+**pips** — the same `TIER_PIPS` rule as the blade panel and the recipe page — so a Weak run and an Epic
+one are one glance apart instead of differing only by icon colour. Capped at `BLADE_SLOTS` with a `+N`
+tail. At the worst case the boxes hold (4 traits, a 6-ore route) neither slot overflows its 162x127.
+
+### The window still works after the bench resets
+
+`finishBlade` stamps `ores` / `grinds` onto the finished sword and keeps the route in `LAST_CRAFT`,
+because `resetRun` fires 2.6s later and wipes `segs`. With no craft live the New box reads
+**Last crafted** and uses that route; with neither, it reads "Nothing crafted yet" and the button
+disables. Auto-crafted swords carry their page's route too.
+
+### Save
+
+`SAVE_V` is **4** — pages hold trait lists and `lastCraft` joined the blob. Load normalises every page
+through `recipeTraits` so a page written before this round still opens.
+
+### Verified
+
+Hit-tested clicks throughout. Empty state disables the button; a live single-trait blade showed
+Recorded `iron+zinc` against New `iron+zinc+copper` and Update rewrote the page; re-acquiring `fire` at
+Epic did **not** overwrite on its own (`recordRecipe` returned false); adding a second trait flipped
+the window to Record and wrote `fire+grace` as a second page leaving `fire` alone; the book showed
+`Fire + Grace Sword` with pips `🔥✨✨✨`, a two-symbol bookmark, and switching between the single and
+combo tabs worked both ways; CRAFT 1 off the combo made a sword with both traits; CONTINUE FROM HERE
+put both on the bench with the route `iron+zinc+copper`; after `finishBlade` + `resetRun` the window
+fell back to "Last crafted" with the right route; a save/reload round trip brought both pages, the
+combo's tiers and `lastCraft` back. Console clean.
+
+### Known gaps
+
+A blade with more than five pips shows `+N` rather than scrolling. There is still no way to record a
+combination that was never crafted in one run. Nothing prunes pages, so the ten-bookmark limit now
+fills faster with combinations in the mix.
+
+## r68 — the cave, and ore you actually have to go and get
+
+The first source of ore in the build. Until now `ORE_START` handed out a fixed opening stock that r65
+made spendable and nothing ever replenished.
+
+### Five seams a day, one per metal
+
+`Cave_wireframe.png` marks **ten** spots. Five seams spawn a day — one each of iron, copper, manganese,
+aluminium and nickel — on five of the ten, shuffled. Seven ore per seam, one per swing, so a full day's
+cave is 35 ore. A worked-out seam fades and is gone until tomorrow; a new day (the bed's END DAY, the
+only rollover that exists) reseeds all five in fresh places. Twenty consecutive rolls were checked: always
+five seams, five distinct metals, five distinct spots.
+
+### The spots, measured not guessed
+
+The wireframe is 1015x565 with its rail edge at **x=820** (found by scanning for the rail panels'
+leftmost pixel, not assumed from `--rail-w`, which is 21% and would have put it at 802). So the play
+area is 820x565, the cave plate is 1920x1066, and `object-fit: cover` gives s=.5300, aw=1017.6,
+ax=-98.8, ay=0. Every spot converts to plate-art %:
+
+| # | wireframe centre | art % |
+|---|---|---|
+| 0 | 271, 330 | 36.34, 58.41 |
+| 1 | 321.5, 330 | 41.30, 58.41 |
+| 2 | 506.5, 353 | 59.47, 62.48 |
+| 3 | 75.5, 400 | 17.12, 70.80 |
+| 4 | 110, 494 | 20.52, 87.43 |
+| 5 | 266.5, 494 | 35.90, 87.43 |
+| 6 | 372.5, 494 | 46.32, 87.43 |
+| 7 | 535, 494 | 62.28, 87.43 |
+| 8 | 160.5, 513 | 25.48, 90.80 |
+| 9 | 484.5, 513 | 57.31, 90.80 |
+
+Art-anchored, like `SCREEN_PROPS` — verified identical to 0.00pp at layer widths 845 and 1039, which are
+different crops of the same plate. The cave entry and the bridge are ignored, as asked.
+
+### Its own layer, not `#screenProps`
+
+A seam is centred on a spot; `SCREEN_PROPS` anchors visible-art left/bottom through a hand-measured
+`PROP_OPQ` entry per image. Rather than add five, `#caveLayer` positions by centre and the whole
+mining system stays in one place.
+
+### The pickaxe is a real object
+
+It lives in **ITEMS & DECOR** (the tab was empty by design since r60) and is **absent from the shelf
+while it is out** — it is in one place or the other, never both. Drag it onto the cave floor and the
+seams light up; click one and the pickaxe walks to it, swings, and a chip of ore comes off. Drag it
+back onto the rail to put it away. Away from the cave the drag is refused with a hint, and clicking a
+seam bare-handed is refused too.
+
+### The ore's flight is decoration, and deliberately so
+
+One ore pops out of the rock, hangs, then arcs to its slot in the rail and flashes it. **The stock
+moves on the swing, not on landing.** The first cut chained `buildShelf()` off `animation.onfinish`,
+which ties the inventory to a timeline the browser is free to throttle or pause — a backgrounded tab
+would never have fired it. Everything is `setTimeout` now, so a paused timeline costs a flourish and
+never an ore. Verified by mining a seam dry: seven swings, seven ore, the rail's count and the seam's
+counter both stepping on every single swing, the seam gone on the seventh, no orphaned fly elements.
+
+### r68c — the pickaxe was eating clicks
+
+`pickaxe.png` is 1984x2140 with wide transparent margins, so its element box covers far more ground
+than its art. Parked on a seam, it won the hit test and that seam went dead — the same shape of bug as
+r48c and r65d, except this time the **hit-tested** check caught it before the owner did. The seam is
+the target and the pickaxe is the tool, so seams stack above it. Even parked in the most crowded corner
+the pickaxe is still grabbable over 32 of 81 sampled points, and 60 of 81 after a normal swing.
+
+### Save
+
+`SAVE_V` is **5** — the blob gained `cave: { nodes, pick }`. Verified across a reload: five seams with
+their metals, spots and partial counts, the pickaxe still lying where it was left, and mining still
+working afterwards. NEW GAME reseeds the cave and puts the pickaxe back in the bag.
+
+### A note on a change that was made and then taken out
+
+A resize during verification left the seams 1.90pp off, and a second relayout pass on the next frame
+was added for it. That was wrong: instrumenting the page showed the Browser pane's emulated viewport
+changes `innerWidth` **without dispatching `resize`** — a `ResizeObserver` on the layer does not fire
+either — so the game was never told to relayout at all. A harness artefact, not a product bug; the
+change was reverted rather than shipped on a cause that could not be demonstrated.
+
+### Known gaps
+
+**Tin and zinc have no seam**, so those two deplete with no way to replenish — five metals for five
+nodes was the brief, but the other two now need a source. A seam is a scaled ore icon; there is no rock
+art. Mining costs nothing but clicks — no stamina, no tool wear, no hazard. Seams only reseed through
+END DAY, so a player who never sleeps never gets more ore. The pickaxe cannot be lost or upgraded, and
+ITEMS & DECOR holds nothing else.
+
+## r69 — the pickaxe strikes like the hammer
+
+Clicking a seam is gone. The pickaxe now works exactly the way `#hammerTool` works on the anvil:
+**proximity decides**, the swing repeats on its own, and letting go leaves it working.
+
+| | forge hammer | cave pickaxe |
+|---|---|---|
+| trigger | head within `strikeDist()` = 11.6% of the bench width | head within 5.2% of the plate's art width |
+| while near | `.striking`, a repeating animation, and a pulsing spark at the contact point | the same, with `#cvSpark` copied from `#hammerSpark` |
+| on release | `check()` re-tests position, so it keeps striking | `pickCheck()` does the same |
+| effect | cosmetic | one ore per swing, every `PICK_SWING` = 340ms, matching the animation period |
+
+`pickHead()` puts the head at 66% / 26% of the pickaxe's box — the art's corner, not the box's centre,
+which is what the transparent margins on a 1984x2140 sheet would have given. `pickSeam()` takes the
+nearest seam inside reach and ignores worked-out ones.
+
+Stopping is handled in one place, `stopStriking()`: dragged away, stowed, seam exhausted, or the player
+leaves the cave. Verified that none of those keeps mining in the background.
+
+### One relayout path
+
+`goScreen` builds the cave **before** the plate decodes, so the first `pickCheck()` runs with
+`plateBox()` still null and finds nothing; the art's `onload` then relaid out without re-checking,
+which would have left a pickaxe parked on a seam standing idle after a load. `layoutCave()` re-checks
+now and is the only thing that does — `buildCave` and the drag handler both go through it.
+
+### Ten of every ore, and day one
+
+`ORE_START` was `iron:100, manganese:12, copper:100, aluminium:5, nickel:8, tin:33, zinc:18` — invented
+placeholders, and with 100 iron there was no reason to ever visit the cave. It is **10 of each** now,
+which makes a day's 35 mined ore the main supply rather than a top-up. The day tile started on a
+hard-coded **4**; it starts on 1, and NEW GAME puts it back.
+
+### Verified
+
+Parked by a real drag, the pickaxe struck 3 times in 1.2s and kept going after release; run to the end
+it took the seam from 7 to 0 and iron from 10 to exactly 17, then stopped itself, cleared its interval
+and the seam vanished. Dragging onto a different seam started work there; dragging to bare floor
+stopped it with no further gain; stowing cleared everything. Leaving for the forge stopped it and
+coming back resumed. A save/reload with the pickaxe parked resumed striking on the right seam and kept
+mining. NEW GAME gives day 1, ten of each ore, five full seams and the pickaxe back in the bag.
+Console clean.
+
+### Known gaps
+
+Resting the head dead-centre on one of the four bottom-row seams hangs the pickaxe about 22px below
+the frame and it gets clipped — the same thing `LAYOUT.landscape.hammerTool` already accepts ("handle
+cut by the frame"), and the player can park it slightly higher. Mining still costs nothing but time,
+and tin and zinc still have no seam.
+
+## r70 — the shop racks hold real swords
+
+`RACK_STOCK` was six invented swords with invented prices, the same on every rack. The three racks are
+real storage now: **five swords each**, dragged out of the rail, and each rack's window lists what is
+actually on **that** rack.
+
+### The hooks, measured off the art
+
+`rack.png` is 241x427 with six hook pairs down its posts. Scanning for the bluish metal against the warm
+wood found bands at 16.6 / 28.0 / 40.1 / 50.9 / 62.7 / 74.0% of the height — evenly pitched at 11.47%,
+so the table is the fitted set and a sword hangs on the **top five**:
+
+```js
+const RK_HOOKS=[16.63,28.10,39.58,51.05,62.53];
+const RK_SPAN=74.0, RK_MID=49.5;
+```
+
+Walking each hook row for runs of opaque pixels puts the opening between the posts at **17.84%..81%**
+of the width, so a blade resting *on* the hooks spans a little wider than the gap (74%) and is centred
+at 49.5%. Verified in place: every hung sword lands on its hook row to within **0.02pp**, spans exactly
+74.00% of the rack and sits at 49.47%, with nothing crossing the posts.
+
+### Sizing a flat sword, once
+
+The r48 rack window carried a hand-tuned `s`/`sx` per row. `sizeFlat()` replaces that with the runtime
+`comboExtent` and fits **whichever axis runs out first** — length against the box, thickness against the
+hook pitch (28.4px on the shop screen):
+
+```js
+const side=Math.min(fillL*boxW/e.len, fillT*boxH/e.th);
+```
+
+The three test shapes came out at 89.3 / 100.9 / 95.0%, which is the per-shape variation the old table
+was encoding by hand. `flatArt()` builds the four-image stack and measures it; both the shop racks and
+the window use it.
+
+### Its own layer
+
+`#rackLayer` is `pointer-events: none` throughout, so the rack underneath still takes the click that
+opens its window — the r68c lesson applied up front rather than after the fact.
+
+### Dragging and taking back
+
+`startSwordDrag` had one drop zone per screen. On the shop there are three, so `rackAt()` hit-tests the
+pointer against each rack's box and the hovered one lights up. A full rack refuses the drop and hands
+the sword back to the rail rather than eating it. Taking a sword off was not asked for, but without it
+anything placed is stranded, so the opened Details panel carries a **TAKE** button.
+
+Each rack prop now carries its index and wires its own click, so `openRacks(i)` opens that rack. The
+window is shown *before* it is built, because the rows measure the viewport to size their swords. An
+empty rack reads "Rack N is empty — drag a sword here from your inventory".
+
+### Verified
+
+Six drags onto rack 1: five landed, the sixth was refused and the sword stayed in the bag; two more
+onto rack 3. Each rack's window opened with its own contents (5 rows / empty message / 2 rows) and the
+rail stayed on SWORDS. Details showed trait, tier, sharpness and price; **TAKE** hit-tested to itself
+and moved the sword back, updating the rack, the window and the swords hanging on the shop screen
+together. `SAVE_V` is **6** — verified across a reload that 4/0/2 came back with the right shapes, and
+NEW GAME clears all three. The r61 workstation table and the r64 counter both still take a sword, and a
+screen with no target still refuses the drag with a hint. Console clean.
+
+### Known gaps
+
+Nothing sells off a rack — this is display and storage only, so a sword on a rack is out of reach of
+the counter until it is taken back. The window's scroll survives from r48 but five rows barely need it.
+Rack order is placement order; there is no sorting or reordering.
+
+## r71 — the shop costs money, and gold finally has somewhere to go
+
+The first **gold sink** in the build. r64 made selling pay and nothing ever spent the takings.
+
+| | price | comes with |
+|---|---|---|
+| the shopfront | **500g** | rack 1, unlocked |
+| rack 2 | **200g** | |
+| rack 3 | **300g** | |
+
+### Locked, not hidden
+
+The shop screen is still reachable while it is shut — you can see the racks you are buying. A
+`SHOPFRONT CLOSED` panel sits over them with the price on its button; behind it the racks take no
+clicks and no drops. Once the shopfront is open the panel goes and racks 2 and 3 keep a dimmed overlay
+with a **🔒 200g** / **🔒 300g** button until they are bought.
+
+Every purchase **arms on the first click and buys on the second** — `wireBuy()`, the same guard the
+menu's destructive buttons use, so a mis-tap cannot spend 500g. Short of gold the button greys out and
+says what it costs against what you have, and never arms.
+
+`rackUnlocked(i)` is the single gate: `rackAt()` skips locked racks so a drag will not even highlight
+one, `openRacks()` refuses with the price, and `buildRackSwords()` hangs nothing on them.
+
+`#shopLocks` is `pointer-events: none` with only the buy buttons taking the pointer, so a click on the
+locked rack's body still reaches the rack underneath and gets told the price.
+
+### The ledger reaches the counter
+
+`SCREEN_UI.customer` gained the same ledger entry the shop has, mirrored to the bottom-left at
+`x 1.00, y 83.61` — verified to clear both the counter's drop zone and the SELL/DENY buttons.
+
+### SETTINGS stops being a placeholder
+
+It swaps the menu's grid for a second one holding **+1000 GOLD** and **BACK**. The menu always opens on
+the main page. The cheat writes straight to `GOLD`, refreshes the HUD and re-renders the shop's buy
+buttons so one stops being greyed out the moment you can afford it. Real settings still have nowhere to
+live; the page is labelled "Cheats — for testing."
+
+### Verified
+
+From 0 gold: the panel showed, its button was greyed, clicking it refused with "That costs 500g — you
+have 0g", and a rack click was refused. The cheat took gold 0 → 1000 → 2000 through the real menu.
+Buying armed then charged 500 and left 1500, the panel went and two rack locks appeared. Rack 1 opened
+its window; rack 2 clicked away from its button refused with "Rack 2 costs 200g"; a sword dragged over
+it drew no highlight, was not accepted, and stayed in the bag. Buying rack 2 took 1500 → 1300. The
+counter's ledger button hit-tests to itself, overlaps neither the drop zone nor SELL/DENY, and opens
+the ledger. `SAVE_V` is **7** — `{open:true, racks:[true,true,false]}` came back across a reload, the
+300g lock still in place; buying it then accepted a sword. NEW GAME re-locks everything. Console clean.
+
+### Known gaps
+
+Racks are still display only — nothing sells off them, so 1000g of rack buys you shelf space and
+nothing else yet. The unlock prices are not tuned against what selling actually earns. QUIT is still a
+placeholder, and the settings page holds only the cheat.
+
+## r72 — the shopfront sells on its own
+
+Ported from `index.html`'s `startShopLoop`, which rolled every racked sword at **5% every 10s** and paid
+`value + craftBonus - hazardLoss` with no reputation or popularity change. Four calls from the owner
+changed three of those:
+
+| | old build | here |
+|---|---|---|
+| runs when you are elsewhere | yes | **yes** — the timer never cares what screen you are on |
+| roll | 5% per sword per **10s** | 5% per sword per **30s** |
+| price | raw value, no modifiers | **80% of `swordPrice()`** — the counter's price, popularity and reputation included, then the shop's cut |
+| reputation / popularity | neither | **neither** — gold only |
+
+```js
+const SHOP_TICK=30000, SHOP_CHANCE=0.05, SHOP_CUT=0.80;
+function shopPrice(w){ return Math.max(1, Math.floor(swordPrice(w)*SHOP_CUT)); }
+```
+
+The 80% cut is the point of the counter: an Epic fire Longsword is **70g** sold in person and **56g**
+left on a rack. Racks are convenience; serving someone yourself pays more. `SHOP_CUT` is the one
+constant to change.
+
+### It has to be noticeable from anywhere
+
+A sale can land while you are swinging a pickaxe two screens away, so the gold pill itself flashes
+green (`#goldVal.gained`) and a toast names the take. The shop screen, the rack window and the ledger
+all re-render if they happen to be open when a sale lands.
+
+### The ledger tells them apart
+
+A passive row carries `shop:true` and shows a 🏪 marker, with the tooltip saying "sold from the shop
+racks" against the counter's "sold at the counter". The rack window's Details quotes the **shop price**
+with the label, not the counter price, so what a racked sword will actually fetch is on screen.
+
+### Verified
+
+With every roll forced to fire, a full 15-sword shop cleared for exactly 840g = 15 x 56, reputation
+and popularity untouched, all 15 logged and flagged, the racks emptied and the swords un-hung. A shut
+shopfront sold nothing and kept its stock; with only rack 1 unlocked, its three sold and rack 2's four
+were not touched. Standing in the **cave**, a tick still sold five for 280g, flashed the gold and
+toasted. Unforced, 15 sales fell out of 378 rolls — **3.97%** against the 5% rule, inside sampling
+noise. The real interval fires by itself. A counter sale still pays the full 70g and still moves
+reputation and popularity. Across a save/reload the racked stock, the 43 flagged passive sales and the
+gold all came back and the loop kept selling; NEW GAME empties it and the loop idles. Console clean.
+
+### Known gaps
+
+Nothing models demand — a rack of six identical Broadswords sells as readily as a varied one, and
+popularity changes the price but not the rate. Sales do not pause when the game is idle in a background
+tab, so time away still earns (the browser throttles the timer but does not stop it). The ledger still
+shows only the five most recent sales and has no per-day grouping, which the old build had.
+
+## r73 — experience, levels and talent points
+
+`exp` has banked silently since r34, with no readout and nothing reading it. It is a system now.
+
+### The curve
+
+Running totals, flat 100 a level: **level N starts at (N-1) x 100**. Verified across the boundaries —
+99 is still level 1, 100 is level 2 at 0/100, 200 is level 3, 300 is level 4, 999 is level 10 at 99/100.
+Every level grants **one talent point**; nothing spends them yet, so `TALENT` only grows.
+
+### What pays
+
+| source | exp | where |
+|---|---|---|
+| forging a blade | 5 | `finishBlade` |
+| auto-crafting from a recipe | 5 each | `cbCraft`, per sword |
+| selling at the counter | 5 | `sellCounter` |
+| working an ore seam out | 5 | `mineNode`, when the seam hits 0 |
+| small book | 50 | was 60 |
+| large book | 75 | was 120 |
+| completing a quest | 25 | `bumpQuest` |
+
+Four owner's calls shaped these: totals not per-level costs; the ore exp is for the **seam**, not the
+swing (six swings pay nothing, the seventh pays 5); **counter sales only**, so a rack selling on its own
+still pays gold alone; and quest tracking got built rather than stubbed.
+
+At 5 exp a sword a level is 20 swords, and a day's five seams is 25 exp — a quarter of a level.
+
+### The readout goes inside the skill button
+
+No new row: `#skillBtn` keeps its 50px height and now holds three things — SKILL TREE, a line reading
+`Lv 3 · 65/100 · 2 pt`, and a 3px xp bar pinned to its bottom edge. A level-up rings the button green
+and toasts. The skill window's `Talent points – X` placeholder shows the real count.
+
+### Quests track now
+
+`bumpQuest(id)` advances a goal, and the moment it is met pays **20g + 25 exp**, once. Four of the five
+are wired to things the build can actually measure:
+
+| quest | fires on |
+|---|---|
+| Craft 5 Epic swords | a finished or auto-crafted blade whose best tier is Epic |
+| Discover 3 new traits | `tryAcquire`, only when the trait was **not** already discovered |
+| Update 3 recorded compositions | `confirmComp` |
+| Open the shop front | the r71 purchase going through |
+
+**"Survive a day without turning any customer away" stays at 0/1** — there is no customer to refuse and
+no day system to survive. It is the one quest with nothing behind it, deliberately.
+
+A finished quest strikes through in the window and reads "✓ complete".
+
+### Verified
+
+The boundaries above; 4 Epic swords paid 20 exp and sat at 4/5, the fifth brought the run to 50 total
+(25 craft + 25 quest) and turned the quest in for 20g; a Fine sword paid its 5 without advancing the
+Epic count. A small book 50, a large 75. Six pickaxe swings 0, the seventh 5. A counter sale 5; a
+passive rack sale 280g and **0 exp**. Discovering two traits paid nothing, the third paid 25 + 20g, and
+re-acquiring a known trait did not count. Three compositions, then the shop purchase, each turned in.
+Across a save/reload: 210 exp, level 3, 2 points, the bar at 10%, both finished quests still finished —
+and re-bumping a finished quest paid **0 gold and 0 exp**. NEW GAME returns to Lv 1, 0 exp, 0 points,
+all quests at 0. `SAVE_V` is **8**. The skill button is still exactly 50px, so nothing below it moved.
+Console clean.
+
+### Known gaps
+
+Talent points accumulate and buy nothing — the twelve skill-tree nodes are still the r42 placeholders
+with no click handlers, and RESET TALENT does nothing. The curve is flat forever, so level 50 is as
+cheap as level 2. Hazards and blade loss pay no exp, and neither does grinding or sharpening.
+
+## r74 — the four blue skills
+
+Talent points buy something. The four blue nodes at the bottom of the r42 tree are live controls now:
+each shows `rank/max`, names itself underneath, rings amber when affordable and green when maxed, and
+spends on click. RESET TALENT refunds every point.
+
+| skill | ranks | cost | effect |
+|---|---|---|---|
+| Bulk Craft | 7 | **7** each (49 total) | auto-craft uses 10% less ore a rank, to a flat 70% |
+| Sword Master | 10 | 1 each | ranks 1-5 scatter +10% more books; ranks 6-10 scatter great tomes worth 100-200 exp |
+| Far Vision | 20 | 1 each | +5% sight radius a rank, doubling it at rank 20 |
+| Restore Ore | 3 | 1 each | 10/20/30% of your ore back when a blade is lost |
+
+### Bulk Craft discounts the batch, not the sword
+
+The owner's call was **auto-craft only** — hand-crafting spends ore one drag at a time and has no
+per-sword ingredient count to discount. So `bulkNeed(list,n)` tallies what a Craft-N order costs,
+scales it, and rounds **up**, never below one of each:
+
+```js
+t[o] = Math.max(1, Math.ceil(t[o] * (1 - cut)));
+```
+
+Which makes it a genuine *bulk* skill. On a 2-iron/1-zinc recipe at rank 7, Craft 1 still costs 1+1
+(the rounding floor) while **Craft 5 falls from 10+5 to 4+2** — verified through the real recipe-book
+buttons, still producing five swords.
+
+### Sword Master's books land immediately, in the fog
+
+Buying a rank scatters right away rather than waiting for a new map, so the point pays off this run.
+`inFog(x,y)` tests the point against every fog hole, so new books only ever land in the dark and still
+have to be travelled to. Ranks 1-5 add `round(K.n * 10%)` of each kind — **10 books a rank**, verified
+96 -> 146. Ranks 6-10 add `SM_BIG_PER_RANK = 3` great tomes each, **15 in all**, rolled 100-200 exp;
+that count is the one number the brief did not give, and it is a single constant.
+
+### Restore Ore rolls per ore
+
+Each ore on the lost route rolls independently at 10/20/30%, which beats a rounded fraction — a
+two-ore route at 10% would otherwise always refund nothing. Measured over 600 runs of a five-ore route:
+**0.502 / 0.977 / 1.445** against the 0.5 / 1.0 / 1.5 the rule predicts. It fires from `shatterBlade`
+and from the blade panel's cancel button, both **before** `resetRun` clears `segs` — and deliberately
+not from `finishBlade`, where the ore bought a sword.
+
+### Far Vision
+
+`REVEAL_R` stopped being a constant at the call site: `revealR()` returns `REVEAL_R * (1 + 0.05*rank)`.
+Verified 120 -> 240 at rank 20, and back to 120 after a reset.
+
+### Save
+
+`SAVE_V` is **9**. Two changes: `skills` joined the blob, and **the book list is now saved in full**
+(`{x,y,xp,k,t}`) instead of a taken-flag array matched by index — Sword Master adds books `initMap()`
+knows nothing about, so index alignment could not survive. A taken book is simply not re-added.
+Verified: 217 books saved with 21 tomes, reloading to 215 with 20 (the two taken gone), every tome's
+rolled exp intact, the sight radius back at 132 and the bulk cut at 10%.
+
+### Verified
+
+Every rank boundary, over-max refused by name, and a purchase refused with the shortfall when points
+are short. Far Vision 20 ranks for 20 points, doubling the radius. Bulk Craft 7 points a rank, 49 for
+the tree, Craft 5 falling to 4+2 ore. Sword Master 10 books a rank then 3 tomes a rank, all in fog, all
+100-200 exp. Restore Ore's three rates inside sampling noise, firing on both a real cancel and a real
+shatter. RESET TALENT refunded exactly 13 of 13 spent, zeroed every rank and restored the base radius —
+**books already scattered stay**, which the toast says. NEW GAME clears ranks and the map returns to 96
+books. Console clean.
+
+### Known gaps
+
+The eight yellow and green nodes are still bare placeholders. Nothing gates the ranks — any skill can be
+taken first, there are no prerequisites and no tree structure behind the layout. RESET TALENT is a
+single click with no confirmation, unlike the menu's destructive buttons. Sword Master's tomes cannot
+be un-spawned by a reset, so the skill is effectively permanent once bought.
+
+## r75 — the dragon's dialogue box, and the tutorial script
+
+The tutorial copy lives in **`specs/2026-09-15-looptest-landscape-tutorial-script.md`**: the id
+convention, the speakers, the dialogue box spec, and **D1**. The owner has their own script for the rest,
+so the draft flow that first went into that file was removed rather than left to compete with it. None of
+the flow is implemented.
+
+### The bubble
+
+`#dragonSay` is a speech bubble, not the counter's `Dialogue_box.png` panel: pale parchment, dark border,
+and a **tail** built from two stacked CSS triangles — the back one the border colour, the front one the
+body colour offset by a pixel, so the join reads as one shape rather than a triangle sitting on a box.
+Dark body text, because the parchment is pale (the r55 trap). Click anywhere to dismiss.
+
+It is **anchored to the dragon**, not placed: `sayLayout()` reads the dragon's live rect each time and
+puts the tail's tip on its head. Verified the tip lands within 5px of the head, and that dragging the
+dragon 160x80 moves the bubble exactly 160x80 with the tail still on target.
+
+D1 is the owner's line, kept verbatim — including "hasn't be used", which is flagged in the script for a
+proofing pass rather than silently corrected.
+
+### Two wrong turns worth recording
+
+1. **Clamped to the wrong box.** The first `sayLayout()` worked in bench-relative coordinates and clamped
+   the bubble inside the bench. The dragon is placed with a large negative `top` and renders well *above*
+   the bench, so the clamp shoved the bubble to the bench's top edge — 340px below the head it was
+   pointing at. It works in viewport coordinates now and clamps to the frame.
+2. **Hooked dead code.** The follow-the-dragon call went into `makeDraggable`, which the file itself
+   labels dead: *"wireDragon is the LIVE dragon handler (makeDraggable/wireMovable are dead code)"*. The
+   measurement caught it — the dragon moved 140px and the bubble moved 0. It sits in `wireDragon`'s
+   pointermove now, beside `updateFirePos()`.
+
+### Known gaps
+
+`say('D1')` fires on a 600ms boot timer as a placeholder; nothing sequences the lines and `DIALOGUE`
+holds only D1. There is no hand pointer, no gating, no skip control and no tutorial state in the save.
+
+## r76-r78 — the dragon talks
+
+**r76** added **D2** and gave the bubble a run to walk: `SAY_SEQ = ['D1','D2']`, a click advances, the
+last line closes it, and the footer label switches from "click to continue" to "click to close" so the
+final beat is honest about what the click does.
+
+**r77** doubled the dialogue text, 11.5px -> 23px. The bubble had to grow with it — at 23px in the old
+210px box D1 wrapped to eighteen lines. Width doubled to 420px, which holds it at four lines, and the
+tail, padding, speaker label (9 -> 12px) and footer (9 -> 11px) went up with it so nothing reads broken
+beside the bigger type.
+
+**r78** split what a press on the dragon means:
+
+| where the dragon is | press | drag |
+|---|---|---|
+| within reach of the anvil | breathes fire, as before | moves it |
+| anywhere else | brings its last line back | moves it |
+
+"Within reach" is `dragonAtAnvil()`: the distance from its **mouth** (0.92 / 0.40 of its box, the point
+`updateFirePos` already uses) to the anvil's box, against `benchDims().w * 0.20` — about the length of
+the fire art, so the rule reads as "close enough that the fire would land on it". At its starting
+position that distance is 228px against a 124px reach, so a fresh game taps to talk.
+
+`SAY_LAST` outlives dismissal and `sayAgain()` brings it back, re-seating `SAY_I` so the run does not
+restart from D1. The caption is live: **🐉 tap to talk · drag me** away from the anvil,
+**🔥 breathe · fire resets the sword** within reach, updated on every drag frame.
+
+### r78b — a comment ate half a function
+
+`wireDragon` is one very long single line. r78 inserted an inline `//` comment into the middle of it,
+which commented out **the rest of the line** — the `pointermove` handler and `end`'s definition. The
+next line's `addEventListener('pointerup', end)` then threw `ReferenceError: end is not defined`,
+`wireDragon` aborted, and `initMechanics` never reached the boot timers, so the dragon stopped speaking
+at startup entirely.
+
+The symptom that caught it was not an exception in view — it was `SAY_I` sitting at `-1` a second after
+load when the boot timer should have moved it. **Never put an inline `//` comment mid-line in this
+file**; block comments or real newlines only. `wireDragon` is now written over real lines, and the
+patch script syntax-checks the whole `<script>` with `new Function` before writing.
+
+### Verified
+
+Boot shows D1; two clicks walk to D2 and close. A press away from the anvil produces no fire
+(`dragonFire` stays `none`) and brings D2 back with "click to close". Dragged so its mouth sits over
+the anvil, `dragonAtAnvil()` flips true, the caption changes, and a press there breathes
+(`dragonBreathing` true, fire `block`) and does **not** open the dialogue. Release stops the fire.
+Console clean on a fresh load.
+
+## r79 — D3, and the opening hand
+
+**D3**: *"Add 2 Iron and 2 Manganese to the smelter. Note the path it creates on the trait map."*
+Manganese was lowercase in the owner's draft against a capitalised Iron; both are capitalised now, which
+is how the ore slots and every window name them.
+
+### Two metals, and nothing else
+
+`ORE_START` is **`{ iron:2, manganese:2 }`**, every other metal zero. This **supersedes r69's
+ten-of-each** — the owner's call, and the tutorial's opening line now names the entire inventory. The
+other five slots still show on the shelf, dimmed at x0, so the player can see what exists and that they
+have none of it; the cave is the only way to get more.
+
+Verified the line is followable: 2 Iron + 2 Manganese build a four-segment route, the path draws, and
+the shelf then refuses everything ("No Copper left", "No Tin left") because nothing is left to give.
+
+### r79b — the spend sites trusted their caller
+
+`addPrep` and `addOreDirect` called `spendOre` without checking there was any. No player could reach it
+— the shelf refuses the drag at zero and that is the only door — but with the opening hand down to four
+ore, a leak is worth closing at the source rather than at one of the doors. Both return early now.
+
+Worth recording how this surfaced: the first check called `addOreDirect('copper')` directly and got a
+free segment, which **looked** like a live bug. Driving the shelf instead showed the guard working. The
+lesson is the r48c/r65d one in a different coat — a check that bypasses the real input path can invent a
+bug as easily as it can miss one.
+
+## r80 — the tutorial route lands on Balanced, both ways
+
+D3 asks for 2 Iron + 2 Manganese; the loop also has to work from 1 ground Iron + 1 ground Manganese.
+Both had to end on the same trait. Neither did.
+
+### What was wrong
+
+A raw ore travels **half** its path (`tPct = 0.5 + 0.5*grind`), a fully ground one travels all of it, and
+each segment is the ore's path re-rooted at the previous segment's end. So the two routes agree only if
+`P(1) = 2*P(0.5)` for each ore — the half-arc displacement is exactly half the net.
+
+| | half-arc x2 | full | agrees? |
+|---|---|---|---|
+| iron (an upside-down W) | (-156.2, 3.0) | (-156, 0) | within 3 units |
+| manganese (a curl) | (-141.8, 10.6) | (-124.6, -12.5) | **28 units out** |
+
+The two routes landed **31.4 apart**, and Balanced was 534 units north of both.
+
+### The fix
+
+A cubic whose second control is `E - C1` is **point-symmetric about its own midpoint**, so its half-arc
+point is exactly `E/2` — the property the whole thing needs. Manganese became one such cubic, solved by
+binary search on the perpendicular control offset to hold `chord/arclength` at 0.487:
+
+```
+M0,0 C 17,-177.3 -142,165.3 -125,-12
+```
+
+Net displacement **(-125, -12)** against the old (-124.6, -12.5), and `len` still 258 — so **every other
+manganese route lands where it always did**. The old path self-intersected (a genuine curl); the new one
+is a clean S, no crossings, staying inside its own span. Iron's r29 card is untouched.
+
+Result: the two routes now land **2.96 apart** instead of 31.4.
+
+### Where the traits went
+
+**Balanced** moved onto the landing point and **Durable** took its old seat, keeping the y=510 row's
+shape. Both routes now reach Balanced at **Epic** (1.66 and 1.61 from centre, against an Epic radius of
+9), and order does not matter — the route is a vector sum. Balanced also falls inside the opening reveal
+now, so the player can see the target D3 tells them to note.
+
+### A correction worth recording
+
+`TRAIT_POS` is **sketch space**, not world: `wx = START.x + (p.x - REF_C.x) * 1.5`. Two mistakes came out
+of forgetting that. The first wrote a world coordinate straight into the table, putting Balanced at
+world (1551, 1636) — caught because the verification asked where the trait actually *was* rather than
+trusting the value written. The second is worse, because it reached the owner: the value figures quoted
+before the decision ("45 dropping to 24") were `traitValue()` fed sketch coordinates. The real numbers:
+
+| | world | value |
+|---|---|---|
+| Balanced, before | 1569.5, 872.5 | 17 |
+| Balanced, after | 1119.5, 1019.5 | **24** |
+| Durable, before | 1184, 1091.5 | 20 |
+| Durable, after | 1569.5, 872.5 | **17** |
+
+Balanced is worth **more**, not half. Durable loses 3. The owner accepted a drop and got a rise, so the
+decision stands, but the figures they were given were wrong.
+
+## r81 — tutorial pointers, and D4
+
+### The pointer
+
+One SVG at `z-index 70` spanning the whole frame, so an arrow can run from the **rail** into the
+**bench** — no other overlay in the build crosses that boundary. `tutArrow(from, to, opt)` takes either
+two anchors (a curve between them) or a target plus an offset (a stub pointing at it). Both ends are
+given as fractions of the anchor's box, the tip stops short of the target so the head points *at* the
+thing rather than covering it, and the dashes flow toward it. Anchors can be functions, so the ore arrow
+tracks the Iron slot even though the rail rebuilds its shelf constantly.
+
+`tutGlow(sel, on)` is the pulsing highlight — a drop-shadow animation, which reads properly on
+transparent PNGs like the bellows.
+
+### The two steps
+
+| | |
+|---|---|
+| **D3 shows** | arrow from the Iron slot to the crucible, up as long as the line is |
+| **4th ore lands** | `tutCheckOre()` sees 2 iron + 2 manganese in `segs` -> **D4** fires on its own, arrow points down at the bellows, bellows glows |
+| **first pump** | both clear |
+
+D4 is pushed onto `SAY_SEQ` when it fires, so it closes through the same path every other line does.
+
+### Aim
+
+The first cut aimed at the furnace image's top sixth, which is empty roof — the arrow appeared to point
+at nothing. The thing the player actually drops onto is the crucible, `#furnaceGlow`, **56% down** the
+furnace image. Both arrows are now anchored to real elements rather than guessed fractions of a station,
+and the bellows arrow comes in from the open space up-right instead of crossing the furnace.
+
+### D4's wording
+
+The owner wrote "bellow"; the tool is a **bellows**. The game was already inconsistent — the station
+caption read "Bellow" while its tooltip and every hint said "bellows" — so the caption changed to match
+the rest.
+
+### Verified
+
+Caption reads "Bellows". At D3 the arrow starts within 40px of the Iron slot's centre and ends within
+45px of the crucible, and survives the bubble closing. Feeding ore one at a time, nothing fires on the
+first three; the fourth flips the stage to `bellows`, shows D4 with the right text, raises the arrow and
+turns the glow on. A real press on `#bellowHot` (hit-tested to itself) clears both. Redrawing is stable.
+Console clean.
+
+### Known gaps
+
+Nothing sequences past D4. The pointer is not in the save, so a reload mid-tutorial loses it. Separately
+and pre-existing: `.bellow-tag` is positioned at `left:-6%` of the smelter station, which puts the word
+"Bellows" about 120px left of the bellows it names, under the furnace instead.
+
+## r82 — D5, and a New Game that replayed the tutorial's tail
+
+**D5**: *"Tap on the smelter gate to open it."* Fires from `markGateReady()` — the first moment tapping
+the gate does anything; before that it only answers "Still heating". An arrow comes in from the left; the
+**glow is the gate's own**, because `#furnaceGate.ready` already pulses and is the more specific
+selector, so stacking `tut-glow` on top would have been overridden anyway. Both clear when the gate opens.
+
+The owner wrote "smelted door": "smelted" is what happens to the metal, so that was a typo for "smelter",
+and the game calls it a **gate** in both places it names it — "door" would have been a third word for one
+object, after "furnace" and "smelter".
+
+### r82b — the tail replayed on a New Game
+
+D4 and D5 are **appended to `SAY_SEQ` when they fire**, which is what keeps them closing through the same
+path as every other line. But `newGame()` only called `tutDone()`, which clears the pointer and nothing
+else — so the array still ended `...D3, D4, D5` and `SAY_I` was left mid-run. A new game replayed "heat
+up the smelter" and "tap the gate" straight after the intro, and because `SAY_I` never returned to -1 the
+ore step never armed.
+
+`tutReset()` rewinds the run to `SAY_OPENING` and clears `SAY_I` / `SAY_LAST`, and `newGame` starts the
+intro again.
+
+Worth noting how it surfaced: the check that found it was not looking for it. A second pass through the
+flow was added only to confirm that tapping the gate early does nothing, and it came back reporting
+`said: "D2"` where D1 was expected — the run had not rewound. Re-running a whole flow rather than the one
+step under test is what caught it.
+
+### Verified
+
+First pass walks D1, D2, D3, then D4 on the fourth ore and D5 on heat-ready, leaving `SAY_SEQ` five long.
+NEW GAME rewinds it to exactly `['D1','D2','D3']` with `SAY_I` 0 and the pointer down; the second pass
+walks the same three and arms the ore step again. A hit-tested tap on the gate when ready clears the
+pointer and moves the melt to `hot` with the orb out. Console clean.
+
+---
+
+## r83 — the smelter gate waits on heat, not on a clock
+
+**Ask:** "do not fire d5 till player clicks on the bellow and heats up the smelter. The smelter door
+should only open after it is heated."
+
+**What was actually wrong.** The gate never checked the heat. `tick()` readied it purely on elapsed
+time — `(now - melt.smeltT0)/1000 >= SMELT_TIME`, five seconds from when the ore went in — while the
+bellows only raised `melt.heat`, which feeds the sword's travel speed and nothing else. So the bellows
+was the one station a player could skip outright: wait five seconds on a cold smelter and the gate
+opened anyway, with D5 arriving on schedule to congratulate them for heating nothing.
+
+**The rule now.**
+
+| | before | after |
+|---|---|---|
+| gate unlocks when | 5 s since the ore landed | `melt.heat >= HEAT_READY` (70 of 100) |
+| bellows | optional; sets travel speed | required; the only way to reach 70 |
+| `SMELT_TIME` | 5 | retired |
+| time to ready | 5 s of waiting | ~1.05 s of pumping, from `BASE_HEAT` 26 at `HEAT_RISE` 42/s |
+
+Applies to every smelt, not only the tutorial one. Two rules for one station would have had the
+tutorial teaching something that stops being true the moment it ends.
+
+`HEAT_READY` is published to CSS as `--heat-ready`, and `#heatMini .track::after` draws a notch there,
+so the mark on the gauge is the constant itself and cannot drift from the rule it describes.
+
+**A trap the fix opened, closed in the same round.** The bellows arrow and glow cleared on the first
+`pointerdown`. That was harmless while the gate was on a timer; with heat required, one tap would have
+left a player with no pointer, a cold smelter and no next line. The pointer now stays up until
+`markGateReady()` — `tutGateStep()` already drops it — so it clears exactly when the job is done.
+
+**Knock-on, deliberate.** The orb now always leaves the furnace at 70+ heat instead of possibly 26, and
+heat is the hammer's travel speed (`advanceSword`). The sword therefore starts its route ~2.7× faster
+in the worst case than it could before. The ceiling is unchanged at 100; only the floor moved, and the
+floor was the behaviour of a player ignoring a station.
+
+**Verification, and a check that proved nothing.** The first pass "waited 7 seconds without pumping"
+and reported the gate still shut — but the Browser pane was hidden, so `requestAnimationFrame` never
+fired and `tick()` had not run at all. The result was real and meaningless at once. Re-run driving
+`tick()` by hand at 50 ms a step, with the bellows and the gate still operated through hit-tested
+`elementFromPoint` pointer events:
+
+- 8 simulated seconds idle → `gateReady` false, no pulse, D5 unfired, bellows pointer still up;
+- a hit-tested tap on the cold gate → refused, melt still `smelting`, orb hidden;
+- `pointerdown` on `#bellowHot` → `bellowing` true, `pumping` class on, heat 26 → 70 in 1.05 s;
+- at 70 → `markGateReady()`, gate pulses, bellows glow off, arrow swings to the gate, bubble reads
+  "Tap on the smelter gate to open it.", `SAY_SEQ` = D1…D5;
+- hit-tested tap on the ready gate → melt `hot`, orb out, pointer cleared, `TUT_STAGE` null;
+- reinsert at heat 60 → not ready, a short re-pump needed; the gauge notch measures 35 px of the
+  50 px track content box = 70.0%.
+
+---
+
+## r84 — D6, the carry to the anvil, and one name for the thing being carried
+
+**Ask:** "'Nice! Let's take this hot metal to the anvil' is the next dialogue. show arrows guiding from
+gate to the anvil." Then, on the naming question: "Call it metal...hot metal and metal ingot when it is
+cold."
+
+### The name
+
+The build had been calling it **the glowing orb** in two hints — the heat-ready one and the one that
+fires the instant the gate opens. That second hint is on screen at the exact moment D6 speaks, so a
+player would have read two names for one object in the same breath. The owner's rule settles it:
+
+| state | name |
+|---|---|
+| glowing, out of the smelter | **hot metal** |
+| cooled, on the bench or in the inventory | **metal ingot** |
+
+Three hints changed: heat-ready, gate-open, and the post-quench one (which is a cold state, so it reads
+"metal ingot" / "tap the ingot"). The inventory tooltip was already `Ingot — 3 ores, 1 trait, cold`, so
+the cold name needed nothing. **Only player-facing text moved.** `#orb`, `orbEl`, `handleOrbDrop`,
+`wireOrbDrag` and the rest keep their names; renaming them would be a large mechanical edit across the
+file for no player-visible gain.
+
+### The step
+
+`tutAnvilStep()` fires from `openGate()`, taking the handover directly from D5 — the same tap that
+releases the metal raises the next line, so there is never a moment with no instruction on screen.
+
+- **Arrow:** `#furnaceGate` → `#stAnvil .anvil`, the full width of the bench. It starts at the gate the
+  metal is sitting at, not at some neutral offset, and the head stops 26px short of the anvil's landing
+  face (`tfy: 0.20`, which is where `placeOnAnvil` actually puts it).
+- **Glow:** the anvil, as the destination. Measured: arrow tail (469, 507) against a gate at (479, 510)
+  and an orb at (487, 524); head at (249, 456) against a target point of (223, 451) on an anvil box of
+  (144, 424, 159×134).
+- **Clears:** `placeOnAnvil()`. Dropping the metal back into the furnace deliberately does **not** clear
+  it — verified: the melt returns to `smelting` with `gateReady` false, and the arrow and glow stay up,
+  because the instruction is still the right one.
+
+`tutGlow` now records what it lit (`TUT_GLOWED`) and `tutDone()` calls `tutUnglow()`. Until this round
+`tutDone` cleared `#bellowtop` by name, which was fine while exactly one thing ever glowed; the anvil is
+the second, and the next one would have been left lit.
+
+### Verification
+
+Full run on hit-tested input, with `tick()` driven by hand because the hidden pane freezes `rAF`:
+D1→D2→D3 on bubble clicks, D4 on the fourth ore, D5 at heat 70, and the gate tap giving `TUT_STAGE`
+`anvil`, the bubble reading "Nice! Let's take this hot metal to the anvil.", the anvil lit and the
+bellows dark. A real press-drag-release on the orb (dispatched on the orb itself — it takes pointer
+capture, so events sent to `window` never reach it) lands the metal at (224, 444), the anvil's 50%/15%
+point, with the arrow off, no glows left and `TUT_STAGE` null. New Game rewinds `SAY_SEQ` to D1–D3.
+Console clean.
+
+---
+
+## r85 — D7–D9: the hammer, the freeze, and two books on the route
+
+**Ask:** D7 "Pick up the hammer and strike the hot metal on the anvil", hammer glowing; on the first
+hammering, pause and darken everything until the player clicks through D8 "Look, the sword icon moves on
+the trait map with each strike. Keep hammering till we reach the '?'"; two small pickups on the path to
+the first Balanced sword; D9 on reaching one.
+
+### The freeze
+
+`TUT_PAUSE` returns out of `tick()` before `dt` is used (`lastT=now` first, so the resume does not eat a
+two-second frame), and `#tutDim` covers the frame at z-index 45 — under `#dragonSay` (46), over
+everything else. It is a real element, not a filter, so it also **swallows clicks**: with the dim up the
+only live control on screen is the bubble. `sayNext()` lifts both, which is the right hook because the
+inline `onclick="sayNext()"` on the bubble is the only way to advance while the dim is eating input.
+
+Timed at **0.7s of striking**, not on contact. The sword travels ~46 world units first, so D8's "Look,
+the sword icon moves" describes something the player has already seen. Measured (1400, 1030) → (1364,
+1002) over 14 ticks, then frozen — stepping 40 more ticks with the hammer still on the anvil moved it
+zero units.
+
+### The books
+
+Placed by `tutPlaceBooks()` the moment the fourth ore lands, because that is when the route stops
+changing. `tutRoutePoint(f)` walks the segments by **traversable** length (`len * tPct`, since a raw ore
+only travels half its path) and samples with the game's own `segPointLocal`, so the books sit exactly on
+the line the sword will walk rather than near it. At 0.38 and 0.72 they landed at (1262, 1015) and
+(1181, 1026), between START (1400, 1030) and Balanced (1119, 1021).
+
+Two `small` books, 50 exp each. **That is exactly 100** — the tutorial ends the run at level 2 with one
+talent point, so D9's "Collect them to level up" is literal. Verified: first book at exp 50 fires D9,
+second takes exp to 100, `LEVEL` 2, `TALENT` 1.
+
+### Departures from the ask, and why
+
+- **"2 small skill points"** → two small exp books. *Skill points* would collide with **talent points**,
+  which is what a level-up already awards and what the skill tree already spends. D9 calls them
+  experience points, which is what they actually give.
+- **D9 wording.** "Hammer allows you to collect…" had a bare noun as subject, and strictly the hammer
+  does not collect anything — the sword's travel does, and hammering drives it. The owner chose
+  "Hammering also allows you to collect experience points scattered all over the map. Collect them to
+  level up."
+- **D7 got an arrow** as well as the glow that was asked for, matching D4 and D6. The line names two
+  objects (hammer, anvil) and the arrow is what joins them.
+
+### Verification
+
+Full run on hit-tested input, `tick()` driven by hand (a hidden pane freezes `rAF`): D1→D9 in order,
+`SAY_SEQ` nine long. At the freeze, `elementFromPoint` over the anvil returns `tutDim` and over the
+bubble returns `dragonSayText` — the dim is genuinely on top of the game and genuinely under the
+dialogue, at the frame's full 1080×600. After the click the sword resumes, takes both books, and runs on
+to reach **Balanced** — the `?` D8 names. New Game rewinds `SAY_SEQ` to D1–D3, clears the dim, the
+strike beat, the books and the exp; a second run re-places both books at the same two points. Console
+clean.
+
+---
+
+## r86 — D10–D12: the quench, the acquire popup, and a hammer that would not get out of the way
+
+**Ask:** D10 on reaching the `?`, D11 pointing the mug at the metal, a popup naming the trait with its
+icon and a continue button, then D12 "Click on the metal to select the shape of the sword blade."
+
+### The popup already existed
+
+`#sfAcquireModal` was already built — icon, name, tier, `continue ›`. The work was a retitle, not a
+build. The name moved into the heading (and out of the body, which was showing it twice) to read
+**"New trait discovered — Balanced"**.
+
+`tryAcquire` already computed `firstFind` for r73's quest counter, so the heading tells the truth: a
+re-acquisition reads **"Trait locked in — Balanced"**, because nothing was discovered. Both branches
+rendered through the real function; the `firstFind` computation itself is pre-existing and unchanged.
+
+### The steps
+
+| stage | line | pointer | raised by | cleared by |
+|---|---|---|---|---|
+| `quench` | D10, then D11 | arrow `#mug` → `#orb`, mug glows (with D11 only) | `checkTraitReach` | the pour |
+| `acquired` | — | none | `tryAcquire` | — |
+| `shape` | D12 | the metal glows | `closeAcquire` | `openShapeSelect` |
+
+D10 explains and D11 instructs, so the arrow is hung off D11's appearance in `say()` rather than going
+up with the first of the pair.
+
+### r86b — the bug the tutorial walked into
+
+`.dragging` is a global `z-index: 35 !important`. Every draggable prop drops the class on release —
+except the hammer, whose `end` handler only cleared its own `drag` flag. So from the first time a player
+picked the hammer up, it stayed pinned at 35 for the rest of the run, above the metal at 9.
+
+Until this round that was invisible: nothing asked you to click the metal while the hammer sat on it.
+D12 asks exactly that, and the metal is directly under where the hammer was just used. The tap hit
+`hammerTool` and the shape picker never opened. One line: `h.classList.remove('dragging')` on release.
+
+Caught because the check tapped through `elementFromPoint` rather than calling `openShapeSelect()`
+directly — the same discipline that caught r48c and r65d, and the third time it has paid for itself.
+
+### Verification
+
+Full run, hit-tested throughout, `tick()` driven by hand: D1→D12 in order, `SAY_SEQ` twelve long. At
+D10 the sword is on **Balanced** with exp 100 / level 2 from the two route books. D11 draws (72, 525) →
+(203, 453), mug to metal, mug lit. The pour clears both and opens the popup on "New trait discovered —
+Balanced", ⚖️, Weak tier (the automated hammering overshoots the alignment; a player would nudge with
+the dragon). Continue → D12 with the metal lit. A tap on the metal now returns `orb` from
+`elementFromPoint`, opens the shape picker on Shortsword / Longsword / Broadsword, and ends the run:
+`TUT_STAGE` null, no arrow, no glow. Hammer back to z-index 8 on release. New Game rewinds to D1–D3
+with every modal, glow, dim and counter clear. Console clean.
+
+---
+
+## r87 — the minigame's flame is aimed by holding the metal; the dragon talks, then is petted
+
+**Ask:** in the hammering minigame, stop steering the flame by dragging the dragon's head. Press the
+sword / metal ingot instead and the head turns there and breathes. Clicking the dragon shows the
+tutorial dialogue; once the tutorial is over, clicking it pops hearts like the bedroom. Hammer
+unchanged.
+
+### The control
+
+`#hmAimPad` is a transparent pad on the anvil — 30% × 28% of the stage centred on `HM_RIG.anvil`, laid
+out from the rig itself so it tracks any re-rig. Press and hold aims and breathes; dragging inside it
+re-aims; release stops. Identical loop to before (heat still decays, so heating and hammering still
+compete for the one pointer) — only the thing you press has moved.
+
+It sits **after `#hmGrip` in the DOM at the same z-index**, so where the hammer's very large grip pad
+(53–97% × 3–69%) overlaps the anvil, aiming wins and the hammer keeps the rest. Measured:
+
+| point (% of stage) | hits |
+|---|---|
+| 50,53 · 40,50 · 37,60 (the metal) | `hmAimPad` |
+| 58,45 · 60,55 · 64,66 (overlap strip) | `hmAimPad` |
+| 70,55 · 77,30 · 85,20 (hammer's own area) | `hmGrip` |
+| 10,20 (dragon) | `hmHead` |
+
+### Aiming: the obvious method does not work
+
+First attempt measured the flame's live axis off `#hmSnout`/`#hmAim`, rotated by the difference and
+repeated. It **diverged** — residual error 8° to 80° across six targets. The reason is in the rig: the
+snout is a long way from the hinge and travels ~300px across the head's 68° range (measured: (492,150)
+at −70° to (207,321) at −20°), so moving the head moves the target's bearing about as fast as the
+correction closes it.
+
+Solved instead. The rig is a rigid body, so the snout orbits `HM_RIG.pivot` at radius
+`scale · |snout − tail|` and the flame's world direction is exactly `angle + fireRot`. Both were
+checked against the live DOM at −70/−45/−20°: **snout to the pixel, direction to the degree.** So
+`hmAimAt` scans the swing at 1° and bisects the best bracket, in pure arithmetic — no layout reads, so
+a pointermove costs no reflow.
+
+**Residual error at six targets across the pad: 0.000° every time**, measured from the DOM rather than
+from the model that set it.
+
+### Consequence, deliberate
+
+Aiming *at* the metal means `hmFireOnWork()` effectively always passes. The aiming difficulty is gone;
+what is left is that you cannot heat and hammer at once. That is the point of the change, but it does
+mean the minigame is now easier, and `HM_FORGE.cone` / `reach` no longer do much work.
+
+### The dragon: guide, then pet
+
+`dragonTap(e, layer)` replaces the bare `sayAgain()` on both dragons. While the script still has
+something to say it replays the last line; afterwards it calls `popHearts` into whichever layer it was
+given — `#screenLayer` on the bench, `#hmScene` in the minigame.
+
+"Afterwards" is **the last line in `DIALOGUE` having been shown** (`lastLine()` is simply the final key,
+so this moves on its own as D13, D14… are written — there is no flag to remember to update). `tutReset`
+clears it, so a new game gets the guide back.
+
+Inside the minigame the bubble would be behind a z-1000 panel, so `sayLayout` now picks its anchor
+(`#hmHead` vs `#dragon`) and its clamp box (`#hmScene` vs the frame) from whether the hammer modal is
+open, and adds `.above` (z-index 1100). Position stays relative to `#bench`, which owns the element.
+
+### r87b — two bugs found in verification
+
+- **The bench dragon's tap handler takes no event.** `const end=()=>{…}` was fine for `sayAgain()`; the
+  new `dragonTap(e, …)` threw `ReferenceError: e is not defined`, so tapping the bench dragon did
+  nothing at all. Caught because the check exercised *both* dragons, not just the one the round was
+  about. `popHearts` also now tolerates a missing event (a `pointercancel` reaches the handler without
+  coordinates) and bursts from the layer's middle.
+- Console still showed that error on the next load: it was stamped with the **previous** URL. Worth
+  re-reading — the pane retains errors across loads and they read as current.
+
+### Verification
+
+Minigame: press at six points across the pad → six different head angles, flame on, on-target, 0.000°
+error each; heat 0 → 0.997 in 1.5s while held; release stops the flame. Hammer unchanged — grip still
+drags, `striking` still sets, one strike moves progress 0 → 0.14. Dragon head during the tutorial →
+bubble at z-index 1100, inside the scene, `elementFromPoint` at its centre returns the bubble's own
+text. After the last line → 6 hearts in the scene, no bubble. Bench dragon: talks during, 6 hearts
+after, guide restored by New Game. Bubble on the bench still lands inside the frame (109, 15, 407×181).
+Console clean on the current load.
+
+---
+
+## r88 — the quench mug ends the minigame, a cancel backs out of it, and D13–D16
+
+**Ask:** four minigame lines; a water mug on the right that finishes the blade when splashed on it,
+usable only once the blade has taken its shape; a cancel button bottom-left.
+
+### The mug replaces the automatic finish
+
+The minigame used to finish **itself**: 1.7s after the last strike, `finishBlade()` fired on a timer.
+That had to go, or the mug would never get a chance — the panel would close while the player was still
+reaching for it. Now `hmProg>=2` only lights the mug.
+
+`#hmMug` sits at 86%/54% of the stage, dimmed and inert (`.off`, `cursor:not-allowed`) until the blade
+is shaped, then pulses (`.ready`). Dragging it over the anvil pours: heat to 0, a flash, a ring and
+seven steam puffs, then `finishBlade()` 780ms later. Verified that a drag while unshaped moves it **0
+px** — the guard is on `pointerdown`, so it never even picks up.
+
+### Cancel
+
+Bottom-left, inside the HUD bar so it cannot collide with the title. **It does not destroy the blade.**
+The bench is untouched while the minigame runs — the metal and its traits are still on the anvil — so
+cancelling is just closing the panel, and the player can tap the metal again and pick a different
+shape. Only the shaping progress of that session is lost.
+
+### The lines
+
+| line | fires on |
+|---|---|
+| D13, then D14 on a click | opening the minigame |
+| D15 | heat crossing `workMin` (0.35) upward, first time |
+| D16 | heat crossing back below it, once |
+
+D16 is currently the last line in `DIALOGUE`, so showing it is what flips the dragon from guide to pet
+(r87's rule). Both crossings hang off the check `hmTick` already made for its own HUD line.
+
+### Three things verification caught
+
+- **The mug rendered at 794×785px.** `#hmMug` had no width, so once `anchor_mug.png` loaded the box
+  took the image's natural size and swallowed most of the scene — and the hit test, which measures the
+  mug's centre, was therefore hundreds of pixels off and never registered. The first measurement said
+  17.5% only because it was taken before the image loaded. Fixed with an explicit `width: 11%`.
+- **`hint()` has been a no-op since r34.** The cancel's "the metal is still on the anvil" message went
+  nowhere. Switched to `toast()`, which renders. Worth noting separately: **19 `hint()` calls** remain
+  in the file, all silent — including r83's "Still heating — keep pumping the bellows", which is the
+  only feedback a player gets for tapping a cold gate.
+- **A strike gate that is real-time.** 20 scripted strikes produced one hit: `HM_FORGE.strikeGap` is
+  170 **ms of wall clock**, and synthetic strikes all landed in the same millisecond. A test artefact,
+  not a bug — but it would have read as "hammering is broken" if taken at face value.
+
+### Verification
+
+Full minigame run on hit-tested input: D13 on open → D14 on click; mug inert while unshaped; holding
+the metal raises heat to 0.365 and fires D15 exactly at the 0.35 crossing; cooling back through it
+fires D16 and sets `tutOver()`; 22 spaced heat-and-strike cycles take `hmProg` to 2, at which point the
+mug loses `.off`, gains `.ready` and the HUD reads "Blade shaped — splash it with the mug to finish"
+**with the panel still open and no sword forged**. Dragging the mug in registers over the work at step
+9 of 14, pours, and 780ms later closes the panel with a Longsword in the inventory and +5 exp. Cancel
+closes the panel, stops the flame, forges nothing and toasts. New Game clears both minigame flags and
+rewinds the run. Console clean on the current load.
+
+---
+
+## r89 — D16 fired after the blade was finished, because half the heat changes were unwatched
+
+**Report:** "d16 currently appears after the shape is forged. I want it to appear after the very first
+time it is cold."
+
+**Cause.** The heat crosses `HM_FORGE.workMin` in two places, and only one was watched:
+
+1. `hmTick`, where it decays — this compared the heat before and after the frame, and was the only
+   place the tutorial heard about;
+2. `hmStrike`, which takes `strikeBite` (0.09) straight out of the heat and told nobody.
+
+A strike that carried the heat from 0.40 to 0.31 therefore crossed the line silently, and by the next
+frame both sides of the tick's comparison were already below it — the crossing no longer existed to be
+found. In real play striking is exactly how the heat comes down, so D16 sat unfired until some later
+decay-driven crossing, long after the blade was done.
+
+**Fix.** One watcher, `hmHeatWatch()`, holding the workable/not-workable state (`HM_WASHOT`) and called
+after **every** heat change — the tick and the strike both report through it. It also owns the HUD line
+that used to hang off the tick's inline comparison, so the two can no longer disagree. The deliberate
+final quench is excluded (`hmQuenching`): zeroing the heat to finish a blade is not "it went cold, heat
+it again".
+
+**Why my own verification missed it.** r88's check let the metal cool by *sitting still*, which is the
+decay path — the one branch that worked. The player's path is to hammer. A check that exercises the
+mechanism by the route the player will not take can pass on a broken build.
+
+**Verification.** Heat once to 0.997, then hammer without re-heating: D16 lands on strike 7 as the heat
+goes 0.415 → 0.318, with `hmProg` at 0.98 of 2 — mid-shaping, as asked. Opposite case: keeping the
+metal hot the whole way and finishing with the mug forges the sword with D16 never fired and
+`TUT_HMCOLD` still false. Console clean.
+
+---
+
+## r90 — D17 and the Sword Crafted window
+
+**Ask:** D17 guiding the splash; on splashing, the minigame closes and a window shows the crafted sword
+— "Sword Crafted!", a preview, quality, shape, value, ores used, trait, and a close button. The sword
+flies from the preview into the inventory. Every craft path uses it, manual or recipe; a bulk craft
+sends five swords flying.
+
+### The window
+
+`#sfCraftModal`, built on the same shell as the acquire popup. The blade is drawn with the same
+`flatArt` + `sizeFlat` pair the racks use, so a sword is rendered one way everywhere in the build.
+
+| row | source |
+|---|---|
+| Quality | `swordBestTier` — the best tier among the sword's traits, in that tier's colour |
+| Shape | `w.shape` |
+| Value | `swordPrice` — the **sale price**, popularity and reputation included, so it matches what the counter quotes. Bulk shows "24 g each · 120 g total" |
+| Ores used | `tallyText` over the sword's own ore list — "Iron x2 + Manganese x2" |
+| Trait(s) | symbol, name and tier per trait, tier-coloured |
+
+Bulk adds a `×5` badge over the preview.
+
+**The swords are in `INV` before the window opens.** The flight on close is decoration and never the
+thing that stores them — the r68b rule, so a throttled or dropped animation cannot cost the player a
+sword. Five blades leave in a fanned spread (measured 577/593/609/625/641) with a 95ms stagger and are
+removed on a timer.
+
+### Both craft paths, and when the bench resets
+
+`finishBlade` and `cbCraft`'s shape callback both end in `showCraft`. The old `#forgeResult` banner and
+its `setTimeout(resetRun, 2600)` are gone: with a window that waits for a click, a timed reset would
+wipe the bench underneath it. `finishBlade` now passes `resetRun` as the window's `after`, so the bench
+clears exactly when the player closes. Verified: with the window open the bench still holds `melt` and
+4 segments; after close, both are clear.
+
+### The bug: transparent art swallowing clicks
+
+The part images are full-canvas squares with the blade running along the diagonal, so at the size that
+makes the *blade* fill the row, the square's corners reach 79px above the card and over the title. They
+are invisible but they hit-test: `elementFromPoint` over the title and the first row both returned
+`IMG`. The close button escaped only by where the geometry happened to fall — a longer blade would have
+covered it too, which is a dead-ended window.
+
+Fixed with `pointer-events: none` on `.cr-art` and its children; nothing in there is interactive.
+Re-measured: title and close button both return their own elements.
+
+### Verification
+
+Full manual craft through the whole tutorial: window opens on the splash reading Weak / Longsword /
+24 g / Iron x2 + Manganese x2 / ⚖️ Balanced · Weak, with the hammer panel closed and the bench still
+loaded. Close → one sword flies from (609, 282) toward the SWORDS tab at (1075, 202), the bench resets,
+the inventory holds it and the SWORDS tab is showing, no leftover fliers. Recipe path, Craft 5 → one
+window with the `×5` badge and "24 g each · 120 g total", 5 fliers, 6 swords banked, 10 iron and 10
+manganese spent from 20 each. D17 fires as the blade reaches full shape and sets `tutOver()`. Console
+clean on the current load.
+
+---
+
+## r91 — the counter tutorial (documented retroactively), four fixes, and one asset set per trait
+
+### What landed on 2026-09-17
+
+A round by another agent went in without a section here, so it is recorded now from the diff and from
+playing it. `specs/2026-09-15-…-tutorial-script.md` already carries the copy.
+
+- **D18–D26, the counter and Bram branch.** D18 on closing the first Sword Crafted window, with an
+  arrow at `#panLeft`; D19 on arriving at the counter, spoken from a new counter-side dragon
+  (`#screenDragon` / `#screenDragonSay`, draggable, tap-to-talk); then Bram: D20, a two-way response
+  (D21/D22), D23–D24 for the first sale, D25 from Bram and D26 to close. New `chooseBram`, `takeCare`,
+  `wireScreenDragon`, `updateTutorialCounterUi`, and `TUT_BRAM_STATE`.
+- **An encoding repair.** The file had become mojibake — `â€”` for `—`, `Ã—` for `×`, `0â†’1` for
+  `0→1` — plus a BOM. The corruption appeared after r90 and was repaired in the same session; the
+  current file is clean (0 mojibake markers, no BOM, emoji intact). Almost certainly a tool reading
+  UTF-8 as the ANSI codepage and writing it back, which is the trap the PowerShell tooling notes call
+  out.
+- **`cbCraft` hardened** — `n` is coerced with `Math.max(1, Math.floor(Number(n)||1))` and the recipe's
+  ores/grinds/traits are hoisted out of the loop. This is what fixed Craft 5.
+
+Verified end to end: SELL is visible but disabled until the sword is placed, DENY stays disabled,
+placing enables SELL and fires D24, the sale pays exactly once (24g, +1 rep, +5 exp, one ledger row),
+and New Game clears the whole branch.
+
+### The four fixes
+
+1. **`lastLine()` was hardcoded to `'D19'`** — see the tutorial script spec. Restored to the final key
+   of `DIALOGUE`, so the dragon guides through D26 and the switch needs no maintenance.
+2. **The tutorial script spec contradicted the code** on that point, and named D12 as the last line.
+   Corrected, with the regression recorded.
+3. **This file had no section for the 2026-09-17 round.** Written above.
+4. **Working files left in the repo root** — two ~380KB `.bak` copies and `__bram_apply.patch`, none of
+   them ignored. Deleted, and `.gitignore` now carries `*.bak` and `__*.patch`.
+
+### One asset set per trait
+
+The Design Desk was showing every trait's parts in one list (`DD_PARTS` mixed `grip1`, `flame_grip1`,
+`ice_grip1`, `water_grip1`), so a sword could wear a pick-and-mix. It now shows **only the set belonging
+to the sword being designed**.
+
+| trait | prefix | grips | guards | pommels | blades |
+|---|---|---|---|---|---|
+| — (default) | *(none)* | 4 | 4 | 5 | all 10 shapes |
+| fire | **flame_** | 3 | 5 | 2 | broadsword, longsword, shortsword |
+| swift | swift_ | 5 | 5 | 5 | dagger, longsword, shortsword |
+| ice | ice_ | 1 | 1 | 1 | longsword |
+| water | water_ | 1 | 1 | 1 | longsword |
+
+`fire` is the one trait whose art is not named after it — the files are `flame_*`. Every other trait,
+and a sword with no traits, falls back to the unprefixed **balanced** set, which is the owner's
+placeholder default.
+
+- `skinOf(w)` takes the first of a sword's traits that has a set; `ddSkin()` reads it off whatever the
+  desk is editing.
+- `ddCoerce(sel, skin)` drops a pick that does not exist in the new set back to that set's first part,
+  so the desk can never open on a part the sword cannot wear.
+- `bladeFor(skin, shape)` uses the skinned blade when the art exists and the balanced blade otherwise.
+  **A swift Broadsword is the one visible seam today**: swift grip, guard and pommel on a balanced
+  broadsword blade, because `swift_broadsword_blade.png` does not exist.
+- Both craft paths (`finishBlade`, `cbCraft`) stamp the skin onto the sword at creation.
+
+### Verification
+
+`lastLine()` → D26 over 26 keys. Desk probed against a real `WORK` sword per trait: fire shows only the
+5 flame parts, swift only the 15 swift parts, ice its 3, and `heavy` (no art) and a traitless sword both
+fall back to balanced — with `DD_SEL` coerced into the right set every time. All **59** asset paths the
+tables can produce were checked against the filesystem: none missing. Six swords crafted through the
+real recipe path came out wearing their own trait's parts, the swift Broadsword correctly falling back
+to the balanced blade alone. Tapping the dragon replays at D19/D23/D24 and pets at D26. Console clean.
+
+---
+
+## r92 — the Sword Crafted window stands alone
+
+**Ask:** the dragon's dialogue should be off while the crafted-sword window is on screen; the next line
+comes in only on **close**.
+
+`showCraft()` now calls `sayHide()`. D18 already fired from the window's close callback, so nothing
+about the ordering changed — only that D17 no longer sits over the result. `SAY_LAST` is untouched, so
+tapping the dragon afterwards still brings the line back.
+
+**A second thing the screenshot showed.** The bubble was sitting *over* the window rather than behind
+it, because r87's `.above` class (z-index 1100, which lets the bubble clear the hammer panel) was still
+on it. The class was only ever cleared by the next `sayLayout`, so a bubble left showing when the
+hammer panel closed kept the raised level and floated over every later modal. `sayHide()` now drops
+`above` along with `show`.
+
+**Verification.** Straight after the splash, D17 is up with `above: true` — matching the reported
+screenshot. The instant the window opens the bubble is `display: none` with both classes cleared, and
+`SAY_LAST` is still D17. Clicking close brings D18 in at the normal level with its arrow up, one sword
+banked. Console clean.
+
+---
+
+## r93 — the opening screen: card closed, dragon in the corner, bubble beside his face
+
+**Ask:** start with the recipe collapsible box closed, the dragon in the top-left corner, and the
+dialogue off his face — on his right.
+
+### The recipe card
+
+`#bladePanel` is the card holding RECIPE BOOK (and the ✕ / 💾 blade buttons); `#hudToggle` opens and
+closes it through `#hud.collapsed`. `#hud` now carries `collapsed` in the markup and the toggle ships
+in its closed state (`▼`, `aria-expanded="false"`), so the toggle's glyph and the panel can never
+disagree on the first frame.
+
+### The dragon
+
+`LAYOUT.landscape.dragon.y` is a fraction of the **bench** height, and the bench sits at y 477 of the
+600-tall frame with a height of 123 — so `-2.718` put his box top at 144, a third of the way down the
+map rather than in the corner. Now **−3.683**, which puts it at 24.
+
+Not 12: his box is 195 wide and takes the pointer across all of it, transparent corners included, so a
+higher home would have parked it over the collapse toggle at y 1–21 and swallowed the clicks.
+Confirmed after the move — `elementFromPoint` on the toggle still returns `hudToggle`.
+
+### The bubble
+
+Speaking from above needs headroom the corner does not have; clamped to the frame, the box landed on
+his face. On the bench the bubble now sits **beside** him when the line fits there
+(`dr.right - 6 + w + 10 <= fr.right`), and the tail turns to point left at his head, positioned down
+the bubble's own edge by `--tailY`. Where it does not fit, the old above-and-left placement and the
+downward tail are used unchanged — as they still are inside the hammer panel and at the counter, which
+this does not touch.
+
+| dragon at | bubble | tail | head covered |
+|---|---|---|---|
+| home, top-left corner | (200, 19) | left | no |
+| dragged low-left | (206, 407) | left | no |
+| dragged far right | (427, 315) | down (fallback) | no |
+
+In all three the bubble stays inside the frame.
+
+### Verification
+
+Fresh load: recipe card `display:none`, hud collapsed, toggle reads `▼` and still hit-tests to itself;
+dragon box at (12, 26); bubble at (206, 28) with `tail-left` and `--tailY: 37px`; the head point
+(133, 72) is outside the bubble. Clicking the toggle opens the card and RECIPE BOOK is reachable again.
+D1→D5 still walk in order after a New Game. Console clean.
+
+---
+
+## r94 — the dialogue box, 25% smaller
+
+Every dimension of both bubbles scaled by 0.75, not just the frame — otherwise the type would have
+grown relative to the box.
+
+| | before | after |
+|---|---|---|
+| width | 420px | 315px |
+| padding | 15/20/18 | 11/15/14 |
+| radius | 14px | 11px |
+| body text | 23px | 17px |
+| speaker label | 12px | 9px |
+| "click to…" | 11px | 8px |
+| down-tail | 21/18, bottom −21 | 16/14, bottom −16 |
+| side-tail (r93) | 15/20, left −20 | 11/15, left −15 |
+
+`#screenDragonSay` (the counter bubble the Bram branch uses) carries the same geometry and was scaled
+with it, so the two cannot drift apart.
+
+`sayLayout`'s pre-measurement fallbacks went with them — `offsetWidth||420` → `||315` and
+`offsetHeight||110` → `||83`. Left alone they would have placed the box by the old size on the frame
+before it has been measured.
+
+**Verification.** Rendered box 306×137 against the previous 420×187 — 0.73 on both axes rather than an
+exact 0.75, because the height follows where the text wraps rather than scaling cleanly. **All 26
+lines** were shown in turn: none clipped horizontally or vertically, all inside the frame, the tallest
+being D1 at 315×141. The bubble still sits beside the dragon with the left tail and his head clear.
+Console clean.
+
+---
+
+## r95 — the counter dragon speaks from the side, the customer types, and his last button leaves with him
+
+### Same placement on both screens
+
+r93 gave the bench dragon a beside-placement with a left-pointing tail, but excluded the counter
+(`!inHm && !onScreen`). The exclusion is gone and `#screenDragonSay` carries the same `tail-left`
+rules, so a dragon reads the same wherever the player meets him. Measured on the counter: dragon box
+(27, 310, 248×224), bubble (274, 324), `tail-left` on, `--tailY: 37px`, head clear.
+
+The hammer panel still uses the above-placement — its head sits at the top-left of its own scene with
+the panel's full width to the right, and it was already correct.
+
+### The customer types
+
+`typeLine(el, text)` reveals a line **one word at a time** at `TYPE_MS` = 70ms, so Bram's longest line
+lands in about a second. `typeDone()` jumps to the finished text and is wired to a click on his
+dialogue box, and to choosing a response (which would otherwise type a new line over an unfinished
+one). `typeStop()` is called by `takeCare` and `tutReset`, so a pending timer can never write into a
+screen that has moved on.
+
+Only the **customer** types. The dragon's bubble is instructional and reads better all at once; it also
+walks a sequence on click, which a per-word reveal would fight.
+
+### The Take care box
+
+The sale borrows the counter's own `.cs-resp` box — it sets the text to "Take care", shows it and
+hangs `takeCare` on it. `takeCare` hid Bram's panel but never put that box back, so the button stayed
+on screen after he left, still holding his handler. It now hides the box, clears the handler and
+restores the placeholder copy; `tutReset` does the same, so New Game cannot inherit it either.
+
+### Verification
+
+Full tutorial run to the counter. D20 sampled while typing: 1 → 3 → 5 → 6 → 8 → 10 → 12 → 13 → 15
+words, settling on exactly `DIALOGUE.D20`; D21 and D25 likewise (`"A blacksmith?"` and `"Thanks! If"`
+caught mid-type, both settling on the full line). After Take care: box `display: none`, not visible, no
+handler, text back to the placeholder, Bram's panel gone, D26 up in the counter bubble with the side
+tail. New Game leaves the box with its placeholder text, no handler and no inline display. Console
+clean.
+
+---
+
+## r96 — the counter bell, D27–D31, and customers who ask for a trait
+
+### The bell
+
+`assets/forge/bell.png` (898×1048, art edge to edge, so its `PROP_BOX` is the whole canvas) sits at
+plate **l 72.0, w 5.2, b 96.5** — on the counter, at the right-hand end of the table the player can
+actually see. The rail covers the plate from **79%** across, so 72% is the right corner on screen even
+though the plate itself runs to 100%. The table's top edge measures 82.83%, and the bell's box lands at
+85.8–96.7%, sitting on it.
+
+It is a prop with `act:'bell'`, so it gets the existing hover sheen and pointer for free. Ringing it
+swings the bell about its crown (`transform-origin: 50% 18%`) and sends three expanding rings out.
+
+**r96b — the ring was being wiped.** Whoever answers the bell calls `buildScreenProps`, which empties
+the prop layer; the shaking bell was replaced a frame after the class went on, and the ripples, parented
+to that same layer, went with it. The ripples now live on `#screenLayer`, which survives a rebuild, and
+`ringBell` rings **after** the arrival rather than before it.
+
+### The customer pool
+
+The counter no longer has a customer as a fixture — `man1` was a static prop and is now placed by
+`CUSTOMER`, so an unrung counter is empty. All seven portraits share one 304×572 canvas and each got a
+measured `PROP_BOX`.
+
+A summoned customer asks for a trait: **80% from traits the player has discovered, 20% from those still
+unfound**, phrased through one of four templates. Whichever pool is empty, the other one answers, so a
+fresh save still works. Measured over 400 draws: **81.3%** discovered, all seven portraits appearing
+roughly evenly. The bell refuses to stack a second customer on the first, and a sale clears `CUSTOMER`
+so the next ring works.
+
+**Not built:** customers arriving on their own, and any consequence for the request. The sale still pays
+for whatever sword is on the counter, whether or not it matches what was asked for — matching, refusal,
+patience and price effects are a customer system, not a bell.
+
+### The lines
+
+D26 now opens a run of three (D26, D27, D28). Showing **D27** places the bell and lights it; **D28**
+waits for the tap; ringing brings man1, who speaks **D29** typed in his own panel; **D30** fires when
+that line lands, and **D31** points at the right-hand screen arrow, which clears on arrival at the
+forge. D31 is the last key in `DIALOGUE`, so the dragon turns to a pet exactly there.
+
+### Verification
+
+D26 → D27 (bell appears, glowing) → D28, all in the counter bubble. A hit-tested click on the bell:
+shake class on and 3 ripples alive 140ms later, both gone by 1.6s; man1 on screen; D29 typed to exactly
+`DIALOGUE.D29`; D30 on completion; D31 with the arrow at `#panRight`; clicking it lands on the forge
+with the arrow cleared and `tutOver()` true. Post-tutorial rings produce lines like "Do you have a Swift
+sword?" and "I hear you make a fine blade. A Fire one, if you can." Console clean.
+
+---
+
+## r97 — the second customer was speaking into a hidden box
+
+**Report:** "the second customer's dialogues are not showing."
+
+**Cause.** Bram's intro hides the counter's own furniture so his panel can stand alone:
+
+```
+if(old) old.style.display='none';                       /* #csPanel .cs-dlg  */
+document.querySelectorAll('#csPanel > .cs-btn').forEach(x=>x.style.display='none');
+```
+
+Nothing ever put them back. `takeCare` dismissed Bram and handed the counter to normal play with
+`.cs-dlg` still at `display:none`, so r96's customer typed D29 into an element that was in the DOM and
+invisible on screen — 158 characters, zero height.
+
+**Fix.** `takeCare` restores the dialogue box and the SELL/DENY buttons (cleared of the `disabled` flag
+the Bram flow set). The response box stays hidden deliberately — r95's ask — and will need unhiding when
+generic customers get responses of their own. `custLine` also unhides whatever box it is about to write
+into, so no future path can silently swallow a customer's words.
+
+**Why r96's verification missed it.** The check asserted on `p.textContent`, which returns the text
+whether or not anything is on screen. Content is not visibility. The check now also asserts
+`offsetParent !== null`, a non-zero box, containment in the frame, and that `elementFromPoint` at the
+line's centre returns the line itself rather than something covering it.
+
+**Verification.** Replaying the exact hide Bram's intro performs, then `takeCare`: `.cs-dlg` back to
+`flex`, SELL visible and enabled, response box still hidden. Ringing the bell: D29 matches
+`DIALOGUE.D29` exactly, box 192px tall, `offsetParent` set, inside the frame, hit-testing to its own
+`<p>`; D30 follows. Confirmed on screen in a screenshot. Console clean.
+
+---
+
+## r98 — the counter panel follows the customer, and the dragon waits his turn
+
+Three reports off one pair of screenshots.
+
+### The counter's panel belongs to a customer, not to the tutorial
+
+r97 restored `.cs-dlg` and SELL/DENY the moment Bram left, which is the over-correction the second
+screenshot caught: a placeholder line — *"I need a blade by sundown, smith"* — and two buttons sitting on
+an empty counter with nobody there.
+
+`counterUi()` now decides from state: the dialogue box and the buttons show when `CUSTOMER` is set and
+hide when it is not. It is called on Bram's exit, on a customer arriving (bell or script), on a sale,
+and on entering the counter screen. The Bram run has its own panel and drives these itself, so
+`counterUi` leaves it alone while he is there. The response box stays hidden throughout — r95's ask.
+
+### The sell instruction goes when the sale does
+
+D24 is *"Tap the sell button to confirm the trade."* It was still on screen after the trade, next to
+Bram thanking the player for it. The sale branch now calls `sayHide()`.
+
+### The dragon speaks after the customer, not over him
+
+`custLine()` — every customer line goes through it — now hides the dragon's bubble as the customer
+starts talking, and Bram's lines were routed through it. `chooseBram` had `say('D23')` on the same line
+as the state change, firing it over Bram's reply; it is now deferred with `typeAfter`, and the
+immediate call removed so D23 cannot fire twice.
+
+### Verification
+
+Bram run driven from `finishD19`: choosing a response leaves the dragon's bubble hidden and empty while
+D21 types, and D23 appears only once the line has landed. Placing the sword raises D24; clicking SELL
+hides it the same tick while Bram begins D25. After Take care, the dialogue box, SELL, DENY and the
+response box are all `display:none` with `offsetParent` null, and only D26 is on screen. Ringing the
+bell brings them back — box and SELL visible, the customer typing, the dragon silent — and D30 follows
+once the line completes. Console clean.
+
+---
+
+## r99 — D32–D38, the what-if path, and a wheel that has to be turned
+
+### The wheel
+
+Grinding was a **hold**: `pointerdown` set `pestleGrinding` and the tick advanced `prep.grind` by
+`GRIND_RATE * dt` for as long as the button was down. It is now driven by the **angle swept** around the
+wheel's centre, either direction, at `GRIND_TURNS` (2) full turns for a complete grind. A still hand
+grinds nothing; the wheel's spin class is held on a 140ms idle timer so it coasts to a stop when the
+hand does, and the spark burst moved out of the tick and onto the sweep.
+
+Measured: ten stationary pointermoves over 400ms leave the grind at **0**; one clockwise turn gives
+**0.5**; a second, anticlockwise, gives **1.0**.
+
+The pestle's own time-based path is left alone — it is vestigial and hidden in landscape, and it is the
+portrait build's mechanism.
+
+### The what-if path
+
+A second `<path>` (`#fakepath`) drawn from the same ore curves as the real route, with each raw ore
+covering half its own path (`tPct 0.5`), blinking on a 1.05s cycle. It borrows the route's ✕ for its
+endpoint — the owner's sketch ends it that way, and nothing is on the bench at that moment to want the
+mark. Raised by **D33**, cleared with its ✕ by **D35**. No state reads it.
+
+### The chapter
+
+Arriving at the forge after D31 sets the stock to exactly 1 iron and 1 manganese and opens D32–D35 as
+one run. Then it waits on the player at each step: a **full** grind (1.0, not merely ground) raises D36;
+the ground iron entering the smelter raises D37; the ground manganese raises D38.
+
+`addPrep` now reports what went in — it captured neither the ore nor the grind before clearing `prep`,
+so the two load steps had nothing to key on.
+
+### Verification
+
+Whole chapter on hit-tested input: arrival gives Iron x1 / Manganese x1 on the shelf and D32; D33 shows
+the path (369-character `d`) and its ✕ at (1259, 1025); D34 holds it; D35 clears both and arms the
+grind. Wheel as measured above. Full iron → D36; iron into the smelter → D37 with the route at
+`iron@1.00`; manganese ground and loaded → D38 with the route `iron@1.00, manganese@1.00` ending at
+**(1119, 1018)** against Balanced at **(1120, 1020)** — so D38's claim is true, not flavour. Console
+clean.
+
+---
+
+## r100 — D39–D43, idle guidance, the Craft Book, and "record new"
+
+- **Cooldowns halved, both of them**: `HEAT_DECAY` 10 → 5 (full heat now drains in 20s, not 10) and
+  `HM_FORGE.heatCool` 0.07 → 0.035.
+- **Recipe book → Craft Book** everywhere the player can read it: the rail button, both screen buttons,
+  and the two toasts.
+- **The 💾 button is now `💾 RECORD CRAFT`** on its own full-width row, because D42 tells the player to
+  tap something by that name. The ✕ keeps the row above it.
+- **Record new** (`recordNewComp`) writes a second page instead of replacing. `RECIPES` is keyed by the
+  trait set, so a duplicate needs its own key — `balanced`, then `balanced#2`. The name still resolves,
+  because it is read off the record's own trait list, not the key.
+- **The shape picker refuses to open** while the record step is live, with a toast naming the button.
+- **Idle guidance**: the build already had a 4-second idle timer (`HINT_IDLE_MS`, `lastActAt`). The
+  second run hangs an arrow resolver off it — one function that answers "what now?" from the live state
+  rather than a script, so it stays right if the player wanders. `noteAction` clears the arrow.
+
+### Two bugs found in verification
+
+**A knife-edge equality.** `tutGrindCheck` waited for `prep.grind >= 1`. The grind is a running float
+sum, so a player who lands exactly on the final increment sits at 0.9999999999999999 — which
+`Math.min(1, x)` never rounds up, and the step waits forever. r99's verification passed on the same
+edge **by luck**; this run hit the other side of it and D36 never fired. Now `>= 0.999`, matching the
+tolerance the smelter check already used.
+
+**The dragon was eating the blade panel.** r93 moved him into the top-left corner, where his box
+(12, 26, 195×175) overlaps the open panel (6, 1, 142×199) — and his box takes the pointer across its
+transparent parts. He is z-index 30, the panel 20, so with the panel open he swallowed RECORD CRAFT and
+CRAFT BOOK. r93 checked only that he cleared the **collapse toggle**, because the panel starts closed;
+this round is the first thing to ask the player to open it. `#frame.landscape > #hud` is now z-index 31:
+the panel is UI and wins where they overlap, and he is still above the map and bench everywhere else.
+
+### Verification
+
+Second run end to end on hit-tested input: D32→D38 as before, then D39 and D40 on clicks; the idle arrow
+appears at every stage (wheel, smelter, bellows, gate, anvil, hammer, mug) and clears on interaction;
+D41 at heat 70; hammering reaches **Balanced**; the pour gives D42 and stage `record`. Tapping the metal
+there is refused with a toast and the picker stays shut. With the panel open all four of its controls
+hit-test to themselves, and the dragon is still grabbable outside it. RECORD CRAFT opens the window with
+D43; **Record new** leaves `['balanced', 'balanced#2']` and selects the new page; **Update** leaves
+`['balanced']`. Both clear the stage and unblock the picker. Console clean.
+
+---
+
+## r101 — the ore leaves the shelf at the wheel, and three pointers corrected
+
+### The shelf counts what you still have
+
+An ore was spent at the **smelter**, not at the wheel — so an ore sitting on the grinding wheel was
+still counted on the shelf. Once it is on the wheel it is committed (nothing puts it back), so the count
+was simply wrong. `startPrep` now spends it, and `addPrep` no longer spends it a second time.
+
+That second half matters: `addPrep` also guarded on `oreLeft(prep.ore)`, so spending at the wheel
+without removing that guard would have made the smelter **refuse the last ore of a kind** — the count
+being zero is exactly the state you are in after putting it on the wheel. Verified: iron goes to x0 at
+the wheel, the smelter still accepts it, and the stock stays at 0 rather than going negative.
+
+### "Turn it" is drawn as a turn
+
+With the ore already on the wheel, another straight line from the shelf says nothing. `#tutSpin` is an
+open ring with the same arrowhead, rotating over the wheel, sized to 78% of it. Measured centre
+(725, 474) against a wheel centre of (724.5, 473). The straight shelf→wheel arrow is now only for
+fetching the ore; every nudge branch sets the turn arrow explicitly so it cannot be left behind.
+
+### Two pointers at the record step
+
+- **The white down-arrow pointed at a blocked tap.** `hintDownWanted` fires on "trait banked, on the
+  anvil, idle" — precisely the D42 state — and points at the metal to shape it, which the record step
+  refuses. It now returns false during `record`.
+- **The arrow to the panel toggle was invisible.** The toggle sits at (6, 4) and the arrow started at
+  `oy: -62` — above the frame, which clips. It now approaches from below-right (`ox: 128, oy: 104`),
+  measured fully inside the frame at (37, 25, 106×86). The save-button arrow keeps its old offset,
+  which was already inside.
+
+### Verification
+
+Iron x1 → x0 the moment it lands on the wheel, with the turn arrow centred on it and the straight arrow
+off; two turns and a drag put it in the smelter with the stock still 0 and D37 firing; manganese the
+same, ending D38. At the record step with the panel closed: no down-arrow, no hint arrow, and the
+toggle arrow fully inside the frame; with it open the arrow moves to RECORD CRAFT, still inside.
+Confirmed in screenshots. Console clean.

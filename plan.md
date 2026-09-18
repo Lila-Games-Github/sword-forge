@@ -94,6 +94,9 @@ A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto
 ---
 
 ## 🔜 Next up
+> ⚠️ **V1/V2 scope.** These items are for `index.html`/`swordforgeV2.html`, not the landscape
+> loop-test under active development — see the tutorial section further down and `HANDOFF.md`.
+
 
 - [ ] **Save / load** game state across sessions (localStorage) — nothing persists on reload today (biggest gap). Must now cover a lot: gold/vault/metals/compositions/upgrades/tutorial progress **+ day state** (`currentDay`, `customersToday`, `refusalsToday`) **+ quests + diary (`diaryGiven`) + shop ledger (`shopLedger`) + per-sword `craftBonus`/`hazardLoss`**.
 - [~] **Customer variety** — mostly done: named story customers **Bram / June / Roland** with branching dialogue + locked **Diary** pages, plus a 7-portrait no-repeat pool. Still open: **later-day story progression for June & Roland** (only their first appearance exists; Bram already returns on Day 2), and more archetypes/dialogue.
@@ -121,6 +124,27 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
   ⚠️ **Must be run over http** (local server or the live URL) — it reads the map's pixels via `getImageData`, which a `file://` open blocks (tainted canvas). Opening the file directly now degrades to a draw-only mode + a "run via a server" toast instead of a blank screen (`try/catch` in `init()`), but traits/hazards need http.
 - Full design notes + open questions: [`research/chalk-map-design.md`](research/chalk-map-design.md).
 - **Not ported to `index.html`.** Next: decide the ore→ingot material system + skill-tree nodes, then plan the port.
+
+## 🐉 Landscape loop-test — guided tutorial (active, 2026-09-18)
+The live line of work is `Swordforge_looptest_landscape.html`. Script SSOT:
+[`specs/2026-09-15-looptest-landscape-tutorial-script.md`](specs/2026-09-15-looptest-landscape-tutorial-script.md);
+build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](specs/2026-08-18-looptest-landscape-map-traits-hazards.md).
+- [x] **D1–D43** — first craft, the counter + Bram sale, the bell + second customer, and a second
+      forge run teaching grinding and recording a craft.
+- [x] Smelter gate on **heat**, grinding wheel on **angle swept**, minigame fire aimed by holding the
+      metal, quench mug finish, Sword Crafted window, per-trait Design Desk sets, counter bell.
+- [ ] **Continue the script past D43** — the dialogue lives in **Figma**; the owner sends it in
+      sequence. Check wording, ask, then implement. D44+ goes on a **new branch**.
+- [ ] `swift_broadsword_blade.png` missing → a swift Broadsword wears a balanced blade. Ice/water
+      have one part each.
+- [ ] 21 dead `hint()` call sites (no-op since r34) — restore a surface or convert to `toast()`.
+- [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
+- [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
+
+> ⚠️ **Scope note (2026-09-18):** the "🔜 Next up" / save-load items **earlier in this file** are **V1/V2 scope**
+> (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,
+> `shopLedger`) do not exist in the landscape loop-test, which is the build under active development —
+> see the section above and `HANDOFF.md`.
 
 ## Open questions
 - Target platform — web-only, or a mobile wrapper later?
