@@ -300,6 +300,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutDim.on { display: block; }
 #tutArrow { position: absolute; inset: 0; z-index: 70; pointer-events: none; display: none; overflow: visible; }
 #tutArrow.on { display: block; }
+#tutArrow.above { z-index: 1090; }   /* r102: over the hammer modal, just under the bubble */
 /* r101 - "turn it", drawn as a turn: an open ring with the same head, spinning over the wheel. */
 #tutSpin { position: absolute; z-index: 70; display: none; pointer-events: none; overflow: visible;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); animation: tutSpinTurn 1.7s linear infinite; }
@@ -1332,7 +1333,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
             <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="typeDone()" title="click to finish the line"><span class="who">BRAM</span><p id="bramLine"></p></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
-        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">click to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
+        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
         <div class="eod-box">
@@ -1597,7 +1598,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <span class="cap">🐉 tap to talk · drag me</span>
         </div>
         <!-- r75: the dragon's line, placed against #dragon by sayLayout() -->
-        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go" id="dragonSayGo">click to continue</span><span class="tail"></span></div>
+        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go" id="dragonSayGo">tap to continue</span><span class="tail"></span></div>
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
         <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
@@ -4145,7 +4146,9 @@ function closeAcquire(){ document.getElementById('sfAcquireModal').classList.rem
 // --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
 function openShapeSelect(){
     if(TUT_STAGE==='record'){ toast('Record this craft first \u2014 tap <b>RECORD CRAFT</b>'); return; }   /* r100 */
-    if(TUT_STAGE==='shape') tutDone(); document.getElementById('sfShapeModal').classList.add('show');
+    if(TUT_STAGE==='shape') tutDone();
+    if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
+    document.getElementById('sfShapeModal').classList.add('show');
     document.getElementById('shapeCancel').classList.toggle('on', !!SHAPE_CB); }   // r66: only the borrowed picker can be backed out of
 function cancelShape(){ SHAPE_CB=null; document.getElementById('sfShapeModal').classList.remove('show'); }
 // ============================================================
@@ -4266,6 +4269,7 @@ function hmQuench(){
     if(hmQuenching || !hmMugReady()) return;
     hmQuenching=true;
     const m=document.getElementById('hmMug'); if(m) m.classList.add('pouring');
+    tutHm2Clear();   /* r102 */
     hmHeat=0; hmRender(); hmQuenchFx(); hmSay();
     setTimeout(()=>{ hmQuenching=false;
         if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, 780);
@@ -4378,6 +4382,7 @@ function hmTick(ts){
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
     hmHeat=Math.max(0, hmHeat-F.heatCool*dt);
     if(Math.abs(hmHeat-was)>0.0004){ hmRender(); hmHeatWatch(); }
+    tutHm2Idle();   /* r102 */
 }
 // ---- a strike ----
 function hmJolt(cls){ const w=document.getElementById('hmWork'); w.classList.remove('jolt','chill'); void w.offsetWidth; w.classList.add(cls); }
@@ -4468,6 +4473,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     gainExp(XP_CRAFT,'craft');                            // r73
     if(cTraits.some(a=>a.tier==='Epic')) bumpQuest('epic5');
     invTab(2);                                                        // show it land in the SWORDS tab
+    tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun(); tutCounterStep(); });           // r90: the bench resets when the window closes
 }
 function resetRun(){ clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
@@ -4502,7 +4508,7 @@ const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.
 const HINT_IDLE_MS = 4000;
 let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
 function noteAction(){ lastActAt = performance.now();
-    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record'){ if(TUT_ARROW) tutArrow(null,null); tutSpinOn(null); } }   /* r100/r101 */
+    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record' || TUT_STAGE==='forge2'){ if(TUT_ARROW) tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101 */
 function swordAtRouteEnd(){ if(!segs.length) return false;
     const last = segs.length-1;
     return sword.seg >= last && sword.frac >= segs[last].tPct - 0.001; }
@@ -4872,7 +4878,7 @@ const DIALOGUE = {
     D9: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up.",
     D10: "Now that we have reached a ‘?’ trait on the map, we can splash water on the metal to lock it in.",
     D11: "Pick up the mug from the bucket and drag it to the metal.",
-    D12: "Click on the metal to select the shape of the sword blade.",
+    D12: "Tap on the metal to select the shape of the sword blade.",
     D13: "I'll help you heat up the metal again so you can start shaping it!",
     D14: "Just hold on the metal and I will heat that part for you to hammer.",
     D15: "It is hot enough. Now pick up your hammer and strike the hot metal!",
@@ -4903,7 +4909,11 @@ const DIALOGUE = {
     D40: "The hotter the metal is, the faster the sword icon travels on the defined path when you hammer.",
     D41: "Hot enough! Move it to the anvil and start hammering.",
     D42: "Wait, since we discovered how to craft a 'balanced' sword using lesser ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
-    D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both."
+    D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
+    D44: "Tap on the metal to select a shape.",
+    D45: "You remember what to do, right? Go ahead, I'm ready!",
+    D46: "Tell me where to FIRE, and hammer the blade.",
+    D47: "Splash water to cool the blade and finish crafting."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5045,7 +5055,27 @@ function tutShapeStep(){
 }
 /* ---- r88: the hammering minigame's own lines ---- */
 let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false;
+/* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
+   and it re-speaks on every further HINT_IDLE_MS of nothing. D46 covers fire+hammer, D47 the mug. */
+let TUT_HM2=false, TUT_HM2_AT=0;
+function tutHm2Clear(){ const a=document.getElementById('tutArrow'); if(a) a.classList.remove('above'); tutArrow(null,null); }
+function tutHm2Idle(){
+    if(TUT_STAGE!=='forge2' || hmQuenching) return;
+    const now=performance.now();
+    if(now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS) return;
+    TUT_HM2_AT=now;
+    const mug=hmMugReady(), id=mug?'D47':'D46';
+    if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
+    SAY_I=SAY_SEQ.indexOf(id); say(id);
+    if(mug){ const a=document.getElementById('tutArrow'); if(a) a.classList.add('above');
+        tutArrow('#hmMug', '#hmWork', { tfx:0.5, tfy:0.45, bow:0.18, back:24 }); }
+    else tutHm2Clear();
+}
+function tutHm2Done(){ if(!TUT_HM2) return; TUT_HM2=false; TUT_STAGE=null; tutHm2Clear(); TUT_SEEN_END=true; }
 function tutHmStep(){
+    if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
+        if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
+        SAY_I=SAY_SEQ.indexOf('D45'); say('D45'); return; }   /* r102 */
     if(tutOver() || TUT_STAGE==='forge') return;
     TUT_STAGE='forge';
     ['D13','D14'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
@@ -5219,7 +5249,13 @@ function tutCompStep(){
     if(SAY_SEQ.indexOf('D43')<0) SAY_SEQ.push('D43');
     SAY_I=SAY_SEQ.indexOf('D43'); say('D43');
 }
-function tutRecorded(){ if(TUT_STAGE==='record'){ TUT_STAGE=null; tutArrow(null,null); tutSpinOn(null); tutUnglow(); } }
+/* r102: recording no longer ends the guide - D44 sends the player to the shape picker, and the
+   second hammering run is guided by idle prompts only (D46/D47). */
+function tutRecorded(){ if(TUT_STAGE!=='record') return;
+    TUT_STAGE='shape2'; TUT_HM2=true; tutArrow(null,null); tutSpinOn(null); tutUnglow();
+    if(SAY_SEQ.indexOf('D44')<0) SAY_SEQ.push('D44');
+    SAY_I=SAY_SEQ.indexOf('D44'); say('D44'); tutGlow('#orb', true);
+}
 function tutBellStep(){
     TUT_STAGE='bell'; bellShow(true);
     setTimeout(()=>tutGlow(bellEl, true), 0);
@@ -5428,7 +5464,7 @@ function say(id){
     SAY_ON=id; SAY_LAST=id; t.textContent=line; box.classList.add('show');
     if(id===lastLine()) TUT_SEEN_END=true;
     const go=document.getElementById(onScreen?'screenDragonSayGo':'dragonSayGo');
-    if(go) go.textContent = (SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'click to close' : 'click to continue';
+    if(go) go.textContent = (SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue';
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D11' && TUT_STAGE==='quench') tutMugPointer();
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */

@@ -4572,3 +4572,68 @@ off; two turns and a drag put it in the smelter with the stock still 0 and D37 f
 same, ending D38. At the record step with the panel closed: no down-arrow, no hint arrow, and the
 toggle arrow fully inside the frame; with it open the arrow moves to RECORD CRAFT, still inside.
 Confirmed in screenshots. Console clean.
+
+---
+
+## r102 — D44–D47: the second craft is shaped, and the copy says "tap"
+
+Owner-supplied beat (2026-09-18), taken from Figma and checked line by line before implementing. It
+picks up where r100 stopped: the composition has just been recorded, and the second sword still has to
+be shaped, hammered and quenched.
+
+### The four new lines
+
+| id | line | fires |
+| --- | --- | --- |
+| **D44** | "Tap on the metal to select a shape." | the moment the craft is recorded (`tutRecorded`) |
+| **D45** | "You remember what to do, right? Go ahead, I'm ready!" | the hammering minigame opening for the second time |
+| **D46** | "Tell me where to FIRE, and hammer the blade." | 4 s idle inside the minigame, before the mug is live |
+| **D47** | "Splash water to cool the blade and finish crafting." | 4 s idle once the mug is live, with a pointer at the mug |
+
+Wording corrected with the owner before writing: the tag question took a comma
+("what to do, right?"); `FIRE` is capitalised to agree with **D16**, which already says "Tell me where
+to FIRE!"; the mug line got sentence case, a full stop, and "and finish crafting" so it does not clash
+with **D10** ("lock it in") and **D17** ("to finish"); "blade" was kept over "metal" on the owner's
+call, even though the art is still at the mid-blade stage.
+
+### The second hammering run teaches nothing up front
+
+D13–D17 explained the minigame during the first craft and are all one-shot (`TUT_HMHOT`, `TUT_HMCOLD`,
+`TUT_SAIDMUG`), so they cannot repeat. The second run therefore speaks **only when the player stalls**.
+`tutHm2Idle()` runs from `hmTick` and fires on two clocks, both `HINT_IDLE_MS` (4000 ms): time since the
+last player action, and time since the last prompt. So the line **re-fires on every further 4 s of
+inactivity**, per the owner, but cannot repeat while the player is doing anything. Any interaction
+clears the pointer through `noteAction`, which now covers the `forge2` stage.
+
+`TUT_HM2` is a flag, not a stage, because the shape picker and the minigame each clear the stage on
+their own; the flag is what tells `tutHmStep` to say D45 instead of re-running D13.
+
+### The arrow had to be lifted over the modal
+
+`#tutArrow` sits at `z-index: 70` and the hammer modal at `1000`, so the mug pointer drew *underneath*
+the minigame. It now takes an `.above` class at `1090` while pointing at the mug — just under the
+dialogue bubble's own `1100`, which r87 had already solved the same way. Measured: the arrow runs from
+`#hmMug` to `#hmWork` and is visible over the scene.
+
+### D47 is optional, so it cannot own the guide-to-pet switch
+
+`say()` sets `TUT_SEEN_END` when the id equals `lastLine()`, and `lastLine()` is now **D47** — a line an
+attentive player never sees. Left alone, the dragon would stay a guide forever for anyone who does not
+stall. `tutHm2Done()`, called from `finishBlade`, ends the run explicitly when the second sword is
+crafted. This will stop mattering as soon as more lines land after D47, but it is correct either way.
+
+### "Click" is gone
+
+This is a mobile game. **D12** said "Click on the metal…" for the same action D44 now describes, and
+the dialogue bubble's own affordance read "click to continue" / "click to close". All three now say
+**tap**, which is what every other line in the script already used (D5, D24, D42).
+
+### Verification
+
+Driven in the preview at `http://localhost:5678/Swordforge_looptest_landscape.html`:
+`tutRecorded()` → D44 with `#orb` glowing; opening the picker clears the pointer and keeps `TUT_HM2`;
+`selectShape` → the minigame opens on `forge2` saying D45; a forced 4 s idle gives D46 with no arrow; a
+second call in the same window does **not** re-fire; pushing both clocks back re-fires D46; with
+`hmProg = 2` the prompt becomes D47 and draws the mug→work arrow at `z-index: 1090` over the
+`z-index: 1000` modal (screenshot); `noteAction()` clears it. `Object.keys(DIALOGUE).length === 47`,
+`lastLine() === "D47"`. Script body parses. Console clean.

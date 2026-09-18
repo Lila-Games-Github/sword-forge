@@ -394,3 +394,55 @@ From D35 to the record, if the player does nothing for **4 seconds** (`HINT_IDLE
 build's idle threshold) an arrow points at the next step: ore→wheel, wheel→smelter, the bellows, the
 gate, metal→anvil, hammer→anvil, mug→metal, then the panel toggle and RECORD CRAFT. Any interaction
 clears it.
+
+---
+
+## Shaping the second sword — D44–D47
+
+**D44** — Dragon
+> "Tap on the metal to select a shape."
+
+*Trigger: the craft being recorded (either **Update** or **Record new**). The metal on the anvil glows
+and the shape picker, which the record step held shut, opens on a tap.*
+
+**D45** — Dragon
+> "You remember what to do, right? Go ahead, I'm ready!"
+
+*Trigger: the hammering minigame opening for the second time. Nothing is re-taught here — D13–D17 did
+that during the first craft and are all one-shot.*
+
+*Note: the owner wrote "You remember what to do right?"; a tag question takes a comma.*
+
+### D46 and D47 are idle prompts, not steps
+
+From D45 until the blade is quenched, the dragon speaks **only if the player does nothing for 4
+seconds** (`HINT_IDLE_MS`), and **re-speaks on every further 4 seconds of inactivity**. Any interaction
+resets the clock and clears the pointer.
+
+**D46** — Dragon
+> "Tell me where to FIRE, and hammer the blade."
+
+*Fires while the blade is unfinished. No pointer: where to aim is the player's choice.*
+
+*Note: the owner wrote lowercase "fire". Capitalised to agree with **D16**, "Tell me where to FIRE!",
+which teaches the same action in the first craft.*
+
+**D47** — Dragon
+> "Splash water to cool the blade and finish crafting."
+
+*Fires once the mug goes live (the blade fully shaped). An arrow points from the mug to the blade,
+lifted over the minigame panel.*
+
+*Note: the owner wrote "splash water to cool the blade" — sentence case and a full stop added, and
+"and finish crafting" appended so it does not read as a third, different account of what water does
+after **D10** ("lock it in") and **D17** ("to finish"). "Blade" over "metal" is the owner's call.*
+
+*After the splash the minigame closes as usual and the **Sword Crafted** window shows the sword and its
+details. No new copy there. Because D47 is optional, the guide-to-pet switch is made explicitly when
+that sword is crafted rather than waiting on the script's last line being seen.*
+
+### Tap, not click
+
+The build is a mobile game, so no player-facing string says "click". Corrected with this beat: **D12**
+("Click on the metal to select the shape of the sword blade.") and the dialogue bubble's own
+"click to continue" / "click to close" affordance.
