@@ -11,8 +11,10 @@ continuation prompt printed at close time.
   touched; the two have diverged in catalog and layout. `swordforgeV2.html` / `index.html` are older
   canon and were not touched this session.
 - **Repo:** https://github.com/Lila-Games-Github/sword-forge (Pages: https://lila-games-github.github.io/sword-forge/)
-- **Status:** rounds **r60–r101** landed in one PR after a long unpushed stretch (last push before it
-  was PR #12 / `e2bdca4`, covering up to r59).
+- **Status:** rounds **r60–r101** are pushed and proposed in **one open PR**, not yet merged — the
+  owner chose to hold it for review at session close. Merging is also the deploy: `.github/workflows/deploy.yml`
+  publishes Pages on every push to `main`. The last push before this one was PR #12 / `e2bdca4` (up to r59),
+  so this PR is a very large single review.
 
 ### What the landscape build now has
 
