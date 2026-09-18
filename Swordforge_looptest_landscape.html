@@ -5263,7 +5263,9 @@ function tutThankYou(){
     typeStop();
     const re=document.querySelector('#csPanel > .cs-resp');
     if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
-    CUSTOMER=null; TUT_STAGE='bonus'; refreshCounter(); counterUi();
+    CUSTOMER=null; TUT_STAGE='bonus';
+    (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();   /* r105 */
+    refreshCounter(); counterUi();
     ['D57','D58'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D57'); say('D57');
 }
@@ -5280,10 +5282,8 @@ function tutFireCustomer(){
     CUSTOMER={ portrait:'assets/customer/woman1.png', tid:'fire', name:null };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
-    /* nothing to sell her until she has said what she wants */
-    const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
-    if(se) se.disabled=true; if(de) de.disabled=true;
     tutFireButtons(true);
+    counterBoxes();   /* r105: hides the counter's own box and its buttons behind this panel */
     custLine(document.getElementById('bramLine'), DIALOGUE.D59);
 }
 /* the panel's two buttons are Bram's markup, rebuilt for whoever is standing there */
@@ -5318,7 +5318,7 @@ function custDlgTap(){
 function tutFireAsked(){
     TUT_FIRE_STATE='asked'; TUT_FIRE_RUN=true; TUT_STAGE='to-cave';
     (()=>{ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
-        if(se) se.disabled=false; if(de) de.disabled=false; })();   /* r104: now there is an order to fill */
+        if(se){ se.disabled=false; se.style.display=''; } if(de){ de.disabled=false; de.style.display=''; } })();   /* r104/r105: now there is an order to fill */
     const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
     updateTutorialCounterUi();
     setTutorialCave();
@@ -5456,11 +5456,25 @@ function askedTrait(){
    r97 restored them the moment Bram left, which put a placeholder line and two buttons on an empty
    counter. They follow whoever is actually standing there instead.
    The Bram run drives these itself and has its own panel, so it is left alone. */
-function counterUi(){
-    if(TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') return;
+/* r105: ONE owner for the counter's own boxes. The scripted panel wins while it is up; with no
+   customer the box is both hidden AND emptied, so a stale line cannot come back with the next one. */
+function counterBoxes(){
+    const intro=document.getElementById('bramIntro');
+    const introOn = !!(intro && intro.classList.contains('show'));
     const here=!!CUSTOMER;
     const dlg=document.querySelector('#csPanel .cs-dlg');
-    if(dlg) dlg.style.display = here ? '' : 'none';
+    if(dlg) dlg.style.display = (here && !introOn) ? '' : 'none';
+    if(!here || introOn){ const p=document.querySelector('#csPanel .cs-dlg p'); if(p && !here) p.textContent=''; }
+    /* nothing to sell while a scripted customer is still saying what they want */
+    const quiet = introOn && TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked';
+    if(quiet) document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{ b.style.display='none'; });
+    return { here:here, introOn:introOn, quiet:quiet };
+}
+function counterUi(){
+    const st=counterBoxes();   /* r105: runs for scripted customers too, unlike the rest of this */
+    if(TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') return;
+    if(st.introOn) return;     /* the scripted panel owns the counter while it is up */
+    const here=st.here;
     document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{
         b.style.display = here ? '' : 'none'; if(here) b.disabled=false; });
     sellLabel();   /* r103 */
@@ -5501,6 +5515,7 @@ function updateTutorialCounterUi(){
     const bi=document.getElementById('bramIntro');
     const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || (TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked');   /* r104 */
     if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!scripted);
+    counterBoxes();   /* r105 */
 }
 /* r96 - the bell beats. D27 puts it on the counter lit, D28 asks for the tap, and ringing it brings
    the first customer, who speaks before the dragon comments. */

@@ -4799,3 +4799,44 @@ Screenshots of the counter and the cave. Console clean.
   has to mine, forge and sell the fire sword. This resolves itself when the next lines land.
 - **The customer has no name.** The panel says CUSTOMER; `woman1` needs one if she is to be a character.
 - **Nothing still enforces the trait request** — she asks for fire and will buy anything.
+
+---
+
+## r105 — one owner for the counter's dialogue boxes
+
+Reported by the owner from a play session: the previous customer's line ("Hmm. I see. Not bad. 51g for
+your efforts.") was still on screen underneath the next customer's panel, and showed with nobody
+standing at the counter.
+
+### One cause, both symptoms
+
+`#bramIntro` — the scripted panel that carries the speaker's name and the reply buttons — sits **inside**
+`#csPanel`, directly over `.cs-dlg`, the counter's own dialogue box. Nothing hid one for the other, and
+nothing emptied `.cs-dlg` when a customer left. So the last line spoken stayed in the box, the box kept
+its `display` from the last time `counterUi()` ran, and the next customer's panel simply landed on top
+of it.
+
+`counterUi()` could not have fixed it: it returns early for the whole of a scripted customer's visit
+(`if(TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') return;`), which is exactly when the two boxes coincide.
+
+**This predates the r104 customer.** Bram's panel has stacked over the counter's placeholder line
+("I need a blade by sundown, smith…") since r97 — visible in r103's own verification screenshot. It was
+only noticed once a second customer reused the panel and put a *real* stale line behind it.
+
+### The fix
+
+`counterBoxes()` is now the single owner of those boxes, and unlike `counterUi()` it runs for scripted
+customers too:
+
+- the scripted panel wins while it is up — `.cs-dlg` is hidden behind it;
+- with no customer the box is hidden **and emptied**, so a stale line cannot reappear with the next one;
+- SELL and DENY are hidden, not merely disabled, while a scripted customer is still saying what they
+  want, and come back when the order is made.
+
+### Verification
+
+Three states asserted directly. During the greeting: one box, `.cs-dlg` hidden, SELL hidden. After the
+request: `.cs-dlg` back and empty, SELL live. With no customer: everything hidden, nothing retained.
+Bram's whole visit re-run to make sure the shared panel still works — intro, either reply, the sword on
+the counter, the sale (34g) and his departure — and his panel no longer stacks over the placeholder
+line either. Screenshot of the reported sequence. Console clean.
