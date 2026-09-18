@@ -23,3 +23,7 @@ research/**/Web Sources/wiki/img/
 research/**/Reviews/*.csv
 research/**/Reviews/*.jsonl
 research/**/Reviews/sensortower-ios-reviews-raw.json
+
+### Agent working files (never part of the build)
+*.bak
+__*.patch
