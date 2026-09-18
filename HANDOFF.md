@@ -11,10 +11,12 @@ continuation prompt printed at close time.
   touched; the two have diverged in catalog and layout. `swordforgeV2.html` / `index.html` are older
   canon and were not touched this session.
 - **Repo:** https://github.com/Lila-Games-Github/sword-forge (Pages: https://lila-games-github.github.io/sword-forge/)
-- **Status:** rounds **r60–r101** are pushed and proposed in **one open PR**, not yet merged — the
-  owner chose to hold it for review at session close. Merging is also the deploy: `.github/workflows/deploy.yml`
-  publishes Pages on every push to `main`. The last push before this one was PR #12 / `e2bdca4` (up to r59),
-  so this PR is a very large single review.
+- **Status:** rounds **r60-r101** are **merged and live**. PR #13 landed as merge commit `12a41aa` on
+  2026-09-18 and GitHub Pages redeployed automatically (`.github/workflows/deploy.yml` fires on every
+  push to `main`). The previous push before it was PR #12 / `e2bdca4` (up to r59).
+- **Current branch:** `tutorial-phase2`, cut from `main` at `12a41aa`. The old
+  `sword-forge/tutorial-script-and-craft-systems` branch was merged and deleted (local + remote); its
+  commits live in `main`. **Do not commit directly to `main`** - every push there publishes the site.
 
 ### What the landscape build now has
 
@@ -96,9 +98,9 @@ supersede them.
    (`dadada47` on the remote), so reopening is a click. It was `CONFLICTING` and needs a rebase first.
    Its canonical-build rename is now redundant — that was applied directly on the PR #13 branch — but
    its deferred-art/lazy-load work is not.
-3. **D44+ commits start a new branch** off `sword-forge/tutorial-script-and-craft-systems`, rather than
-   stacking onto it. (Owner: "they are new" — read as a new branch; if that is wrong, the only cost is
-   a rebase, so confirm before the first commit.)
+3. **D44+ work goes on its own branch.** Resolved on 2026-09-18: PR #13 was merged rather than held,
+   the old branch deleted, and **`tutorial-phase2`** cut fresh from `main`. Phase-2 work goes there;
+   open a new PR from it when there is something to review.
 
 ## The questions as asked (superseded by the answers above)
 

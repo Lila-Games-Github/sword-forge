@@ -133,6 +133,7 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
       forge run teaching grinding and recording a craft.
 - [x] Smelter gate on **heat**, grinding wheel on **angle swept**, minigame fire aimed by holding the
       metal, quench mug finish, Sword Crafted window, per-trait Design Desk sets, counter bell.
+- [x] **r60-r101 merged** (PR #13, `12a41aa`) and deployed; work continues on `tutorial-phase2`.
 - [ ] **Continue the script past D43** — the dialogue lives in **Figma**; the owner sends it in
       sequence. Check wording, ask, then implement. D44+ goes on a **new branch**.
 - [ ] `swift_broadsword_blade.png` missing → a swift Broadsword wears a balanced blade. Ice/water
