@@ -854,6 +854,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-bram { display:none; position:absolute; inset:0; pointer-events:none; }
 .cs-bram-responses { pointer-events:auto; }
 .cs-bram.show { display:block; }
+/* r106: the line itself is a control - it advances the conversation */
+.cs-bram-dlg { pointer-events:auto; cursor:pointer; }
+.cs-bram-dlg .go { position:absolute; right:26px; bottom:8px; font-size:8px; color:#8a6d3f; display:none; }
+.cs-bram-dlg.more .go { display:block; }
 .cs-bram-dlg { position:absolute; left:31.68%; top:6.36%; width:44.92%; min-height:86px; background:url('assets/ui/Dialogue_box.png') center/100% 100% no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 34px 22px; box-sizing:border-box; }
 .cs-bram-dlg .who { font-family:'Cinzel',serif; font-weight:900; font-size:11px; color:#8a6a34; margin-bottom:4px; }
 .cs-bram-dlg p { margin:0; font-size:12px; line-height:1.45; color:#4a3623; text-align:center; }
@@ -1351,7 +1355,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cs-resp">Response &mdash; placeholder</div>
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
-            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
+            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
         </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
@@ -3906,7 +3910,12 @@ function tryAcquire(){
         const tier=tierFromDist(melt.alignDist!=null?melt.alignDist:ALIGN_MAX); const rt=melt.reachedTrait, bt=rt.trait;
         const firstFind=!rt.discovered;                    // r73: the quest counts NEW traits, not re-acquisitions
         rt.discovered=true; rt.txtEl.textContent=bt.symbol; rt.txtEl.removeAttribute('font-weight'); reveal(rt.x,rt.y,'tr'+bt.id);   // acquiring IS discovery → reveal the real symbol on the map; fog holes are permanent so it stays revealed
-        melt.traits.push({t:bt, tier:tier, val:(rt&&rt.value!=null)?rt.value:null});   // r64: stamp the map value so the sword carries its own worth
+        /* r106: a sword wears a trait ONCE. Quenching on a trait it already carries re-rolls the
+           TIER (the player may have lined it up better) but never adds a second copy. */
+        const had=melt.traits.find(a=>a.t && a.t.id===bt.id);
+        const RANK=['Weak','Fine','Epic'];
+        if(had){ if(RANK.indexOf(tier) > RANK.indexOf(had.tier)) had.tier=tier; }
+        else melt.traits.push({t:bt, tier:tier, val:(rt&&rt.value!=null)?rt.value:null});   // r64: stamp the map value so the sword carries its own worth
         melt.heat=0; updateGauges();                                             // the water quenches the orb — re-heat in the furnace to travel further
         melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight();
         melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y);
@@ -5303,13 +5312,14 @@ function chooseFire(key){
     TUT_FIRE_STATE='told'; typeDone(); tutFireButtons(false);
     const l=document.getElementById('bramLine');
     TUT_FIRE_NEXT = key==='smith' ? 'D62' : 'D63';
-    typeAfter(null);
+    typeAfter(()=>custMore(true));   /* r106: say so, once the line has landed */
     custLine(l, DIALOGUE[key==='smith' ? 'D60' : 'D61']);
 }
 /* a tap finishes the line that is typing, then a second tap moves to the one waiting behind it */
+function custMore(on){ const d=document.querySelector('.cs-bram-dlg'); if(d) d.classList.toggle('more', !!on); }
 function custDlgTap(){
-    if(TYPE_T){ typeDone(); return; }
-    if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null;
+    if(TYPE_T){ typeDone(); custMore(!!TUT_FIRE_NEXT); return; }
+    if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null; custMore(false);
         typeAfter(()=>tutFireAsked());
         custLine(document.getElementById('bramLine'), DIALOGUE[id]); return; }
     typeDone();
@@ -5464,6 +5474,8 @@ function counterBoxes(){
     const here=!!CUSTOMER;
     const dlg=document.querySelector('#csPanel .cs-dlg');
     if(dlg) dlg.style.display = (here && !introOn) ? '' : 'none';
+    const resp=document.querySelector('#csPanel > .cs-resp');
+    if(resp) resp.style.display = resp.onclick ? 'flex' : 'none';   /* r106 */
     if(!here || introOn){ const p=document.querySelector('#csPanel .cs-dlg p'); if(p && !here) p.textContent=''; }
     /* nothing to sell while a scripted customer is still saying what they want */
     const quiet = introOn && TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked';
@@ -5765,13 +5777,16 @@ function say(id){
     Object.keys(SAY_BOXES).forEach(k=>{ if(k===where) return;
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
+    /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
+       the end, so the next tap closes instead of walking the run from wherever it had been left. */
+    { const i=SAY_SEQ.indexOf(id); SAY_I = (i>=0) ? i : SAY_SEQ.length; }
     /* r103: the guide-to-pet switch still keys off the script's last line, but a scripted TAIL can
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
     if(go) go.textContent = (SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue';
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
-    if(id==='D11' && TUT_STAGE==='quench') tutMugPointer();
+    if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
@@ -5816,7 +5831,7 @@ function sayAgain(){
 }
 function sayNext(){
     if(TUT_PAUSE){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }   /* r85: the click that closes D8 restarts the world */
-    if(SAY_I<0){ SAY_I=0; say(SAY_SEQ[0]); return; }
+    if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
     if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19'; SAY_I=-1; sayHide(); if(wasD19) finishD19(); return; }
     say(SAY_SEQ[SAY_I]);

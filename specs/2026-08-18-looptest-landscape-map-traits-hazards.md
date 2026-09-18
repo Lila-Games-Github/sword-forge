@@ -4840,3 +4840,56 @@ request: `.cs-dlg` back and empty, SELL live. With no customer: everything hidde
 Bram's whole visit re-run to make sure the shared panel still works — intro, either reply, the sword on
 the counter, the sale (34g) and his departure — and his panel no longer stacks over the placeholder
 line either. Screenshot of the reported sequence. Console clean.
+
+---
+
+## r106 — five faults from the owner's play session
+
+All five reported from one session, with screenshots. Four are old; only the untappable line is new.
+
+### The scripted customer's line could not be tapped, so the run could not be finished
+
+`.cs-bram` is `pointer-events:none` and only `.cs-bram-responses` opted back in, so `.cs-bram-dlg` —
+the box holding the line itself — was dead to the pointer. Bram never needed it (his box only offered
+"finish the typing early"), but r104's second line **waits for a tap on it**, so the adventurer's
+conversation could not be advanced at all: no reply buttons, no way forward. The box now takes
+`pointer-events:auto`, shows a **tap to continue** hint once a line is waiting behind the current one,
+and clears it on the tap. Verified with a real click at the box's centre, not `el.click()`.
+
+### `.cs-resp` was a third unowned box
+
+r105 gave `.cs-dlg` an owner and missed its neighbour, so "Response — placeholder" surfaced during the
+adventurer's visit. That box is only meaningful when something has given it a handler (Bram's
+"Take care", the "Thank you." after a sale), so that is now exactly when it shows.
+
+### D1 came back on every tap once a run ended
+
+`sayNext()` began `if(SAY_I<0){ SAY_I=0; say(SAY_SEQ[0]); return; }` — and `SAY_SEQ[0]` is **D1**. A run
+ending sets `SAY_I` to −1, so the next tap replayed the tutorial's first line. `SAY_I` also drifted out
+of step with what was on screen, because several callers speak a line without setting it
+(`placeCounter`'s D24, `chooseBram`'s D23); a tap then walked the run forward from wherever the cursor
+happened to be, which is the owner's "previous dialogues keep going on".
+
+Both fixed at the source: `say()` now points `SAY_I` at whatever it has just put on screen, parking it
+past the end for an off-sequence line so one tap closes it, and `sayNext()` **hides** a finished run
+instead of starting it over.
+
+### One trait, once
+
+`tryAcquire()` pushed to `melt.traits` every time the player quenched on a trait, so re-quenching on the
+same spot stacked it. The owner's sword carried **Balanced eight times** and was valued at 352g.
+A trait already on the sword now re-rolls its **tier** — the player may have lined it up better — and
+never adds a second copy. Verified against the real function: three acquisitions of Balanced at
+alignments 25, 5 and 30 give one entry that goes Weak → Epic and stays Epic.
+
+### The mug pointer
+
+It went up with D11 ("Pick up the mug…") and not with D10, which is the line that first explains the
+quench. It now goes up with either.
+
+### Verification
+
+Each fixed in isolation and then in the run: a finished run stays closed on further taps; an
+off-sequence line closes on one tap; a real click on the customer's line advances D60 → D62 and moves
+the stage to `to-cave`; the mug arrow draws from `#mug` to `#orb` at D10 with the metal on the anvil;
+one Balanced entry after repeated quenches. Console clean.
