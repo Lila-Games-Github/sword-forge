@@ -1,5 +1,8 @@
 # INDEX
 
+> ⚠️ **2026-09-18:** see **`HANDOFF.md`** for the build under active development
+> (`Swordforge_looptest_landscape.html`). The "WHERE CANON LIVES NOW" table below predates it.
+
 Chronological catalog of every doc in this repo. `canon` = current source of truth;
 `superseded`/`deprecated` marked when it happens.
 

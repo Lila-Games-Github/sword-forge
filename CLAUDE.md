@@ -6,6 +6,15 @@ Guidance for working in the Sword Forge repo.
 
 Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-contained HTML file** — all markup, CSS, and JavaScript live in one file. There is no build step, bundler, or package manager.
 
+## Session state — read these first
+
+- **`HANDOFF.md`** — living state: what the active build has, what is next, gotchas, and the open
+  questions only the owner can answer. Updated at every session close.
+- **`INDEX.md`** — dated catalogue of every doc (`canon`/`superseded`). **`LEARNINGS.md`** — lessons.
+- Where these disagree with `README.md`, `ONBOARDING.md`, `plan.md`, `specs/README.md`,
+  `specs/game-design.md` or `docs/wiki/`, **`HANDOFF.md` and this file win** — several of those still
+  describe the earlier builds and are listed in HANDOFF's "Documentation drift" section.
+
 ## Canonical files
 
 - **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (D1–D43) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. Note PR #10 (`fm/sf-lazy-load`, open) also proposes naming this build canonical across the docs.
@@ -43,7 +52,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 ## Verifying changes
 
 - **Screenshots work, but flakily.** The continuous ember/`requestAnimationFrame` loop can keep the page from going idle, and a capture fails outright while the app window is minimised or hidden. Retry once on timeout; if it fails twice, fall back to `read_page`/`javascript_tool` measurements rather than burning turns.
-- Instead verify with the Claude Preview tools via `.claude/launch.json` (`preview_start`, config name `sword-forge` → Node static server on port 5678). Exact tool names vary by environment; in the current one they are the `mcp__Claude_Browser__*` set: `javascript_tool` to drive functions directly and read `getBoundingClientRect`/computed styles/canvas pixels, `read_console_messages` for errors, `resize_window` for the viewport. Resize to mobile (375px) before measuring layout, since the headless viewport otherwise reports width 0.
+- Verify with the Claude Preview tools via `.claude/launch.json` (`preview_start`, config name `sword-forge` → Node static server on port 5678). Exact tool names vary by environment; in the current one they are the `mcp__Claude_Browser__*` set: `javascript_tool` to drive functions directly and read `getBoundingClientRect`/computed styles/canvas pixels, `read_console_messages` for errors, `resize_window` for the viewport. Resize to mobile (375px) before measuring layout, since the headless viewport otherwise reports width 0.
 - The preview server can drop between turns (a `navigate` fails or the tab reverts to `file://`) — restart with `preview_start` and re-`navigate`; it returns on the same port.
 - **Drive controls the way a player does, and check what a player can see.** Click through `document.elementFromPoint(x,y).dispatchEvent(...)` rather than `el.click()` — an element's box hit-tests even where its art is transparent, so props routinely cover controls. For "is it on screen", `textContent` is not enough (it reads through `display:none`): also assert `offsetParent !== null`, a non-zero box, and that `elementFromPoint` at its centre returns that element.
 - A **hidden preview pane freezes `requestAnimationFrame`** — drive `tick()`/`hmTick()` by hand when verifying anything time-based, and never gate game state on `animation.onfinish`. The console also retains errors from earlier loads; check the URL stamp before believing one.

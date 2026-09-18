@@ -1,5 +1,9 @@
 # Sword Forge
 
+> ⚠️ **2026-09-18 — canon moved.** The build under active development is
+> **`Swordforge_looptest_landscape.html`** (landscape loop-test + guided tutorial). The
+> "canonical build" lines below are stale. See **`HANDOFF.md`** for current state, and `CLAUDE.md`.
+
 A 2D grid-based blacksmith crafting game, built as a **single self-contained HTML file** (vanilla HTML/CSS/JS — no build step, bundler, or dependencies). Explore a fog-of-war grid to discover magical traits, heat and forge them into custom swords, and sell to customers at your counter.
 
 **Canonical build: `swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial). `index.html` is V1, kept for historical reference; it is still the deployed site root until V2 is promoted.

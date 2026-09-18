@@ -136,7 +136,7 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
 - [ ] **Continue the script past D43** — owner supplies each line; check wording, ask, then implement.
 - [ ] `swift_broadsword_blade.png` missing → a swift Broadsword wears a balanced blade. Ice/water
       have one part each.
-- [ ] 19 dead `hint()` calls (no-op since r34) — restore a surface or convert to `toast()`.
+- [ ] 21 dead `hint()` call sites (no-op since r34) — restore a surface or convert to `toast()`.
 - [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
 - [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
 

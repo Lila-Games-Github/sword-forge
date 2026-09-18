@@ -43,7 +43,7 @@ continuation prompt printed at close time.
    exactly one grip, one guard and one pommel each.
 3. **`assets/ui/dragon_icon.png` is referenced nowhere** — committed but unused; ask the owner where
    it goes.
-4. **19 `hint()` calls are dead.** `hint()` has been a no-op since r34, so a lot of instructional text
+4. **21 `hint()` call sites are dead** (19 of them with literal strings). `hint()` has been a no-op since r34, so a lot of instructional text
    never appears — including "Still heating — keep pumping the bellows", the only feedback for tapping
    a cold gate. Either restore a hint surface or convert the ones that matter to `toast()`. **Why it went:** r34 cut
    the `#sfHint` bottom bar to match `Main_forge_wireframe.png`; `#sfToast` is the surviving surface.
@@ -103,7 +103,7 @@ specs.
    branching means two open PRs on the same file. Not decided. Remember **merging to `main` deploys
    Pages**, so this is not a private choice.
 
-**If the owner is away**, the ranked fallback is: (a) next-step 4 (the 19 dead `hint()` calls — a
+**If the owner is away**, the ranked fallback is: (a) next-step 4 (the 21 dead `hint()` call sites — a
 self-contained fix); then (b) next-step 2 (`swift_broadsword_blade.png`, needs art, so prepare the
 fallback instead); then (c) next-step 5 (enforce the customer's trait request — but that invents
 economy rules, so write the proposal rather than the code). Do **not** start D44+ without the line.
@@ -120,6 +120,12 @@ others are untouched (some are inside PR #10's scope, so they were left alone de
 - `docs/wiki/` describes `index.html`/`swordforgeV2.html`, including a `Tutorial Flow` page about the
   `tutorialFlow` array, which the landscape build does not have. Its search script needs Python, which
   is not installed here.
+- **`specs/game-design.md`** — CLAUDE.md calls it the mechanics SSOT and requires updating it with
+  any mechanic change, but its header still names `Swordforge_new_looptest.html` (portrait) canon for
+  the craft loop and `index.html` for the rest; the landscape build appears only in inline "Landscape
+  divergence" notes. **In practice this session recorded mechanics in the dated round spec
+  (`specs/2026-08-18-...md`) and the tutorial script SSOT, not in `game-design.md`** — keep doing that
+  until someone reconciles the header, and say so in the commit.
 - `README.md` and `specs/README.md` still name `swordforgeV2.html` / `Swordforge_new_looptest.html`
   canonical. Both are inside **PR #10's** file list, so they were left alone here rather than creating
   more conflict. `ONBOARDING.md` is in **no** PR and is what CLAUDE.md tells a new agent to read first —
