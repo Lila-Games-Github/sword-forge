@@ -5140,3 +5140,51 @@ gives D70 with the ring at (822.5, 1037.5), the disc still hidden and **no fog h
 dismissing D70 turns the ring off; reaching Fire in the second half shows the disc, turns the ring off
 and gives D75 at distance 14, `Fine`. Screenshot shows the ring pulsing in fogged ground with no `?`
 inside it. Console clean.
+
+---
+
+## r114 — Fire below the ✕, a 70% cap, and half a disc out of the fog
+
+Owner's sketch: Fire sits **below** the ✕ the route makes at a full last-manganese grind, very slightly
+left of it, and part of the disc should already be showing at the three-ore route end.
+
+### Placement
+
+Fire moves to world **(835, 1059)**, sketch `{x:633,y:620}` → `{x:641,y:634}`. Measured after the move:
+
+| | |
+| --- | --- |
+| ✕ at a full last grind | (838, 1006) |
+| Fire relative to it | **53 below, 3 left** |
+| ✕ at the 70% cap | (838, 1045), **14** from Fire → **Fine** |
+| three-ore route end | (963, 1018), **135** from Fire |
+| hazard on Fire | none; nearest other trait 288 away |
+
+The offset from the capped ✕ is roughly **perpendicular** to the line back to the three-ore end, which
+is what lets Fire sit 14 off the ✕ while barely changing how far away it is when the dragon points at it.
+
+`GRIND_FIRE_CAP` is now **0.70**.
+
+### Half out of the fog
+
+r113 hid Fire's disc outright so the fog could not give it away. The owner wants the opposite now: a
+glimpse is the point of the line. The disc is no longer hidden; the fog does the work, and the ring over
+the fog is what turns a half-covered disc into "that one".
+
+Measured on a clean run of the three-ore route: Fire's **centre is still fogged** and **12 of 36 rim
+points (33%) are clear**. The reveal radius is 120, the disc is r17, and the route's closest approach is
+128 — so the fog edge cuts through the disc.
+
+**A measurement trap worth recording:** the first attempt reported the disc *fully* clear. The cause was
+the measurement itself — `addSegment` calls `moveX`, which calls `reveal` — so probing route ends for a
+table had punched fog holes at every one of them, including 8 units from Fire. Fog measurements have to
+be taken on a clean load, with no route sampled beforehand.
+
+### Open: the cap does not guarantee Fine
+
+At the cap Fire is 14 away (Fine), but the route end is **closest to Fire at about 60%** (8 away, Epic)
+and moves away from there as it is ground further: 60% → 8, 65% → 9, 70% → 14. So a player who stops
+turning early, which D72 ("grind until the ✕ touches the trait") arguably invites, lands on **Epic** and
+D76 ("It is not Epic tier") becomes wrong. The cap prevents overshooting past the trait; it does not
+prevent stopping short of it on the good side. Owner's call: either a minimum grind so the ore can only
+go in at the cap, or D76 reworded.

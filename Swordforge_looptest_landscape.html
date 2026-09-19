@@ -1918,7 +1918,7 @@ const TRAIT_POS = {
     swift:{x:916,y:510}, balanced:{x:831,y:608}, durable:{x:1131,y:510}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},   /* r80: Balanced sits on the tutorial route's landing point; Durable takes its old seat so the y=510 row keeps its shape */
     celestial:{x:1085,y:41}, cloud:{x:633,y:150}, rainbow:{x:877,y:160}, luck:{x:1400,y:147}, lightning:{x:369,y:291},
     noble:{x:1147,y:312}, grace:{x:1721,y:333}, gale:{x:776,y:361}, floral:{x:1400,y:435}, fury:{x:200,y:517},
-    ice:{x:1775,y:579}, fire:{x:633,y:620}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
+    ice:{x:1775,y:579}, fire:{x:641,y:634}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
     poison:{x:996,y:939}, savage:{x:369,y:1007}, blood:{x:1379,y:1041}, cursed:{x:640,y:1074}, dark:{x:1037,y:1175}
 };
 const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
@@ -3879,7 +3879,7 @@ function startPrep(oreId){ if(!oreLeft(oreId)) return;
 /* r111: the fire craft runs in two halves. 'fire-grind' takes 2 iron + 1 manganese, all ground
    FULL; 'fire-mang' takes one more manganese, capped - the cap is what makes the result Fine
    rather than Epic, which is exactly what D76 tells the player. */
-const GRIND_FIRE_CAP = 0.75;
+const GRIND_FIRE_CAP = 0.70;
 function grindCap(){ return (TUT_STAGE==='fire-mang' && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
 /* which ore the scripted craft will accept next, and how many of it are already in */
 const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-shape','fire-forge'];
@@ -4601,7 +4601,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun(); if(second) tutBasementStep(); else tutCounterStep(); });   /* r90/r103 */
 }
-function resetRun(){ if(typeof tutFireHidden==='function'){ tutFireHidden(false); tutSpotOn(null); }   /* r113 */
+function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
@@ -5420,7 +5420,7 @@ function tutStowed(){
 /* ---- back at the forge: 2 iron + 1 manganese, all ground full ---- */
 function tutFireForge(){
     if(TUT_STAGE!=='to-forge2') return;
-    TUT_STAGE='fire-grind'; tutArrow(null,null); tutFireHidden(true);   /* r113 */
+    TUT_STAGE='fire-grind'; tutArrow(null,null);   /* r114: the disc is no longer hidden - see below */
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
 }
@@ -5439,13 +5439,9 @@ function tutSpotOn(t){
     if(!t){ g.style.display='none'; return; }
     g.setAttribute('transform','translate('+t.x+','+t.y+')'); g.style.display='';
 }
-/* the X reveals its own surroundings with a 120-unit hole, and the route's X ends 14 from Fire -
-   so leaving the fog alone is not enough on its own. Fire's own disc stays hidden until the sword
-   is actually within reach of it, whatever the fog is doing. */
-function tutFireHidden(on){
-    const f=traits.find(t=>t.trait && t.trait.id==='fire');
-    if(f && f.el) f.el.style.visibility = on ? 'hidden' : '';
-}
+/* r114: r113 hid Fire's disc outright, because the X's own 120-unit reveal would otherwise expose
+   it. The owner wants the opposite now - the three-ore route is placed so the fog cuts the disc in
+   half, and that glimpse is the point of the line. Nothing hides it any more. */
 function tutFireSpot(){
     if(TUT_STAGE!=='fire-heat1' || TUT_SAIDSPOT) return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
@@ -5489,7 +5485,7 @@ let TUT_SAIDSPLASH=false;
 function tutFireReached(){
     if(TUT_STAGE!=='fire-heat2' || TUT_SAIDSPLASH) return;
     if(!melt || !melt.reachedTrait || melt.reachedTrait.trait.id!=='fire') return;
-    TUT_SAIDSPLASH=true; tutFireHidden(false); tutSpotOn(null);   /* r113: reached, so it is no longer a rumour */
+    TUT_SAIDSPLASH=true; tutSpotOn(null);   /* r113/r114 */
     if(SAY_SEQ.indexOf('D75')<0) SAY_SEQ.push('D75');
     SAY_I=SAY_SEQ.indexOf('D75'); say('D75');
     tutMugPointer();

@@ -77,3 +77,12 @@ game reach this stage on its own*.
 `openGate`, `placeOnAnvil`, `addPrep`, `advanceSword`, …) and letting `TUT_STAGE` fall where it falls.
 Set a stage by hand only to reach a starting position, never across the step under test. Assert the
 lines that did **not** fire as well as the ones that did.
+
+## Measuring the map changes the map (2026-09-19, r114)
+
+`addSegment()` calls `moveX()`, which calls `reveal()`. So sampling route ends to build a table of
+distances **punches a fog hole at every sampled end**. A fog-coverage check run afterwards reported a
+trait fully visible when a clean run leaves it two-thirds covered.
+
+**Rule:** any fog or reveal measurement goes on a freshly loaded page, before any route is sampled. Keep
+geometry probes (which perturb the fog) and fog probes (which must not be perturbed) in separate loads.
