@@ -4957,3 +4957,38 @@ back in with the blade. The panel comes down when she is served.
 Both branches: D62 and D63 remain on screen with D64 up beside them, and `.cs-dlg` stays hidden rather
 than showing empty. Leaving for the cave and returning to the counter finds the portrait and the request
 still there. Console clean.
+
+---
+
+## r110 — the second craft insists on a full grind
+
+Owner's call: during the second sword's craft the player must not drop unground ore into the smelter;
+each ore goes in at a **full** grind.
+
+That craft (D32–D43) is the one that teaches grinding, and it was skippable two ways: drag an ore
+straight from the shelf onto the furnace (`addOreDirect`, grind 0), or lift one off the wheel half
+ground (`addPrep` at any grind). Either builds a short route that never reaches the balanced trait D38
+promises has been reached — the line would be a lie and the record step would write down a recipe that
+does not work.
+
+`fullGrindOnly()` is true only while `TUT_STAGE` is one of the `regrind-*` stages. In it:
+
+- a raw drop on the furnace is refused, **without spending the ore** — it stays on the shelf;
+- an ore under 0.999 grind is refused and **stays on the wheel** at the grind it had, so the player
+  carries on turning rather than starting over.
+
+The scope matters in both directions. The **first** craft drops raw ore in by design — that is what D3
+asks for — and the **fire** craft that follows wants its manganese at roughly three quarters, not full
+(r104). Neither is touched.
+
+### Verification
+
+During `regrind-grind`: a raw drop adds no segment and leaves the ore count untouched; an ore at 0.50
+adds no segment and is still on the wheel at 0.50; at 1.0 it goes in. Outside it: the first craft still
+takes raw ore directly, and the fire craft still accepts manganese at 0.75. Refusal toast captured.
+Console clean.
+
+### Not covered
+
+The Craft Book's "craft this recipe" button builds a route through `addSegment` directly, bypassing both
+paths. It is not reachable during the tutorial today, so it is left alone rather than guarded blind.

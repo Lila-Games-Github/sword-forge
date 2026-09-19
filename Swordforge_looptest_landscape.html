@@ -3865,8 +3865,13 @@ function startPrep(oreId){ if(!oreLeft(oreId)) return; spendOre(oreId); prep={or
    past GRIND_FIRE_CAP. Iron is untouched, because that half of the recipe needs a full grind. */
 const GRIND_FIRE_CAP = 0.80;
 function grindCap(){ return (TUT_FIRE_RUN && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
-function addPrep(){ if(!prep) return; const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g); hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
-function addOreDirect(oreId){ if(!oreLeft(oreId)) return; ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0; }
+function addPrep(){ if(!prep) return;
+    if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first — <b>hold the handle and turn the grindstone</b>'); return; }
+    const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g); hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
+    if(fullGrindOnly()){ toast('Not straight in — this one goes to the <b>grindstone</b> first'); return; }
+    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
