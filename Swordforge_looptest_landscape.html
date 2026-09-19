@@ -2255,7 +2255,9 @@ function sellCounter(){
     let levelled=false;
     while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:g });
-    COUNTER=null; CUSTOMER=null; refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
+    const scriptedBye = (TUT_STAGE==='sell2');   /* r108: he has a line to say and a thank-you to take */
+    COUNTER=null; if(!scriptedBye) CUSTOMER=null;
+    refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide();   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2();   /* r103 */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone

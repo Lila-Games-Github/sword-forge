@@ -4913,3 +4913,26 @@ keeps hiding a finished run, so `-1` only ever means finished.
 Fresh load shows D1 by itself. Real clicks walk D1 → D2 → D3, with the ore arrow going up on D3, and
 putting the four ores in gives D4 with the bellows lit. The r106 behaviour is intact: ending a run and
 tapping twice more leaves it closed rather than replaying D1.
+
+---
+
+## r108 — the second customer stays to be thanked
+
+Reported by the owner: after the second sale the customer disappeared, leaving his own reaction
+("Hmm. I see. Not bad. 51g for your efforts.") and the **Thank you.** button standing over an empty
+counter.
+
+`sellCounter()` clears `CUSTOMER` as part of completing a sale, and a generic customer's portrait is
+drawn **from** `CUSTOMER`. Bram survives the same line only because he is drawn from `TUT_BRAM_STATE`
+instead, which is why this never showed before r104 gave a `CUSTOMER`-drawn customer something to say
+after paying.
+
+When a scripted farewell follows the sale (`TUT_STAGE === 'sell2'`), the sale no longer sends the
+customer away — `tutThankYou()` does, which is the tap the farewell is waiting on. The sword still
+leaves the counter with the gold.
+
+### Verification
+
+Sale completes: the customer is still at the counter, his line reads "…51g for your efforts." against
+51 gold banked, and **Thank you.** is the only control. A real click on it removes the portrait, empties
+and hides both boxes, and hands over to the dragon's D57. Console clean.
