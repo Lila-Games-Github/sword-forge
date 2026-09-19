@@ -787,9 +787,13 @@ so it is worth the +7g the sell button prints.*
 
 *Arrows up to the forge, then left to the counter.*
 
-### Open: the sword is left on the basement table
+**D54 again** — Dragon
+> "Put the sword back in the inventory."
 
-This beat never asks the player to pick the sword back up, so it is still on the workstation when they
-reach the counter, and their inventory is empty. Verified: at the counter, `WORK` is the fire sword and
-`INV.swords` is empty. The customer who asked for it cannot be served. The sharpening beat solved the
-same problem with **D54** ("Put the sword back in the inventory."), which could simply be re-used here.
+*Follows D84 on a tap, with an arrow from the table to the inventory. Without it the sword stayed on
+the workstation and the customer who asked for it could not be served.*
+
+**D85** — Dragon
+> "Okay, back to the counter!"
+
+*Trigger: the sword going back in the bag. Arrows up to the forge, then left to the counter.*

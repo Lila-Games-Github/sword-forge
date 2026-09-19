@@ -5333,10 +5333,8 @@ function tutDesignOpen(){
 }
 function tutDesignDone(){
     if(TUT_STAGE!=='dec-design') return;
-    TUT_STAGE='dec-back';
-    ['D84','D85'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
-    SAY_I=SAY_SEQ.indexOf('D84'); say('D84');
-    setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
+    TUT_STAGE='dec-take';
+    sayQueue('D84','D54');   /* r117: admire it, then pick it up */
 }
 function tutSharpOpen(){
     if(TUT_STAGE!=='base-tap') return;
@@ -5360,6 +5358,11 @@ function tutSharpDone(){
     setTimeout(()=>{ const w=tutWorkSword(); if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0);
 }
 function tutWorkTaken(){
+    if(TUT_STAGE==='dec-take'){   /* r117 */
+        TUT_STAGE='dec-back'; tutArrow(null,null);
+        sayQueue('D85');
+        setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
+        return; }
     if(TUT_STAGE!=='base-take') return;
     TUT_STAGE='base-back'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D55')<0) SAY_SEQ.push('D55');
@@ -5969,7 +5972,7 @@ function tutAnvilStep(){
    stage here is all it takes to bring him along to a new screen. */
 const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
                            'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2',
-                           'fire-basement','dec-table','dec-bench','dec-design','dec-back'];   /* r104/r111/r116 */
+                           'fire-basement','dec-table','dec-bench','dec-design','dec-take','dec-back'];   /* r104/r111/r116/r117 */
 function onScreenDragon(){
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
     if(SF_SCREEN!=='customer') return false;
@@ -6029,6 +6032,12 @@ function sayLayout(){
         cy=Math.min(fb.height-(ch.offsetHeight||80)-6, cy);
         ch.style.left=cx.toFixed(0)+'px'; ch.style.top=cy.toFixed(0)+'px'; }
 }
+function sayQueue(){
+    const ids=[].slice.call(arguments);
+    ids.forEach(id=>{ const i=SAY_SEQ.indexOf(id); if(i>=0) SAY_SEQ.splice(i,1); });
+    ids.forEach(id=>SAY_SEQ.push(id));
+    SAY_I=SAY_SEQ.indexOf(ids[0]); say(ids[0]);
+}
 /* r115: a line can end in a question. While an answer is pending the bubble does NOT advance on a
    tap - the only way on is to pick one. */
 let SAY_CHOICES=null;
@@ -6068,6 +6077,8 @@ function say(id){
     if(id==='D35'){ tutFakePath(false); TUT_STAGE='regrind-grind'; }
     if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
+    if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
+        if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */
     sayLayout(); requestAnimationFrame(sayLayout);        // again once the text has wrapped and set the height
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the

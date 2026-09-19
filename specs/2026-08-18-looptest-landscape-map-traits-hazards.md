@@ -5244,13 +5244,21 @@ answers with a fourth surface, `design`, and `sayHide()` clears it.
 Arriving in the basement gives D49 with the dragon on screen and an arrow from the sword to the table;
 the drop gives D82 and an arrow at the assembly bench; opening the desk gives D83 on the icon surface
 with the fire set (flame_* parts) loaded; DONE gives D84 and marks the sword **designed**, so it carries
-the +7g the sell button prints; tapping through gives D85 and points up, then left at the forge, and
-arriving at the counter clears the run. Screenshot of the desk. Console clean.
+the +7g the sell button prints; tapping through gives D84, then D54, then D85 (see below), points up, then
+left at the forge, and arriving at the counter clears the run. Screenshot of the desk. Console clean.
 
-### Open: the sword is stranded
+### The sword comes back with you
 
-The beat never asks the player to take the sword back, so at the counter `WORK` still holds it and
-`INV.swords` is empty — measured, not assumed. The customer who asked for a fire sword cannot be served.
-The sharpening beat solved exactly this with **D54** ("Put the sword back in the inventory."), which
-could be re-used here in one line. Flagged rather than invented, since the owner listed the steps
-explicitly.
+**D54 is re-used** after D84, so the decorated sword goes back in the bag before the walk to the
+counter. Without it the sword stayed on the workstation and the customer who asked for a fire sword
+could not be served.
+
+Re-using a line mid-script needed one new piece. `sayNext()` walks `SAY_SEQ` in **insertion** order, and
+D54 was first pushed during the sharpening beat, so it sits far below D84 — tapping D84 would have
+skipped straight past it. `sayQueue(...ids)` lifts the named lines to the end of the run in the order
+given, which is what "say these next" has to mean for a line that has already been used once.
+
+Verified with D54 planted at index 5, exactly where the sharpening beat leaves it: after DONE the tail
+of `SAY_SEQ` reads `['D84','D54']`, tapping D84 gives D54 with the arrow to the inventory, taking the
+sword empties the table and gives D85, and at the counter the inventory holds
+`Longsword fire:Fine designed=true` with the workstation empty.
