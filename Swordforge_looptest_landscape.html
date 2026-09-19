@@ -2072,7 +2072,7 @@ function addBook(K,x,y,xpOverride){
 }
 function takeBook(b){
     b.taken=true; gainExp(b.xp,'book');
-    if(b.tut && TUT_STAGE) tutBookStep();   // r73: the readout is the skill button's bar
+    if(b.tut && FIRST_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep();   /* r73/r112 */
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
     const t=document.createElementNS(NS,'text'); t.setAttribute('class','bookXp'); t.setAttribute('text-anchor','middle');
@@ -5173,6 +5173,8 @@ function tutStrikeStep(){
 }
 /* ---- r85: two books sitting ON the route, so the first run cannot miss them ---- */
 const TUT_BOOK_AT=[0.38, 0.72];
+/* r112: the stages that ARE the first craft, so its lines cannot leak into a later one */
+const FIRST_CRAFT_STAGES=['ore','bellows','gate','anvil','hammer','strike','travel','quench','acquired','shape','forge'];
 let TUT_BOOKS=false, TUT_SAIDBOOK=false;
 function tutRoutePoint(f){
     let total=0; segs.forEach(g=>{ total+=g.len*g.tPct; });
@@ -5853,7 +5855,7 @@ function tutGateStep(){
         if(SAY_SEQ.indexOf('D41')<0) SAY_SEQ.push('D41');
         SAY_I=SAY_SEQ.indexOf('D41'); say('D41'); return;
     }
-    if(TUT_STAGE==='gate') return;
+    if(TUT_STAGE!=='bellows') return;   /* r112: only the FIRST craft's bellows step leads here */
     TUT_STAGE='gate';
     tutGlow('#bellowtop', false);
     if(SAY_SEQ.indexOf('D5')<0) SAY_SEQ.push('D5');
@@ -5865,7 +5867,7 @@ function tutGateStep(){
    gate the metal is sitting at to the face of the anvil it has to land on, and the anvil glows as the
    destination. Both clear when the metal is set down. */
 function tutAnvilStep(){
-    if(TUT_STAGE==='anvil') return;
+    if(TUT_STAGE!=='gate') return;   /* r112 */
     TUT_STAGE='anvil'; tutUnglow();
     if(SAY_SEQ.indexOf('D6')<0) SAY_SEQ.push('D6');
     SAY_I=SAY_SEQ.indexOf('D6');

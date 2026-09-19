@@ -5056,3 +5056,45 @@ Route end gives D70 with Fire revealed and `tut-spot` pulsing (animation and fil
 Dismissing gives D71 and stops the pulse; the smelter gives D72; grinding stops at exactly 0.75 and
 gives D73; adding gives D74; reaching Fire gives D75 at distance **14, Fine**; the quench gives D76 with
 the sword carrying `fire:Fine`, then D77; the minigame gives D78 and nothing further. Console clean.
+
+---
+
+## r112 — the first craft's script stops hijacking later crafts
+
+Reported by the owner: during the **third** sword, D8 and D9 played again, "and everything after that".
+
+`tutGateStep()` was a catch-all, not a branch. It special-cased the second craft (`regrind-heat`, r100)
+and then **fell through** to "say D5 and set `TUT_STAGE='gate'`" for everything else. So the fire craft's
+heat step walked into the first craft's script: D5 at the gate, D6 from `openGate`, D7 from
+`placeOnAnvil`, D8 from the first strike (freezing the game with `tutPause`), D9 from the books.
+
+It also overwrote `fire-heat1`, which is the stage r111's own fire-spotting step waits on — so **D70
+could never have fired in a real playthrough**. r111's verification drove the stages by hand instead of
+going through `markGateReady` / `openGate` / `placeOnAnvil`, which is exactly why it missed this. The
+lesson is in LEARNINGS.
+
+### The fix
+
+A first-craft step now requires the first craft's own preceding stage, rather than accepting whatever
+is left over:
+
+- `tutGateStep()` runs only from `bellows`;
+- `tutAnvilStep()` only from `gate` (`openGate` already checked this, so it is belt and braces);
+- the exp-book line only during `FIRST_CRAFT_STAGES`, a named list of the stages that are the first
+  craft.
+
+`tutHammerStep` and `tutStrikeStep` were already gated by `anvil` and `hammer`, so breaking the chain at
+its head is enough.
+
+### Verification
+
+All three crafts driven through the **real** gameplay functions this time, not by assigning stages.
+
+- **First craft:** D1 → D2 → D3, four ores give D4, `markGateReady` gives D5, `openGate` gives D6,
+  `placeOnAnvil` gives D7, striking gives D8 with the game paused. Unchanged.
+- **Second craft:** `regrind-heat` still gives D41 at the gate.
+- **Third craft:** the stage stays `fire-heat1` through gate-ready, gate-open and anvil with D69 still
+  up; hammering to the route end gives D70 with Fire pulsing, the game not paused, and **none of
+  D5–D9 in the run at all**.
+
+Console clean.

@@ -63,3 +63,17 @@ further out.
 **Rule:** any measurement of hazards, fog or trait spacing must be taken **after** the last change to
 `TRAIT_POS` in that round, not before. Re-run the probe after the patch lands, even when the patch
 "only" moves one trait.
+
+## Drive tutorial steps through the gameplay functions, not by assigning stages (2026-09-19, r112)
+
+r111 verified a new craft by setting `TUT_STAGE` directly and calling the step functions. Every
+assertion passed. In a real playthrough the beat could not run at all: `tutGateStep()` was a catch-all
+that overwrote the very stage those steps waited on, and dragged the first craft's D5-D9 in with it.
+
+Assigning the stage is assuming the answer to the question the test should be asking, which is *does the
+game reach this stage on its own*.
+
+**Rule:** verify a tutorial beat by calling the functions a player's actions call (`markGateReady`,
+`openGate`, `placeOnAnvil`, `addPrep`, `advanceSword`, …) and letting `TUT_STAGE` fall where it falls.
+Set a stage by hand only to reach a starting position, never across the step under test. Assert the
+lines that did **not** fire as well as the ones that did.
