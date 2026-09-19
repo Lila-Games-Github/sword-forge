@@ -5302,3 +5302,26 @@ button; the sale pays **74g** and her line quotes **74g**; she stays, her reques
 **Thank you.** sends her away; D87 follows with an arrow right, the forge shows an arrow up, and the
 bedroom gives D88 from the sleeping dragon with the travelling one hidden and an arrow on the bed.
 Screenshot of the bedroom. Console clean.
+
+---
+
+## r119 — one dragon in the bedroom
+
+Reported by the owner: both dragons were on the bedroom screen, the sleeping one on the bed and the
+travelling one standing at the left.
+
+r118 withheld the `.tut-dragon` class on this screen, which should have been enough. It was not:
+**Bram's beat writes `#screenDragon.style.display='block'` directly** — `chooseBram` and `takeCare` both
+do — and an inline style beats every class rule. So from the moment Bram was served, the travelling
+dragon was pinned on for the rest of the game, and no class could take it off.
+
+That inline style now has a single owner. `updateTutorialCounterUi` clears it on every screen, so the
+CSS classes decide as they were meant to, and forces it off in the bedroom.
+
+### Verification
+
+Playing Bram's beat first, so the inline `block` is really set: after `takeCare` the inline style is
+`block` as before; entering the bedroom makes it `none` with the computed display `none` and D88 up from
+the bed; returning to the counter clears the inline style back to `''` and the dragon shows again at
+`block`, now from the class rather than the inline. Screenshot of the bedroom with one dragon. Console
+clean.

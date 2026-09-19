@@ -5817,6 +5817,8 @@ function updateTutorialCounterUi(){
     if(layer) layer.classList.toggle('tut-counter', !!on);
     /* r118: in the bedroom the sleeping dragon on the bed speaks, so the travelling one stays away */
     if(layer) layer.classList.toggle('tut-dragon', onScreenDragon() && SF_SCREEN!=='bedroom');
+    const sdEl=document.getElementById('screenDragon');
+    if(sdEl) sdEl.style.display = (SF_SCREEN==='bedroom') ? 'none' : '';   /* r119 */
     const sd=document.getElementById('screenDragonSay'); if(!on && !TUT_BRAM_STATE && !onScreenDragon() && sd) sd.classList.remove('show');   /* r103 */
     const bi=document.getElementById('bramIntro');
     /* r109: 'asked' used to drop her panel, which blanked the fire-sword request the instant the
