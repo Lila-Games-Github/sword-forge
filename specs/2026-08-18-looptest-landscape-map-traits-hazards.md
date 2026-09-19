@@ -5098,3 +5098,45 @@ All three crafts driven through the **real** gameplay functions this time, not b
   D5–D9 in the run at all**.
 
 Console clean.
+
+---
+
+## r113 — Fire moves off the ✕, and the spot-glow stops lifting the fog
+
+Two owner notes from the same screenshot.
+
+### Fire sat on the ✕
+
+The full route (2 iron at 100%, 1 manganese at 100%, 1 manganese at 75%) ends its ✕ at **(837, 1038)**,
+and r111 had put Fire at (838, 1024) — 14 units **directly above** it, so the two discs overlapped.
+Fire now sits 14 to the **left** instead: world **(823, 1038)**, sketch `{x:643,y:611}` → `{x:633,y:620}`.
+Same distance, so the tier is unchanged at **Fine**, and re-measured after the move: no hazard on Fire,
+nearest other trait 298 away, and the three-ore route end is 142 away (still outside the 120 reveal).
+
+### The glow was clearing the fog, which gave the trait away
+
+r111 marked the spotted trait by calling `reveal()` and adding a class to the trait's own group. That
+punched a permanent hole in the fog and lit up the `?` disc — the opposite of what the line is for.
+
+There is now a separate `#tutSpot` ring, placed in the SVG **after `#fog`** (like `#xmark` and
+`#alignRing`), so it draws over the fog without needing a hole. It pulses at the trait's position and
+goes when D71 is dismissed. No `reveal()` call at all.
+
+**Hiding the fog was not enough on its own.** `moveX()` reveals the route's ✕ with a 120-unit hole, and
+the finished route's ✕ ends 14 from Fire — and the sword's own travel reveal passes close enough too.
+Measured: the fog is already open over Fire's position before the player gets there. So Fire's **own
+disc** is hidden (`visibility`) from the moment the craft is set up until the sword is actually within
+reach of it, whatever the fog is doing. `resetRun()` restores it, so an abandoned run cannot leave a
+trait invisible.
+
+The visible result is a glowing ring over dark ground with nothing inside it, which is what "I *think*
+that is the fire trait" should look like.
+
+### Verification
+
+Fire is 14 left of the ✕ on the same row, tier Fine, no hazard. Through the real gameplay functions:
+at the craft's start Fire's disc is hidden and the ring is off; hammering the three-ore route to its end
+gives D70 with the ring at (822.5, 1037.5), the disc still hidden and **no fog hole added by the glow**;
+dismissing D70 turns the ring off; reaching Fire in the second half shows the disc, turns the ring off
+and gives D75 at distance 14, `Fine`. Screenshot shows the ring pulsing in fogged ground with no `?`
+inside it. Console clean.
