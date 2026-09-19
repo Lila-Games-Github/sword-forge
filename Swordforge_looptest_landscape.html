@@ -321,6 +321,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     0%,100% { filter: drop-shadow(0 0 2px rgba(255,210,122,.35)); }
     50%     { filter: drop-shadow(0 0 13px rgba(255,210,122,.95)) drop-shadow(0 0 26px rgba(255,170,40,.6)); } }
 #dragonSay.above { z-index: 1100; }   /* r87: over the hammer modal, where the dragon is also tappable */
+/* r115: the dragon's own answer buttons, hung under whichever bubble he is speaking from */
+#sayChoices { position: absolute; z-index: 1101; display: none; flex-direction: column; gap: 6px;
+    width: 315px; pointer-events: auto; }
+#sayChoices button { width: 100%; min-height: 34px; border: 0; padding: 6px 20px; cursor: pointer;
+    background: url('assets/ui/Paper_button_wider.png') center / 100% 100% no-repeat;
+    font-family: inherit; font-size: 11px; color: #5c4a33; }
+#sayChoices button:hover { filter: brightness(1.06); }
 #dragonSay { position: absolute; z-index: 46; display: none; width: 315px; padding: 11px 15px 14px;   /* r94: 0.75x */
     background: #f3e7c6; border: 2px solid #6a5636; border-radius: 11px;
     box-shadow: 0 10px 22px rgba(0,0,0,.55); cursor: pointer; }
@@ -1632,6 +1639,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <span class="cap">🐉 tap to talk · drag me</span>
         </div>
         <!-- r75: the dragon's line, placed against #dragon by sayLayout() -->
+        <div id="sayChoices"></div>
         <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go" id="dragonSayGo">tap to continue</span><span class="tail"></span></div>
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
@@ -4598,8 +4606,10 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     if(cTraits.some(a=>a.tier==='Epic')) bumpQuest('epic5');
     invTab(2);                                                        // show it land in the SWORDS tab
     const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
+    const fireSword = (TUT_STAGE==='fire-forge');   /* r115 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
-    showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun(); if(second) tutBasementStep(); else tutCounterStep(); });   /* r90/r103 */
+    showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
+        if(second) tutBasementStep(); else if(fireSword) tutFireCustomise(); else tutCounterStep(); });   /* r90/r103/r115 */
 }
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
@@ -5073,7 +5083,10 @@ const DIALOGUE = {
     D75: "Splash water on it! I hope this is the fire trait!",
     D76: "Yes! We got it! It is not Epic tier. But it is okay for now.",
     D77: "Tap the metal and select a shape.",
-    D78: "I'm ready!"
+    D78: "I'm ready!",
+    D79: "Wow. A fire sword! Do you want to customize it?",
+    D80: "Wrong answer. Think again.",
+    D81: "Yes! Let's go to the basement."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5256,6 +5269,7 @@ function tutBasementStep(){
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
     if(!TUT_SHARP_RUN && !TUT_FIRE_RUN) return;   /* r104 */
+    /* r115: TUT_FIRE_RUN is still on for the customise beat */
     if(name==='basement' && TUT_STAGE==='to-basement'){
         TUT_STAGE='base-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
@@ -5264,6 +5278,7 @@ function tutScreenArrived(name){
         return; }
     if(name==='forge' && TUT_STAGE==='to-cave'){
         tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }); return; }
+    if(name==='basement' && TUT_STAGE==='fire-basement'){ TUT_STAGE=null; tutArrow(null,null); return; }   /* r115 */
     if(name==='cave'){ tutCaveArrived(); return; }
     if(name==='forge' && TUT_STAGE==='to-forge2'){ tutFireForge(); return; }   /* r111 */
     if(name==='forge' && TUT_STAGE==='base-back'){
@@ -5498,6 +5513,26 @@ function tutFireGot(){
     setTimeout(()=>tutGlow('#orb', true), 0);
 }
 /* the minigame gets one line and then the player is left to it */
+/* r115: the fire sword is finished, and the dragon has opinions about decorating it. Refusing is
+   offered once and then withdrawn - the second pair of buttons both say Yes, which is the joke. */
+function tutFireCustomise(){
+    TUT_STAGE='fire-ask';
+    if(SAY_SEQ.indexOf('D79')<0) SAY_SEQ.push('D79');
+    SAY_I=SAY_SEQ.indexOf('D79'); say('D79');
+    sayChoose([{ label:'Yes', fn:tutFireYes },
+               { label:"No, I don't have time.", fn:tutFireNo }]);
+}
+function tutFireNo(){
+    if(SAY_SEQ.indexOf('D80')<0) SAY_SEQ.push('D80');
+    SAY_I=SAY_SEQ.indexOf('D80'); say('D80');
+    sayChoose([{ label:'Yes', fn:tutFireYes }, { label:'Yes', fn:tutFireYes }]);
+}
+function tutFireYes(){
+    TUT_STAGE='fire-basement';
+    if(SAY_SEQ.indexOf('D81')<0) SAY_SEQ.push('D81');
+    SAY_I=SAY_SEQ.indexOf('D81'); say('D81');
+    setTimeout(()=>tutArrow(null, '#panDown', { tfx:0.5, tfy:0.5, ox:-4, oy:-102, bow:0.18, back:20 }), 0);
+}
 function tutFireHammer(){
     if(TUT_STAGE!=='fire-shape') return;
     TUT_STAGE='fire-forge'; tutUnglow();
@@ -5939,6 +5974,31 @@ function sayLayout(){
     if(beside) box.style.setProperty('--tailY', Math.max(14, Math.min(h-36, headY - y - 15)).toFixed(0)+'px');
     const host=b.getBoundingClientRect();
     box.style.left=(x-host.left).toFixed(0)+'px'; box.style.top=(y-host.top).toFixed(0)+'px';
+    /* r115: the answer buttons sit just under the bubble, measured against #frame so the same
+       element works for the bench bubble and the screen one. */
+    const ch=document.getElementById('sayChoices');
+    if(ch && SAY_CHOICES){ const fb=f.getBoundingClientRect();
+        const bh=box.offsetHeight||h;
+        let cy=y-fb.top+bh+7, cx=x-fb.left;
+        cx=Math.max(6, Math.min(fb.width-321, cx));
+        cy=Math.min(fb.height-(ch.offsetHeight||80)-6, cy);
+        ch.style.left=cx.toFixed(0)+'px'; ch.style.top=cy.toFixed(0)+'px'; }
+}
+/* r115: a line can end in a question. While an answer is pending the bubble does NOT advance on a
+   tap - the only way on is to pick one. */
+let SAY_CHOICES=null;
+function sayChoose(list){
+    SAY_CHOICES = (list && list.length) ? list : null;
+    const box=document.getElementById('sayChoices'); if(!box) return;
+    box.innerHTML='';
+    if(!SAY_CHOICES){ box.style.display='none'; return; }
+    SAY_CHOICES.forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.textContent=c.label;
+        b.addEventListener('click', e=>{ e.stopPropagation(); const fn=c.fn; sayChoose(null); fn(); });
+        box.appendChild(b); });
+    box.style.display='flex';
+    /* say() sets the hint before the choices are attached, so correct it here */
+    ['dragonSayGo','screenDragonSayGo','shSayGo'].forEach(id=>{ const g=document.getElementById(id); if(g && SAY_CHOICES) g.textContent=''; });
+    sayLayout();
 }
 function say(id){
     const where=sayWhere(), B=SAY_BOXES[where];
@@ -5954,7 +6014,7 @@ function say(id){
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
-    if(go) go.textContent = (SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue';
+    if(go) go.textContent = SAY_CHOICES ? '' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue');   /* r115 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
@@ -5967,7 +6027,8 @@ function say(id){
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
-function sayHide(){ SAY_ON=null; ['dragonSay','screenDragonSay','shSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
+function sayHide(){ SAY_ON=null; sayChoose(null);   /* r115 */
+    ['dragonSay','screenDragonSay','shSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
 /* r87: the dragon is a guide while the script still has something to say, and a pet afterwards. The
@@ -6002,6 +6063,7 @@ function sayAgain(){
 }
 function sayStart(){ if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
+    if(SAY_CHOICES) return;   /* r115: answer the question first */
     if(TUT_PAUSE){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }   /* r85: the click that closes D8 restarts the world */
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
@@ -6010,6 +6072,8 @@ function sayNext(){
 }
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
+    (()=>{ const f=document.getElementById('frame'), c=document.getElementById('sayChoices');
+        if(f && c && c.parentElement!==f) f.appendChild(c); })();   /* r115 */
     wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
     setTimeout(sayStart, 600);                            /* r75/r107: the opening line, not a 'next' */
     setTimeout(dragonCap, 60);

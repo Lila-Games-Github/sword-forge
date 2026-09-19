@@ -720,3 +720,34 @@ construction — so D76 is true every time rather than usually.
 
 The three-ore route ends 126 units from Fire: far enough not to reach it, close enough that revealing it
 there reads as spotting something through the fog.
+
+---
+
+## The dragon wants it decorated — D79–D81
+
+**D79** — Dragon
+> "Wow. A fire sword! Do you want to customize it?"
+
+*Trigger: closing the **Sword Crafted** window on the fire sword. Two answers appear **under the
+dragon's own bubble**:*
+
+> **"Yes"** → D81
+> **"No, I don't have time."** → D80
+
+**D80** — Dragon
+> "Wrong answer. Think again."
+
+*The same two boxes come back and **both** now read **"Yes"**. Refusing is offered once and then
+withdrawn, which is the joke.*
+
+**D81** — Dragon
+> "Yes! Let's go to the basement."
+
+*An arrow points down to the basement; arriving there clears it.*
+
+### The dragon can ask questions now
+
+Answer buttons had only ever belonged to the customer panel. `sayChoose()` hangs them under whichever
+bubble the dragon is speaking from, so they follow him between the bench and a screen. While an answer
+is pending the bubble does **not** advance on a tap and its "tap to continue" hint is blank: picking one
+is the only way on.

@@ -5188,3 +5188,37 @@ turning early, which D72 ("grind until the ✕ touches the trait") arguably invi
 D76 ("It is not Epic tier") becomes wrong. The cap prevents overshooting past the trait; it does not
 prevent stopping short of it on the good side. Owner's call: either a minimum grind so the ore can only
 go in at the cap, or D76 reworded.
+
+---
+
+## r115 — the dragon gets answer buttons of his own (D79–D81)
+
+Owner-supplied beat: the fire sword is finished and the dragon asks whether to decorate it, offering a
+refusal he then withdraws.
+
+### A second answer surface
+
+Reply buttons had only ever existed on the customer panel (`#bramResponses`, Bram's markup, generalised
+in r104). `sayChoose(list)` builds a `#sayChoices` cluster and hangs it under whichever bubble the
+dragon is speaking from. While an answer is pending, `sayNext()` returns early so a tap cannot dismiss
+the question, and the "tap to continue" hint is blanked.
+
+`#sayChoices` is **re-parented to `#frame` at startup**. Written next to `#dragonSay` in the markup its
+offsetParent was the bench, while `sayLayout` positions it in frame coordinates — so the first build put
+it below the visible frame. Anchoring it to `#frame` is also what lets one element serve the bench
+bubble and the screen bubble, which live in different hosts.
+
+The hint needed correcting inside `sayChoose` too: `say()` writes "tap to continue" before the choices
+are attached, so it is cleared afterwards.
+
+### Verification
+
+Real clicks, hit-tested with `elementFromPoint` before dispatching. The craft window closing on the fire
+sword gives D79 with **"Yes"** and **"No, I don't have time."** under the bubble and a blank hint.
+"No" gives D80 with **two** buttons both reading "Yes". Either "Yes", from either round, gives D81,
+hides the choices and points down; arriving in the basement clears the arrow and the stage. Console
+clean.
+
+*Note on method: several clicks by screen coordinate missed because the preview pane rescaled between
+the screenshot and the click. Hit-testing the target's own centre first, then dispatching there, is the
+reliable form and is already the project convention.*
