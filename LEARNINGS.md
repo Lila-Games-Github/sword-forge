@@ -49,3 +49,17 @@ Lessons from building Sword Forge.
 - **An overlay is clipped by its frame.** A guide arrow aimed at a target near the top edge started
   62px *above* it — outside `#frame`'s `overflow:hidden`, so it drew nothing. Check the whole arrow
   path lands inside the clip box, not just its target.
+
+## Moving a trait rearranges the hazard field (2026-09-19, r111)
+
+Hazard positions on the trait map are **derived from where the traits sit**. They are deterministic
+across reloads (verified over three), but move a trait and the hazards move with it.
+
+r104 measured a hazard, then moved Fire in the same round, then wrote the pre-move measurement into the
+spec as justification for a design decision. Re-probed in r111 the hazard was not there: the route end
+it claimed was "five units from the centre of an island" is clear, and the nearest island is 63 units
+further out.
+
+**Rule:** any measurement of hazards, fog or trait spacing must be taken **after** the last change to
+`TRAIT_POS` in that round, not before. Re-run the probe after the patch lands, even when the patch
+"only" moves one trait.

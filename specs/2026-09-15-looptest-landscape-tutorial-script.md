@@ -619,3 +619,104 @@ Measured band, against fire's new position:
 So any grind from about 63% to the cap acquires fire — a band, not a fixed percentage, which is what the
 owner asked for. Beyond the cap the route would end **inside** the hazard at (839, 1011): at a full
 grind it lands 5 units from its centre.
+
+---
+
+## The fire sword — D66–D78
+
+**D66** — Dragon
+> "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all."
+
+*Trigger: both seams mined out. Until then an arrow points the pickaxe at the iron seam, then at the
+manganese seam. An arrow then runs from the pickaxe to the inventory.*
+
+**D67** — Dragon
+> "2 iron and 2 manganese. Not bad. Let's go back to the forge."
+
+*Trigger: the pickaxe going back in the bag. Arrow to the forge.*
+
+**D68** — Dragon
+> "Grind two iron and one manganese fully, then add them to the smelter."
+
+*Trigger: arriving at the forge. For the rest of this craft the smelter takes **only** what the script
+asks for, in order, and only at a full grind: raw drops are refused, part-ground ore is refused and
+stays on the wheel, the wrong ore is refused, and once the three are in nothing else can be started.*
+
+**D69** — Dragon
+> "Now heat it, take it to the anvil and hammer."
+
+*Trigger: the third ore landing in the smelter.*
+
+*Note: the owner wrote "Now heat, take it to anvil and hammer."*
+
+**D70** — Dragon
+> "Do you see that? I think that is the fire trait!"
+
+*Trigger: the sword reaching the end of that three-ore route. Fire is revealed through the fog and
+**pulses** until the line is dismissed.*
+
+**D71** — Dragon
+> "Put the metal back in the smelter; we need to go further."
+
+*Dismissing D70 stops the pulse and points the metal at the furnace.*
+
+*Note: the owner's comma splice is a semicolon.*
+
+**D72** — Dragon
+> "Grind the manganese until the ✕ mark touches the trait."
+
+*Trigger: the metal going back into the smelter. The ✕ is the route's projected end, which creeps
+toward Fire as the ore is ground.*
+
+**D73** — Dragon
+> "Enough! Now add this to the smelter."
+
+*Trigger: the grind reaching its cap, 75%. It cannot be ground past that.*
+
+**D74** — Dragon
+> "Heat it, take it to the anvil and hammer."
+
+**D75** — Dragon
+> "Splash water on it! I hope this is the fire trait!"
+
+*Trigger: the sword coming within reach of Fire. An arrow points the mug at the metal.*
+
+**D76** — Dragon
+> "Yes! We got it! It is not Epic tier. But it is okay for now."
+
+*Trigger: the quench. It is **always** Fine, by construction: see below.*
+
+*Note: the owner wrote "Yes! we got it! It is not an epic tier." Epic is a tier name in the game.*
+
+**D77** — Dragon
+> "Tap the metal and select a shape."
+
+**D78** — Dragon
+> "I'm ready!"
+
+*Trigger: the hammering minigame opening. The owner's call is that the player finishes it alone, so
+there are no idle prompts here, unlike the second craft's D46/D47. D78 is the script's last line, so
+this is where the dragon becomes a pet.*
+
+### The recipe, and why Fire moved again
+
+The route the owner described here is **not** the one r104 assumed. r104 was told "2 fully ground iron
++ 2 manganese at 75%" and placed Fire on that. The run above is 2 iron and **one** manganese ground
+full, hammered to the end, then a **second** manganese at about three quarters — which ends somewhere
+else entirely. Fire moved to suit, from world (836,1071) to **(838,1024)**; in the `TRAIT_POS` sketch
+table, `{x:642,y:642}` → `{x:643,y:611}`.
+
+It is placed so the **cap decides the tier**:
+
+| last manganese | distance to Fire | tier |
+| --- | --- | --- |
+| 50% | 37 | missed |
+| 60% | 33 | Weak |
+| 70% | 21 | Weak |
+| **75% (the cap)** | **14** | **Fine** |
+
+The player grinds until the wheel stops, which is 75%, which is Fine. Epic is out of reach by
+construction — so D76 is true every time rather than usually.
+
+The three-ore route ends 126 units from Fire: far enough not to reach it, close enough that revealing it
+there reads as spotting something through the fog.

@@ -301,6 +301,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutArrow { position: absolute; inset: 0; z-index: 70; pointer-events: none; display: none; overflow: visible; }
 #tutArrow.on { display: block; }
 #tutArrow.above { z-index: 1090; }   /* r102: over the hammer modal, just under the bubble */
+/* r111: the dragon spots a trait through the fog and it pulses until the line is dismissed */
+@keyframes tutTraitPulse { 0%,100% { opacity:.35; transform:scale(1); } 50% { opacity:1; transform:scale(1.35); } }
+#traits g.tut-spot circle { animation: tutTraitPulse 1s ease-in-out infinite; transform-origin: center;
+    fill: rgba(255,150,40,.85); stroke: #ffd79a; stroke-width: 2.5; }
+#traits g.tut-spot text { fill: #fff3dc; }
 /* r101 - "turn it", drawn as a turn: an open ring with the same head, spinning over the wheel. */
 #tutSpin { position: absolute; z-index: 70; display: none; pointer-events: none; overflow: visible;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); animation: tutSpinTurn 1.7s linear infinite; }
@@ -1908,7 +1913,7 @@ const TRAIT_POS = {
     swift:{x:916,y:510}, balanced:{x:831,y:608}, durable:{x:1131,y:510}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},   /* r80: Balanced sits on the tutorial route's landing point; Durable takes its old seat so the y=510 row keeps its shape */
     celestial:{x:1085,y:41}, cloud:{x:633,y:150}, rainbow:{x:877,y:160}, luck:{x:1400,y:147}, lightning:{x:369,y:291},
     noble:{x:1147,y:312}, grace:{x:1721,y:333}, gale:{x:776,y:361}, floral:{x:1400,y:435}, fury:{x:200,y:517},
-    ice:{x:1775,y:579}, fire:{x:642,y:642}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
+    ice:{x:1775,y:579}, fire:{x:643,y:611}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
     poison:{x:996,y:939}, savage:{x:369,y:1007}, blood:{x:1379,y:1041}, cursed:{x:640,y:1074}, dark:{x:1037,y:1175}
 };
 const TRAIT_BY = {}; TRAITS.forEach(t => TRAIT_BY[t.id] = t);
@@ -2530,7 +2535,7 @@ function pickCheck(){
 }
 function mineNode(n,el){
     if(!PICK_OUT || n.left<=0) return;
-    n.left--; gainOre(n.metal,1);
+    n.left--; gainOre(n.metal,1); setTimeout(tutMined, 0);   /* r111 */
     if(INV_TAB===0) buildShelf();                         // the count moves NOW, not when the ore lands
     el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
     const r=el.getBoundingClientRect();
@@ -2608,7 +2613,7 @@ function wirePickDrag(el){
         pickCheck(); };                                    // released next to a seam? keep swinging
     el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
 }
-function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); toast('Pickaxe back in your bag'); }
+function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); toast('Pickaxe back in your bag'); tutStowed(); }   /* r111 */
 // ---- r70: swords on the shop racks ---------------------------------------------------------------
 // rack.png (241x427) has six hook pairs evenly down its posts; a sword hangs on the top five. The
 // opening between the posts runs 17.84%..81% of the width, so a blade resting ON the hooks spans a
@@ -3858,19 +3863,40 @@ function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
 function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,hp:BLADE_HP_MAX,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
 /* r101: the ore leaves the shelf HERE, not at the smelter. Once it is on the wheel it is committed -
    nothing puts it back - so a shelf still counting it was just wrong. */
-function startPrep(oreId){ if(!oreLeft(oreId)) return; spendOre(oreId); prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+function startPrep(oreId){ if(!oreLeft(oreId)) return;
+    { const want=fireOreWanted();   /* r111 */
+      if(want===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
+      if(want && want!==oreId){ toast('Not that one: this craft wants <b>'+oreName(want)+'</b> next'); return; } } spendOre(oreId); prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
 /* r104: the fire route is 2 fully ground iron + 2 manganese at roughly three quarters. Past ~85%
    the route overshoots fire, and at 90-100% it ends INSIDE the 'island' hazard at (839,1011) -
    measured, not guessed. So while the fire craft is being taught the manganese cannot be ground
    past GRIND_FIRE_CAP. Iron is untouched, because that half of the recipe needs a full grind. */
-const GRIND_FIRE_CAP = 0.80;
-function grindCap(){ return (TUT_FIRE_RUN && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
-function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0; }
+/* r111: the fire craft runs in two halves. 'fire-grind' takes 2 iron + 1 manganese, all ground
+   FULL; 'fire-mang' takes one more manganese, capped - the cap is what makes the result Fine
+   rather than Epic, which is exactly what D76 tells the player. */
+const GRIND_FIRE_CAP = 0.75;
+function grindCap(){ return (TUT_STAGE==='fire-mang' && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
+/* which ore the scripted craft will accept next, and how many of it are already in */
+const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-shape','fire-forge'];
+function fireOreWanted(){
+    if(TUT_STAGE==='fire-mang') return 'manganese';
+    if(FIRE_STAGES.indexOf(TUT_STAGE)<0) return null;   /* not this craft: no gate at all */
+    if(TUT_STAGE!=='fire-grind') return false;          /* mid-craft: nothing more goes in */
+    const n=id=>segs.filter(g=>g.ore===id).length;
+    if(n('iron')<2) return 'iron';
+    if(n('manganese')<1) return 'manganese';
+    return false;   /* all three are in - nothing more goes in this half */
+}
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind'; }   /* r111 */
 function addPrep(){ if(!prep) return;
-    if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first — <b>hold the handle and turn the grindstone</b>'); return; }
-    const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g); hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+    const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
+    if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
+    const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
+    if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
+     hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
-    if(fullGrindOnly()){ toast('Not straight in — this one goes to the <b>grindstone</b> first'); return; }
+    if(fullGrindOnly()){ toast('Not straight in: this one goes to the <b>grindstone</b> first'); return; }
+    if(fireOreWanted()!==null){ toast('Not straight in: grind it first'); return; }   /* r111 */
     ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
@@ -3928,7 +3954,8 @@ function tryAcquire(){
         melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y);
         const isNew=recordRecipe(bt.id, tier);        // r65: written down automatically
         if(firstFind) bumpQuest('discover3');
-        updateSfTraits(); tutAcquired(); tutRecordStep(); showAcquire(bt,tier,melt.traits.length,firstFind);
+        updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
+        showAcquire(bt,tier,melt.traits.length,firstFind);
         if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
         hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.');
     } else { hint('The sword isn\'t sitting on a trait — hammer or pull it onto one first.'); placeOnAnvil(); }
@@ -4676,6 +4703,8 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         if(!gateReady && melt.heat>=HEAT_READY) markGateReady(); updateGauges(); }
+    if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
+    if(TUT_STAGE==='fire-mang') tutFireCapped();   /* r111 */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
     const fireOnAnvil = dragonBreathing && fireHitsAnvil();
     if(dragonBreathing){ fxAcc.fire+=dt; if(fxAcc.fire>0.08){ fxAcc.fire=0; const f=document.getElementById('dragonFire'); if(f&&f.style.display!=='none'){ const bb=benchEl().getBoundingClientRect(), fr=f.getBoundingClientRect(); fxBurst(fr.right-bb.left-6, fr.top+fr.height*0.5-bb.top, {n:2,kind:'ember',ang:0.1,spread:0.7,dist:28,size:4,dur:520}); } } }
@@ -4686,7 +4715,8 @@ function tick(now){
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); }
     } else {
         if(retreating) retreating=false;
-        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);   // hammer never fights the fire
+        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);
+            tutFireSpot(); tutFireReached();   /* r111 */   // hammer never fights the fire
             if(TUT_STAGE==='hammer'){ TUT_STRIKE+=dt; if(TUT_STRIKE>=TUT_STRIKE_BEAT) tutStrikeStep(); }
             fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
     }
@@ -5024,7 +5054,20 @@ const DIALOGUE = {
     D62: "Do you have a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes.",
     D63: "Anyways, can you give me a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes.",
     D64: "Hmm, we are out of ores. But there is a cave just nearby. We should go there.",
-    D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores."
+    D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores.",
+    D66: "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all.",
+    D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
+    D68: "Grind two iron and one manganese fully, then add them to the smelter.",
+    D69: "Now heat it, take it to the anvil and hammer.",
+    D70: "Do you see that? I think that is the fire trait!",
+    D71: "Put the metal back in the smelter; we need to go further.",
+    D72: "Grind the manganese until the \u2715 mark touches the trait.",
+    D73: "Enough! Now add this to the smelter.",
+    D74: "Heat it, take it to the anvil and hammer.",
+    D75: "Splash water on it! I hope this is the fire trait!",
+    D76: "Yes! We got it! It is not Epic tier. But it is okay for now.",
+    D77: "Tap the metal and select a shape.",
+    D78: "I'm ready!"
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5214,6 +5257,7 @@ function tutScreenArrived(name){
     if(name==='forge' && TUT_STAGE==='to-cave'){
         tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }); return; }
     if(name==='cave'){ tutCaveArrived(); return; }
+    if(name==='forge' && TUT_STAGE==='to-forge2'){ tutFireForge(); return; }   /* r111 */
     if(name==='forge' && TUT_STAGE==='base-back'){
         tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
     if(name==='customer' && TUT_STAGE==='base-back'){
@@ -5342,16 +5386,117 @@ function tutFireAsked(){
     SAY_I=SAY_SEQ.indexOf('D64'); say('D64');
     setTimeout(()=>tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }), 0);
 }
+/* r111: the cave-to-fire-sword run. Every step is driven by the gameplay function that already
+   did the work, so nothing polls. */
+function tutSeam(metal){ return ()=>[...document.querySelectorAll('#caveLayer .cv-node')]
+        .find(el=>el._node && el._node.metal===metal) || null; }
+function tutPickEl(){ return document.querySelector('#caveLayer .cv-pick'); }
+function tutSeamLeft(metal){ const n=CAVE_NODES.find(c=>c.metal===metal); return n? n.left : 0; }
+/* after every swing: iron first, then manganese, then the pickaxe goes home */
+function tutMined(){
+    if(TUT_STAGE!=='cave-pick') return;
+    if(tutSeamLeft('iron')>0){ tutArrow(tutPickEl, tutSeam('iron'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
+    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickEl, tutSeam('manganese'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
+    TUT_STAGE='cave-stow'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D66')<0) SAY_SEQ.push('D66');
+    SAY_I=SAY_SEQ.indexOf('D66'); say('D66');
+    setTimeout(()=>tutArrow(tutPickEl, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
+}
+function tutStowed(){
+    if(TUT_STAGE!=='cave-stow') return;
+    TUT_STAGE='to-forge2'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D67')<0) SAY_SEQ.push('D67');
+    SAY_I=SAY_SEQ.indexOf('D67'); say('D67');
+    setTimeout(()=>tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }), 0);
+}
+/* ---- back at the forge: 2 iron + 1 manganese, all ground full ---- */
+function tutFireForge(){
+    if(TUT_STAGE!=='to-forge2') return;
+    TUT_STAGE='fire-grind'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
+    SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
+}
+/* the third ore landing in the smelter closes the first half */
+function tutFireSmelted(){
+    if(TUT_STAGE!=='fire-grind' || fireOreWanted()!==false) return;
+    TUT_STAGE='fire-heat1'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D69')<0) SAY_SEQ.push('D69');
+    SAY_I=SAY_SEQ.indexOf('D69'); say('D69');
+}
+/* hammering to the end of that short route is where the dragon spots Fire through the fog */
+let TUT_SAIDSPOT=false;
+function tutFireSpot(){
+    if(TUT_STAGE!=='fire-heat1' || TUT_SAIDSPOT) return;
+    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
+    const f=traits.find(t=>t.trait && t.trait.id==='fire');
+    if(f){ reveal(f.x, f.y, 'trfire'); if(f.el) f.el.classList.add('tut-spot'); }
+    ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    SAY_I=SAY_SEQ.indexOf('D70'); say('D70');
+}
+/* D71 stops the pulse and points the metal back at the furnace */
+function tutFireBack(){
+    const f=traits.find(t=>t.trait && t.trait.id==='fire');
+    if(f && f.el) f.el.classList.remove('tut-spot');
+    TUT_STAGE='fire-reheat';
+    setTimeout(()=>tutArrow('#orb', '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.16, back:26 }), 0);
+}
+function tutFireReheated(){
+    if(TUT_STAGE!=='fire-reheat') return;
+    TUT_STAGE='fire-mang'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D72')<0) SAY_SEQ.push('D72');
+    SAY_I=SAY_SEQ.indexOf('D72'); say('D72');
+    setTimeout(()=>tutWheelArrow('Manganese'), 0);
+}
+/* the cap is reached: that IS 'enough' */
+let TUT_SAIDENOUGH=false;
+function tutFireCapped(){
+    if(TUT_STAGE!=='fire-mang' || TUT_SAIDENOUGH) return;
+    if(!prep || prep.ore!=='manganese' || prep.grind < GRIND_FIRE_CAP-0.0001) return;
+    TUT_SAIDENOUGH=true; tutSpinOn(null);
+    if(SAY_SEQ.indexOf('D73')<0) SAY_SEQ.push('D73');
+    SAY_I=SAY_SEQ.indexOf('D73'); say('D73');
+    setTimeout(()=>tutArrow('#orb', '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.16, back:26 }), 0);
+}
+function tutFireSmelted2(){
+    if(TUT_STAGE!=='fire-mang') return;
+    TUT_STAGE='fire-heat2'; tutArrow(null,null); tutSpinOn(null);
+    if(SAY_SEQ.indexOf('D74')<0) SAY_SEQ.push('D74');
+    SAY_I=SAY_SEQ.indexOf('D74'); say('D74');
+}
+/* reaching Fire: the mug, then the verdict */
+let TUT_SAIDSPLASH=false;
+function tutFireReached(){
+    if(TUT_STAGE!=='fire-heat2' || TUT_SAIDSPLASH) return;
+    if(!melt || !melt.reachedTrait || melt.reachedTrait.trait.id!=='fire') return;
+    TUT_SAIDSPLASH=true;
+    if(SAY_SEQ.indexOf('D75')<0) SAY_SEQ.push('D75');
+    SAY_I=SAY_SEQ.indexOf('D75'); say('D75');
+    tutMugPointer();
+}
+function tutFireGot(){
+    if(TUT_STAGE!=='fire-heat2') return;
+    TUT_STAGE='fire-shape'; tutArrow(null,null); tutUnglow();
+    ['D76','D77'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    SAY_I=SAY_SEQ.indexOf('D76'); say('D76');
+    setTimeout(()=>tutGlow('#orb', true), 0);
+}
+/* the minigame gets one line and then the player is left to it */
+function tutFireHammer(){
+    if(TUT_STAGE!=='fire-shape') return;
+    TUT_STAGE='fire-forge'; tutUnglow();
+    if(SAY_SEQ.indexOf('D78')<0) SAY_SEQ.push('D78');
+    SAY_I=SAY_SEQ.indexOf('D78'); say('D78');
+}
 function tutCaveArrived(){
     if(TUT_STAGE!=='to-cave' && TUT_STAGE!=='to-cave-forge') return;
     TUT_STAGE='cave-pick'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D65')<0) SAY_SEQ.push('D65');
     SAY_I=SAY_SEQ.indexOf('D65'); say('D65');
-    setTimeout(()=>tutArrow(()=>document.querySelector('#caveLayer .cv-pick'),
-                           ()=>document.querySelector('#caveLayer .cv-node'),
-                           { tfx:0.5, tfy:0.4, bow:0.18, back:24 }), 0);
+    setTimeout(()=>tutArrow(tutPickEl, tutSeam('iron'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
 }
 function tutHmStep(){
+    if(TUT_STAGE==='fire-shape'){ tutFireHammer(); return; }   /* r111 */
     if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
         SAY_I=SAY_SEQ.indexOf('D45'); say('D45'); return; }   /* r102 */
@@ -5731,7 +5876,7 @@ function tutAnvilStep(){
 /* r103: the stages during which the dragon stands on a SCREEN rather than at the bench. Adding a
    stage here is all it takes to bring him along to a new screen. */
 const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
-                           'paid','bonus','bell2','fire-meet','to-cave','cave-pick'];   /* r104 */
+                           'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2'];   /* r104/r111 */
 function onScreenDragon(){
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
     if(SF_SCREEN!=='customer') return false;
@@ -5801,6 +5946,7 @@ function say(id){
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
     if(id==='D35'){ tutFakePath(false); TUT_STAGE='regrind-grind'; }
     if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
+    if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     sayLayout(); requestAnimationFrame(sayLayout);        // again once the text has wrapped and set the height
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the

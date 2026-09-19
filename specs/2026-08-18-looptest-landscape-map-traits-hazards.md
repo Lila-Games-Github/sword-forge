@@ -4992,3 +4992,67 @@ Console clean.
 
 The Craft Book's "craft this recipe" button builds a route through `addSegment` directly, bypassing both
 paths. It is not reachable during the tutorial today, so it is left alone rather than guarded blind.
+
+---
+
+## r111 — the fire sword, and a correction to r104
+
+Owner-supplied beat (2026-09-19): the cave is mined out, the pickaxe goes home, and the fire sword is
+forged in two halves. D66–D78. Script SSOT carries the copy and the wording corrections.
+
+### Correction: r104's hazard claim does not hold
+
+r104 justified capping the manganese grind partly on the route ending "inside the `island` hazard at
+(839,1011), five units from its centre". That was measured **before** the same round moved Fire.
+Re-probed today at that position there is no hazard at all: the nearest is an island at (816,952), and
+(838,1006) is clear. **Moving a trait rearranges the hazard field** — the layout is deterministic across
+reloads (verified over three loads) but derived from where the traits sit.
+
+The cap is still right, for the reason that always applied: past it the route overshoots Fire. But the
+hazard sentence in r104 is wrong and should be read as superseded. The lesson is in LEARNINGS.
+
+### The recipe is not the one r104 was told
+
+r104 measured "2 fully ground iron + 2 manganese at 75%". The owner's actual run is 2 iron + **one**
+manganese at a full grind, hammered to the route end, then a **second** manganese at about three
+quarters. Different endpoint, so Fire moved again: world (836,1071) → **(838,1024)**, sketch
+`{642,642}` → `{643,611}`. Measured after the move: no hazard at Fire, nearest other trait 282 away.
+
+Fire is positioned so that **the cap decides the tier**. `GRIND_FIRE_CAP` is 0.75, and at 0.75 the route
+ends 14 units from Fire — `Fine`, since `ALIGN_FINE` is 20 and `ALIGN_EPIC` is 9. The player grinds
+until the wheel stops, so the result is Fine every time and D76 ("It is not Epic tier") is true by
+construction rather than by luck. At 70% it is 21 (Weak), at 60% 33 (Weak), at 50% a miss.
+
+The three-ore route ends at (963,1018), 126 from Fire: out of reach (`ALIGN_MAX` 34) but close enough
+that revealing Fire there reads as spotting it through the fog.
+
+### The craft is on rails, in both halves
+
+`fireOreWanted()` answers every stage of the run, not just the two that accept ore — otherwise a fourth
+ore could be started while the metal was heating and would lengthen a route the script has already
+measured. It returns the ore wanted next, `false` mid-craft (nothing goes in), or `null` outside the
+craft (no gate at all). With `fullGrindOnly()` extended to `fire-grind`, the first half refuses raw
+drops, part-ground ore, the wrong ore, and any fourth ore; the second half accepts one manganese and
+caps it.
+
+### The spotted trait pulses
+
+`#traits g.tut-spot` animates the trait's disc until the line is dismissed, and `reveal()` opens the fog
+over it. D71 stops it.
+
+### Also: em-dashes removed from r110's toasts
+
+The two refusal toasts r110 added used U+2014, against the standing style rule. Both now use a colon.
+(Older strings elsewhere in the file still carry em-dashes; those predate this work and are left alone
+rather than swept silently.)
+
+### Verification
+
+Driven end to end. Cave: mining iron moves the arrow to the manganese seam, mining that gives D66 and
+the arrow home, stowing gives D67, the forge gives D68. Gate: manganese refused while iron is wanted,
+raw drop refused without spending the ore, 0.60 grind refused with the ore still on the wheel at 0.60,
+two full-ground iron accepted, then manganese, then a fourth ore refused mid-craft. Third ore gives D69.
+Route end gives D70 with Fire revealed and `tut-spot` pulsing (animation and fill confirmed live).
+Dismissing gives D71 and stops the pulse; the smelter gives D72; grinding stops at exactly 0.75 and
+gives D73; adding gives D74; reaching Fire gives D75 at distance **14, Fine**; the quench gives D76 with
+the sword carrying `fire:Fine`, then D77; the minigame gives D78 and nothing further. Console clean.
