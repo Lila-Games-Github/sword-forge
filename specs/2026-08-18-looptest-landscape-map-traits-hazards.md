@@ -4936,3 +4936,24 @@ leaves the counter with the gold.
 Sale completes: the customer is still at the counter, his line reads "…51g for your efforts." against
 51 gold banked, and **Thank you.** is the only control. A real click on it removes the portrait, empties
 and hides both boxes, and hands over to the dragon's D57. Console clean.
+
+---
+
+## r109 — the fire-sword request stays on screen
+
+Reported by the owner: D63 showed for a few seconds and then went blank, the moment the dragon's D64
+appeared. D62 did the same — it is one code path.
+
+`tutFireAsked()` hid the customer's panel as it spoke D64. `counterBoxes()` then did exactly what r105
+told it to: with the panel down and a customer present, it showed `.cs-dlg`, the counter's own dialogue
+box — which nothing had ever written to. So the order was replaced by an empty sheet.
+
+The customer is still standing at the counter waiting for that sword, so her panel now stays up for the
+whole errand: the request is readable while the dragon answers, and still there when the player walks
+back in with the blade. The panel comes down when she is served.
+
+### Verification
+
+Both branches: D62 and D63 remain on screen with D64 up beside them, and `.cs-dlg` stays hidden rather
+than showing empty. Leaving for the cave and returning to the counter finds the portrait and the request
+still there. Console clean.

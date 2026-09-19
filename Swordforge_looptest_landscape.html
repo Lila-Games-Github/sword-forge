@@ -5331,8 +5331,7 @@ function tutFireAsked(){
     TUT_FIRE_STATE='asked'; TUT_FIRE_RUN=true; TUT_STAGE='to-cave';
     (()=>{ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
         if(se){ se.disabled=false; se.style.display=''; } if(de){ de.disabled=false; de.style.display=''; } })();   /* r104/r105: now there is an order to fill */
-    const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
-    updateTutorialCounterUi();
+    updateTutorialCounterUi();   /* r109: the panel STAYS - the order is still open */
     setTutorialCave();
     if(SAY_SEQ.indexOf('D64')<0) SAY_SEQ.push('D64');
     SAY_I=SAY_SEQ.indexOf('D64'); say('D64');
@@ -5527,7 +5526,10 @@ function updateTutorialCounterUi(){
     if(layer) layer.classList.toggle('tut-dragon', onScreenDragon());   /* r103 */
     const sd=document.getElementById('screenDragonSay'); if(!on && !TUT_BRAM_STATE && !onScreenDragon() && sd) sd.classList.remove('show');   /* r103 */
     const bi=document.getElementById('bramIntro');
-    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || (TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked');   /* r104 */
+    /* r109: 'asked' used to drop her panel, which blanked the fire-sword request the instant the
+       dragon answered and left the counter's own empty box in its place. She is still waiting for
+       that sword, so the panel stays while TUT_FIRE_STATE is set at all. */
+    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || !!TUT_FIRE_STATE;   /* r104/r109 */
     if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!scripted);
     counterBoxes();   /* r105 */
 }
