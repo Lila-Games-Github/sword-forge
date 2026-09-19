@@ -751,3 +751,45 @@ Answer buttons had only ever belonged to the customer panel. `sayChoose()` hangs
 bubble the dragon is speaking from, so they follow him between the bench and a screen. While an answer
 is pending the bubble does **not** advance on a tap and its "tap to continue" hint is blank: picking one
 is the only way on.
+
+---
+
+## Decorating the fire sword — D49 again, D82–D85
+
+**D49 again** — Dragon
+> "Drag and drop the sword from the inventory onto the table."
+
+*Trigger: arriving in the basement after D81. Re-used rather than re-written: the instruction has not
+changed since r103, and ids are permanent.*
+
+**D82** — Dragon
+> "Tap the assembly bench and pick your favorite designs."
+
+*Trigger: the sword landing on the table. An arrow points at the assembly bench, the same pointer the
+sharpening wheel gets.*
+
+**D83** — Dragon
+> "You can customize it freely. Pick whatever you like. Tap 'done' when you are satisfied."
+
+*Trigger: the design desk opening. Spoken through the **dragon icon**, as at the sharpening wheel.*
+
+*Note: the owner wrote "you can customize"; sentence case. "Tap done" is quoted as 'done' to match
+D53.*
+
+**D84** — Dragon
+> "Wow, look at that. It looks so hot!"
+
+*Trigger: DONE (not CANCEL, which leaves the beat where D82 left it). The sword is marked as designed,
+so it is worth the +7g the sell button prints.*
+
+**D85** — Dragon
+> "Okay, back to the counter!"
+
+*Arrows up to the forge, then left to the counter.*
+
+### Open: the sword is left on the basement table
+
+This beat never asks the player to pick the sword back up, so it is still on the workstation when they
+reach the counter, and their inventory is empty. Verified: at the counter, `WORK` is the fire sword and
+`INV.swords` is empty. The customer who asked for it cannot be served. The sharpening beat solved the
+same problem with **D54** ("Put the sword back in the inventory."), which could simply be re-used here.

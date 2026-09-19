@@ -1143,18 +1143,21 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #sfSharpModal.show { display: block; }
 /* r103: the dragon cannot follow into this panel, so his icon speaks for him - top-left, line to
    its right, and the whole block advances on a tap like the other two surfaces. */
-#shSayWrap { position: absolute; left: 2.2%; top: 3.4%; z-index: 9; display: none;
-    align-items: flex-start; gap: 9px; cursor: pointer; }
-#shSayWrap.show { display: flex; }
-#shIcon { width: 74px; height: auto; display: block; -webkit-user-drag: none; user-select: none;
+/* r116: the dragon cannot stand inside a panel, so his icon speaks for him. Shared by the
+   sharpening panel and the design desk; each one only places it. */
+.tut-iconsay { position: absolute; z-index: 9; display: none; align-items: flex-start; gap: 9px; cursor: pointer; }
+.tut-iconsay.show { display: flex; }
+.tut-iconsay img { width: 74px; height: auto; display: block; -webkit-user-drag: none; user-select: none;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
-#shSay { position: relative; width: 300px; padding: 10px 14px 13px;
+.tut-iconsay .bub { position: relative; width: 300px; padding: 10px 14px 13px;
     background: #f3e7c6; border: 2px solid #6a5636; border-radius: 11px;
     box-shadow: 0 10px 22px rgba(0,0,0,.55); }
-#shSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 9px;
+.tut-iconsay .who { display: block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 9px;
     letter-spacing: .12em; color: #8a6d3f; margin-bottom: 3px; }
-#shSay p { margin: 0; font-size: 12px; line-height: 1.34; color: #3a2b18; }
-#shSay .go { position: absolute; right: 10px; bottom: 3px; font-size: 8px; color: #8a6d3f; }
+.tut-iconsay p { margin: 0; font-size: 12px; line-height: 1.34; color: #3a2b18; }
+.tut-iconsay .go { position: absolute; right: 10px; bottom: 3px; font-size: 8px; color: #8a6d3f; }
+#shSayWrap { left: 2.2%; top: 3.4%; }
+#ddSayWrap { left: 2.2%; top: 3.4%; z-index: 12; }
 #shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
     background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
     box-shadow: inset 0 1px 0 rgba(255,200,170,.25); }
@@ -1389,13 +1392,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="sh-spin" src="assets/forge/grindstone_spin.png" alt="">
         </div>
         <div id="shFx"></div>
-        <div id="shSayWrap" onclick="sayNext()"><img id="shIcon" src="assets/ui/dragon_icon.png" alt="Dragon"><div id="shSay"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
+        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.png" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
         <div id="shSword"><div class="sh-art" id="shArt"></div></div>
         <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
         <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
     </div>
     <!-- ===== Design Desk (r52) - tiles are built by buildDesign() ===== -->
     <div id="sfDesignModal" class="sf-modal">
+        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.png" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go" id="ddSayGo">tap to continue</span></div></div>
         <div id="ddStage">
             <div class="dd-swordbox"><div class="dd-sword" id="ddSword"></div></div>
         </div>
@@ -3074,6 +3078,7 @@ function openDesign(){
     DD_SEL=ddCoerce(DD_SEL, ddSkin());                     // r91: never open on a part this sword cannot wear
     buildDesign(); ddRenderSword();
     document.getElementById('sfDesignModal').classList.add('show');
+    tutDesignOpen();   /* r116 */
     setTimeout(ddRenderSword, 0);                          // the box has no size until it is shown
 }
 function closeDesign(revert){
@@ -3081,6 +3086,8 @@ function closeDesign(revert){
     if(revert && DD_WAS) DD_SEL=Object.assign({}, DD_WAS);
     DD_FORCE_DEFAULT=false;                                 // the flag lasts one visit
     document.getElementById('sfDesignModal').classList.remove('show');
+    sayHide();   /* r116: the icon surface goes with the panel, BEFORE the next line is spoken */
+    if(!revert) tutDesignDone();   /* CANCEL is not finishing */
 }
 function wireDesign(){
     const p=document.getElementById('ddPanel'), bar=document.getElementById('ddBar'), th=document.getElementById('ddThumb');
@@ -5086,7 +5093,11 @@ const DIALOGUE = {
     D78: "I'm ready!",
     D79: "Wow. A fire sword! Do you want to customize it?",
     D80: "Wrong answer. Think again.",
-    D81: "Yes! Let's go to the basement."
+    D81: "Yes! Let's go to the basement.",
+    D82: "Tap the assembly bench and pick your favorite designs.",
+    D83: "You can customize it freely. Pick whatever you like. Tap 'done' when you are satisfied.",
+    D84: "Wow, look at that. It looks so hot!",
+    D85: "Okay, back to the counter!"
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5278,7 +5289,16 @@ function tutScreenArrived(name){
         return; }
     if(name==='forge' && TUT_STAGE==='to-cave'){
         tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }); return; }
-    if(name==='basement' && TUT_STAGE==='fire-basement'){ TUT_STAGE=null; tutArrow(null,null); return; }   /* r115 */
+    /* r116: the decorating beat. D49 is re-used - the instruction has not changed since r103. */
+    if(name==='basement' && TUT_STAGE==='fire-basement'){
+        TUT_STAGE='dec-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
+        if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
+        SAY_I=SAY_SEQ.indexOf('D49'); say('D49');
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        return; }
+    if(name==='forge' && TUT_STAGE==='dec-back'){
+        tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
+    if(name==='customer' && TUT_STAGE==='dec-back'){ TUT_STAGE=null; tutArrow(null,null); return; }
     if(name==='cave'){ tutCaveArrived(); return; }
     if(name==='forge' && TUT_STAGE==='to-forge2'){ tutFireForge(); return; }   /* r111 */
     if(name==='forge' && TUT_STAGE==='base-back'){
@@ -5291,11 +5311,32 @@ function tutScreenArrived(name){
         return; }
 }
 function tutWorkPlaced(){
+    if(TUT_STAGE==='dec-table'){   /* r116: the same drop, a different bench */
+        TUT_STAGE='dec-bench'; tutArrow(null,null);
+        if(SAY_SEQ.indexOf('D82')<0) SAY_SEQ.push('D82');
+        SAY_I=SAY_SEQ.indexOf('D82'); say('D82');
+        setTimeout(()=>{ const p=document.querySelector("#screenProps [data-act='designDesk']");
+            if(p) tutArrow(null, ()=>p, { tfx:0.5, tfy:0.4, ox:-96, oy:-84, bow:0.18, back:22 }); }, 0);
+        return; }
     if(TUT_STAGE!=='base-table') return;
     TUT_STAGE='base-tap'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D50')<0) SAY_SEQ.push('D50');
     SAY_I=SAY_SEQ.indexOf('D50'); say('D50');
     setTimeout(()=>{ const p=tutSharpProp(); if(p) tutArrow(null, ()=>p, { tfx:0.5, tfy:0.4, ox:-96, oy:-84, bow:0.18, back:22 }); }, 0);
+}
+/* r116: inside the design desk the dragon speaks through his icon, as he does at the wheel */
+function tutDesignOpen(){
+    if(TUT_STAGE!=='dec-bench') return;
+    TUT_STAGE='dec-design'; tutArrow(null,null);
+    if(SAY_SEQ.indexOf('D83')<0) SAY_SEQ.push('D83');
+    SAY_I=SAY_SEQ.indexOf('D83'); say('D83');
+}
+function tutDesignDone(){
+    if(TUT_STAGE!=='dec-design') return;
+    TUT_STAGE='dec-back';
+    ['D84','D85'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    SAY_I=SAY_SEQ.indexOf('D84'); say('D84');
+    setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
 }
 function tutSharpOpen(){
     if(TUT_STAGE!=='base-tap') return;
@@ -5927,7 +5968,8 @@ function tutAnvilStep(){
 /* r103: the stages during which the dragon stands on a SCREEN rather than at the bench. Adding a
    stage here is all it takes to bring him along to a new screen. */
 const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
-                           'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2'];   /* r104/r111 */
+                           'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2',
+                           'fire-basement','dec-table','dec-bench','dec-design','dec-back'];   /* r104/r111/r116 */
 function onScreenDragon(){
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
     if(SF_SCREEN!=='customer') return false;
@@ -5935,14 +5977,17 @@ function onScreenDragon(){
 }
 const SAY_BOXES = { bench:['dragonSay','dragonSayText','dragonSayGo'],
                     screen:['screenDragonSay','screenDragonSayText','screenDragonSayGo'],
-                    sharp:['shSayWrap','shSayText','shSayGo'] };
+                    sharp:['shSayWrap','shSayText','shSayGo'],
+                    design:['ddSayWrap','ddSayText','ddSayGo'] };   /* r116 */
 function sayWhere(){
     const sh=document.getElementById('sfSharpModal');
     if(sh && sh.classList.contains('show')) return 'sharp';
+    const dd=document.getElementById('sfDesignModal');
+    if(dd && dd.classList.contains('show')) return 'design';   /* r116 */
     return onScreenDragon() ? 'screen' : 'bench';
 }
 function sayLayout(){
-    if(sayWhere()==='sharp') return;   /* r103: the icon surface is placed by CSS */
+    { const w=sayWhere(); if(w==='sharp' || w==='design') return; }   /* r103/r116: placed by CSS */
     const onScreen=onScreenDragon();
     const box=document.getElementById(onScreen?'screenDragonSay':'dragonSay'), b=onScreen?document.getElementById('screenLayer'):benchEl(), f=document.getElementById('frame');
     if(!box||!b||!f) return;
@@ -6028,7 +6073,7 @@ function say(id){
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
 function sayHide(){ SAY_ON=null; sayChoose(null);   /* r115 */
-    ['dragonSay','screenDragonSay','shSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
+    ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
 /* r87: the dragon is a guide while the script still has something to say, and a pet afterwards. The

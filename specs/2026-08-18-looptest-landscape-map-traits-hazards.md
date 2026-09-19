@@ -5222,3 +5222,35 @@ clean.
 *Note on method: several clicks by screen coordinate missed because the preview pane rescaled between
 the screenshot and the click. Hit-testing the target's own centre first, then dispatching there, is the
 reliable form and is already the project convention.*
+
+---
+
+## r116 — decorating the fire sword (D49 again, D82–D85)
+
+Owner-supplied beat: the fire sword goes onto the basement table, through the assembly bench, and back
+to the counter.
+
+D49 is **re-used** rather than duplicated. Its wording has not changed since r103 and the ids are
+permanent, so the same line does the same job a second time, as D23 already does.
+
+### The icon surface is now shared
+
+The sharpening panel's dragon-icon block became a `.tut-iconsay` class, and the design desk gets one
+too (`#ddSayWrap`). A second hand-written copy of the same eight rules would have drifted. `sayWhere()`
+answers with a fourth surface, `design`, and `sayHide()` clears it.
+
+### Verification
+
+Arriving in the basement gives D49 with the dragon on screen and an arrow from the sword to the table;
+the drop gives D82 and an arrow at the assembly bench; opening the desk gives D83 on the icon surface
+with the fire set (flame_* parts) loaded; DONE gives D84 and marks the sword **designed**, so it carries
+the +7g the sell button prints; tapping through gives D85 and points up, then left at the forge, and
+arriving at the counter clears the run. Screenshot of the desk. Console clean.
+
+### Open: the sword is stranded
+
+The beat never asks the player to take the sword back, so at the counter `WORK` still holds it and
+`INV.swords` is empty — measured, not assumed. The customer who asked for a fire sword cannot be served.
+The sharpening beat solved exactly this with **D54** ("Put the sword back in the inventory."), which
+could be re-used here in one line. Flagged rather than invented, since the owner listed the steps
+explicitly.
