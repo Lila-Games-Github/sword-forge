@@ -5262,3 +5262,43 @@ Verified with D54 planted at index 5, exactly where the sharpening beat leaves i
 of `SAY_SEQ` reads `['D84','D54']`, tapping D84 gives D54 with the arrow to the inventory, taking the
 sword empties the table and gives D85, and at the counter the inventory holds
 `Longsword fire:Fine designed=true` with the workstation empty.
+
+---
+
+## r118 — the fire sword is sold, and Day 1 goes to bed (D23 again, D86–D88)
+
+Owner-supplied beat, closing the first day.
+
+### The sale
+
+D23 is re-used for the placement; **D24 deliberately is not** — it is written for Bram and says "He" of
+a customer who is a woman. The sale runs through the r108 path: the customer stays for her own line and
+is sent away by the **Thank you.** The price is interpolated, and the owner's literal "54g" would have
+been wrong: measured, a sharpened and designed fire sword sells for **74g** (50 map value + 10 Fine + 7
+sharpening + 7 design), and the sell button reads `Sell for 60g + 7g + 7g`.
+
+Filling her order also clears `TUT_FIRE_STATE`, which takes her request panel down (r109 kept it up for
+the whole errand).
+
+### The dragon on the bed speaks
+
+The bedroom already had a dragon painted into the plate, exposed as a `dragon` hotspot. D88 comes from
+**that** dragon: the travelling one is kept off this screen (`tut-dragon` is withheld for `bedroom`) and
+`sayLayout` anchors the bubble to the bedroom's own hotspot instead of `#screenDragon`. Hotspots now
+carry `data-act`, so they can be anchored to and pointed at.
+
+### A clamp that had never been tested on the right-hand side
+
+The bubble ran under the inventory rail. `#screenLayer` is `inset:0` on `#frame`, so it spans the rail
+too, and the clamp that keeps the bubble inside it was happily sliding the box behind the column. It had
+never shown because every screen dragon so far stands at `left: 2.5%`; the sleeping one is at **50.8%**,
+far enough right to hit it. The clamp now stops at the rail's left edge. Measured after the fix: bubble
+right 947, rail left 953.
+
+### Verification
+
+Arriving at the counter gives D23 with the arrow to the counter and `Sell for 60g + 7g + 7g` on the
+button; the sale pays **74g** and her line quotes **74g**; she stays, her request panel comes down, and
+**Thank you.** sends her away; D87 follows with an arrow right, the forge shows an arrow up, and the
+bedroom gives D88 from the sleeping dragon with the travelling one hidden and an arrow on the bed.
+Screenshot of the bedroom. Console clean.

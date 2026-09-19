@@ -797,3 +797,38 @@ the workstation and the customer who asked for it could not be served.*
 > "Okay, back to the counter!"
 
 *Trigger: the sword going back in the bag. Arrows up to the forge, then left to the counter.*
+
+---
+
+## The fire sword is sold, and Day 1 ends — D23 again, D86–D88
+
+**D23 again** — Dragon
+> "Find the sword in your inventory and place it on the counter."
+
+*Trigger: arriving at the counter after D85. Arrow from the sword to the counter; the SELL button
+already prints the price, so nothing else is needed to teach the sale.*
+
+*Note: **D24** ("He looks pleased and he is offering gold! Tap the sell button…") was **not** re-used.
+It is written for Bram and says "He" of a customer who is a woman.*
+
+**D86** — Customer
+> "Oh wow! I didn't think you'd be this good. I was worried I had given you a complicated order on your
+> first day. Here's your {g}g."
+
+*Trigger: the sale. `{g}` is the price actually paid, filled at speak time. The response is
+**"Thank you."**, which sends her away.*
+
+*Note: the owner wrote a literal **54g**. A fire sword that has been sharpened and designed sells for
+**74g** (50 map value + 10 Fine + 7 + 7), so the number is interpolated as it is in D56.*
+
+**D87** — Dragon
+> "*Yawn* - I'm sleepy. Can we go to bed now?"
+
+*Trigger: the Thank you. Arrows right to the forge, then up to the bedroom.*
+
+**D88** — Dragon (the one asleep on the bed)
+> "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat."
+
+*Trigger: arriving in the bedroom. Spoken by the dragon **painted on the bed**, not the one that
+follows the player: the travelling dragon is hidden on this screen and the bubble anchors to the
+bedroom's own dragon hotspot. An arrow points at the bed, which opens the end-of-day window.*
