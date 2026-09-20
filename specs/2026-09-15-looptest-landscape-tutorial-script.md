@@ -912,10 +912,24 @@ So the trait lights up on arrival but cannot be taken above Weak without the dra
 the sword back along that same line. One copper alone reaches 125 against Swift's 220, so two are
 genuinely required.
 
-### Open: nothing teaches the pull
+**D97** — Dragon
+> "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and
+> you can align the sword with the traits to get an epic tier every time!"
 
-The beat depends on the player using the dragon's fire to drag the sword back, and **no line in the
-script has ever mentioned it**. Checked: zero of D1–D96 refer to pulling, recentring or breathing on the
-bench. Its only explanation is a `hint()` call, and `hint()` has been a no-op since r34, so that text
-has never been seen either. A line before or with D96 is needed, or the player is expected to discover
-a mechanic the game never mentions.
+*Trigger: the sword reaching the route end, 30 past Swift. An arrow runs from the dragon to the anvil
+and he glows. **This is the first line in the whole script to explain the fire-pull** — before it, the
+mechanic's only description was a `hint()` that has been a no-op since r34.*
+
+**D98** — Dragon
+> "Stop! This looks perfect."
+
+*Trigger: the pull reaching Swift. While this is being taught the pull **stops itself** exactly on the
+trait rather than sliding past, so holding the fire too long cannot spoil the alignment. The mug is then
+pointed at the metal.*
+
+**D99** — Dragon
+> "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But
+> don't worry. You can store it for later."
+
+*Trigger: the quench, which lands **swift Epic**. An arrow runs from the metal to the inventory; dropping
+it there stores it as an ingot carrying its trait.*

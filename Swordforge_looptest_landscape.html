@@ -3996,6 +3996,7 @@ function tryAcquire(){
         const isNew=recordRecipe(bt.id, tier);        // r65: written down automatically
         if(firstFind) bumpQuest('discover3');
         updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
+        if(bt.id==='swift') tutSwiftGot();   /* r124 */
         showAcquire(bt,tier,melt.traits.length,firstFind);
         if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
         hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.');
@@ -4640,6 +4641,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         if(second) tutBasementStep(); else if(fireSword) tutFireCustomise(); else tutCounterStep(); });   /* r90/r103/r115 */
 }
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
+    TUT_SWIFT_LOCK=false;   /* r124 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
@@ -4754,13 +4756,21 @@ function tick(now){
     if(dragonBreathing){ fxAcc.fire+=dt; if(fxAcc.fire>0.08){ fxAcc.fire=0; const f=document.getElementById('dragonFire'); if(f&&f.style.display!=='none'){ const bb=benchEl().getBoundingClientRect(), fr=f.getBoundingClientRect(); fxBurst(fr.right-bb.left-6, fr.top+fr.height*0.5-bb.top, {n:2,kind:'ember',ang:0.1,spread:0.7,dist:28,size:4,dur:520}); } } }
     if(fireOnAnvil && segs.length){   // fire on the anvil PULLS the sword + its remaining path + ✕ toward the centre — gradual & controlled (only while it burns)
         const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy);
-        if(dist>3){ if(!retreating){ retreating=true; hint('The dragon\'s fire pulls the sword &amp; its path toward the centre — hold to pull more, release to stop.'); }
-            const step=Math.min(dist, PULL_SPEED*dt); pull.x+=dx/dist*step; pull.y+=dy/dist*step;
+        if(dist>3 && !TUT_SWIFT_LOCK){ if(!retreating){ retreating=true; hint('The dragon\'s fire pulls the sword &amp; its path toward the centre - hold to pull more, release to stop.'); }
+            let step=Math.min(dist, PULL_SPEED*dt);
+            /* r124: while the pull is being TAUGHT, it parks the sword exactly on Swift instead of
+               sliding past it. The travel is a straight line to the spawn, so the closest approach
+               to the trait is just the projection of (trait - sword) onto that line; clamp the step
+               to it and stop. Outside this step the pull is untouched and runs as far as held. */
+            if(TUT_STAGE==='d2-pull'){ const sw=traits.find(t=>t.trait && t.trait.id==='swift');
+                if(sw){ const t=(sw.x-p.x)*(dx/dist) + (sw.y-p.y)*(dy/dist);
+                    if(t <= step + 0.001){ step=Math.max(0,t); TUT_SWIFT_LOCK=true; setTimeout(tutSwiftAligned,0); } } }
+            pull.x+=dx/dist*step; pull.y+=dy/dist*step;
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); }
     } else {
         if(retreating) retreating=false;
         if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);
-            tutFireSpot(); tutFireReached();   /* r111 */   // hammer never fights the fire
+            tutFireSpot(); tutFireReached(); tutDay2Pull();   /* r111/r124 */   // hammer never fights the fire
             if(TUT_STAGE==='hammer'){ TUT_STRIKE+=dt; if(TUT_STRIKE>=TUT_STRIKE_BEAT) tutStrikeStep(); }
             fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
     }
@@ -4803,7 +4813,7 @@ function benchClear(){
 function stashIngot(){
     if(!melt || (melt.stage!=='hot' && melt.stage!=='onAnvil')) return false;
     INV.ingots.push(ingotSnapshot());
-    benchClear(); invTab(1);
+    benchClear(); invTab(1); tutSwiftStored();   /* r124 */
     hint('Ingot stored. It keeps its ores, its route and its traits &mdash; but it <b>cools</b> while it sits.');
     return true;
 }
@@ -5129,7 +5139,10 @@ const DIALOGUE = {
     D93: "Do you have a sword with the Gale trait?",
     D94: "We should go and gather ores. Go back to the cave.",
     D95: "Grind two copper and add it to the smelter.",
-    D96: "Take it to the anvil and start hammering."
+    D96: "Take it to the anvil and start hammering.",
+    D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
+    D98: "Stop! This looks perfect.",
+    D99: "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But don't worry. You can store it for later."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5494,6 +5507,29 @@ function tutDay2Customer(){
 }
 /* the cave is emptied before the walk home */
 /* r123: home from the cave with a full bag, and the order is for a swift sword */
+/* ---- r124: the fire-pull, which nothing in the script had ever explained ---- */
+let TUT_SWIFT_LOCK=false;
+function tutDay2Pull(){
+    if(TUT_STAGE!=='d2-hammer') return;
+    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    TUT_STAGE='d2-pull'; TUT_SWIFT_LOCK=false;
+    sayQueue('D97');
+    setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
+        tutGlow('#dragon', true); }, 0);
+}
+function tutSwiftAligned(){
+    if(TUT_STAGE!=='d2-pull') return;
+    TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow();
+    sayQueue('D98');
+    setTimeout(tutMugPointer, 0);
+}
+function tutSwiftGot(){
+    if(TUT_STAGE!=='d2-quench') return;
+    TUT_STAGE='d2-store'; tutArrow(null,null); tutUnglow();
+    sayQueue('D99');
+    setTimeout(()=>tutArrow('#orb', '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
+}
+function tutSwiftStored(){ if(TUT_STAGE==='d2-store'){ TUT_STAGE=null; tutArrow(null,null); tutUnglow(); } }
 function tutDay2Copper(){
     if(TUT_STAGE!=='d2-back') return;
     TUT_STAGE='d2-copper'; tutExit(null);

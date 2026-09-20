@@ -5483,3 +5483,36 @@ puts it at **0, Epic**. Console clean.
 This beat requires the fire-pull, and no line in D1–D96 mentions it — checked against the whole
 `DIALOGUE` map. Its only explanation is a `hint()` that has been a no-op since r34, so it has never been
 shown to anyone. Flagged rather than written: the owner writes the copy.
+
+---
+
+## r124 — the fire-pull is taught, and stops itself on the mark (D97–D99)
+
+r123 flagged that this beat needs the fire-pull and that no line had ever mentioned it. D97 is that
+line, and the owner wrote it.
+
+### The pull parks on the trait, but only while it is being taught
+
+Holding the fire too long would slide the sword straight past Swift and out the other side, which would
+make a lesson about precision into a lesson about luck. During `d2-pull` the step is clamped: the travel
+is a straight line to the spawn, so the closest approach to the trait is just the projection of
+(trait − sword) onto that line. Clamp the step to it, set `TUT_SWIFT_LOCK`, and stop.
+
+Outside that one stage the pull is untouched and runs as far as it is held. `resetRun()` clears the lock
+so an abandoned run cannot inherit it.
+
+### Storing the metal
+
+`stashIngot()` and the orb's drop-on-the-rail already existed (r60), so D99 only needed pointing at.
+
+### Verification
+
+Driven through the **real `tick()`**, with `fireHitsAnvil` stubbed true so the pull actually runs:
+
+- route end gives D97 at **30 from Swift, Weak**, with the dragon glowing and the arrow to the anvil;
+- the pull stops at **0.13** from Swift — **Epic** — and fires D98 with the mug pointed;
+- **holding the fire for another 200 ticks leaves it at 0.13**, so it cannot be overshot;
+- the quench lands `swift:Epic` and gives D99;
+- storing puts an ingot in the INGOTS tab carrying `swift:Epic`, and the run ends.
+
+Screenshot of D97 with the arrow from the dragon to the anvil. Console clean.
