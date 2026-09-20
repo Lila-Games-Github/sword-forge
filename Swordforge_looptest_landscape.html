@@ -1313,6 +1313,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     color: #f0e8d6; background: rgba(25,20,12,0.8); border: 1px solid #6a5636; border-radius: 7px; }
 #panPad button:hover { background: rgba(60,45,22,0.92); }
 #panPad button:active { filter: brightness(1.45); }
+/* r120: the tutorial marks the way out of a screen by blinking the exit itself, not by drawing an
+   arrow at it. One exit carries this at a time - tutExit() owns the class. */
+@keyframes tutExitBlink {
+    0%,100% { background: rgba(25,20,12,0.8);  box-shadow: 0 0 0 0 rgba(255,190,90,0); border-color: #6a5636; }
+    50%     { background: rgba(255,186,84,0.95); box-shadow: 0 0 14px 5px rgba(255,170,60,.75); border-color: #ffd79a; }
+}
+#panPad button.tut-exit { animation: tutExitBlink 1s ease-in-out infinite; color: #2a1d0c; }
 #panUp, #panDown { width: 36px; height: 24px; left: 50%; margin-left: -18px; }
 #panUp { top: 5px; }
 #panDown { bottom: 5px; }
@@ -3504,6 +3511,10 @@ function confirmEndDay(){
     const d=document.getElementById('dayNum');            // cosmetic: there is no day system behind this yet
     if(d) d.textContent = (parseInt(d.textContent,10)||0) + 1;
     rollCaveNodes(); buildCave();                         // r68: five fresh seams, in new places
+    /* r120: the tutorial's own night ends where it was spent. The player wakes in the bedroom and
+       walks down to the forge, with the exit blinking; every other day still jumps straight there. */
+    if(TUT_STAGE==='bed'){ TUT_STAGE='day2-forge'; sayHide(); tutArrow(null,null);
+        updateTutorialCounterUi(); setTimeout(()=>tutExit('#panDown'), 0); return; }
     goScreen('forge');
 }
 // hearts burst from the click and drift up
@@ -5117,7 +5128,15 @@ function tutRect(sel){
     return { x:r.left-f.left, y:r.top-f.top, w:w, h:h };
 }
 let TUT_ARROW=null;
-function tutArrow(from, to, opt){ TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null; tutDrawArrow(); }
+/* r120: blink ONE exit, or none. Hung off the same clearing paths the arrow already had, so every
+   place that put the pointer away puts this away too. */
+function tutExit(sel){
+    document.querySelectorAll('#panPad button.tut-exit').forEach(b=>b.classList.remove('tut-exit'));
+    const el = sel && tutEl(sel); if(el) el.classList.add('tut-exit');
+}
+function tutArrow(from, to, opt){ TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null;
+    if(!to) tutExit(null);   /* r120 */
+    tutDrawArrow(); }
 function tutDrawArrow(){
     const svg=document.getElementById('tutArrow'), path=document.getElementById('tutPath');
     if(!svg||!path) return;
@@ -5278,12 +5297,13 @@ function tutBasementStep(){
     TUT_SHARP_RUN=true; TUT_STAGE='to-basement';
     if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');
     SAY_I=SAY_SEQ.indexOf('D48'); say('D48');
-    tutArrow(null, '#panDown', { tfx:0.5, tfy:0.5, ox:-4, oy:-102, bow:0.18, back:20 });
+    tutExit('#panDown');
 }
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
+    if(TUT_STAGE==='day2-forge'){ if(name==='forge'){ TUT_STAGE=null; tutExit(null); } return; }   /* r120 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
-        else if(name==='forge') tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 });
+        else if(name==='forge') tutExit('#panUp');
         return; }   /* r118: the fire run is over by bedtime */
     if(!TUT_SHARP_RUN && !TUT_FIRE_RUN) return;   /* r104 */
     /* r115: TUT_FIRE_RUN is still on for the customise beat */
@@ -5294,7 +5314,7 @@ function tutScreenArrived(name){
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='to-cave'){
-        tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }); return; }
+        tutExit('#panRight'); return; }
     /* r116: the decorating beat. D49 is re-used - the instruction has not changed since r103. */
     if(name==='basement' && TUT_STAGE==='fire-basement'){
         TUT_STAGE='dec-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
@@ -5303,19 +5323,19 @@ function tutScreenArrived(name){
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='dec-back'){
-        tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
+        tutExit('#panLeft'); return; }
     if(name==='customer' && TUT_STAGE==='dec-back'){   /* r118: the sale she has been waiting for */
         TUT_STAGE='sell3'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         sayQueue('D23');
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='to-bed'){
-        tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }); return; }
+        tutExit('#panUp'); return; }
     if(name==='bedroom'){ tutBedroom(); return; }
     if(name==='cave'){ tutCaveArrived(); return; }
     if(name==='forge' && TUT_STAGE==='to-forge2'){ tutFireForge(); return; }   /* r111 */
     if(name==='forge' && TUT_STAGE==='base-back'){
-        tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }); return; }
+        tutExit('#panLeft'); return; }
     if(name==='customer' && TUT_STAGE==='base-back'){
         TUT_STAGE='sell2'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D23')<0) SAY_SEQ.push('D23');
@@ -5374,13 +5394,13 @@ function tutWorkTaken(){
     if(TUT_STAGE==='dec-take'){   /* r117 */
         TUT_STAGE='dec-back'; tutArrow(null,null);
         sayQueue('D85');
-        setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
+        setTimeout(()=>tutExit('#panUp'), 0);
         return; }
     if(TUT_STAGE!=='base-take') return;
     TUT_STAGE='base-back'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D55')<0) SAY_SEQ.push('D55');
     SAY_I=SAY_SEQ.indexOf('D55'); say('D55');
-    setTimeout(()=>tutArrow(null, '#panUp', { tfx:0.5, tfy:0.5, ox:-4, oy:102, bow:0.18, back:20 }), 0);
+    setTimeout(()=>tutExit('#panUp'), 0);
 }
 /* the sale that closes the run: this, not a line, is where the dragon becomes a pet */
 /* r104: the sale no longer ends the script - the customer reacts to the price, the dragon counts
@@ -5410,7 +5430,7 @@ function tutThankYou3(){
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi();
     sayQueue('D87');
-    setTimeout(()=>tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }), 0);
+    setTimeout(()=>tutExit('#panRight'), 0);
 }
 /* the dragon already asleep on the bed is the one who says goodnight */
 function tutBedroom(){
@@ -5498,7 +5518,7 @@ function tutFireAsked(){
     setTutorialCave();
     if(SAY_SEQ.indexOf('D64')<0) SAY_SEQ.push('D64');
     SAY_I=SAY_SEQ.indexOf('D64'); say('D64');
-    setTimeout(()=>tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 }), 0);
+    setTimeout(()=>tutExit('#panRight'), 0);
 }
 /* r111: the cave-to-fire-sword run. Every step is driven by the gameplay function that already
    did the work, so nothing polls. */
@@ -5521,7 +5541,7 @@ function tutStowed(){
     TUT_STAGE='to-forge2'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D67')<0) SAY_SEQ.push('D67');
     SAY_I=SAY_SEQ.indexOf('D67'); say('D67');
-    setTimeout(()=>tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 }), 0);
+    setTimeout(()=>tutExit('#panLeft'), 0);
 }
 /* ---- back at the forge: 2 iron + 1 manganese, all ground full ---- */
 function tutFireForge(){
@@ -5622,7 +5642,7 @@ function tutFireYes(){
     TUT_STAGE='fire-basement';
     if(SAY_SEQ.indexOf('D81')<0) SAY_SEQ.push('D81');
     SAY_I=SAY_SEQ.indexOf('D81'); say('D81');
-    setTimeout(()=>tutArrow(null, '#panDown', { tfx:0.5, tfy:0.5, ox:-4, oy:-102, bow:0.18, back:20 }), 0);
+    setTimeout(()=>tutExit('#panDown'), 0);
 }
 function tutFireHammer(){
     if(TUT_STAGE!=='fire-shape') return;
@@ -5661,7 +5681,7 @@ function tutCounterStep(){
     TUT_STAGE='counter-guide'; TUT_COUNTER_VISITED=true;
     if(SAY_SEQ.indexOf('D18')<0) SAY_SEQ.push('D18');
     SAY_I=SAY_SEQ.indexOf('D18'); say('D18');
-    tutArrow(null, '#panLeft', { tfx:0.5, tfy:0.5, ox:108, oy:-4, bow:0.18, back:20 });
+    tutExit('#panLeft');
     updateTutorialCounterUi();
 }
 function tutCounterArrival(){
@@ -5868,7 +5888,7 @@ function tutBellRung(){
 }
 function tutBackToForge(){
     TUT_STAGE='to-forge';
-    tutArrow(null, '#panRight', { tfx:0.5, tfy:0.5, ox:-108, oy:-4, bow:0.18, back:20 });
+    tutExit('#panRight');
 }
 /* ---- r99: back at the forge with one ore of each ---------------------------------------------- */
 function tutFakePath(on){

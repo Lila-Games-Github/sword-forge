@@ -5325,3 +5325,39 @@ Playing Bram's beat first, so the inline `block` is really set: after `takeCare`
 the bed; returning to the counter clears the inline style back to `''` and the dragon shows again at
 `block`, now from the class rather than the inline. Screenshot of the bedroom with one dragon. Console
 clean.
+
+---
+
+## r120 — screen changes blink, and Day 2 opens with one
+
+Two owner asks in one round.
+
+### The exit blinks instead of being pointed at
+
+A curved arrow aimed at a 24x36 button on the frame edge was a big gesture for a small target. Every
+screen-change guide now **blinks the exit itself**: `#panPad button.tut-exit` pulses warm amber on a
+1-second cycle.
+
+`tutExit(sel)` owns the class and blinks one exit or none. It is hung off the clearing path the arrow
+already had — `tutArrow(from, null)` calls `tutExit(null)` — so every place that already put the pointer
+away puts the glow away too, without touching any of them.
+
+**All 14 screen-change guides converted**, across the whole script: to the basement (D48), back to the
+forge and on to the counter (D55), out to the cave (D64), home from the cave (D67), to the basement
+again (D81), back from decorating (D85), and to bed (D87/D88). Verified by count, and spot-checked on
+D48: `panDown` carries `tutExitBlink` and no arrow is drawn.
+
+### Day 2 starts where the night was spent
+
+`confirmEndDay()` jumped straight to the forge, which left nothing to guide. When the day being ended is
+the **tutorial's** night (`TUT_STAGE === 'bed'`), the player now wakes in the bedroom and walks down,
+with the exit blinking; arriving at the forge clears it. Every other end-of-day still jumps straight
+there, unchanged.
+
+### Verification
+
+Tutorial night: confirming the end of day leaves the player in the **bedroom** with the day counter at
+**2**, `panDown` blinking (`animationName: tutExitBlink`) and the old bed arrow cleared; arriving at the
+forge clears the glow and the stage. Ordinary end-of-day outside the tutorial: still lands on the forge
+with no glow, counter at 3. D48 blinks `panDown` with the arrow off, and arriving in the basement clears
+it and moves to `base-table`. Screenshot of Day 2 in the bedroom, exit mid-blink. Console clean.
