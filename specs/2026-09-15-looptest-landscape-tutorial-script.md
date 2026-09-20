@@ -877,3 +877,45 @@ set of **five** seams, and the walk home is only offered once every seam is empt
 home lights up. The five are iron, copper, manganese, aluminium and nickel; tin and zinc have no seam
 art, so "all 5 ores" is all of the minable ones. If 35 is too long a stretch for a tutorial step, either
 the seam yield or the "all of it" condition should come down.
+
+---
+
+## The swift sword — D95, D96
+
+**D95** — Dragon
+> "Grind two copper and add it to the smelter."
+
+*Trigger: arriving back at the forge with the cave's ore. The smelter takes **copper only, exactly two,
+both ground full**; the wrong ore, a raw drop, a part-ground one and a third copper are all refused.*
+
+**D96** — Dragon
+> "Take it to the anvil and start hammering."
+
+*Trigger: the second copper landing in the smelter.*
+
+*The customer asked for **gale**; the sword being made is **swift**. That mismatch is the owner's, and
+nothing enforces a trait request at the counter anyway.*
+
+### The copper path was re-cut for this
+
+Two fully ground copper already ran at **exactly** the angle from the spawn to Swift (−134° for both),
+so the shape was right and only the reach was wrong. Copper's `len` goes **225 → 144**, which puts the
+two-ore route end **30 units past Swift**:
+
+| | distance to Swift | tier |
+| --- | --- | --- |
+| route end (no help) | 30 | **Weak** |
+| after ~10 of pull | 20 | Fine |
+| after ~30 of pull | **0** | **Epic** |
+
+So the trait lights up on arrival but cannot be taken above Weak without the dragon's fire, which pulls
+the sword back along that same line. One copper alone reaches 125 against Swift's 220, so two are
+genuinely required.
+
+### Open: nothing teaches the pull
+
+The beat depends on the player using the dragon's fire to drag the sword back, and **no line in the
+script has ever mentioned it**. Checked: zero of D1–D96 refer to pulling, recentring or breathing on the
+bench. Its only explanation is a `hint()` call, and `hint()` has been a no-op since r34, so that text
+has never been seen either. A line before or with D96 is needed, or the player is expected to discover
+a mechanic the game never mentions.

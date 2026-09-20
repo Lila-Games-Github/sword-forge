@@ -1894,7 +1894,7 @@ const ORES = [
     // does not match the metal, it is a stand-in until real ore art exists.
     { id:'iron',      name:'Iron',      color:'#8a5a33', img:'assets/forge/iron_ore.png',      len:200, d:'M0,0 C -8,-12 -17,-18 -25,-17.5 C -33,-17 -42,-6 -49,1 C -56,-6 -65,-17 -74,-17.5 C -82,-18 -91,-12 -98,0' },   // r29b: upside-down W. From the potion (origin, right) heading W: up, down to the X, up, down to the mortar. Amplitude/run = 0.18, matching the card.
     { id:'manganese', name:'Manganese', color:'#6f6a72', img:'assets/forge/gale_ore.png',      len:258, d:'M0,0 C 17,-177.3 -142,165.3 -125,-12' },   /* r80: was a self-crossing curl. A single cubic whose second control is (E - first) is POINT-SYMMETRIC about its own midpoint, so the half-arc point is exactly half the net displacement - which is what makes 2 raw = 1 ground. Net (-125,-12) and len 258 are both unchanged, so every other manganese route lands where it always did. */
-    { id:'copper',    name:'Copper',    color:'#c8763c', img:'assets/forge/copper_ore.png',    len:225, d:'M0,0 C -10,-16 -18,-28 -22,-36 C -27,-40 -32,-37 -37,-36 C -47,-34 -56,-32 -55,-42 C -54,-54 -60,-62 -71,-73' },   // r29c: wavy S. Climbs NW off the potion, flattens through the X, waves left, then turns north to the mortar.
+    { id:'copper',    name:'Copper',    color:'#c8763c', img:'assets/forge/copper_ore.png',    len:144,   /* r123: 225 -> 144 so TWO fully ground copper stop just past Swift */ d:'M0,0 C -10,-16 -18,-28 -22,-36 C -27,-40 -32,-37 -37,-36 C -47,-34 -56,-32 -55,-42 C -54,-54 -60,-62 -71,-73' },   // r29c: wavy S. Climbs NW off the potion, flattens through the X, waves left, then turns north to the mortar.
     { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', len:250, d:'M0,0 C -2,-22 -10,-46 -26,-62 C -36,-71 -44,-73 -50,-70 C -42,-60 -30,-45 -20,-34' },   // r29d: fishhook. Long arc up-left off the potion past the X, then doubles BACK down-right to the mortar, which sits mid-card. Doubling back means short reach for a long path.
     { id:'nickel',    name:'Nickel',    color:'#cfd3cf', img:'assets/forge/frost_ore.png',     len:215, d:'M0,0 C 14,-9 28,-16 33,-27 C 37,-36 29,-38 26,-44 C 22,-54 20,-58 21,-64 C 23,-72 34,-79 53,-90' },   // r29e: S-curve heading NE. Bulges right off the potion, swings back left through the X, then right again to the mortar. Was heading due N.
     { id:'tin',       name:'Tin',       color:'#9aa3a8', img:'assets/forge/gold_ore.png',      len:185,
@@ -3914,7 +3914,11 @@ const GRIND_FIRE_CAP = 0.70;
 function grindCap(){ return (TUT_STAGE==='fire-mang' && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
 /* which ore the scripted craft will accept next, and how many of it are already in */
 const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-shape','fire-forge'];
+/* r123: the swift craft. Two copper, both ground full, and nothing else. */
+const D2_CRAFT_STAGES=['d2-copper','d2-hammer'];
 function fireOreWanted(){
+    if(TUT_STAGE==='d2-copper') return segs.filter(g=>g.ore==='copper').length<2 ? 'copper' : false;
+    if(D2_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) return false;
     if(TUT_STAGE==='fire-mang') return 'manganese';
     if(FIRE_STAGES.indexOf(TUT_STAGE)<0) return null;   /* not this craft: no gate at all */
     if(TUT_STAGE!=='fire-grind') return false;          /* mid-craft: nothing more goes in */
@@ -3923,12 +3927,13 @@ function fireOreWanted(){
     if(n('manganese')<1) return 'manganese';
     return false;   /* all three are in - nothing more goes in this half */
 }
-function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind'; }   /* r111 */
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='d2-copper'; }   /* r111/r123 */
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
     if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
     const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
+    else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
      hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(fullGrindOnly()){ toast('Not straight in: this one goes to the <b>grindstone</b> first'); return; }
@@ -5122,7 +5127,9 @@ const DIALOGUE = {
     D91: "Open the skill tree and use your points. You will feel more... powerful!",
     D92: "Let's go check the counter.",
     D93: "Do you have a sword with the Gale trait?",
-    D94: "We should go and gather ores. Go back to the cave."
+    D94: "We should go and gather ores. Go back to the cave.",
+    D95: "Grind two copper and add it to the smelter.",
+    D96: "Take it to the anvil and start hammering."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5474,7 +5481,7 @@ function tutDay2Screen(name){
     if(TUT_STAGE==='d2-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
         if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); return; } }
-    if(TUT_STAGE==='d2-back' && name==='forge'){ TUT_STAGE=null; tutExit(null); return; }
+    if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
 }
 /* the bell brings the adventurer's friend, who wants gale */
 function tutDay2Customer(){
@@ -5486,6 +5493,17 @@ function tutDay2Customer(){
     custLine(null, DIALOGUE.D93);
 }
 /* the cave is emptied before the walk home */
+/* r123: home from the cave with a full bag, and the order is for a swift sword */
+function tutDay2Copper(){
+    if(TUT_STAGE!=='d2-back') return;
+    TUT_STAGE='d2-copper'; tutExit(null);
+    sayQueue('D95');
+}
+function tutDay2Smelted(){
+    if(TUT_STAGE!=='d2-copper' || fireOreWanted()!==false) return;
+    TUT_STAGE='d2-hammer';
+    sayQueue('D96');
+}
 function tutDay2Mined(){
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;

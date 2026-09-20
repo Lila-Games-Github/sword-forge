@@ -5439,3 +5439,47 @@ line finishing gives D94 and blinks `panRight`, again at the forge. The cave arr
 
 That is a long stretch for one tutorial step. Flagged for the owner rather than tuned: either the seam
 yield or the "all of it" condition is the lever.
+
+---
+
+## r123 — copper re-cut to stop just past Swift (D95, D96)
+
+Owner-supplied beat: two fully ground copper make a swift sword, and the route is to land **slightly
+past** the trait so the player has to pull the sword back with the dragon's fire to align it for Epic.
+
+### The measurement that made it easy
+
+Two fully ground copper already ran at **exactly** the spawn-to-Swift bearing: both the trait and the
+route end measured **−134°** from the spawn. The shape needed nothing; only the reach was wrong, at 390
+from the spawn against Swift's 220.
+
+Displacement scales linearly with `len`, so `225 × 250/390 = 144`. Copper's `len` is now **144**:
+
+| | |
+| --- | --- |
+| one fully ground copper | 125 from spawn, 95 short of Swift |
+| two | **249** from spawn, ending (1226, 851) |
+| that end to Swift | **30** → `Weak` |
+| pulled ~25–35 toward the spawn | **0–5** → **`Epic`** |
+
+The pull runs along the same line, so it walks straight through the trait. The Epic window is a 10-unit
+band inside a 30-unit travel, which is the skill moment the owner asked for.
+
+### The craft is on rails
+
+`d2-copper` accepts **copper only, exactly two, ground full**. Verified: iron refused, a raw drop
+refused without spending the ore, a 0.50 grind refused with the ore still on the wheel at 0.50, two full
+ones accepted, a third refused.
+
+### Verification
+
+Driven through the real gameplay functions, not by assigning stages: `markGateReady`, `openGate` and
+`placeOnAnvil` all leave the stage at `d2-hammer` with D96 up and **none of D5–D8 in the run** (the r112
+guard holding). Hammering to the route end puts the sword on Swift at **30, Weak**; 30 units of pull
+puts it at **0, Epic**. Console clean.
+
+### Open: nothing teaches the pull
+
+This beat requires the fire-pull, and no line in D1–D96 mentions it — checked against the whole
+`DIALOGUE` map. Its only explanation is a `hint()` that has been a no-op since r34, so it has never been
+shown to anyone. Flagged rather than written: the owner writes the copy.
