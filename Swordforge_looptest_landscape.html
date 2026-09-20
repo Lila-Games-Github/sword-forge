@@ -1319,7 +1319,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     0%,100% { background: rgba(25,20,12,0.8);  box-shadow: 0 0 0 0 rgba(255,190,90,0); border-color: #6a5636; }
     50%     { background: rgba(255,186,84,0.95); box-shadow: 0 0 14px 5px rgba(255,170,60,.75); border-color: #ffd79a; }
 }
-#panPad button.tut-exit { animation: tutExitBlink 1s ease-in-out infinite; color: #2a1d0c; }
+@keyframes tutBlinkHalo {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,170,60,0); }
+    50%     { box-shadow: 0 0 15px 5px rgba(255,170,60,.85), 0 0 0 2px rgba(255,215,154,.95); }
+}
+.tut-blink { animation: tutBlinkHalo 1s ease-in-out infinite; }
+#panPad button.tut-blink { animation: tutExitBlink 1s ease-in-out infinite; color: #2a1d0c; }
 #panUp, #panDown { width: 36px; height: 24px; left: 50%; margin-left: -18px; }
 #panUp { top: 5px; }
 #panDown { bottom: 5px; }
@@ -4662,7 +4667,7 @@ const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.
 const HINT_IDLE_MS = 4000;
 let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
 function noteAction(){ lastActAt = performance.now();
-    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record' || TUT_STAGE==='forge2'){ if(TUT_ARROW) tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101 */
+    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record' || TUT_STAGE==='forge2'){ tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101/r121 */
 function swordAtRouteEnd(){ if(!segs.length) return false;
     const last = segs.length-1;
     return sword.seg >= last && sword.frac >= segs[last].tPct - 0.001; }
@@ -5130,9 +5135,10 @@ function tutRect(sel){
 let TUT_ARROW=null;
 /* r120: blink ONE exit, or none. Hung off the same clearing paths the arrow already had, so every
    place that put the pointer away puts this away too. */
+/* r120/r121: blink ONE control, or none. Any control, not just an exit. */
 function tutExit(sel){
-    document.querySelectorAll('#panPad button.tut-exit').forEach(b=>b.classList.remove('tut-exit'));
-    const el = sel && tutEl(sel); if(el) el.classList.add('tut-exit');
+    document.querySelectorAll('.tut-blink').forEach(b=>b.classList.remove('tut-blink'));
+    const el = sel && tutEl(sel); if(el) el.classList.add('tut-blink');
 }
 function tutArrow(from, to, opt){ TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null;
     if(!to) tutExit(null);   /* r120 */
@@ -5947,11 +5953,10 @@ function tutNudge(){
     if(TUT_STAGE==='record'){
         const panel=document.getElementById('bladePanel');
         const open=panel && getComputedStyle(panel).display!=='none';
-        /* r101: the toggle sits at the very top-left, so an arrow starting ABOVE it was drawn outside
-           the frame and clipped away. This one comes up from below-right instead. */
-        tutArrow(null, open? '#saveBlade' : '#hudToggle',
-            open ? { tfx:0.5, tfy:0.5, ox:104, oy:-62, bow:0.18, back:20 }
-                 : { tfx:0.5, tfy:0.5, ox:128, oy:104,  bow:0.18, back:18 });
+        /* r101 drew an arrow here and had to bend it up from below-right, because the toggle sits in
+           the very top-left corner and an arrow above it was clipped by the frame. r121 blinks the
+           control instead, which has no such problem. */
+        tutExit(open ? '#saveBlade' : '#hudToggle');   /* r121 */
     }
 }
 function tutForgeAgain(){

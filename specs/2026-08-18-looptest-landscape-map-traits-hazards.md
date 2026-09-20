@@ -5361,3 +5361,41 @@ Tutorial night: confirming the end of day leaves the player in the **bedroom** w
 forge clears the glow and the stage. Ordinary end-of-day outside the tutorial: still lands on the forge
 with no glow, counter at 3. D48 blinks `panDown` with the arrow off, and arriving in the basement clears
 it and moves to `base-table`. Screenshot of Day 2 in the bedroom, exit mid-blink. Console clean.
+
+---
+
+## r121 — the record step blinks too
+
+The record step still drew a curved arrow at two more small controls: the blade-panel toggle in the
+very top-left corner, and RECORD CRAFT once the panel is open. Same problem the exits had in r120, so
+the same answer.
+
+### The blink is now general
+
+r120's blink was written for `#panPad button` and repainted the background, which would fight a paper
+button. There are two rules now:
+
+- **`.tut-blink`** — a halo (`box-shadow` only), so it sits on any control without touching its own
+  background;
+- **`#panPad button.tut-blink`** — the amber fill the exits already had, kept by specificity.
+
+`tutExit()` clears `.tut-blink` anywhere rather than only inside `#panPad`, so one control blinks at a
+time across the whole frame.
+
+This also retires r101's workaround: that round had to bend the toggle's arrow up from below-right,
+because the toggle sits in the corner and an arrow above it was clipped by the frame. A blink has no
+such problem.
+
+### A guard that stopped making sense
+
+`noteAction()` cleared the idle hint with `if(TUT_ARROW) tutHm2Clear()`. With the hint now a blink
+rather than an arrow, `TUT_ARROW` is null and an interaction no longer put it away. These stages are
+idle-driven — `tutNudge` brings the hint back after `HINT_IDLE_MS` — so it clears unconditionally, which
+is the behaviour the arrow always had.
+
+### Verification
+
+Record step, panel closed: `#hudToggle` blinks with `tutBlinkHalo` and no arrow. Panel open: the blink
+moves to `#saveBlade`. A tap clears it, and four seconds of idle brings it back. Screen-change exits are
+**not** cleared by a stray tap — checked, since the player has to click the exit itself and removing the
+only guidance on an unrelated tap would be wrong. Console clean.
