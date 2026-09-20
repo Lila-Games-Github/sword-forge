@@ -5399,3 +5399,43 @@ Record step, panel closed: `#hudToggle` blinks with `tutBlinkHalo` and no arrow.
 moves to `#saveBlade`. A tap clears it, and four seconds of idle brings it back. Screen-change exits are
 **not** cleared by a stray tap — checked, since the player has to click the exit itself and removing the
 only guidance on an unrelated tap would be wrong. Console clean.
+
+---
+
+## r122 — Day 2 opens: the skill tree, the bell, and a gale order (D89–D94)
+
+Owner-supplied beat. The morning runs forge → skill tree → counter → bell → the order → the cave → home.
+
+Every guide in it is a **blink**, following r120/r121: the SKILL TREE button, the bell, and the four
+exits. No arrows.
+
+### The skill tree gate
+
+D91 lights `#skillBtn`. Opening the tree clears it; closing the tree **without having spent a point**
+lights it again, so the beat cannot be walked past. `buySkill()` reports the spend, which is the only
+thing that unlocks D92 — not opening the panel, and not closing it.
+
+### The order
+
+Ringing the bell at this stage brings a scripted `man2` asking for **gale**, rather than the random
+customer `nextCustomer()` would produce. D94 follows once her line has finished typing.
+
+### The cave
+
+Day 2's cave is whatever `confirmEndDay()` rolled, which is the full five seams of seven. The walk home
+only lights once every seam is empty.
+
+### Verification
+
+Driven end to end. Bedroom → forge gives D89, D90, D91 with `#skillBtn` blinking (`tutBlinkHalo`).
+Opening the tree clears the blink and closing it unspent restores it; spending a point (`vision`, cost 1
+— `SKILLS[0]` is `bulk` at cost 7, which correctly refused on 3 points) then closing gives D92 and
+blinks `panLeft`. The counter blinks the bell; ringing it brings `man2` with `tid: gale` saying D93; her
+line finishing gives D94 and blinks `panRight`, again at the forge. The cave arrives on `d2-mine` with
+`iron:7 copper:7 manganese:7 aluminium:7 nickel:7`; emptying it takes **35** swings and then blinks
+`panLeft`; reaching the forge clears the run. Screenshot of D91 with the button lit. Console clean.
+
+### Open: 35 swings
+
+That is a long stretch for one tutorial step. Flagged for the owner rather than tuned: either the seam
+yield or the "all of it" condition is the lever.

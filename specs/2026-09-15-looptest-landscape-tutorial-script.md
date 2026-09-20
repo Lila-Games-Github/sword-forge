@@ -832,3 +832,48 @@ It is written for Bram and says "He" of a customer who is a woman.*
 *Trigger: arriving in the bedroom. Spoken by the dragon **painted on the bed**, not the one that
 follows the player: the travelling dragon is hidden on this screen and the bubble anchors to the
 bedroom's own dragon hotspot. An arrow points at the bed, which opens the end-of-day window.*
+
+---
+
+## Day 2 opens — D89–D94
+
+**D89** — Dragon
+> "Good morning! Are you ready to craft perfect swords today? I'll show you how to."
+
+*Trigger: arriving at the forge on Day 2, having walked down from the bedroom.*
+
+**D90** — Dragon
+> "Oh, one more thing. Remember all the skill points you have been collecting on the map?"
+
+**D91** — Dragon
+> "Open the skill tree and use your points. You will feel more... powerful!"
+
+*Showing this line blinks the **SKILL TREE** button. Closing the tree **without spending a point** blinks
+it again; the run only moves on once a point has actually been spent.*
+
+*Note: the owner wrote "more...powerful!"; spaced as an ellipsis.*
+
+**D92** — Dragon
+> "Let's go check the counter."
+
+*Trigger: closing the skill tree after spending. The counter exit blinks.*
+
+**D93** — Customer (`man2`)
+> "Do you have a sword with the Gale trait?"
+
+*Trigger: ringing the bell, which blinks on arrival at the counter.*
+
+*Note: the owner wrote "with Gale trait".*
+
+**D94** — Dragon
+> "We should go and gather ores. Go back to the cave."
+
+*Trigger: her line finishing. Exits blink back through the forge to the cave. The cave holds its full
+set of **five** seams, and the walk home is only offered once every seam is empty.*
+
+### Open: the cave is 35 swings
+
+"Gather everything" against a full cave is **five seams of seven** — measured, 35 swings before the exit
+home lights up. The five are iron, copper, manganese, aluminium and nickel; tin and zinc have no seam
+art, so "all 5 ores" is all of the minable ones. If 35 is too long a stretch for a tutorial step, either
+the seam yield or the "all of it" condition should come down.

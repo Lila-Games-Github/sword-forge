@@ -2069,7 +2069,7 @@ function buySkill(id){
     const r=rank(id);
     if(r>=sk.max){ toast('<b>'+sk.name+'</b> is already at rank '+sk.max); return; }
     if(TALENT < sk.cost){ toast('<b>'+sk.name+'</b> needs '+sk.cost+' talent point'+(sk.cost>1?'s':'')+' \u2014 you have '+TALENT); return; }
-    TALENT -= sk.cost; SKILL_RANK[id]=r+1;
+    TALENT -= sk.cost; SKILL_RANK[id]=r+1; tutDay2Spent();   /* r122 */
     let extra='';
     if(id==='master'){ const n=masterSpawn(r+1); extra = n? ' \u2014 '+n+(r+1>5?' great tomes':' books')+' hidden in the fog' : ''; }
     buildSkillNodes(); updateXpHud();
@@ -2564,7 +2564,7 @@ function pickCheck(){
 }
 function mineNode(n,el){
     if(!PICK_OUT || n.left<=0) return;
-    n.left--; gainOre(n.metal,1); setTimeout(tutMined, 0);   /* r111 */
+    n.left--; gainOre(n.metal,1); setTimeout(tutMined, 0); setTimeout(tutDay2Mined, 0);   /* r111/r122 */
     if(INV_TAB===0) buildShelf();                         // the count moves NOW, not when the ore lands
     el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
     const r=el.getBoundingClientRect();
@@ -4166,8 +4166,8 @@ function buildSkillNodes(){
             d.addEventListener('click', ()=>buySkill(sk.id)); }
         p.insertBefore(d, core); });   // behind the core, so the big icon always reads on top
 }
-function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); }
-function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); }
+function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
+function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
 function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); }
 function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); }
 // ---- r67: Update Composition ------------------------------------------------------------------
@@ -5116,7 +5116,13 @@ const DIALOGUE = {
     D85: "Okay, back to the counter!",
     D86: "Oh wow! I didn't think you'd be this good. I was worried I had given you a complicated order on your first day. Here's your {g}g.",
     D87: "*Yawn* - I'm sleepy. Can we go to bed now?",
-    D88: "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat."
+    D88: "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat.",
+    D89: "Good morning! Are you ready to craft perfect swords today? I'll show you how to.",
+    D90: "Oh, one more thing. Remember all the skill points you have been collecting on the map?",
+    D91: "Open the skill tree and use your points. You will feel more... powerful!",
+    D92: "Let's go check the counter.",
+    D93: "Do you have a sword with the Gale trait?",
+    D94: "We should go and gather ores. Go back to the cave."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5307,7 +5313,8 @@ function tutBasementStep(){
 }
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
-    if(TUT_STAGE==='day2-forge'){ if(name==='forge'){ TUT_STAGE=null; tutExit(null); } return; }   /* r120 */
+    if(TUT_STAGE==='day2-forge'){ if(name==='forge') tutDay2Morning(); return; }   /* r120/r122 */
+    if(String(TUT_STAGE).indexOf('d2-')===0){ tutDay2Screen(name); return; }   /* r122 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
         else if(name==='forge') tutExit('#panUp');
         return; }   /* r118: the fire run is over by bedtime */
@@ -5439,6 +5446,52 @@ function tutThankYou3(){
     setTimeout(()=>tutExit('#panRight'), 0);
 }
 /* the dragon already asleep on the bed is the one who says goodnight */
+/* ---- r122: Day 2. The skill tree is spent, the bell is rung, and the order that follows sends the
+   player back to the cave for a full set of ores. ---- */
+let TUT_D2_SPENT=false;
+function tutDay2Morning(){
+    if(TUT_STAGE!=='day2-forge') return;
+    TUT_STAGE='d2-morning'; tutExit(null);
+    sayQueue('D89','D90','D91');
+}
+/* D91 is the one that asks for the tree, so the button lights with it, not before */
+function tutDay2Skill(){ tutExit('#skillBtn'); }
+function tutDay2SkillOpen(){ if(TUT_STAGE==='d2-morning'){ TUT_STAGE='d2-skill'; tutExit(null); } }
+function tutDay2Spent(){ if(TUT_STAGE==='d2-skill') TUT_D2_SPENT=true; }
+function tutDay2SkillClosed(){
+    if(TUT_STAGE!=='d2-skill') return;
+    if(!TUT_D2_SPENT){ tutDay2Skill(); return; }   /* closed without spending: ask again */
+    TUT_STAGE='d2-counter'; tutExit(null);
+    sayQueue('D92');
+    setTimeout(()=>tutExit('#panLeft'), 0);
+}
+/* every Day 2 screen arrival in one place */
+function tutDay2Screen(name){
+    if(TUT_STAGE==='d2-counter' && name==='customer'){
+        TUT_STAGE='d2-bell'; bellShow(true); updateTutorialCounterUi();
+        setTimeout(()=>tutExit(()=>document.querySelector("#screenProps [data-act='bell']")), 0);
+        return; }
+    if(TUT_STAGE==='d2-cave'){
+        if(name==='forge'){ tutExit('#panRight'); return; }
+        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); return; } }
+    if(TUT_STAGE==='d2-back' && name==='forge'){ TUT_STAGE=null; tutExit(null); return; }
+}
+/* the bell brings the adventurer's friend, who wants gale */
+function tutDay2Customer(){
+    if(TUT_STAGE!=='d2-bell') return;
+    TUT_STAGE='d2-ask'; tutExit(null); sayHide();
+    CUSTOMER={ portrait:'assets/customer/man2.png', tid:'gale', name:'Gale' };
+    buildScreenProps('customer'); counterUi();
+    typeAfter(()=>{ TUT_STAGE='d2-cave'; sayQueue('D94'); setTimeout(()=>tutExit('#panRight'), 0); });
+    custLine(null, DIALOGUE.D93);
+}
+/* the cave is emptied before the walk home */
+function tutDay2Mined(){
+    if(TUT_STAGE!=='d2-mine') return;
+    if(CAVE_NODES.some(n=>n.left>0)) return;
+    TUT_STAGE='d2-back';
+    setTimeout(()=>tutExit('#panLeft'), 0);
+}
 function tutBedroom(){
     if(TUT_STAGE!=='to-bed') return;
     TUT_STAGE='bed'; tutArrow(null,null); updateTutorialCounterUi();
@@ -5834,6 +5887,7 @@ function ringBell(){
        to an element that is replaced a frame later and the player sees nothing. */
     if(TUT_STAGE==='bell') tutBellRung();                     /* the scripted first customer */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
+    else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */
     else nextCustomer();
     bellFx();
 }
@@ -6047,7 +6101,8 @@ function tutAnvilStep(){
    stage here is all it takes to bring him along to a new screen. */
 const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
                            'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2',
-                           'fire-basement','dec-table','dec-bench','dec-design','dec-take','dec-back'];   /* r104/r111/r116/r117 */
+                           'fire-basement','dec-table','dec-bench','dec-design','dec-take','dec-back',
+                           'd2-counter','d2-bell','d2-ask','d2-cave','d2-mine','d2-back'];   /* r104/r111/r116/r117/r122 */
 function onScreenDragon(){
     if(SF_SCREEN==='bedroom') return TUT_STAGE==='bed';   /* r118 */
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
@@ -6157,6 +6212,7 @@ function say(id){
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
     if(id==='D35'){ tutFakePath(false); TUT_STAGE='regrind-grind'; }
     if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
+    if(id==='D91') setTimeout(tutDay2Skill, 0);   /* r122: the button lights with the line that asks */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */
