@@ -5554,3 +5554,56 @@ pull, and Gale shows no reach highlight until it starts.
 
 Owner's call: leave the pull as the finisher (consistent with D97), or move Gale out to 563 so the fifth
 ore lands on it, at the cost of the "almost there" beat (the fourth ore would sit 64 out, not 28).
+
+---
+
+## r126/r127 — the gale sword sold, and Bram's second visit (D105–D114, D44 again)
+
+### The pull lock is no longer swift-only
+
+r124 clamped the fire-pull onto Swift by name. It now takes a target: `tutPullTarget()` answers `swift`
+during `d2-pull` and `gale` during `d2-gale-work`, and the same projection clamp serves both. Outside
+those two stages the pull is untouched.
+
+This also settles r125's open note. The fifth copper overshoots Gale by 37, and rather than leaving the
+player to judge the pull by eye, the clamp parks them on it: measured through the real `tick()` with the
+fire running, the pull stops **7.88** from Gale — **Epic** — and another 200 ticks of held fire leave it
+at 7.88.
+
+**Worth knowing:** 7.88 is inside Epic's threshold of 9, but only just. Gale is not quite on the copper
+line, so that 7.88 is the closest the route can come. Any further nudge to copper's reach or Gale's
+position could drop this to Fine.
+
+### BramD2
+
+Same 1504×2832 canvas as `Bram.png`, so his measured `PROP_OPQ` box carries over. He is drawn from
+`TUT_BRAM2_STATE`, like the Day 1 Bram is drawn from his own state, and reuses the scripted-customer
+panel with a single reply.
+
+### A dispatcher gap
+
+`tutScreenArrived` routes `d2-*` stages to `tutDay2Screen` and then **drops out** for anything that is
+not part of the sharp or fire runs. Bram's stages are `bram2-*`, which matched neither, so arriving at
+the forge did nothing at all. They are routed the same way now. Worth remembering: that early guard
+means a new stage prefix has to be added to the dispatcher, or its arrivals silently do nothing.
+
+### Verification
+
+The gale half, driven through the real gameplay functions: the fifth copper gives D105 with Gale still
+ringed; hammering ends 37.4 past it, unreached; the real `tick()` pull parks at 7.88 (**Epic**) and
+fires the mug pointer; the quench gives `gale:Epic` and D106; the craft gives D107 and blinks the
+counter exit; the sale gives D108 with Bram's successor staying for his line, **"You're welcome."**
+sends him away, and D109 follows.
+
+Bram's half, with a **real stashed ingot** (`ingotSnapshot`, not a hand-built one): D110 with the
+`BramD2` portrait and the single reply; the reply gives D111 then D112 and blinks the forge exit;
+arriving gives D113 on the INGOTS tab with the arrow to the anvil; restoring puts `swift:Epic` back
+`onAnvil` and gives D44; the craft blinks the counter exit; the sale gives D114 with Bram staying, and
+**"Thank you for the gift."** clears him and the panel.
+
+Console clean.
+
+### Open
+
+- **The gift does not exist** — D114 promises one, the response accepts it, nothing is granted.
+- **D113 says "drag", the game wants a tap** — `restoreIngot` fires on pointerdown over the slot.

@@ -989,3 +989,72 @@ back with the dragon's fire — taught two beats earlier in D97 — reaches **Ep
 Two ways to settle it: leave the pull as the finisher, which is consistent with D97 and gives Epic; or
 move Gale out to 563 so the fifth ore lands on it, which costs the "almost there" moment (the fourth
 ore would then sit 64 away rather than 28).
+
+---
+
+## The gale sword is sold, and Bram returns — D105–D114, D44 again
+
+**D105** — Dragon
+> "Heat it up and hammer."
+
+*Trigger: the fifth copper going in. Gale stays **ringed** until the trait is taken.*
+
+**D106** — Dragon
+> "Amazing, you got it! We got it! Tap on the metal to select the shape."
+
+*Trigger: the quench. While this is being taught the fire-pull **parks on Gale** rather than sliding
+past, exactly as it does on Swift, so the result is **Epic** and cannot be spoiled by holding too long.*
+
+**D107** — Dragon
+> "Go sell it!"
+
+*Trigger: the Sword Crafted window closing. The counter exit blinks, then an arrow runs from the sword
+to the counter.*
+
+**D108** — Customer
+> "Thanks, this will do."
+
+*Trigger: the sale. Response **"You're welcome."** sends him away.*
+
+**D109** — Dragon
+> "Great work!"
+
+**D110** — Bram (`BramD2`)
+> "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to
+> defend myself against all the assassins. You make reliable swords!"
+
+*Trigger: shortly after D109. Response: **"I am glad you survived."***
+
+**D111** — Bram
+> "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a
+> swift sword for me?"
+
+**D112** — Dragon
+> "We can use the metal infused with the swift trait we crafted earlier. Let's go."
+
+*The forge exit blinks.*
+
+**D113** — Dragon
+> "Find it in your inventory and drag it to the anvil."
+
+*Trigger: arriving at the forge. The inventory switches to its INGOTS tab and an arrow runs from the
+ingot to the anvil.*
+
+**D44 again** — Dragon
+> "Tap on the metal to select a shape."
+
+*Trigger: the ingot going back on the anvil, still carrying **swift Epic**.*
+
+**D114** — Bram
+> "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be
+> of more use to you."
+
+*Trigger: the sale. Response **"Thank you for the gift."** and he leaves.*
+
+### Open: two things this beat leaves unanswered
+
+- **The gift does not exist.** D114 promises one and the response accepts it, but nothing is granted —
+  no item, no gold, no recipe. The owner has not said what it is.
+- **D113 says "drag", the game wants a tap.** An ingot returns to the anvil on a **tap** of its
+  inventory slot (`restoreIngot`), not a drag. The arrow points slot → anvil so the destination reads
+  correctly, but the verb does not match. Either reword the line or make the ingot slot draggable.

@@ -2209,6 +2209,7 @@ const PROP_OPQ = {
     'assets/Game-elements/stand.png':             { ox:0.0283, oy:0.0500, ow:0.9457, oh:0.9455, ar:460/220 },
     'assets/customer/man1.png':                   { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
     'assets/customer/Bram.png':                    { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
+    'assets/customer/BramD2.png':                  { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },   /* r126: same 1504x2832 canvas */
     /* r96 - the rest of the portrait pool, all on man1's 304x572 canvas; boxes measured off the art */
     'assets/customer/man2.png':                   { ox:0,      oy:0.3170, ow:0.5830, oh:0.4920, ar:304/572 },
     'assets/customer/man3.png':                   { ox:0,      oy:0.2750, ow:0.5920, oh:0.5330, ar:304/572 },
@@ -2289,11 +2290,11 @@ function sellCounter(){
     let levelled=false;
     while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:g });
-    const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3');   /* r108/r118 */
+    const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2');   /* ...r127 */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide();   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
-    tutSold2(); tutSold3();   /* r103/r118 */
+    tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold();   /* r103/r118/r126/r127 */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
@@ -2410,7 +2411,8 @@ function buildScreenProps(name){
     const box=document.getElementById('screenProps'); if(!box) return;
     box.innerHTML='';
     const list=(SCREEN_PROPS[name]||[]).slice();
-    if(name==='customer' && TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') list.unshift({ src:'assets/customer/Bram.png', l:7.97, w:20.99, b:86.16 });
+    if(name==='customer' && TUT_BRAM2_STATE) list.unshift({ src:'assets/customer/BramD2.png', l:7.97, w:20.99, b:86.16 });   /* r127 */
+    else if(name==='customer' && TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') list.unshift({ src:'assets/customer/Bram.png', l:7.97, w:20.99, b:86.16 });
     else if(name==='customer' && CUSTOMER) list.unshift({ src:CUSTOMER.portrait, l:7.97, w:20.99, b:86.16 });
     /* r96: the bell sits on the right corner of the counter, from D27 onward. The rail covers the plate
        from 79% across, so 72% is the right-hand end of the table the player can actually see. */
@@ -4012,6 +4014,7 @@ function tryAcquire(){
         if(firstFind) bumpQuest('discover3');
         updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
         if(bt.id==='swift') tutSwiftGot();   /* r124 */
+        if(bt.id==='gale') tutGaleGot();   /* r126 */
         showAcquire(bt,tier,melt.traits.length,firstFind);
         if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
         hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.');
@@ -4651,9 +4654,13 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     invTab(2);                                                        // show it land in the SWORDS tab
     const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
     const fireSword = (TUT_STAGE==='fire-forge');   /* r115 */
+    const galeSword = (TUT_STAGE==='d2-gale-forge');   /* r126 */
+    const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
-        if(second) tutBasementStep(); else if(fireSword) tutFireCustomise(); else tutCounterStep(); });   /* r90/r103/r115 */
+        if(second) tutBasementStep(); else if(fireSword) tutFireCustomise();
+        else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
+        else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
 }
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     TUT_SWIFT_LOCK=false;   /* r124 */
@@ -4778,9 +4785,11 @@ function tick(now){
                sliding past it. The travel is a straight line to the spawn, so the closest approach
                to the trait is just the projection of (trait - sword) onto that line; clamp the step
                to it and stop. Outside this step the pull is untouched and runs as far as held. */
-            if(TUT_STAGE==='d2-pull'){ const sw=traits.find(t=>t.trait && t.trait.id==='swift');
-                if(sw){ const t=(sw.x-p.x)*(dx/dist) + (sw.y-p.y)*(dy/dist);
-                    if(t <= step + 0.001){ step=Math.max(0,t); TUT_SWIFT_LOCK=true; setTimeout(tutSwiftAligned,0); } } }
+            { const want=tutPullTarget();   /* r126: swift then gale, same clamp */
+              const tg = want && traits.find(t=>t.trait && t.trait.id===want);
+              if(tg){ const t=(tg.x-p.x)*(dx/dist) + (tg.y-p.y)*(dy/dist);
+                  if(t <= step + 0.001){ step=Math.max(0,t); TUT_SWIFT_LOCK=true;
+                      setTimeout(want==='swift'? tutSwiftAligned : tutGaleAligned, 0); } } }
             pull.x+=dx/dist*step; pull.y+=dy/dist*step;
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); }
     } else {
@@ -4837,6 +4846,7 @@ function restoreIngot(id){
     if(benchBusy()){ hint('Finish or store the ingot on the bench before taking another one out.'); return; }
     const i=INV.ingots.findIndex(g=>g.id===id); if(i<0) return;
     const g=INV.ingots.splice(i,1)[0];
+    setTimeout(tutBram2Restored, 0);   /* r127 */
     melt={ heat:invCooled(g), hp:g.hp, smeltT0:performance.now(), stage:g.stage,
            reachedTrait:null, alignDist:null, acquiredTrait:null, tier:null,      // the tick recomputes these
            traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
@@ -5163,7 +5173,17 @@ const DIALOGUE = {
     D101: "Grind 3 copper. Let's see how far we can go.",
     D102: "Use the hammer to travel along the path on the map.",
     D103: "Put it back in the smelter and add one more ground copper.",
-    D104: "See the '?'! We are almost there. Add one more copper."
+    D104: "See the '?'! We are almost there. Add one more copper.",
+    D105: "Heat it up and hammer.",
+    D106: "Amazing, you got it! We got it! Tap on the metal to select the shape.",
+    D107: "Go sell it!",
+    D108: "Thanks, this will do.",
+    D109: "Great work!",
+    D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords!",
+    D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift sword for me?",
+    D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
+    D113: "Find it in your inventory and drag it to the anvil.",
+    D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be of more use to you."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5355,7 +5375,7 @@ function tutBasementStep(){
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
     if(TUT_STAGE==='day2-forge'){ if(name==='forge') tutDay2Morning(); return; }   /* r120/r122 */
-    if(String(TUT_STAGE).indexOf('d2-')===0){ tutDay2Screen(name); return; }   /* r122 */
+    if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0){ tutDay2Screen(name); return; }   /* r122/r127 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
         else if(name==='forge') tutExit('#panUp');
         return; }   /* r118: the fire run is over by bedtime */
@@ -5516,6 +5536,15 @@ function tutDay2Screen(name){
         if(name==='forge'){ tutExit('#panRight'); return; }
         if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); return; } }
     if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
+    if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
+    if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */
+        TUT_STAGE='bram2-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        return; }
+    if(TUT_STAGE==='d2-gale-sell' && name==='customer'){   /* r126 */
+        TUT_STAGE='d2-gale-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        return; }
 }
 /* the bell brings the adventurer's friend, who wants gale */
 function tutDay2Customer(){
@@ -5530,6 +5559,12 @@ function tutDay2Customer(){
 /* r123: home from the cave with a full bag, and the order is for a swift sword */
 /* ---- r124: the fire-pull, which nothing in the script had ever explained ---- */
 let TUT_SWIFT_LOCK=false;
+/* r126: which trait the pull should park on, if any. Outside these two stages the pull is free. */
+function tutPullTarget(){
+    if(TUT_STAGE==='d2-pull') return 'swift';
+    if(TUT_STAGE==='d2-gale-work') return 'gale';
+    return null;
+}
 function tutDay2Pull(){
     if(TUT_STAGE!=='d2-hammer') return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
@@ -5564,9 +5599,118 @@ function tutGaleSmelted(){
         const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(g) tutSpotOn(g);   /* highlight it */
         sayQueue('D104'); return; }
     if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
-        TUT_STAGE='d2-gale-work'; tutSpotOn(null); tutArrow(null,null); return; }
+        TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
+        sayQueue('D105'); return; }   /* r126: the ring stays up until the trait is taken */
 }
 /* the end of the three-ore route: back to the smelter for a fourth */
+/* r126: the pull has parked the sword on Gale - splash it before it drifts */
+function tutGaleAligned(){
+    if(TUT_STAGE!=='d2-gale-work') return;
+    TUT_STAGE='d2-gale-quench'; tutArrow(null,null); tutUnglow(); tutSpotOn(null);
+    setTimeout(tutMugPointer, 0);
+}
+function tutGaleGot(){
+    if(TUT_STAGE!=='d2-gale-quench') return;
+    TUT_STAGE='d2-gale-shape'; tutArrow(null,null); tutUnglow();
+    sayQueue('D106');
+    setTimeout(()=>tutGlow('#orb', true), 0);
+}
+/* the minigame is left to the player; the finished sword sends them to the counter */
+function tutGaleHammering(){ if(TUT_STAGE==='d2-gale-shape'){ TUT_STAGE='d2-gale-forge'; tutUnglow(); } }
+function tutGaleCrafted(){
+    if(TUT_STAGE!=='d2-gale-forge') return;
+    TUT_STAGE='d2-gale-sell'; tutUnglow();
+    sayQueue('D107');
+    setTimeout(()=>tutExit('#panLeft'), 0);
+}
+/* the sale, and the thanks */
+function tutGaleSold(){
+    if(TUT_STAGE!=='d2-gale-sell2') return;
+    TUT_STAGE='d2-gale-paid'; tutArrow(null,null); sayHide();
+    setTimeout(()=>{
+        custLine(null, DIALOGUE.D108);
+        const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
+              re=document.querySelector('#csPanel > .cs-resp');
+        if(se) se.style.display='none'; if(de) de.style.display='none';
+        if(re){ re.textContent="You're welcome."; re.style.display='flex'; re.onclick=tutGaleThanks; }
+    }, 0);
+}
+function tutGaleThanks(){
+    if(TUT_STAGE!=='d2-gale-paid') return;
+    typeStop();
+    const re=document.querySelector('#csPanel > .cs-resp');
+    if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
+    CUSTOMER=null; TUT_STAGE='d2-praise';
+    (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
+    refreshCounter(); counterUi();
+    sayQueue('D109');
+    typeAfter(null);
+    setTimeout(tutBram2Arrive, 1200);   /* r127: Bram walks in behind the praise */
+}
+/* ---- r127: Bram's second visit. He asks for swift, which is already sitting in the bag as an
+   ingot, so this beat is about spending stock rather than mining for it. ---- */
+let TUT_BRAM2_STATE=null;
+function tutIngotSlot(){ return document.querySelector('#oreShelf .inv-ingot') || document.getElementById('oreShelf'); }
+function tutBram2Arrive(){
+    if(TUT_STAGE!=='d2-praise') return;
+    TUT_STAGE='bram2'; TUT_BRAM2_STATE='awaiting'; sayHide();
+    CUSTOMER={ portrait:'assets/customer/BramD2.png', tid:null, name:'Bram' };
+    buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
+    const w=document.getElementById('custWho'); if(w) w.textContent='BRAM';
+    const r=document.getElementById('bramResponses');
+    if(r){ r.style.display=''; r.innerHTML='';
+        const b=document.createElement('button'); b.type='button'; b.textContent='I am glad you survived.';
+        b.addEventListener('click', tutBram2Reply); r.appendChild(b); }
+    counterBoxes();
+    custLine(document.getElementById('bramLine'), DIALOGUE.D110);
+}
+function tutBram2Reply(){
+    if(TUT_BRAM2_STATE!=='awaiting') return;
+    TUT_BRAM2_STATE='asked'; typeDone();
+    const r=document.getElementById('bramResponses'); if(r) r.style.display='none';
+    typeAfter(()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); });
+    custLine(document.getElementById('bramLine'), DIALOGUE.D111);
+}
+function tutBram2Forge(){
+    if(TUT_STAGE!=='bram2-forge') return;
+    TUT_STAGE='bram2-ingot'; tutExit(null); invTab(1);
+    sayQueue('D113');
+    setTimeout(()=>tutArrow(tutIngotSlot, '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);
+}
+function tutBram2Restored(){
+    if(TUT_STAGE!=='bram2-ingot') return;
+    TUT_STAGE='bram2-shape'; tutArrow(null,null);
+    sayQueue('D44');   /* the same instruction as the fire sword's */
+    setTimeout(()=>tutGlow('#orb', true), 0);
+}
+function tutBram2Hammering(){ if(TUT_STAGE==='bram2-shape'){ TUT_STAGE='bram2-forge2'; tutUnglow(); } }
+function tutBram2Crafted(){
+    if(TUT_STAGE!=='bram2-forge2') return;
+    TUT_STAGE='bram2-sell'; tutUnglow();
+    setTimeout(()=>tutExit('#panLeft'), 0);
+}
+function tutBram2Sold(){
+    if(TUT_STAGE!=='bram2-sell2') return;
+    TUT_STAGE='bram2-paid'; tutArrow(null,null); sayHide();
+    setTimeout(()=>{
+        custLine(document.getElementById('bramLine'), DIALOGUE.D114);
+        const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
+              re=document.querySelector('#csPanel > .cs-resp');
+        if(se) se.style.display='none'; if(de) de.style.display='none';
+        if(re){ re.textContent='Thank you for the gift.'; re.style.display='flex'; re.onclick=tutBram2Gift; }
+    }, 0);
+}
+function tutBram2Gift(){
+    if(TUT_STAGE!=='bram2-paid') return;
+    typeStop();
+    const re=document.querySelector('#csPanel > .cs-resp');
+    if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
+    /* the gift itself is not specified yet - see the spec's open note */
+    CUSTOMER=null; TUT_BRAM2_STATE=null; TUT_STAGE=null;
+    (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
+    const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
+    refreshCounter(); counterUi(); updateTutorialCounterUi();
+}
 function tutGaleEnd(){
     if(TUT_STAGE!=='d2-gale-hammer') return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
@@ -5815,6 +5959,8 @@ function tutCaveArrived(){
     setTimeout(()=>tutArrow(tutPickEl, tutSeam('iron'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
 }
 function tutHmStep(){
+    if(TUT_STAGE==='bram2-shape'){ tutBram2Hammering(); return; }   /* r127 */
+    if(TUT_STAGE==='d2-gale-shape'){ tutGaleHammering(); return; }   /* r126 */
     if(TUT_STAGE==='fire-shape'){ tutFireHammer(); return; }   /* r111 */
     if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
@@ -6002,7 +6148,7 @@ function updateTutorialCounterUi(){
     /* r109: 'asked' used to drop her panel, which blanked the fire-sword request the instant the
        dragon answered and left the counter's own empty box in its place. She is still waiting for
        that sword, so the panel stays while TUT_FIRE_STATE is set at all. */
-    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || !!TUT_FIRE_STATE;   /* r104/r109 */
+    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || !!TUT_FIRE_STATE || !!TUT_BRAM2_STATE;   /* r104/r109/r127 */
     if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!scripted);
     counterBoxes();   /* r105 */
 }
@@ -6200,7 +6346,9 @@ function tutAnvilStep(){
 const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','base-sharp','base-take','base-back','sell2',
                            'paid','bonus','bell2','fire-meet','to-cave','cave-pick','cave-stow','to-forge2',
                            'fire-basement','dec-table','dec-bench','dec-design','dec-take','dec-back',
-                           'd2-counter','d2-bell','d2-ask','d2-cave','d2-mine','d2-back'];   /* r104/r111/r116/r117/r122 */
+                           'd2-counter','d2-bell','d2-ask','d2-cave','d2-mine','d2-back',
+                           'd2-gale-sell','d2-gale-sell2','d2-gale-paid','d2-praise',
+                           'bram2','bram2-forge','bram2-sell','bram2-sell2','bram2-paid'];   /* ...r126/r127 */
 function onScreenDragon(){
     if(SF_SCREEN==='bedroom') return TUT_STAGE==='bed';   /* r118 */
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
