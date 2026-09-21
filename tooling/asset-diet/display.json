@@ -1,0 +1,266 @@
+{
+ "assets/forge/dragon.png": [
+  195,
+  176
+ ],
+ "assets/forge/grindstone.png": [
+  532,
+  481
+ ],
+ "assets/forge/grindstone_spin.png": [
+  532,
+  481
+ ],
+ "assets/ui/dragon_icon.png": [
+  0,
+  0
+ ],
+ "assets/ui/Quest_base.png": [
+  392,
+  567
+ ],
+ "assets/ui/Diary_base.png": [
+  1044,
+  587
+ ],
+ "assets/forge/diary.png": [
+  264,
+  176
+ ],
+ "assets/ui/ledger_book_base.png": [
+  1107,
+  623
+ ],
+ "assets/map/compass.png": [
+  62,
+  62
+ ],
+ "assets/forge/anchor_furnace.png": [
+  208,
+  252
+ ],
+ "assets/forge/smoke.png": [
+  71,
+  101
+ ],
+ "assets/forge/anchor_bellows.png": [
+  175,
+  86
+ ],
+ "assets/forge/anchor_grindwheel.png": [
+  208,
+  175
+ ],
+ "assets/forge/anchor_pestle.png": [
+  110,
+  103
+ ],
+ "assets/forge/anchor_hammer.png": [
+  127,
+  137
+ ],
+ "assets/forge/anchor_anvil.png": [
+  159,
+  134
+ ],
+ "assets/forge/anchor_bucket.png": [
+  152,
+  225
+ ],
+ "assets/forge/anchor_mug.png": [
+  149,
+  148
+ ],
+ "assets/forge/dragonfire.png": [
+  495,
+  587
+ ],
+ "assets/ui/arrow.png": [
+  409,
+  158
+ ],
+ "assets/ui/arrow_point_down.png": [
+  234,
+  396
+ ],
+ "assets/forge/iron_ore.png": [
+  70,
+  70
+ ],
+ "assets/forge/gale_ore.png": [
+  70,
+  70
+ ],
+ "assets/forge/copper_ore.png": [
+  70,
+  70
+ ],
+ "assets/forge/aluminium_ore.png": [
+  70,
+  70
+ ],
+ "assets/forge/frost_ore.png": [
+  70,
+  70
+ ],
+ "assets/forge/gold_ore.png": [
+  54,
+  51
+ ],
+ "assets/forge/tide_ore.png": [
+  54,
+  62
+ ],
+ "assets/hammer/hammer_bg.png": [
+  1080,
+  590
+ ],
+ "assets/hammer/balanced_longsword_midblade.png": [
+  832,
+  832
+ ],
+ "assets/hammer/hammer_sword.png": [
+  1080,
+  590
+ ],
+ "assets/hammer/hammer_dragon.png": [
+  1004,
+  1004
+ ],
+ "assets/hammer/hammer_hammer.png": [
+  1080,
+  590
+ ],
+ "assets/ui/Skill_tree_base.png": [
+  850,
+  596
+ ],
+ "assets/ui/icon_skilltree.png": [
+  139,
+  139
+ ],
+ "assets/ui/Composition_book_base.png": [
+  1042,
+  587
+ ],
+ "assets/sword-parts/blades/balanced_longsword_blade.png": [
+  945,
+  945
+ ],
+ "assets/sword-parts/guards/guard1.png": [
+  945,
+  945
+ ],
+ "assets/sword-parts/grips/grip1.png": [
+  945,
+  945
+ ],
+ "assets/sword-parts/pommels/pommel1.png": [
+  945,
+  945
+ ],
+ "assets/map/map_hazard.png": [
+  0,
+  0
+ ],
+ "assets/map/map_base.png": [
+  2172,
+  1521
+ ],
+ "assets/ui/Dialogue_box.png": [
+  0,
+  0
+ ],
+ "assets/ui/Paper_button_wider.png": [
+  250,
+  54
+ ],
+ "assets/ui/Paper_button_wide.png": [
+  158,
+  56
+ ],
+ "assets/ui/Paper_button_red.png": [
+  111,
+  51
+ ],
+ "assets/ui/Small_paperbox.png": [
+  497,
+  323
+ ],
+ "assets/Game-elements/rack.png": [
+  140,
+  248
+ ],
+ "assets/backgrounds/anchor_bench_bg.png": [
+  854,
+  123
+ ],
+ "assets/ui/Small_paperbox_dark.png": [
+  170,
+  134
+ ],
+ "assets/backgrounds/customer_counter_background.png": [
+  1080,
+  600
+ ],
+ "assets/Game-elements/counter.png": [
+  1080,
+  170
+ ],
+ "assets/Game-elements/stand.png": [
+  162,
+  78
+ ],
+ "assets/ui/icon_recipe.png": [
+  29,
+  30
+ ],
+ "assets/backgrounds/basement_background.png": [
+  1080,
+  600
+ ],
+ "assets/Game-elements/design_desk.png": [
+  274,
+  278
+ ],
+ "assets/Game-elements/sharpening_stone.png": [
+  217,
+  251
+ ],
+ "assets/backgrounds/bedroom_background.png": [
+  1080,
+  600
+ ],
+ "assets/backgrounds/cave_background.png": [
+  1080,
+  600
+ ],
+ "assets/backgrounds/shop_background.png": [
+  1080,
+  600
+ ],
+ "assets/ui/bookmark_paper.png": [
+  40,
+  30
+ ],
+ "assets/customer/Bram.png": [
+  215,
+  404
+ ],
+ "assets/sword-parts/grips/grip2.png": [
+  639,
+  639
+ ],
+ "assets/sword-parts/grips/grip3.png": [
+  710,
+  710
+ ],
+ "assets/sword-parts/grips/grip4.png": [
+  639,
+  639
+ ],
+ "assets/forge/pickaxe.png": [
+  54,
+  59
+ ]
+}

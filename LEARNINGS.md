@@ -102,3 +102,27 @@ in the ingot shape**, so the fixture and the defect made the same wrong assumpti
 the third time a hand-built record has hidden something (see the missing `sword` field in r128's first
 pass). **Forge the object through the real path that makes it** — here `SFM`'s craft chain plus
 `finishBlade()` — rather than writing an object literal that looks close enough.
+
+## Some asset paths are built, not written, so grep cannot prove a rename is complete
+
+Converting the landscape build's art to WebP meant rewriting every asset reference. A grep for
+`assets/...png` found them all and came back clean, and the game loaded perfectly in the emulator.
+
+It was wrong. Nine sites **construct** the path at runtime and keep the extension in the expression:
+
+```js
+const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.png';
+rough.src = 'assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png';
+CUSTOMER   = { portrait:'assets/customer/'+who+'.png', ... };
+```
+
+None of those contain a literal path, so the grep missed them, and the files they reach (65 sword-part
+skins, 11 portraits, 3 midblades) were never converted. Nothing broke on the screens a sweep visits;
+it would have broken for the first player who reached a flame grip.
+
+Two habits come out of it. **Grep for the suffix in an expression too** (`+ '...png'`), not just for
+whole paths. And **build the work list from the directories the code can reach**, not from what a
+render sweep happened to paint: a measurement pass only ever sees the assets that were on screen.
+
+Related: the same round found two assets counted in the payload that live **only inside comments**, so
+the "before" number was 1.84 MB too high until the scan learned to tell code from prose.

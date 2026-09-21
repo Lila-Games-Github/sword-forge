@@ -121,7 +121,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hud { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: linear-gradient(180deg,#38291a,#211812); border-bottom: 3px solid #7a5f34; box-shadow: inset 0 -2px 5px rgba(0,0,0,.4); }
 /* carved wood/parchment plaque (anchor HUD chrome) */
 .plaque { display: flex; align-items: center; gap: 7px; font-family: 'Cinzel', serif; font-weight: 700; color: #f2e3c0; white-space: nowrap; font-size: 13px;
-    border: 13px solid transparent; border-image: url('assets/ui/plaque_stone.png') 64 fill / 13px / 0 stretch;   /* anchor-cut grey-stone plaque chrome (9-slice); replaces the CSS dark-wood pill */
+    border: 13px solid transparent; border-image: url('assets/ui/plaque_stone.webp') 64 fill / 13px / 0 stretch;   /* anchor-cut grey-stone plaque chrome (9-slice); replaces the CSS dark-wood pill */
     padding: 3px 10px; filter: drop-shadow(0 2px 5px rgba(0,0,0,.5)); text-shadow: 0 1px 1px rgba(0,0,0,.7); }
 .plaque .ic { font-size: 16px; }
 .plaque .ic.gear { color: #ffcf6a; font-size: 18px; text-shadow: 0 1px 2px rgba(0,0,0,.7); }
@@ -213,7 +213,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* ---- BENCH (crafting stations laid out in sequence) ---- */
 #bench { position: relative; overflow: visible;   /* let props BLEED across zones (furnace crucible into the map, wheel into the rail) like the anchor; #frame still clips the outer bounds */
-    background: #1a130b url('assets/backgrounds/anchor_bench_bg.png') center/cover no-repeat;
+    background: #1a130b url('assets/backgrounds/anchor_bench_bg.webp') center/cover no-repeat;
     box-shadow: inset 0 6px 18px rgba(0,0,0,.5);
 }
 #bench::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* soft vignette so layered props stay readable */
@@ -396,7 +396,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #sayChoices { position: absolute; z-index: 1101; display: none; flex-direction: column; gap: 6px;
     width: 315px; pointer-events: auto; }
 #sayChoices button { width: 100%; min-height: 34px; border: 0; padding: 6px 20px; cursor: pointer;
-    background: url('assets/ui/Paper_button_wider.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
     font-family: inherit; font-size: 11px; color: #5c4a33; }
 #sayChoices button:hover { filter: brightness(1.06); }
 #dragonSay { position: absolute; z-index: 46; display: none; width: 315px; padding: 11px 15px 14px;   /* r94: 0.75x */
@@ -466,9 +466,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px; letter-spacing: .3px; color: #4a3623; }
 .st-reset { left: 1.13%; top: 2.34%; width: 12.36%; aspect-ratio: 143 / 51;
-    background-image: url('assets/ui/Paper_button_wide.png'); }
+    background-image: url('assets/ui/Paper_button_wide.webp'); }
 .st-close { left: -0.46%; top: 92.78%; width: 7.94%; aspect-ratio: 213 / 97;
-    background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
+    background-image: url('assets/ui/Paper_button_red.webp'); color: #6d2a22; }
 .st-btn:hover { filter: brightness(1.06); }
 .st-btn:active { transform: translateY(1px) scale(.99); }
 
@@ -533,8 +533,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-btn { position: absolute; border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center; text-align: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: .3px; color: #4a3623; }
-.cb-btn.red { background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; aspect-ratio: 213 / 97; }
-.cb-btn.wide { background-image: url('assets/ui/Paper_button_wide.png'); aspect-ratio: 143 / 51; }
+.cb-btn.red { background-image: url('assets/ui/Paper_button_red.webp'); color: #6d2a22; aspect-ratio: 213 / 97; }
+.cb-btn.wide { background-image: url('assets/ui/Paper_button_wide.webp'); aspect-ratio: 143 / 51; }
 .cb-btn:hover { filter: brightness(1.06); }
 .cb-btn:active { transform: translateY(1px) scale(.99); }
 .cb-erase  { left: 56.64%; top: 77.19%; width: 12.33%; }
@@ -559,7 +559,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    box's own 38.3% width resolves against it — the window came out 18% smaller. A margin-right of 18.1%
    against a centred flex item shifts it left by half that, i.e. 9.05% of the frame, size untouched. */
 .comp-box { position: relative; width: 38.3%; max-width: 430px; margin-right: 18.1%; aspect-ratio: 849 / 533;
-    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Small_paperbox.webp') center / 100% 100% no-repeat;
     filter: drop-shadow(0 14px 30px rgba(0,0,0,.6));
     display: flex; flex-direction: column; align-items: center;
     padding: 22px 23px 16px; gap: 8px; }   /* px, not %: percentage padding resolves against the MODAL's width, not the box's, which forced the paper taller than its native aspect and stretched the texture */
@@ -567,15 +567,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     letter-spacing: .4px; color: #5a4224; text-align: center; line-height: 1.1; }
 .comp-slots { display: flex; width: 100%; gap: 20px; justify-content: center; }
 .comp-slot { flex: 0 0 46%; aspect-ratio: 320 / 252; border: 0; padding: 0; cursor: pointer;
-    background: url('assets/ui/Small_paperbox_dark.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Small_paperbox_dark.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623; }
 .comp-btns { display: flex; width: 100%; gap: 5px; justify-content: center; align-items: flex-end; margin-top: auto; }
 .paperBtn { border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: .3px; color: #4a3623; }
-.paperBtn.red  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
-.paperBtn.wide { flex: 0 0 68%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.png'); }
+.paperBtn.red  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.webp'); color: #6d2a22; }
+.paperBtn.wide { flex: 0 0 68%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.webp'); }
 .comp-slot:hover, .paperBtn:hover { filter: brightness(1.06); }
 .comp-slot:active { transform: scale(.985); }
 .paperBtn:active { transform: translateY(1px) scale(.99); }
@@ -822,18 +822,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* the game menu — the r33 paper popup construction, two columns of three so the six rows fit the
    landscape Small_paperbox instead of stretching it */
 .mn-box { position: relative; width: 34.0%; max-width: 380px; aspect-ratio: 849 / 533;
-    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Small_paperbox.webp') center / 100% 100% no-repeat;
     margin-right: 18.1%; filter: drop-shadow(0 14px 30px rgba(0,0,0,.6));
     display: flex; flex-direction: column; align-items: center; padding: 16px 26px 18px; gap: 8px; }
 .mn-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 900; font-size: 15px; color: #5a4224; letter-spacing: 1px; }
 .mn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; width: 100%; margin-top: auto; margin-bottom: auto; }
 .mn-btn { border: 0; padding: 0; cursor: pointer; aspect-ratio: 143 / 51;
-    background: url('assets/ui/Paper_button_wide.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Paper_button_wide.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
 .mn-btn:hover { filter: brightness(1.06); }
 .mn-btn:active { transform: translateY(1px) scale(.99); }
-.mn-btn.arm { color: #6d2a22; background-image: url('assets/ui/Paper_button_red.png'); aspect-ratio: 213 / 97; }
+.mn-btn.arm { color: #6d2a22; background-image: url('assets/ui/Paper_button_red.webp'); aspect-ratio: 213 / 97; }
 .mn-note { margin: 0; font-size: 9.5px; color: #7a6034; min-height: 12px; text-align: center; }
 /* r34 — Recipe book (under the blade panel) and Diary / Quest (foot of the rail). Same carved-wood
    treatment as #skillBtn so the three read as one family. All placeholders. */
@@ -900,7 +900,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #sfToast.show { display: block; animation: sfToastIn .5s ease-out; }
 @keyframes sfToastIn { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px); } 100% { opacity: 1; transform: translateX(-50%) translateY(0); } }
 /* r96 - the counter bell. It swings about its crown, not its middle. */
-#screenProps img[src$="bell.png"] { transform-origin: 50% 18%; }
+#screenProps img[src$="bell.webp"] { transform-origin: 50% 18%; }
 #screenProps img.bell-ring { animation: bellShake .55s ease-in-out; }
 @keyframes bellShake { 0%,100% { transform: rotate(0deg); } 14% { transform: rotate(-14deg); }
     34% { transform: rotate(11deg); } 54% { transform: rotate(-7deg); } 76% { transform: rotate(4deg); } }
@@ -946,17 +946,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-bram-dlg { pointer-events:auto; cursor:pointer; }
 .cs-bram-dlg .go { position:absolute; right:26px; bottom:8px; font-size:8px; color:#8a6d3f; display:none; }
 .cs-bram-dlg.more .go { display:block; }
-.cs-bram-dlg { position:absolute; left:31.68%; top:6.36%; width:44.92%; min-height:86px; background:url('assets/ui/Dialogue_box.png') center/100% 100% no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 34px 22px; box-sizing:border-box; }
+.cs-bram-dlg { position:absolute; left:31.68%; top:6.36%; width:44.92%; min-height:86px; background:url('assets/ui/Dialogue_box.webp') center/100% 100% no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 34px 22px; box-sizing:border-box; }
 .cs-bram-dlg .who { font-family:'Cinzel',serif; font-weight:900; font-size:11px; color:#8a6a34; margin-bottom:4px; }
 .cs-bram-dlg p { margin:0; font-size:12px; line-height:1.45; color:#4a3623; text-align:center; }
 .cs-bram-responses { position:absolute; left:31.68%; top:39.41%; width:44.92%; display:flex; flex-direction:column; gap:7px; }
-.cs-bram-responses button { width:100%; min-height:38px; border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.png') center/100% 100% no-repeat; font-size:11px; color:#5c4a33; }
+.cs-bram-responses button { width:100%; min-height:38px; border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.webp') center/100% 100% no-repeat; font-size:11px; color:#5c4a33; }
 .cs-dlg { position: absolute; left: 31.68%; top: 6.36%; width: 44.92%; aspect-ratio: 1074 / 425;
-    background: url('assets/ui/Dialogue_box.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Dialogue_box.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center; padding: 14px 34px 22px; }
 .cs-dlg p { margin: 0; font-size: 12px; line-height: 1.5; color: #4a3623; text-align: center; }   /* Dialogue_box.png is pale parchment, so the text has to be dark */
 .cs-resp { position: absolute; left: 31.68%; top: 39.41%; width: 44.92%; aspect-ratio: 453 / 97;
-    background: url('assets/ui/Paper_button_wider.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-size: 11.5px; color: #5c4a33; text-align: center; }
 .cs-btn { position: absolute; bottom: 36.58%; border: 0; padding: 0; cursor: pointer;
@@ -968,9 +968,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    together, so the paper stretches sideways at the same rendered height; the right-hand edge stays
    at 68.71%, where it always was, just clear of DENY. */
 .cs-sell { left: 52.21%; width: 16.50%; aspect-ratio: 265 / 51; white-space: nowrap; font-size: 10px;
-    background-image: url('assets/ui/Paper_button_wide.png'); }
+    background-image: url('assets/ui/Paper_button_wide.webp'); }
 .cs-deny { left: 68.40%; width: 8.27%; aspect-ratio: 213 / 97; color: #6d2a22;
-    background-image: url('assets/ui/Paper_button_red.png'); }
+    background-image: url('assets/ui/Paper_button_red.webp'); }
 .cs-deny:disabled { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }
 /* The sword on display: same lay-flat trick as the racks, in a box the prop layer positions. NOT
    clipped - it is sized to the drawn LENGTH, so its guard reaches past the box's height on purpose. */
@@ -1037,7 +1037,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 }
 /* end-day dialog — same paper construction as the Update Composition popup */
 .eod-box { position: relative; width: 35.25%; max-width: 400px; aspect-ratio: 849 / 533;
-    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Small_paperbox.webp') center / 100% 100% no-repeat;
     margin-right: 18.1%; filter: drop-shadow(0 14px 30px rgba(0,0,0,.6));
     display: flex; flex-direction: column; align-items: center; padding: 20px 26px 16px; gap: 6px; }
 .eod-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 900; font-size: 16px; color: #5a4224; text-align: center; }
@@ -1046,8 +1046,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .eod-btn { border: 0; padding: 0; cursor: pointer; background: center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623; }
-.eod-btn.no  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.png'); color: #6d2a22; }
-.eod-btn.yes { flex: 0 0 64%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.png'); }
+.eod-btn.no  { flex: 0 0 30%; aspect-ratio: 213 / 97; background-image: url('assets/ui/Paper_button_red.webp'); color: #6d2a22; }
+.eod-btn.yes { flex: 0 0 64%; aspect-ratio: 453 / 97; background-image: url('assets/ui/Paper_button_wider.webp'); }
 .eod-btn:hover { filter: brightness(1.06); }
 .eod-btn:active { transform: translateY(1px) scale(.99); }
 /* r48 — Racks window. The scrim covers the LEFT SECTION only, so the rail's inventory and SWORDS tab
@@ -1057,7 +1057,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* rack.png is a PORTRAIT asset (241x427) and the window is landscape, so the base is stretched ~2x
    horizontally. It reads as the window's frame; a wide rack variant would drop straight in. */
 #rwRack { position: absolute; left: 7.83%; top: 6.89%; width: 68.12%; height: 85.21%;
-    background: url('assets/Game-elements/rack.png') center / 100% 100% no-repeat;
+    background: url('assets/Game-elements/rack.webp') center / 100% 100% no-repeat;
     filter: drop-shadow(0 16px 34px rgba(0,0,0,.65)); }
 #rwView { position: absolute; left: 9.83%; top: 10.03%; width: 85.52%; height: 80.33%; overflow: hidden; }
 #rwTrack { position: absolute; inset: 0; transition: transform .12s linear; }
@@ -1073,7 +1073,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .rw-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
     -webkit-user-drag: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
 .rw-det { position: absolute; left: 76.50%; top: 0; width: 23.60%; height: 100%; border: 0; padding: 6px 12px;
-    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat; cursor: pointer;
+    background: url('assets/ui/Small_paperbox.webp') center / 100% 100% no-repeat; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     font-family: 'Cinzel', serif; color: #5a4224; }
 .rw-det:hover { filter: brightness(1.06); }
@@ -1090,7 +1090,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #shopLocks { position: absolute; inset: 0; z-index: 44; pointer-events: none; }
 .sl-panel { position: absolute; left: 50%; top: 34%; transform: translate(-50%,-50%);
     width: 46%; padding: 16px 22px 18px; text-align: center; pointer-events: auto;
-    background: url('assets/ui/Small_paperbox.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Small_paperbox.webp') center / 100% 100% no-repeat;
     filter: drop-shadow(0 14px 30px rgba(0,0,0,.6)); }
 .sl-h { font-family: 'Cinzel', serif; font-weight: 900; font-size: 15px; color: #5a4224; letter-spacing: 1px; }
 .sl-sub { font-size: 10.5px; color: #7a6034; margin: 4px 0 10px; line-height: 1.4; }
@@ -1098,12 +1098,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sl-rack::before { content: ''; position: absolute; inset: 0; border-radius: 10px;
     background: rgba(12,8,4,.52); box-shadow: inset 0 0 0 2px rgba(255,214,130,.35); }
 .sl-buy { position: relative; border: 0; padding: 0 14px; height: 30px; cursor: pointer; pointer-events: auto;
-    background: url('assets/ui/Paper_button_wide.png') center / 100% 100% no-repeat;
+    background: url('assets/ui/Paper_button_wide.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; white-space: nowrap; }
 .sl-buy.sm { height: 26px; padding: 0 10px; font-size: 10px; }
 .sl-buy:hover { filter: brightness(1.06); }
 .sl-buy:active { transform: translateY(1px) scale(.99); }
-.sl-buy.arm { color: #6d2a22; background-image: url('assets/ui/Paper_button_red.png'); }
+.sl-buy.arm { color: #6d2a22; background-image: url('assets/ui/Paper_button_red.webp'); }
 .sl-buy.poor { filter: grayscale(.5) brightness(.92); }
 /* r72: a passive sale can land while you are in the cave, so the gold pill itself has to say so */
 #goldVal.gained { animation: goldPop 1.1s ease-out; }
@@ -1126,7 +1126,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: #757575; border-radius: 6px; }
 #rwThumb { position: absolute; left: 0; width: 100%; background: #1e1e1e; border-radius: 6px; cursor: grab; }
 #rwClose { position: absolute; left: 4.09%; bottom: 1.63%; width: 11.5%; aspect-ratio: 213 / 97;
-    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
 #rwClose:hover { filter: brightness(1.06); }
 #rwClose:active { transform: translateY(1px) scale(.99); }
@@ -1164,7 +1164,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     font-size: 11.5px; color: #5c4a33; text-align: center; }
 .lb-det h4 { margin: 0 0 6px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #5a4224; }
 .lb-close { position: absolute; left: -1.41%; bottom: -4.67%; width: 11.5%; aspect-ratio: 213 / 97;
-    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
 .lb-close:hover { filter: brightness(1.06); }
 .lb-close:active { transform: translateY(1px) scale(.99); }
@@ -1189,11 +1189,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .dd-btn { position: absolute; top: 51.41%; border: 0; padding: 0; cursor: pointer;
     background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #4a3623;
-    background-image: url('assets/ui/Paper_button_wide.png'); aspect-ratio: 143 / 51; }
+    background-image: url('assets/ui/Paper_button_wide.webp'); aspect-ratio: 143 / 51; }
 .dd-btn:hover { filter: brightness(1.06); }
 .dd-btn:active { transform: translateY(1px) scale(.99); }
 .dd-cancel { left: -0.17%; width: 9.96%; aspect-ratio: 213 / 97; color: #6d2a22;
-    background-image: url('assets/ui/Paper_button_red.png'); }
+    background-image: url('assets/ui/Paper_button_red.webp'); }
 .dd-tab.is-on { transform: translateY(-2px); filter: brightness(1.12) saturate(1.08) drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
 .dd-tab.is-on:active { transform: translateY(-1px) scale(.99); }
 #ddPanel { position: absolute; left: 0; top: 59.11%; width: 100%; height: 40.89%; overflow: hidden;
@@ -1267,9 +1267,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sh-btn:hover { filter: brightness(1.06); }
 .sh-btn:active { transform: translateY(1px) scale(.99); }
 .sh-cancel { left: 2.63%; width: 10.03%; aspect-ratio: 213 / 97; color: #6d2a22;
-    background-image: url('assets/ui/Paper_button_red.png'); }
+    background-image: url('assets/ui/Paper_button_red.webp'); }
 .sh-done { left: 84.03%; width: 12.83%; aspect-ratio: 143 / 51;
-    background-image: url('assets/ui/Paper_button_wide.png'); }
+    background-image: url('assets/ui/Paper_button_wide.webp'); }
 /* ============================================================
    r56 — DIARY. Third book on the shared 1920x1080 sheet, so the same construction as the Composition
    Book (r41) and the Ledger (r50): .dy-book is the drawn page area, the base PNG oversized behind it.
@@ -1279,7 +1279,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .gift-box { max-width: 300px; text-align: center; }
 .gift-art { display: block; width: 100%; margin: 2px auto 0; -webkit-user-drag: none; }
 .gift-claim { display: block; margin: 4px auto 0; width: 46%; aspect-ratio: 213 / 97; border: 0; padding: 0;
-    cursor: pointer; background: url('assets/ui/Paper_button_wide.png') center / 100% 100% no-repeat;
+    cursor: pointer; background: url('assets/ui/Paper_button_wide.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #5a4224; }
 .gift-claim:hover { filter: brightness(1.06); }
 .gift-claim:active { transform: translateY(1px) scale(.99); }
@@ -1338,7 +1338,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .dy-blank { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); white-space: nowrap;
     font-size: 12px; color: #8a7350; font-style: italic; }
 .dy-close { position: absolute; left: -2.03%; bottom: -3.42%; width: 12.5%; aspect-ratio: 213 / 97;
-    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; color: #6d2a22; }
 .dy-close:hover { filter: brightness(1.06); }
 .dy-close:active { transform: translateY(1px) scale(.99); }
@@ -1386,7 +1386,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* the wireframe's own spot, off the panel's bottom-left corner - but at -3.5% rather than the drawn
    -6.63%, because the sheet leaves only 28px below it before the frame's edge */
 .qs-close { position: absolute; left: -5.21%; bottom: -3.5%; width: 16.27%; aspect-ratio: 213 / 97;
-    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.png') center / 100% 100% no-repeat;
+    border: 0; padding: 0; cursor: pointer; background: url('assets/ui/Paper_button_red.webp') center / 100% 100% no-repeat;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #6d2a22; }
 .qs-close:hover { filter: brightness(1.06); }
 .qs-close:active { transform: translateY(1px) scale(.99); }
@@ -1468,7 +1468,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
             <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
-        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
+        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
         <div class="eod-box">
@@ -1484,18 +1484,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="sfSharpModal" class="sf-modal">
         <div id="shMeter"><div class="sh-zone"></div><div id="shMark"></div></div>
         <div class="sh-grind">
-            <img src="assets/forge/grindstone.png" alt="">
-            <img class="sh-spin" src="assets/forge/grindstone_spin.png" alt="">
+            <img src="assets/forge/grindstone.webp" alt="">
+            <img class="sh-spin" src="assets/forge/grindstone_spin.webp" alt="">
         </div>
         <div id="shFx"></div>
-        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.png" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
+        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
         <div id="shSword"><div class="sh-art" id="shArt"></div></div>
         <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
         <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
     </div>
     <!-- ===== Design Desk (r52) - tiles are built by buildDesign() ===== -->
     <div id="sfDesignModal" class="sf-modal">
-        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.png" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go" id="ddSayGo">tap to continue</span></div></div>
+        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go" id="ddSayGo">tap to continue</span></div></div>
         <div id="ddStage">
             <div class="dd-swordbox"><div class="dd-sword" id="ddSword"></div></div>
         </div>
@@ -1531,7 +1531,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Quests (r57) - rows and pager are built by buildQuests() ===== -->
     <div id="sfQuestModal" class="sf-modal">
         <div class="qs-board">
-            <img class="qs-bg" src="assets/ui/Quest_base.png" alt="">
+            <img class="qs-bg" src="assets/ui/Quest_base.webp" alt="">
             <div class="qs-page">
                 <h3 class="qs-title">Quests</h3>
                 <div id="qsRows"></div>
@@ -1545,7 +1545,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Diary (r56) - slots and tabs are built by buildDiary() ===== -->
     <div id="sfDiaryModal" class="sf-modal">
         <div class="dy-book">
-            <img class="dy-page-img" src="assets/ui/Diary_base.png" alt="">
+            <img class="dy-page-img" src="assets/ui/Diary_base.webp" alt="">
             <div class="dy-sheet is-on" id="dySheet1">
                 <h3 class="dy-title">Travel Log</h3>
                 <div id="dyTowns"></div>
@@ -1582,7 +1582,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="sfGiftModal" class="sf-modal">
         <div class="sf-modal-box gift-box">
             <h3 class="sf-modal-h">A gift from Bram</h3>
-            <img class="gift-art" src="assets/forge/diary.png" alt="A worn leather diary">
+            <img class="gift-art" src="assets/forge/diary.webp" alt="A worn leather diary">
             <p class="sf-modal-sub">A diary.</p>
             <button class="gift-claim" type="button" onclick="claimGift()">Claim</button>
         </div>
@@ -1590,7 +1590,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Ledger (r50) - the sold list is built by buildLedger() ===== -->
     <div id="sfLedgerModal" class="sf-modal">
         <div class="lb-book">
-            <img class="lb-page" src="assets/ui/ledger_book_base.png" alt="">
+            <img class="lb-page" src="assets/ui/ledger_book_base.webp" alt="">
             <div class="lb-day" id="lbDay">DAY 1</div>
             <div class="lb-sold"><div class="lb-sold-h">Swords sold</div></div>
             <div id="lbRows"></div>
@@ -1632,7 +1632,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== MAP (movement-puzzle board, copied from SwordforgeV2) ===== -->
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
-        <img id="compass" src="assets/map/compass.png" alt="">
+        <img id="compass" src="assets/map/compass.webp" alt="">
         <div id="sfHp" title="Blade integrity — hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
         <svg id="board" viewBox="0 250 2800 1400" preserveAspectRatio="xMidYMid slice" aria-label="Crafting map">
             <defs>
@@ -1645,7 +1645,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                      cells read across each zone. Darkened via CSS (the source art is bright tan, which
                      would vanish against the parchment). -->
                 <pattern id="hazTex" patternUnits="userSpaceOnUse" x="0" y="0" width="150" height="267">
-                    <image href="assets/map/map_hazard.png" x="0" y="0" width="150" height="267" preserveAspectRatio="xMidYMid slice"/>
+                    <image href="assets/map/map_hazard.webp" x="0" y="0" width="150" height="267" preserveAspectRatio="xMidYMid slice"/>
                 </pattern>
                 <!-- r27: warps the smooth stroked ribbon into a fine lumpy boundary. Static (computed once,
                      not per frame). baseFrequency is in WORLD units, so ~0.028 gives features every ~36u
@@ -1660,7 +1660,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <!-- r25: painted parchment base for the whole world. Cover-fit ("slice") because map_base.png is
                  square (2948x2948) and the world is 2800x1960 - stretching it to the world box would distort
                  the border art. The flat #d8c8a0 rect stays underneath as the load/fallback colour. -->
-            <image id="mapBase" x="0" y="0" width="2800" height="1960" href="assets/map/map_base.png" preserveAspectRatio="xMidYMid slice"/>
+            <image id="mapBase" x="0" y="0" width="2800" height="1960" href="assets/map/map_base.webp" preserveAspectRatio="xMidYMid slice"/>
             <g id="terrain">
                 <g id="blobs"></g>
                 <g id="hazards"></g>
@@ -1708,10 +1708,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
-            <img class="furnace" src="assets/forge/anchor_furnace.png" alt="Smelter">
-            <img id="furnaceSmoke" src="assets/forge/smoke.png" alt=""><!-- r38: vents from the crucible, only while bellowing -->
+            <img class="furnace" src="assets/forge/anchor_furnace.webp" alt="Smelter">
+            <img id="furnaceSmoke" src="assets/forge/smoke.webp" alt=""><!-- r38: vents from the crucible, only while bellowing -->
             <div class="furnaceGlow" id="furnaceGlow"></div>
-            <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.png" alt="Bellows">
+            <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.webp" alt="Bellows">
             <span class="bellow-tag">Bellows</span>
             <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
             <div id="bellowHot" title="Hold to pump the bellows"></div>
@@ -1721,39 +1721,39 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- 2 · Grind — the grindstone (cut from the hori anchor), right side -->
         <div class="station" id="stMortar">
             <span class="badge">2</span>
-            <img class="mortar" src="assets/forge/anchor_grindwheel.png" alt="Grindstone">
+            <img class="mortar" src="assets/forge/anchor_grindwheel.webp" alt="Grindstone">
             <div id="grindHot" title="Hold to spin the wheel — grinds the ore, extending its path"></div>
             <span class="cap">Grind <small>· stone</small></span>
         </div>
         <!-- movable pestle, standing in the mortar -->
         <div id="pestle">
-            <img src="assets/forge/anchor_pestle.png" alt="Pestle">
+            <img src="assets/forge/anchor_pestle.webp" alt="Pestle">
         </div>
 
         <!-- movable hammer — strikes the anvil when dragged close -->
         <div id="hammerSpark"></div>
         <div id="hammerTool">
-            <img src="assets/forge/anchor_hammer.png" alt="Hammer">
+            <img src="assets/forge/anchor_hammer.webp" alt="Hammer">
         </div>
 
         <!-- 4 · Hammer — anvil, a bit in the centre -->
         <div class="station" id="stAnvil">
             <span class="badge">4</span>
-            <img class="anvil" src="assets/forge/anchor_anvil.png" alt="Anvil">
+            <img class="anvil" src="assets/forge/anchor_anvil.webp" alt="Anvil">
             <span class="cap">Hammer <small>· anvil</small></span>
         </div>
 
         <!-- 5 · Quench — water bucket (Bucket3_back / _mug / _front share one canvas); the mug interleaves so it sits IN the bucket -->
-        <img id="bucketBack" class="bucket-layer" src="assets/forge/anchor_bucket.png" alt="Water bucket" style="z-index:9;"><!-- above the enlarged dragon -->
-        <div id="mug" style="z-index:10;"><img src="assets/forge/anchor_mug.png" alt="Mug"></div><!-- r11b: mug in FRONT of the bucket, resting on the water (owner feedback) -->
+        <img id="bucketBack" class="bucket-layer" src="assets/forge/anchor_bucket.webp" alt="Water bucket" style="z-index:9;"><!-- above the enlarged dragon -->
+        <div id="mug" style="z-index:10;"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div><!-- r11b: mug in FRONT of the bucket, resting on the water (owner feedback) -->
 
-        <img id="bucketFront" class="bucket-layer" src="assets/forge/anchor_bucket.png" alt="" style="z-index:4; display:none;"><!-- anchor bucket is a single cut; front layer unused -->
+        <img id="bucketFront" class="bucket-layer" src="assets/forge/anchor_bucket.webp" alt="" style="z-index:4; display:none;"><!-- anchor bucket is a single cut; front layer unused -->
         <span class="badge" style="left:368px; top:446px;">5</span>
         <span class="bucket-cap" style="left:425px; top:566px;">Quench <small>· pour on the anvil</small></span>
 
         <!-- Dragon — free-roaming disruptor, bottom-left -->
         <div id="dragon">
-            <div class="crop dragoncrop"><img src="assets/forge/dragon.png" alt="Dragon"></div>
+            <div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div>
             <span class="cap">🐉 tap to talk · drag me</span>
         </div>
         <!-- r75: the dragon's line, placed against #dragon by sayLayout() -->
@@ -1762,12 +1762,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
         <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
-        <img id="dragonFire" src="assets/forge/dragonfire.png" alt="">
+        <img id="dragonFire" src="assets/forge/dragonfire.webp" alt="">
         <div id="waterPour"></div>
         <div id="waterSplash"></div>
         <div id="quenchFlash"></div>
-        <img id="hintArrow" src="assets/ui/arrow.png" alt=""><!-- r39: idle nudge, ore -> smelter -->
-        <img id="hintDown" src="assets/ui/arrow_point_down.png" alt=""><!-- r40: idle nudge, tap the ore -->
+        <img id="hintArrow" src="assets/ui/arrow.webp" alt=""><!-- r39: idle nudge, ore -> smelter -->
+        <img id="hintDown" src="assets/ui/arrow_point_down.webp" alt=""><!-- r40: idle nudge, tap the ore -->
         <div id="forgeResult"></div>
 
     </div>
@@ -1824,23 +1824,23 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Hammer minigame (ported from swordforgeV2) ===== -->
     <div id="sfHammerModal" class="sf-modal hm-modal">
         <div class="hm-scene" id="hmScene">
-            <img class="hm-layer" src="assets/hammer/hammer_bg.png" alt="">
+            <img class="hm-layer" src="assets/hammer/hammer_bg.webp" alt="">
             <div id="hmWork">
                 <div id="hmOrb"><div class="cold"></div><div class="hot"></div></div>
                 <img id="hmRough" src="" alt="">
                 <div id="hmMorph"></div>
-                <img class="hm-layer" id="hmFinal" src="assets/hammer/hammer_sword.png" alt="">
+                <img class="hm-layer" id="hmFinal" src="assets/hammer/hammer_sword.webp" alt="">
             </div>
             <div id="hmDragon">
-                <img src="assets/hammer/hammer_dragon.png" alt="">
-                <img id="hmFire" src="assets/forge/dragonfire.png" alt="">
+                <img src="assets/hammer/hammer_dragon.webp" alt="">
+                <img id="hmFire" src="assets/forge/dragonfire.webp" alt="">
                 <div id="hmSnout"></div><div id="hmAim"></div>
                 <div id="hmHead" title="tap the dragon"></div>
             </div>
-            <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.png" alt="">
+            <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.webp" alt="">
             <div id="hmGrip" title="drag the hammer"></div>
             <div id="hmAimPad" title="hold the metal so the dragon heats it"></div>
-            <div id="hmMug" title="splash the shaped blade to finish"><img src="assets/forge/anchor_mug.png" alt="Mug"></div>
+            <div id="hmMug" title="splash the shaped blade to finish"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div>
             <div id="hmFx"></div>
             <div class="hm-hud">
                 <button id="hmCancel" type="button" onclick="hmCancel()">&lsaquo; cancel</button>
@@ -1854,10 +1854,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Skill Tree (r42) — placeholder contents ===== -->
     <div id="sfSkillModal" class="sf-modal">
         <div class="st-panel">
-            <img class="st-sheet" src="assets/ui/Skill_tree_base.png" alt="">
+            <img class="st-sheet" src="assets/ui/Skill_tree_base.webp" alt="">
             <button class="st-btn st-reset" type="button" onclick="resetTalent()">RESET TALENT</button>
             <div class="st-points">Talent points &ndash; X</div>
-            <div class="st-core"><img src="assets/ui/icon_skilltree.png" alt=""></div>
+            <div class="st-core"><img src="assets/ui/icon_skilltree.webp" alt=""></div>
             <button class="st-btn st-close" type="button" onclick="closeSkills()">CLOSE</button>
         </div>
     </div>
@@ -1865,17 +1865,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Composition Book (r41) — placeholder contents ===== -->
     <div id="sfBookModal" class="sf-modal">
         <div class="cb-book">
-            <img class="cb-page" src="assets/ui/Composition_book_base.png" alt="">
+            <img class="cb-page" src="assets/ui/Composition_book_base.webp" alt="">
             <div class="cb-marks cb-marks-top" id="cbMarksTop"></div>
             <div class="cb-marks cb-marks-side" id="cbMarksSide"></div>
             <h3 class="cb-title cb-title-l">Balanced Sword</h3>
             <h3 class="cb-title cb-title-r">Recorded Composition</h3>
             <div class="cb-sword">
                 <div class="cb-sword-art">
-                    <img src="assets/sword-parts/blades/balanced_longsword_blade.png" alt="">
-                    <img src="assets/sword-parts/guards/guard1.png" alt="">
-                    <img src="assets/sword-parts/grips/grip1.png" alt="">
-                    <img src="assets/sword-parts/pommels/pommel1.png" alt="">
+                    <img src="assets/sword-parts/blades/balanced_longsword_blade.webp" alt="">
+                    <img src="assets/sword-parts/guards/guard1.webp" alt="">
+                    <img src="assets/sword-parts/grips/grip1.webp" alt="">
+                    <img src="assets/sword-parts/pommels/pommel1.webp" alt="">
                 </div>
             </div>
             <button class="cb-gear" type="button" title="Change the default design" onclick="cbDesign()">&#9881;</button>
@@ -1994,14 +1994,14 @@ const ORES = [
     // so the shapes can be drawn freely without hand-computing scale.
     // Art: manganese/nickel/tin/zinc reuse the retiring elementals' PNGs (owner's choice) — the picture
     // does not match the metal, it is a stand-in until real ore art exists.
-    { id:'iron',      name:'Iron',      color:'#8a5a33', img:'assets/forge/iron_ore.png',      len:200, d:'M0,0 C -8,-12 -17,-18 -25,-17.5 C -33,-17 -42,-6 -49,1 C -56,-6 -65,-17 -74,-17.5 C -82,-18 -91,-12 -98,0' },   // r29b: upside-down W. From the potion (origin, right) heading W: up, down to the X, up, down to the mortar. Amplitude/run = 0.18, matching the card.
-    { id:'manganese', name:'Manganese', color:'#6f6a72', img:'assets/forge/gale_ore.png',      len:258, d:'M0,0 C 17,-177.3 -142,165.3 -125,-12' },   /* r80: was a self-crossing curl. A single cubic whose second control is (E - first) is POINT-SYMMETRIC about its own midpoint, so the half-arc point is exactly half the net displacement - which is what makes 2 raw = 1 ground. Net (-125,-12) and len 258 are both unchanged, so every other manganese route lands where it always did. */
-    { id:'copper',    name:'Copper',    color:'#c8763c', img:'assets/forge/copper_ore.png',    len:144,   /* r123: 225 -> 144 so TWO fully ground copper stop just past Swift */ d:'M0,0 C -10,-16 -18,-28 -22,-36 C -27,-40 -32,-37 -37,-36 C -47,-34 -56,-32 -55,-42 C -54,-54 -60,-62 -71,-73' },   // r29c: wavy S. Climbs NW off the potion, flattens through the X, waves left, then turns north to the mortar.
-    { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.png', len:250, d:'M0,0 C -2,-22 -10,-46 -26,-62 C -36,-71 -44,-73 -50,-70 C -42,-60 -30,-45 -20,-34' },   // r29d: fishhook. Long arc up-left off the potion past the X, then doubles BACK down-right to the mortar, which sits mid-card. Doubling back means short reach for a long path.
-    { id:'nickel',    name:'Nickel',    color:'#cfd3cf', img:'assets/forge/frost_ore.png',     len:215, d:'M0,0 C 14,-9 28,-16 33,-27 C 37,-36 29,-38 26,-44 C 22,-54 20,-58 21,-64 C 23,-72 34,-79 53,-90' },   // r29e: S-curve heading NE. Bulges right off the potion, swings back left through the X, then right again to the mortar. Was heading due N.
-    { id:'tin',       name:'Tin',       color:'#9aa3a8', img:'assets/forge/gold_ore.png',      len:185,
+    { id:'iron',      name:'Iron',      color:'#8a5a33', img:'assets/forge/iron_ore.webp',      len:200, d:'M0,0 C -8,-12 -17,-18 -25,-17.5 C -33,-17 -42,-6 -49,1 C -56,-6 -65,-17 -74,-17.5 C -82,-18 -91,-12 -98,0' },   // r29b: upside-down W. From the potion (origin, right) heading W: up, down to the X, up, down to the mortar. Amplitude/run = 0.18, matching the card.
+    { id:'manganese', name:'Manganese', color:'#6f6a72', img:'assets/forge/gale_ore.webp',      len:258, d:'M0,0 C 17,-177.3 -142,165.3 -125,-12' },   /* r80: was a self-crossing curl. A single cubic whose second control is (E - first) is POINT-SYMMETRIC about its own midpoint, so the half-arc point is exactly half the net displacement - which is what makes 2 raw = 1 ground. Net (-125,-12) and len 258 are both unchanged, so every other manganese route lands where it always did. */
+    { id:'copper',    name:'Copper',    color:'#c8763c', img:'assets/forge/copper_ore.webp',    len:144,   /* r123: 225 -> 144 so TWO fully ground copper stop just past Swift */ d:'M0,0 C -10,-16 -18,-28 -22,-36 C -27,-40 -32,-37 -37,-36 C -47,-34 -56,-32 -55,-42 C -54,-54 -60,-62 -71,-73' },   // r29c: wavy S. Climbs NW off the potion, flattens through the X, waves left, then turns north to the mortar.
+    { id:'aluminium', name:'Aluminium', color:'#b9c2c9', img:'assets/forge/aluminium_ore.webp', len:250, d:'M0,0 C -2,-22 -10,-46 -26,-62 C -36,-71 -44,-73 -50,-70 C -42,-60 -30,-45 -20,-34' },   // r29d: fishhook. Long arc up-left off the potion past the X, then doubles BACK down-right to the mortar, which sits mid-card. Doubling back means short reach for a long path.
+    { id:'nickel',    name:'Nickel',    color:'#cfd3cf', img:'assets/forge/frost_ore.webp',     len:215, d:'M0,0 C 14,-9 28,-16 33,-27 C 37,-36 29,-38 26,-44 C 22,-54 20,-58 21,-64 C 23,-72 34,-79 53,-90' },   // r29e: S-curve heading NE. Bulges right off the potion, swings back left through the X, then right again to the mortar. Was heading due N.
+    { id:'tin',       name:'Tin',       color:'#9aa3a8', img:'assets/forge/gold_ore.webp',      len:185,
       d:'M0,0 C 15,-17 33,-17 47,-1 C 61,15 79,15 93,-1 C 101,-10 110,-14 120,-15' },
-    { id:'zinc',      name:'Zinc',      color:'#8fa2ad', img:'assets/forge/tide_ore.png',      len:230,
+    { id:'zinc',      name:'Zinc',      color:'#8fa2ad', img:'assets/forge/tide_ore.webp',      len:230,
       d:'M0,0 C 27,18 35,44 21,64 C 4,88 -34,94 -40,114 C -45,131 -24,141 -6,144' }
 ];
 const ORE_BY = {}; ORES.forEach(o => ORE_BY[o.id] = o);
@@ -2018,7 +2018,7 @@ function normalizeOrePaths(){
     board.removeChild(t);
 }
 ORES.forEach(o => { if(!o.img) o.img = orePlaceholder(o.color); });   // ores without art get a generated placeholder gem icon
-function oreImg(id){ return (ORE_BY[id] && ORE_BY[id].img) || ('assets/forge/'+id+'_ore.png'); }
+function oreImg(id){ return (ORE_BY[id] && ORE_BY[id].img) || ('assets/forge/'+id+'_ore.webp'); }
 function orePlaceholder(color){ return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><radialGradient id="g" cx="38%" cy="30%" r="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/><stop offset="45%" stop-color="'+color+'"/><stop offset="100%" stop-color="#1a1209"/></radialGradient></defs><path d="M9 21 L19 8 L34 10 L42 25 L34 40 L15 38 Z" fill="url(#g)" stroke="#241a10" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 8 L24 22 L42 25" fill="none" stroke="#ffffff" stroke-opacity=".28" stroke-width="1.6"/></svg>'); }
 // each ore path ends at a signature trait (the 4 new ores map to 4 formerly-scattered traits)
 const ORE_TRAIT = { iron:'durable', manganese:'heavy', copper:'swift', aluminium:'flexible', nickel:'balanced', tin:'grace', zinc:'water' };   // r17: NO LONGER DRIVES TRAIT PLACEMENT (positions come from TRAIT_POS). Kept only so the ore->signature-trait idea survives the pending ore rework; sharp/flame/storm were repointed to swift/fire/gale so nothing dangles. NOTE the 'gale' ore and 'gale' trait now share a name.
@@ -2242,11 +2242,11 @@ const SCREENS = {
     shop:     { right:'customer' }          // r45: one step further left than the counter
 };
 const SCREEN_ART = {
-    bedroom:  ['assets/backgrounds/bedroom_background.png',            'BEDROOM'],
-    basement: ['assets/backgrounds/basement_background.png',           'BASEMENT WORKSTATION'],
-    customer: ['assets/backgrounds/customer_counter_background.png',   'CUSTOMER COUNTER'],
-    cave:     ['assets/backgrounds/cave_background.png',               'CAVE'],
-    shop:     ['assets/backgrounds/shop_background.png',               'SHOP']
+    bedroom:  ['assets/backgrounds/bedroom_background.webp',            'BEDROOM'],
+    basement: ['assets/backgrounds/basement_background.webp',           'BASEMENT WORKSTATION'],
+    customer: ['assets/backgrounds/customer_counter_background.webp',   'CUSTOMER COUNTER'],
+    cave:     ['assets/backgrounds/cave_background.webp',               'CAVE'],
+    shop:     ['assets/backgrounds/shop_background.webp',               'SHOP']
 };
 let SF_SCREEN = 'forge';
 // Clickable regions per screen, as % of the frame. Read off the plate art; the plates share the frame's
@@ -2261,11 +2261,11 @@ const SCREEN_HOTS = {
 // against the frame's edges and the rail - so unlike SCREEN_PROPS they are not anchored to the plate art).
 const SCREEN_UI = {
     shop: [
-        { x:1.00,  y:2.09,  w:8.24,  h:8.50,  ic:'assets/ui/icon_recipe.png', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
+        { x:1.00,  y:2.09,  w:8.24,  h:8.50,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
         { x:65.31, y:83.61, w:11.90, h:11.18, gl:'\ud83e\uddfe',             cap:'LEDGER',        title:'Ledger', act:'ledger' }
     ],
     customer: [
-        { x:0.79, y:0.85,  w:8.20,  h:8.47,  ic:'assets/ui/icon_recipe.png', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
+        { x:0.79, y:0.85,  w:8.20,  h:8.47,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
         { x:1.00, y:83.61, w:11.90, h:11.18, gl:'\ud83e\uddfe',            cap:'LEDGER',        title:'Ledger', act:'ledger' }
     ]
 };
@@ -2285,41 +2285,41 @@ function buildScreenUi(name){
 // plate image — exactly what a diff of the owner's reference against the bare plate measures.
 const SCREEN_PROPS = {
     shop: [
-        { src:'assets/Game-elements/rack.png', l:19.41, w:12.69, b:73.91, act:'rack', rack:0, title:'Sword rack' },
-        { src:'assets/Game-elements/rack.png', l:37.08, w:12.69, b:73.91, act:'rack', rack:1, title:'Sword rack' },
-        { src:'assets/Game-elements/rack.png', l:56.19, w:12.69, b:73.91, act:'rack', rack:2, title:'Sword rack' }
+        { src:'assets/Game-elements/rack.webp', l:19.41, w:12.69, b:73.91, act:'rack', rack:0, title:'Sword rack' },
+        { src:'assets/Game-elements/rack.webp', l:37.08, w:12.69, b:73.91, act:'rack', rack:1, title:'Sword rack' },
+        { src:'assets/Game-elements/rack.webp', l:56.19, w:12.69, b:73.91, act:'rack', rack:2, title:'Sword rack' }
     ],
     basement: [
-        { src:'assets/Game-elements/design_desk.png',      l:0.15,  w:24.11, b:85.41, act:'designDesk', title:'Assembly bench' },
-        { src:'assets/Game-elements/sharpening_stone.png', l:32.93, w:20.05, b:80.68, act:'sharpen',    title:'Sharpening wheel' }
+        { src:'assets/Game-elements/design_desk.webp',      l:0.15,  w:24.11, b:85.41, act:'designDesk', title:'Assembly bench' },
+        { src:'assets/Game-elements/sharpening_stone.webp', l:32.93, w:20.05, b:80.68, act:'sharpen',    title:'Sharpening wheel' }
     ],
     /* DOM order is paint order: the customer is listed first, so the counter covers its base */
     customer: [
         /* r96: the customer is no longer a fixture - CUSTOMER puts one here when the bell is rung */
-        { src:'assets/Game-elements/counter.png',      l:0,     w:100,   b:110.70 },
-        { src:'assets/Game-elements/stand.png',        l:33.20, w:14.18, b:98.87 }
+        { src:'assets/Game-elements/counter.webp',      l:0,     w:100,   b:110.70 },
+        { src:'assets/Game-elements/stand.webp',        l:33.20, w:14.18, b:98.87 }
         /* r64: the placeholder sword is gone - the counter starts empty and the player puts one there */
     ]
 };
 // each prop asset's opaque box inside its PNG, plus its aspect — needed to turn an art target into the
 // element box that CSS actually positions
 const PROP_OPQ = {
-    'assets/Game-elements/rack.png':              { ox:0.0041, oy:0, ow:0.9834, oh:0.9977, ar:241/427 },
-    'assets/Game-elements/design_desk.png':       { ox:0,      oy:0, ow:0.9528, oh:1,      ar:487/495 },   /* ar is the CANVAS aspect (it sizes the ELEMENT); the opaque fractions then place the art inside it */
-    'assets/Game-elements/sharpening_stone.png':  { ox:0,      oy:0, ow:1,      oh:1,      ar:384/444 },
-    'assets/Game-elements/counter.png':           { ox:0,      oy:0.0171, ow:1, oh:0.9800, ar:2235/350 },
-    'assets/Game-elements/stand.png':             { ox:0.0283, oy:0.0500, ow:0.9457, oh:0.9455, ar:460/220 },
-    'assets/customer/man1.png':                   { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
-    'assets/customer/Bram.png':                    { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
-    'assets/customer/BramD2.png':                  { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },   /* r126: same 1504x2832 canvas */
+    'assets/Game-elements/rack.webp':              { ox:0.0041, oy:0, ow:0.9834, oh:0.9977, ar:241/427 },
+    'assets/Game-elements/design_desk.webp':       { ox:0,      oy:0, ow:0.9528, oh:1,      ar:487/495 },   /* ar is the CANVAS aspect (it sizes the ELEMENT); the opaque fractions then place the art inside it */
+    'assets/Game-elements/sharpening_stone.webp':  { ox:0,      oy:0, ow:1,      oh:1,      ar:384/444 },
+    'assets/Game-elements/counter.webp':           { ox:0,      oy:0.0171, ow:1, oh:0.9800, ar:2235/350 },
+    'assets/Game-elements/stand.webp':             { ox:0.0283, oy:0.0500, ow:0.9457, oh:0.9455, ar:460/220 },
+    'assets/customer/man1.webp':                   { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
+    'assets/customer/Bram.webp':                    { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },
+    'assets/customer/BramD2.webp':                  { ox:0,      oy:0.2990, ow:0.5822, oh:0.5052, ar:304/572 },   /* r126: same 1504x2832 canvas */
     /* r96 - the rest of the portrait pool, all on man1's 304x572 canvas; boxes measured off the art */
-    'assets/customer/man2.png':                   { ox:0,      oy:0.3170, ow:0.5830, oh:0.4920, ar:304/572 },
-    'assets/customer/man3.png':                   { ox:0,      oy:0.2750, ow:0.5920, oh:0.5330, ar:304/572 },
-    'assets/customer/man4.png':                   { ox:0,      oy:0.2750, ow:0.6000, oh:0.5330, ar:304/572 },
-    'assets/customer/woman1.png':                 { ox:0,      oy:0.3080, ow:0.5580, oh:0.5000, ar:304/572 },
-    'assets/customer/woman2.png':                 { ox:0,      oy:0.2500, ow:0.6170, oh:0.5580, ar:304/572 },
-    'assets/customer/woman3.png':                 { ox:0,      oy:0.2420, ow:0.6250, oh:0.5500, ar:304/572 },
-    'assets/forge/bell.png':                      { ox:0,      oy:0,      ow:1,      oh:1,      ar:898/1048 }
+    'assets/customer/man2.webp':                   { ox:0,      oy:0.3170, ow:0.5830, oh:0.4920, ar:304/572 },
+    'assets/customer/man3.webp':                   { ox:0,      oy:0.2750, ow:0.5920, oh:0.5330, ar:304/572 },
+    'assets/customer/man4.webp':                   { ox:0,      oy:0.2750, ow:0.6000, oh:0.5330, ar:304/572 },
+    'assets/customer/woman1.webp':                 { ox:0,      oy:0.3080, ow:0.5580, oh:0.5000, ar:304/572 },
+    'assets/customer/woman2.webp':                 { ox:0,      oy:0.2500, ow:0.6170, oh:0.5580, ar:304/572 },
+    'assets/customer/woman3.webp':                 { ox:0,      oy:0.2420, ow:0.6250, oh:0.5500, ar:304/572 },
+    'assets/forge/bell.webp':                      { ox:0,      oy:0,      ow:1,      oh:1,      ar:898/1048 }
 };
 // what a prop's click does, if anything. A prop with an act gets the hover sheen and a pointer whether
 // or not there is a handler yet - the basement's two workstations have no windows behind them so far.
@@ -2424,7 +2424,7 @@ const WORK_TABLE = { l:21.96, w:37.60, t:79.88, h:20.12 };   /* plate-%. The dro
     horizontal extent that is provably on the table. The wireframe's table TOP (79.88%) is confirmed -
     the plank's top edge measures 80.50% off a render, 0.6pp away. */
 const WORK_SWORD = { l:21.96, w:37.60, b:92.19, h:7.09 };    // plate-%, the blade overhangs the table
-function swordParts(w){ return ['assets/sword-parts/blades/'+w.blade+'.png',
+function swordParts(w){ return ['assets/sword-parts/blades/'+w.blade+'.webp',
     ddSrc('guard',w.design.guard), ddSrc('grip',w.design.grip), ddSrc('pommel',w.design.pommel)]; }
 // the plate's cover box in screen coords - the same maths layoutScreenProps uses
 function plateBox(){
@@ -2518,12 +2518,12 @@ function buildScreenProps(name){
     const box=document.getElementById('screenProps'); if(!box) return;
     box.innerHTML='';
     const list=(SCREEN_PROPS[name]||[]).slice();
-    if(name==='customer' && TUT_BRAM2_STATE) list.unshift({ src:'assets/customer/BramD2.png', l:7.97, w:20.99, b:86.16 });   /* r127 */
-    else if(name==='customer' && TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') list.unshift({ src:'assets/customer/Bram.png', l:7.97, w:20.99, b:86.16 });
+    if(name==='customer' && TUT_BRAM2_STATE) list.unshift({ src:'assets/customer/BramD2.webp', l:7.97, w:20.99, b:86.16 });   /* r127 */
+    else if(name==='customer' && TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') list.unshift({ src:'assets/customer/Bram.webp', l:7.97, w:20.99, b:86.16 });
     else if(name==='customer' && CUSTOMER) list.unshift({ src:CUSTOMER.portrait, l:7.97, w:20.99, b:86.16 });
     /* r96: the bell sits on the right corner of the counter, from D27 onward. The rail covers the plate
        from 79% across, so 72% is the right-hand end of the table the player can actually see. */
-    if(name==='customer' && BELL_ON) list.push({ src:'assets/forge/bell.png', l:72.0, w:5.2, b:96.5,
+    if(name==='customer' && BELL_ON) list.push({ src:'assets/forge/bell.webp', l:72.0, w:5.2, b:96.5,
         act:'bell', title:'Ring for the next customer' });
     if(name==='basement' && WORK) list.push(Object.assign({ kind:'sword', parts:swordParts(WORK),
         act:'work', title:WORK.shape+' \u2014 drag it back to the rail' }, WORK_SWORD));
@@ -2535,7 +2535,7 @@ function buildScreenProps(name){
         if(p.kind==='sword'){ const d=document.createElement('div'); d.className='cs-swordbox'; d._prop=p;
             d.style.position='absolute';
             const art=document.createElement('div'); art.className='cs-sword';
-            const list=p.parts || ['assets/sword-parts/blades/'+DD_BLADE+'.png', ddSrc('guard',DD_SEL.guard),
+            const list=p.parts || ['assets/sword-parts/blades/'+DD_BLADE+'.webp', ddSrc('guard',DD_SEL.guard),
                         ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)];
             list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
             d._list=list; d.appendChild(art);
@@ -2585,7 +2585,7 @@ function layoutScreenProps(){
 // Five seams a day, one per metal, on five of the ten spots the wireframe marks. Seven ore each, one
 // per swing. The pickaxe is a real object: it lives in ITEMS & DECOR, gets dragged out onto the cave
 // floor, walks to whatever you are mining, and drags back to the rail when you are done.
-const PICK_SRC='assets/forge/pickaxe.png';
+const PICK_SRC='assets/forge/pickaxe.webp';
 const CAVE_METALS=['iron','copper','manganese','aluminium','nickel'];   // the owner's five; tin and zinc have no seam yet
 const NODE_YIELD=7;
 const NODE_W=6.4, PICK_W=9.0;          // seam and pickaxe widths, as % of the cave plate's ART width
@@ -2919,7 +2919,7 @@ function shStoneRect(){
              top: r.top +O.oy*r.height, bottom:r.top +(O.oy+O.oh)*r.height };
 }
 function shParts(){ return WORK ? swordParts(WORK)
-        : ['assets/sword-parts/blades/'+DD_BLADE+'.png', ddSrc('guard',DD_SEL.guard),
+        : ['assets/sword-parts/blades/'+DD_BLADE+'.webp', ddSrc('guard',DD_SEL.guard),
            ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)]; }
 // lay the sword out: the wrapper hugs the flat blade, the inner square carries the rotated art
 function shLayout(){
@@ -3097,7 +3097,7 @@ const DD_COLS = [1.41, 15.05, 28.70, 42.35, 56.00, 69.64, 83.29], DD_ROWTOP = 4.
 let DD_TAB = 'grip', DD_SEL = { grip:'grip1', guard:'guard1', pommel:'pommel1' }, DD_WAS = null;
 let DD_BLADE = 'balanced_longsword_blade';                 // placeholder: the blade comes from forging
 let DD_SCROLL = 0, DD_MAX = 0;
-const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.png';
+const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.webp';
 
 // --- measuring the art at runtime, so no hand-kept table of boxes can go stale ---
 const PART_BOX = {}, COMBO_FIT = {};
@@ -3154,7 +3154,7 @@ function ddRenderSword(){
     const box=document.getElementById('ddSword'); if(!box) return;
 /* r62: the PARTS always come from DD_SEL - the live working copy - so the preview follows every pick.
        Only the BLADE comes from the workpiece, since the desk cannot change a blade. */
-    const list=['assets/sword-parts/blades/'+(ddWork()?ddWork().blade:DD_BLADE)+'.png',
+    const list=['assets/sword-parts/blades/'+(ddWork()?ddWork().blade:DD_BLADE)+'.webp',
                 ddSrc('guard',DD_SEL.guard), ddSrc('grip',DD_SEL.grip), ddSrc('pommel',DD_SEL.pommel)];
     box.innerHTML=''; list.forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; box.appendChild(im); });
     const r=box.parentElement.getBoundingClientRect();
@@ -3460,10 +3460,10 @@ function closeQuests(){ document.getElementById('sfQuestModal').classList.remove
 // three below. The wireframe's own names were placeholders, so the two filled slots use the game's real
 // story customers instead.
 const DIARY_SLOTS = [
-    { l:4.07,  t:17.73, name:'Bram', img:'assets/customer/Bram.png', rew:'Craft a swift sword.' },
+    { l:4.07,  t:17.73, name:'Bram', img:'assets/customer/Bram.webp', rew:'Craft a swift sword.' },
     /* r130: June comes much later, so her page is gone. Garric takes the slot, but only once he
        has said his name - before that the page is one of the blank '?' slots. */
-    { l:26.77, t:17.73, key:'garric', name:'Garric', img:'assets/customer/man4.png', rew:'Craft a Balanced sword.' },
+    { l:26.77, t:17.73, key:'garric', name:'Garric', img:'assets/customer/man4.webp', rew:'Craft a Balanced sword.' },
     { l:53.10, t:17.73 },
     { l:75.80, t:17.73 },
     { l:4.07,  t:50.54 },
@@ -3497,7 +3497,7 @@ function buildDiary(){
     DIARY_TABS.forEach((t,i)=>{ const b=document.createElement('button');
         b.type='button'; b.className='dy-tab'+(i===0?' is-on':''); b.style.top=t+'%';
         b.title='Page '+(i+1);
-        b.innerHTML='<img src="assets/ui/bookmark_paper.png" alt=""><span>'+(i+1)+'</span>';
+        b.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>'+(i+1)+'</span>';
         b.addEventListener('click', ()=>dyTab(i));
         tabs.appendChild(b); });
 }
@@ -3565,7 +3565,7 @@ function buildLedger(){
         const slot=document.createElement('div'); slot.className='lb-slot';
         const art=document.createElement('div'); art.className='lb-sword';
         art.style.setProperty('--s','90%'); art.style.setProperty('--sx','-4%');
-        ['assets/sword-parts/blades/'+it.blade+'.png', ddSrc('guard',it.design.guard),
+        ['assets/sword-parts/blades/'+it.blade+'.webp', ddSrc('guard',it.design.guard),
          ddSrc('grip',it.design.grip), ddSrc('pommel',it.design.pommel)]
             .forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
         slot.appendChild(art); slot.title=it.shape+(it.shop?' \u2014 sold from the shop racks':' \u2014 sold at the counter');
@@ -4231,7 +4231,7 @@ function buildBookMarks(){
     ids.forEach((k,i)=>{ const list=recipeTraits(RECIPES[k]); if(!list.length) return;
         const d=document.createElement('div'); d.className='cb-mark rec'+(k===CB_SEL?' is-on':'')+(list.length>1?' multi':'');
         d.title=list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', ');
-        d.innerHTML='<img src="assets/ui/bookmark_paper.png" alt=""><span>'+list.map(a=>TRAIT_BY[a.tid]?TRAIT_BY[a.tid].symbol:'?').join('')+'</span>';
+        d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>'+list.map(a=>TRAIT_BY[a.tid]?TRAIT_BY[a.tid].symbol:'?').join('')+'</span>';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
         d.addEventListener('click', ()=>{ CB_SEL=k; renderRecipe(); });
         top.appendChild(d); });
@@ -4530,7 +4530,7 @@ function hmLayout(){
     const orb=document.getElementById('hmOrb'), rough=document.getElementById('hmRough');
     orb.style.left=R.anvil.x+'%'; orb.style.top=R.anvil.y+'%'; orb.style.width=R.oreW+'%'; orb.style.aspectRatio='1';
     rough.style.left=R.anvil.x+'%'; rough.style.top=R.anvil.y+'%'; rough.style.width=R.roughW+'%';
-    rough.src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png';
+    rough.src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.webp';
     const mo=document.getElementById('hmMorph');
     mo.style.left=R.anvil.x+'%'; mo.style.top=R.anvil.y+'%'; mo.style.width='34%'; mo.style.aspectRatio='1';
     mo.style.transform='translate(-50%,-50%)';
@@ -5069,7 +5069,7 @@ function shelfSwords(shelf){
             (w.sharp?' \u2014 sharpness '+Math.round(w.sharp)+'%':'');
         slot.addEventListener('pointerdown', e=>startSwordDrag(w,e));
         const art=document.createElement('div'); art.className='inv-sword-art';
-        ['assets/sword-parts/blades/'+w.blade+'.png', ddSrc('guard',w.design.guard),
+        ['assets/sword-parts/blades/'+w.blade+'.webp', ddSrc('guard',w.design.guard),
          ddSrc('grip',w.design.grip), ddSrc('pommel',w.design.pommel)]
             .forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; art.appendChild(im); });
         slot.appendChild(art);
@@ -5751,7 +5751,7 @@ function tutDay2Screen(name){
 function tutDay2Customer(){
     if(TUT_STAGE!=='d2-bell') return;
     TUT_STAGE='d2-ask'; tutExit(null); sayHide();
-    CUSTOMER={ portrait:'assets/customer/man2.png', tid:'gale', name:'Gale' };
+    CUSTOMER={ portrait:'assets/customer/man2.webp', tid:'gale', name:'Gale' };
     buildScreenProps('customer'); counterUi();
     typeAfter(()=>{ TUT_STAGE='d2-cave'; sayQueue('D94'); setTimeout(()=>tutExit('#panRight'), 0); });
     custLine(null, DIALOGUE.D93);
@@ -5855,7 +5855,7 @@ function tutIngotSlot(){ return document.querySelector('#oreShelf .inv-ingot') |
 function tutBram2Arrive(){
     if(TUT_STAGE!=='d2-praise') return;
     TUT_STAGE='bram2'; TUT_BRAM2_STATE='awaiting'; sayHide();
-    CUSTOMER={ portrait:'assets/customer/BramD2.png', tid:null, name:'Bram' };
+    CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='BRAM';
     const r=document.getElementById('bramResponses');
@@ -5926,7 +5926,7 @@ function tutGarricBell(){
 function tutGarricArrive(){
     if(TUT_STAGE!=='g-bell') return;
     TUT_STAGE='garric'; TUT_GARRIC_STATE='awaiting'; tutUnglow(); sayHide();
-    CUSTOMER={ portrait:'assets/customer/man4.png', tid:'balanced', name:'Balanced' };
+    CUSTOMER={ portrait:'assets/customer/man4.webp', tid:'balanced', name:'Balanced' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     garricWho('???');   /* he does not give his name until D126 */
     garricButtons([['Yes, I came yesterday.', garricLecture]]);
@@ -6114,7 +6114,7 @@ function tutBell2(){
 function tutFireCustomer(){
     if(TUT_STAGE!=='bell2') return;
     TUT_STAGE='fire-meet'; TUT_FIRE_STATE='awaiting'; tutUnglow(); sayHide();
-    CUSTOMER={ portrait:'assets/customer/woman1.png', tid:'fire', name:null };
+    CUSTOMER={ portrait:'assets/customer/woman1.webp', tid:'fire', name:null };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
     tutFireButtons(true);
@@ -6413,7 +6413,7 @@ const CUST_ASKS=[ n=>'Do you have a '+n+' sword?',
                   n=>'I want a '+n+' sword.',
                   n=>'Give me a '+n+' sword, if you have one.',
                   n=>'I hear you make a fine blade. A '+n+' one, if you can.' ];
-function bellEl(){ return document.querySelector('#screenProps img[src$="bell.png"]'); }
+function bellEl(){ return document.querySelector('#screenProps img[src$="bell.webp"]'); }
 function bellShow(on){ BELL_ON=!!on; if(SF_SCREEN==='customer') buildScreenProps('customer'); }
 function bellFx(){
     const im=bellEl(); if(!im) return;
@@ -6480,7 +6480,7 @@ function nextCustomer(){
     if(CUSTOMER) { toast('Someone is already at the counter'); return false; }
     const tr=askedTrait(); if(!tr) return false;
     const who=CUST_POOL[Math.floor(Math.random()*CUST_POOL.length)];
-    CUSTOMER={ portrait:'assets/customer/'+who+'.png', tid:tr.id, name:tr.name };
+    CUSTOMER={ portrait:'assets/customer/'+who+'.webp', tid:tr.id, name:tr.name };
     buildScreenProps('customer'); counterUi();
     custLine(null, CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
     return true;
@@ -6543,7 +6543,7 @@ function tutBellStep(){
 function tutBellRung(){
     if(TUT_STAGE!=='bell') return;
     TUT_STAGE='bell-done'; tutUnglow(); sayHide();
-    CUSTOMER={ portrait:'assets/customer/man1.png', tid:null, name:null };
+    CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null };
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
     typeAfter(()=>{
