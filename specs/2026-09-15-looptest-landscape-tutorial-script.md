@@ -1219,7 +1219,7 @@ Three outcomes, graded on the **Balanced** trait he asked for plus the two finis
 
 | | Condition | He pays | Gift |
 |---|---|---|---|
-| **1** | Weak, not designed, not sharpened | base only | — |
+| **1** | Weak, not designed, not sharpened | **nothing** | — |
 | **2** | anything else | base + 7g sharpened (if) + 7g designed (if) + **10g** | — |
 | **3** | Epic **and** designed **and** sharpened | base + 7g + 7g + **10g** | new Balanced design parts |
 
@@ -1267,7 +1267,8 @@ the dragon's pair follows in the bench bubble.*
 | "DESERVE you amazing creations.." | "DESERVE your amazing creations!" | typo, and a doubled full stop |
 | "Humph - as if we need donation for cleaning?!" | "Humph, as if we need a donation for cleaning!" | hyphen, missing article, doubled mark |
 
-### Noted
+### Settled in r132
 
-**D131 says he is not paying, and he pays the base price anyway.** The owner set outcome 1's reward as
-the base value of a weak Balanced sword, so the line and the payout disagree. Built as specified.
+**D131 says he is not paying, and now he does not.** Outcome 1 banks no gold and writes a 0g ledger
+row; he still takes the sword. The refusal is decided inside `sellCounter`, so the toast reads "He took
+it and paid nothing" rather than "Sold for 0g".

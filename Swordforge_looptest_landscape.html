@@ -2310,12 +2310,14 @@ function sellCounter(){
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
+    const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
+    const pay = refused ? 0 : g;
     SAY_VARS.g=g; SAY_VARS.b=P.sharp+P.design;   /* r104: D56 and D57 quote the real numbers */
-    GOLD += g; REP += 1;
+    GOLD += pay; REP += 1;   /* r132 */
     POP += (POP_GAIN[tier]||0);
     let levelled=false;
     while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
-    SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:g });
+    SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:pay });   /* r132 */
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
@@ -2323,7 +2325,8 @@ function sellCounter(){
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide();   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
-    toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
+    if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
+    else toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
 }
 function placeCounter(sw){

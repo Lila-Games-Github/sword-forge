@@ -5788,3 +5788,17 @@ The part gate was checked by injecting a test filename: locked returns the four 
 returns five, and the flame skin is untouched either way. With the lists empty, as they ship, locked
 and unlocked return the same four. The save round-trips `parts:{garric:true}`; the same blob with
 `parts` deleted reads as locked. Console clean.
+
+## r132 — outcome 1 pays nothing
+
+D131 said "I'm not paying for this junk" while the sale banked the base price. The refusal could not
+live in the verdict: by the time the sold hooks run, `sellCounter` has already added the gold, written
+the ledger row and raised the toast. So it is decided in `sellCounter` itself — `refused` when Garric
+is waiting and `garricGrade(w)` is 1, and the payout, the ledger row and the toast all read off it.
+Reputation, popularity and exp are untouched: he still takes the sword.
+
+### Verification
+
+Weak and plain: price 40g, **paid 0g, ledger row 0g**. Fine and designed: 57g price, 67g paid, 57g
+row. Epic with both: 74g price, 84g paid, parts unlocked. The same Weak sword sold to an ORDINARY
+customer still pays its full 40g, so the refusal is Garric's alone.
