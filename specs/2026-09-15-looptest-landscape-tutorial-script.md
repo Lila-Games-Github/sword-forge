@@ -1057,3 +1057,60 @@ ingot to the anvil.*
   no item, no gold, no recipe. The owner has not said what it is.
 - ~~D113 says "drag", the game wants a tap.~~ **Settled in r128:** the ingot slot is now a real drag
   onto the anvil, so the line describes what the game does.
+
+## r129 — the gift is a diary, and the quest list rides in behind it (D115–D119)
+
+Bram's gift, left open since r127, is a **diary**. Claiming it puts the DIARY button in the rail;
+D118 puts the QUEST button there. Neither button existed before this beat (see the build-rounds doc).
+
+**Gift window** — `#sfGiftModal`, `assets/forge/diary.png` over the title *A gift from Bram*, one
+**Claim** button that closes it.
+*Trigger: the "Thank you for the gift." response to D114, after a 420 ms beat.*
+
+**D115** — Dragon
+> "Bram gave you a diary! Open it!"
+
+*Trigger: Claim. The DIARY button appears in the rail and blinks.*
+
+*The diary opens on **page 1, "Travel Log"** — OakHaven known, the other six slots "?". The page-2
+bookmark blinks.*
+
+*Page 2 is **"People I met"** (the old Characters page, unchanged: Bram, June, five "?"). Bram's slot
+blinks; his character sheet opens; the Close button blinks.*
+
+**D116** — Dragon
+> "It has a list of so many towns! I wonder if we can go on an adventure later."
+
+**D117** — Dragon
+> "There are so many blank pages too. I have an idea: you can note down all the important people you
+> come across. That way, you will remember them!"
+
+**D118** — Dragon
+> "I also made something for you. To keep you motivated, I put together a small quest list."
+
+*Trigger for all three: closing the diary. The QUEST button appears and blinks **with D118**, the line
+that promises it.*
+
+**D119** — Dragon
+> "I will reward you with gold when you finish your quests, as long as you don't ask where the money is
+> coming from."
+
+*Trigger: closing the quest window. D119 is the last key in `DIALOGUE`, so `TUT_SEEN_END` flips on it
+and the dragon becomes a pet from here.*
+
+### Wording corrected against the owner's draft
+
+| Draft | Shipped | Why |
+|---|---|---|
+| "Bram gifted you a diary?" | "Bram gave you a diary!" | "gifted" is informal, and the question mark asked about something the dragon just watched happen |
+| "...go on an adventure later?" | "...go on an adventure later." | "I wonder if" is an indirect question and takes a period |
+| "I have an idea, you can note down..." | "I have an idea: you can note down..." | comma splice |
+| "To keep your motivation bar up, I made a small quest list." | "To keep you motivated, I put together a small quest list." | **there is no motivation bar in the game**, and "made" landed twice in two sentences |
+| "reward you will gold ... quests- as long as" | "reward you with gold ... quests, as long as" | typo; and the hyphen wanted a comma |
+
+### Owner's answers
+
+- Travel Log: **OakHaven** is the current town, the rest are "?".
+- Both rail buttons **hidden** until this beat.
+- The gift grants **only the diary** — no gold, no exp.
+- Quest progress is **not** reset, so the list can open part-done.

@@ -5633,3 +5633,57 @@ Driven with real `PointerEvent`s, not by calling the handler:
 
 Console clean for this load; the two retained errors visible afterwards are from an earlier load's
 injected test fixture (a hand-built ingot with no `sword` field), not from the build.
+
+## r129 — the diary gift, and the rail buttons it unlocks
+
+Bram's gift (open since r127) is the diary. Four pieces:
+
+**The gift window.** `#sfGiftModal` reuses `.sf-modal-box`; `assets/forge/diary.png` is sized on width
+and left to set its own height, and the Claim button reuses `Paper_button_wide.png`. `tutBram2Gift()`
+now ends on `TUT_STAGE='gift'` and opens it instead of clearing the run.
+
+**The diary pages were swapped.** Page 1 is **Travel Log**, page 2 is **People I met** (the old
+Characters page). Both are the same seven-slot grid, so `buildDiary()`'s slot loop was lifted into
+`dySlotGrid(box, list, onPick)` and `DIARY_TOWNS` is derived from `DIARY_SLOTS`' positions — only
+OakHaven is named, the rest fall through to the "?" the unknown slots already drew. Pages 3 and 4 are
+untouched. Towns have no character sheet, so they are built with no `onPick`.
+
+**The rail buttons are gated.** `RAIL_DIARY` / `RAIL_QUEST` with `railUi()`; DIARY arrives on Claim,
+QUEST arrives with D118. They ride the save as `rail:{diary,quest}`, and **a save written before this
+round has no `rail` key, which is read as "both unlocked"** rather than confiscating buttons a player
+has been using.
+
+**The run.** `gift` → `gift-open` (Claim, D115, DIARY blinks) → `gift-p2` (diary opened; page-2
+bookmark blinks) → `gift-bram` (page 2; Bram's slot blinks) → `gift-close` (his sheet; Close blinks) →
+`gift-read` (D116, D117, D118) → `gift-quest` (QUEST blinks) → `gift-quest2` (window open) → D119 and
+the run ends. `say()` fires `tutQuestStep` on D118 the same way r122 fires `tutDay2Skill` on D91, so
+the button arrives with the line that promises it. All eight stages were added to
+`TUT_SCREEN_STAGES` — the beat plays at the counter.
+
+**r129b: closing the diary early.** At `gift-p2` or `gift-bram` the Close button ended the run with the
+blink stranded on an element inside a hidden modal. `tutDiaryClosed()` now rewinds those two stages to
+`gift-open` and re-blinks the DIARY button; re-opening restarts at page 1 regardless.
+
+### Verification
+
+Real clicks throughout, entered through `tutBram2Sold()` and the real "Thank you for the gift."
+response button rather than by assigning the gift stage:
+
+- both rail buttons `display:none` on a fresh load;
+- the response opens the gift window; the art loads (264×176 in a 300 px box) and Claim hit-tests to
+  itself at its centre;
+- Claim → D115, DIARY visible and blinking, window closed;
+- DIARY → page 1 titled **Travel Log**, slots `["OakHaven","?","?","?","?","?","?"]`, bookmark 2
+  blinking;
+- bookmark 2 → page 2 titled **People I met**, `["Bram","June","?",...]`, Bram's slot blinking;
+- Bram → `dySheetChar` with his name, Close blinking;
+- Close → D116, then D117, then **D118 reveals and blinks QUEST**;
+- QUEST → window open, blink cleared; closing it → D119, `TUT_SEEN_END` true, `tutOver()` true.
+
+Early-close recovery: bailing at page 1 and again at page 2 both return to `gift-open` with the DIARY
+button blinking, and a third pass runs clean through to D116.
+
+Save round-trip returns `rail:{diary:true,quest:true}`; the same blob with `rail` deleted unlocks both.
+A clean load plus `applyState(saveBlob())` throws nothing. (The two `'seg'` errors seen during the
+first pass came from the synthetic bram2 state that test had forced onto a freshly rebuilt map, not
+from the build — a clean round-trip is silent.)

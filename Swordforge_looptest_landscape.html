@@ -1203,6 +1203,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    r56 — DIARY. Third book on the shared 1920x1080 sheet, so the same construction as the Composition
    Book (r41) and the Ledger (r50): .dy-book is the drawn page area, the base PNG oversized behind it.
    ============================================================ */
+/* r129: the gift window. The diary art is a wide landscape canvas with the book centred, so it is
+   sized on width and left to set its own height. */
+.gift-box { max-width: 300px; text-align: center; }
+.gift-art { display: block; width: 100%; margin: 2px auto 0; -webkit-user-drag: none; }
+.gift-claim { display: block; margin: 4px auto 0; width: 46%; aspect-ratio: 213 / 97; border: 0; padding: 0;
+    cursor: pointer; background: url('assets/ui/Paper_button_wide.png') center / 100% 100% no-repeat;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #5a4224; }
+.gift-claim:hover { filter: brightness(1.06); }
+.gift-claim:active { transform: translateY(1px) scale(.99); }
 .dy-book { position: relative; width: 70.23%; max-width: 790px; aspect-ratio: 1396 / 918;
     margin-right: 22.71%; filter: drop-shadow(0 16px 34px rgba(0,0,0,.62)); }
 .dy-page-img { position: absolute; width: 137.53%; left: -4.66%; top: -9.15%; pointer-events: none; -webkit-user-drag: none; z-index: 1; }
@@ -1467,10 +1476,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="dy-book">
             <img class="dy-page-img" src="assets/ui/Diary_base.png" alt="">
             <div class="dy-sheet is-on" id="dySheet1">
-                <h3 class="dy-title">Characters</h3>
+                <h3 class="dy-title">Travel Log</h3>
+                <div id="dyTowns"></div>
+            </div>
+            <div class="dy-sheet" id="dySheet2">
+                <h3 class="dy-title">People I met</h3>
                 <div id="dySlots"></div>
             </div>
-            <div class="dy-sheet" id="dySheet2"><span class="dy-blank">Nothing written here yet.</span></div>
             <div class="dy-sheet" id="dySheet3"><span class="dy-blank">Nothing written here yet.</span></div>
             <div class="dy-sheet" id="dySheet4"><span class="dy-blank">Nothing written here yet.</span></div>
             <div class="dy-sheet" id="dySheetChar">
@@ -1487,6 +1499,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             </div>
             <div class="dy-tabs" id="dyTabs"></div>
             <button class="dy-close" type="button" onclick="closeDiary()">Close</button>
+        </div>
+    </div>
+    <!-- ===== r129: the gift Bram leaves behind ===== -->
+    <div id="sfGiftModal" class="sf-modal">
+        <div class="sf-modal-box gift-box">
+            <h3 class="sf-modal-h">A gift from Bram</h3>
+            <img class="gift-art" src="assets/forge/diary.png" alt="A worn leather diary">
+            <p class="sf-modal-sub">A diary.</p>
+            <button class="gift-claim" type="button" onclick="claimGift()">Claim</button>
         </div>
     </div>
     <!-- ===== Ledger (r50) - the sold list is built by buildLedger() ===== -->
@@ -3164,6 +3185,7 @@ function saveBlob(){
         talent:TALENT, skills:Object.assign({},SKILL_RANK),
         quests:QUESTS.map(q=>({ id:q.id, progress:q.progress, done:q.done })),
         shop:{ open:SHOP_OPEN, racks:RACK_OPEN.slice() },
+        rail:{ diary:RAIL_DIARY, quest:RAIL_QUEST },   /* r129 */
         books:books.map(b=>({ x:b.x, y:b.y, xp:b.xp, k:b.kind, t:b.taken?1:0 })),   // r74: full list - Sword Master adds books initMap() knows nothing about
         disc:traits.map(t=>t.discovered?1:0),
         fog:[...fogHoles.querySelectorAll('circle')].map(c=>[+c.getAttribute('cx'),+c.getAttribute('cy'),+c.getAttribute('r')]),
@@ -3191,6 +3213,7 @@ function applyState(o){
     exp = o.exp||0; LEVEL = levelFromExp(exp); TALENT = (o.talent!=null? o.talent : LEVEL-1);
     SKILL_RANK = Object.assign({ bulk:0, master:0, vision:0, restore:0 }, o.skills||{});
     (o.quests||[]).forEach(x=>{ const q=questBy(x.id); if(q){ q.progress=x.progress||0; q.done=!!x.done; } });
+    RAIL_DIARY = o.rail ? !!o.rail.diary : true; RAIL_QUEST = o.rail ? !!o.rail.quest : true; railUi();   /* r129 */
     INV.ingots=(o.inv&&o.inv.ingots||[]).map(g=>Object.assign({},g,{at:performance.now()}));
     INV.swords=(o.inv&&o.inv.swords)||[]; INV_SEQ=(o.inv&&o.inv.seq)||1;
     WORK=o.work||null;
@@ -3331,8 +3354,10 @@ function buildQsPager(){
 }
 function qsGo(n){ QS_PAGE=Math.max(1, Math.min(QS_PAGES, n)); buildQuests(); }
 function qsPage(d){ qsGo(QS_PAGE+d); }
-function openQuests(){ QS_PAGE=1; buildQuests(); document.getElementById('sfQuestModal').classList.add('show'); }
-function closeQuests(){ document.getElementById('sfQuestModal').classList.remove('show'); }
+function openQuests(){ QS_PAGE=1; buildQuests(); document.getElementById('sfQuestModal').classList.add('show');
+    if(TUT_STAGE==='gift-quest'){ TUT_STAGE='gift-quest2'; tutExit(null); } }   /* r129 */
+function closeQuests(){ document.getElementById('sfQuestModal').classList.remove('show');
+    if(TUT_STAGE==='gift-quest2'){ TUT_STAGE=null; sayQueue('D119'); } }   /* r129 */
 
 // ---- r56: Diary -----------------------------------------------------------------------------------
 // Seven slots, laid out exactly as the wireframe draws them: four across the top (two per page) and
@@ -3348,17 +3373,26 @@ const DIARY_SLOTS = [
     { l:53.10, t:50.54 }
 ];
 const DIARY_TABS = [-4.82, 1.56, 7.93, 14.15];      // tab tops, % of the page box (pitch 6.33)
-function buildDiary(){
-    const box=document.getElementById('dySlots'), tabs=document.getElementById('dyTabs');
-    if(!box||!tabs) return;
+/* r129: page 1 is the travel log. It is the same seven-slot grid as the people page, so the town
+   names sit on the SLOT positions rather than a layout of their own. Only the current town is
+   known; the rest are the '?' the unknown people slots already draw. */
+const DIARY_TOWNS = DIARY_SLOTS.map((s,i)=>({ l:s.l, t:s.t, name: i===0 ? 'OakHaven' : null }));
+function dySlotGrid(box, list, onPick){
     box.innerHTML='';
-    DIARY_SLOTS.forEach(s=>{ const d=document.createElement('div');
+    list.forEach(s=>{ const d=document.createElement('div');
         d.className='dy-slot'+(s.name?'':' unknown');
         d.style.left=s.l+'%'; d.style.top=s.t+'%';
         d.textContent=s.name||'?';
-        if(s.name){ d.title=s.name; d.classList.add('known');
-            d.addEventListener('click', ()=>dyChar(s)); }
+        if(s.name && onPick){ d.title=s.name; d.classList.add('known');
+            d.addEventListener('click', ()=>onPick(s)); }
+        else if(s.name) d.title=s.name;
         box.appendChild(d); });
+}
+function buildDiary(){
+    const box=document.getElementById('dySlots'), tabs=document.getElementById('dyTabs');
+    if(!box||!tabs) return;
+    dySlotGrid(box, DIARY_SLOTS, dyChar);
+    const tw=document.getElementById('dyTowns'); if(tw) dySlotGrid(tw, DIARY_TOWNS, null);   /* r129 */
     tabs.innerHTML='';
     DIARY_TABS.forEach((t,i)=>{ const b=document.createElement('button');
         b.type='button'; b.className='dy-tab'+(i===0?' is-on':''); b.style.top=t+'%';
@@ -3373,6 +3407,7 @@ function dyShow(id){                                   // one sheet at a time, c
 function dyTab(i){
     [...document.querySelectorAll('#dyTabs .dy-tab')].forEach((t,k)=>t.classList.toggle('is-on', k===i));
     dyShow('dySheet'+(i+1));
+    if(TUT_STAGE==='gift-p2' && i===1) setTimeout(tutDiaryPeople, 0);   /* r129 */
 }
 // The character page is NOT one of the four tabs: it takes over the book with every tab deselected, so
 // the tabs stay visible and clicking any of them goes back to that page.
@@ -3382,6 +3417,7 @@ function dyChar(s){
     [...document.querySelectorAll('#dyTabs .dy-tab')].forEach(t=>t.classList.remove('is-on'));
     dyShow('dySheetChar');
     dycPortrait(document.getElementById('dycImg'), s.img);
+    if(TUT_STAGE==='gift-bram' && s.name==='Bram') setTimeout(tutDiaryBram, 0);   /* r129 */
 }
 // Crop-fit a portrait to its opaque box: the canvases are 1504x2832 with the figure in a sub-region, so
 // object-fit:contain would size the empty canvas instead of the person. partBox() is r52's runtime
@@ -3403,8 +3439,17 @@ function dycPortrait(imgEl, src){
             imgEl.style.top =((0.5-(o.oy+o.oh/2)*hc/ratio)*100).toFixed(2)+'%'; };
         probe.src=src; });
 }
-function openDiary(){ buildDiary(); dyTab(0); document.getElementById('sfDiaryModal').classList.add('show'); }
-function closeDiary(){ document.getElementById('sfDiaryModal').classList.remove('show'); }
+/* r129: neither rail button exists before Bram hands the diary over on day 2. A save written
+   before this round has no rail record, so it is read as 'already unlocked' rather than taking
+   the buttons away from a player who has been using them. */
+let RAIL_DIARY=false, RAIL_QUEST=false;
+function railUi(){ const d=document.getElementById('diaryBtn'), q=document.getElementById('questBtn');
+    if(d) d.style.display = RAIL_DIARY ? '' : 'none';
+    if(q) q.style.display = RAIL_QUEST ? '' : 'none'; }
+function openDiary(){ buildDiary(); dyTab(0); document.getElementById('sfDiaryModal').classList.add('show');
+    setTimeout(tutDiaryOpened, 0); }   /* r129 */
+function closeDiary(){ document.getElementById('sfDiaryModal').classList.remove('show');
+    setTimeout(tutDiaryClosed, 0); }   /* r129 */
 
 // ---- r50: Ledger ----------------------------------------------------------------------------------
 // Placeholder sales. sx is the same measured per-combo art-centring offset the Racks window uses; s is
@@ -5209,7 +5254,12 @@ const DIALOGUE = {
     D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift sword for me?",
     D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
     D113: "Find it in your inventory and drag it to the anvil.",
-    D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be of more use to you."
+    D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be of more use to you.",
+    D115: "Bram gave you a diary! Open it!",
+    D116: "It has a list of so many towns! I wonder if we can go on an adventure later.",
+    D117: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!",
+    D118: "I also made something for you. To keep you motivated, I put together a small quest list.",
+    D119: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5731,11 +5781,49 @@ function tutBram2Gift(){
     typeStop();
     const re=document.querySelector('#csPanel > .cs-resp');
     if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
-    /* the gift itself is not specified yet - see the spec's open note */
-    CUSTOMER=null; TUT_BRAM2_STATE=null; TUT_STAGE=null;
+    CUSTOMER=null; TUT_BRAM2_STATE=null; TUT_STAGE='gift';   /* r129: the diary is handed over */
+    setTimeout(openGift, 420);
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     refreshCounter(); counterUi(); updateTutorialCounterUi();
+}
+/* ---- r129: the diary. The window shows what was given, Claim puts the button in the rail, and the
+   run walks page 1 -> page 2 -> Bram -> close, then the quest list. ---- */
+function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
+function claimGift(){
+    const m=document.getElementById('sfGiftModal'); if(m) m.classList.remove('show');
+    if(TUT_STAGE!=='gift'){ RAIL_DIARY=true; railUi(); return; }
+    RAIL_DIARY=true; railUi(); TUT_STAGE='gift-open';
+    sayQueue('D115');
+    setTimeout(()=>tutExit('#diaryBtn'), 0);
+}
+function tutDiaryOpened(){
+    if(TUT_STAGE!=='gift-open') return;
+    TUT_STAGE='gift-p2';
+    tutExit('#dyTabs .dy-tab:nth-child(2)');   /* the page-2 bookmark */
+}
+function tutDiaryPeople(){
+    if(TUT_STAGE!=='gift-p2') return;
+    TUT_STAGE='gift-bram';
+    tutExit("#dySlots .dy-slot[title='Bram']");
+}
+function tutDiaryBram(){
+    if(TUT_STAGE!=='gift-bram') return;
+    TUT_STAGE='gift-close';
+    tutExit('.dy-close');
+}
+function tutDiaryClosed(){
+    if(TUT_STAGE==='gift-p2' || TUT_STAGE==='gift-bram'){   /* r129b: shut too early - point back at the book */
+        TUT_STAGE='gift-open'; tutExit('#diaryBtn'); return; }
+    if(TUT_STAGE!=='gift-close') return;
+    TUT_STAGE='gift-read'; tutExit(null);
+    sayQueue('D116','D117','D118');
+}
+/* D118 is the line that promises the list, so the button arrives with it */
+function tutQuestStep(){
+    if(TUT_STAGE!=='gift-read') return;
+    TUT_STAGE='gift-quest'; RAIL_QUEST=true; railUi();
+    tutExit('#questBtn');
 }
 function tutGaleEnd(){
     if(TUT_STAGE!=='d2-gale-hammer') return;
@@ -6374,7 +6462,9 @@ const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','ba
                            'fire-basement','dec-table','dec-bench','dec-design','dec-take','dec-back',
                            'd2-counter','d2-bell','d2-ask','d2-cave','d2-mine','d2-back',
                            'd2-gale-sell','d2-gale-sell2','d2-gale-paid','d2-praise',
-                           'bram2','bram2-forge','bram2-sell','bram2-sell2','bram2-paid'];   /* ...r126/r127 */
+                           'bram2','bram2-forge','bram2-sell','bram2-sell2','bram2-paid',
+                           'gift','gift-open','gift-p2','gift-bram','gift-close','gift-read',
+                           'gift-quest','gift-quest2'];   /* ...r127/r129 */
 function onScreenDragon(){
     if(SF_SCREEN==='bedroom') return TUT_STAGE==='bed';   /* r118 */
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
@@ -6485,6 +6575,7 @@ function say(id){
     if(id==='D35'){ tutFakePath(false); TUT_STAGE='regrind-grind'; }
     if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
     if(id==='D91') setTimeout(tutDay2Skill, 0);   /* r122: the button lights with the line that asks */
+    if(id==='D118') setTimeout(tutQuestStep, 0);   /* r129 */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */
@@ -6539,6 +6630,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
     (()=>{ const f=document.getElementById('frame'), c=document.getElementById('sayChoices');
         if(f && c && c.parentElement!==f) f.appendChild(c); })();   /* r115 */
+    railUi();   /* r129 */
     wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
     setTimeout(sayStart, 600);                            /* r75/r107: the opening line, not a 'next' */
     setTimeout(dragonCap, 60);
