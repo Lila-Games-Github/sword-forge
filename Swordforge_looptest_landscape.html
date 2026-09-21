@@ -2309,17 +2309,19 @@ function sellCounter(){
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
+    GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     SAY_VARS.g=g; SAY_VARS.b=P.sharp+P.design;   /* r104: D56 and D57 quote the real numbers */
     GOLD += g; REP += 1;
     POP += (POP_GAIN[tier]||0);
     let levelled=false;
     while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:g });
-    const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2');   /* ...r127 */
+    const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
+                      || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide();   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
-    tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold();   /* r103/r118/r126/r127 */
+    tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
@@ -2992,7 +2994,17 @@ function bladeFor(skin, shape){
     const sh=String(shape||'').toLowerCase(), have=DD_BLADES[skin];
     return ((have && have.indexOf(sh)>=0) ? skin : 'balanced')+'_'+sh+'_blade';
 }
-function ddSet(tab, skin){ const set=DD_SETS[skin]||DD_SETS.balanced; return set[tab]||DD_SETS.balanced[tab]; }
+/* r131: parts that exist but are not available until they have been earned. The lists are empty
+   until the art lands - drop the new balanced pieces in here and they appear at the design desk the
+   moment Garric's gift is taken, and not before. */
+const DD_BONUS = { balanced: { grip:[], guard:[], pommel:[] } };
+let PARTS_GARRIC=false;
+function ddBonus(tab, skin){
+    if(skin!=='balanced' || !PARTS_GARRIC) return [];
+    return (DD_BONUS.balanced||{})[tab] || [];
+}
+function ddSet(tab, skin){ const set=DD_SETS[skin]||DD_SETS.balanced;
+    return (set[tab]||DD_SETS.balanced[tab]).concat(ddBonus(tab, skin)); }   /* r131 */
 /* a pick from one set cannot survive a change of set, so fall back to that set's first part */
 function ddCoerce(sel, skin){
     const out=Object.assign({}, sel||{});
@@ -3187,6 +3199,7 @@ function saveBlob(){
         shop:{ open:SHOP_OPEN, racks:RACK_OPEN.slice() },
         rail:{ diary:RAIL_DIARY, quest:RAIL_QUEST },   /* r129 */
         met:Object.assign({}, DIARY_MET),   /* r130 */
+        parts:{ garric:PARTS_GARRIC },   /* r131 */
         books:books.map(b=>({ x:b.x, y:b.y, xp:b.xp, k:b.kind, t:b.taken?1:0 })),   // r74: full list - Sword Master adds books initMap() knows nothing about
         disc:traits.map(t=>t.discovered?1:0),
         fog:[...fogHoles.querySelectorAll('circle')].map(c=>[+c.getAttribute('cx'),+c.getAttribute('cy'),+c.getAttribute('r')]),
@@ -3216,6 +3229,7 @@ function applyState(o){
     (o.quests||[]).forEach(x=>{ const q=questBy(x.id); if(q){ q.progress=x.progress||0; q.done=!!x.done; } });
     RAIL_DIARY = o.rail ? !!o.rail.diary : true; RAIL_QUEST = o.rail ? !!o.rail.quest : true; railUi();   /* r129 */
     DIARY_MET = Object.assign({}, o.met||{});   /* r130 */
+    PARTS_GARRIC = !!(o.parts && o.parts.garric);   /* r131 */
     INV.ingots=(o.inv&&o.inv.ingots||[]).map(g=>Object.assign({},g,{at:performance.now()}));
     INV.swords=(o.inv&&o.inv.swords)||[]; INV_SEQ=(o.inv&&o.inv.seq)||1;
     WORK=o.work||null;
@@ -5276,7 +5290,16 @@ const DIALOGUE = {
     D127: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool.",
     D128: "Craft a Balanced sword and show me! Also, I want to see how well you can design it. Make it sharp!",
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
-    D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!"
+    D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!",
+    D131: "What is this? You didn't even put in any effort. I'm not paying for this junk.",
+    D132: "No. Huh ... it wasn't good enough.",
+    D133: "But we will show him next time! Let's practice more. I know we can do it!",
+    D134: "This is ... okay-ish. Don't expect to be rich if this is all you can do. Here is some extra money.",
+    D135: "Hey! I know you did your best! Don't let that cranky old man get to you.",
+    D136: "We just need more practice.",
+    D137: "Hmm. You do have potential. Here is a gift. Use it well. Consider it a donation toward cleaning your shop.",
+    D138: "I knew it! You are the best blacksmith ever! He doesn't even DESERVE your amazing creations!",
+    D139: "When you are famous, he will sell the same sword for a million gold. Humph, as if we need a donation for cleaning!"
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5870,6 +5893,46 @@ function tutGarricForge(){
     sayQueue('D129','D130');
 }
 /* the last thing the script does is get out of the way: no arrow, no glow, no stage */
+/* ---- r131: three outcomes, graded on the BALANCED trait he asked for plus the two finishing
+   steps. Tier 3 designed AND sharpened is the best; tier 1 with neither is the worst; everything
+   in between is the middle. The base price and the +7g bonuses are already paid by sellCounter;
+   this adds Garric's own +10g, and the gift on the best outcome. ---- */
+let GARRIC_SOLD_W=null;
+const GARRIC_TIP = 10;
+function balancedTier(w){
+    const t = w && w.traits && w.traits.find(x=>x.t && x.t.id==='balanced');
+    return t ? t.tier : 'Weak';
+}
+function garricGrade(w){
+    const tier=balancedTier(w), designed=!!(w && w.designed), sharp=!!(w && (w.sharp||0) >= SH_ZONE_LO);
+    if(tier==='Epic' && designed && sharp) return 3;
+    if(tier==='Weak' && !designed && !sharp) return 1;
+    return 2;
+}
+function tutGarricSold(){
+    if(TUT_GARRIC_STATE!=='asked') return;
+    const w=GARRIC_SOLD_W; GARRIC_SOLD_W=null;
+    const grade=garricGrade(w);
+    TUT_GARRIC_STATE='reacted'; TUT_GARRIC_GRADE=grade;
+    if(grade>1){ GOLD += GARRIC_TIP; updateHud(); }
+    if(grade===3){ PARTS_GARRIC=true;
+        setTimeout(()=>toast('🎁 Garric left you <b>new parts for balanced swords</b>', 2800), 900); }
+    const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
+    if(se) se.style.display='none'; if(de) de.style.display='none';
+    updateTutorialCounterUi();
+    custSay([grade===1?'D131':grade===2?'D134':'D137']);
+}
+/* he has said his piece; the next tap on the panel sends him off and lets the dragon answer */
+function garricLeaves(){
+    if(TUT_GARRIC_STATE!=='reacted') return;
+    const g=TUT_GARRIC_GRADE;
+    CUSTOMER=null; TUT_GARRIC_STATE=null;
+    (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
+    const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
+    buildScreenProps('customer'); refreshCounter(); counterUi(); updateTutorialCounterUi();
+    sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139');
+}
+let TUT_GARRIC_GRADE=0;
 function tutGarricHandsOff(){ sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow(); }
 function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
 function claimGift(){
@@ -6006,6 +6069,7 @@ let CUST_Q=[], CUST_Q_DONE=null;
 function custSay(ids, done){
     CUST_Q=ids.slice(1); CUST_Q_DONE=done||null;
     custLine(document.getElementById('bramLine'), DIALOGUE[ids[0]]);
+    if(!CUST_Q.length && CUST_Q_DONE){ const fn=CUST_Q_DONE; CUST_Q_DONE=null; typeAfter(fn); }   /* r131 */
     custMore(CUST_Q.length>0);
 }
 function custQNext(){
@@ -6018,6 +6082,7 @@ function custQNext(){
 function custDlgTap(){
     if(TYPE_T){ typeDone(); custMore(CUST_Q.length>0 || !!TUT_FIRE_NEXT); return; }
     if(CUST_Q.length){ custQNext(); return; }   /* r130 */
+    if(TUT_GARRIC_STATE==='reacted'){ garricLeaves(); return; }   /* r131 */
     if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null; custMore(false);
         typeAfter(()=>tutFireAsked());
         custLine(document.getElementById('bramLine'), DIALOGUE[id]); return; }

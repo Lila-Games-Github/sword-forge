@@ -5741,3 +5741,50 @@ window → D119), then real clicks:
   portrait and "Craft a Balanced sword."; the save round-trips `met:{garric:true}`.
 
 Console clean for the whole run.
+
+## r131 — Garric's three outcomes, and a part that has to be earned
+
+**Grading.** `garricGrade(w)` reads the tier of the **balanced** trait specifically (`w.traits` entries
+are `{t, tier, val}`, so the test is `x.t.id==='balanced'`; a sword with no Balanced trait grades as
+Weak), plus `w.designed` and `w.sharp >= SH_ZONE_LO`. Epic with both is 3, Weak with neither is 1,
+everything else is 2. That reproduces the owner's three cases and closes the six combinations his
+three boxes did not cover.
+
+**Payment.** `sellCounter` already pays base + 7g sharpened + 7g designed, so the verdict only adds
+Garric's own `GARRIC_TIP = 10` on grades 2 and 3. Grade 1 gets nothing extra, which is the base price
+alone because that grade is by definition unsharpened and undesigned.
+
+**The sword outlives the sale.** The sold hooks run after `COUNTER` is cleared, so `sellCounter` stashes
+`GARRIC_SOLD_W` while `w` is still in scope. `scriptedBye` now also holds for
+`TUT_GARRIC_STATE==='asked'`, so he is still standing there to react.
+
+**Earned parts.** `DD_BONUS.balanced` holds grip/guard/pommel lists that `ddSet()` appends only when
+`PARTS_GARRIC` is set, and only for the balanced skin. **The lists are empty today** — the art does not
+exist yet — so nothing at the design desk changes; dropping the new filenames into that one object
+makes them appear the moment the gift is taken, and never before. `PARTS_GARRIC` rides the save under
+`parts:{garric}`, and a save without the key reads as locked.
+
+**Dismissal.** `custSay` now fires its `done` callback for a single-line call too (it only did so when
+draining a queue). Garric's verdict is one line, and the next tap on the panel runs `garricLeaves()`,
+which clears him off the counter and queues the dragon's pair.
+
+### Verification
+
+Five sales driven through the real `sellCounter`, each with a hand-built sword and the real Garric
+arrival:
+
+| sword | grade | price | paid | tip | parts |
+|---|---|---|---|---|---|
+| Weak, plain | 1 | 40g | 40g | 0 | no |
+| Fine, designed | 2 | 57g | 67g | 10 | no |
+| Fine, sharpened | 2 | 57g | 67g | 10 | no |
+| Epic, plain | 2 | 60g | 70g | 10 | no |
+| Epic, designed + sharpened | 3 | 74g | 84g | 10 | **yes** |
+
+Each one showed the right Garric line, kept him at the counter until the panel was tapped, removed him
+on that tap, and played the right dragon pair (D132/D133, D135/D136, D138/D139).
+
+The part gate was checked by injecting a test filename: locked returns the four stock grips, unlocked
+returns five, and the flame skin is untouched either way. With the lists empty, as they ship, locked
+and unlocked return the same four. The save round-trips `parts:{garric:true}`; the same blob with
+`parts` deleted reads as locked. Console clean.

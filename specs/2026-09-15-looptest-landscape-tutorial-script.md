@@ -1212,3 +1212,62 @@ The player crafts whatever they like, at whatever quality, sharpened or not. D13
 
 - The three sale outcomes by quality. Selling Garric a sword today falls through to the ordinary
   counter sale.
+
+## r131 — Garric judges the sword (D131–D139)
+
+Three outcomes, graded on the **Balanced** trait he asked for plus the two finishing steps.
+
+| | Condition | He pays | Gift |
+|---|---|---|---|
+| **1** | Weak, not designed, not sharpened | base only | — |
+| **2** | anything else | base + 7g sharpened (if) + 7g designed (if) + **10g** | — |
+| **3** | Epic **and** designed **and** sharpened | base + 7g + 7g + **10g** | new Balanced design parts |
+
+**D131** — Garric (outcome 1)
+> "What is this? You didn't even put in any effort. I'm not paying for this junk."
+
+**D132** — Dragon
+> "No. Huh ... it wasn't good enough."
+
+**D133** — Dragon
+> "But we will show him next time! Let's practice more. I know we can do it!"
+
+**D134** — Garric (outcome 2)
+> "This is ... okay-ish. Don't expect to be rich if this is all you can do. Here is some extra money."
+
+**D135** — Dragon
+> "Hey! I know you did your best! Don't let that cranky old man get to you."
+
+**D136** — Dragon
+> "We just need more practice."
+
+**D137** — Garric (outcome 3)
+> "Hmm. You do have potential. Here is a gift. Use it well. Consider it a donation toward cleaning your
+> shop."
+
+**D138** — Dragon
+> "I knew it! You are the best blacksmith ever! He doesn't even DESERVE your amazing creations!"
+
+**D139** — Dragon
+> "When you are famous, he will sell the same sword for a million gold. Humph, as if we need a donation
+> for cleaning!"
+
+*Trigger: the sale. Garric stays at the counter and speaks; the next tap on his panel sends him off and
+the dragon's pair follows in the bench bubble.*
+
+### Wording corrected against the owner's draft
+
+| Draft | Shipped | Why |
+|---|---|---|
+| "You didn't even put any effort into this. I'm not paying for this junk." | "You didn't even put in any effort. I'm not paying for this junk." | "this" three times in two sentences |
+| "This is - okayish." | "This is ... okay-ish." | the hyphen was doing an ellipsis's work; "okayish" is not a standard spelling |
+| "Here's a gift, use it well." | "Here is a gift. Use it well." | comma splice |
+| "No. Huh - it wasn't good enough." | "No. Huh ... it wasn't good enough." | same hyphen |
+| "get into your head" | "get to you" | the idiom is "get inside your head" or "get to you" |
+| "DESERVE you amazing creations.." | "DESERVE your amazing creations!" | typo, and a doubled full stop |
+| "Humph - as if we need donation for cleaning?!" | "Humph, as if we need a donation for cleaning!" | hyphen, missing article, doubled mark |
+
+### Noted
+
+**D131 says he is not paying, and he pays the base price anyway.** The owner set outcome 1's reward as
+the base value of a weak Balanced sword, so the line and the payout disagree. Built as specified.
