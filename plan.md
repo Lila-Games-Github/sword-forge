@@ -153,12 +153,15 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
       WhatsApp in-app browsers. Emulation cannot answer viewport-meta questions.
 - [ ] **Payload diet** — 80.8 MB over 74 assets, 348 MB decoded if resident. Above the iOS tab ceiling.
       Worst file `assets/map/map_base.png` (2948x2948, 15.4 MB, 33 MB RAM).
-- [ ] **Rotate gate** for portrait, since the game is landscape-only.
+- [x] **Rotate gate** for portrait (r135) — a full-screen 'Turn your phone sideways' overlay whenever a
+      coarse pointer reports `innerHeight > innerWidth`. No orientation lock, for the reason r134b gave.
 - [x] **Fullscreen on first tap** (r134b) recovers the height Chrome's URL bar holds: 1334 instead of
       1715 on the owner's phone. Gated by `sfWantsFullscreen()` so a desktop mouse, an iPhone, or a
       screen the frame already fits never triggers it. Orientation lock deliberately left out.
-- [ ] `touch-action: none` on drag surfaces, so a drag cannot turn into a page scroll.
-- [ ] Layout self-test is RED on `dragon.y` (runtime -3.683 vs recorded -2.718) — predates this branch.
+- [x] `touch-action: none` (r135) — set on `#frame` wholesale rather than surface by surface;
+      `#oreShelf` keeps `pan-y` as the one region inside the frame that really scrolls.
+- [x] Layout self-test GREEN (r135) — r93 moved the dragon on purpose and updated neither `RECORDED`
+      nor the landscape in-zone floor. Both followed it. Nothing mutates `LAYOUT` at runtime.
 
 > ⚠️ **Scope note (2026-09-18):** the "🔜 Next up" / save-load items **earlier in this file** are **V1/V2 scope**
 > (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,

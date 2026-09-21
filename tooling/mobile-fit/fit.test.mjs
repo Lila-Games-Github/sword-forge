@@ -23,6 +23,7 @@ function lift(name) {
 }
 const sfFitWidth = lift('sfFitWidth');
 const sfWantsFullscreen = lift('sfWantsFullscreen');
+const sfWantsRotate = lift('sfWantsRotate');
 
 const FRAME_W = 1080, FRAME_H = 600;
 
@@ -83,5 +84,27 @@ for (const [label, vpW, frameW, coarse, api, already, want] of FS_CASES) {
   console.log((ok ? '  ok   ' : '  FAIL ') + label.padEnd(34) + ' vp ' + String(vpW).padEnd(6) + ' want ' + String(want).padEnd(6) + ' got ' + String(got));
 }
 
+
+/* ---- r135: the portrait rotate gate ----
+ * The game is a 1080x600 landscape box; on a portrait phone the fit clamps to 1080 and the frame
+ * is a small centred strip. The gate asks for a rotate rather than forcing one: orientation lock
+ * works only inside fullscreen, only on Android, and would spin the game under a player holding
+ * the phone upright. A desktop window is the user own shape, so it is never nagged.
+ * Signature: sfWantsRotate(innerW, innerH, coarsePointer)
+ */
+const ROT_CASES = [
+  ['portrait phone',                  375,  812,  true,  true],
+  ['landscape phone',                 812,  375,  true,  false],
+  ['owner phone landscape',           740,  333,  true,  false],
+  ['tall desktop window, mouse',      900, 1200,  false, false],
+  ['square-ish phone, wider by 1px',  401,  400,  true,  false],
+  ['square-ish phone, taller by 1px', 400,  401,  true,  true],
+];
+for (const [label, w, h, coarse, want] of ROT_CASES) {
+  const got = sfWantsRotate(w, h, coarse);
+  const ok = got === want;
+  if (!ok) fails++;
+  console.log((ok ? '  ok   ' : '  FAIL ') + label.padEnd(34) + ' ' + (w + 'x' + h).padEnd(10) + ' want ' + String(want).padEnd(6) + ' got ' + String(got));
+}
 console.log(fails ? '[mobile fit] RED x (' + fails + ')' : '[mobile fit] GREEN /');
 process.exit(fails ? 1 : 0);

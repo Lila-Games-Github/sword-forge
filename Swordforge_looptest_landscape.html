@@ -24,8 +24,11 @@ function sfApplyFit(){
     SF_VP_W=want; document.getElementById('sfViewport').setAttribute('content','width='+want+', user-scalable=no');
 }
 sfApplyFit();                                                    /* runs while the head parses, so the player never sees the unfitted layout */
-window.addEventListener('resize', sfApplyFit);
-window.addEventListener('orientationchange', function(){ setTimeout(sfApplyFit,150); setTimeout(sfApplyFit,450); });   /* Android reports the old size for a beat after a rotate */
+window.addEventListener('resize', function(){ sfApplyFit(); sfApplyRotate(); });
+window.addEventListener('orientationchange', function(){
+    setTimeout(function(){ sfApplyFit(); sfApplyRotate(); },150);
+    setTimeout(function(){ sfApplyFit(); sfApplyRotate(); },450); });   /* Android reports the old size for a beat after a rotate */
+document.addEventListener('DOMContentLoaded', sfApplyRotate);            /* the gate's element does not exist during head parse */
 
 /* ---- r134b: fullscreen on the first tap. Chrome Android keeps its URL bar on a page that cannot
    scroll, so the fit above measures a short screen and the game comes out smaller than the phone
@@ -36,6 +39,16 @@ window.addEventListener('orientationchange', function(){ setTimeout(sfApplyFit,1
 function sfWantsFullscreen(vpW, frameW, coarsePointer, hasApi, alreadyFullscreen){
     if(!hasApi || alreadyFullscreen || !coarsePointer) return false;
     return vpW > frameW;                                         /* the fit had to zoom out, so the screen is short and the browser chrome is costing real height */
+}
+function sfWantsRotate(innerW, innerH, coarsePointer){
+    if(!coarsePointer) return false;                             /* a desktop window is the user's own shape, never nag about it */
+    return innerH > innerW;                                      /* portrait: the landscape frame cannot use this screen */
+}
+function sfApplyRotate(){
+    var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    var on = sfWantsRotate(window.innerWidth, window.innerHeight, coarse);
+    var el = document.getElementById('sfRotate');
+    if(el) el.classList.toggle('on', on);
 }
 var SF_FS_TRIED=false;
 function sfFirstTapFullscreen(){
@@ -53,6 +66,15 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+/* r135: the portrait gate. Covers everything, including modals, and carries no new art. */
+#sfRotate { position: fixed; inset: 0; z-index: 99999; display: none; background: #2b2b2b; color: #e8dcc0;
+    flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; padding: 24px; }
+#sfRotate.on { display: flex; }
+#sfRotate .rot-box { width: 84px; height: 136px; border: 4px solid #c8a24a; border-radius: 12px;
+    animation: sfRotSpin 2.2s ease-in-out infinite; }
+#sfRotate p { margin: 0; font-family: 'Cinzel', serif; font-size: 19px; letter-spacing: .6px; }
+#sfRotate small { color: #9c8a6a; font-size: 13px; }
+@keyframes sfRotSpin { 0%,28% { transform: rotate(0deg); } 58%,100% { transform: rotate(-90deg); } }
 body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: safe center; justify-content: safe center; overflow: auto; padding: 0; overscroll-behavior: none; }   /* r134: "safe" centring keeps the overflow reachable when the window is under 1080px (a plain centred flex item hides its left edge with no way to scroll to it); overscroll-behavior stops Chrome Android pull-to-refresh firing from a drag that starts near the top */
 
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
@@ -60,6 +82,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    (default) and landscape (#frame.landscape) — flip the whole layout. Props are placed INSIDE
    zones by the data-driven LAYOUT table (see the script), never by hardcoded pixels. */
 #frame {
+    touch-action: none;   /* r135: no drag on the board can become a page scroll or a pinch */
     width: 1080px;
     height: 600px;
     flex-shrink: 0;   /* r134: body is a flex container, so without this any viewport under 1080px squashed the frame horizontally and broke the 1.8:1 aspect every LAYOUT fraction assumes */
@@ -211,7 +234,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* ore rail — #oreShelf now fills the right-edge rail zone as a vertical scroll column (Phase 1) */
 #oreShelf { position: relative; flex: 1 1 auto; min-height: 0; z-index: 3;
     display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 6px; padding: 8px 5px 8px;
-    overflow-y: auto; overflow-x: hidden; background: transparent; border: none; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+    overflow-y: auto; overflow-x: hidden; background: transparent; border: none; -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+    touch-action: pan-y; }   /* r135: the one region inside #frame that really scrolls */
 #oreShelf::-webkit-scrollbar { width: 5px; } #oreShelf::-webkit-scrollbar-thumb { background: #5a4526; border-radius: 3px; }
 #oreShelf .badge, #oreShelf .shelf-cap { display: none; }   /* no step badge, no 'Ores' header (anchor rail has neither) */
 .ore-slot { position: relative; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1px; padding: 5px 2px 4px; border-radius: 9px;
@@ -1547,6 +1571,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="dy-tabs" id="dyTabs"></div>
             <button class="dy-close" type="button" onclick="closeDiary()">Close</button>
         </div>
+    </div>
+    <!-- ===== r135: portrait gate ===== -->
+    <div id="sfRotate">
+        <div class="rot-box"></div>
+        <p>Turn your phone sideways</p>
+        <small>Sword Forge is played in landscape.</small>
     </div>
     <!-- ===== r129: the gift Bram leaves behind ===== -->
     <div id="sfGiftModal" class="sf-modal">
@@ -6873,14 +6903,14 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=
 // ============================================================
 function runLayoutSelfTest(){
     const EPS=0.08, fails=[];   // allows intentional edge bleeds (furnace pokes above, dragon/anvil bleed left) while still catching gross off-zone errors
-    const RECORDED={ stSmelt:{x:0.496,y:-1.218,w:0.243}, stMortar:{x:0.728,y:-0.744,w:0.243}, pestle:{x:0.837,y:0.30,w:0.053}, hammerTool:{x:0.302,y:0.381,w:0.148}, stAnvil:{x:0.169,y:-0.438,w:0.186}, bucket:{x:-0.010,y:-0.103,w:0.177}, mug:{x:0.034,y:0.188,w:0.067}, dragon:{x:0.014,y:-2.718,w:0.228} };   // hori-anchor LANDSCAPE composition, loop r20 (rebased to the 21% rail; frame-relative prop sizes preserved)
+    const RECORDED={ stSmelt:{x:0.496,y:-1.218,w:0.243}, stMortar:{x:0.728,y:-0.744,w:0.243}, pestle:{x:0.837,y:0.30,w:0.053}, hammerTool:{x:0.302,y:0.381,w:0.148}, stAnvil:{x:0.169,y:-0.438,w:0.186}, bucket:{x:-0.010,y:-0.103,w:0.177}, mug:{x:0.034,y:0.188,w:0.067}, dragon:{x:0.014,y:-3.683,w:0.228} };   // hori-anchor LANDSCAPE composition, loop r20 (rebased to the 21% rail; frame-relative prop sizes preserved). r135: dragon.y re-recorded from -2.718 to r93's deliberate -3.683 (up into the top-left corner) - the table had drifted, nothing mutates it at runtime
     if(typeof LAYOUT==='undefined') fails.push('LAYOUT undefined');
     if(typeof resolveLayout!=='function') fails.push('resolveLayout missing');
     if(!fails.length){
         const pk=Object.keys(LAYOUT.portrait).sort(), lk=Object.keys(LAYOUT.landscape).sort();
         if(pk.join(',')!==lk.join(',')) fails.push('parity: ['+pk+'] vs ['+lk+']');
         ['portrait','landscape'].forEach(o=>{ for(const k in LAYOUT[o]){ const b=resolveLayout(k,o,1,1);
-            const yMin = (o==='landscape') ? -2.80 : -EPS;   // r14: bench band is 24.5% of the frame, so props standing on the floor rise ~0.8 bench-heights over the map (overflow:visible); still catches gross off-zone errors
+            const yMin = (o==='landscape') ? (k==='dragon' ? -3.70 : -2.80) : -EPS;   // r14: bench band is 24.5% of the frame, so props standing on the floor rise ~0.8 bench-heights over the map (overflow:visible); still catches gross off-zone errors. r135: the dragon is not a bench prop - r93 lifted him into the top-left corner at -3.683, so he carries his own floor and the other seven keep the tighter one
             const xMin = (o==='landscape') ? -0.02 : -EPS;   // r37: the bucket bleeds off the left edge, as the reference art does
             if(!(b.x>=xMin && b.y>=yMin && b.x+b.w<=1+EPS && b.y<=1)) fails.push('in-zone '+o+'.'+k+' '+JSON.stringify(b)); } });
         const rk=Object.keys(RECORDED).sort(), lkk=Object.keys(LAYOUT.landscape).sort();

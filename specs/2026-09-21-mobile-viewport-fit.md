@@ -131,3 +131,62 @@ Emulation cannot settle viewport-meta questions: the desktop emulator applies mo
 only below 768 px. Run on: Chrome Android, Samsung Internet, iOS Safari, iOS Chrome, and the
 Instagram and WhatsApp in-app browsers. Record for each: chosen meta width, whether the whole frame
 is visible, and whether a drag works without the page scrolling.
+
+---
+
+## r135 — rotate gate, blanket touch-action, and the self-test's two stale numbers
+
+### Rotate gate (was "not solved here")
+
+**Decision: ask for a rotate, never force one.** `screen.orientation.lock('landscape')` works only
+inside fullscreen and only on Android, and it spins the game under a player holding the phone upright.
+The gate is a full-screen overlay instead, so it behaves the same on every browser including iPhone.
+
+```
+sfWantsRotate(innerW, innerH, coarsePointer) = coarsePointer AND innerH > innerW
+```
+
+`coarsePointer` is the same signal `sfWantsFullscreen` uses. A desktop window is whatever shape its
+owner dragged it to, so a tall one is never nagged. The overlay is `position: fixed; inset: 0` at
+`z-index: 99999`, above every modal, and carries **no new art** (a CSS box that tips 90 degrees), so it
+costs nothing against the payload budget. It re-evaluates on `resize` and on both
+`orientationchange` retries, alongside the fit.
+
+The game is **not** paused behind it. The frame keeps running and the gate simply uncovers it on
+rotate, which avoids a second piece of state that could get stuck on.
+
+### touch-action (was "not solved here")
+
+Fourteen surfaces already carried `touch-action: none` individually, and every new drag surface had to
+remember to. The inventory slots, the counter sword and the design track did not. `#frame` now refuses
+browser gestures wholesale, and `#oreShelf` keeps `pan-y` as the single region inside the frame that
+legitimately scrolls.
+
+### The layout self-test, RED since r93
+
+Both halves were stale, and neither was a runtime mutation:
+
+1. `RECORDED.dragon.y` was **-2.718**. r93 moved the dragon to **-3.683** deliberately, saying so in
+   its own inline comment ("up into the top-left corner"), and did not update the table.
+2. The landscape **in-zone floor** of `-2.80` is the bench-band allowance: props standing on the floor
+   rise about 0.8 bench-heights over the map. The dragon is not a bench prop any more, so he tripped a
+   bound that is correct for the other seven. Lowering it for everyone would blunt the check, so the
+   dragon carries his own floor of `-3.70`.
+
+`?test` is now `{pass: true, fails: []}`.
+
+### Verified
+
+| Case | Result |
+|---|---|
+| 375x812 portrait, coarse pointer | gate shown, covers the screen |
+| 740x360 landscape, coarse pointer | gate hidden, meta `width=1232`, frame 1080x600 fully visible |
+| `?test` at 740x360 | GREEN, no failures |
+| `node tooling/mobile-fit/fit.test.mjs` | GREEN, 9 fit + 2 properties + 6 fullscreen + **6 rotate** |
+
+### Note for the next patch script
+
+r134 added a **second `<script>` block** (the head fit code). The patch recipe's syntax check used a
+greedy `/<script>([\s\S]*)<\/script>/`, which now spans both blocks and swallows the
+`</script>...<script>` boundary in between, so it reports a bogus `SyntaxError: Unexpected token '<'`.
+Check each block separately.
