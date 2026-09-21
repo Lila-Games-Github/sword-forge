@@ -142,6 +142,24 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
 - [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
 - [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
 
+## 📱 Mobile compatibility (branch `sword-forge/mobile-compat`, 2026-09-21)
+
+- [x] **Viewport fit** — the frame no longer overflows a short landscape phone. The viewport width is
+      computed so 600 CSS px fills the visible height, and the slack becomes side bars. Decision +
+      numbers: `specs/2026-09-21-mobile-viewport-fit.md`. Test: `node tooling/mobile-fit/fit.test.mjs`.
+- [x] `#frame` gets `flex-shrink: 0` — any viewport under 1080 px used to crush the 1.8:1 aspect and
+      move every `LAYOUT` prop with it.
+- [ ] **Real-device matrix** — Chrome Android, Samsung Internet, iOS Safari, iOS Chrome, Instagram and
+      WhatsApp in-app browsers. Emulation cannot answer viewport-meta questions.
+- [ ] **Payload diet** — 80.8 MB over 74 assets, 348 MB decoded if resident. Above the iOS tab ceiling.
+      Worst file `assets/map/map_base.png` (2948x2948, 15.4 MB, 33 MB RAM).
+- [ ] **Rotate gate** for portrait, since the game is landscape-only.
+- [x] **Fullscreen on first tap** (r134b) recovers the height Chrome's URL bar holds: 1334 instead of
+      1715 on the owner's phone. Gated by `sfWantsFullscreen()` so a desktop mouse, an iPhone, or a
+      screen the frame already fits never triggers it. Orientation lock deliberately left out.
+- [ ] `touch-action: none` on drag surfaces, so a drag cannot turn into a page scroll.
+- [ ] Layout self-test is RED on `dragon.y` (runtime -3.683 vs recorded -2.718) — predates this branch.
+
 > ⚠️ **Scope note (2026-09-18):** the "🔜 Next up" / save-load items **earlier in this file** are **V1/V2 scope**
 > (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,
 > `shopLedger`) do not exist in the landscape loop-test, which is the build under active development —

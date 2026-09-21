@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const PORT = 5678;
+const PORT = Number(process.env.PORT) || 5678;   // honour the harness-assigned port so a second worktree can preview alongside the first
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
