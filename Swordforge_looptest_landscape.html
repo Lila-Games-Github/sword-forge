@@ -2,12 +2,58 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1080, user-scalable=no">
+<meta id="sfViewport" name="viewport" content="width=1080, user-scalable=no">
+<script>
+/* ---- r134: mobile fit. #frame is a fixed 1080x600 box and a viewport meta sizes the WIDTH only,
+   so a short landscape phone cut the bottom off (owner's device 2026-09-21: 1356x610 Chrome
+   Android, ~215 px of the frame below the fold). sfFitWidth() picks the viewport width at which
+   600 CSS px exactly fills the visible height: the browser zooms the whole page out and the spare
+   room lands in side bars, which is what the owner asked for. Nothing inside the frame changes,
+   so every LAYOUT fraction, every getBoundingClientRect and every clientX stays in 1080x600 space.
+   The math is unit tested by tooling/mobile-fit/fit.test.mjs, which reads this very function out
+   of this file, so a drifting edit here goes RED there. ---- */
+var SF_FRAME_W=1080, SF_FRAME_H=600, SF_VP_W=1080;
+function sfFitWidth(innerW, innerH, frameW, frameH){
+    if(!(innerW>0) || !(innerH>0)) return frameW;                /* never divide by zero, never return nonsense */
+    var need=Math.ceil(frameH*(innerW/innerH));                  /* innerW/innerH is the visible screen's aspect in any CSS space, so no device px are needed */
+    return need>frameW ? need : frameW;                          /* never below 1080: that is what squeezed the frame before */
+}
+function sfApplyFit(){
+    var want=sfFitWidth(window.innerWidth, window.innerHeight, SF_FRAME_W, SF_FRAME_H);
+    if(Math.abs(want-SF_VP_W)<=2) return;                        /* dead band: our own resize must not ping-pong on rounding */
+    SF_VP_W=want; document.getElementById('sfViewport').setAttribute('content','width='+want+', user-scalable=no');
+}
+sfApplyFit();                                                    /* runs while the head parses, so the player never sees the unfitted layout */
+window.addEventListener('resize', sfApplyFit);
+window.addEventListener('orientationchange', function(){ setTimeout(sfApplyFit,150); setTimeout(sfApplyFit,450); });   /* Android reports the old size for a beat after a rotate */
+
+/* ---- r134b: fullscreen on the first tap. Chrome Android keeps its URL bar on a page that cannot
+   scroll, so the fit above measures a short screen and the game comes out smaller than the phone
+   could show (1715 instead of 1334 on the owner's device, about 25% of the height). One fullscreen
+   request on the player's first tap gives that height back, and the resize it causes re-runs the
+   fit. It stays silent where it would be a surprise: a desktop mouse, a screen the frame already
+   fits, an iPhone (no element fullscreen), or a page that is fullscreen already. ---- */
+function sfWantsFullscreen(vpW, frameW, coarsePointer, hasApi, alreadyFullscreen){
+    if(!hasApi || alreadyFullscreen || !coarsePointer) return false;
+    return vpW > frameW;                                         /* the fit had to zoom out, so the screen is short and the browser chrome is costing real height */
+}
+var SF_FS_TRIED=false;
+function sfFirstTapFullscreen(){
+    if(SF_FS_TRIED) return;
+    var el=document.documentElement, req=el.requestFullscreen||el.webkitRequestFullscreen;
+    var coarse=!!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+    if(!sfWantsFullscreen(SF_VP_W, SF_FRAME_W, coarse, !!req, !!document.fullscreenElement)) return;
+    SF_FS_TRIED=true;                                            /* one attempt per load: a player who leaves fullscreen is not dragged back in */
+    try{ var p=req.call(el); if(p && p.catch) p.catch(function(){}); }catch(e){}
+}
+window.addEventListener('pointerdown', sfFirstTapFullscreen, true);   /* capture, and never preventDefault, so the tap still does its own job */
+document.addEventListener('fullscreenchange', sfApplyFit);
+</script>
 <title>Swordforge — Loop Test</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 0; }
+body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: safe center; justify-content: safe center; overflow: auto; padding: 0; overscroll-behavior: none; }   /* r134: "safe" centring keeps the overflow reachable when the window is under 1080px (a plain centred flex item hides its left edge with no way to scroll to it); overscroll-behavior stops Chrome Android pull-to-refresh firing from a drag that starts near the top */
 
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
 /* SKELETON: a CSS grid of named zones (hud / map / bench). Two grid-template-areas — portrait
@@ -16,6 +62,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame {
     width: 1080px;
     height: 600px;
+    flex-shrink: 0;   /* r134: body is a flex container, so without this any viewport under 1080px squashed the frame horizontally and broke the 1.8:1 aspect every LAYOUT fraction assumes */
     background: #14100a;
     position: relative; overflow: hidden;
     border-radius: 14px;
