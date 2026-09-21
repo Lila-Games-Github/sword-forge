@@ -86,3 +86,16 @@ trait fully visible when a clean run leaves it two-thirds covered.
 
 **Rule:** any fog or reveal measurement goes on a freshly loaded page, before any route is sampled. Keep
 geometry probes (which perturb the fog) and fog probes (which must not be perturbed) in separate loads.
+
+## A trait record has two shapes, and a hand-built fixture will agree with your bug
+
+`Swordforge_looptest_landscape.html` stores a trait as `{t, tier, val}` on the bench (the whole trait
+object) and as `{tid, tier, val}` on a finished sword, because `finishBlade()` flattens it. Code that
+reads `.tier` alone works on both and never notices; code that reaches for the trait's **id** must
+handle both, and r131 did not. The result was a grade that could never reach its top outcome.
+
+The reason it shipped is worse than the bug: the round's verification built its test sword **by hand,
+in the ingot shape**, so the fixture and the defect made the same wrong assumption and agreed. This is
+the third time a hand-built record has hidden something (see the missing `sword` field in r128's first
+pass). **Forge the object through the real path that makes it** — here `SFM`'s craft chain plus
+`finishBlade()` — rather than writing an object literal that looks close enough.

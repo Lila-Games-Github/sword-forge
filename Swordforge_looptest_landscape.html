@@ -5902,8 +5902,9 @@ function tutGarricForge(){
    this adds Garric's own +10g, and the gift on the best outcome. ---- */
 let GARRIC_SOLD_W=null;
 const GARRIC_TIP = 10;
+function traitIdOf(x){ return x ? (x.tid || (x.t && x.t.id) || null) : null; }   /* r133: sword vs ingot */
 function balancedTier(w){
-    const t = w && w.traits && w.traits.find(x=>x.t && x.t.id==='balanced');
+    const t = w && w.traits && w.traits.find(x=>traitIdOf(x)==='balanced');
     return t ? t.tier : 'Weak';
 }
 function garricGrade(w){

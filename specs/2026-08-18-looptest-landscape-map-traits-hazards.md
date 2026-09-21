@@ -5802,3 +5802,32 @@ Reputation, popularity and exp are untouched: he still takes the sword.
 Weak and plain: price 40g, **paid 0g, ledger row 0g**. Fine and designed: 57g price, 67g paid, 57g
 row. Epic with both: 74g price, 84g paid, parts unlocked. The same Weak sword sold to an ORDINARY
 customer still pays its full 40g, so the refusal is Garric's alone.
+
+## r133 — the grade never saw the trait
+
+Reported from play: a real Epic Balanced sword, sharpened and designed, graded **2**.
+
+A trait record has **two shapes** in this build. On the bench an ingot carries `{t, tier, val}` with the
+whole trait object; `finishBlade()` flattens it to `{tid, tier, val}` for the sword it pushes into the
+inventory. r131's `balancedTier()` tested `x.t.id`, which a crafted sword never has, so it always
+answered `'Weak'` and any designed-and-sharpened sword fell through to outcome 2. Outcome 3 was
+unreachable in real play.
+
+Two things hid it. `swordBestTier()`, the only other reader, looks at `.tier` alone and works on both
+shapes. And r131's own verification built its fixture by hand **in the ingot shape**, so the test and
+the bug agreed with each other. Recorded in LEARNINGS.
+
+`traitIdOf(x)` now answers for either shape and `balancedTier()` goes through it.
+
+### Verification
+
+Forged through the real craft path (`SFM.addOreDirect` → `ready` → `openGate` → `placeOnAnvil` →
+`grantTrait('balanced','Epic')` → `finishBlade()`), not by hand:
+
+- the sword's own record reads `[{tid:'balanced', tier:'Epic'}]` and `balancedTier()` returns **Epic**;
+- designed and sharpened it grades **3**, plain **2**, sharpened only **2**;
+- sold to Garric for real: 58g price, **68g paid**, parts unlocked, D137 then D138/D139;
+- the ingot shape still grades: Epic with both → 3, Weak with neither → 1;
+- a sword with no Balanced trait at all → 1.
+
+Console clean.
