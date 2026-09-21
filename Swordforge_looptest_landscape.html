@@ -3186,6 +3186,7 @@ function saveBlob(){
         quests:QUESTS.map(q=>({ id:q.id, progress:q.progress, done:q.done })),
         shop:{ open:SHOP_OPEN, racks:RACK_OPEN.slice() },
         rail:{ diary:RAIL_DIARY, quest:RAIL_QUEST },   /* r129 */
+        met:Object.assign({}, DIARY_MET),   /* r130 */
         books:books.map(b=>({ x:b.x, y:b.y, xp:b.xp, k:b.kind, t:b.taken?1:0 })),   // r74: full list - Sword Master adds books initMap() knows nothing about
         disc:traits.map(t=>t.discovered?1:0),
         fog:[...fogHoles.querySelectorAll('circle')].map(c=>[+c.getAttribute('cx'),+c.getAttribute('cy'),+c.getAttribute('r')]),
@@ -3214,6 +3215,7 @@ function applyState(o){
     SKILL_RANK = Object.assign({ bulk:0, master:0, vision:0, restore:0 }, o.skills||{});
     (o.quests||[]).forEach(x=>{ const q=questBy(x.id); if(q){ q.progress=x.progress||0; q.done=!!x.done; } });
     RAIL_DIARY = o.rail ? !!o.rail.diary : true; RAIL_QUEST = o.rail ? !!o.rail.quest : true; railUi();   /* r129 */
+    DIARY_MET = Object.assign({}, o.met||{});   /* r130 */
     INV.ingots=(o.inv&&o.inv.ingots||[]).map(g=>Object.assign({},g,{at:performance.now()}));
     INV.swords=(o.inv&&o.inv.swords)||[]; INV_SEQ=(o.inv&&o.inv.seq)||1;
     WORK=o.work||null;
@@ -3365,7 +3367,9 @@ function closeQuests(){ document.getElementById('sfQuestModal').classList.remove
 // story customers instead.
 const DIARY_SLOTS = [
     { l:4.07,  t:17.73, name:'Bram', img:'assets/customer/Bram.png', rew:'Craft a swift sword.' },
-    { l:26.77, t:17.73, name:'June', img:'assets/customer/June.png', rew:'Craft a sharp sword.' },
+    /* r130: June comes much later, so her page is gone. Garric takes the slot, but only once he
+       has said his name - before that the page is one of the blank '?' slots. */
+    { l:26.77, t:17.73, key:'garric', name:'Garric', img:'assets/customer/man4.png', rew:'Craft a Balanced sword.' },
     { l:53.10, t:17.73 },
     { l:75.80, t:17.73 },
     { l:4.07,  t:50.54 },
@@ -3388,10 +3392,12 @@ function dySlotGrid(box, list, onPick){
         else if(s.name) d.title=s.name;
         box.appendChild(d); });
 }
+let DIARY_MET={};   /* r130: which gated pages have been earned */
+function diaryPages(){ return DIARY_SLOTS.map(s => (s.key && !DIARY_MET[s.key]) ? { l:s.l, t:s.t } : s); }
 function buildDiary(){
     const box=document.getElementById('dySlots'), tabs=document.getElementById('dyTabs');
     if(!box||!tabs) return;
-    dySlotGrid(box, DIARY_SLOTS, dyChar);
+    dySlotGrid(box, diaryPages(), dyChar);   /* r130 */
     const tw=document.getElementById('dyTowns'); if(tw) dySlotGrid(tw, DIARY_TOWNS, null);   /* r129 */
     tabs.innerHTML='';
     DIARY_TABS.forEach((t,i)=>{ const b=document.createElement('button');
@@ -5259,7 +5265,18 @@ const DIALOGUE = {
     D116: "It has a list of so many towns! I wonder if we can go on an adventure later.",
     D117: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!",
     D118: "I also made something for you. To keep you motivated, I put together a small quest list.",
-    D119: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from."
+    D119: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from.",
+    D120: "*cough* *cough* ... You new here?",
+    D121: "Then why is your shop still so dirty? You came here yesterday! Bah, kids these days. If you can't clean, hire someone to do it for you!",
+    D122: "Then make some! Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
+    D123: "You should do as I say. Not everyone is lucky enough to have a wise mentor.",
+    D124: "You'll think? There is nothing to think about. Just do it. Humph, kids these days, no respect for their elders.",
+    D125: "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
+    D126: "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today, so consider this a little free wisdom.",
+    D127: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool.",
+    D128: "Craft a Balanced sword and show me! Also, I want to see how well you can design it. Make it sharp!",
+    D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
+    D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!"
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5451,6 +5468,11 @@ function tutBasementStep(){
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
 function tutScreenArrived(name){
     if(TUT_STAGE==='day2-forge'){ if(name==='forge') tutDay2Morning(); return; }   /* r120/r122 */
+    if(TUT_STAGE==='g-bell' || TUT_STAGE==='garric' || String(TUT_STAGE).indexOf('g-')===0){   /* r130b */
+        if(TUT_STAGE==='g-forge' && name==='forge') tutGarricForge();
+        else if(TUT_STAGE==='g-bell' && name==='customer')
+            setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
+        return; }
     if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0){ tutDay2Screen(name); return; }   /* r122/r127 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
         else if(name==='forge') tutExit('#panUp');
@@ -5789,6 +5811,66 @@ function tutBram2Gift(){
 }
 /* ---- r129: the diary. The window shows what was given, Claim puts the button in the rail, and the
    run walks page 1 -> page 2 -> Bram -> close, then the quest list. ---- */
+/* ---- r130: Garric. The bell lights with D119, he arrives unnamed, lectures down one of two
+   branches that rejoin, names himself, and asks for a Balanced sword. Nothing is guided after the
+   dragon's reply: the craft is the player's own. ---- */
+let TUT_GARRIC_STATE=null;
+function tutGarricBell(){
+    if(TUT_STAGE!==null) return;
+    TUT_STAGE='g-bell'; bellShow(true);
+    setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
+}
+function tutGarricArrive(){
+    if(TUT_STAGE!=='g-bell') return;
+    TUT_STAGE='garric'; TUT_GARRIC_STATE='awaiting'; tutUnglow(); sayHide();
+    CUSTOMER={ portrait:'assets/customer/man4.png', tid:'balanced', name:'Balanced' };
+    buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
+    garricWho('???');   /* he does not give his name until D126 */
+    garricButtons([['Yes, I came yesterday.', garricLecture]]);
+    counterBoxes();
+    custLine(document.getElementById('bramLine'), DIALOGUE.D120);
+}
+function garricWho(t){ const w=document.getElementById('custWho'); if(w) w.textContent=t; }
+function garricButtons(list){
+    const r=document.getElementById('bramResponses'); if(!r) return;
+    if(!list){ r.style.display='none'; return; }
+    r.style.display=''; r.innerHTML='';
+    list.forEach(([label,fn])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label;
+        b.addEventListener('click', fn); r.appendChild(b); });
+}
+function garricLecture(){
+    if(TUT_GARRIC_STATE!=='awaiting') return;
+    TUT_GARRIC_STATE='lectured'; typeDone(); garricButtons(null);
+    typeAfter(()=>garricButtons([
+        ["I don't have any money.", ()=>chooseGarric('broke')],
+        ["I'll think about it.",    ()=>chooseGarric('later')]]));
+    custLine(document.getElementById('bramLine'), DIALOGUE.D121);
+}
+/* both branches rejoin at D126, so the tail is written once */
+function chooseGarric(key){
+    if(TUT_GARRIC_STATE!=='lectured') return;
+    TUT_GARRIC_STATE='told'; typeDone(); garricButtons(null);
+    const branch = key==='broke' ? ['D122','D123'] : ['D124','D125'];
+    custSay(branch.concat(['D126','D127','D128']), tutGarricOrder);
+}
+function garricNamed(){
+    DIARY_MET.garric=true; garricWho('GARRIC');
+}
+function tutGarricOrder(){
+    TUT_GARRIC_STATE='asked'; TUT_STAGE='g-forge';
+    /* there is an order to fill now, so the counter's own buttons come back */
+    (()=>{ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
+        if(se){ se.disabled=false; se.style.display=''; } if(de){ de.disabled=false; de.style.display=''; } })();
+    updateTutorialCounterUi();
+    setTimeout(()=>tutExit('#panRight'), 0);
+}
+function tutGarricForge(){
+    if(TUT_STAGE!=='g-forge') return;
+    TUT_STAGE='g-talk'; tutExit(null);
+    sayQueue('D129','D130');
+}
+/* the last thing the script does is get out of the way: no arrow, no glow, no stage */
+function tutGarricHandsOff(){ sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow(); }
 function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
 function claimGift(){
     const m=document.getElementById('sfGiftModal'); if(m) m.classList.remove('show');
@@ -5917,8 +5999,25 @@ function chooseFire(key){
 }
 /* a tap finishes the line that is typing, then a second tap moves to the one waiting behind it */
 function custMore(on){ const d=document.querySelector('.cs-bram-dlg'); if(d) d.classList.toggle('more', !!on); }
+/* r130: the adventurer queued exactly ONE line behind the one being typed. Garric queues four, so
+   the same tap-to-continue now drains a list. TUT_FIRE_NEXT is left as it was - her beat still
+   runs through it - and the list is simply checked first. */
+let CUST_Q=[], CUST_Q_DONE=null;
+function custSay(ids, done){
+    CUST_Q=ids.slice(1); CUST_Q_DONE=done||null;
+    custLine(document.getElementById('bramLine'), DIALOGUE[ids[0]]);
+    custMore(CUST_Q.length>0);
+}
+function custQNext(){
+    const id=CUST_Q.shift();
+    custLine(document.getElementById('bramLine'), DIALOGUE[id]);
+    if(id==='D126') garricNamed();   /* the nameplate turns over on the line that says it */
+    custMore(CUST_Q.length>0);
+    if(!CUST_Q.length && CUST_Q_DONE){ const fn=CUST_Q_DONE; CUST_Q_DONE=null; typeAfter(fn); }
+}
 function custDlgTap(){
-    if(TYPE_T){ typeDone(); custMore(!!TUT_FIRE_NEXT); return; }
+    if(TYPE_T){ typeDone(); custMore(CUST_Q.length>0 || !!TUT_FIRE_NEXT); return; }
+    if(CUST_Q.length){ custQNext(); return; }   /* r130 */
     if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null; custMore(false);
         typeAfter(()=>tutFireAsked());
         custLine(document.getElementById('bramLine'), DIALOGUE[id]); return; }
@@ -6208,7 +6307,8 @@ function counterBoxes(){
     if(resp) resp.style.display = resp.onclick ? 'flex' : 'none';   /* r106 */
     if(!here || introOn){ const p=document.querySelector('#csPanel .cs-dlg p'); if(p && !here) p.textContent=''; }
     /* nothing to sell while a scripted customer is still saying what they want */
-    const quiet = introOn && TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked';
+    const quiet = introOn && ((TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked')
+                          || (TUT_GARRIC_STATE && TUT_GARRIC_STATE!=='asked'));   /* r130 */
     if(quiet) document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{ b.style.display='none'; });
     return { here:here, introOn:introOn, quiet:quiet };
 }
@@ -6246,6 +6346,7 @@ function ringBell(){
     if(TUT_STAGE==='bell') tutBellRung();                     /* the scripted first customer */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
     else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */
+    else if(TUT_STAGE==='g-bell') tutGarricArrive();          /* r130 */
     else nextCustomer();
     bellFx();
 }
@@ -6262,7 +6363,7 @@ function updateTutorialCounterUi(){
     /* r109: 'asked' used to drop her panel, which blanked the fire-sword request the instant the
        dragon answered and left the counter's own empty box in its place. She is still waiting for
        that sword, so the panel stays while TUT_FIRE_STATE is set at all. */
-    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || !!TUT_FIRE_STATE || !!TUT_BRAM2_STATE;   /* r104/r109/r127 */
+    const scripted = (!!TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') || !!TUT_FIRE_STATE || !!TUT_BRAM2_STATE || !!TUT_GARRIC_STATE;   /* r104/r109/r127/r130 */
     if(bi) bi.classList.toggle('show', SF_SCREEN==='customer' && !!scripted);
     counterBoxes();   /* r105 */
 }
@@ -6464,7 +6565,8 @@ const TUT_SCREEN_STAGES = ['counter-guide','counter','base-table','base-tap','ba
                            'd2-gale-sell','d2-gale-sell2','d2-gale-paid','d2-praise',
                            'bram2','bram2-forge','bram2-sell','bram2-sell2','bram2-paid',
                            'gift','gift-open','gift-p2','gift-bram','gift-close','gift-read',
-                           'gift-quest','gift-quest2'];   /* ...r127/r129 */
+                           'gift-quest','gift-quest2',
+                           'g-bell','garric','g-forge'];   /* ...r129/r130 */
 function onScreenDragon(){
     if(SF_SCREEN==='bedroom') return TUT_STAGE==='bed';   /* r118 */
     if(SF_SCREEN==='basement' || SF_SCREEN==='cave') return TUT_SCREEN_STAGES.indexOf(TUT_STAGE)>=0;   /* r104 */
@@ -6576,6 +6678,8 @@ function say(id){
     if(id==='D58') setTimeout(tutBell2, 0);   /* r104: the bell is armed with the line */
     if(id==='D91') setTimeout(tutDay2Skill, 0);   /* r122: the button lights with the line that asks */
     if(id==='D118') setTimeout(tutQuestStep, 0);   /* r129 */
+    if(id==='D119') setTimeout(tutGarricBell, 0);   /* r130: the bell lights with the last quest line */
+    if(id==='D130') setTimeout(()=>sayChoose([{ label:'Let me try to do it on my own.', fn:tutGarricHandsOff }]), 0);   /* r130 */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */

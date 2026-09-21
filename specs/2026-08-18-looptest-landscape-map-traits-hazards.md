@@ -5687,3 +5687,57 @@ Save round-trip returns `rail:{diary:true,quest:true}`; the same blob with `rail
 A clean load plus `applyState(saveBlob())` throws nothing. (The two `'seg'` errors seen during the
 first pass came from the synthetic bram2 state that test had forced onto a freshly rebuilt map, not
 from the build — a clean round-trip is silent.)
+
+## r130 — Garric, and a customer panel that can hold more than two lines
+
+**The conversation.** Garric is built on the adventurer's shape (r104): the scripted `#bramIntro`
+panel, `CUSTOMER` set by hand so `buildScreenProps` draws **man4**, and the response buttons rebuilt
+per speaker by `garricButtons(list)`. `CUSTOMER.tid` is set to **balanced**, so his order is a real
+counter order and the ordinary sale path applies when the sword comes back.
+
+**The panel now queues a list, not one line.** `custDlgTap()` held exactly one line behind the one
+being typed (`TUT_FIRE_NEXT`), which is all the adventurer needed. Garric queues four. `custSay(ids,
+done)` types the first and parks the rest in `CUST_Q`; the tap drains that list, then falls through to
+`TUT_FIRE_NEXT` unchanged, so her beat still runs on its own code. `custMore()` keeps the
+tap-to-continue marker honest against the remaining count.
+
+**Both branches rejoin.** `chooseGarric(key)` picks `['D122','D123']` or `['D124','D125']` and
+concatenates `['D126','D127','D128']`, so the shared tail is written once. `garricNamed()` fires from
+the queue drain on D126: the nameplate flips ??? → GARRIC and `DIARY_MET.garric` is set.
+
+**The diary is data-gated.** June's slot is gone (she arrives much later) and Garric takes it, but
+`DIARY_SLOTS` entries with a `key` are blanked by `diaryPages()` until `DIARY_MET[key]` is set, so
+before D126 that slot is one of the "?" pages. `DIARY_MET` rides the save as `met`.
+
+**r130b: the dispatcher gap, again.** The `g-forge` hook first went in beside `bram2`'s, which lives
+in `tutDay2Screen` — and `tutScreenArrived` only routes there for stages starting `d2-` or `bram2`,
+then returns early unless a sharp or fire run is on. Walking to the forge did nothing at all. Same
+shape as the r127 gap; the `g-` stages now have their own branch at the top of the dispatcher. That
+branch also **re-applies the bell glow** on arriving at the counter, because `buildScreenProps`
+rebuilds the prop on every screen change and leaving the counter dropped the only pointer that step
+has. (Verified: the glow was gone after one round trip before the fix, present after.)
+
+**The script then stops.** D130 carries a single `sayChoose` answer; taking it runs
+`tutGarricHandsOff()`, which hides the bubble and clears the stage, the arrow and every glow. D130 is
+the last key in `DIALOGUE`, so `TUT_SEEN_END` flips and the dragon is a pet from here. Nothing past
+this point is built: the three outcomes by quality are not specified yet.
+
+### Verification
+
+Entered through the real chain (`tutBram2Sold` → the sale response → Claim → the diary run → the quest
+window → D119), then real clicks:
+
+- D119 lights the bell and sets `g-bell`; a forge-and-back round trip leaves the bell **still glowing**;
+- ringing it brings man4 with the nameplate **???**, the panel up, and one response button;
+- that button plays D121 and puts up the two branch buttons;
+- **branch A** taps through D122, D123, D126, D127, D128; **branch B** through D124, D125 and the same
+  tail; the "more" marker is true for every line but the last in both;
+- the nameplate reads **GARRIC** from D126 and `DIARY_MET.garric` is set on the same line;
+- D128 leaves `g-forge`, `TUT_GARRIC_STATE='asked'`, SELL and DENY restored, and `#panRight` blinking;
+- a real click on the pan button plays D129, then D130 offers the one answer;
+- taking it leaves stage `null`, no blink, no glow, `TUT_ARROW` null, `tutOver()` true;
+- returning to the counter still shows man4, GARRIC and an open order;
+- the diary's People I met reads `["Bram","Garric","?",...]` — **no June** — and his page carries his
+  portrait and "Craft a Balanced sword."; the save round-trips `met:{garric:true}`.
+
+Console clean for the whole run.

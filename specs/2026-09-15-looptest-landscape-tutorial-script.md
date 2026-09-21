@@ -1114,3 +1114,101 @@ and the dragon becomes a pet from here.*
 - Both rail buttons **hidden** until this beat.
 - The gift grants **only the diary** — no gold, no exp.
 - Quest progress is **not** reset, so the list can open part-done.
+
+## r130 — Garric, the great Forgemaster (D120–D130)
+
+*Trigger for the whole beat: the bell lights and glows with **D119**. Ringing it brings **man4**, whose
+nameplate reads **"???"** until he names himself.*
+
+**D120** — ??? 
+> "*cough* *cough* ... You new here?"
+
+*Response: **"Yes, I came yesterday."***
+
+**D121** — ???
+> "Then why is your shop still so dirty? You came here yesterday! Bah, kids these days. If you can't
+> clean, hire someone to do it for you!"
+
+*Two responses. Both branches rejoin at D126.*
+
+**Branch A — "I don't have any money."**
+
+**D122** — ???
+> "Then make some! Once you have a clean and well-stocked shop, you can display your swords and people
+> will keep coming in to buy."
+
+**D123** — ???
+> "You should do as I say. Not everyone is lucky enough to have a wise mentor."
+
+**Branch B — "I'll think about it."**
+
+**D124** — ???
+> "You'll think? There is nothing to think about. Just do it. Humph, kids these days, no respect for
+> their elders."
+
+**D125** — ???
+> "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming
+> in to buy."
+
+**Both branches continue:**
+
+**D126** — Garric
+> "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today,
+> so consider this a little free wisdom."
+
+*The nameplate turns over to **GARRIC** on this line, and his page appears in the diary's People I met.*
+
+**D127** — Garric
+> "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to
+> waste my wisdom on a fool."
+
+**D128** — Garric
+> "Craft a Balanced sword and show me! Also, I want to see how well you can design it. Make it sharp!"
+
+*He stays at the counter with the order open. The forge exit blinks.*
+
+**D129** — Dragon
+> "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking
+> about? All he did was tell us to clean the shop!"
+
+**D130** — Dragon
+> "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!"
+
+*Response: **"Let me try to do it on my own."** After it the script stops: no arrow, no glow, no stage.
+The player crafts whatever they like, at whatever quality, sharpened or not. D130 is the last key in
+`DIALOGUE`, so the dragon becomes a pet here.*
+
+### Wording corrected against the owner's draft
+
+| Draft | Shipped | Why |
+|---|---|---|
+| "*cough *cough - you new here?" | "*cough* *cough* ... You new here?" | the asterisks never closed; the hyphen was doing an ellipsis's work |
+| "yesterday!! Omg - kids these days." | "yesterday! Bah, kids these days." | one exclamation mark; "Omg" is internet slang in a medieval forgemaster's mouth; sentence capital |
+| "I don't have money" | "I don't have any money." | missing article and full stop |
+| "Than make some!" | "Then make some!" | typo |
+| "well stocked shop" (twice) | "well-stocked shop" | compound adjective before a noun |
+| "lucky enough to get wise mentors" | "lucky enough to have a wise mentor" | "get mentors" reads like collecting them; the plural undercuts him meaning himself |
+| "Just to it." | "Just do it." | typo |
+| "no respect for the elders" | "no respect for their elders" | fixed idiom |
+| "Anyways" | "Anyway" | informal, and it fights "the great Forgemaster" |
+| "keep 'sharing,' I'll" | "keep 'sharing', I'll" | comma outside the quote |
+| "waste my wisdom on a moron" | "on a fool" | "moron" is modern and the harshest word in the script |
+| "Craft a balanced sword" | "Craft a **Balanced** sword" | Balanced is a trait name; every other trait is capitalised |
+| "What a cranky dude." | "What a cranky old man." | "dude" is modern |
+| "show him how hot we are" | "show him what we are made of" | read as modern slang rather than a forge pun |
+| "muwahaha" | "muahaha" | standard spelling; the draft looked like a typo |
+
+### Owner's answers
+
+- **"Make it sharp!"** — there is no Sharp trait, so this is the grindstone. Three outcomes are planned
+  by quality; the player is free to craft any quality and to sharpen or not. **The outcomes are not
+  specified yet, so nothing is built past D130.**
+- The dirty shop is art that does not exist yet. The current shop images are placeholders; the final
+  game has a dirty-looking shop, so the line is planted for it.
+- Nameplate "???" until D126, then GARRIC, and he gets a diary page.
+- **June's diary page is removed** — she arrives much later.
+
+### Open
+
+- The three sale outcomes by quality. Selling Garric a sword today falls through to the ordinary
+  counter sale.
