@@ -818,6 +818,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sw-ghost { position: absolute; z-index: 120; width: 74px; aspect-ratio: 1; pointer-events: none;
     transform: translate(-50%,-50%) rotate(-45deg); filter: drop-shadow(0 4px 8px rgba(0,0,0,.6)); }
 .sw-ghost img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* r128: the ingot's ghost is the orb itself, so it does not inherit the blade's -45deg */
+.sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
+.sw-ghost.ingot .inv-orb { width: 100%; }
+#stAnvil.drop-hot .anvil { filter: drop-shadow(0 0 12px rgba(255,190,90,.95)) brightness(1.12); }
 #sfToast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); z-index: 60; display: none;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #ffe08a; white-space: nowrap;
     background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 10px; padding: 8px 16px;
@@ -4842,6 +4846,28 @@ function stashIngot(){
     hint('Ingot stored. It keeps its ores, its route and its traits &mdash; but it <b>cools</b> while it sits.');
     return true;
 }
+/* r128: drag an ingot out of the bag and drop it on the anvil. */
+function anvilHot(on){ const a=document.getElementById('stAnvil'); if(a) a.classList.toggle('drop-hot', !!on); }
+function overAnvilEvent(ev){
+    const b=benchEl().getBoundingClientRect();
+    return overTarget({ x:ev.clientX-b.left, y:ev.clientY-b.top }, 'anvil');
+}
+function startIngotDrag(g,e){
+    if(SF_SCREEN!=='forge'){ toast('Take the ingot to the <b>forge</b>'); return; }
+    if(benchBusy()){ toast('Finish or store what is on the bench first'); return; }
+    e.preventDefault();
+    const frame=document.getElementById('frame'), fr=frame.getBoundingClientRect();
+    const ghost=document.createElement('div'); ghost.className='sw-ghost ingot';
+    const orb=document.createElement('div'); orb.className='inv-orb'+(invCooled(g)>2?' hot':'');
+    ghost.appendChild(orb); frame.appendChild(ghost);
+    const move=ev=>{ ghost.style.left=(ev.clientX-fr.left)+'px'; ghost.style.top=(ev.clientY-fr.top)+'px';
+        anvilHot(overAnvilEvent(ev)); };
+    move(e);
+    const up=ev=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up);
+        ghost.remove(); anvilHot(false);
+        if(overAnvilEvent(ev)) restoreIngot(g.id); };
+    document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
+}
 function restoreIngot(id){
     if(benchBusy()){ hint('Finish or store the ingot on the bench before taking another one out.'); return; }
     const i=INV.ingots.findIndex(g=>g.id===id); if(i<0) return;
@@ -4887,7 +4913,7 @@ function shelfIngots(shelf){
         slot.title='Ingot \u2014 '+g.segs.length+' ore'+(g.segs.length===1?'':'s')+(g.traits.length?', '+g.traits.length+' trait'+(g.traits.length===1?'':'s'):'')+(hot?', still warm':', cold');
         slot.innerHTML='<div class="inv-orb'+(hot?' hot':'')+'"></div>'+(syms?'<span class="inv-tag">'+syms+'</span>':'')+
             '<span class="ore-count">x'+g.segs.length+'</span>';
-        slot.addEventListener('pointerdown', ()=>restoreIngot(g.id));
+        slot.addEventListener('pointerdown', e=>startIngotDrag(g,e));   /* r128 */
         shelf.appendChild(slot); });
     return INV.ingots.length;
 }

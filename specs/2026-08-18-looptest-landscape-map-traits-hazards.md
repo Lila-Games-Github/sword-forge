@@ -5606,4 +5606,30 @@ Console clean.
 ### Open
 
 - **The gift does not exist** — D114 promises one, the response accepts it, nothing is granted.
-- **D113 says "drag", the game wants a tap** — `restoreIngot` fires on pointerdown over the slot.
+- ~~D113 says "drag", the game wants a tap~~ — settled in r128.
+
+---
+
+## r128 — an ingot is dragged to the anvil, not tapped
+
+D113 says "drag it to the anvil" and the slot restored it on a bare `pointerdown`, so the line
+described something the game did not do. The owner's call was to make the game match the line.
+
+`startIngotDrag()` is modelled on `startSwordDrag()`: a ghost of the orb follows the pointer, the anvil
+lights through `#stAnvil.drop-hot` while it is over it, and the drop only restores when it lands there.
+Off the forge screen, or with the bench already busy, it refuses with a toast instead of failing
+silently — `restoreIngot`'s own refusal used `hint()`, which has been dead since r34.
+
+### Verification
+
+Driven with real `PointerEvent`s, not by calling the handler:
+
+- **down** on the slot creates the ghost;
+- **move** over the anvil lights it (`drop-hot`);
+- **up** there restores `swift:Epic` to `onAnvil`, empties the bag, removes the ghost, clears the
+  highlight and fires D44;
+- **up anywhere else** leaves the ingot in the bag with no melt and the ghost removed;
+- a **bare tap** no longer restores anything, which is the point.
+
+Console clean for this load; the two retained errors visible afterwards are from an earlier load's
+injected test fixture (a hand-built ingot with no `sword` field), not from the build.

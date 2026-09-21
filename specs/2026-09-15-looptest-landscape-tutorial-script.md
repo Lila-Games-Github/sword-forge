@@ -1055,6 +1055,5 @@ ingot to the anvil.*
 
 - **The gift does not exist.** D114 promises one and the response accepts it, but nothing is granted —
   no item, no gold, no recipe. The owner has not said what it is.
-- **D113 says "drag", the game wants a tap.** An ingot returns to the anvil on a **tap** of its
-  inventory slot (`restoreIngot`), not a drag. The arrow points slot → anvil so the destination reads
-  correctly, but the verb does not match. Either reword the line or make the ingot slot draggable.
+- ~~D113 says "drag", the game wants a tap.~~ **Settled in r128:** the ingot slot is now a real drag
+  onto the anvil, so the line describes what the game does.
