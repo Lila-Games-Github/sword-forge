@@ -3911,13 +3911,22 @@ function startPrep(oreId){ if(!oreLeft(oreId)) return;
    FULL; 'fire-mang' takes one more manganese, capped - the cap is what makes the result Fine
    rather than Epic, which is exactly what D76 tells the player. */
 const GRIND_FIRE_CAP = 0.70;
-function grindCap(){ return (TUT_STAGE==='fire-mang' && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
+function grindCap(){ if(rawOnly()) return 0;   /* r125: this one goes in unground */
+    return (TUT_STAGE==='fire-mang' && prep && prep.ore==='manganese') ? GRIND_FIRE_CAP : 1; }
 /* which ore the scripted craft will accept next, and how many of it are already in */
 const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-shape','fire-forge'];
 /* r123: the swift craft. Two copper, both ground full, and nothing else. */
-const D2_CRAFT_STAGES=['d2-copper','d2-hammer'];
+/* r125: the gale run adds three more accepting stages. Counts are against the route so far, so a
+   reload or a re-entry cannot desynchronise them. */
+const D2_CRAFT_STAGES=['d2-copper','d2-hammer','d2-gale1','d2-gale-hammer','d2-gale2','d2-gale3','d2-gale-work'];
+function copperIn(){ return segs.filter(g=>g.ore==='copper').length; }
+/* the last copper goes in RAW - grinding it would overshoot - so that stage inverts the rule */
+function rawOnly(){ return TUT_STAGE==='d2-gale3'; }
 function fireOreWanted(){
-    if(TUT_STAGE==='d2-copper') return segs.filter(g=>g.ore==='copper').length<2 ? 'copper' : false;
+    if(TUT_STAGE==='d2-copper') return copperIn()<2 ? 'copper' : false;
+    if(TUT_STAGE==='d2-gale1')  return copperIn()<3 ? 'copper' : false;
+    if(TUT_STAGE==='d2-gale2')  return copperIn()<4 ? 'copper' : false;
+    if(TUT_STAGE==='d2-gale3')  return copperIn()<5 ? 'copper' : false;
     if(D2_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) return false;
     if(TUT_STAGE==='fire-mang') return 'manganese';
     if(FIRE_STAGES.indexOf(TUT_STAGE)<0) return null;   /* not this craft: no gate at all */
@@ -3927,18 +3936,24 @@ function fireOreWanted(){
     if(n('manganese')<1) return 'manganese';
     return false;   /* all three are in - nothing more goes in this half */
 }
-function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='d2-copper'; }   /* r111/r123 */
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind'
+    || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2'; }   /* r111/r123/r125 */
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
     if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
+    if(rawOnly() && prep.grind>0.001){ toast('This one goes in <b>unground</b>'); return; }   /* r125 */
     const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
     else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
+    else if(String(_fireStage).indexOf('d2-gale')===0) tutGaleSmelted();   /* r125 */
      hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
+    const _galeStage = TUT_STAGE;   /* r125 */
     if(fullGrindOnly()){ toast('Not straight in: this one goes to the <b>grindstone</b> first'); return; }
-    if(fireOreWanted()!==null){ toast('Not straight in: grind it first'); return; }   /* r111 */
-    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+    if(fireOreWanted()!==null && !rawOnly()){ toast('Not straight in: grind it first'); return; }   /* r111/r125 */
+    if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
+    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none';
+    if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
@@ -4750,6 +4765,7 @@ function tick(now){
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         if(!gateReady && melt.heat>=HEAT_READY) markGateReady(); updateGauges(); }
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
+    if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireCapped();   /* r111 */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
     const fireOnAnvil = dragonBreathing && fireHitsAnvil();
@@ -4770,7 +4786,7 @@ function tick(now){
     } else {
         if(retreating) retreating=false;
         if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);
-            tutFireSpot(); tutFireReached(); tutDay2Pull();   /* r111/r124 */   // hammer never fights the fire
+            tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd();   /* r111/r124/r125 */   // hammer never fights the fire
             if(TUT_STAGE==='hammer'){ TUT_STRIKE+=dt; if(TUT_STRIKE>=TUT_STRIKE_BEAT) tutStrikeStep(); }
             fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
     }
@@ -5142,7 +5158,12 @@ const DIALOGUE = {
     D96: "Take it to the anvil and start hammering.",
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
     D98: "Stop! This looks perfect.",
-    D99: "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But don't worry. You can store it for later."
+    D99: "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But don't worry. You can store it for later.",
+    D100: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further.",
+    D101: "Grind 3 copper. Let's see how far we can go.",
+    D102: "Use the hammer to travel along the path on the map.",
+    D103: "Put it back in the smelter and add one more ground copper.",
+    D104: "See the '?'! We are almost there. Add one more copper."
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -5529,7 +5550,30 @@ function tutSwiftGot(){
     sayQueue('D99');
     setTimeout(()=>tutArrow('#orb', '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
 }
-function tutSwiftStored(){ if(TUT_STAGE==='d2-store'){ TUT_STAGE=null; tutArrow(null,null); tutUnglow(); } }
+function tutSwiftStored(){ if(TUT_STAGE==='d2-store') tutGaleStart(); }   /* r125 */
+/* ---- r125: the gale run. Three ground copper, hammer out, then one more ground and one raw. ---- */
+function tutGaleStart(){
+    TUT_STAGE='d2-gale1'; tutArrow(null,null); tutUnglow();
+    sayQueue('D100','D101');
+}
+function tutGaleSmelted(){
+    if(TUT_STAGE==='d2-gale1' && fireOreWanted()===false){
+        TUT_STAGE='d2-gale-hammer'; sayQueue('D102'); return; }
+    if(TUT_STAGE==='d2-gale2' && fireOreWanted()===false){
+        TUT_STAGE='d2-gale3'; tutArrow(null,null);
+        const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(g) tutSpotOn(g);   /* highlight it */
+        sayQueue('D104'); return; }
+    if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
+        TUT_STAGE='d2-gale-work'; tutSpotOn(null); tutArrow(null,null); return; }
+}
+/* the end of the three-ore route: back to the smelter for a fourth */
+function tutGaleEnd(){
+    if(TUT_STAGE!=='d2-gale-hammer') return;
+    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    TUT_STAGE='d2-gale2';
+    sayQueue('D103');
+    setTimeout(()=>tutArrow('#orb', '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.16, back:26 }), 0);
+}
 function tutDay2Copper(){
     if(TUT_STAGE!=='d2-back') return;
     TUT_STAGE='d2-copper'; tutExit(null);

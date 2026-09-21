@@ -933,3 +933,59 @@ pointed at the metal.*
 
 *Trigger: the quench, which lands **swift Epic**. An arrow runs from the metal to the inventory; dropping
 it there stores it as an ingot carrying its trait.*
+
+---
+
+## The gale run — D100–D104
+
+**D100** — Dragon
+> "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to
+> travel further."
+
+*Trigger: storing the swift ingot.*
+
+*Note: the owner wrote "Maybe, we need"; the comma is dropped.*
+
+**D101** — Dragon
+> "Grind 3 copper. Let's see how far we can go."
+
+*The smelter takes **copper only, exactly three, ground full**. Iron, a raw drop, a part-ground ore and
+a fourth copper are all refused.*
+
+**D102** — Dragon
+> "Use the hammer to travel along the path on the map."
+
+*Trigger: the third copper landing in the smelter.*
+
+**D103** — Dragon
+> "Put it back in the smelter and add one more ground copper."
+
+*Trigger: the sword reaching the end of the three-ore route, 152 short of Gale. An arrow points the
+metal back at the furnace, and only a fourth **ground** copper is accepted.*
+
+**D104** — Dragon
+> "See the '?'! We are almost there. Add one more copper."
+
+*Trigger: the fourth copper going in, which leaves the route end **28 from Gale**. Gale is **ringed**.
+The fifth copper must go in **unground** — the grindstone is dead for it and a ground one is refused.*
+
+*Note: the owner wrote "See the '?', we are almost there." — a comma splice.*
+
+### Open: the fifth copper overshoots by 37
+
+Measured along the copper line, which runs from the spawn straight through Swift (220) to Gale (526):
+
+| route | reach from spawn | to Gale | |
+| --- | --- | --- | --- |
+| 3 ground | 374 | 152 | far short |
+| 4 ground | 499 | **28** | reached, `Weak` — this is the "almost there" |
+| 4 ground + 1 raw | **563** | **37** | **past it, out of reach** |
+
+One raw copper is worth 64 of reach and only 28 were needed, so the fifth ore carries the sword 37 past
+Gale, just outside the 34 that counts as reached. The run is still completable, and lands well: pulling
+back with the dragon's fire — taught two beats earlier in D97 — reaches **Epic at 35–40 of pull**
+(closest 8.0). But nothing says so, and the trait shows no highlight until the pull begins.
+
+Two ways to settle it: leave the pull as the finisher, which is consistent with D97 and gives Epic; or
+move Gale out to 563 so the fifth ore lands on it, which costs the "almost there" moment (the fourth
+ore would then sit 64 away rather than 28).

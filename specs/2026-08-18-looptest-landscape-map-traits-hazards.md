@@ -5516,3 +5516,41 @@ Driven through the **real `tick()`**, with `fireHitsAnvil` stubbed true so the p
 - storing puts an ingot in the INGOTS tab carrying `swift:Epic`, and the run ends.
 
 Screenshot of D97 with the arrow from the dragon to the anvil. Console clean.
+
+---
+
+## r125 — the gale run (D100–D104)
+
+Owner-supplied beat: three ground copper, hammer out, one more ground, then one **unground**.
+
+### The gate inverts for the last ore
+
+`d2-gale1/2` require a full grind, exactly as `d2-copper` does. `d2-gale3` is the first stage that wants
+the opposite: `rawOnly()` sets `grindCap()` to **0**, so the wheel does nothing at all, and `addPrep()`
+refuses anything above a whisker of grind while `addOreDirect()` is allowed. Counts are taken from the
+route (`copperIn()`), not from a tally, so nothing can desynchronise them.
+
+Verified: iron refused; raw drop refused during the ground stages; 0.50 grind refused with the ore still
+on the wheel; a fourth copper refused at the three-ore stage; at the raw stage the wheel is capped at 0
+and stays 0 however long it is turned, a ground copper is refused, and the raw one is accepted.
+
+### Verification
+
+Storing the swift ingot gives D100, D101. Three ground copper give D102. Hammering to the route end
+gives D103 and points the metal at the furnace. A fourth ground copper gives D104 and **rings Gale**.
+The fifth, raw, closes the run. Console clean.
+
+### Open: the fifth copper overshoots Gale by 37
+
+| route | reach from spawn | to Gale |
+| --- | --- | --- |
+| 3 ground | 374 | 152 |
+| 4 ground | 499 | **28** (`Weak`, reached) |
+| 4 ground + 1 raw | **563** | **37** (outside `ALIGN_MAX` 34) |
+
+A raw copper is worth **64** of reach and only **28** were wanted. The run still finishes, and finishes
+well — the fire-pull taught in D97 gives **Epic at 35–40 of pull**, closest 8.0 — but no line says to
+pull, and Gale shows no reach highlight until it starts.
+
+Owner's call: leave the pull as the finisher (consistent with D97), or move Gale out to 563 so the fifth
+ore lands on it, at the cost of the "almost there" beat (the fourth ore would sit 64 out, not 28).
