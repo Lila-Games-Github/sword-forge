@@ -2459,8 +2459,13 @@ function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
     COUNTER=sw; refreshCounter();
     toast('&#9876;&#65039; ' + sw.shape + ' on the counter &mdash; ' + swordPrice(sw) + 'g');
+    /* r159: the drag has been done, so the pointer asking for it goes. Every scripted sale draws
+       the same sword-to-counter arrow (sell2, sell3, bram2-sell2, d2-gale-sell2), and only Bram's
+       branch below used to retire it - the rest leaned on noteAction() wiping the arrow on the
+       drop, which r157 stopped doing. Clearing it here covers all of them. */
+    tutArrow(null,null);
     if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24');
-        tutArrow(null,null); setTimeout(()=>tutExit('#csPanel .cs-sell'), 0);   /* r148 */ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
+        setTimeout(()=>tutExit('#csPanel .cs-sell'), 0);   /* r148 */ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
 }
 function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }

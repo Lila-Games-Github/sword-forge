@@ -6499,3 +6499,28 @@ retires the arrow itself now.
 Verified through the real transition: at `regrind-work` with the trait reached the pointer is
 `#mug → #orb`; `tutRecordStep()` then leaves **no arrow** and a blink on `#hudToggle`; opening the
 panel moves the blink to `#saveBlade` without the arrow coming back.
+
+### r159 — and the sword-to-counter arrow, same cause
+
+Reported after r158: the arrow from the inventory sword to the counter was still drawn after the
+sword had been dropped there.
+
+Same root as r158, a different call site. Five beats draw that arrow — Bram (`chooseBram`), `sell2`,
+`sell3`, `bram2-sell2`, `d2-gale-sell2` — and only **Bram's** branch in `placeCounter()` retired it.
+The other four leaned on `noteAction()` wiping the arrow on the drop, which r157 stopped doing.
+The basement equivalent was never affected: `tutWorkPlaced()` clears the arrow for `base-table` and
+`dec-table` itself.
+
+`placeCounter()` now clears the pointer for **every** drop, before the Bram branch runs. The drag is
+the thing the arrow asked for, so finishing it retires the arrow regardless of which beat is running.
+
+Verified through the real beat, not a hand-built state: with `TUT_SHARP_RUN` set and `TUT_STAGE`
+`base-back`, `goScreen('customer')` reaches `sell2`, speaks D23 and shows the arrow
+(`#tutArrow` computed `display: block`). `placeCounter()` leaves it `display: none`, and two idle
+`tutNudge()` calls do not bring it back. Bram unchanged: state `counter-ready`, D24 spoken, no arrow,
+SELL enabled and blinking.
+
+**The pattern, stated once.** r155 made the pointer continuous instead of an idle nudge, which moved
+responsibility for clearing it from `noteAction()` onto whatever sets the next state. r158 and r159
+are the two places that had been relying on the old wipe. Any further stale pointer is the same bug:
+find the transition that the player has just completed and clear it there.
