@@ -6253,3 +6253,28 @@ On the counter screen with the bell up and the dragon shown:
 - **no overlap** between the ledger and the bell, and `elementFromPoint` at the bell's centre returns
   the bell, so it is clickable again;
 - no overlap between the ledger and the dragon (dragon bottom 498, ledger top 507).
+
+## r151 — the turn indicator gets its arrowhead, shrinks, and sits on the hotspot
+
+Three things about `#tutSpin`, the ring that asks the player to turn the grinding wheel.
+
+**The arrowhead never rendered, and it was not missing from the markup.** The arc has carried
+`marker-end="url(#tutHead)"` since r101, but `#tutHead` is defined in **`#tutArrow`'s** `<defs>`, and
+`#tutArrow` is `display: none` whenever the arrow itself is not up. A `<marker>` inside a
+`display:none` SVG does not paint, so the reference resolved to nothing and the ring read as a plain
+broken circle. `#tutSpin` carries its own `#tutSpinHead` now.
+
+**It points at the hotspot, not the prop.** The call sites asked for `#stMortar .mortar`, the whole
+grindstone including its frame and base. `#grindHot` is the element the player actually holds
+(`left 22%, top 4%, width 56%, height 56%` of the station) and sits on the wheel, which is where the
+owner wanted the ring.
+
+**Smaller**, twice over: the side factor drops from `0.78` to `0.70`, and measuring the hotspot rather
+than the prop halves the base. On the same bench that is `136px` before and `68px` after.
+
+### Verification
+
+- The arc's `marker-end` resolves to `#tutSpinHead`, and the marker now lives inside `#tutSpin`.
+- Blown up for inspection, the head draws as a filled triangle at the end of the arc, pointing the way
+  the ring turns; restored, the ring is centred on `#grindHot` and still animating `tutSpinTurn`.
+- Centre matches the hotspot centre to within 2px on both axes.
