@@ -6226,3 +6226,30 @@ the box it was supposed to sit under by 7px, which is what the first pass measur
 | SELL / DENY after the sword is placed | **10px**, both on the same row |
 | "Take care" after the sale | **10px** |
 | an ordinary customer, sampled 5x **while typing** (box 86px to 107px) | **10px** throughout |
+
+## r150 — the ledger stops sitting on the bell, and gets its own art
+
+r146 moved the counter's LEDGER button to the bottom right, to `x: 65.31`, because that is where the
+**shop** screen already puts it. The shop screen has nothing there. The counter has the **bell** at
+`x: 72%, bottom: 96.5%` — the control that calls the next customer — and the button landed on top of it.
+
+- The ledger goes back to the **left**, to `x: 2.50, y: 84.50`, under the dragon.
+- `#screenDragon` lifts from `bottom: 1.5%` to **17%** to make room beneath him.
+- The shop screen's button keeps `65.31`: nothing collides with it there.
+
+**Real art.** `.sc-btn .sc-gl` was commented "placeholder until a ledger icon exists". It does now, so
+both buttons switch from the glyph to `ic: 'assets/forge/ledger.webp'`. The rule is kept for the next
+button that needs a glyph before its art lands.
+
+`assets/forge/ledger.png` arrived as a 658x442, 445 KB master. Run through the r136 diet at the same
+2x-of-display rule it comes out **256x172, 14 KB**. The entry is in `manifest.json` and `display.json`,
+so a re-run reproduces it; the PNG master stays, as the others do.
+
+### Verification
+
+On the counter screen with the bell up and the dragon shown:
+
+- the ledger icon is `assets/forge/ledger.webp` and **loads**; the glyph span is gone;
+- **no overlap** between the ledger and the bell, and `elementFromPoint` at the bell's centre returns
+  the bell, so it is clickable again;
+- no overlap between the ledger and the dragon (dragon bottom 498, ledger top 507).

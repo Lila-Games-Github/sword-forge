@@ -940,7 +940,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenLayer.tut-counter > #csPanel { display: none; }
 #screenLayer.tut-counter > #screenDragon { display: block; }
 #screenLayer.tut-dragon > #screenDragon { display: block; }   /* r103: and onto the basement */
-#screenDragon { position: absolute; left: 1%; bottom: 1.5%; width: 23%;   /* r146: into the bottom-left corner, where the LEDGER button used to sit */ z-index: 46; display: none; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+#screenDragon { position: absolute; left: 1%; bottom: 17%; width: 23%;   /* r146: bottom-left. r150: lifted to clear the ledger button, which now sits under him */ z-index: 46; display: none; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
 #screenDragon.dragging { cursor: grabbing; }
 #screenDragon .dragoncrop { width: 100%; }
 #screenDragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
@@ -1013,7 +1013,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sc-btn:active { transform: scale(.97); }
 .sc-btn img { height: 62%; width: auto; display: block; -webkit-user-drag: none;
     filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
-.sc-btn .sc-gl { font-size: 21px; line-height: 1; }     /* placeholder until a ledger icon exists */
+.sc-btn .sc-gl { font-size: 21px; line-height: 1; }     /* r150: the ledger icon exists now, so nothing uses this - kept for the next button that needs a glyph before its art lands */
 /* NOT .cap - that class is the bench stations' caption and is position:absolute (and hidden in clean mode) */
 .sc-btn .sc-cap { font-size: 9px; line-height: 1.15; text-align: center; }
 /* r68 — the cave: ore seams, the pickaxe you leave lying there, and ore flying home to the rail.
@@ -2303,11 +2303,11 @@ const SCREEN_HOTS = {
 const SCREEN_UI = {
     shop: [
         { x:1.00,  y:2.09,  w:8.24,  h:8.50,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
-        { x:65.31, y:83.61, w:11.90, h:11.18, gl:'\ud83e\uddfe',             cap:'LEDGER',        title:'Ledger', act:'ledger' }
+        { x:65.31, y:83.61, w:11.90, h:11.18, ic:'assets/forge/ledger.webp',             cap:'LEDGER',        title:'Ledger', act:'ledger' }
     ],
     customer: [
         { x:0.79, y:0.85,  w:8.20,  h:8.47,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
-        { x:65.31, y:83.61, w:11.90, h:11.18,   /* r146: bottom-RIGHT of the counter, the same x the shop screen already uses (65.31+11.90=77.21%, clear of the rail at 79%); the dragon takes the left corner */ gl:'\ud83e\uddfe',            cap:'LEDGER',        title:'Ledger', act:'ledger' }
+        { x:2.50, y:84.50, w:11.90, h:11.18,   /* r150: back to the LEFT and under the dragon. r146 had it bottom-right, straight on top of the bell at x 72% - the control that calls the next customer. */ ic:'assets/forge/ledger.webp',            cap:'LEDGER',        title:'Ledger', act:'ledger' }
     ]
 };
 function buildScreenUi(name){

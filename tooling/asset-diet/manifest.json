@@ -736,6 +736,22 @@
   "forced": true
  },
  {
+  "src": "assets/forge/ledger.png",
+  "out": "assets/forge/ledger.webp",
+  "w": 256,
+  "q": 0.86,
+  "bytes": 455492,
+  "nat": [
+   658,
+   442
+  ],
+  "display": [
+   128,
+   86
+  ],
+  "forced": true
+ },
+ {
   "src": "assets/Game-elements/design_desk.png",
   "out": "assets/Game-elements/design_desk.webp",
   "w": 487,
