@@ -6317,3 +6317,38 @@ pass missed: the furnace-gate halo stayed lit underneath the next arrow.
 
 Played for real to the bellows beat: D4 "Heat up the smelter with the bellows" shows **no arrow** and
 the bellows carries `tut-glow`, which is the case the owner reported.
+
+## r153 — the inventory tab calls you back
+
+When the tutorial points at something in the rail, the tab holding it haloes **only while the player is
+looking at a different tab**, so following the hint is what puts it out. Same `tutBlinkHalo` the screen
+exits use: a tab is a rectangular button, so a box-shadow is the right shape.
+
+**The tab is stated, not guessed.** When the wrong tab is open the slot resolvers (`tutIronSlot`,
+`tutSwordSlot`, `tutIngotSlot`) fall back to `#oreShelf` itself, so the DOM cannot say which tab a
+thing lives in. The arrow that needs it declares it: `opt.tab`. Ore is `0`, ingots `1`, swords `2`,
+the pickaxe `3`. `tutArrow()` records it and clears it for any pointer that does not ask, so a stale
+halo cannot outlive its beat.
+
+### The pickaxe, which was a real bug
+
+`tab` may be a **function**, resolved each time the halo is recomputed, because the pickaxe's answer
+changes while the pointer is up: it is in the cave while `PICK_OUT`, in the ITEMS tab once stowed.
+
+That surfaced something worse. The cave arrows sourced from `tutPickEl()`, which returns the pickaxe
+**in the cave** — so stowing it mid-beat made the source null, the arrow undrawable, and **all guidance
+silently vanished**. `tutPickSrc()` returns the cave pickaxe or the bag slot, whichever holds it, and
+`stowPick()` redraws on the spot.
+
+### Verification
+
+| case | result |
+|---|---|
+| ore beat, already on INGREDIENTS | nothing lit |
+| wander to SWORDS during it | **INGREDIENTS** lit; back to it, out |
+| sword beat (D23) while on INGREDIENTS | **SWORDS** lit; opening it, out |
+| ingot beat while on ITEMS | **INGOTS** lit |
+| `tutArrow(null,null)` | need cleared, nothing lit |
+| pickaxe out in the cave | nothing lit, arrow drawn |
+| **stowed mid-beat**, then away from ITEMS | **ITEMS** lit, and the arrow still drawn, now from the bag slot |
+| pickaxe taken back out | halo clears itself, arrow still drawn |

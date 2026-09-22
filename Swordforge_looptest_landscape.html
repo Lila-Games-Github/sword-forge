@@ -1445,6 +1445,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
+/* r153: the tutorial wants something out of a tab the player is not looking at. Same halo the
+   screen exits use - a tab is a rectangular button, so a box-shadow is the right shape here. */
+.matTab.tut-tab { animation: tutBlinkHalo 1s ease-in-out infinite; }
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
@@ -2798,7 +2801,7 @@ function wirePickDrag(el){
         pickCheck(); };                                    // released next to a seam? keep swinging
     el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
 }
-function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); toast('Pickaxe back in your bag'); tutStowed(); }   /* r111 */
+function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); setTimeout(()=>{ tutDrawArrow(); tutTabUi(); },0);   /* r153b */ toast('Pickaxe back in your bag'); tutStowed(); }   /* r111 */
 // ---- r70: swords on the shop racks ---------------------------------------------------------------
 // rack.png (241x427) has six hook pairs evenly down its posts; a sword hangs on the top five. The
 // opening between the posts runs 17.84%..81% of the width, so a blade resting ON the hooks spans a
@@ -5093,6 +5096,7 @@ function restoreIngot(id){
 }
 function invTab(i){
     INV_TAB=i;
+    setTimeout(tutTabUi, 0);   /* r153: landing on the right tab puts its halo out */
     [...document.querySelectorAll('#matTabs .matTab')].forEach((t,k)=>t.classList.toggle('is-on', k===i));
     buildShelf();
 }
@@ -5486,6 +5490,17 @@ function tutExit(sel){
    art silhouette. Having art is the test, and it is one an element can answer itself. Using
    tutGlow() rather than the class directly also registers it with TUT_GLOWED, so every existing
    tutUnglow() keeps clearing it. */
+/* r153: which inventory tab the current pointer needs, or null. The halo shows only while the
+   player is looking at a DIFFERENT tab, so following the hint is what puts it out. Stated by the
+   arrow that needs it (opt.tab) rather than guessed: when the wrong tab is open the slot
+   resolvers fall back to #oreShelf itself, so the DOM cannot say which tab a thing is in. */
+let TUT_TAB=null;
+function tutTabUi(){
+    const n = (typeof TUT_TAB==='function') ? TUT_TAB() : TUT_TAB;   /* r153b: the pickaxe answers differently once it is stowed */
+    [...document.querySelectorAll('#matTabs .matTab')].forEach((t,k)=>
+        t.classList.toggle('tut-tab', n!=null && k===n && INV_TAB!==n));
+}
+function tutNeedTab(n){ TUT_TAB = (n==null? null : n); tutTabUi(); }
 let TUT_TAP_GLOW=null;
 function tutTap(sel){
     tutExit(null);
@@ -5495,6 +5510,7 @@ function tutTap(sel){
     else tutExit(el);
 }
 function tutArrow(from, to, opt){
+    tutNeedTab(opt && opt.tab!=null ? opt.tab : null);   /* r153 */
     if(to && from==null){ TUT_ARROW=null; tutDrawArrow(); tutTap(to); return; }   /* r152: a tap, not a drag */
     tutTap(null);   /* r152: one pointer at a time - a drag arrow retires any tap glow still up */
     TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null;
@@ -5547,7 +5563,7 @@ function tutIronSlot(){
 function tutOreStep(){
     TUT_STAGE='ore';
     tutGlow('#bellowtop', false);
-    tutArrow(tutIronSlot, '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
+    tutArrow(tutIronSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
 }
 function tutCheckOre(){
     if(TUT_STAGE!=='ore') return;
@@ -5680,7 +5696,7 @@ function tutScreenArrived(name){
         TUT_STAGE='base-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
         SAY_I=SAY_SEQ.indexOf('D49'); say('D49');
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='to-cave'){
         tutExit('#panRight'); return; }
@@ -5689,14 +5705,14 @@ function tutScreenArrived(name){
         TUT_STAGE='dec-table'; invTab(2); tutArrow(null,null); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D49')<0) SAY_SEQ.push('D49');
         SAY_I=SAY_SEQ.indexOf('D49'); say('D49');
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='dec-back'){
         tutExit('#panLeft'); return; }
     if(name==='customer' && TUT_STAGE==='dec-back'){   /* r118: the sale she has been waiting for */
         TUT_STAGE='sell3'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         sayQueue('D23');
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(name==='forge' && TUT_STAGE==='to-bed'){
         tutExit('#panUp'); return; }
@@ -5709,7 +5725,7 @@ function tutScreenArrived(name){
         TUT_STAGE='sell2'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D23')<0) SAY_SEQ.push('D23');
         SAY_I=SAY_SEQ.indexOf('D23'); say('D23');
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
 }
 function tutWorkPlaced(){
@@ -5834,11 +5850,11 @@ function tutDay2Screen(name){
     if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
     if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */
         TUT_STAGE='bram2-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(TUT_STAGE==='d2-gale-sell' && name==='customer'){   /* r126 */
         TUT_STAGE='d2-gale-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
 }
 /* the bell brings the adventurer's friend, who wants gale */
@@ -5970,7 +5986,7 @@ function tutBram2Forge(){
     if(TUT_STAGE!=='bram2-forge') return;
     TUT_STAGE='bram2-ingot'; tutExit(null); invTab(1);
     sayQueue('D113');
-    setTimeout(()=>tutArrow(tutIngotSlot, '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);
+    setTimeout(()=>tutArrow(tutIngotSlot, '#stAnvil .anvil', { tab:1, tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);
 }
 function tutBram2Restored(){
     if(TUT_STAGE!=='bram2-ingot') return;
@@ -6279,16 +6295,19 @@ function tutFireAsked(){
 function tutSeam(metal){ return ()=>[...document.querySelectorAll('#caveLayer .cv-node')]
         .find(el=>el._node && el._node.metal===metal) || null; }
 function tutPickEl(){ return document.querySelector('#caveLayer .cv-pick'); }
+function tutPickSlot(){ return document.querySelector('#oreShelf .inv-pick') || document.getElementById('oreShelf'); }
+function tutPickSrc(){ return PICK_OUT ? tutPickEl() : tutPickSlot(); }   /* r153b */
+function tutPickTab(){ return PICK_OUT ? null : 3; }
 function tutSeamLeft(metal){ const n=CAVE_NODES.find(c=>c.metal===metal); return n? n.left : 0; }
 /* after every swing: iron first, then manganese, then the pickaxe goes home */
 function tutMined(){
     if(TUT_STAGE!=='cave-pick') return;
-    if(tutSeamLeft('iron')>0){ tutArrow(tutPickEl, tutSeam('iron'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
-    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickEl, tutSeam('manganese'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
+    if(tutSeamLeft('iron')>0){ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
+    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickSrc, tutSeam('manganese'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
     TUT_STAGE='cave-stow'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D66')<0) SAY_SEQ.push('D66');
     SAY_I=SAY_SEQ.indexOf('D66'); say('D66');
-    setTimeout(()=>tutArrow(tutPickEl, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
+    setTimeout(()=>tutArrow(tutPickSrc, '#oreShelf', { tab:tutPickTab, tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
 }
 function tutStowed(){
     if(TUT_STAGE!=='cave-stow') return;
@@ -6409,7 +6428,7 @@ function tutCaveArrived(){
     TUT_STAGE='cave-pick'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D65')<0) SAY_SEQ.push('D65');
     SAY_I=SAY_SEQ.indexOf('D65'); say('D65');
-    setTimeout(()=>tutArrow(tutPickEl, tutSeam('iron'), { tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
+    setTimeout(()=>tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
 }
 function tutHmStep(){
     if(TUT_STAGE==='bram2-shape'){ tutBram2Hammering(); return; }   /* r127 */
@@ -6487,7 +6506,7 @@ function chooseBram(choice){
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
     typeDone();
     typeAfter(()=>{ say('D23'); invTab(2);
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
     if(l) custLine(l, DIALOGUE[choice==='blacksmith'?'D21':'D22']);
     if(r) r.style.display='none'; TUT_BRAM_STATE='give'; const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=true; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } const d=document.getElementById('screenDragon'); if(d) d.style.display='block'; const ly=document.getElementById('screenLayer'); if(ly) ly.classList.remove('tut-counter');
 }
@@ -6693,7 +6712,7 @@ function tutFakePath(on){
 function tutWheelArrow(oreName){
     const slot=()=>{ const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===oreName);
         return im ? im.closest('.ore-slot') : document.getElementById('oreShelf'); };
-    tutArrow(slot, '#stMortar .mortar', { tfx:0.5, tfy:0.42, bow:0.20, back:26 });
+    tutArrow(slot, '#stMortar .mortar', { tab:0, tfx:0.5, tfy:0.42, bow:0.20, back:26 });
 }
 function tutSmelterArrow(){ tutArrow('#orb', '#furnaceGlow', { tfx:0.5, tfy:0.30, bow:0.20, back:24 }); }
 /* what the player should do RIGHT NOW in the second run, as an arrow */
