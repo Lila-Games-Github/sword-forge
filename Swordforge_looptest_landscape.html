@@ -2724,8 +2724,15 @@ function rollCaveNodes(){
     CAVE_NODES=CAVE_METALS.map((m,i)=>({ metal:m, spot:idx[i], left:NODE_YIELD }));
 }
 function oreName(id){ return ORE_BY[id] ? ORE_BY[id].name : id; }
+/* r168: the r166 drag ghost belongs to one .cv-pick element. mineNode() calls buildCave() 420ms
+   after a seam is worked out, which DESTROYS that element while the player is still holding it -
+   no pointerup ever reaches it, so the ghost was orphaned on #frame and sat there looking like a
+   second pickaxe in the inventory. buildCave() is the thing that breaks the drag, so it is the
+   thing that clears up after it. */
+function pickGhostClear(){ document.querySelectorAll('#frame > .pick-ghost').forEach(g=>g.remove()); }
 function buildCave(){
     const box=document.getElementById('caveLayer'); if(!box) return;
+    pickGhostClear();   /* r168 */
     box.innerHTML=''; box.classList.remove('armed');
     if(SF_SCREEN!=='cave') return;
     CAVE_NODES.forEach(n=>{ if(n.left<=0) return;
@@ -2860,11 +2867,12 @@ function wirePickDrag(el){
     let drag=false, moved=false, sx=0, sy=0, ghost=null;
     const lift=()=>{ if(ghost) return;
         const frame=document.getElementById('frame');
+        pickGhostClear();   /* r168 */
         ghost=document.createElement('div'); ghost.className='pick-ghost';
         ghost.style.width=getComputedStyle(el).width;   /* the live cave width, so it does not jump */
         ghost.innerHTML='<img src="'+PICK_SRC+'" alt="">';
         frame.appendChild(ghost); el.style.visibility='hidden'; };
-    const land=()=>{ if(ghost){ ghost.remove(); ghost=null; } el.style.visibility=''; };
+    const land=()=>{ ghost=null; pickGhostClear(); el.style.visibility=''; };   /* r168 */
     el.addEventListener('pointerdown', e=>{ e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY;
         try{ el.setPointerCapture(e.pointerId); }catch(err){} });
     el.addEventListener('pointermove', e=>{ if(!drag) return;
@@ -2880,6 +2888,7 @@ function wirePickDrag(el){
         if(moved && e && overRail(e)){ stowPick(); return; }
         pickCheck(); };                                    // released next to a seam? keep swinging
     el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+    el.addEventListener('lostpointercapture', ()=>{ if(drag) end(null); });   /* r168 */
 }
 function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); setTimeout(()=>{ tutDrawArrow(); tutTabUi(); },0);   /* r153b */ toast('Pickaxe back in your bag'); tutStowed(); }   /* r111 */
 // ---- r70: swords on the shop racks ---------------------------------------------------------------

@@ -6705,3 +6705,40 @@ bubble (47), so it was left alone.
 **On testing this:** `elementFromPoint` is useless on the ghosts — they are all `pointer-events: none`,
 so it reads straight through them to whatever is beneath. Paint order was confirmed instead with a
 probe element given the same parent and z-index, which does hit-test on top of the rail.
+
+### r168 — the second pickaxe (an r166 regression)
+
+Reported: two pickaxes, one in the cave and one stuck over the inventory panel, "after clearing the
+ores".
+
+r166 gave the cave pickaxe a drag ghost on `#frame` and hid the real `.cv-pick`. The ghost is removed
+by the drag's own `end` handler — which assumes the element survives the drag. It does not.
+`mineNode()` ends with:
+
+```js
+if(n.left<=0){ ... stopStriking(); setTimeout(buildCave, 420); ... }
+```
+
+and `buildCave()` does `box.innerHTML=''`. Mining is a **hold**: the player keeps the pickaxe against
+the seam and it swings on a timer. So the moment a seam runs dry, the element under their finger is
+destroyed mid-drag, no `pointerup` ever reaches it, `end` never runs, and the ghost is orphaned on
+`#frame` — where, being above the rail by design, it sits in front of the inventory looking like a
+second pickaxe. "After clearing the ores" is the tell: that is the only thing that calls `buildCave()`
+while a drag is live.
+
+`pickGhostClear()` now owns the cleanup, and `buildCave()` calls it first: the function that breaks
+the drag is the function that tidies up after it. `lift()` and `land()` route through the same call,
+so a stray can never stack, and a `lostpointercapture` listener lands the drag if the capture is lost
+any other way.
+
+**Verified both ways.** Positive: hold a real drag, fire `setTimeout(buildCave, 420)` with no
+`pointerup` — the old element detaches and **0** ghosts remain, with exactly 1 cave pickaxe; a fresh
+drag on the new element still lifts and lands. End to end: a genuinely striking pickaxe (`.striking`
+on) takes a seam 7 → 0, and afterwards 0 stray ghosts, 1 cave pickaxe, 0 shelf pickaxes. Negative
+control: with `pickGhostClear` stubbed out, the same sequence leaves **1 stray ghost and 1 cave
+pickaxe** — the reported screenshot.
+
+**The general shape, worth remembering:** a ghost parented to `#frame` outlives the element that owns
+it. Any drag whose source element can be rebuilt mid-gesture needs a cleanup that does not depend on
+the gesture ending normally. The ore, ingot and sword drags are safe only because nothing rebuilds
+the rail while they are in flight.
