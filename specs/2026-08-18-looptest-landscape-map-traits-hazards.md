@@ -6484,3 +6484,18 @@ At `regrind-grind` with the SWORDS tab open:
 Self-healing: `tutArrow(null,null)` called behind the nudge's back clears the halo, and the **next
 tick restores it**. The minigame is unaffected: `forge2` still speaks D46 and still hides its hint on
 the next action.
+
+### r158 — and the quench arrow it left hanging
+
+Reported straight after r157: at D42 the mug-to-metal splash arrow was still drawn, over a line that
+asks for something else entirely.
+
+`tutNudge()`'s `record` branch is **the only one that sets no arrow** — it blinks a control instead
+(r121). Every other branch replaces the previous pointer simply by setting its own. This branch never
+had to, because `noteAction()` cleared the arrow on the very tap that reached the record step. r157
+removed that wipe for exactly the right reason, and this was the one place relying on it. The branch
+retires the arrow itself now.
+
+Verified through the real transition: at `regrind-work` with the trait reached the pointer is
+`#mug → #orb`; `tutRecordStep()` then leaves **no arrow** and a blink on `#hudToggle`; opening the
+panel moves the blink to `#saveBlade` without the arrow coming back.

@@ -6783,6 +6783,11 @@ function tutNudgeApply(){
         /* r101 drew an arrow here and had to bend it up from below-right, because the toggle sits in
            the very top-left corner and an arrow above it was clipped by the frame. r121 blinks the
            control instead, which has no such problem. */
+        /* r158: this is the one branch that sets NO arrow, so it has to retire the previous stage-s
+           - the mug-to-metal quench line, which the player has just finished following. It used to
+           be cleared by noteAction() on the very tap that got here; r157 stopped that wipe, which
+           left the splash arrow hanging over D42. */
+        tutArrow(null,null);
         tutExit(open ? '#saveBlade' : '#hudToggle');   /* r121 */
     }
 }
