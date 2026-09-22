@@ -773,7 +773,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* r138: loop-test scaffolding, off by default. ?labels puts it back. */
 .badge, .cap, .bellow-tag, .bucket-cap { display: none; }
-#frame.labels .badge, #frame.labels .cap, #frame.labels .bellow-tag, #frame.labels .bucket-cap { display: revert; }
+/* r139: the heat gauge is loop-test read-out too. The MECHANIC is untouched - updateGauges() still
+   writes #g-heat and still drives #furnaceGlow, and the gate still opens at HEAT_READY - so the
+   furnace mouth brightening as you pump the bellows remains the player's feedback. */
+#heatMini { display: none; }
+/* restored per element, not with `revert`: revert goes to the UA default (block), and .badge and
+   #heatMini centre their contents with flex, so they would come back mis-drawn */
+#frame.labels .cap, #frame.labels .bellow-tag, #frame.labels .bucket-cap { display: revert; }
+#frame.labels .badge, #frame.labels #heatMini { display: flex; }
 #frame.labels #oreShelf .badge { display: none; }   /* r138: r60 hid the rail's own "1" badge on purpose; ?labels must not resurrect it */
 /* ---- clean render mode (#frame.clean — via ?clean): hide loop-test/tutorial chrome absent from the anchor marketing art (step badges, station captions, zoom buttons, hint bar, heat gauge). Gameplay untouched; visual-only. ---- */
 #frame.clean .badge, #frame.clean .cap, #frame.clean .bucket-cap, #frame.clean .bellow-tag, #frame.clean .zoom, #frame.clean #panPad, #frame.clean #heatMini, #frame.clean #sfHp, #frame.clean .map-tag { display: none !important; }

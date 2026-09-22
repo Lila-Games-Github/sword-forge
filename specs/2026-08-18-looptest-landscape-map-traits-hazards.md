@@ -5861,3 +5861,29 @@ now excludes it.
 - The dragon is still tappable with his label gone: `elementFromPoint` at his centre lands on
   `.crop.dragoncrop`, and a real pointerdown/up pair opens his bubble.
 - `?test` layout self-test GREEN.
+
+## r139 — the heat gauge comes off too
+
+`#heatMini`, the flame pill over the furnace, joins the r138 set. **The mechanic is untouched:**
+`updateGauges()` still writes `#g-heat` and still drives `#furnaceGlow`, and the gate still opens at
+`HEAT_READY`. The furnace mouth brightening as the bellows are pumped is now the whole of the player's
+heat feedback, which it always was in practice; the pill was a read-out on top of it.
+
+A correction to r138 while adding it: the restore rule used `display: revert`, which reverts to the
+**user-agent** default (`block`), not to the earlier author rule. `.badge` and `#heatMini` both centre
+their contents with `display: flex`, so `?labels` would have brought them back mis-drawn. They are
+restored explicitly now; `.cap`, `.bellow-tag` and `.bucket-cap` have no author `display` and keep
+`revert`.
+
+### Verification
+
+Driven through the real craft chain with no gauge on screen:
+
+| heat | `#furnaceGlow` opacity | `#g-heat` width | gate |
+|---|---|---|---|
+| 10 | 0.09 | 10% | closed |
+| 85 | 0.77 | 85% | opens on `markGateReady` |
+
+The metal then went through `openGate` to `placeOnAnvil` and reached stage `onAnvil`, so nothing
+downstream of the gauge cares that it is hidden. `#heatMini` computes `display: none` by default and
+`flex` at 86x24 under `?labels`; the step badge likewise returns as a 22x22 flex circle.
