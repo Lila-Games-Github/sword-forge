@@ -6762,3 +6762,40 @@ the button gap, bottoms level to within 0.01%, and no overlap with CANCEL, DONE,
 
 The Design Desk's `#ddSayWrap` is the same construction and still sits top-left. It was not asked for
 and its screen has a different button layout, so it was left alone.
+
+### r171 — nothing can be parked under the inventory panel any more
+
+**The trap.** `#screenLayer` spans the whole frame, rail included — measured: layer 60→1140, rail
+913→1140. Anything positioned from a raw pointer x can therefore be placed under the panel, and the
+panel is `z-index: 45` over the screen's `40`, so it both hides the thing and swallows the pointer.
+There was no way to get it back.
+
+Two things could fall in. The **dragon**'s drag clamped to the layer, so its right limit was 1140.
+The **pickaxe** was worse: `overCave()` also tested the layer box, so *dropping it on the inventory
+while taking it out of the bag counted as dropping it in the cave* — a click that lost the pickaxe.
+
+`railEdgeX()` is now the single answer to "where does the playable area stop", and four places use it:
+
+- `overCave()` — a point over the panel is not a point in the cave, so that drop simply leaves the
+  pickaxe in the bag.
+- `dropPick()` and `wirePickDrag()` — clamp `PICK_OUT`. The **ghost still follows the finger**, since
+  it is on `#frame` above the panel and carrying it there is how you stow the pickaxe; only the real
+  position is held back.
+- `wireScreenDragon()` — the drag's `maxX`.
+- `screenDragonPlace()` — a remembered `SD_POS` from a build that allowed it.
+
+**And the rescue, which is the part that matters for anyone already stuck.** `layoutCave()` clamps the
+pickaxe on every layout and **writes the corrected value back into `PICK_OUT`**, so a pickaxe parked
+under the panel by an older build, a save, or any path missed above is pulled out and stays out.
+
+Verified, all at 1200x700 with the rail edge at 913:
+
+| case | result |
+| --- | --- |
+| pickaxe placed at x 1050, `buildCave()` | right edge 907, `PICK_OUT.x` rewritten to 73.93 |
+| dragged right to x 1100 | real one stops at 907, ghost follows the finger to 1051 |
+| released there | stowed, tab 3, 0 cave pickaxes, 0 stray ghosts |
+| taken from the bag, released over the panel | stays in the bag, `PICK_OUT` null, nothing in the cave |
+| taken from the bag, released in the cave | places normally |
+| dragon dragged to x 1130 | right edge exactly 913 |
+| `SD_POS` forced to `left: 95%` | rewritten to 56.001%, right edge 913 |

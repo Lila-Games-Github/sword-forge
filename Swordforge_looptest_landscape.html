@@ -2760,8 +2760,15 @@ function layoutCave(){
         if(el._node){ const sp=CAVE_SPOTS[el._node.spot], w=NODE_W/100*b.aw;
             el.style.width=w.toFixed(1)+'px'; el.style.height=w.toFixed(1)+'px';
             el.style.left=(ax+sp.x/100*b.aw).toFixed(1)+'px'; el.style.top=(ay+sp.y/100*b.ah).toFixed(1)+'px'; }
-        else if(el._pick && PICK_OUT){ el.style.width=(PICK_W/100*b.aw).toFixed(1)+'px';
-            el.style.left=(ax+PICK_OUT.x/100*b.aw).toFixed(1)+'px'; el.style.top=(ay+PICK_OUT.y/100*b.ah).toFixed(1)+'px'; } });
+        else if(el._pick && PICK_OUT){ const pw=PICK_W/100*b.aw;
+            el.style.width=pw.toFixed(1)+'px';
+            /* r171: and the rescue. A pickaxe already parked under the panel - from an older build,
+               a save, or any path missed above - is pulled back to the edge and PICK_OUT rewritten,
+               so it stays rescued. The art is translate(-50%,-50%), hence the half width. */
+            let x=ax+PICK_OUT.x/100*b.aw;
+            const lim=railEdgeX()-b.lr.left-pw*0.5-6;
+            if(isFinite(lim) && x>lim){ x=lim; PICK_OUT.x=(x-ax)/b.aw*100; }
+            el.style.left=x.toFixed(1)+'px'; el.style.top=(ay+PICK_OUT.y/100*b.ah).toFixed(1)+'px'; } });
     pickCheck();                                           // positions moved, so what the head touches may have too
 }
 // r69 — the pickaxe strikes whatever seam its head is resting against, exactly as #hammerTool strikes
@@ -2843,7 +2850,14 @@ function flyOre(metal,x,y){
 // --- the pickaxe leaves and re-enters the bag ---
 function overCave(e){ if(SF_SCREEN!=='cave') return false;
     const l=document.getElementById('screenLayer').getBoundingClientRect();
-    return e.clientX>=l.left && e.clientX<=l.right && e.clientY>=l.top && e.clientY<=l.bottom; }
+    const right=Math.min(l.right, railEdgeX());   /* r171: dropping on the panel is not dropping in the cave */
+    return e.clientX>=l.left && e.clientX<=right && e.clientY>=l.top && e.clientY<=l.bottom; }
+/* r171: #screenLayer spans the WHOLE frame, rail included, so anything positioned from a raw
+   pointer x can be put UNDER the inventory panel - which is z-45 over the screen's z-40, so it
+   covers the thing and eats the pointer, and there is no way to get it back. Everything that
+   places by pointer now stops here instead. */
+function railEdgeX(){ const r=document.getElementById('rail');
+    return r ? r.getBoundingClientRect().left : Infinity; }
 function caveHot(on){ const b=document.getElementById('caveLayer'); if(b) b.classList.toggle('armed', !!on || !!PICK_OUT); }
 function startPickDrag(e){
     if(PICK_OUT) return;
@@ -2859,7 +2873,8 @@ function startPickDrag(e){
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 function dropPick(e){ const b=plateBox(); if(!b) return;
-    PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
+    const cx=Math.min(e.clientX, railEdgeX()-PICK_W/100*b.aw*0.5-6);   /* r171 */
+    PICK_OUT={ x:(cx-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
     buildCave(); if(INV_TAB===3) buildShelf(); tutTabUi();   /* r167: tutPickTab now answers null */
     toast('⛏️ Rest the pickaxe against an <b>ore seam</b> to mine it'); }
 /* r166: #caveLayer sits inside #screenLayer (z 40) and the inventory rail is z 45, so NOTHING drawn
@@ -2883,7 +2898,10 @@ function wirePickDrag(el){
         if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<=6) return;
         moved=true;
         const b=plateBox(); if(!b) return;
-        PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
+        /* r171: the GHOST still follows the finger - it is on #frame, above the panel, and carrying
+           it there is how you stow the pickaxe. Only the real position is held back. */
+        const cx=Math.min(e.clientX, railEdgeX()-PICK_W/100*b.aw*0.5-6);
+        PICK_OUT={ x:(cx-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
         layoutCave(); railHot(overRail(e));
         lift();   /* r166: both carry translate(-50%,-50%), so the pointer is the same anchor */
         const fr=document.getElementById('frame').getBoundingClientRect();
@@ -7190,14 +7208,22 @@ function dragonTap(e, layer){ if(tutOver()){ popHearts(e, layer); return true; }
 let SD_POS=null;
 function screenDragonPlace(){
     const d=document.getElementById('screenDragon'); if(!d) return;
-    if(SF_SCREEN==='customer' && SD_POS){ d.style.left=SD_POS.left; d.style.top=SD_POS.top; d.style.bottom='auto'; }
+    if(SF_SCREEN==='customer' && SD_POS){ d.style.left=SD_POS.left; d.style.top=SD_POS.top; d.style.bottom='auto';
+        /* r171: a spot remembered from a build that allowed it is brought back into view */
+        const layer=document.getElementById('screenLayer');
+        if(layer){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect();
+            const maxX=Math.min(b.width-q.width, railEdgeX()-b.left-q.width);
+            if(isFinite(maxX) && q.left-b.left>maxX){ d.style.left=(maxX/b.width*100).toFixed(3)+'%';
+                SD_POS={ left:d.style.left, top:d.style.top }; } } }
     else { d.style.left=''; d.style.top=''; d.style.bottom=''; }
 }
 function wireScreenDragon(){
     const d=document.getElementById('screenDragon'), layer=document.getElementById('screenLayer'); if(!d||!layer) return;
     let active=false, moved=false, sx=0, sy=0, dx=0, dy=0;
     d.addEventListener('pointerdown', e=>{ if(SF_SCREEN!=='customer') return; e.preventDefault(); active=true; moved=false; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} });
-    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect(); let x=Math.max(0,Math.min(b.width-q.width,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; SD_POS={ left:d.style.left, top:d.style.top };   /* r160 */ sayLayout(); } });
+    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect();
+            const maxX=Math.min(b.width-q.width, railEdgeX()-b.left-q.width);   /* r171 */
+            let x=Math.max(0,Math.min(maxX,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; SD_POS={ left:d.style.left, top:d.style.top };   /* r160 */ sayLayout(); } });
     d.addEventListener('pointerup', e=>{ const tap=!moved; active=false; d.classList.remove('dragging'); if(tap) dragonTap(e,layer); });
     d.addEventListener('pointercancel', ()=>{ active=false; moved=false; d.classList.remove('dragging'); });
 }
