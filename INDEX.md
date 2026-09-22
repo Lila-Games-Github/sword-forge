@@ -13,7 +13,7 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 | What this repo is | [README.md](README.md) |
 | Repo rules / conventions | [CLAUDE.md](CLAUDE.md) |
 | Game design / mechanics SSOT | [specs/game-design.md](specs/game-design.md) |
-| **Which build is canon** (split — read specs §2–§5 header) | craft/movement loop → [Swordforge_new_looptest.html](Swordforge_new_looptest.html) (Path-Forge canon); economy/UI/onboarding → [index.html](index.html); [swordforgeV2.html](swordforgeV2.html) = fuller-tutorial reference. Integration open (specs §9). |
+| **Which build is canon** | **[Swordforge_looptest_landscape.html](Swordforge_looptest_landscape.html)** — the only build under development, and since 2026-09-22 what the Pages root serves. Historical: [swordforgeV2.html](swordforgeV2.html) (V2), [v1.html](v1.html) (V1, was `index.html`), [Swordforge_new_looptest.html](Swordforge_new_looptest.html) (portrait, deliberately never touched). The older per-section split below is superseded for this build. |
 | Zero-context handoff / onboarding | [ONBOARDING.md](ONBOARDING.md) |
 | Task tracker (done / next up) | [plan.md](plan.md) |
 | Lessons learned | [LEARNINGS.md](LEARNINGS.md) |
@@ -33,7 +33,8 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 - **2026-08-10** — agent workflow config from setup-matt-pocock-skills: [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md) (GitHub Issues via `gh`), [docs/agents/triage-labels.md](docs/agents/triage-labels.md) (five-role vocabulary), [docs/agents/domain.md](docs/agents/domain.md) (single-context CONTEXT.md + ADRs). `canon`
 - **2026-08-10** — [AGENTS.md](AGENTS.md) — agent-file pointer to the code wiki (written by wiki adopt). `canon`
 - **2026-08-10** — [docs/wiki/](docs/wiki/) — code-repo navigation wiki adopted (subordinate to the spec chain). `canon` (navigation layer)
-- **2026-08-10** — V2 (`swordforgeV2.html`) declared the canonical build; `index.html` (V1) kept for historical reference and remains the deployed Pages entry point until promoted. Recorded in CLAUDE.md / README / ONBOARDING banners.
+- **2026-08-10** — V2 (`swordforgeV2.html`) declared the canonical build; `index.html` (V1) kept for historical reference and remains the deployed Pages entry point until promoted. Recorded in CLAUDE.md / README / ONBOARDING banners. **Superseded 2026-09-22 (below).**
+- **2026-09-22** — **the Pages root now serves the build under development.** `index.html` had been V1 since the beginning, so opening the deployed site silently gave a build that had been superseded twice, and the landscape loop-test was reachable only by typing its filename. V1 moved to `v1.html` and `index.html` became a 20-line redirect to `Swordforge_looptest_landscape.html`. **A redirect, not a copy** — the game is one self-contained file, and duplicating it at two paths would mean two files to keep in step, which is how the canonical-build confusion started. `.claude/hooks/spec-sync-warn.js` now guards `v1.html` instead of `index.html` (verified firing). Closes the "promoting V2 to the root is a pending decision" note open in CLAUDE.md since 2026-08-10.
 - **2026-08-10** — living-docs spine seeded by `start-session` (INDEX.md, LEARNINGS.md, HANDOFF.md, verifier hook, `.claude/settings.json`).
 - **2026-08-11** — [research/sword-forge-gdd.html](research/sword-forge-gdd.html) bumped to **v0.2 → v0.3**: the **Path-Forge** core-loop redesign (PotionCraft-style ore-path navigation). `canon` (research, forward-looking design).
 - **2026-08-11** — [story/bram-one-more-sunrise.html](story/bram-one-more-sunrise.html) — Bram story vignette. `canon` (narrative).

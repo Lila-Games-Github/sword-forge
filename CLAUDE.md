@@ -19,7 +19,8 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 - **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (D1–D43) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. Note PR #10 (`fm/sf-lazy-load`, open) also proposes naming this build canonical across the docs.
 - **`swordforgeV2.html`** — the **previous** canonical build (V2: path-map furnace build + guided tutorial). Historical unless a task names it; the landscape loop-test above is what is under development.
-- **`index.html`** — V1, kept for historical reference only. Do not develop here. ⚠️ It is still the GitHub Pages entry point (the site root serves V1; V2 is reachable at `/swordforgeV2.html`) — promoting V2 to the root is a pending decision.
+- **`index.html`** — since 2026-09-22 a **redirect to the landscape build**, so the Pages root serves the game under development. It is 20 lines; do not put game code here.
+- **`v1.html`** — V1, kept for historical reference only (it was `index.html` until 2026-09-22). Do not develop here.
 - **`specs/`** — Single source of truth (SSOT) for game design. See `specs/game-design.md`. Keep it in sync whenever mechanics change.
 - **`research/`** — experiments and design docs, not shipped (chalk-map prototype, potioncraft reference, `sword-forge-gdd.html`).
 - **`story/`** — narrative pages (e.g. `bram-one-more-sunrise.html`), referenced by story content.
@@ -28,7 +29,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 ## How to run / deploy
 
-- Run locally: use the `/run` skill, or `preview_start` (`.claude/launch.json`, name `sword-forge`, port 5678) and **navigate explicitly** to `http://localhost:5678/Swordforge_looptest_landscape.html` — the server maps `/` to `index.html`, which is **V1**, so the root URL silently loads the wrong game.
+- Run locally: use the `/run` skill, or `preview_start` (`.claude/launch.json`, name `sword-forge`, port **5679**). The root URL now redirects to the landscape build, but **navigating explicitly** to `http://localhost:5679/Swordforge_looptest_landscape.html` is still the honest way to test, since the redirect is one more thing that can be wrong.
 - Deploy: pushing to `main` auto-deploys to GitHub Pages via `.github/workflows/deploy.yml`. Commit/push only when asked.
 
 ## Working conventions

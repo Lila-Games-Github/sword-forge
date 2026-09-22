@@ -65,9 +65,10 @@ git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');new Function(s.match(/<script>([\s\S]*)<\/script>/)[1]);console.log('parses OK')"
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
-Then `preview_start` (name `sword-forge`, port 5678) **and navigate explicitly to**
-`http://localhost:5678/Swordforge_looptest_landscape.html` — the server maps `/` to `index.html`, which
-is **V1**, where `DIALOGUE`/`lastLine()`/`TUT_STAGE` are all `undefined` and the build looks broken.
+Then `preview_start` (name `sword-forge`, port **5679**) **and navigate explicitly to**
+`http://localhost:5679/Swordforge_looptest_landscape.html`. **2026-09-22:** the root no longer serves
+V1 — `index.html` redirects to the landscape build and V1 lives at `v1.html` — but navigating
+explicitly is still the honest test, since the redirect is one more thing that can be wrong.
 With the right URL loaded, expect `Object.keys(DIALOGUE).length === 43` and `lastLine() === "D43"`.
 The living-docs audit prints **10 pre-existing `ORPHAN` lines** for `docs/wiki/` and exits 0 — that is
 the expected baseline, not a regression. **Screenshots work** if the pane is visible —
