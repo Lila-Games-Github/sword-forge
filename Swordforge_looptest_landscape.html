@@ -914,6 +914,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
 .sw-ghost.ingot .inv-orb { width: 100%; }
 #stAnvil.drop-hot .anvil { filter: drop-shadow(0 0 12px rgba(255,190,90,.95)) brightness(1.12); }
+/* r162: the day transition. The whole frame goes black, names the day and comes back, and the
+   work that advances the day runs at the darkest point, so the screen never changes in view. */
+#dayCard { position: absolute; inset: 0; z-index: 1400; display: none; align-items: center; justify-content: center;
+    background: #000; opacity: 0; transition: opacity .55s ease; pointer-events: none; }
+#dayCard.on { display: flex; pointer-events: auto; }   /* and it swallows every click while it is up */
+#dayCard.lit { opacity: 1; }
+#dayCard span { font-family: 'Cinzel', serif; font-weight: 900; font-size: 44px; letter-spacing: 3px;
+    color: #f0dfae; text-shadow: 0 2px 18px rgba(0,0,0,.9); opacity: 0; transition: opacity .5s ease .2s; }
+#dayCard.lit span { opacity: 1; }
 #sfToast { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 1200; display: none;   /* r154: the very top, and over the z-1100 bubble */
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #ffe08a; white-space: nowrap;
     background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 10px; padding: 8px 16px;
@@ -1660,6 +1669,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <path d="M0,0 L10,5 L0,10 Z" fill="#ffd27a"></path></marker></defs>
         <path id="tutPath" marker-end="url(#tutHead)"></path>
     </svg>
+    <div id="dayCard"><span></span></div>
     <div id="sfToast"></div>
     <div id="panPad">
         <button id="panUp"    type="button" title="Pan up"    aria-label="Pan up">▲</button>
@@ -3727,10 +3737,32 @@ function wireRacks(){
 }
 function openEndDay(){ document.getElementById('sfEndDayModal').classList.add('show'); }
 function closeEndDay(){ document.getElementById('sfEndDayModal').classList.remove('show'); }
+/* r162: fade to black, name the day, run the day's work while nothing can be seen, fade back.
+   The reflow between 'on' and 'lit' is forced with offsetWidth rather than a requestAnimationFrame:
+   rAF is frozen while the tab is hidden, which is what left the r154 toast standing still. */
+let DAY_FADING=false;
+const DAY_IN=550, DAY_HOLD=1000, DAY_OUT=550;
+function dayTransition(n, mid){
+    const c=document.getElementById('dayCard');
+    if(!c){ if(mid) mid(); return; }          /* no card in the markup: the day still turns */
+    if(DAY_FADING) return;                    /* a second press is ignored, NOT run bare - running it
+                                                 bare advanced the day a second time under the black */
+    DAY_FADING=true;
+    c.querySelector('span').textContent='Day '+n;
+    c.classList.add('on'); void c.offsetWidth; c.classList.add('lit');
+    setTimeout(()=>{ if(mid) mid(); }, DAY_IN+60);
+    setTimeout(()=>c.classList.remove('lit'), DAY_IN+DAY_HOLD);
+    setTimeout(()=>{ c.classList.remove('on'); DAY_FADING=false; }, DAY_IN+DAY_HOLD+DAY_OUT+40);
+}
 function confirmEndDay(){
     closeEndDay();
     const d=document.getElementById('dayNum');            // cosmetic: there is no day system behind this yet
-    if(d) d.textContent = (parseInt(d.textContent,10)||0) + 1;
+    const day=(parseInt(d&&d.textContent,10)||0)+1;
+    dayTransition(day, ()=>advanceDay(day));
+}
+function advanceDay(day){
+    const d=document.getElementById('dayNum');
+    if(d) d.textContent = day;
     rollCaveNodes(); buildCave();                         // r68: five fresh seams, in new places
     /* r120: the tutorial's own night ends where it was spent. The player wakes in the bedroom and
        walks down to the forge, with the exit blinking; every other day still jumps straight there. */

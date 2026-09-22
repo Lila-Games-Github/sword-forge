@@ -6574,3 +6574,33 @@ Neither touches any of the five nodes or `#panLeft`.
 
 Per-screen positions now stand at: counter `left 1%, bottom 17%, 23%` (the default), basement
 `top 5%, 20%`, cave `top 5%, 11.5%`.
+
+### r162 — the day transition
+
+Going to bed now fades the whole frame to black, names the day, and fades back.
+
+`#dayCard` is `inset: 0` inside `#frame` at `z-index: 1400`, above the toast (1200) and the modals
+(1000), so it covers the inventory rail and the HUD as well as the board — the entire screen, not
+just the scene. While it is up it takes pointer events, so nothing underneath can be clicked.
+
+`dayTransition(n, mid)` runs: fade in 550ms (the text follows 200ms behind), `mid()` at 610ms,
+fade out starting at 1550ms, card removed at 2140ms. **`mid()` is the work** — the day number, the
+fresh cave seams, the screen change — so the player never sees the screen change under them.
+
+Two things worth keeping:
+
+- The reflow between `.on` (which sets `display: flex`) and `.lit` is forced with `void c.offsetWidth`,
+  **not** `requestAnimationFrame`. rAF is frozen while the tab is hidden; that is what left the r154
+  toast standing still. Note the CSS transition itself is also frozen while hidden, so in a hidden
+  pane the card is present but stays at opacity 0 — the timers still run and the day still turns.
+- A second press while it is fading is **ignored**. The first draft ran `mid()` bare in that case,
+  which advanced the day a second time under the black and dropped the tutorial out of the bedroom.
+
+`confirmEndDay()` is the **only** place a day changes — `dayNum` is written nowhere else but
+`loadState()` and the new-game reset — so "every day transition" is this one call site today. The
+day-advancing half now lives in `advanceDay(day)`, which is what `mid()` calls.
+
+Verified: from the bedroom with `TUT_STAGE` `bed`, one press leaves day 2, screen `bedroom`, stage
+`day2-forge` and `#panDown` blinking — the r120 behaviour, unchanged — and a second press during the
+fade changes nothing. Two ordinary nights in a row show "Day 3" then "Day 4" and land on the forge.
+The end state renders as a full-frame black with the day centred in Cinzel.
