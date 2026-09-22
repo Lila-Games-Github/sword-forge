@@ -1272,3 +1272,25 @@ the dragon's pair follows in the bench bubble.*
 **D131 says he is not paying, and now he does not.** Outcome 1 banks no gold and writes a 0g ledger
 row; he still takes the sword. The refusal is decided inside `sellCounter`, so the toast reads "He took
 it and paid nothing" rather than "Sold for 0g".
+
+### r163 — D91 gives the SKILL TREE button a glow that survives the rail
+
+D91 (*"Open the skill tree and use your points. You will feel more... powerful!"*) has blinked
+`#skillBtn` since r122, via `tutDay2Skill()`. The class was there and the animation was running; it
+just did not read. `#rail` is `overflow: hidden` and the button sits **9px** from its right edge, so
+`.tut-blink` — a 15px halo with 5px of spread — was cut off exactly where the eye would catch it.
+
+`#skillBtn.tut-blink` now pulses **inward** as well: border colour, an inset glow and
+`brightness(1.22)` on the face. None of those can be clipped by an ancestor, so the guide reads
+wherever the button sits.
+
+The rule is declared **before** `#skillBtn.levelled` on purpose. The two have equal specificity
+(1,1,0), so source order decides, and the level-up flash should win for its 1.2s and hand the guide
+back afterwards.
+
+Verified through the real beat: `TUT_STAGE` `day2-forge` → `tutDay2Morning()` → D89 and D90 leave the
+button with `animation-name: none`; D91 turns on `tutBlinkSkill`. Opening the tree clears it
+(`d2-skill`), and closing without spending brings it back — the r122 behaviour, unchanged.
+
+**Not done, because it would be inventing design:** nothing guides the player to a particular node
+once the tree is open. `tutDay2Spent()` accepts any spend.
