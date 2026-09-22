@@ -6424,3 +6424,25 @@ INGREDIENTS halo asks for the tab, and the arrow appears from the ore once it is
 | 30 idle frames | **0** pointer re-applications |
 | one state change, then 30 frames | exactly **1** |
 | entering the minigame | D46 spoken in **3 ms** |
+
+## r156 — D9 stops the world, the way D8 does
+
+The book line is triggered mid-swing, so the sword carried on travelling underneath it and the player
+read about experience points while the thing they were watching moved on. `tutBookStep()` now calls
+`tutPause(true)`, which is exactly D8's effect: `#tutDim` over the board at z-45 and the tick held.
+`sayNext()` already lifts the pause on the tap that closes a line, so resuming needed nothing new.
+
+**Once only, for the first book** — that part was already true. `TUT_SAIDBOOK` has guarded this since
+r73 and is reset only by `tutReset()` on a new game, so the second book on the route is silent. Checked
+rather than assumed (below).
+
+### Verification
+
+Real route, real books (`tutPlaceBooks()`), real `takeBook()`:
+
+| | result |
+|---|---|
+| first book | **D9**, `TUT_PAUSE` true, `#tutDim` on at z-45 |
+| 20 ticks while paused | `sword.frac` **does not move** |
+| tap to close | pause lifted, dim off |
+| **second book** | no line, no pause, no dim |

@@ -6807,10 +6807,16 @@ function tutMugStep(){
     if(SAY_SEQ.indexOf('D17')<0) SAY_SEQ.push('D17');
     SAY_I=SAY_SEQ.indexOf('D17'); say('D17');
 }   /* no pointer of its own: the mug already pulses once it is live, and .ready would fight tut-glow */
+/* r156: D9 stops the world while it is read, the same way D8 does - the book is collected mid-swing
+   and the sword keeps travelling underneath the line otherwise. tutPause(true) is the D8 effect:
+   #tutDim over the board and the tick held. sayNext() already lifts it on the tap that closes the
+   line, so nothing new is needed to resume.
+   TUT_SAIDBOOK has always made this fire for the FIRST book only; the second one is silent. */
 function tutBookStep(){
     if(TUT_SAIDBOOK) return; TUT_SAIDBOOK=true;
     if(SAY_SEQ.indexOf('D9')<0) SAY_SEQ.push('D9');
     SAY_I=SAY_SEQ.indexOf('D9'); say('D9');
+    tutPause(true);   /* r156 */
 }
 /* r82b: a new game has to rewind the RUN as well. D4 and D5 are appended to SAY_SEQ as they fire, so
    without this the intro replays them, and a stale SAY_I leaves the ore step unarmed. */
