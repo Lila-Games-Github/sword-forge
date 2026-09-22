@@ -5831,3 +5831,33 @@ Forged through the real craft path (`SFM.addOreDirect` → `ready` → `openGate
 - a sword with no Balanced trait at all → 1.
 
 Console clean.
+
+## r138 — the loop-test labels come off the bench
+
+The owner asked for the numbered step badges, the three station captions ("Hammer - anvil",
+"Smelt - furnace", "Grind - stone"), the "Bellows" tag and the dragon's "tap to talk - drag me" to go.
+These are scaffolding from the loop test, not game UI.
+
+Two more belong to the same two families and were removed with them, because leaving them would have
+left one or two lone labels on an otherwise clean bench:
+
+- `.bucket-cap` — "Quench - pour on the anvil", still drawn under the water bucket.
+- `#screenDragon .cap` — "tap to talk", the counter-screen twin of the dragon tag.
+
+**Hidden, not deleted.** `wireDragon()` writes the dragon tag's text at runtime and the station
+captions are positioned by the LAYOUT pass, so removing the markup would mean touching JS for nothing.
+`.badge, .cap, .bellow-tag, .bucket-cap` are `display: none` by default and **`?labels`** puts the
+whole set back, which is what they were for. `?clean` already hid them along with the zoom buttons,
+pan pad, heat gauge and HP pill; that flag is unchanged and still hides more.
+
+One wrinkle: `#frame.labels .badge` and `#oreShelf .badge` have equal specificity, so the restore rule
+won on source order and resurrected the rail's own "1" badge, which r60 hid deliberately. `?labels`
+now excludes it.
+
+### Verification
+
+- Default: **zero** of the 12 label elements visible, on the forge screen and on the counter.
+- `?labels`: the 10 bench labels return, and the ore-shelf "1" stays hidden.
+- The dragon is still tappable with his label gone: `elementFromPoint` at his centre lands on
+  `.crop.dragoncrop`, and a real pointerdown/up pair opens his bubble.
+- `?test` layout self-test GREEN.
