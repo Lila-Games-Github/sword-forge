@@ -6106,3 +6106,28 @@ only as `.cs-deny:disabled`; it is `.cs-btn:disabled` now, so SELL gets the same
 
 Measuring a typed line needs `typeDone()` first: `custLine()` runs the typewriter, so an immediate
 read sees a partial string and looks like clipping.
+
+### r147 — and the replies match too
+
+Every reply the player picks now reads at the same **17px** as the line it answers. Three surfaces,
+not one:
+
+| | was | now |
+|---|---|---|
+| `.cs-resp` (the single counter reply) | 11.5px | 17px |
+| `.cs-bram-responses button` (the scripted branch buttons) | 11px | 17px |
+| `#sayChoices button` (the dragon's own answers, r115) | 11px | 17px |
+
+`.cs-resp` carried a **fixed `aspect-ratio: 453/97`** — the same trap `.cs-dlg` had in r146 — so a reply
+that wrapped to two lines would have clipped. It is `min-height: 104px` now, which is that height at
+this width, and it grows instead. The other two already had `min-height` and a stretched background.
+
+### Verification
+
+With the longest reply anywhere in the script, *"I am new. Do you know who used to live here before
+me?"* (54 characters):
+
+- `.cs-resp` 17px, 104px tall, **not clipped**;
+- both branch buttons 17px, 38px tall, not clipped;
+- the dragon's choices 17px, and the one that needs two lines **grows to 56px** rather than clipping,
+  staying inside the frame.

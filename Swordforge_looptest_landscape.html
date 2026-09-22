@@ -407,7 +407,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     width: 315px; pointer-events: auto; }
 #sayChoices button { width: 100%; min-height: 34px; border: 0; padding: 6px 20px; cursor: pointer;
     background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
-    font-family: inherit; font-size: 11px; color: #5c4a33; }
+    font-family: inherit; font-size: 17px; line-height: 1.3; color: #5c4a33; }   /* r147: the dragon own answers match his bubble */
 #sayChoices button:hover { filter: brightness(1.06); }
 #dragonSay { position: absolute; z-index: 46; display: none; width: 315px; padding: 11px 15px 14px;   /* r94: 0.75x */
     background: #f3e7c6; border: 2px solid #6a5636; border-radius: 11px;
@@ -971,16 +971,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-bram-dlg .who { font-family:'Cinzel',serif; font-weight:900; font-size:11px; color:#8a6a34; margin-bottom:4px; }
 .cs-bram-dlg p { margin:0; font-size:17px; line-height:1.4; color:#4a3623; text-align:center; }
 .cs-bram-responses { position:absolute; left:31.68%; top:44.05%; width:44.92%;   /* r146: +4.64%, the same drop as the dialogue box above it */ display:flex; flex-direction:column; gap:7px; }
-.cs-bram-responses button { width:100%; min-height:38px; border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.webp') center/100% 100% no-repeat; font-size:11px; color:#5c4a33; }
+.cs-bram-responses button { width:100%; min-height:38px; border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.webp') center/100% 100% no-repeat; font-size:17px; line-height:1.3; color:#5c4a33; }   /* r147 */
 /* r146: lowered from 6.36%, and the customer speaks at the dragon-s 17px rather than 12px */
 .cs-dlg { position: absolute; left: 31.68%; top: 11.00%; width: 44.92%; min-height: 192px;
     background: url('assets/ui/Dialogue_box.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center; padding: 14px 34px 22px; }
 .cs-dlg p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; text-align: center; }   /* Dialogue_box.png is pale parchment, so the text has to be dark */
-.cs-resp { position: absolute; left: 31.68%; top: 44.05%; width: 44.92%;   /* r146: follows the dialogue box down */ aspect-ratio: 453 / 97;
+.cs-resp { position: absolute; left: 31.68%; top: 44.05%; width: 44.92%;   /* r146: follows the dialogue box down */ min-height: 104px;   /* r147: was aspect-ratio 453/97, which clips a two-line reply */
     background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11.5px; color: #5c4a33; text-align: center; }
+    font-size: 17px; line-height: 1.3; color: #5c4a33; text-align: center; }   /* r147 */
 .cs-btn { position: absolute; bottom: 36.58%; border: 0; padding: 0; cursor: pointer;
     background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
