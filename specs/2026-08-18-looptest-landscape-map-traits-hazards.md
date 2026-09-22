@@ -6187,3 +6187,42 @@ Driven through `chooseBram()` and the real `placeCounter()` / `sellCounter()`:
 
 The SELL button being enabled here also confirms r146's `disabled = !COUNTER` releases correctly once
 a sword is on the counter.
+
+## r149 — replies sized to their text, and everything hangs off the dialogue box
+
+Three complaints, one cause: every row under the customer's line was pinned at a **fixed** position and
+stretched to a **fixed** width, while the line above it changes height with its text.
+
+**Replies size to their label.** `.cs-resp` was a 44.92%-wide, 104px-tall slab whatever it said, so
+"Take care" filled half the counter. It is centred on the panel now and grows only as far as the text
+needs, capped at the old width. The scripted branch buttons likewise go from `width: 100%` to
+`width: auto; max-width: 100%`, with the stack centred.
+
+| reply | before | after |
+|---|---|---|
+| "Take care" | 485 x 104 | **162 x 44** |
+| "I am a blacksmith." | 485 | **181** |
+| "Who are you? What is wrong?" | 485 | **272** |
+
+**The dialogue box hugs its text.** `.cs-dlg` carried `min-height: 192px` from r146, which left a slab
+of empty parchment under a one-line remark and pushed everything below it down. It is **86px**, which
+is what `.cs-bram-dlg` has used all along with the same art and the same font.
+
+**`counterLayout()` places everything under the line**, modelled on `sayLayout()`. It measures whichever
+dialogue box is showing (the scripted panel's if it is up, otherwise the counter's own) and sets the
+top of the reply, the branch stack and the SELL/DENY row to its **real bottom plus 10px**.
+`.cs-btn` loses its `bottom: 36.58%`.
+
+It runs from `counterBoxes()`, from `custLine()`, on resize, **on every typewriter tick** and from
+`typeDone()`. The last two matter: the box grows word by word as the line types, and a tap that skips
+the typewriter jumps it to full height in one frame. Without the `typeDone()` call the reply overlapped
+the box it was supposed to sit under by 7px, which is what the first pass measured.
+
+### Verification
+
+| case | gap under the box |
+|---|---|
+| two branch replies under Bram's opening | **10px** |
+| SELL / DENY after the sword is placed | **10px**, both on the same row |
+| "Take care" after the sale | **10px** |
+| an ordinary customer, sampled 5x **while typing** (box 86px to 107px) | **10px** throughout |

@@ -970,18 +970,21 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-bram-dlg { position:absolute; left:31.68%; top:11.00%; width:44.92%; min-height:86px; background:url('assets/ui/Dialogue_box.webp') center/100% 100% no-repeat; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:14px 34px 22px; box-sizing:border-box; }
 .cs-bram-dlg .who { font-family:'Cinzel',serif; font-weight:900; font-size:11px; color:#8a6a34; margin-bottom:4px; }
 .cs-bram-dlg p { margin:0; font-size:17px; line-height:1.4; color:#4a3623; text-align:center; }
-.cs-bram-responses { position:absolute; left:31.68%; top:44.05%; width:44.92%;   /* r146: +4.64%, the same drop as the dialogue box above it */ display:flex; flex-direction:column; gap:7px; }
-.cs-bram-responses button { width:100%; min-height:38px; border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.webp') center/100% 100% no-repeat; font-size:17px; line-height:1.3; color:#5c4a33; }   /* r147 */
+.cs-bram-responses { position:absolute; left:31.68%; width:44.92%; display:flex; flex-direction:column; align-items:center; gap:7px; }   /* r149: centred, and counterLayout() sets top */
+.cs-bram-responses button { width:auto; max-width:100%; box-sizing:border-box; min-height:38px;   /* r149: as wide as the label, not the panel */ border:0; padding:7px 22px; cursor:pointer; background:url('assets/ui/Paper_button_wider.webp') center/100% 100% no-repeat; font-size:17px; line-height:1.3; color:#5c4a33; }   /* r147 */
 /* r146: lowered from 6.36%, and the customer speaks at the dragon-s 17px rather than 12px */
-.cs-dlg { position: absolute; left: 31.68%; top: 11.00%; width: 44.92%; min-height: 192px;
+.cs-dlg { position: absolute; left: 31.68%; top: 11.00%; width: 44.92%; min-height: 86px;   /* r149: was 192px, which left a slab of empty parchment under a one-line remark. 86px is what .cs-bram-dlg has used all along with the same art and the same font. */
     background: url('assets/ui/Dialogue_box.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center; padding: 14px 34px 22px; }
 .cs-dlg p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; text-align: center; }   /* Dialogue_box.png is pale parchment, so the text has to be dark */
-.cs-resp { position: absolute; left: 31.68%; top: 44.05%; width: 44.92%;   /* r146: follows the dialogue box down */ min-height: 104px;   /* r147: was aspect-ratio 453/97, which clips a two-line reply */
+/* r149: sized to its label. "Take care" filled a 44.92%-wide, 104px-tall slab; it is centred on the
+   panel and grows only as far as the text needs, up to the old width. counterLayout() owns top. */
+.cs-resp { position: absolute; left: 50%; transform: translateX(-50%); width: auto; max-width: 44.92%;
+    min-height: 44px; padding: 10px 44px; box-sizing: border-box;
     background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
     font-size: 17px; line-height: 1.3; color: #5c4a33; text-align: center; }   /* r147 */
-.cs-btn { position: absolute; bottom: 36.58%; border: 0; padding: 0; cursor: pointer;
+.cs-btn { position: absolute; border: 0; padding: 0; cursor: pointer;   /* r149: was bottom:36.58%; counterLayout() puts them under the dialogue instead */
     background: center / 100% 100% no-repeat; display: flex; align-items: center; justify-content: center;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; color: #4a3623; }
 .cs-btn:hover { filter: brightness(1.06); }
@@ -6435,6 +6438,7 @@ function typeStop(){ if(TYPE_T){ clearInterval(TYPE_T); TYPE_T=null; } TYPE_EL=n
 function typeDone(){                                  /* jump to the finished line */
     if(!TYPE_EL || !TYPE_WORDS) return false;
     TYPE_EL.textContent=TYPE_WORDS.join(' ');
+    counterLayout();   /* r149: a tap that skips the typewriter jumps the box to its full height, and whatever sits under it has to follow in the same frame */
     const f=TYPE_DONE; typeStop(); if(f) f(); return true;
 }
 let TYPE_DONE=null;
@@ -6447,6 +6451,7 @@ function typeLine(el, text){
     TYPE_T=setInterval(()=>{
         if(TYPE_I>=TYPE_WORDS.length){ const f=TYPE_DONE; typeStop(); if(f) f(); return; }
         TYPE_EL.textContent += (TYPE_I? ' ' : '') + TYPE_WORDS[TYPE_I++];
+        counterLayout();   /* r149: the box grows as it types */
     }, TYPE_MS);
 }
 function chooseBram(choice){
@@ -6507,6 +6512,21 @@ function askedTrait(){
    The Bram run drives these itself and has its own panel, so it is left alone. */
 /* r105: ONE owner for the counter's own boxes. The scripted panel wins while it is up; with no
    customer the box is both hidden AND emptied, so a stale line cannot come back with the next one. */
+const CS_GAP = 10;   /* r149: px between the dialogue box and whatever sits under it */
+function counterLayout(){
+    const panel=document.getElementById("csPanel"); if(!panel) return;
+    const intro=document.getElementById("bramIntro");
+    const introOn = !!(intro && intro.classList.contains("show"));
+    const dlg = introOn ? intro.querySelector(".cs-bram-dlg") : panel.querySelector(".cs-dlg");
+    if(!dlg) return;
+    const pr=panel.getBoundingClientRect(), dr=dlg.getBoundingClientRect();
+    if(!(pr.height>0) || !(dr.height>0)) return;   /* hidden, or the pane has not laid out yet */
+    const top = (dr.bottom - pr.top) + CS_GAP;
+    const put = el => { if(el){ el.style.top = top.toFixed(1)+"px"; el.style.bottom="auto"; } };
+    put(panel.querySelector(":scope > .cs-resp"));
+    put(document.getElementById("bramResponses"));
+    panel.querySelectorAll(":scope > .cs-btn").forEach(put);
+}
 function counterBoxes(){
     const intro=document.getElementById('bramIntro');
     const introOn = !!(intro && intro.classList.contains('show'));
@@ -6520,6 +6540,7 @@ function counterBoxes(){
     const quiet = introOn && ((TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked')
                           || (TUT_GARRIC_STATE && TUT_GARRIC_STATE!=='asked'));   /* r130 */
     if(quiet) document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{ b.style.display='none'; });
+    counterLayout();   /* r149 */
     return { here:here, introOn:introOn, quiet:quiet };
 }
 function counterUi(){
@@ -6538,6 +6559,7 @@ function custLine(el, text){
     sayHide();
     const box=p.closest('.cs-dlg') || p.closest('.cs-bram-dlg');
     if(box && getComputedStyle(box).display==='none') box.style.display='';
+    counterLayout();   /* r149 */
     typeLine(p, text);
 }
 function nextCustomer(){
@@ -6997,7 +7019,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
-window.addEventListener('resize', ()=>{ setView(); layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); sayLayout(); tutDrawArrow(); if(SF_SCREEN&&document.getElementById('sfSharpModal').classList.contains('show')) shLayout(); });
+window.addEventListener('resize', ()=>{ setView(); layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); sayLayout(); counterLayout(); tutDrawArrow(); if(SF_SCREEN&&document.getElementById('sfSharpModal').classList.contains('show')) shLayout(); });
 </script>
 </body>
 </html>
