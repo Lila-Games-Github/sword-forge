@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Sword Forge asset diet</title>
+<style>body{font:13px monospace;background:#1b1b1b;color:#ddd;padding:12px}
+td{padding:1px 10px 1px 0}.w{color:#e8b24a}.g{color:#7ec46f}.r{color:#e06c5c}</style></head>
+<body><h3>asset diet</h3><div id="sum"></div><table id="log"></table>
+<script>
+/* Dev tool, not part of the game. This machine has no sharp / ImageMagick / ffmpeg, so the browser
+   is the encoder: decode the PNG, downscale by repeated halving (a single big drawImage step aliases
+   badly), encode WebP, POST the bytes to the dev server's /__save.
+
+   Halving: Chrome's drawImage is a bilinear sample, which only looks at a 2x2 neighbourhood. Going
+   1552 -> 138 in one step therefore SKIPS most source pixels and produces sparkle on detailed art.
+   Halving repeatedly until the next halve would overshoot, then one final step, keeps every pixel
+   contributing. */
+async function shrink(img, tw, th){
+    let cw=img.width, ch=img.height;
+    let cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
+    let cx=cv.getContext('2d'); cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+    cx.drawImage(img,0,0);
+    while(cw/2 > tw){
+        const nw=Math.max(tw, Math.round(cw/2)), nh=Math.max(th, Math.round(ch/2));
+        const n=document.createElement('canvas'); n.width=nw; n.height=nh;
+        const nc=n.getContext('2d'); nc.imageSmoothingEnabled=true; nc.imageSmoothingQuality='high';
+        nc.drawImage(cv,0,0,nw,nh);
+        cv=n; cx=nc; cw=nw; ch=nh;
+    }
+    if(cw!==tw || ch!==th){
+        const n=document.createElement('canvas'); n.width=tw; n.height=th;
+        const nc=n.getContext('2d'); nc.imageSmoothingEnabled=true; nc.imageSmoothingQuality='high';
+        nc.drawImage(cv,0,0,tw,th); cv=n;
+    }
+    return cv;
+}
+function load(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('load '+src)); i.src='/'+src+'?raw='+Date.now(); }); }
+function blob(cv,q){ return new Promise(r=>cv.toBlob(r,'image/webp',q)); }
+async function run(){
+    const man=await (await fetch('/tooling/asset-diet/manifest.json?'+Date.now())).json();
+    const log=document.getElementById('log'); let before=0, after=0, n=0, fail=0;
+    for(const m of man){
+        const tr=document.createElement('tr'); log.appendChild(tr);
+        try{
+            const img=await load(m.src);
+            const tw=Math.max(1, Math.min(img.width,  m.w));
+            const th=Math.max(1, Math.round(img.height * (tw/img.width)));
+            const cv=await shrink(img, tw, th);
+            const b=await blob(cv, m.q!=null?m.q:0.86);
+            const r=await fetch('/__save?path='+encodeURIComponent(m.out), {method:'POST', body:b});
+            if(!r.ok) throw new Error('save '+r.status+' '+await r.text());
+            before+=m.bytes; after+=b.size; n++;
+            tr.innerHTML='<td class="g">ok</td><td>'+m.src+'</td><td>'+img.width+'x'+img.height+' &rarr; '+tw+'x'+th+
+                '</td><td>'+(m.bytes/1024).toFixed(0)+'KB &rarr; <b>'+(b.size/1024).toFixed(0)+'KB</b></td>';
+        }catch(e){ fail++; tr.innerHTML='<td class="r">FAIL</td><td>'+m.src+'</td><td colspan=2>'+e.message+'</td>'; }
+    }
+    document.getElementById('sum').innerHTML='<b class="w">'+n+' converted, '+fail+' failed &mdash; '+
+        (before/1048576).toFixed(2)+' MB &rarr; '+(after/1048576).toFixed(2)+' MB</b>';
+    window.__done={n:n, fail:fail, beforeMB:+(before/1048576).toFixed(2), afterMB:+(after/1048576).toFixed(2)};
+}
+run();
+</script></body></html>

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // PostToolUse hook (Edit|Write): warn when game code changes without a spec touch.
 // - Edit to swordforgeV2.html while specs/game-design.md has no uncommitted change -> warn (exit 2, non-blocking).
-// - Edit to index.html (V1, historical-only) -> warn (exit 2, non-blocking).
+// - Edit to v1.html (V1, historical-only) -> warn (exit 2, non-blocking).
+//   Until 2026-09-22 V1 WAS index.html; that path is now a 20-line redirect to the landscape build.
 // Never blocks: PostToolUse exit 2 only feeds stderr back to the agent.
 const { execSync } = require("child_process");
 let raw = "";
@@ -10,8 +11,8 @@ process.stdin.on("end", () => {
   let file = "";
   try { file = (JSON.parse(raw).tool_input || {}).file_path || ""; } catch { process.exit(0); }
   const base = file.replace(/\\/g, "/").split("/").pop();
-  if (base === "index.html" && /sword-forge/i.test(file)) {
-    console.error("[spec-sync] index.html is V1, kept for HISTORICAL reference only. Canonical build = swordforgeV2.html. Confirm this V1 edit is intentional.");
+  if (base === "v1.html" && /sword-forge/i.test(file)) {
+    console.error("[spec-sync] v1.html is V1, kept for HISTORICAL reference only. Canonical build = Swordforge_looptest_landscape.html. Confirm this V1 edit is intentional.");
     process.exit(2);
   }
   if (base === "swordforgeV2.html") {

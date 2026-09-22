@@ -1,0 +1,2242 @@
+[
+ {
+  "src": "assets/map/map_base.png",
+  "out": "assets/map/map_base.webp",
+  "w": 2048,
+  "q": 0.82,
+  "bytes": 16130659,
+  "nat": [
+   2948,
+   2948
+  ],
+  "display": [
+   2172,
+   1521
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/backgrounds/shop_background.png",
+  "out": "assets/backgrounds/shop_background.webp",
+  "w": 1920,
+  "q": 0.82,
+  "bytes": 6185829,
+  "nat": [
+   2770,
+   1536
+  ],
+  "display": [
+   1080,
+   600
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/backgrounds/customer_counter_background.png",
+  "out": "assets/backgrounds/customer_counter_background.webp",
+  "w": 1920,
+  "q": 0.82,
+  "bytes": 4359176,
+  "nat": [
+   2754,
+   1536
+  ],
+  "display": [
+   1080,
+   600
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/pickaxe.png",
+  "out": "assets/forge/pickaxe.webp",
+  "w": 108,
+  "q": 0.86,
+  "bytes": 2975109,
+  "nat": [
+   1984,
+   2140
+  ],
+  "display": [
+   54,
+   59
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/backgrounds/bedroom_background.png",
+  "out": "assets/backgrounds/bedroom_background.webp",
+  "w": 1920,
+  "q": 0.82,
+  "bytes": 2677313,
+  "nat": [
+   1920,
+   1066
+  ],
+  "display": [
+   1080,
+   600
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/hammer/hammer_bg.png",
+  "out": "assets/hammer/hammer_bg.webp",
+  "w": 1877,
+  "q": 0.82,
+  "bytes": 2627844,
+  "nat": [
+   1877,
+   1025
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/iron_ore.png",
+  "out": "assets/forge/iron_ore.webp",
+  "w": 140,
+  "q": 0.86,
+  "bytes": 2522293,
+  "nat": [
+   1552,
+   1440
+  ],
+  "display": [
+   70,
+   70
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/backgrounds/basement_background.png",
+  "out": "assets/backgrounds/basement_background.webp",
+  "w": 1920,
+  "q": 0.82,
+  "bytes": 2497350,
+  "nat": [
+   1920,
+   1066
+  ],
+  "display": [
+   1080,
+   600
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/aluminium_ore.png",
+  "out": "assets/forge/aluminium_ore.webp",
+  "w": 140,
+  "q": 0.86,
+  "bytes": 2469355,
+  "nat": [
+   1552,
+   1440
+  ],
+  "display": [
+   70,
+   70
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/gold_ore.png",
+  "out": "assets/forge/gold_ore.webp",
+  "w": 108,
+  "q": 0.86,
+  "bytes": 2420254,
+  "nat": [
+   1552,
+   1440
+  ],
+  "display": [
+   54,
+   51
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/Roland.png",
+  "out": "assets/customer/Roland.webp",
+  "w": 780,
+  "q": 0.86,
+  "bytes": 2393997,
+  "nat": [
+   1504,
+   2832
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/backgrounds/cave_background.png",
+  "out": "assets/backgrounds/cave_background.webp",
+  "w": 1920,
+  "q": 0.82,
+  "bytes": 2199392,
+  "nat": [
+   1920,
+   1066
+  ],
+  "display": [
+   1080,
+   600
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/copper_ore.png",
+  "out": "assets/forge/copper_ore.webp",
+  "w": 140,
+  "q": 0.86,
+  "bytes": 2071253,
+  "nat": [
+   1333,
+   1180
+  ],
+  "display": [
+   70,
+   70
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/map/compass.png",
+  "out": "assets/map/compass.webp",
+  "w": 124,
+  "q": 0.86,
+  "bytes": 1894665,
+  "nat": [
+   948,
+   944
+  ],
+  "display": [
+   62,
+   62
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/diary.png",
+  "out": "assets/forge/diary.webp",
+  "w": 528,
+  "q": 0.86,
+  "bytes": 1801369,
+  "nat": [
+   2528,
+   1684
+  ],
+  "display": [
+   264,
+   176
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/BramD2.png",
+  "out": "assets/customer/BramD2.webp",
+  "w": 780,
+  "q": 0.86,
+  "bytes": 1792962,
+  "nat": [
+   1504,
+   2832
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/Bram.png",
+  "out": "assets/customer/Bram.webp",
+  "w": 780,
+  "q": 0.86,
+  "bytes": 1695715,
+  "nat": [
+   1504,
+   2832
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/June.png",
+  "out": "assets/customer/June.webp",
+  "w": 780,
+  "q": 0.86,
+  "bytes": 1642670,
+  "nat": [
+   1504,
+   2832
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/icon_skilltree.png",
+  "out": "assets/ui/icon_skilltree.webp",
+  "w": 278,
+  "q": 0.86,
+  "bytes": 1563605,
+  "nat": [
+   920,
+   920
+  ],
+  "display": [
+   139,
+   139
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/dragonfire.png",
+  "out": "assets/forge/dragonfire.webp",
+  "w": 990,
+  "q": 0.86,
+  "bytes": 1399459,
+  "nat": [
+   1070,
+   1065
+  ],
+  "display": [
+   495,
+   587
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/backgrounds/anchor_bench_bg.png",
+  "out": "assets/backgrounds/anchor_bench_bg.webp",
+  "w": 896,
+  "q": 0.86,
+  "bytes": 1214963,
+  "nat": [
+   896,
+   1200
+  ],
+  "display": [
+   854,
+   123
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/grindstone.png",
+  "out": "assets/forge/grindstone.webp",
+  "w": 1064,
+  "q": 0.86,
+  "bytes": 1207164,
+  "nat": [
+   1701,
+   1536
+  ],
+  "display": [
+   532,
+   481
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/icon_recipe.png",
+  "out": "assets/ui/icon_recipe.webp",
+  "w": 64,
+  "q": 0.86,
+  "bytes": 1100930,
+  "nat": [
+   890,
+   898
+  ],
+  "display": [
+   29,
+   30
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/hammer_dragon.png",
+  "out": "assets/hammer/hammer_dragon.webp",
+  "w": 1877,
+  "q": 0.86,
+  "bytes": 1052669,
+  "nat": [
+   1877,
+   1025
+  ],
+  "display": [
+   1004,
+   1004
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/Game-elements/counter.png",
+  "out": "assets/Game-elements/counter.webp",
+  "w": 2160,
+  "q": 0.86,
+  "bytes": 956030,
+  "nat": [
+   2235,
+   350
+  ],
+  "display": [
+   1080,
+   170
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_mug.png",
+  "out": "assets/forge/anchor_mug.webp",
+  "w": 298,
+  "q": 0.86,
+  "bytes": 943798,
+  "nat": [
+   896,
+   876
+  ],
+  "display": [
+   149,
+   148
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_anvil.png",
+  "out": "assets/forge/anchor_anvil.webp",
+  "w": 318,
+  "q": 0.86,
+  "bytes": 823806,
+  "nat": [
+   910,
+   766
+  ],
+  "display": [
+   159,
+   134
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_grindwheel.png",
+  "out": "assets/forge/anchor_grindwheel.webp",
+  "w": 416,
+  "q": 0.86,
+  "bytes": 822850,
+  "nat": [
+   877,
+   738
+  ],
+  "display": [
+   208,
+   175
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/dragon.png",
+  "out": "assets/forge/dragon.webp",
+  "w": 390,
+  "q": 0.86,
+  "bytes": 815428,
+  "nat": [
+   755,
+   682
+  ],
+  "display": [
+   195,
+   176
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_bucket.png",
+  "out": "assets/forge/anchor_bucket.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 801793,
+  "nat": [
+   635,
+   942
+  ],
+  "display": [
+   152,
+   225
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/tide_ore.png",
+  "out": "assets/forge/tide_ore.webp",
+  "w": 108,
+  "q": 0.86,
+  "bytes": 783453,
+  "nat": [
+   699,
+   797
+  ],
+  "display": [
+   54,
+   62
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Skill_tree_base.png",
+  "out": "assets/ui/Skill_tree_base.webp",
+  "w": 1540,
+  "q": 0.86,
+  "bytes": 768739,
+  "nat": [
+   1540,
+   1080
+  ],
+  "display": [
+   850,
+   596
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/bell.png",
+  "out": "assets/forge/bell.webp",
+  "w": 114,
+  "q": 0.86,
+  "bytes": 751661,
+  "nat": [
+   898,
+   1048
+  ],
+  "display": [
+   57,
+   66
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/map/map_hazard.png",
+  "out": "assets/map/map_hazard.webp",
+  "w": 320,
+  "q": 0.86,
+  "bytes": 727520,
+  "nat": [
+   540,
+   960
+  ],
+  "display": [
+   0,
+   0
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/anchor_hammer.png",
+  "out": "assets/forge/anchor_hammer.webp",
+  "w": 254,
+  "q": 0.86,
+  "bytes": 691711,
+  "nat": [
+   812,
+   876
+  ],
+  "display": [
+   127,
+   137
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/frost_ore.png",
+  "out": "assets/forge/frost_ore.webp",
+  "w": 140,
+  "q": 0.86,
+  "bytes": 685618,
+  "nat": [
+   651,
+   736
+  ],
+  "display": [
+   70,
+   70
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/hammer_sword.png",
+  "out": "assets/hammer/hammer_sword.webp",
+  "w": 1877,
+  "q": 0.86,
+  "bytes": 659642,
+  "nat": [
+   1877,
+   1025
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_furnace.png",
+  "out": "assets/forge/anchor_furnace.webp",
+  "w": 416,
+  "q": 0.86,
+  "bytes": 640584,
+  "nat": [
+   638,
+   775
+  ],
+  "display": [
+   208,
+   252
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_bellows.png",
+  "out": "assets/forge/anchor_bellows.webp",
+  "w": 350,
+  "q": 0.86,
+  "bytes": 616976,
+  "nat": [
+   902,
+   444
+  ],
+  "display": [
+   175,
+   86
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Diary_base.png",
+  "out": "assets/ui/Diary_base.webp",
+  "w": 1920,
+  "q": 0.86,
+  "bytes": 576226,
+  "nat": [
+   1920,
+   1080
+  ],
+  "display": [
+   1044,
+   587
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/ledger_book_base.png",
+  "out": "assets/ui/ledger_book_base.webp",
+  "w": 1920,
+  "q": 0.86,
+  "bytes": 576226,
+  "nat": [
+   1920,
+   1080
+  ],
+  "display": [
+   1107,
+   623
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Composition_book_base.png",
+  "out": "assets/ui/Composition_book_base.webp",
+  "w": 1920,
+  "q": 0.86,
+  "bytes": 576226,
+  "nat": [
+   1920,
+   1080
+  ],
+  "display": [
+   1042,
+   587
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/gale_ore.png",
+  "out": "assets/forge/gale_ore.webp",
+  "w": 140,
+  "q": 0.86,
+  "bytes": 567212,
+  "nat": [
+   654,
+   713
+  ],
+  "display": [
+   70,
+   70
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Quest_base.png",
+  "out": "assets/ui/Quest_base.webp",
+  "w": 645,
+  "q": 0.86,
+  "bytes": 520393,
+  "nat": [
+   645,
+   934
+  ],
+  "display": [
+   392,
+   567
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/smoke.png",
+  "out": "assets/forge/smoke.webp",
+  "w": 142,
+  "q": 0.86,
+  "bytes": 511100,
+  "nat": [
+   594,
+   851
+  ],
+  "display": [
+   71,
+   101
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/dragon_icon.png",
+  "out": "assets/ui/dragon_icon.webp",
+  "w": 220,
+  "q": 0.86,
+  "bytes": 496476,
+  "nat": [
+   755,
+   682
+  ],
+  "display": [
+   0,
+   0
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/forge/ledger.png",
+  "out": "assets/forge/ledger.webp",
+  "w": 256,
+  "q": 0.86,
+  "bytes": 455492,
+  "nat": [
+   658,
+   442
+  ],
+  "display": [
+   128,
+   86
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/Game-elements/design_desk.png",
+  "out": "assets/Game-elements/design_desk.webp",
+  "w": 487,
+  "q": 0.86,
+  "bytes": 435159,
+  "nat": [
+   487,
+   495
+  ],
+  "display": [
+   274,
+   278
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/plaque_stone.png",
+  "out": "assets/ui/plaque_stone.webp",
+  "w": 851,
+  "q": 0.86,
+  "bytes": 333146,
+  "nat": [
+   851,
+   304
+  ],
+  "display": [
+   426,
+   152
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/Game-elements/sharpening_stone.png",
+  "out": "assets/Game-elements/sharpening_stone.webp",
+  "w": 384,
+  "q": 0.86,
+  "bytes": 325138,
+  "nat": [
+   384,
+   444
+  ],
+  "display": [
+   217,
+   251
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/grindstone_spin.png",
+  "out": "assets/forge/grindstone_spin.webp",
+  "w": 1064,
+  "q": 0.86,
+  "bytes": 308197,
+  "nat": [
+   1701,
+   1536
+  ],
+  "display": [
+   532,
+   481
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/forge/anchor_pestle.png",
+  "out": "assets/forge/anchor_pestle.webp",
+  "w": 220,
+  "q": 0.86,
+  "bytes": 293964,
+  "nat": [
+   329,
+   763
+  ],
+  "display": [
+   110,
+   103
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Small_paperbox.png",
+  "out": "assets/ui/Small_paperbox.webp",
+  "w": 849,
+  "q": 0.86,
+  "bytes": 210502,
+  "nat": [
+   849,
+   533
+  ],
+  "display": [
+   497,
+   323
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Dialogue_box.png",
+  "out": "assets/ui/Dialogue_box.webp",
+  "w": 980,
+  "q": 0.86,
+  "bytes": 206399,
+  "nat": [
+   1074,
+   425
+  ],
+  "display": [
+   0,
+   0
+  ],
+  "forced": true
+ },
+ {
+  "src": "assets/hammer/hammer_hammer.png",
+  "out": "assets/hammer/hammer_hammer.webp",
+  "w": 1877,
+  "q": 0.86,
+  "bytes": 201119,
+  "nat": [
+   1877,
+   1025
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_claymore_blade.png",
+  "out": "assets/sword-parts/blades/balanced_claymore_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 177908,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_scimitar_blade.png",
+  "out": "assets/sword-parts/blades/balanced_scimitar_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 177720,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/water_longsword_blade.png",
+  "out": "assets/sword-parts/blades/water_longsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 173884,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_broadsword_blade.png",
+  "out": "assets/sword-parts/blades/balanced_broadsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 160207,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/swift_dagger_blade.png",
+  "out": "assets/sword-parts/blades/swift_dagger_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 134813,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/swift_guard3.png",
+  "out": "assets/sword-parts/guards/swift_guard3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 132200,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/flame_broadsword_blade.png",
+  "out": "assets/sword-parts/blades/flame_broadsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 126986,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/flame_longsword_blade.png",
+  "out": "assets/sword-parts/blades/flame_longsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 123944,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/woman3.png",
+  "out": "assets/customer/woman3.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 121013,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_longsword_blade.png",
+  "out": "assets/sword-parts/blades/balanced_longsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 120666,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/man4.png",
+  "out": "assets/customer/man4.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 119489,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/woman2.png",
+  "out": "assets/customer/woman2.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 110916,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/Game-elements/rack.png",
+  "out": "assets/Game-elements/rack.webp",
+  "w": 241,
+  "q": 0.86,
+  "bytes": 109065,
+  "nat": [
+   241,
+   427
+  ],
+  "display": [
+   140,
+   248
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/man3.png",
+  "out": "assets/customer/man3.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 107153,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/woman1.png",
+  "out": "assets/customer/woman1.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 105883,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/Game-elements/stand.png",
+  "out": "assets/Game-elements/stand.webp",
+  "w": 324,
+  "q": 0.86,
+  "bytes": 103854,
+  "nat": [
+   460,
+   220
+  ],
+  "display": [
+   162,
+   78
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/man1.png",
+  "out": "assets/customer/man1.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 103754,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/ice_longsword_blade.png",
+  "out": "assets/sword-parts/blades/ice_longsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 103638,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/swift_shortsword_blade.png",
+  "out": "assets/sword-parts/blades/swift_shortsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 99016,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/customer/man2.png",
+  "out": "assets/customer/man2.webp",
+  "w": 304,
+  "q": 0.86,
+  "bytes": 97630,
+  "nat": [
+   304,
+   572
+  ],
+  "display": [
+   390,
+   734
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/balanced_broadsword_midblade.png",
+  "out": "assets/hammer/balanced_broadsword_midblade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 71722,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_katana_blade.png",
+  "out": "assets/sword-parts/blades/balanced_katana_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 69701,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/swift_guard1.png",
+  "out": "assets/sword-parts/guards/swift_guard1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 66632,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_saber_blade.png",
+  "out": "assets/sword-parts/blades/balanced_saber_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 66492,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/swift_guard5.png",
+  "out": "assets/sword-parts/guards/swift_guard5.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 65197,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/flame_shortsword_blade.png",
+  "out": "assets/sword-parts/blades/flame_shortsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 64269,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_machete_blade.png",
+  "out": "assets/sword-parts/blades/balanced_machete_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 59852,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/water_guard1.png",
+  "out": "assets/sword-parts/guards/water_guard1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 56848,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/swift_longsword_blade.png",
+  "out": "assets/sword-parts/blades/swift_longsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 56529,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/swift_guard2.png",
+  "out": "assets/sword-parts/guards/swift_guard2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 55260,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/balanced_longsword_midblade.png",
+  "out": "assets/hammer/balanced_longsword_midblade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 51831,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   832,
+   832
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Small_paperbox_dark.png",
+  "out": "assets/ui/Small_paperbox_dark.webp",
+  "w": 320,
+  "q": 0.86,
+  "bytes": 47627,
+  "nat": [
+   320,
+   252
+  ],
+  "display": [
+   170,
+   134
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_rapier_blade.png",
+  "out": "assets/sword-parts/blades/balanced_rapier_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 43470,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_cutlass_blade.png",
+  "out": "assets/sword-parts/blades/balanced_cutlass_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 41709,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/ice_guard1.png",
+  "out": "assets/sword-parts/guards/ice_guard1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 34572,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/ingot.png",
+  "out": "assets/hammer/ingot.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 32629,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/blades/balanced_shortsword_blade.png",
+  "out": "assets/sword-parts/blades/balanced_shortsword_blade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 32530,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/swift_guard4.png",
+  "out": "assets/sword-parts/guards/swift_guard4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 32388,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Paper_button_wider.png",
+  "out": "assets/ui/Paper_button_wider.webp",
+  "w": 453,
+  "q": 0.86,
+  "bytes": 29337,
+  "nat": [
+   453,
+   97
+  ],
+  "display": [
+   250,
+   54
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/hammer/balanced_shortsword_midblade.png",
+  "out": "assets/hammer/balanced_shortsword_midblade.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 28487,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   1080,
+   590
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/overlays/crack.png",
+  "out": "assets/sword-parts/overlays/crack.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 27940,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/guard1.png",
+  "out": "assets/sword-parts/guards/guard1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 23809,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/water_pommel1.png",
+  "out": "assets/sword-parts/pommels/water_pommel1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 22270,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/guard2.png",
+  "out": "assets/sword-parts/guards/guard2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 21661,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/flame_guard3.png",
+  "out": "assets/sword-parts/guards/flame_guard3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 21548,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/guard4.png",
+  "out": "assets/sword-parts/guards/guard4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 20825,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/flame_grip1.png",
+  "out": "assets/sword-parts/grips/flame_grip1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 20587,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/flame_guard1.png",
+  "out": "assets/sword-parts/guards/flame_guard1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 20441,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/ice_grip1.png",
+  "out": "assets/sword-parts/grips/ice_grip1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 20025,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/swift_grip5.png",
+  "out": "assets/sword-parts/grips/swift_grip5.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 18261,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/water_grip1.png",
+  "out": "assets/sword-parts/grips/water_grip1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 17761,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Paper_button_red.png",
+  "out": "assets/ui/Paper_button_red.webp",
+  "w": 213,
+  "q": 0.86,
+  "bytes": 16432,
+  "nat": [
+   213,
+   97
+  ],
+  "display": [
+   111,
+   51
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/swift_pommel5.png",
+  "out": "assets/sword-parts/pommels/swift_pommel5.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 15541,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/swift_pommel4.png",
+  "out": "assets/sword-parts/pommels/swift_pommel4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 15494,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/swift_grip2.png",
+  "out": "assets/sword-parts/grips/swift_grip2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 14745,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/swift_grip1.png",
+  "out": "assets/sword-parts/grips/swift_grip1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 14190,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/flame_guard4.png",
+  "out": "assets/sword-parts/guards/flame_guard4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 14112,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/flame_grip3.png",
+  "out": "assets/sword-parts/grips/flame_grip3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 13790,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/grip4.png",
+  "out": "assets/sword-parts/grips/grip4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 13775,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   639,
+   639
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/swift_grip3.png",
+  "out": "assets/sword-parts/grips/swift_grip3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 13664,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/swift_grip4.png",
+  "out": "assets/sword-parts/grips/swift_grip4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 13629,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/grip2.png",
+  "out": "assets/sword-parts/grips/grip2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 13262,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   639,
+   639
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/pommel3.png",
+  "out": "assets/sword-parts/pommels/pommel3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 12203,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/flame_grip2.png",
+  "out": "assets/sword-parts/grips/flame_grip2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 11763,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/grip3.png",
+  "out": "assets/sword-parts/grips/grip3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 11466,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   710,
+   710
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/grips/grip1.png",
+  "out": "assets/sword-parts/grips/grip1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 11354,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/overlays/sparkle.png",
+  "out": "assets/sword-parts/overlays/sparkle.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 11230,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/arrow_point_down.png",
+  "out": "assets/ui/arrow_point_down.webp",
+  "w": 234,
+  "q": 0.86,
+  "bytes": 11094,
+  "nat": [
+   234,
+   396
+  ],
+  "display": [
+   234,
+   396
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/flame_guard5.png",
+  "out": "assets/sword-parts/guards/flame_guard5.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 10846,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/ice_pommel1.png",
+  "out": "assets/sword-parts/pommels/ice_pommel1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 10684,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/pommel5.png",
+  "out": "assets/sword-parts/pommels/pommel5.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 10280,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/swift_pommel1.png",
+  "out": "assets/sword-parts/pommels/swift_pommel1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 10229,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/swift_pommel3.png",
+  "out": "assets/sword-parts/pommels/swift_pommel3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 9747,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/guard3.png",
+  "out": "assets/sword-parts/guards/guard3.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 9548,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/bookmark_paper.png",
+  "out": "assets/ui/bookmark_paper.webp",
+  "w": 80,
+  "q": 0.86,
+  "bytes": 9515,
+  "nat": [
+   91,
+   124
+  ],
+  "display": [
+   40,
+   30
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/pommel2.png",
+  "out": "assets/sword-parts/pommels/pommel2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 9319,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/pommel1.png",
+  "out": "assets/sword-parts/pommels/pommel1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 8677,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/guards/flame_guard2.png",
+  "out": "assets/sword-parts/guards/flame_guard2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 8538,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/swift_pommel2.png",
+  "out": "assets/sword-parts/pommels/swift_pommel2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 8392,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/flame_pommel2.png",
+  "out": "assets/sword-parts/pommels/flame_pommel2.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 7887,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/flame_pommel1.png",
+  "out": "assets/sword-parts/pommels/flame_pommel1.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 7558,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/Paper_button_wide.png",
+  "out": "assets/ui/Paper_button_wide.webp",
+  "w": 143,
+  "q": 0.86,
+  "bytes": 7270,
+  "nat": [
+   143,
+   51
+  ],
+  "display": [
+   158,
+   56
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/sparkle.png",
+  "out": "assets/sword-parts/pommels/sparkle.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 6966,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/sword-parts/pommels/pommel4.png",
+  "out": "assets/sword-parts/pommels/pommel4.webp",
+  "w": 512,
+  "q": 0.86,
+  "bytes": 5778,
+  "nat": [
+   512,
+   512
+  ],
+  "display": [
+   945,
+   945
+  ],
+  "forced": false
+ },
+ {
+  "src": "assets/ui/arrow.png",
+  "out": "assets/ui/arrow.webp",
+  "w": 409,
+  "q": 0.86,
+  "bytes": 5463,
+  "nat": [
+   409,
+   158
+  ],
+  "display": [
+   409,
+   158
+  ],
+  "forced": false
+ }
+]

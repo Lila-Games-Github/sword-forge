@@ -7,6 +7,9 @@ Lessons from building Sword Forge.
 - **Data-driven tutorial beats scattered flags** — *(this describes `swordforgeV2.html`; the landscape loop-test uses a different system — a `DIALOGUE` id map + `SAY_SEQ` + `TUT_STAGE` — and has no `tutorialFlow`)* — dialogue steps, actions, and `waitAction` gates in one array; gameplay functions advance it by checking the current step's `waitAction`.
 - **An SSOT must track the *live direction*, not a superseded build** — `specs/game-design.md` documented the V1 grid game long after the design pivoted to Path-Forge, so reviews were checked against the wrong game. Fixed 2026-08-12 by making the loop-test canon for the craft loop. Lesson: when the design pivots, reconcile the SSOT *in the same push* as the new build lands, or the spec silently rots.
 - **Reconcile the SSOT with a dated decision record, not a silent in-place edit** — the loop-test-canon switch was an in-place edit of `game-design.md`; the *why/when* survives only in a commit message. A dated decision doc was even started (`2026-08-10-core-loop-potioncraft-mapping.md`) but stranded in a worktree. RuneSurge's append-only `docs/superpowers/specs/` decision log is the pattern to copy: new decision = new immutable dated doc, GDD/spec = synthesis that cites them.
+- **A phone cannot reach the preview server until two Windows settings change** *(2026-09-21)* — the server binds `0.0.0.0` and answers on the LAN address from the host itself, yet the phone times out. Two causes stack: the Wi-Fi is classified **Public**, and a past "Cancel" on a Windows firewall prompt left inbound rules named **"Node.js JavaScript Runtime" with Action: Block** on the Public profile. **Block rules beat allow rules**, so adding a port allow changes nothing while those exist. Fix: mark that Wi-Fi Private (the blocks are Public-scoped, so they stop applying and still protect you in a cafe) and add one inbound TCP allow for the preview port. Diagnose with `Get-NetConnectionProfile` and `netsh advfirewall firewall show rule name=all dir=in verbose`, not by re-checking the server.
+- **Viewport meta sizes the width only** *(2026-09-21)* — a fixed-size game frame needs the width CHOSEN so the height fits: `max(frameW, ceil(frameH * innerW / innerH))`, written into the meta. `innerW / innerH` is the visible screen's aspect in any CSS space, so no device pixels are needed and it converges in one step. Prefer this to a `transform: scale()` wrapper whenever the code reads `getBoundingClientRect` or `clientX` in many places: the meta route keeps every coordinate in one space, a transform silently scales half of them.
+- **A centred flex item that overflows hides its left edge** — `justify-content: center` gives no way to scroll to the overflow. Use `safe center` on any fixed-size box that can be wider than the window.
 - **Competitor FTUE teardown workflow (game-research + video-analysis)** — scope to the tutorial window, pull a no-commentary walkthrough (frames carry it, cadence 1 frame/2s) + a narrated guide (commentary carries intent), source-tag every claim, keep text deliverables in-repo and gitignore the heavy raw video/frames with a MANIFEST for re-fetch.
 
 ## Anchor-matching the landscape build (loop r8–r12, 2026-08-14)
@@ -49,3 +52,77 @@ Lessons from building Sword Forge.
 - **An overlay is clipped by its frame.** A guide arrow aimed at a target near the top edge started
   62px *above* it — outside `#frame`'s `overflow:hidden`, so it drew nothing. Check the whole arrow
   path lands inside the clip box, not just its target.
+
+## Moving a trait rearranges the hazard field (2026-09-19, r111)
+
+Hazard positions on the trait map are **derived from where the traits sit**. They are deterministic
+across reloads (verified over three), but move a trait and the hazards move with it.
+
+r104 measured a hazard, then moved Fire in the same round, then wrote the pre-move measurement into the
+spec as justification for a design decision. Re-probed in r111 the hazard was not there: the route end
+it claimed was "five units from the centre of an island" is clear, and the nearest island is 63 units
+further out.
+
+**Rule:** any measurement of hazards, fog or trait spacing must be taken **after** the last change to
+`TRAIT_POS` in that round, not before. Re-run the probe after the patch lands, even when the patch
+"only" moves one trait.
+
+## Drive tutorial steps through the gameplay functions, not by assigning stages (2026-09-19, r112)
+
+r111 verified a new craft by setting `TUT_STAGE` directly and calling the step functions. Every
+assertion passed. In a real playthrough the beat could not run at all: `tutGateStep()` was a catch-all
+that overwrote the very stage those steps waited on, and dragged the first craft's D5-D9 in with it.
+
+Assigning the stage is assuming the answer to the question the test should be asking, which is *does the
+game reach this stage on its own*.
+
+**Rule:** verify a tutorial beat by calling the functions a player's actions call (`markGateReady`,
+`openGate`, `placeOnAnvil`, `addPrep`, `advanceSword`, …) and letting `TUT_STAGE` fall where it falls.
+Set a stage by hand only to reach a starting position, never across the step under test. Assert the
+lines that did **not** fire as well as the ones that did.
+
+## Measuring the map changes the map (2026-09-19, r114)
+
+`addSegment()` calls `moveX()`, which calls `reveal()`. So sampling route ends to build a table of
+distances **punches a fog hole at every sampled end**. A fog-coverage check run afterwards reported a
+trait fully visible when a clean run leaves it two-thirds covered.
+
+**Rule:** any fog or reveal measurement goes on a freshly loaded page, before any route is sampled. Keep
+geometry probes (which perturb the fog) and fog probes (which must not be perturbed) in separate loads.
+
+## A trait record has two shapes, and a hand-built fixture will agree with your bug
+
+`Swordforge_looptest_landscape.html` stores a trait as `{t, tier, val}` on the bench (the whole trait
+object) and as `{tid, tier, val}` on a finished sword, because `finishBlade()` flattens it. Code that
+reads `.tier` alone works on both and never notices; code that reaches for the trait's **id** must
+handle both, and r131 did not. The result was a grade that could never reach its top outcome.
+
+The reason it shipped is worse than the bug: the round's verification built its test sword **by hand,
+in the ingot shape**, so the fixture and the defect made the same wrong assumption and agreed. This is
+the third time a hand-built record has hidden something (see the missing `sword` field in r128's first
+pass). **Forge the object through the real path that makes it** — here `SFM`'s craft chain plus
+`finishBlade()` — rather than writing an object literal that looks close enough.
+
+## Some asset paths are built, not written, so grep cannot prove a rename is complete
+
+Converting the landscape build's art to WebP meant rewriting every asset reference. A grep for
+`assets/...png` found them all and came back clean, and the game loaded perfectly in the emulator.
+
+It was wrong. Nine sites **construct** the path at runtime and keep the extension in the expression:
+
+```js
+const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.png';
+rough.src = 'assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.png';
+CUSTOMER   = { portrait:'assets/customer/'+who+'.png', ... };
+```
+
+None of those contain a literal path, so the grep missed them, and the files they reach (65 sword-part
+skins, 11 portraits, 3 midblades) were never converted. Nothing broke on the screens a sweep visits;
+it would have broken for the first player who reached a flame grip.
+
+Two habits come out of it. **Grep for the suffix in an expression too** (`+ '...png'`), not just for
+whole paths. And **build the work list from the directories the code can reach**, not from what a
+render sweep happened to paint: a measurement pass only ever sees the assets that were on screen.
+
+Related: the same round found two assets counted in the payload that live **only inside comments**, so
+the "before" number was 1.84 MB too high until the scan learned to tell code from prose.

@@ -4,8 +4,11 @@
     {
       "name": "sword-forge",
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": [".claude/serve.js"],
-      "port": 5678
+      "runtimeArgs": [
+        ".claude/serve.js"
+      ],
+      "port": 5679,
+      "autoPort": true
     }
   ]
 }

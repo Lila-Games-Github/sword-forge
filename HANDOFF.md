@@ -11,10 +11,12 @@ continuation prompt printed at close time.
   touched; the two have diverged in catalog and layout. `swordforgeV2.html` / `index.html` are older
   canon and were not touched this session.
 - **Repo:** https://github.com/Lila-Games-Github/sword-forge (Pages: https://lila-games-github.github.io/sword-forge/)
-- **Status:** rounds **r60–r101** are pushed and proposed in **one open PR**, not yet merged — the
-  owner chose to hold it for review at session close. Merging is also the deploy: `.github/workflows/deploy.yml`
-  publishes Pages on every push to `main`. The last push before this one was PR #12 / `e2bdca4` (up to r59),
-  so this PR is a very large single review.
+- **Status:** rounds **r60-r101** are **merged and live**. PR #13 landed as merge commit `12a41aa` on
+  2026-09-18 and GitHub Pages redeployed automatically (`.github/workflows/deploy.yml` fires on every
+  push to `main`). The previous push before it was PR #12 / `e2bdca4` (up to r59).
+- **Current branch:** `tutorial-phase2`, cut from `main` at `12a41aa`. The old
+  `sword-forge/tutorial-script-and-craft-systems` branch was merged and deleted (local + remote); its
+  commits live in `main`. **Do not commit directly to `main`** - every push there publishes the site.
 
 ### What the landscape build now has
 
@@ -63,9 +65,10 @@ git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');new Function(s.match(/<script>([\s\S]*)<\/script>/)[1]);console.log('parses OK')"
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
-Then `preview_start` (name `sword-forge`, port 5678) **and navigate explicitly to**
-`http://localhost:5678/Swordforge_looptest_landscape.html` — the server maps `/` to `index.html`, which
-is **V1**, where `DIALOGUE`/`lastLine()`/`TUT_STAGE` are all `undefined` and the build looks broken.
+Then `preview_start` (name `sword-forge`, port **5679**) **and navigate explicitly to**
+`http://localhost:5679/Swordforge_looptest_landscape.html`. **2026-09-22:** the root no longer serves
+V1 — `index.html` redirects to the landscape build and V1 lives at `v1.html` — but navigating
+explicitly is still the honest test, since the redirect is one more thing that can be wrong.
 With the right URL loaded, expect `Object.keys(DIALOGUE).length === 43` and `lastLine() === "D43"`.
 The living-docs audit prints **10 pre-existing `ORPHAN` lines** for `docs/wiki/` and exits 0 — that is
 the expected baseline, not a regression. **Screenshots work** if the pane is visible —
@@ -96,9 +99,9 @@ supersede them.
    (`dadada47` on the remote), so reopening is a click. It was `CONFLICTING` and needs a rebase first.
    Its canonical-build rename is now redundant — that was applied directly on the PR #13 branch — but
    its deferred-art/lazy-load work is not.
-3. **D44+ commits start a new branch** off `sword-forge/tutorial-script-and-craft-systems`, rather than
-   stacking onto it. (Owner: "they are new" — read as a new branch; if that is wrong, the only cost is
-   a rebase, so confirm before the first commit.)
+3. **D44+ work goes on its own branch.** Resolved on 2026-09-18: PR #13 was merged rather than held,
+   the old branch deleted, and **`tutorial-phase2`** cut fresh from `main`. Phase-2 work goes there;
+   open a new PR from it when there is something to review.
 
 ## The questions as asked (superseded by the answers above)
 

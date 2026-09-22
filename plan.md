@@ -133,6 +133,7 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
       forge run teaching grinding and recording a craft.
 - [x] Smelter gate on **heat**, grinding wheel on **angle swept**, minigame fire aimed by holding the
       metal, quench mug finish, Sword Crafted window, per-trait Design Desk sets, counter bell.
+- [x] **r60-r101 merged** (PR #13, `12a41aa`) and deployed; work continues on `tutorial-phase2`.
 - [ ] **Continue the script past D43** — the dialogue lives in **Figma**; the owner sends it in
       sequence. Check wording, ask, then implement. D44+ goes on a **new branch**.
 - [ ] `swift_broadsword_blade.png` missing → a swift Broadsword wears a balanced blade. Ice/water
@@ -140,6 +141,31 @@ build rounds: [`specs/2026-08-18-looptest-landscape-map-traits-hazards.md`](spec
 - [ ] 21 dead `hint()` call sites (no-op since r34) — restore a surface or convert to `toast()`.
 - [ ] Customers ask for a trait but nothing enforces the match; no unrung arrivals.
 - [ ] `assets/ui/dragon_icon.png` committed but referenced nowhere.
+
+## 📱 Mobile compatibility (branch `sword-forge/mobile-compat`, 2026-09-21)
+
+- [x] **Viewport fit** — the frame no longer overflows a short landscape phone. The viewport width is
+      computed so 600 CSS px fills the visible height, and the slack becomes side bars. Decision +
+      numbers: `specs/2026-09-21-mobile-viewport-fit.md`. Test: `node tooling/mobile-fit/fit.test.mjs`.
+- [x] `#frame` gets `flex-shrink: 0` — any viewport under 1080 px used to crush the 1.8:1 aspect and
+      move every `LAYOUT` prop with it.
+- [ ] **Real-device matrix** — Chrome Android, Samsung Internet, iOS Safari, iOS Chrome, Instagram and
+      WhatsApp in-app browsers. Emulation cannot answer viewport-meta questions.
+- [x] **Payload diet** (r136) — first paint **50.57 MB -> 1.39 MB**, all screens **70.76 -> 2.30 MB**,
+      decoded RGBA **348 -> 95.5 MB**. Every asset resized to 2x the box it is actually drawn in and
+      stored as WebP; the art itself is untouched. Measured, not guessed. Quality MAE 0.5-3.1 per
+      channel at display size. Decision + numbers: `specs/2026-09-21-asset-payload-diet.md`.
+- [ ] Lazy-load per screen — deliberately **not** done: first paint is 1.39 MB, so there is little left
+      to defer, and the remaining decode is dominated by `map_base`, which is on the first screen.
+- [x] **Rotate gate** for portrait (r135) — a full-screen 'Turn your phone sideways' overlay whenever a
+      coarse pointer reports `innerHeight > innerWidth`. No orientation lock, for the reason r134b gave.
+- [x] **Fullscreen on first tap** (r134b) recovers the height Chrome's URL bar holds: 1334 instead of
+      1715 on the owner's phone. Gated by `sfWantsFullscreen()` so a desktop mouse, an iPhone, or a
+      screen the frame already fits never triggers it. Orientation lock deliberately left out.
+- [x] `touch-action: none` (r135) — set on `#frame` wholesale rather than surface by surface;
+      `#oreShelf` keeps `pan-y` as the one region inside the frame that really scrolls.
+- [x] Layout self-test GREEN (r135) — r93 moved the dragon on purpose and updated neither `RECORDED`
+      nor the landscape in-zone floor. Both followed it. Nothing mutates `LAYOUT` at runtime.
 
 > ⚠️ **Scope note (2026-09-18):** the "🔜 Next up" / save-load items **earlier in this file** are **V1/V2 scope**
 > (`index.html`, `swordforgeV2.html`). Their keys (`currentDay`, `customersToday`, `diaryGiven`,
