@@ -6669,3 +6669,39 @@ button again. `hmSkip()` with the minigame closed returns false and adds nothing
 **Open for the owner:** the bar is unconditional, so the deployed Pages build shows it to anyone who
 opens the link. Gating it on `location.search.indexOf('cheats')>=0` in the `load` handler is a
 one-line change if that matters.
+
+### r166 — the pickaxe stops sliding under the inventory panel
+
+**The rule this build already follows:** a dragged item is drawn by a **ghost parented to `#frame`**,
+not by the element it came from. That is the only way to be over the rail, because the rail is
+`z-index: 45` on `#frame` and `#screenLayer` is `z-index: 40` — so nothing inside a screen, at any
+z-index of its own, can paint over the inventory. `#caveLayer` is `z-index: 41` **inside** that
+context, which buys it nothing against the rail.
+
+`wirePickDrag()` was the one drag that moved the real element instead: the pickaxe already out in the
+cave is a `.cv-pick` inside `#caveLayer`, so the drag that puts it away ran it under the panel.
+Measured before the fix: parked at x 904-1002 with the rail starting at 913, `elementFromPoint` at
+its centre returned an `.ore-slot`.
+
+It now lifts a `.pick-ghost` onto `#frame` on the first movement and hides the real one. The ghost
+copies the live computed width (97.3px in the cave at 1200x700) so nothing appears to resize, and
+both carry `translate(-50%,-50%)`, so the pointer is the same anchor for each. `visibility: hidden`
+rather than `display: none` on the real one matters: its rect stays live, and `pickCheck()` keeps
+reading the head position from it while the drag continues.
+
+**The audit, since the ask was to check the rest.** Every inventory tab's drag, at runtime:
+
+| tab | drag | ghost parent | z | beats rail (45) |
+| --- | --- | --- | --- | --- |
+| INGREDIENTS | `startOreDrag` | `#frame` | 120 | yes |
+| INGOTS | `startIngotDrag` | `#frame` | 120 | yes |
+| SWORDS | `startSwordDrag` / `wireWorkDrag` | `#frame` | 120 | yes |
+| ITEMS & DECOR | `startPickDrag` (out of the bag) | `#frame` | 55 | yes |
+| — | `wirePickDrag` (already in the cave) | **was `#caveLayer`** | 1 | **no — fixed here** |
+
+Note `.pick-ghost` is z 55 against the others’ 120. Both clear the rail, and 55 still clears the say
+bubble (47), so it was left alone.
+
+**On testing this:** `elementFromPoint` is useless on the ghosts — they are all `pointer-events: none`,
+so it reads straight through them to whatever is beneath. Paint order was confirmed instead with a
+probe element given the same parent and z-index, which does hit-test on top of the rail.

@@ -2835,8 +2835,20 @@ function dropPick(e){ const b=plateBox(); if(!b) return;
     PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
     buildCave(); if(INV_TAB===3) buildShelf();
     toast('⛏️ Rest the pickaxe against an <b>ore seam</b> to mine it'); }
+/* r166: #caveLayer sits inside #screenLayer (z 40) and the inventory rail is z 45, so NOTHING drawn
+   in the cave can come out over the rail - the pickaxe slid under the panel on the very drag that
+   is meant to put it away. The ore, ingot and sword drags all answer this the same way, with a
+   ghost parented to #frame; this follows them. The real .cv-pick only goes invisible, so its rect
+   is still live and pickCheck() keeps reading the head position from it. */
 function wirePickDrag(el){
-    let drag=false, moved=false, sx=0, sy=0;
+    let drag=false, moved=false, sx=0, sy=0, ghost=null;
+    const lift=()=>{ if(ghost) return;
+        const frame=document.getElementById('frame');
+        ghost=document.createElement('div'); ghost.className='pick-ghost';
+        ghost.style.width=getComputedStyle(el).width;   /* the live cave width, so it does not jump */
+        ghost.innerHTML='<img src="'+PICK_SRC+'" alt="">';
+        frame.appendChild(ghost); el.style.visibility='hidden'; };
+    const land=()=>{ if(ghost){ ghost.remove(); ghost=null; } el.style.visibility=''; };
     el.addEventListener('pointerdown', e=>{ e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY;
         try{ el.setPointerCapture(e.pointerId); }catch(err){} });
     el.addEventListener('pointermove', e=>{ if(!drag) return;
@@ -2844,8 +2856,11 @@ function wirePickDrag(el){
         moved=true;
         const b=plateBox(); if(!b) return;
         PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
-        layoutCave(); railHot(overRail(e)); });
-    const end=e=>{ if(!drag) return; drag=false; railHot(false);
+        layoutCave(); railHot(overRail(e));
+        lift();   /* r166: both carry translate(-50%,-50%), so the pointer is the same anchor */
+        const fr=document.getElementById('frame').getBoundingClientRect();
+        ghost.style.left=(e.clientX-fr.left)+'px'; ghost.style.top=(e.clientY-fr.top)+'px'; });
+    const end=e=>{ if(!drag) return; drag=false; railHot(false); land();   /* r166 */
         if(moved && e && overRail(e)){ stowPick(); return; }
         pickCheck(); };                                    // released next to a seam? keep swinging
     el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
