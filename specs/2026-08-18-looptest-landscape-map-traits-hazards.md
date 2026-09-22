@@ -6524,3 +6524,35 @@ SELL enabled and blinking.
 responsibility for clearing it from `noteAction()` onto whatever sets the next state. r158 and r159
 are the two places that had been relying on the old wipe. Any further stale pointer is the same bug:
 find the transition that the player has just completed and clear it there.
+
+### r160 — the dragon moves to the top of the basement screen
+
+One element, `#screenDragon`, serves both the counter and the basement, at one position: `left 1%`,
+`bottom 17%` (r146/r150, chosen for the counter). On the basement that lands him on the **assembly
+bench**, which is the `designDesk` hotspot, and puts his bubble across the **sharpening wheel** — the
+two things that screen exists for.
+
+`goScreen()` already writes an `sc-<name>` class on the layer, so the position is now per screen:
+
+```css
+#screenLayer.sc-basement > #screenDragon { top: 5%; bottom: auto; width: 20%; }
+```
+
+**Why 5% and 20%, not 1% and 23%.** At the full 23% he is 37.3% tall, so `top: 1%` clears the desk
+(top 39.1%) by 0.6%, and his bubble then overlapped the bottom 10px of the `#panUp` exit arrow — the
+way out of the basement — which sits at `z-index: auto` under the bubble's 47. Measured five
+width/top pairs: 20% wide at `top: 5%` is the one that clears the desk by 1.6% and `#panUp` by 7px.
+The layer is a fixed 1080x600 scaled by transform, so those percentages hold at every pane size
+(checked at two).
+
+**The drag no longer follows him off the counter.** He is draggable on the counter screen only, but
+the inline `left`/`top` that wrote went with the element everywhere and beat any per-screen CSS — so
+the rule above would have been silently undone by one drag. `SD_POS` remembers that position for the
+counter, and `screenDragonPlace()` (called from `goScreen`) applies it there and clears the inline
+styles on every other screen. `tutReset()` forgets it.
+
+Verified through the real beat: `TUT_SHARP_RUN` with `TUT_STAGE` `to-basement`, `goScreen('basement')`
+reaches `base-table` and speaks D49. Dragon `t 5 → 37.5`, bubble `t 6.1 → 21`; `designDesk` starts at
+39.1 and `sharpen` at 38.9; all four overlap tests false, and the bubble clears `#panUp`. Counter
+unchanged at `l 1, t 45.7, w 23`. Dragging him on the counter, walking to the basement and back
+restores the dragged spot while the basement keeps its own.

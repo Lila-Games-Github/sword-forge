@@ -941,6 +941,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenLayer.tut-counter > #screenDragon { display: block; }
 #screenLayer.tut-dragon > #screenDragon { display: block; }   /* r103: and onto the basement */
 #screenDragon { position: absolute; left: 1%; bottom: 17%; width: 23%;   /* r146: bottom-left. r150: lifted to clear the ledger button, which now sits under him */ z-index: 46; display: none; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+/* r160: on the basement screen he goes to the TOP. Bottom-left puts him squarely over the assembly
+   bench - which IS the design-desk hotspot - and his bubble then reaches across the sharpening
+   wheel, so both of the things that screen is for sit under him. */
+#screenLayer.sc-basement > #screenDragon { top: 5%; bottom: auto; width: 20%; }
 #screenDragon.dragging { cursor: grabbing; }
 #screenDragon .dragoncrop { width: 100%; }
 #screenDragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
@@ -3763,6 +3767,7 @@ function goScreen(name){
     /* one sc-<name> class drives that screen's own panel cluster */
     [...layer.classList].filter(c=>c.indexOf('sc-')===0).forEach(c=>layer.classList.remove(c));
     layer.classList.add('sc-'+name);
+    screenDragonPlace();   /* r160 */
     buildScreenProps(name);
     buildCave();
     buildRackSwords();
@@ -6846,6 +6851,7 @@ const SAY_OPENING = ['D1','D2','D3'];
 function tutReset(){
     tutDone(); sayHide();
     TUT_COUNTER_VISITED=false; TUT_BRAM_STATE=null; TUT_BRAM_SOLD=false;
+    SD_POS=null;   /* r160 */
     const d=document.getElementById('screenDragon'); if(d){ d.style.display=''; d.style.left=''; d.style.top=''; d.style.bottom=''; d.classList.remove('dragging'); }
     const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
     typeStop();
@@ -7046,11 +7052,20 @@ function lastLine(){ const k=Object.keys(DIALOGUE); return k[k.length-1]; }
 let TUT_SEEN_END=false;
 function tutOver(){ return TUT_SEEN_END; }
 function dragonTap(e, layer){ if(tutOver()){ popHearts(e, layer); return true; } return sayAgain(); }
+/* r160: where the player last dragged him, remembered for the COUNTER screen alone. He is only
+   draggable there, but the inline left/top it wrote used to travel with the element to every other
+   screen and beat their CSS - which would silently undo the basement position above. */
+let SD_POS=null;
+function screenDragonPlace(){
+    const d=document.getElementById('screenDragon'); if(!d) return;
+    if(SF_SCREEN==='customer' && SD_POS){ d.style.left=SD_POS.left; d.style.top=SD_POS.top; d.style.bottom='auto'; }
+    else { d.style.left=''; d.style.top=''; d.style.bottom=''; }
+}
 function wireScreenDragon(){
     const d=document.getElementById('screenDragon'), layer=document.getElementById('screenLayer'); if(!d||!layer) return;
     let active=false, moved=false, sx=0, sy=0, dx=0, dy=0;
     d.addEventListener('pointerdown', e=>{ if(SF_SCREEN!=='customer') return; e.preventDefault(); active=true; moved=false; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} });
-    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect(); let x=Math.max(0,Math.min(b.width-q.width,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; sayLayout(); } });
+    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect(); let x=Math.max(0,Math.min(b.width-q.width,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; SD_POS={ left:d.style.left, top:d.style.top };   /* r160 */ sayLayout(); } });
     d.addEventListener('pointerup', e=>{ const tap=!moved; active=false; d.classList.remove('dragging'); if(tap) dragonTap(e,layer); });
     d.addEventListener('pointercancel', ()=>{ active=false; moved=false; d.classList.remove('dragging'); });
 }
