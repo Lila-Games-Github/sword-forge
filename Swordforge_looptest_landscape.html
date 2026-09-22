@@ -393,6 +393,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutArrow.above { z-index: 1090; }   /* r102: over the hammer modal, just under the bubble */
 /* r111/r113: the dragon spots a trait through the fog. The ring pulses over the fog; the trait
    itself stays hidden until the sword actually reaches it. */
+/* r172: the first craft only. Every ore that lands in the smelter extends the route, which is a
+   quiet change on a busy map - so the new stretch flashes outward from itself. Three staggered
+   copies read as a glow radiating off the line rather than one line getting fat. */
+#pathBurst path { fill: none; stroke: #ffd27a; stroke-linecap: round; opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255,190,80,.9)); animation: pathBurst .85s ease-out forwards; }
+@keyframes pathBurst {
+    0%   { stroke-width: 6;  opacity: .95; }
+    100% { stroke-width: 56; opacity: 0; }
+}
 @keyframes tutTraitPulse { 0%,100% { opacity:.30; transform:scale(1); } 50% { opacity:1; transform:scale(1.30); } }
 #tutSpot circle { animation: tutTraitPulse 1.1s ease-in-out infinite;
     transform-box: fill-box; transform-origin: center;
@@ -1768,6 +1777,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <path id="pathpreviewsolid" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" opacity="0.78" style="display:none;"/>
             <path id="fakepath" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
             <path id="pathline" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
+            <g id="pathBurst"></g>   <!-- r172: the ore-landed flash, beside #pathline so it stacks with it -->
             <!-- r113: the dragon spots a trait THROUGH the fog. Above #fog on purpose: a glow that
                  had to clear the fog to be visible would give the trait away, which is the thing
                  the owner did not want. -->
@@ -4196,7 +4206,21 @@ function segPointLocal(seg,frac){ measure.setAttribute('d',seg.d); const p=measu
 function segPoint(seg,frac){ const l=segPointLocal(seg,frac); return {x:l.x+pull.x, y:l.y+pull.y}; }   // rendered = local + dragon pull
 function routeEndLocal(){ if(!segs.length) return {x:START.x,y:START.y}; const s=segs[segs.length-1]; return segPointLocal(s,s.tPct); }
 function routeEnd(){ const l=routeEndLocal(); return {x:l.x+pull.x, y:l.y+pull.y}; }
-function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); tutCheckOre(); }
+/* r172: gated on TUT_STAGE==='ore', which is the first craft's ore step and nothing else - the
+   second craft runs on regrind-iron/regrind-mang. Called BEFORE tutCheckOre(), which is what moves
+   the stage on when the fourth ore lands, so all four get it. */
+function pathBurst(seg){
+    if(TUT_STAGE!=='ore' || !seg) return;
+    const g=document.getElementById('pathBurst'); if(!g) return;
+    const steps=Math.max(2, Math.round(seg.len*seg.tPct/10));
+    let d='';
+    for(let i=0;i<=steps;i++){ const p=segPoint(seg, seg.tPct*i/steps); d+=(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; }
+    [0,170,340].forEach(ms=>{
+        const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d',d); p.style.animationDelay=ms+'ms';
+        g.appendChild(p); setTimeout(()=>p.remove(), 1200+ms); });
+}
+function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); pathBurst(segs[segs.length-1]);   /* r172 */ tutCheckOre(); }
 function drawRoute(fromSword){ if(fromSword===undefined) fromSword=true; if(!segs.length){ pathEl.style.display='none'; return; }   // fromSword: draw only the REMAINING route (sword→✕) so the traveled part is erased; false = whole route
     const ss=fromSword?sword.seg:0, sf=fromSword?sword.frac:0; let d='',first=true;
     for(let si=ss; si<segs.length; si++){ const s=segs[si], from=(si===ss)?sf:0, to=s.tPct; if(to<=from+0.0001) continue; const steps=Math.max(2,Math.round(s.len*(to-from)/10)); for(let i=0;i<=steps;i++){ const frac=from+(to-from)*i/steps; const p=segPoint(s,frac); d+=(first?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; first=false; } }
@@ -5027,7 +5051,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
-    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }

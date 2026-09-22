@@ -6799,3 +6799,28 @@ Verified, all at 1200x700 with the rail edge at 913:
 | taken from the bag, released in the cave | places normally |
 | dragon dragged to x 1130 | right edge exactly 913 |
 | `SD_POS` forced to `left: 95%` | rewritten to 56.001%, right edge 913 |
+
+### r172 — the route flashes when an ore lands, on the first craft
+
+Every ore dropped in the smelter extends the route, which is a quiet change on a busy map. On the
+**first** craft each of the four ores now makes its new stretch flash outward.
+
+`pathBurst(seg)` builds the polyline for the **newly added stretch only** (`segPoint(seg, 0 → tPct)`,
+the same sampling `drawRoute()` uses) and drops three copies of it into `#pathBurst`, staggered 0 /
+170 / 340ms. Each swells `stroke-width` 6px → 56px while fading .95 → 0 over 850ms, so it reads as a
+glow radiating off the line rather than one line getting fat. The copies remove themselves, and
+`resetRun()` empties the group.
+
+`#pathBurst` is a `<g>` placed **immediately after `#pathline`** so it stacks exactly as the route
+does, above the same things and below the same things.
+
+**The gate is `TUT_STAGE==='ore'`**, which is the first craft's ore step and nothing else — the second
+craft runs on `regrind-iron`/`regrind-mang`. The call sits in `addSegment()` **before** `tutCheckOre()`,
+which is what moves the stage on when the fourth ore lands, so all four fire.
+
+Verified through the real step: `tutOreStep()` then the four ores the tutorial asks for (iron, iron,
+manganese, manganese). Each drop produced 3 bursts with delays 0/170/340ms, each one's `d` starting
+and ending exactly on its segment's own endpoints, and each cleared itself within 1.7s. The fourth
+fires even though `tutCheckOre()` moves the stage to `bellows` in the same call. Driving the
+animation: 6px/.95 at 0ms, 31.7px/.46 at 300ms, 53.5px/.05 at 700ms, 56px/0 at the end. With
+`TUT_STAGE` set to `regrind-iron`, dropping another ore adds nothing.
