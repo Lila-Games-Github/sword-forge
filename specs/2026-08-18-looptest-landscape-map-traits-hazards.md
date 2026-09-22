@@ -6742,3 +6742,23 @@ pickaxe** — the reported screenshot.
 it. Any drag whose source element can be rebuilt mid-gesture needs a cleanup that does not depend on
 the gesture ending normally. The ore, ingot and sword drags are safe only because nothing rebuilds
 the rail while they are in flight.
+
+### r170 — the sharpening screen moves the dragon to the bottom
+
+```css
+#shSayWrap { left: 50%; top: auto; bottom: 4.1%; transform: translateX(-50%); }
+```
+
+He was at `left 2.2%, top 3.4%`, sharing the top-left corner with `#shMeter` — the bar the whole
+screen is about. He now sits centred between CANCEL and DONE.
+
+The numbers: the gap between the buttons runs 12.66% to 84.03%, and the wrap is 383px (74px icon,
+9px gap, 300px bubble) = 35.5% wide, so centring leaves it at 32.27% to 67.73% with room either side.
+`bottom: 4.1%` puts its lower edge on 95.90%, level with both buttons, which sit at 87.67% to 95.89%.
+
+Verified on the real screen, with a real sword on the wheel and D51 speaking: centred on 50%, inside
+the button gap, bottoms level to within 0.01%, and no overlap with CANCEL, DONE, `#shSword` (bottom
+50.97%) or `#shMeter`.
+
+The Design Desk's `#ddSayWrap` is the same construction and still sits top-left. It was not asked for
+and its screen has a different button layout, so it was left alone.
