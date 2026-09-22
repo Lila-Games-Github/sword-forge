@@ -868,8 +868,18 @@ it again; the run only moves on once a point has actually been spent.*
 **D94** — Dragon
 > "We should go and gather ores. Go back to the cave."
 
-*Trigger: her line finishing. Exits blink back through the forge to the cave. The cave holds its full
-set of **five** seams, and the walk home is only offered once every seam is empty.*
+*Trigger: her line finishing. Exits blink back through the forge to the cave.*
+
+**D94b** — Dragon (r164)
+> "Gather everything."
+
+*Trigger: arriving in the cave. D94 sends the player there and this replaces it on arrival, so the
+standing instruction is no longer the one about walking. The cave holds its full set of **five**
+seams, and the walk home is only offered once every seam is empty.*
+
+*The id is `D94b`, inserted next to D94 rather than appended to the end of `DIALOGUE`: `lastLine()`
+is the map's final key and drives the guide-to-pet switch, so a new line at the end would move it.
+`lastLine()` is still `D139`, with 140 keys.*
 
 ### Open: the cave is 35 swings
 

@@ -3808,7 +3808,7 @@ function goScreen(name){
     if(name==='forge'){ layer.classList.remove('on'); }
     else { const [src,tag]=SCREEN_ART[name];
         const art=document.getElementById('screenArt');
-        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); };   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
+        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); sayLayout(); };   /* r164 */   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
         art.src=src;
         document.getElementById('screenTag').textContent=tag+' \u00b7 placeholder';
         layer.classList.add('on'); }
@@ -3824,6 +3824,10 @@ function goScreen(name){
     buildScreenUi(name);
     updateScreenArrows();
     updateTutorialCounterUi();
+    /* r164: the dragon has a different place and size on each screen since r160/r161, but a line
+       spoken before the walk kept the coordinates of the screen it was spoken on - so D94, said at
+       the counter, arrived in the cave sitting 123px clear of him. Lay it out again here. */
+    sayLayout();
     if(name==='customer') setTimeout(tutCounterArrival, 0);
     setTimeout(()=>tutScreenArrived(name), 0);   /* r103 */
 }
@@ -5474,6 +5478,7 @@ const DIALOGUE = {
     D92: "Let's go check the counter.",
     D93: "Do you have a sword with the Gale trait?",
     D94: "We should go and gather ores. Go back to the cave.",
+    D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
     D95: "Grind two copper and add it to the smelter.",
     D96: "Take it to the anvil and start hammering.",
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
@@ -5912,7 +5917,7 @@ function tutDay2Screen(name){
         return; }
     if(TUT_STAGE==='d2-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
-        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); return; } }
+        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); sayQueue('D94b'); return; } }   /* r164 */
     if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
     if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
     if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */

@@ -6604,3 +6604,33 @@ Verified: from the bedroom with `TUT_STAGE` `bed`, one press leaves day 2, scree
 `day2-forge` and `#panDown` blinking — the r120 behaviour, unchanged — and a second press during the
 fade changes nothing. Two ordinary nights in a row show "Day 3" then "Day 4" and land on the forge.
 The end state renders as a full-frame black with the day centred in Cinzel.
+
+### r164 — the bubble follows the dragon across a screen change
+
+Reported: in the cave, D94 was floating in the middle of the screen with the dragon up in the corner.
+
+`say()` positions the bubble against the dragon **once**, and `goScreen()` never laid it out again.
+That was harmless while the dragon stood in the same place on every screen; r160 and r161 gave him a
+position and a size per screen, so a line spoken before the walk kept the coordinates of the screen it
+was spoken on. Measured: D94 said at the counter sat 1px off his right edge there, and arrived in the
+cave **123px clear of him and 257px below his head**.
+
+`goScreen()` now calls `sayLayout()` after the screen's classes and props are in place, and the
+screen art's `onload` does too, since the props the bubble clamps against move when the plate decodes.
+
+**The sweep, since the ask was "check the rest of the dialogues as well".** One line spoken on each
+surface, measuring the gap from his right edge to the bubble's left:
+
+| surface | line | placement | gap |
+| --- | --- | --- | --- |
+| forge bench | D3 | beside, tail left | -2px |
+| counter | D92 | beside, tail left | -1px |
+| basement | D49 | beside, tail left | -1px |
+| cave | D94b | beside, tail left | -1px |
+| bedroom | D88 | **above**, tail down | n/a |
+
+The bedroom is the one that cannot be on his right, and not for want of trying: the dragon painted on
+the bed spans x 549 to 762 and `#rail` starts at 853, so there are **91px** of room for a 306px
+bubble. It takes the r93 above-and-left placement instead, which puts it directly over his head with
+the tail pointing down at him. Attached, just not to his right. Forcing it right would either run it
+under the inventory rail or slide it back on top of him.
