@@ -6031,3 +6031,34 @@ Nothing else changes: the metal stays `onAnvil` and the picker reopens on the ne
 - Reopening and choosing Longsword still opens the hammer minigame, so the commit path is untouched.
 - Opened at stage `shape2` the glow is cleared and the flag set; cancelling **restores the glow** and
   clears the flag.
+
+## r145 — the white cloud parked on the anvil
+
+Reported from play: a soft white blob sitting permanently on the anvil.
+
+It is `#quenchFlash`, the white flash `showWaterBurst()` pops when the blade is quenched. Its keyframes
+end on `opacity: 0`, but the animation had **no fill mode**, so the instant it finished the element
+snapped back to its *base* style, which is `opacity: 1` and a 90x60 white radial gradient. `.on` was
+never removed either, so `display` stayed `block`. From the first quench onward the flash simply stayed
+on screen, fully opaque, for the rest of the session.
+
+Two changes, because one alone is not enough:
+
+- `forwards` on the animation, so it **ends** invisible instead of reverting at frame 0.5s.
+- `hideWater()` also clears `.on`, so the element returns to `display: none`. That function already
+  owns the rest of the quench visuals, already runs on the same 950 ms timer, and is already called
+  from `resetRun()`. It also covers the case `forwards` cannot: if animations are throttled (a hidden
+  tab), the animation may never reach its end and the timer is what puts the flash away.
+
+### Verification
+
+One quench, sampled across the whole life of the effect:
+
+| when | display | opacity |
+|---|---|---|
+| 120 ms (mid-flash) | block | 0.94 |
+| after the 0.5 s animation | block | **0** |
+| after the 950 ms timer | **none** | class cleared |
+
+A second quench flashes again at 0.94 and settles back to `none`, so the effect still plays every time
+rather than being disabled.

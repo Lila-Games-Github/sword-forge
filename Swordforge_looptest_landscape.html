@@ -290,7 +290,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes anvilRecoil { 0% { transform: translateY(0); } 40% { transform: translateY(3px) scaleY(.985); } 100% { transform: translateY(0); } }
 #quenchFlash { position: absolute; z-index: 24; width: 90px; height: 60px; margin: -30px 0 0 -45px; border-radius: 50%; display: none; pointer-events: none;
     background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.95), rgba(210,235,255,.5) 50%, rgba(190,220,255,0) 78%); }
-#quenchFlash.on { display: block; animation: quenchPop .5s ease-out; }
+#quenchFlash.on { display: block; animation: quenchPop .5s ease-out forwards; }   /* r145: without 'forwards' the element snapped back to its base opacity:1 the moment the animation ended and sat on the anvil as a white cloud, because .on is never removed either */
 @keyframes quenchPop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
 .anvil { width: 100%; }
 
@@ -5278,7 +5278,7 @@ function showWaterBurst(){ positionWater(); document.getElementById('waterPour')
     const qf=document.getElementById('quenchFlash'); if(qf){ qf.style.left=o.x+'px'; qf.style.top=o.y+'px'; qf.classList.remove('on'); void qf.offsetWidth; qf.classList.add('on'); }
     fxBurst(o.x,o.y,{n:12,kind:'steam',ang:-Math.PI/2,spread:1.7,dist:40,size:9,dur:920});
     if(waterTimer) clearTimeout(waterTimer); waterTimer=setTimeout(hideWater,950); }
-function hideWater(){ const w=document.getElementById('waterPour'), s=document.getElementById('waterSplash'); if(w) w.classList.remove('on'); if(s) s.classList.remove('on'); if(mugEl) mugEl.classList.remove('pouring'); if(waterTimer){ clearTimeout(waterTimer); waterTimer=null; } }
+function hideWater(){ const w=document.getElementById('waterPour'), s=document.getElementById('waterSplash'), q=document.getElementById('quenchFlash'); if(w) w.classList.remove('on'); if(s) s.classList.remove('on'); if(q) q.classList.remove('on');   /* r145 */ if(mugEl) mugEl.classList.remove('pouring'); if(waterTimer){ clearTimeout(waterTimer); waterTimer=null; } }
 function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
     m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
     m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(m,b,40); x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y)); m.style.left=x+'px'; m.style.top=y+'px';
