@@ -5473,7 +5473,31 @@ function tutExit(sel){
     document.querySelectorAll('.tut-blink').forEach(b=>b.classList.remove('tut-blink'));
     const el = sel && tutEl(sel); if(el) el.classList.add('tut-blink');
 }
-function tutArrow(from, to, opt){ TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null;
+/* ---- r152: the arrow means DRAG, and nothing else. ----
+   A tap or a hold is a pointer at one thing, so it gets the blinking glow instead; an arrow is a
+   journey from A to B, so it is kept for drags. The two were already distinguishable without
+   touching a single call site: a drag passes a SOURCE element, a tap passes from = null and
+   positions the arrow tail with ox/oy. tutArrow() routes on that, so the rule cannot be broken
+   by a call site added later - a sourceless arrow simply is not drawable any more.
+
+   tutTap() picks the right kind of glow for what it is marking. .tut-blink is a box-shadow and
+   haloes the element RECTANGLE, which is right for a button or an invisible hotspot and wrong on
+   a prop whose art is mostly transparent padding; .tut-glow is a drop-shadow and follows the
+   art silhouette. Having art is the test, and it is one an element can answer itself. Using
+   tutGlow() rather than the class directly also registers it with TUT_GLOWED, so every existing
+   tutUnglow() keeps clearing it. */
+let TUT_TAP_GLOW=null;
+function tutTap(sel){
+    tutExit(null);
+    if(TUT_TAP_GLOW){ tutGlow(TUT_TAP_GLOW, false); TUT_TAP_GLOW=null; }
+    const el = sel && tutEl(sel); if(!el) return;
+    if(el.tagName==='IMG' || el.querySelector('img')){ tutGlow(el, true); TUT_TAP_GLOW=el; }
+    else tutExit(el);
+}
+function tutArrow(from, to, opt){
+    if(to && from==null){ TUT_ARROW=null; tutDrawArrow(); tutTap(to); return; }   /* r152: a tap, not a drag */
+    tutTap(null);   /* r152: one pointer at a time - a drag arrow retires any tap glow still up */
+    TUT_ARROW = to ? { from:from, to:to, opt:opt||{} } : null;
     if(!to) tutExit(null);   /* r120 */
     tutDrawArrow(); }
 function tutDrawArrow(){

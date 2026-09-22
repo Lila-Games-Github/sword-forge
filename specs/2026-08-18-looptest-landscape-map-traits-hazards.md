@@ -6278,3 +6278,42 @@ than the prop halves the base. On the same bench that is `136px` before and `68p
 - Blown up for inspection, the head draws as a filled triangle at the end of the arc, pointing the way
   the ring turns; restored, the ring is centred on `#grindHot` and still animating `tutSpinTurn`.
 - Centre matches the hotspot centre to within 2px on both axes.
+
+## r152 — the arrow means DRAG, and nothing else
+
+Owner's rule: an arrow is for drag-and-drop; a tap or a hold gets the blinking glow.
+
+The two were **already distinguishable without touching a single call site**. A drag passes a SOURCE
+element (`tutArrow('#mug', '#orb', …)` — take this there); a tap or hold passes `from = null` and uses
+`ox`/`oy` only to park the arrow's tail near the target. Auditing all 37 live calls, that split is
+exact: every sourceless one is a tap or a hold (the bellows, the furnace gate, the sharpening stone,
+DONE, the bed) and every sourced one is a drag.
+
+So `tutArrow()` routes on it, and **a sourceless arrow is no longer drawable** — the rule cannot be
+broken by a call site added later.
+
+**`tutTap()` picks which glow.** `.tut-blink` is a `box-shadow`, so it haloes the element's
+**rectangle**: right for a button or an invisible hotspot, wrong on a prop whose art is mostly
+transparent padding. `.tut-glow` is a `drop-shadow`, so it follows the art's silhouette. Having art is
+the test, and an element can answer it itself (`IMG`, or containing one). Measured: `#bellowtop` is an
+`<img>` and takes the glow; `#furnaceGate` is a bare `<div>` and takes the halo; `.sh-done` is a
+`<button>` with a background image and takes the halo.
+
+Going through `tutGlow()` rather than adding the class directly also registers the element with
+`TUT_GLOWED`, so every existing `tutUnglow()` keeps clearing it.
+
+**One pointer at a time.** Drawing a drag arrow now retires any tap glow still up, which the first
+pass missed: the furnace-gate halo stayed lit underneath the next arrow.
+
+### Verification
+
+| sequence | result |
+|---|---|
+| hold the bellows | no arrow drawn, `#bellowtop` gets **`tut-glow`** |
+| then a drag (ore to furnace) | arrow drawn with a source, **bellows glow cleared** |
+| then a tap (furnace gate) | no arrow, gate gets **`tut-blink`** |
+| `tutArrow(null,null)` | arrow off, no blink, no glow anywhere |
+| `tutExit('#panRight')` afterwards | screen-exit blink still works on its own |
+
+Played for real to the bellows beat: D4 "Heat up the smelter with the bellows" shows **no arrow** and
+the bellows carries `tut-glow`, which is the case the owner reported.
