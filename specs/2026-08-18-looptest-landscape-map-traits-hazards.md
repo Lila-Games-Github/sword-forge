@@ -6158,3 +6158,32 @@ left on the **Ingredients** tab:
 - the arrow is drawn and visible, running from the rail down to the counter zone;
 - placing the sword clears it (`TUT_ARROW` null, the SVG's `on` class off), moves Bram to
   `counter-ready` and enables SELL, which is r146's gate agreeing with it.
+
+## r148 — D23's arrow, on the beat where the line is first heard
+
+D23 ("Find the sword in your inventory and place it on the counter") is spoken three times. Both
+**reuses** draw an arrow from the sword slot to the counter drop zone: `sell2` added it in r103 and
+`sell3` in r118. **Bram's own beat, where the player hears the line for the very first time, never
+did.** `chooseBram()` simply said the line.
+
+It draws the same arrow with the same options now, and opens the SWORDS tab first, exactly as the
+other two do.
+
+Two clears go with it, because an arrow that outlives its target is worse than none:
+
+- `placeCounter()`'s Bram branch drops the arrow once the sword lands, or it would keep pointing out
+  of a slot that is now empty. D24 asks for the sell button next, so that button takes the r120 blink.
+- `sellCounter()`'s Bram branch clears both on the sale.
+
+### Verification
+
+Driven through `chooseBram()` and the real `placeCounter()` / `sellCounter()`:
+
+| step | result |
+|---|---|
+| D23 | arrow **on**, SWORDS tab opened, path runs from the `inv-sword` slot to `zoneRect()` |
+| sword placed | arrow cleared, SVG off, D24, **SELL blinking** and enabled reading "Sell for 50g" |
+| sold | arrow gone, no blink anywhere, Bram at `sold` |
+
+The SELL button being enabled here also confirms r146's `disabled = !COUNTER` releases correctly once
+a sword is on the counter.
