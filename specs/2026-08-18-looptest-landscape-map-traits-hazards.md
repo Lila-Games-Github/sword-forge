@@ -6634,3 +6634,38 @@ the bed spans x 549 to 762 and `#rail` starts at 853, so there are **91px** of r
 bubble. It takes the r93 above-and-left placement instead, which puts it directly over his head with
 the tail pointing down at him. Attached, just not to his right. Forcing it right would either run it
 under the inventory rail or slide it back on top of him.
+
+### r165 — a cheat to skip the hammering minigame
+
+`#cheatBar` is a **sibling of `#frame`**, not a child, fixed to the page at `left: 8px, bottom: 8px`.
+It holds one button, SKIP HAMMER. Being outside the frame it costs the game screen nothing, and it
+is reachable while the minigame's `z-1000` modal is up. On a window smaller than 1080x600 it lands on
+the frame's bottom-left corner; at 1200x700 the button sits at y 666 and the frame ends at 650.
+
+```js
+function hmSkip(){
+    const m=document.getElementById('sfHammerModal');
+    if(!m || !m.classList.contains('show')) return false;
+    hmProg=2; hmQuenching=false; tutHm2Clear();
+    finishBlade();
+    return true;
+}
+```
+
+**Why that is the whole cheat.** Striking decides nothing about the result: the shape is picked
+before the minigame opens (`selectShape` sets `hmShape` then calls `openHammer`), and the traits
+belong to the melt, not to the hammering. `hmProg` only gates the mug. So skipping is the end of the
+normal path — the same `finishBlade()` the quench reaches after its 780ms — and every tutorial hook
+inside it (`tutHm2Done`, the fire/gale/bram2 branches) still runs.
+
+`cheatUi()` disables the button whenever the minigame is closed, called from `openHammer()`,
+`hmCancel()` and `finishBlade()`. `hmSkip()` also refuses on its own, so the console route is safe.
+
+Verified through the real path: a melt on the anvil, `selectShape('Longsword')` opens the minigame
+and enables the button; one dispatched click closes the modal, puts a Longsword in the inventory with
+its Swift/Fine trait and `swift_longsword_blade` art, opens the Sword Crafted window and disables the
+button again. `hmSkip()` with the minigame closed returns false and adds nothing.
+
+**Open for the owner:** the bar is unconditional, so the deployed Pages build shows it to anyone who
+opens the link. Gating it on `location.search.indexOf('cheats')>=0` in the `load` handler is a
+one-line change if that matters.

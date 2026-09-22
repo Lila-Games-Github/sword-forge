@@ -77,6 +77,15 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 @keyframes sfRotSpin { 0%,28% { transform: rotate(0deg); } 58%,100% { transform: rotate(-90deg); } }
 body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: safe center; justify-content: safe center; overflow: auto; padding: 0; overscroll-behavior: none; }   /* r134: "safe" centring keeps the overflow reachable when the window is under 1080px (a plain centred flex item hides its left edge with no way to scroll to it); overscroll-behavior stops Chrome Android pull-to-refresh firing from a drag that starts near the top */
 
+/* r165: the cheat bar. Fixed to the PAGE and a sibling of #frame, never a child, so it lives in the
+   margin around the game and nothing on the game screen has to make room for it. On a window
+   smaller than 1080x600 it lands on the frame's corner - it is a cheat, so that is a fair trade. */
+#cheatBar { position: fixed; left: 8px; bottom: 8px; z-index: 5; display: flex; gap: 6px; }
+#cheatBar button { font: 700 10px/1 'Cinzel', serif; letter-spacing: .6px; color: #d8c79a;
+    background: rgba(20,14,7,.9); border: 1px solid #6a5636; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+#cheatBar button:disabled { opacity: .35; cursor: default; }
+#cheatBar button:not(:disabled):hover { color: #ffe08a; border-color: #c8a84b; }
+
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
 /* SKELETON: a CSS grid of named zones (hud / map / bench). Two grid-template-areas — portrait
    (default) and landscape (#frame.landscape) — flip the whole layout. Props are placed INSIDE
@@ -1992,6 +2001,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </div>
 
 </div>
+
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button></div>
 
 <script>
 // ============================================================
@@ -4648,7 +4659,7 @@ function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay();
     document.getElementById('sfHammerModal').classList.add('show');
-    hmStart(); tutHmStep();
+    hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
 // Place everything that is not already registered on the shared canvas.
 function hmLayout(){
@@ -4728,10 +4739,24 @@ function hmQuench(){
     setTimeout(()=>{ hmQuenching=false;
         if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, 780);
 }
+/* r165: the cheat. Striking decides nothing about the result - the shape was picked before the
+   minigame opened and the traits belong to the melt - so skipping is just the end of it:
+   hmProg to full, then the same finishBlade() the quench would have reached. */
+function hmSkip(){
+    const m=document.getElementById('sfHammerModal');
+    if(!m || !m.classList.contains('show')) return false;
+    hmProg=2; hmQuenching=false; tutHm2Clear();
+    finishBlade();
+    return true;
+}
+function cheatUi(){
+    const b=document.getElementById('cheatSkipHm'), m=document.getElementById('sfHammerModal');
+    if(b) b.disabled = !(m && m.classList.contains('show'));
+}
 /* r88: backing out is not throwing the blade away. The bench is untouched while the minigame runs -
    the metal and its traits are still sitting on the anvil - so closing the panel is the whole job. */
 function hmCancel(){
-    document.getElementById('sfHammerModal').classList.remove('show'); hmClear();
+    document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     toast('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
 }
 function wireHmMug(){
@@ -4915,7 +4940,7 @@ function wireHmHammer(){
     grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
     paint();
 }
-function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear();
+function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):'';
     // r60: the sword is kept. Default design = whatever the Design Desk currently has selected.
     const cOres=segs.map(g=>g.ore), cGrinds=segs.map(g=>g.tPct);
@@ -7192,6 +7217,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('bbox')>=0) console.log('FRAMEBOXES '+JSON.stringify(frameBoxes()));
     if(location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
     if(location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
+    (()=>{ const b=document.getElementById('cheatSkipHm'); if(b) b.addEventListener('click', ()=>{ hmSkip(); cheatUi(); }); cheatUi(); })();   /* r165 */
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
