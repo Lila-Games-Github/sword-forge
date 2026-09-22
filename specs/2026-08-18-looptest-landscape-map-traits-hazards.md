@@ -5887,3 +5887,32 @@ Driven through the real craft chain with no gauge on screen:
 The metal then went through `openGate` to `placeOnAnvil` and reached stage `onAnvil`, so nothing
 downstream of the gauge cares that it is hidden. `#heatMini` computes `display: none` by default and
 `flex` at 86x24 under `?labels`; the step badge likewise returns as a 22x22 flex circle.
+
+## r140 — the ore rail shows names, and only the ores you have
+
+Two changes to `shelfOres()`, at the owner's request.
+
+**Names.** Each slot now carries `<span class="ore-name">` as its **first** child, so the column flex
+puts it above the icon with no positioning of its own. The rail's catch-all
+`.ore-slot span:not(.ore-count):not(.inv-tag)` rule, which hid every other label since r60, gains
+`:not(.ore-name)`. 9px, matching the rail's type scale (the count badge is 7px).
+
+**Empty ores are not drawn.** They used to render greyed at `opacity: .4` via `.out`. On day 1 five of
+the seven are at zero, so the rail was mostly unusable placeholders. `shelfOres()` skips them.
+
+One thing that had to move with it: the function **returned `ORES.length`**, and `buildShelf()` uses
+that return to decide how many blank grid cells to pad with. Returning the constant while rendering
+fewer slots would have padded from the wrong count and left a short or ragged grid, so it returns the
+number actually appended. The refusal toast on an empty ore is kept even though it is now unreachable
+through the rail.
+
+### Verification
+
+- Fresh load, `ORE_COUNT` iron 2 / manganese 2 / five at zero: exactly **two** slots, named **Iron** and
+  **Manganese**, each name measured **above** its icon, neither truncated.
+- `spendOre('iron')` twice: after the first the slot stays at x1, after the second **Iron disappears**.
+- Granting copper then aluminium: both appear, named, and the longest names (Manganese, Aluminium) fit
+  a 62px slot without ellipsis.
+- The tutorial's `tutIronSlot()` still resolves to the real iron slot rather than falling back to
+  `#oreShelf`, so the opening arrow still has a target.
+- `?test` GREEN, console clean.
