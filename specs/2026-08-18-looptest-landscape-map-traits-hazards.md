@@ -6131,3 +6131,30 @@ me?"* (54 characters):
 - both branch buttons 17px, 38px tall, not clipped;
 - the dragon's choices 17px, and the one that needs two lines **grows to 56px** rather than clipping,
   staying inside the frame.
+
+## r148 — D23 points at the counter on Bram's beat too
+
+D23 asks the player to drag the sword onto the counter, and **every later reuse of that line already
+drew an arrow** for it: r103's `sell2`, r118's `sell3`, r126's gale sale, r127's Bram 2. The one place
+that did not was `chooseBram()` — Bram's original beat, which is the **first time a player is ever
+asked to do it**. It had the line and nothing else.
+
+The same arrow now runs from the inventory slot to the counter zone, with `invTab(2)` first: the arrow
+starts at `tutSwordSlot()`, which returns the first non-empty slot of **whatever tab happens to be
+open**, so a player sitting on Ingredients would have had the arrow start at an ore. It is hung off the
+same `typeAfter` that already waits for Bram to finish speaking, so it appears with the line and not
+over the top of him.
+
+`placeCounter()` takes it down as the sword lands, in the branch that already moves Bram to
+`counter-ready`.
+
+### Verification
+
+Entered through a real craft and a real `chooseBram('blacksmith')`, with the inventory deliberately
+left on the **Ingredients** tab:
+
+- the tab switches to Swords by itself (`INV_TAB` 2) and the arrow's start is the sword slot
+  (`.inv-sword`), not an ore;
+- the arrow is drawn and visible, running from the rail down to the counter zone;
+- placing the sword clears it (`TUT_ARROW` null, the SVG's `on` class off), moves Bram to
+  `counter-ready` and enables SELL, which is r146's gate agreeing with it.

@@ -2449,7 +2449,7 @@ function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
     COUNTER=sw; refreshCounter();
     toast('&#9876;&#65039; ' + sw.shape + ' on the counter &mdash; ' + swordPrice(sw) + 'g');
-    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24'); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
+    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; tutArrow(null,null);   /* r148 */ say('D24'); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
 }
 function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }
@@ -6452,7 +6452,8 @@ function chooseBram(choice){
     if(TUT_BRAM_STATE!=='awaiting') return;
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
     typeDone();
-    typeAfter(()=>say('D23'));                          /* r98: the dragon answers once Bram has finished */
+    typeAfter(()=>{ say('D23'); invTab(2);
+        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the counter */
     if(l) custLine(l, DIALOGUE[choice==='blacksmith'?'D21':'D22']);
     if(r) r.style.display='none'; TUT_BRAM_STATE='give'; const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=true; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } const d=document.getElementById('screenDragon'); if(d) d.style.display='block'; const ly=document.getElementById('screenLayer'); if(ly) ly.classList.remove('tut-counter');
 }
