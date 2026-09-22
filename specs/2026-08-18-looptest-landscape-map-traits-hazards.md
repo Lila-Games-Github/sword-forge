@@ -6556,3 +6556,21 @@ reaches `base-table` and speaks D49. Dragon `t 5 → 37.5`, bubble `t 6.1 → 21
 39.1 and `sharpen` at 38.9; all four overlap tests false, and the bubble clears `#panUp`. Counter
 unchanged at `l 1, t 45.7, w 23`. Dragging him on the counter, walking to the basement and back
 restores the dragged spot while the basement keeps its own.
+
+### r161 — the cave, the same way, at half size
+
+```css
+#screenLayer.sc-cave > #screenDragon { top: 5%; bottom: auto; width: 11.5%; }
+```
+
+11.5% is half the 23% default, as asked. At the default he spanned `t 45.7 → 83` and covered both the
+lower-left ore node (`l 17.3 → 23.7, t 81.7 → 93.2`) and `#panLeft`, the way back to the forge
+(`t 47 → 53`). **Every** cave node sits below 52% of the screen, so the top band is free by
+construction, not by luck.
+
+Verified through the real beat: `TUT_FIRE_RUN` with `TUT_STAGE` `to-cave`, `goScreen('cave')` reaches
+`cave-pick` and speaks D65. Dragon `l 1 → 12.5, t 5 → 23.7`; bubble `l 12.4 → 40.7, t 2.4 → 17.4`.
+Neither touches any of the five nodes or `#panLeft`.
+
+Per-screen positions now stand at: counter `left 1%, bottom 17%, 23%` (the default), basement
+`top 5%, 20%`, cave `top 5%, 11.5%`.
