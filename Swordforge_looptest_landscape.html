@@ -4509,13 +4509,23 @@ function flyCraft(from, w, n){
 function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); }
 
 // --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
+/* r144: Cancel is offered on EVERY route into the picker, not only when the recipe book has borrowed
+   it (r66). Tapping the metal on the anvil opened a modal whose only exit was committing to a shape. */
+let SHAPE_FROM_TUT=false;
 function openShapeSelect(){
     if(TUT_STAGE==='record'){ toast('Record this craft first \u2014 tap <b>RECORD CRAFT</b>'); return; }   /* r100 */
+    SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
     if(TUT_STAGE==='shape') tutDone();
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
     document.getElementById('sfShapeModal').classList.add('show');
-    document.getElementById('shapeCancel').classList.toggle('on', !!SHAPE_CB); }   // r66: only the borrowed picker can be backed out of
-function cancelShape(){ SHAPE_CB=null; document.getElementById('sfShapeModal').classList.remove('show'); }
+    document.getElementById('shapeCancel').classList.add('on'); }   /* r144: always offered */
+/* Opening the picker consumes the tutorial's shape beat - 'shape' runs tutDone(), 'shape2' drops its
+   arrow and glow - so a cancel there would leave the player with no pointer at the metal they still
+   have to tap. The glow goes back on for exactly those two cases and nowhere else. */
+function cancelShape(){
+    SHAPE_CB=null; document.getElementById('sfShapeModal').classList.remove('show');
+    if(SHAPE_FROM_TUT){ SHAPE_FROM_TUT=false; setTimeout(()=>tutGlow('#orb', true), 0); }
+}
 // ============================================================
 //  r31 — HAMMER SCENE + forge loop.
 //  Heat the metal with the dragon's fire, strike it while it glows, and it creeps toward the next
@@ -4552,7 +4562,8 @@ let hmShape='Longsword', hmAngle=HM_RIG.base;
 let hmHeat=0, hmProg=0;                    // 0..1 heat, 0..2 shape progress (sphere -> rough -> finished)
 let hmRaf=null, hmLast=0, hmLastStrike=0;
 function hmClear(){ hmBreath(false); hmStop(); }
-function selectShape(shape){ document.getElementById('sfShapeModal').classList.remove('show');
+function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
+    document.getElementById('sfShapeModal').classList.remove('show');
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
     hmShape=shape; openHammer(); }
 function openHammer(){

@@ -6006,3 +6006,28 @@ Driven through the real craft chain, with the real `tick()`:
 Calling a bare `tick()` makes `now` undefined, so `dt` is `NaN` on the first call and `0` on every one
 after (`lastT` is set to `undefined`), and nothing moves while every branch still runs. Pass
 `performance.now()`. This cost a round of false negatives here.
+
+## r144 — Cancel on the blade-shape picker
+
+The Cancel button and `cancelShape()` already existed, but r66 only revealed them when the **recipe
+book had borrowed** the picker (`shapeCancel.classList.toggle('on', !!SHAPE_CB)`). On the ordinary
+route, tapping the hot metal on the anvil, the modal had no exit but committing to a shape. It is
+shown on every route now.
+
+**What a cancel must not break.** Opening the picker consumes the tutorial's shape beat: stage
+`'shape'` runs `tutDone()`, which clears the stage, the arrow and the glow, and `'shape2'` drops its
+arrow and glow. Backing out there would have left the player with no pointer at the very metal they
+still have to tap. `SHAPE_FROM_TUT` records that the picker was opened out of one of those two stages,
+and `cancelShape()` puts the glow back on `#orb` for exactly those cases. `selectShape()` spends the
+flag too, so a later cancel cannot re-glow for no reason.
+
+Nothing else changes: the metal stays `onAnvil` and the picker reopens on the next tap.
+
+### Verification
+
+- Cancel is visible on the ordinary route (the metal tapped on the anvil, `SHAPE_CB` null), renders as
+  the existing red paper button at 125x57, and hit-tests to itself at its centre.
+- Clicking it closes the modal and leaves the melt at `onAnvil` with the orb still on screen.
+- Reopening and choosing Longsword still opens the hammer minigame, so the commit path is untouched.
+- Opened at stage `shape2` the glow is cleared and the flag set; cancelling **restores the glow** and
+  clears the flag.
