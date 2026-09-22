@@ -5969,3 +5969,40 @@ unchanged** and still measures against the bench.
   120 against the rail's 45, box centre over the rail, and it is visible in the capture.
 - Finishing that same drag on the pot still works: iron 2 -> 1, one segment added, the melt starts,
   the ghost is removed.
+
+## r143 — the hammer goes back on its hook at the end of the route
+
+When the active sword reaches the end of the path there is nothing left to hammer, and the hammer was
+left wherever the player dropped it, usually sitting on the anvil over the metal.
+
+`homeHammer()` is built the same way `homeMug()` is: positions read **from `LAYOUT`**, never from a
+captured pixel value, so it lands correctly after a resize or an orientation swap. It also clears
+`striking` / `dragging` and puts the spark out.
+
+**The pointer capture is the part that needed care.** `wireHammer()` keeps its `drag` flag in a
+closure, and the element still holds pointer capture at the moment the route ends. Setting the
+position alone would have been undone by the player's very next `pointermove`, snapping the hammer
+straight back out of its home to wherever the finger still was. `homeHammer()` dispatches a
+`pointercancel` first, which runs the existing `end()` handler and clears the flag, so the release
+path is reused rather than duplicated.
+
+`HAMMER_HOMED` latches it to **once per arrival**: it is cleared by the tick on any frame where the
+sword is not at the route end, so extending the route with another ore re-arms it, and `resetRun()`
+opens it for a fresh run.
+
+### Verification
+
+Driven through the real craft chain, with the real `tick()`:
+
+- hammer dragged to the anvil (`striking`, `dragging`, inline px position), sword advanced to
+  `frac 0.5` = the end of a single 50%-ground iron route;
+- on arrival the hammer is back at **exactly its LAYOUT home** (`left 30.2%`, `top 38.1%`,
+  `width 14.8%`), `striking` and `dragging` cleared, spark off;
+- a `pointermove` **while the pointer is still down** leaves it at home, which is the pointer-capture
+  case above;
+- reheating and adding a second ore re-arms the latch; hammering the new stretch homes it again.
+
+**Note for anyone driving the loop by hand:** `tick(now)` takes the rAF timestamp as an argument.
+Calling a bare `tick()` makes `now` undefined, so `dt` is `NaN` on the first call and `0` on every one
+after (`lastT` is set to `undefined`), and nothing moves while every branch still runs. Pass
+`performance.now()`. This cost a round of false negatives here.

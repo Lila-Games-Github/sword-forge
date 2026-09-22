@@ -1998,6 +1998,22 @@ function applyLayout(orient){ orient=orient||SF_ORIENT; const L=LAYOUT[orient]; 
 function setOrientation(orient){ SF_ORIENT=orient; const f=document.getElementById('frame'); if(f) f.classList.toggle('landscape', orient==='landscape'); applyLayout(orient); }
 // snap the movable mug back into the bucket, straight from LAYOUT (orientation-aware, no captured px)
 function homeMug(){ const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].mug, mug=document.getElementById('mug'); if(!e||!mug) return; mug.style.left=(e.x*100).toFixed(3)+'%'; mug.style.top=(e.y*100).toFixed(3)+'%'; mug.style.width=(e.w*100).toFixed(3)+'%'; mug.style.right='auto'; }
+/* r143: put the hammer back on its hook. Same construction as homeMug() above - read from LAYOUT,
+   never from a captured pixel position - so it survives a resize or an orientation swap.
+   A pointercancel is dispatched first: the drag flag lives in a wireHammer() closure, and the
+   element still holds pointer capture, so without it the next pointermove would drag the hammer
+   straight back out of its home to wherever the finger still is. The existing end() handler is
+   what clears the flag, so this reuses the release path rather than duplicating it. */
+function homeHammer(){
+    const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].hammerTool, h=document.getElementById('hammerTool');
+    if(!e||!h) return;
+    try{ h.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:1})); }catch(err){}
+    h.style.left=(e.x*100).toFixed(3)+'%'; h.style.top=(e.y*100).toFixed(3)+'%';
+    h.style.width=(e.w*100).toFixed(3)+'%'; h.style.right='auto';
+    h.classList.remove('striking','dragging');
+    const sp=document.getElementById('hammerSpark'); if(sp) sp.classList.remove('on');
+}
+let HAMMER_HOMED=false;   /* r143: once per arrival at the route end, re-armed when the route grows */
 // bench-relative constants (scale-independent) — read from the live bench box
 function benchDims(){ const b=document.getElementById('bench'); return b?{w:b.clientWidth,h:b.clientHeight}:{w:568,h:641}; }
 function strikeDist(){ return benchDims().w*0.116; }   // was 66px @ bench width 568
@@ -4833,6 +4849,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
 }
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
+    HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
@@ -4964,7 +4981,9 @@ function tick(now){
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); }
     } else {
         if(retreating) retreating=false;
+        if(!swordAtRouteEnd()) HAMMER_HOMED=false;   /* r143: re-arm as soon as there is road left again */
         if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);
+            if(swordAtRouteEnd() && !HAMMER_HOMED){ HAMMER_HOMED=true; homeHammer(); }   /* r143 */
             tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd();   /* r111/r124/r125 */   // hammer never fights the fire
             if(TUT_STAGE==='hammer'){ TUT_STRIKE+=dt; if(TUT_STRIKE>=TUT_STRIKE_BEAT) tutStrikeStep(); }
             fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
