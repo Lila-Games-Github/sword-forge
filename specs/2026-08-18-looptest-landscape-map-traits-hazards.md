@@ -6446,3 +6446,41 @@ Real route, real books (`tutPlaceBooks()`), real `takeBook()`:
 | 20 ticks while paused | `sword.frac` **does not move** |
 | tap to close | pause lifted, dim off |
 | **second book** | no line, no pause, no dim |
+
+## r157 — the tab halo stops going out when you click anywhere
+
+Reported: the INGREDIENTS halo vanished on any tap and never came back.
+
+Two causes, one old and one mine.
+
+**`noteAction()` wiped the pointer on every click.** It fires on every `pointerdown`/`up`/`wheel`/
+`keydown` inside the frame and called `tutHm2Clear()` for the `regrind*`, `record` and `forge2`
+stages — and `tutHm2Clear()` ends in `tutArrow(null,null)`, which clears the tab need with everything
+else. That made sense under the **old** model, where the bench pointer was an idle nudge shown after
+four seconds of nothing: any action meant "they are busy, hide it". r155 made that pointer continuous
+and instant, so the wipe just makes guidance blink out on every tap. Only `forge2` still works the old
+way, so only `forge2` still clears.
+
+**r155's signature guard then refused to restore it.** The guard skips the work when none of the
+inputs the pointer is chosen from has moved — and a click moves none of them, so once something else
+had cleared the pointer, the nudge concluded there was nothing to do and left the screen bare. The
+signature now also carries **what is actually on screen** (`TUT_ARROW`, `TUT_TAB`, any `.tut-blink`,
+any `.tut-glow`) and is recorded **after** the pointer is applied, by a wrapper — the body has too many
+early returns to do it at the top. So a pointer anything wipes no longer matches, and the next frame
+puts it back.
+
+### Verification
+
+At `regrind-grind` with the SWORDS tab open:
+
+| | INGREDIENTS lit |
+|---|---|
+| halo up | yes |
+| immediately after a click in the frame | **yes** |
+| after a frame or two | yes |
+| after five more clicks | yes |
+| player opens INGREDIENTS | **no**, and the arrow appears |
+
+Self-healing: `tutArrow(null,null)` called behind the nudge's back clears the halo, and the **next
+tick restores it**. The minigame is unaffected: `forge2` still speaks D46 and still hides its hint on
+the next action.

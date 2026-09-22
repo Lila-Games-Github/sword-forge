@@ -4910,7 +4910,10 @@ const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.
 const HINT_IDLE_MS = 4000;
 let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
 function noteAction(){ lastActAt = performance.now();
-    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record' || TUT_STAGE==='forge2'){ tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101/r121 */
+    /* r157: only the minigame still hides its hint on activity. The bench pointer is recomputed
+       from state every frame now, so wiping it here just made it blink out on every tap - which
+       is what took the INGREDIENTS tab halo away mid-beat. */
+    if(TUT_STAGE==='forge2'){ tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101/r121/r157 */
 function swordAtRouteEnd(){ if(!segs.length) return false;
     const last = segs.length-1;
     return sword.seg >= last && sword.frac >= segs[last].tPct - 0.001; }
@@ -6736,10 +6739,19 @@ function tutNudgeSig(){
     const panel=document.getElementById('bladePanel');
     return [TUT_STAGE, prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
             melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, gateReady?1:0, INV_TAB,
-            panel? (getComputedStyle(panel).display!=='none'?1:0) : 0].join('|');
+            panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,
+            /* r157: what is actually ON SCREEN, so a pointer someone else wiped is put back */
+            TUT_ARROW?1:0, TUT_TAB==null?0:1, document.querySelector('.tut-blink')?1:0,
+            document.querySelector('.tut-glow')?1:0].join('|');
 }
 function tutNudge(force){
-    const sig=tutNudgeSig(); if(!force && sig===TUT_NUDGE_SIG) return; TUT_NUDGE_SIG=sig;
+    if(!force && tutNudgeSig()===TUT_NUDGE_SIG) return;
+    tutNudgeApply();
+    TUT_NUDGE_SIG = tutNudgeSig();   /* r157: record what is on screen AFTER applying it, so a
+                                        pointer anything else wipes no longer matches and the
+                                        next frame restores it */
+}
+function tutNudgeApply(){
     tutSpinOn(null);
     /* r101: with the ore already on the wheel the next move is to TURN it, so the pointer becomes a
        turn rather than another line from the shelf. */
