@@ -5987,12 +5987,16 @@ function tutDay2Screen(name){
                                                     answers null once it is already out, so it stops asking */
     if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
     if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
+    /* r169: four beats end a walk at the counter. sell2 and sell3 re-speak D23 on arrival, so the
+       travel instruction is replaced; these two only re-point, and left the old line sitting over
+       the customer who is now talking - D107 'Go sell it!' was still up while Gale's friend asked
+       his question. The walk is done, so the line that asked for it goes. */
     if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */
-        TUT_STAGE='bram2-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        TUT_STAGE='bram2-sell2'; tutExit(null); sayHide(); invTab(2); updateTutorialCounterUi();
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(TUT_STAGE==='d2-gale-sell' && name==='customer'){   /* r126 */
-        TUT_STAGE='d2-gale-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        TUT_STAGE='d2-gale-sell2'; tutExit(null); sayHide(); invTab(2); updateTutorialCounterUi();   /* r169 */
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
 }

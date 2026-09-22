@@ -1343,3 +1343,25 @@ clears it. D94b: arriving in the cave from `d2-cave` haloes tab 3, clicking it c
 the pickaxe out clears it as well. Emptying every node hides the bubble, clears the halo and blinks
 `#panLeft`. D95: `goScreen('forge')` from `d2-back` reaches `d2-copper`, speaks D95 and haloes tab 0.
 At the 50% frame both the skill button and tab 3 compute to the amber face with dark text.
+
+### r169 — D107 stops following the player to the counter
+
+Reported: "Go sell it!" still up on the counter screen, over Gale's friend asking his question.
+
+**Four beats end a walk at the counter.** Two of them re-speak D23 on arrival (`sell2` from
+`base-back`, `sell3` from `dec-back`), so the travel instruction is replaced and nothing is left over.
+The other two only re-point — `bram2-sell2` and `d2-gale-sell2` set the sword-to-counter arrow and
+say nothing — so whatever was on screen when the walk began was still on screen when it ended. For
+the gale run that is D107, an instruction the player has just carried out.
+
+Both branches now call `sayHide()`. `bram2-sell` speaks no line of its own either, so it had the same
+hole; it is closed in the same edit rather than waiting for it to be reported.
+
+This is the third of its kind (r158, r159, r164, and now this): **a pointer or a line that the player
+has finished with is only retired if something explicitly retires it.** Setting the next state is not
+enough unless that state speaks or points.
+
+Verified through the real beat: `tutGaleCrafted()` from `d2-gale-forge` reaches `d2-gale-sell`, speaks
+D107 and blinks `#panLeft`; walking to the counter reaches `d2-gale-sell2` with the bubble **hidden**,
+the sword-to-counter arrow up and the SWORDS tab open. `bram2-sell` behaves the same. `sell2` is
+unchanged and still speaks D23 on arrival.
