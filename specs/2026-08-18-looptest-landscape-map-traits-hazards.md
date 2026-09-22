@@ -6062,3 +6062,47 @@ One quench, sampled across the whole life of the effect:
 
 A second quench flashes again at 0.94 and settles back to `none`, so the effect still plays every time
 rather than being disabled.
+
+## r146 — counter screen: dragon and ledger swap corners, bigger customer type, SELL greys out
+
+Four owner requests on the counter screen.
+
+**The dragon takes the bottom-left corner** (`left 1%`, `bottom 1.5%`, was `2.5% / 11%`), which is
+where the LEDGER button used to sit.
+
+**The ledger moves to the bottom right**, to `x: 65.31` — not a new number: the **shop** screen already
+places its ledger there, and `65.31 + 11.90 = 77.21%` clears the rail at 79%.
+
+**The customer speaks at the dragon's size.** Both customer boxes go from 12px to **17px**, matching
+`#dragonSay p`, and both drop from `top: 6.36%` to `11%`.
+
+Two knock-ons that the first pass got wrong and the screenshot caught:
+
+- `.cs-dlg` had a **fixed `aspect-ratio: 1074/425`**, so 17px text simply overflowed and clipped
+  mid-sentence. It carries `min-height: 192px` instead, which is that same height at this width, and
+  grows with the text the way `.cs-bram-dlg` already does. The background is stretched `100% 100%`, so
+  the art follows.
+- At `top: 11%` the box reaches 43% of the frame, which is **past** `.cs-resp` and
+  `.cs-bram-responses` at `39.41%`. Both response stacks move down by the same 4.64%, to `44.05%`.
+
+**SELL greys out with an empty counter.** `sellLabel()` already knew whether `COUNTER` was set, so it
+now sets `b.disabled = !COUNTER` as well as the label. It is the **last** thing `counterUi()` does, so
+it wins over the blanket `if(here) b.disabled = false` above it, and it also runs from
+`refreshCounter()` on every counter change, which covers the scripted beats that set
+`se.disabled = false` when an order opens but before a sword is placed. The disabled styling existed
+only as `.cs-deny:disabled`; it is `.cs-btn:disabled` now, so SELL gets the same grey.
+
+### Verification
+
+| | result |
+|---|---|
+| dragon | `left 1%`, `bottom 1.5%`, inside the frame on both the counter and the basement |
+| ledger | `left 65.3%`, bottom-right, clear of the rail |
+| dialogue | `top 11%`, **17px**, same as `#screenDragonSay p` |
+| longest line in the script (D114, 119 chars) | no clipping, box stays 192px, no overlap with the response button |
+| SELL, empty counter | `disabled`, opacity **0.42**, label "SELL" |
+| SELL, sword placed | enabled, opacity 1, label "Sell for 50g" |
+| SELL, sword removed again | back to disabled and 0.42 |
+
+Measuring a typed line needs `typeDone()` first: `custLine()` runs the typewriter, so an immediate
+read sees a partial string and looks like clipping.
