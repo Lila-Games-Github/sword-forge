@@ -5934,3 +5934,38 @@ the declaration is what caught it. The rule is written `.ore-slot .ore-name` now
 
 Verified at 11px across five ores: computed size 11px and colour `rgb(36,26,12)` on every one, and no
 ellipsis — the tightest is Manganese at 61px inside a 69px slot.
+
+## r142 — D3's arrow finds the pot, and a dragged ore stops hiding behind the rail
+
+### The arrow
+
+D3 pointed at `#furnaceGlow`, which is the **mouth** at the base of the smelter, so the instruction
+"add ore to the smelter" sent the eye to the fire. It points at the crucible now, which is also where
+the drop is actually accepted: `overTarget('furnaceTop')` is the **top 70%** of `#stSmelt`.
+
+The number matters and had to be measured. `anchor_furnace` is a 416x505 canvas whose art only begins
+at **y=115** — 23% of the image is transparent padding above the pot — and the element uses
+`object-fit: fill`, so that padding scales with the box. A first attempt at `tfy: 0.14` therefore put
+the arrowhead in empty canvas well above the prop. Reading the molten-orange pixels back off the
+decoded image puts the pot's surface at natural y=124, which is **`tfy: 0.25`** of the element, the
+same value r125 already uses to aim at this prop.
+
+### The dragged ore
+
+`startOreDrag` appended its ghost to `#bench` with `z-index: 25`. `#bench` is `position: relative`
+with `z-index: auto`, so it opens **no stacking context** and that 25 competed at the root against
+`#rail`, which is **`z-index: 45`**. The ore was painted under the inventory panel and only appeared
+once the pointer left it, which is exactly what the owner saw.
+
+The ghost now hangs off `#frame` at `z-index: 120`, the band `.sw-ghost` already uses, which is why the
+r128 ingot drag never had this bug. Coordinates are relative to the frame; the **drop test is
+unchanged** and still measures against the bench.
+
+### Verification
+
+- D3's arrow ends 20px from the pot's molten surface (the `back` offset), measured off the rendered
+  SVG path rather than from a screenshot.
+- Mid-drag with the pointer **inside the rail**: the ghost's parent is `#frame`, computed `z-index`
+  120 against the rail's 45, box centre over the rail, and it is visible in the capture.
+- Finishing that same drag on the pot still works: iron 2 -> 1, one segment added, the melt starts,
+  the ghost is removed.
