@@ -843,18 +843,26 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: rgba(0,0,0,.5); overflow: hidden; }
 #skillBtn .sk-xp i { display: block; height: 100%; width: 0; border-radius: 2px;
     background: linear-gradient(90deg,#a8842a,#ffe08a); transition: width .35s ease-out; }
-/* r163: D91 asks the player to open the skill tree, and tutDay2Skill() has blinked this button
-   since r122 - but #rail is overflow:hidden and the button sits 9px from its right edge, so the
-   plain .tut-blink halo is cut off exactly where the eye would catch it. This pulses INWARD as
-   well - border, an inset glow and a brighter face - so nothing about it can be clipped away.
-   It is declared BEFORE .levelled on purpose: the two have equal specificity, so source order
-   decides, and the level-up flash should win for its 1.2s and hand the guide back after. */
-#skillBtn.tut-blink { animation: tutBlinkSkill 1s ease-in-out infinite; }
+/* r163/r167: D91 asks the player to open the skill tree, and tutDay2Skill() has blinked this button
+   since r122. #rail is overflow:hidden and the button sits 9px from its right edge, so the plain
+   .tut-blink halo is cut off exactly where the eye would catch it. r163 answered that with an
+   inset glow and a brighter face, which computes correctly but still read as nothing in motion.
+   r167 goes the whole way and swaps the FACE - the same treatment #panPad's tutExitBlink already
+   gives the screen exits, so this is the build's own vocabulary, not a new one. The children carry
+   their own colour, so .sk-lv gets a matching pass or it stays pale on a bright button.
+   Declared BEFORE .levelled on purpose: equal specificity, so source order decides, and the
+   level-up flash should win for its 1.2s and hand the guide back after. */
+#skillBtn.tut-blink { animation: tutBlinkSkill 1.1s ease-in-out infinite; }
+#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.1s ease-in-out infinite; }
 @keyframes tutBlinkSkill {
-    0%,100% { border-color: #241a0c; filter: none;
+    0%,100% { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
               box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
-    50%     { border-color: #ffd79a; filter: brightness(1.22);
-              box-shadow: inset 0 0 14px 3px rgba(255,190,90,.8), 0 0 15px 5px rgba(255,170,60,.85); }
+    50%     { background: linear-gradient(180deg,#ffe0a4,#ffb43e); border-color: #fff3d4; color: #2a1d0c;
+              box-shadow: inset 0 0 18px 5px rgba(255,140,20,.5), 0 0 16px 6px rgba(255,170,60,.95); }
+}
+@keyframes tutBlinkSkillTxt {
+    0%,100% { color: #e8cf92; }
+    50%     { color: #3a2a10; }
 }
 #skillBtn.levelled { animation: skLvl 1.2s ease-out; }
 @keyframes skLvl { 0%,100% { box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
@@ -1483,9 +1491,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
-/* r153: the tutorial wants something out of a tab the player is not looking at. Same halo the
-   screen exits use - a tab is a rectangular button, so a box-shadow is the right shape here. */
-.matTab.tut-tab { animation: tutBlinkHalo 1s ease-in-out infinite; }
+/* r153: the tutorial wants something out of a tab the player is not looking at.
+   r167: the same face swap the skill button just got, and for the same reason - #rail is
+   overflow:hidden and ITEMS & DECOR, the tab this round asks for, sits 9px from its right edge,
+   so a halo alone is cut off on the side the eye is on. Swapping the face cannot be clipped. */
+.matTab.tut-tab { animation: tutBlinkTab 1.1s ease-in-out infinite; }
+@keyframes tutBlinkTab {
+    0%,100% { background: linear-gradient(180deg,#4c3a21,#2c2013); border-color: #241a0c; color: #e8d3a4;
+              box-shadow: 0 0 0 0 rgba(255,170,60,0); }
+    50%     { background: linear-gradient(180deg,#ffe0a4,#ffb43e); border-color: #fff3d4; color: #2a1d0c;
+              box-shadow: inset 0 0 12px 3px rgba(255,140,20,.45), 0 0 15px 5px rgba(255,170,60,.9); }
+}
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
@@ -2833,7 +2849,7 @@ function startPickDrag(e){
 }
 function dropPick(e){ const b=plateBox(); if(!b) return;
     PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
-    buildCave(); if(INV_TAB===3) buildShelf();
+    buildCave(); if(INV_TAB===3) buildShelf(); tutTabUi();   /* r167: tutPickTab now answers null */
     toast('⛏️ Rest the pickaxe against an <b>ore seam</b> to mine it'); }
 /* r166: #caveLayer sits inside #screenLayer (z 40) and the inventory rail is z 45, so NOTHING drawn
    in the cave can come out over the rail - the pickaxe slid under the panel on the very drag that
@@ -5957,7 +5973,9 @@ function tutDay2Screen(name){
         return; }
     if(TUT_STAGE==='d2-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
-        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); sayQueue('D94b'); return; } }   /* r164 */
+        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); sayQueue('D94b');
+            tutNeedTab(tutPickTab); return; } }   /* r164. r167: and the pickaxe's tab blinks - tutPickTab
+                                                    answers null once it is already out, so it stops asking */
     if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
     if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
     if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */
@@ -6284,6 +6302,7 @@ function tutDay2Copper(){
     if(TUT_STAGE!=='d2-back') return;
     TUT_STAGE='d2-copper'; tutExit(null);
     sayQueue('D95');
+    tutNeedTab(0);   /* r167 */
 }
 function tutDay2Smelted(){
     if(TUT_STAGE!=='d2-copper' || fireOreWanted()!==false) return;
@@ -6294,6 +6313,7 @@ function tutDay2Mined(){
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;
     TUT_STAGE='d2-back';
+    sayHide(); tutNeedTab(null);   /* r167: 'Gather everything' is done, so it stops being said */
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 function tutBedroom(){
@@ -6434,6 +6454,8 @@ function tutFireForge(){
     TUT_STAGE='fire-grind'; tutArrow(null,null);   /* r114: the disc is no longer hidden - see below */
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
+    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab.
+                        AFTER tutArrow(null,null) - that call clears the tab halo as well. */
 }
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){

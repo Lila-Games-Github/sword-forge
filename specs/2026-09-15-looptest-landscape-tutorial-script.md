@@ -1304,3 +1304,42 @@ button with `animation-name: none`; D91 turns on `tutBlinkSkill`. Opening the tr
 
 **Not done, because it would be inventing design:** nothing guides the player to a particular node
 once the tree is open. `tutDay2Spent()` accepts any spend.
+
+### r167 — four tab guides, and the skill button finally reads
+
+**The pointer that was not.** r163 made `#skillBtn.tut-blink` pulse its border, an inset glow and
+`brightness(1.22)`. Driving the animation to its 50% frame showed all three computing exactly as
+written — and the owner still could not see it. Reported twice is the answer: it was too subtle in
+motion against an already-gold button. r167 swaps the **face** instead, to a bright amber gradient
+with dark text, which is the treatment `#panPad`'s `tutExitBlink` has always given the screen exits.
+The build's own vocabulary, not a new one. `.sk-lv` carries its own colour, so it gets a matching
+pass or it stays pale on a bright button.
+
+`.matTab.tut-tab` got the same swap, for the same reason: `#rail` is `overflow: hidden` and
+**ITEMS & DECOR sits 9px from its right edge** — the same 9px as the skill button — so a halo alone is
+cut off on the side the eye is on. The other three tabs have 59px or more, but one rule for all four
+beats two.
+
+**The four tab guides.** `tutNeedTab(n)` was only ever reached through `tutArrow`'s `opt.tab`. It is
+now called directly at four beats. `tutTabUi()` already drops the halo the moment `INV_TAB===n`, and
+`invTab()` already calls it, so "until the player clicks it" needed no new machinery.
+
+| beat | tab | note |
+| --- | --- | --- |
+| D68 | INGREDIENTS | set **after** `tutArrow(null,null)`, which clears the tab halo too |
+| D94b | ITEMS & DECOR | passed as `tutPickTab`, which answers `null` once the pickaxe is out |
+| D95 | INGREDIENTS | |
+| — | cleared | `tutDay2Mined()`, when the last seam empties |
+
+`dropPick()` now calls `tutTabUi()`: `tutPickTab` starts answering `null` the moment the pickaxe
+leaves the bag, but nothing was re-reading it there, so the halo would have lingered.
+
+**D94b closes itself.** `tutDay2Mined()` calls `sayHide()` — "Gather everything" is an instruction,
+and it stops being one when every seam is empty.
+
+Verified through the real beats, not by setting classes. D68: from `to-forge2`, `tutFireForge()`
+reaches `fire-grind`, speaks D68 and haloes tab 0 while the player stands on tab 2; clicking tab 0
+clears it. D94b: arriving in the cave from `d2-cave` haloes tab 3, clicking it clears it, and taking
+the pickaxe out clears it as well. Emptying every node hides the bubble, clears the halo and blinks
+`#panLeft`. D95: `goScreen('forge')` from `d2-back` reaches `d2-copper`, speaks D95 and haloes tab 0.
+At the 50% frame both the skill button and tab 3 compute to the amber face with dark text.
