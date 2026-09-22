@@ -6389,3 +6389,38 @@ Toast `offsetTop` 6 (the very top), `z-index` 1200 against the bubble's 46.
 **A measuring note:** a toast that has expired is `display:none`, so its rect reads 0x0 at the origin;
 and one caught mid-animation reads 8px high. Both produced nonsense "overlap" numbers before I checked
 `classList.contains('show')` and switched to the layout box.
+
+## r155 — the second craft stops making you wait, and D35 stops pointing at the wrong tab
+
+### The four-second delay is gone
+
+r100 only pointed at the second run's next step **after `HINT_IDLE_MS` of inactivity**, and r102 did
+the same for the hammering minigame's own lines. In practice that was four silent seconds at every
+step of the craft, which reads as the game having nothing to say rather than as a deliberate pause.
+
+- `updateHintArrow()` calls `tutNudge()` **every frame** for the `regrind*` and `record` stages.
+- `tutHm2Idle()` speaks its **first** line at once. Re-speaking still waits for a stall, or it would
+  nag over active play, so `TUT_HM2_SAID` separates the two cases and entering `forge2` resets it.
+
+**Calling `tutNudge()` every frame is free**, because it now compares a signature of the inputs its
+choice is made from and returns immediately when none has moved: stage, the ore on the wheel, whether
+that ore is fully ground, the melt stage, `reachedTrait`, `gateReady`, the open inventory tab, and
+whether the blade panel is open. `prep.grind` is quantised to the one threshold that matters, or
+grinding would churn the signature on every frame while the pointer sat perfectly still.
+
+### D35's arrow
+
+While a different inventory tab was open, `tutWheelArrow()` could not find the ore's slot and fell back
+to `#oreShelf` **itself**, so it drew a line out of the whole rail toward the grindstone — which reads
+as pointing at whatever happens to be in the rail, in this case a sword. Nothing is drawn now: r153's
+INGREDIENTS halo asks for the tab, and the arrow appears from the ore once it is actually on screen.
+
+### Verification
+
+| case | result |
+|---|---|
+| `regrind-grind` with SWORDS open | **no arrow**, INGREDIENTS tab lit |
+| switch to INGREDIENTS | arrow appears, halo out, **373 ms** after the last action (was 4000) |
+| 30 idle frames | **0** pointer re-applications |
+| one state change, then 30 frames | exactly **1** |
+| entering the minigame | D46 spoken in **3 ms** |

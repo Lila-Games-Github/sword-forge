@@ -4955,10 +4955,11 @@ function placeHintArrow(){
     a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
     a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
 function updateHintArrow(){
-    /* r100: after HINT_IDLE_MS of nothing, the second run points at its own next step */
-    if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record'){
-        if(performance.now()-lastActAt > HINT_IDLE_MS) tutNudge();
-    }
+    /* r155: the second run points at its next step IMMEDIATELY. r100 waited HINT_IDLE_MS of
+       inactivity first, which meant four silent seconds at every step of the craft. tutNudge()
+       is a no-op unless the thing it would point at has actually changed, so running it on every
+       frame costs nothing. */
+    if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record') tutNudge();
     const want=hintArrowWanted();
     if(want) placeHintArrow();                       // re-place every frame: the orb and the furnace both move
     if(want!==hintArrowOn){ hintArrowOn=want;
@@ -5651,14 +5652,16 @@ function tutShapeStep(){
 let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false;
 /* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
    and it re-speaks on every further HINT_IDLE_MS of nothing. D46 covers fire+hammer, D47 the mug. */
-let TUT_HM2=false, TUT_HM2_AT=0;
+let TUT_HM2=false, TUT_HM2_AT=0, TUT_HM2_SAID=false;   /* r155 */
 function tutHm2WasOn(){ return TUT_HM2; }   /* r103 */
 function tutHm2Clear(){ const a=document.getElementById('tutArrow'); if(a) a.classList.remove('above'); tutArrow(null,null); }
 function tutHm2Idle(){
     if(TUT_STAGE!=='forge2' || hmQuenching) return;
     const now=performance.now();
-    if(now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS) return;
-    TUT_HM2_AT=now;
+    /* r155: the FIRST line is instant. r102 made the player stall for HINT_IDLE_MS before hearing
+       anything at all. Re-speaking still waits for a stall, or it would nag over active play. */
+    if(TUT_HM2_SAID && (now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS)) return;
+    TUT_HM2_AT=now; TUT_HM2_SAID=true;
     const mug=hmMugReady(), id=mug?'D47':'D46';
     if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
     SAY_I=SAY_SEQ.indexOf(id); say(id);
@@ -6437,7 +6440,7 @@ function tutHmStep(){
     if(TUT_STAGE==='bram2-shape'){ tutBram2Hammering(); return; }   /* r127 */
     if(TUT_STAGE==='d2-gale-shape'){ tutGaleHammering(); return; }   /* r126 */
     if(TUT_STAGE==='fire-shape'){ tutFireHammer(); return; }   /* r111 */
-    if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
+    if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=0; TUT_HM2_SAID=false;   /* r155: next tick speaks */
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
         SAY_I=SAY_SEQ.indexOf('D45'); say('D45'); return; }   /* r102 */
     if(tutOver() || TUT_STAGE==='forge') return;
@@ -6712,14 +6715,31 @@ function tutFakePath(on){
 }
 /* r100 - the second run is guided by ARROWS rather than more dialogue: the player has been told how
    each station works already. tutNudge() is what the 4-second idle timer asks for. */
+/* r155: while a different inventory tab is open the ore has no slot to point FROM, and the old
+   fallback aimed the arrow at #oreShelf itself - a line out of the whole rail, which read as
+   pointing at whatever happened to be in it. Now nothing is drawn: the INGREDIENTS halo (r153)
+   asks for the tab, and the arrow appears from the ore once it is actually on screen. */
 function tutWheelArrow(oreName){
-    const slot=()=>{ const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===oreName);
-        return im ? im.closest('.ore-slot') : document.getElementById('oreShelf'); };
-    tutArrow(slot, '#stMortar .mortar', { tab:0, tfx:0.5, tfy:0.42, bow:0.20, back:26 });
+    const find=()=>{ const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===oreName);
+        return im ? im.closest('.ore-slot') : null; };
+    if(!find()){ tutArrow(null,null); tutNeedTab(0); return; }
+    tutArrow(find, '#stMortar .mortar', { tab:0, tfx:0.5, tfy:0.42, bow:0.20, back:26 });
 }
 function tutSmelterArrow(){ tutArrow('#orb', '#furnaceGlow', { tfx:0.5, tfy:0.30, bow:0.20, back:24 }); }
 /* what the player should do RIGHT NOW in the second run, as an arrow */
-function tutNudge(){
+/* r155: the inputs the choice below is made from. If none of them moved, the pointer would be
+   re-applied identically, so there is nothing to do - which is what makes calling this every
+   frame free. prep.grind is quantised to the one threshold that matters, or grinding would
+   churn the signature on every frame while the pointer sat still. */
+let TUT_NUDGE_SIG='';
+function tutNudgeSig(){
+    const panel=document.getElementById('bladePanel');
+    return [TUT_STAGE, prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
+            melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, gateReady?1:0, INV_TAB,
+            panel? (getComputedStyle(panel).display!=='none'?1:0) : 0].join('|');
+}
+function tutNudge(force){
+    const sig=tutNudgeSig(); if(!force && sig===TUT_NUDGE_SIG) return; TUT_NUDGE_SIG=sig;
     tutSpinOn(null);
     /* r101: with the ore already on the wheel the next move is to TURN it, so the pointer becomes a
        turn rather than another line from the shelf. */
