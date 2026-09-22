@@ -6352,3 +6352,40 @@ silently vanished**. `tutPickSrc()` returns the cave pickaxe or the bag slot, wh
 | pickaxe out in the cave | nothing lit, arrow drawn |
 | **stowed mid-beat**, then away from ITEMS | **ITEMS** lit, and the arrow still drawn, now from the bag slot |
 | pickaxe taken back out | halo clears itself, arrow still drawn |
+
+## r154 — the toast goes to the very top, and the bubble yields
+
+The level-up toast sat at `top: 12%` of the frame, right where the dragon's bubble likes to be. It is
+at **`top: 6px`** now, and `z-index: 1200` so it also clears the bubble's `z-1100` "above" state inside
+the hammer modal.
+
+**The bubble moves out of the way, but only when it would really collide.** `sayLayout()` gained a top
+guard: if the toast's horizontal span overlaps where the bubble is about to sit, the bubble is pushed
+to just under it. An ordinary toast that does not overlap never jogs a line the player is reading.
+
+Two details that decide whether this works at all:
+
+- The guard reads the toast's **layout** box (`offsetTop + offsetHeight`), not
+  `getBoundingClientRect()`. `sfToastIn` animates `translateY(-8px) → 0`, so a rect taken in the first
+  frames is 8px high and the guard would be computed off a position the toast is about to leave.
+- `toast()` calls `sayLayout()` **synchronously**, not through `requestAnimationFrame`. The first
+  attempt used rAF and the bubble did not move at all in testing, because a hidden or backgrounded tab
+  throttles it. The class is already applied by then, so the toast has its box.
+
+`toast()` also re-runs `sayLayout()` when the toast expires, so the bubble returns to where it was.
+
+### Verification
+
+Driven exactly as the game does, with no manual layout call:
+
+| | bubble top in frame |
+|---|---|
+| before | 27.6 |
+| toast up | **60.6** (gap 16.6 under the toast, no overlap) |
+| toast gone | back to **27.6** |
+
+Toast `offsetTop` 6 (the very top), `z-index` 1200 against the bubble's 46.
+
+**A measuring note:** a toast that has expired is `display:none`, so its rect reads 0x0 at the origin;
+and one caught mid-animation reads 8px high. Both produced nonsense "overlap" numbers before I checked
+`classList.contains('show')` and switched to the layout box.

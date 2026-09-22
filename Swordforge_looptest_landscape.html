@@ -914,7 +914,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
 .sw-ghost.ingot .inv-orb { width: 100%; }
 #stAnvil.drop-hot .anvil { filter: drop-shadow(0 0 12px rgba(255,190,90,.95)) brightness(1.12); }
-#sfToast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); z-index: 60; display: none;
+#sfToast { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 1200; display: none;   /* r154: the very top, and over the z-1100 bubble */
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #ffe08a; white-space: nowrap;
     background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 10px; padding: 8px 16px;
     box-shadow: 0 6px 20px rgba(0,0,0,.6); }
@@ -2505,7 +2505,10 @@ function showZone(on,hot){ const z=document.getElementById('workZone'); if(!z) r
 let TOAST_T=null;
 function toast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) return;
     t.innerHTML=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-    clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>t.classList.remove('show'), ms||1900); }
+    if(typeof sayLayout==='function') sayLayout();   /* r154: synchronous - the class is already applied, so the toast has its box, and rAF is throttled in a hidden tab */
+    clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>{ t.classList.remove('show');
+        if(typeof sayLayout==='function') sayLayout();   /* r154: and let it come back */
+    }, ms||1900); }
 function refreshWork(){ if(SF_SCREEN==='basement') buildScreenProps('basement'); if(INV_TAB===2) buildShelf(); }
 function placeWork(sw){
     if(WORK) INV.swords.push(WORK);                     // owner's call: a second sword SWAPS
@@ -6896,7 +6899,17 @@ function sayLayout(){
     const rail=document.getElementById('rail');
     const rightLimit = (onScreen && rail) ? Math.min(bb.right, rail.getBoundingClientRect().left) : bb.right;
     x = Math.max(fr.left + 6, Math.min(rightLimit - w - 6, x));   /* r118 */
-    y = Math.max(fr.top  + 6, Math.min(fr.bottom - h - 6, y));
+    /* r154: a level-up toast now sits at the very top of the frame, where the bubble also likes to
+       go. The bubble yields - but only when the two would actually meet, so an ordinary toast
+       somewhere off to the side never jogs a line the player is reading. */
+    let topGuard = fr.top + 6;
+    { const t=document.getElementById('sfToast');
+      if(t && t.classList.contains('show') && t.offsetWidth>0){
+          const tr=t.getBoundingClientRect();   /* x only: the transform is what centres it */
+          if(!(x + w < tr.left || x > tr.right))
+              topGuard = Math.max(topGuard, fr.top + t.offsetTop + t.offsetHeight + 8); } }
+    y = Math.min(fr.bottom - h - 6, y);
+    y = Math.max(topGuard, y);   /* the guard wins: never sit under the toast */
     box.classList.toggle('tail-left', beside);
     if(beside) box.style.setProperty('--tailY', Math.max(14, Math.min(h-36, headY - y - 15)).toFixed(0)+'px');
     const host=b.getBoundingClientRect();
