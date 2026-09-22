@@ -5916,3 +5916,21 @@ through the rail.
 - The tutorial's `tutIronSlot()` still resolves to the real iron slot rather than falling back to
   `#oreShelf`, so the opening arrow still has a target.
 - `?test` GREEN, console clean.
+
+### r141 — bigger, and dark
+
+The owner asked for a larger name in a dark colour. **11px**, and `#241a0c`, the same near-black the
+rail already uses for its slot borders.
+
+The colour is scoped to `#frame.landscape`. The base `.ore-slot` background is near-black
+(`#2a2013 -> #171009`) and only the landscape rail is light parchment (`#c4b189 -> #ab9770`), so a
+global dark colour would make the name invisible on the portrait rail. The base rule keeps the light
+text and its drop shadow; the landscape override drops the shadow, which only muddies dark-on-light.
+
+**The size had silently done nothing until now.** `.ore-slot span { font-size: 8px }` is `(0,2,0)` and
+outranks a bare `.ore-name` at `(0,1,0)`, so r140's 9px and this round's first attempt at 11px were
+both discarded and the computed size stayed 8px. Measuring the *computed* style rather than trusting
+the declaration is what caught it. The rule is written `.ore-slot .ore-name` now.
+
+Verified at 11px across five ores: computed size 11px and colour `rgb(36,26,12)` on every one, and no
+ellipsis — the tightest is Manganese at 61px inside a 69px slot.
