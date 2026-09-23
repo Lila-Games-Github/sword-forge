@@ -1486,3 +1486,36 @@ set. Taps walk D69a → D69b → D69c with the dim still on, and it lifts on the
 frames (640ms) while paused leave `hp` at exactly 99.6**, so no integrity drains while the lines are
 read — only the single frame that triggered it costs anything. A second call to `tutHazardStep()`
 does nothing. D8 and D9 still lift on one tap.
+
+### r181 — the hammering minigame gets its own two pointers
+
+**D14** ("Just hold on the metal...") glows `#hmOrb`, the metal itself. That is r152's vocabulary:
+a hold is a glow.
+
+**D15** ("Now pick up your hammer and strike...") raises `#hmSwing`, a double-headed arrow sliding
+back and forth along the line the hammer actually travels — from the metal at `HM_RIG.anvil` to the
+hammer head at rest, `(0.77w, 0.30h)`, which are **the same two points `wireHmHammer()`'s `inZone()`
+uses**, so the hint and the hitbox can never drift apart.
+
+**Why a new element and not `tutArrow`.** The shared `#tutArrow` is `z-index: 70` and this modal is
+`z-1000` — an arrow drawn out there is simply invisible in here. `#hmSwing` lives inside `#hmScene`.
+
+Three things learned the hard way, all visible in the build:
+
+- **The heads are paths, not markers.** r151 found that a marker referenced from a hidden SVG never
+  paints; drawing the triangles directly avoids the whole class of problem.
+- **The viewBox is the measured pixel box, 1:1**, so the arrow's angle survives any scene aspect.
+  A fixed `0 0 100 100` box would have flattened the diagonal.
+- **The heads are sized off the shaft** (`headW = stroke*1.5`), not fixed. At a fixed 30x15 against a
+  17px shaft the upper head was barely wider than the line and read as a taper rather than an arrow —
+  exactly where it lands on the pale hammer. The filter is also a tight dark `drop-shadow`, which acts
+  as an outline for the same reason.
+
+Both retire themselves: D15 puts out D14's glow, `hmStrike()` puts out the swing hint the moment the
+player does it, and `hmClear()` clears both when the minigame closes.
+
+Verified through the real path: a shape picked, `tutHmStep()` speaks D13 with nothing lit; a tap gives
+D14 with the metal glowing; the metal reaching heat speaks D15, which drops the glow and raises the
+arrow — 3 paths, heads 47x48px against a 236px shaft, spanning 45.8..81.3% x and 22.2..61.3% y of the
+scene, with the heads landing on the metal (53.4, 49.8) and the hammer (72.2, 35). One strike clears
+it; cancelling the minigame leaves neither behind.

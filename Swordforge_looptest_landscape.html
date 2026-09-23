@@ -740,6 +740,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes hmJolt  { 0%,100% { transform: translate(0,0); } 35% { transform: translate(0,5px); } 70% { transform: translate(0,-2px); } }
 @keyframes hmChill { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-6px,0); } 75% { transform: translate(6px,0); } }
 /* the sphere is the crafting screen's orb, both of its states stacked: .hot fades in with the heat */
+/* r181: D15's swing hint. Drawn inside #hmScene - the shared #tutArrow is z-70 and this modal is
+   z-1000, so an arrow out there is simply invisible in here. Heads are PATHS, not markers: r151
+   learned that a marker referenced from a display:none SVG never paints. */
+#hmSwing { position: absolute; z-index: 9; display: none; pointer-events: none; overflow: visible;
+    /* the tight shadow is an OUTLINE: the upper head lands on the pale hammer and was lost in it */
+    filter: drop-shadow(0 0 3px rgba(22,13,4,.95)) drop-shadow(0 3px 7px rgba(0,0,0,.8)); }
+#hmSwing.on { display: block; }
+#hmSwing path { fill: #fff6df; stroke: none; }
+#hmSwing path.shaft { fill: none; stroke: #fff6df; stroke-linecap: round; }
+#hmSwingG { animation: hmSwingMove 1.15s ease-in-out infinite; }
+@keyframes hmSwingMove {
+    0%,100% { transform: translate(calc(var(--sx) * -1px), calc(var(--sy) * -1px)); }
+    50%     { transform: translate(calc(var(--sx) * 1px), calc(var(--sy) * 1px)); }
+}
 #hmOrb { border-radius: 50%; }
 #hmOrb > div { position: absolute; inset: 0; border-radius: 50%; }
 #hmOrb .cold { background: radial-gradient(circle at 38% 32%, #d9d2c6, #6f6a62 52%, #2a2724 100%);
@@ -1980,6 +1994,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.webp" alt="">
             <div id="hmGrip" title="drag the hammer"></div>
             <div id="hmAimPad" title="hold the metal so the dragon heats it"></div>
+            <svg id="hmSwing" aria-hidden="true"><g id="hmSwingG"></g></svg>   <!-- r181: the back-and-forth swing hint -->
             <div id="hmMug" title="splash the shaped blade to finish"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div>
             <div id="hmFx"></div>
             <div class="hm-hud">
@@ -4804,7 +4819,42 @@ const HM_FORGE = {
 let hmShape='Longsword', hmAngle=HM_RIG.base;
 let hmHeat=0, hmProg=0;                    // 0..1 heat, 0..2 shape progress (sphere -> rough -> finished)
 let hmRaf=null, hmLast=0, hmLastStrike=0;
-function hmClear(){ hmBreath(false); hmStop(); }
+/* r181: a double-headed arrow along the line the hammer actually travels - from the metal on the
+   anvil (HM_RIG.anvil) up to the hammer head at rest (0.77w, 0.30h, the same two points
+   wireHmHammer's inZone() uses) - sliding back and forth along its own axis.
+   The viewBox is set to the measured pixel box, 1:1, so the angle survives any scene aspect. */
+function hmSwingOn(on){
+    const svg=document.getElementById('hmSwing'), g=document.getElementById('hmSwingG'), sc=document.getElementById('hmScene');
+    if(!svg||!g||!sc) return;
+    if(!on){ svg.classList.remove('on'); return; }
+    const r=sc.getBoundingClientRect(); if(r.width<2) return;
+    const a={ x:r.width*HM_RIG.anvil.x/100, y:r.height*HM_RIG.anvil.y/100 };
+    const b={ x:r.width*0.77, y:r.height*0.30 };
+    const pad=46;
+    const x0=Math.min(a.x,b.x)-pad, y0=Math.min(a.y,b.y)-pad;
+    const w=Math.abs(b.x-a.x)+pad*2, h=Math.abs(b.y-a.y)+pad*2;
+    svg.setAttribute('viewBox','0 0 '+w.toFixed(1)+' '+h.toFixed(1));
+    svg.style.left=x0.toFixed(1)+'px'; svg.style.top=y0.toFixed(1)+'px';
+    svg.style.width=w.toFixed(1)+'px'; svg.style.height=h.toFixed(1)+'px';
+    const A={x:a.x-x0,y:a.y-y0}, B={x:b.x-x0,y:b.y-y0};
+    let ux=B.x-A.x, uy=B.y-A.y; const len=Math.hypot(ux,uy)||1; ux/=len; uy/=len;
+    const stroke=Math.max(7, len*0.055);
+    /* the heads are sized off the SHAFT, not fixed: at a fixed 30x15 the upper head was barely wider
+       than the line itself and read as a taper rather than an arrow, right where it lands on the
+       pale hammer. */
+    const headL=stroke*2.2, headW=stroke*1.5, trim=stroke*1.7;
+    const p1={x:A.x+ux*trim, y:A.y+uy*trim}, p2={x:B.x-ux*trim, y:B.y-uy*trim};
+    const head=(tip,dx,dy)=>{ const bx=tip.x-dx*headL, by=tip.y-dy*headL, nx=-dy*headW, ny=dx*headW;
+        return 'M'+tip.x.toFixed(1)+' '+tip.y.toFixed(1)+' L'+(bx+nx).toFixed(1)+' '+(by+ny).toFixed(1)+
+               ' L'+(bx-nx).toFixed(1)+' '+(by-ny).toFixed(1)+' Z'; };
+    g.innerHTML='<path class="shaft" stroke-width="'+stroke.toFixed(1)+'" d="M'+p1.x.toFixed(1)+' '+p1.y.toFixed(1)+
+                ' L'+p2.x.toFixed(1)+' '+p2.y.toFixed(1)+'"/>'+
+                '<path d="'+head(p2, ux, uy)+'"/>'+'<path d="'+head(p1,-ux,-uy)+'"/>';
+    g.style.setProperty('--sx', (ux*9).toFixed(2));
+    g.style.setProperty('--sy', (uy*9).toFixed(2));
+    svg.classList.add('on');
+}
+function hmClear(){ hmBreath(false); hmStop(); hmSwingOn(false); tutGlow('#hmOrb', false); }   /* r181 */
 function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
     document.getElementById('sfShapeModal').classList.remove('show');
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
@@ -5043,6 +5093,7 @@ function hmImpact(hot){
 }
 function hmStrike(){
     const now=performance.now(); if(now-hmLastStrike<HM_FORGE.strikeGap) return; hmLastStrike=now;
+    hmSwingOn(false);   /* r181: they have done it */
     const h=document.getElementById('hmHammer');
     h.classList.remove('hit'); void h.offsetWidth;   // restart the swing even on a fast second blow
     h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240);
@@ -7315,6 +7366,8 @@ function say(id){
     sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'));   /* r115/r174 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
+    if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
+    if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
