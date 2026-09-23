@@ -713,6 +713,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    flyCraft() reads the art's rect AFTER the transform, so the blade still flies from where it
    was seen. sizeFlat() reads clientWidth, which is the unscaled box, so the art scales with it. */
 .sf-craft-box { max-width: 344px; transform: scale(1.5); }
+/* r190: the three alignment tiers, shown once, right after D97 explains what aligning is for.
+   Three equal columns rather than a fixed width each, so the row stays centred whatever the art is. */
+.tier-box { max-width: 460px; }
+.tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 2px; }
+.tier-one { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tier-one img { width: 100%; max-width: 124px; height: auto; display: block;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+.tier-one span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: .6px; }
+.tier-weak span { color: #c0a48a; }
+.tier-fine span { color: #49b6ff; }
+.tier-epic span { color: #ffcf3a; }
 /* pointer-events: the part images are full-canvas squares with the blade on the diagonal, so their
    transparent corners reach over the title and the rows - and would swallow clicks meant for them. */
 .cr-art, .cr-art * { pointer-events: none; }
@@ -1744,6 +1755,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <small>Sword Forge is played in landscape.</small>
     </div>
     <!-- ===== r129: the gift Bram leaves behind ===== -->
+    <!-- r190: the tier legend. Colours on the labels are tierColor()'s, so the window and every
+         tier readout in the game agree. -->
+    <div id="sfTierModal" class="sf-modal">
+        <div class="sf-modal-box tier-box">
+            <div class="tier-row">
+                <div class="tier-one tier-weak"><img src="assets/ui/weak.png" alt="Weak"><span>WEAK</span></div>
+                <div class="tier-one tier-fine"><img src="assets/ui/fine.png" alt="Fine"><span>FINE</span></div>
+                <div class="tier-one tier-epic"><img src="assets/ui/epic.png" alt="Epic"><span>EPIC</span></div>
+            </div>
+            <div class="sf-continue" onclick="closeTiers()">close</div>
+        </div>
+    </div>
     <div id="sfGiftModal" class="sf-modal">
         <div class="sf-modal-box gift-box">
             <h3 class="sf-modal-h">A gift from Bram</h3>
@@ -5202,7 +5225,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
-    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -6548,6 +6571,13 @@ function tutSoloRetry(){
     tutGarricHandsOff();       /* and he is back where he was when he said he would try alone */
 }
 function tutSoloDone(){ TUT_SOLO=false; TUT_SOLO_ASKED=false; tutSpotOn(null); }
+/* r190: shown once, when the player DISMISSES D97 - not when r188 hides it because the dragon has
+   reached the anvil. That auto-hide happens mid-pull, and a window over the board at that moment
+   would interrupt the very thing the line just asked for. */
+let TUT_SAW_TIERS=false;
+function openTiers(){ if(TUT_SAW_TIERS) return; TUT_SAW_TIERS=true;
+    const m=document.getElementById('sfTierModal'); if(m) m.classList.add('show'); }
+function closeTiers(){ const m=document.getElementById('sfTierModal'); if(m) m.classList.remove('show'); }
 function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
 function claimGift(){
     const m=document.getElementById('sfGiftModal'); if(m) m.classList.remove('show');
@@ -7334,7 +7364,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -7595,7 +7625,10 @@ function sayNext(){
     if(TUT_PAUSE && SAY_I>=SAY_SEQ.length-1){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
-    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19'; SAY_I=-1; sayHide(); if(wasD19) finishD19(); return; }
+    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19', wasD97=SAY_LAST==='D97';
+        SAY_I=-1; sayHide(); if(wasD19) finishD19();
+        if(wasD97) setTimeout(openTiers, 0);   /* r190 */
+        return; }
     say(SAY_SEQ[SAY_I]);
 }
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');

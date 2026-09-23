@@ -1712,3 +1712,25 @@ route segments, the ring **down** (iron went in), D130a on screen with "Let me t
 restores **6 and 6**, clears the route to 0 segments, re-arms the solo run and puts the ring back.
 Walking past it instead closes the line and keeps the route. A real two-option question still blocks
 and still hides the go button.
+
+### r190 — the tier legend after D97
+
+`#sfTierModal`: `assets/ui/weak.png`, `fine.png` and `epic.png` in three equal columns, labelled
+WEAK / FINE / EPIC, with a close control. The label colours are `tierColor()`'s exactly — `#c0a48a`,
+`#49b6ff`, `#ffcf3a` — so the window and every tier readout in the game agree.
+
+**It opens when the player DISMISSES D97, not whenever D97 disappears.** Those became different
+events in r188: D97 now also hides by itself the moment the dragon reaches the anvil, which happens
+mid-pull. A window over the board at that moment would interrupt the very thing the line just asked
+for. The hook is in `sayNext()`, where a run ends with `SAY_LAST === 'D97'`.
+
+Shown once per game (`TUT_SAW_TIERS`), cleared by `tutReset()`, and closed by `resetRun()` with every
+other window.
+
+Verified: D97 up with no window; dismissing it opens the window with all three images loaded at 124px
+each and the three labels; close hides it; a second D97 dismissal does **not** reopen it; and
+`sayHide()` — the auto-hide r188 uses — does not open it at all.
+
+**Open — payload.** The three files are PNG, **322KB** together (70 + 124 + 128). Every other asset in
+the build is WebP; the same three through the r136 pipeline would be roughly a tenth of that. They
+are not first-paint, so this is not urgent, but it is against the diet. Not converted yet.
