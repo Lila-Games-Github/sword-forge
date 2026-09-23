@@ -5279,7 +5279,7 @@ function updateHintArrow(){
        inactivity first, which meant four silent seconds at every step of the craft. tutNudge()
        is a no-op unless the thing it would point at has actually changed, so running it on every
        frame costs nothing. */
-    if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record') tutNudge();
+    if(tutTicks()) tutNudge();   /* r185 */
     const want=hintArrowWanted();
     if(want) placeHintArrow();                       // re-place every frame: the orb and the furnace both move
     if(want!==hintArrowOn){ hintArrowOn=want;
@@ -7126,6 +7126,14 @@ function tutNudgeSig(){
             TUT_ARROW?1:0, TUT_TAB==null?0:1, document.querySelector('.tut-blink')?1:0,
             document.querySelector('.tut-glow')?1:0].join('|');
 }
+/* r185: which stages keep a LIVE pointer, one the frame loop has to keep revising. This was written
+   inline in updateHintArrow() as 'regrind*' or record, and r177 and r184 both added branches to
+   tutNudgeApply() without adding their stage here - so those pointers were set once and never
+   revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
+   ran the branch again to take it down. A named list, so the next branch is harder to forget. */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick'];
+function tutTicks(){ const t=String(TUT_STAGE||'');
+    return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
     if(!force && tutNudgeSig()===TUT_NUDGE_SIG) return;
     tutNudgeApply();

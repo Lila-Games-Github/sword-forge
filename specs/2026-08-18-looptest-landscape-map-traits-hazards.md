@@ -6913,3 +6913,32 @@ Verified mid-drag, before any snap-home, with the rail edge at 913: dragon **912
 **913.5**, mug **913.0**. Left bleed still 30px past the frame. The clamp only moves the far-right
 limit, so nothing that matters to play changes — the anvil, the blade and the furnace are all well
 left of it.
+
+### r185 — which stages the frame loop keeps pointing for
+
+Reported: the bellows kept glowing after the gate was opened.
+
+`updateHintArrow()` ran the nudge for one hardcoded set of stages:
+
+```js
+if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record') tutNudge();
+```
+
+**r177 and r184 both added branches to `tutNudgeApply()` without adding their stage here.** So
+`fire-heat1`, `cave-pick` and `record-close` had their pointer set once, by whatever called
+`tutNudge()` directly, and then never revised. The fire run's bellows glow was raised while the metal
+was cold and nothing ever ran the branch again to take it down.
+
+The list is now named, `TUT_TICK_STAGES`, so the next branch is harder to forget.
+
+**How the tests missed it, which matters more than the fix.** Both rounds verified by calling
+`tutNudge(true)` by hand, which proves the branch is correct but says nothing about whether anything
+**runs** it. The verification below drives real `tick()` frames and nothing else — that is the only
+check that would have caught this, and it is the one to use for anything the loop is meant to
+maintain.
+
+Verified by the frame loop alone. Fire heat step: heating → bellows glowing, nothing else; heat
+reached → **glow gone**, `#furnaceGate` blinking; real `openGate()` → `#orb → anvil`, no glow, no
+blink; `placeOnAnvil()` → `#hammerTool → anvil`. Cave: not lit on arrival with the wrong tab open,
+lit after `invTab(3)` plus six frames. Record: the blink wiped behind the guide's back is back after
+six frames.
