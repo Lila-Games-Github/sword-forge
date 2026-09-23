@@ -4272,6 +4272,11 @@ let melt=null;               // accumulated melt: {heat,smeltT0,stage:'smelting'
 let prep=null;               // ore being prepped in the mortar: {ore,grind}
 let pull={x:0,y:0};          // dragon-fire drag: an offset applied to the WHOLE rendered route (sword + remaining path + ✕)
 let bellowing=false, pestleGrinding=false, dragonBreathing=false, retreating=false, gateReady=false;
+/* r182: the second craft's heat step opens on D38 and D39, and D40 is the one that explains WHY
+   heat matters. The bellows is dead until that line has been read, so the player cannot pump past
+   the explanation - and it lights up the moment they can use it. Second craft only: nothing else
+   raises this. */
+let TUT_BELLOWS_LOCK=false;
 let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, waterTimer=null;
 
 function benchEl(){ return document.getElementById('bench'); }
@@ -5524,7 +5529,8 @@ function wireDragon(){
     d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
 
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const smoke=document.getElementById('furnaceSmoke');
-    const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
+    const startB=e=>{ e.preventDefault(); if(TUT_BELLOWS_LOCK) return;   /* r182 */
+        if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
 // ---- JUICE: particle bursts + interactive grind wheel (Phase B station feel) ----
 let fxAcc={grind:0,bellow:0,fire:0,strike:0};
@@ -7104,7 +7110,9 @@ function tutNudgeApply(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow('Manganese'); return; }
-    if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+    if(TUT_STAGE==='regrind-heat'){
+        if(TUT_BELLOWS_LOCK){ tutArrow(null,null); return; }   /* r182: D38/D39 are still being read */
+        tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
     if(TUT_STAGE==='regrind-work'){
         if(!melt) return;
         if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
@@ -7155,6 +7163,7 @@ function tutSmeltCheck(ore, grind){
     }
     if(TUT_STAGE==='regrind-mang' && ore==='manganese'){
         TUT_STAGE='regrind-heat'; tutArrow(null,null);
+        TUT_BELLOWS_LOCK=true;   /* r182: lifted by D40 */
         ['D38','D39','D40'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
         SAY_I=SAY_SEQ.indexOf('D38'); say('D38');
     }
@@ -7198,7 +7207,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -7207,7 +7216,7 @@ function tutReset(){
 function tutGateStep(){
     /* r100: the second run gets D41 here instead, then is left to the idle arrows */
     if(TUT_STAGE==='regrind-heat'){
-        TUT_STAGE='regrind-work'; tutArrow(null,null);
+        TUT_STAGE='regrind-work'; tutArrow(null,null); tutGlow('#bellowtop', false); TUT_BELLOWS_LOCK=false;   /* r182 */
         if(SAY_SEQ.indexOf('D41')<0) SAY_SEQ.push('D41');
         SAY_I=SAY_SEQ.indexOf('D41'); say('D41'); return;
     }
@@ -7366,6 +7375,7 @@ function say(id){
     sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'));   /* r115/r174 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
+    if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */
     if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
     if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */

@@ -1519,3 +1519,32 @@ D14 with the metal glowing; the metal reaching heat speaks D15, which drops the 
 arrow — 3 paths, heads 47x48px against a 236px shaft, spanning 45.8..81.3% x and 22.2..61.3% y of the
 scene, with the heads landing on the metal (53.4, 49.8) and the hammer (72.2, 35). One strike clears
 it; cancelling the minigame leaves neither behind.
+
+### r182 — the second craft's bellows waits for D40
+
+The heat step opens on three lines: D38 (the path reaches balanced), D39 ("Heat up the smelter. Oh, I
+almost forgot to tell you!") and D40, which is the one that actually explains **why** heat matters.
+A player could pump straight through all three and never read the explanation.
+
+`TUT_BELLOWS_LOCK` is raised where `regrind-heat` begins and lifted by **D40 itself**, from `say()`'s
+id hooks. While it is up:
+
+- `wireBellowGate()`'s `startB` returns immediately, so the bellows is inert — not merely unpointed.
+- `tutNudgeApply()`'s `regrind-heat` branch shows **no pointer at all**, rather than pointing at a
+  control that would do nothing.
+
+D40 lifts the lock and lights the bellows in the same breath, so it glows the moment it becomes usable.
+
+*A glow, not an arrow, and that falls out of r152 rather than being a special case: `tutArrow(null,
+'#bellowtop', ...)` has a **null `from`**, which r152 routes to `tutTap()`, and `#bellowtop` is an
+`<img>`, so it takes `tut-glow`. The idle nudge and the D40 hook therefore agree by construction; the
+hook only makes it appear on the line instead of on the next tick.*
+
+Scope is the second craft alone: nothing else raises the flag, and `tutGateStep()` and `tutReset()`
+both clear it.
+
+Verified through the real beat. At **D38** and **D39**: locked, no glow, no pointer, and a real
+`pointerdown` on `#bellowHot` leaves `bellowing` false with heat at 0. At **D40**: unlocked, glowing,
+the press works, and 30 real `tick()` frames of pumping take heat 0 → 21.6. Reaching heat gives D41,
+stage `regrind-work`, glow off, lock off. **The first craft is untouched**: D4 still glows the bellows
+with no lock, and pumping raises heat straight away (0 → 12.8 in 20 frames).
