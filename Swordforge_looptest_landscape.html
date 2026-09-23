@@ -4193,9 +4193,22 @@ function initMap(){
 // r22: drag bounds = the whole FRAME, not the bench band. Props live inside #bench (overflow:visible),
 // so the frame box is translated into bench-local coords. Without this a prop stops a few px above the
 // bench top, which since r16 is ~75% of the way DOWN the screen.
+/* r178: the right edge of every bench drag stops at the INVENTORY RAIL, not at the frame. The rail
+   is z-45 over the bench, so anything dragged under it is both hidden and unreachable. r171 fixed
+   the counter dragon and the cave pickaxe, which have their own handlers; this box is the other
+   three - the bench dragon, the hammer and the mug - and they all shared the same hole.
+   No bleed on that edge: bleed is for letting a prop hang past the frame, and there is nothing
+   good on the far side of the rail to hang into. */
 function dragBox(el, b, bleed){ bleed=(bleed==null)?20:bleed;
     const fr=document.getElementById('frame').getBoundingClientRect();
-    return { x0: fr.left-b.left-bleed,  x1: fr.right-b.left-el.offsetWidth+bleed,
+    const right=Math.min(fr.right, railEdgeX());
+    /* the mug is ROTATED about an off-centre origin, so its painted box is both wider than its
+       layout box (78px against 57px) and not centred on it. Rather than model the transform, MEASURE
+       the overhang right now: how far the painted right edge sits past the layout right edge. */
+    const rr=el.getBoundingClientRect();
+    let over=rr.right - (b.left + el.offsetLeft + el.offsetWidth);
+    if(!(over>0) || over>200) over=0;   /* no transform, or an offsetParent we did not expect */
+    return { x0: fr.left-b.left-bleed,  x1: right-b.left-el.offsetWidth-over,
              y0: fr.top-b.top-bleed,    y1: fr.bottom-b.top-el.offsetHeight+bleed }; }
 function makeDraggable(el){
     if(!el) return;

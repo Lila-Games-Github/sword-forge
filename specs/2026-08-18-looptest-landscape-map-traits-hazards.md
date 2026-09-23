@@ -6889,3 +6889,27 @@ until 59.1% down.
 Verified at 1200x700: the column now spans 96.2..99.1% x, **1.7..19.3%** y, with no overlap against
 `#panUp`, `#panRight` or `#hudToggle`. All three still work — zoom in narrows `view.w`, zoom out
 widens it, and the fog cheat toggles its own class.
+
+### r178 — the bench drags stop at the rail too
+
+r171 clamped the counter dragon and the cave pickaxe, which have their own handlers. The **bench**
+props share one box, `dragBox()`, and it bounded them to `#frame` **plus a 30px bleed** — so the bench
+dragon, the hammer and the mug could all be dragged clean under the inventory panel, which is z-45
+over the bench and swallows the pointer. Reported for the dragon; the other two had the same hole.
+
+`dragBox()` now takes its right edge from `railEdgeX()` (r171's one definition of where the playable
+area stops) and applies **no bleed on that edge** — bleed is for letting a prop hang past the frame,
+and there is nothing good on the far side of the rail to hang into. The other three edges are
+untouched: the dragon still bleeds 30px past the frame on the left, as before.
+
+**The mug needed more than that, twice.** It is rotated, so its painted box is wider than its layout
+box (78px against 57px) and clamping on `offsetWidth` let it slide 16px under the rail. Averaging the
+two widths, which is exact for a rotation about the centre, still left 6px — its origin is off-centre.
+The version that holds does not model the transform at all: it **measures** the overhang,
+`rr.right - (b.left + el.offsetLeft + el.offsetWidth)`, at the moment of the drag, and guards against
+an unexpected `offsetParent` by falling back to 0.
+
+Verified mid-drag, before any snap-home, with the rail edge at 913: dragon **912.7**, hammer
+**913.5**, mug **913.0**. Left bleed still 30px past the frame. The clamp only moves the far-right
+limit, so nothing that matters to play changes — the anvil, the blade and the furnace are all well
+left of it.
