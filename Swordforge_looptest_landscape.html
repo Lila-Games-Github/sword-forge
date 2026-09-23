@@ -7594,7 +7594,17 @@ function say(id){
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
-function sayHide(){ SAY_ON=null; sayChoose(null);   /* r115 */
+function sayHide(){
+    /* r194: the window follows D97 whichever way it goes. r190 hooked only the player DISMISSING it,
+       and r188 had already given D97 a second exit - it hides itself the moment the dragon reaches
+       the anvil, which is precisely what the line tells the player to do. So on the natural path the
+       line never got dismissed and the window never appeared at all. Measured: dragging the dragon
+       to the anvil left the line hidden, TUT_SAW_TIERS false and the modal closed.
+       Nothing is interrupted by opening here: positioning him and holding to breathe are separate
+       presses, and the pointer capture keeps the drag working under the window. */
+    const wasD97 = (SAY_ON==='D97');
+    if(wasD97) setTimeout(openTiers, 0);
+    SAY_ON=null; sayChoose(null);   /* r115 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
@@ -7655,9 +7665,8 @@ function sayNext(){
     if(TUT_PAUSE && SAY_I>=SAY_SEQ.length-1){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
-    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19', wasD97=SAY_LAST==='D97';
-        SAY_I=-1; sayHide(); if(wasD19) finishD19();
-        if(wasD97) setTimeout(openTiers, 0);   /* r190 */
+    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19';
+        SAY_I=-1; sayHide(); if(wasD19) finishD19();   /* r194: sayHide() now raises the tier window */
         return; }
     say(SAY_SEQ[SAY_I]);
 }

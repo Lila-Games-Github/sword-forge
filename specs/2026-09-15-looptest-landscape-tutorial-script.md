@@ -1773,3 +1773,24 @@ rather than downscaled. Manifest 143 → 144.
 Verified through the real beat: D110 up with the single response and no window; clicking it opens the
 window with the art loaded at its natural 844x471; closing gives **D111** in Bram's box, stage
 `bram2-forge`, D112 from the dragon and `#panRight` blinking. A second close changes nothing.
+
+### r194 — the tier window actually appears
+
+r190 built the window and hooked it to the player **dismissing** D97. r188 had already given D97 a
+second exit: it hides itself the moment the dragon reaches the anvil — which is **precisely what the
+line tells the player to do**. So on the natural path the line was never dismissed and the window
+never appeared at all.
+
+Measured before the fix: dragging the dragon to the anvil left the line hidden, `TUT_SAW_TIERS` false
+and the modal closed. r190 had been verified by calling `sayNext()`, which is the route a player
+following the instruction does not take.
+
+The hook moved into `sayHide()`, so the window follows D97 **whichever way it goes**, and the r190
+special case in `sayNext()` is gone — one path, not two.
+
+*Nothing is interrupted by opening there: positioning the dragon and holding him to breathe are
+separate presses, and pointer capture keeps the drag working underneath the window.*
+
+Verified both routes from a clean load: dragging him to the anvil opens the window (mid-drag, and
+still open after the release) with the heading and all three images; tapping the line away opens it
+too; a later D97 does not reopen it; breath mode still engages with the dragon at the anvil.
