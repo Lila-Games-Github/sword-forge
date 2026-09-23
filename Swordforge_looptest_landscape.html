@@ -4332,7 +4332,7 @@ function pathBurst(seg){
         p.setAttribute('d',d); p.style.animationDelay=ms+'ms';
         g.appendChild(p); setTimeout(()=>p.remove(), 1200+ms); });
 }
-function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); pathBurst(segs[segs.length-1]);   /* r172 */ tutCheckOre(); }
+function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); pathBurst(segs[segs.length-1]);   /* r172 */ tutSoloOre(oreId);   /* r189 */ tutCheckOre(); }
 function drawRoute(fromSword){ if(fromSword===undefined) fromSword=true; if(!segs.length){ pathEl.style.display='none'; return; }   // fromSword: draw only the REMAINING route (sword→✕) so the traveled part is erased; false = whole route
     const ss=fromSword?sword.seg:0, sf=fromSword?sword.frac:0; let d='',first=true;
     for(let si=ss; si<segs.length; si++){ const s=segs[si], from=(si===ss)?sf:0, to=s.tPct; if(to<=from+0.0001) continue; const steps=Math.max(2,Math.round(s.len*(to-from)/10)); for(let i=0;i<=steps;i++){ const frac=from+(to-from)*i/steps; const p=segPoint(s,frac); d+=(first?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; first=false; } }
@@ -5793,6 +5793,7 @@ const DIALOGUE = {
     D128: "Craft a Balanced sword and show me! Also, I want to see how well you can design it. Make it sharp!",
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
     D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!",
+    D130a: "How is it going?",   /* r189: he checks in once, on the first ore of the solo run */
     D131: "What is this? You didn't even put in any effort. I'm not paying for this junk.",
     D132: "No. Huh ... it wasn't good enough.",
     D133: "But we will show him next time! Let's practice more. I know we can do it!",
@@ -6492,6 +6493,7 @@ function garricGrade(w){
 }
 function tutGarricSold(){
     if(TUT_GARRIC_STATE!=='asked') return;
+    tutSoloDone();   /* r189 */
     const w=GARRIC_SOLD_W; GARRIC_SOLD_W=null;
     const grade=garricGrade(w);
     TUT_GARRIC_STATE='reacted'; TUT_GARRIC_GRADE=grade;
@@ -6514,7 +6516,38 @@ function garricLeaves(){
     sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139');
 }
 let TUT_GARRIC_GRADE=0;
-function tutGarricHandsOff(){ sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow(); }
+/* r189: Garric's solo run. The dragon steps back, but the target stays marked and he checks in once,
+   with a way back if it is going badly. */
+let TUT_SOLO=false, TUT_SOLO_ASKED=false;
+function tutGarricHandsOff(){
+    sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow();
+    TUT_SOLO=true; TUT_SOLO_ASKED=false;
+    const b=traits.find(t=>t.trait && t.trait.id==='balanced');
+    if(b) tutSpotOn(b);   /* the same ring fire and gale get - marked, not explained */
+}
+/* every ore that reaches the smelter, from addSegment() */
+function tutSoloOre(oreId){
+    if(!TUT_SOLO) return;
+    /* the mark comes down on IRON specifically - that is the one the balanced route needs. Any ore
+       at all is enough for him to ask how it is going, which is the owner's wording and means a
+       player who starts with copper gets the question while the mark is still up. */
+    if(oreId==='iron') tutSpotOn(null);
+    if(TUT_SOLO_ASKED) return;
+    TUT_SOLO_ASKED=true;
+    sayQueue('D130a');
+    setTimeout(()=>sayChoose([{ label:'Let me try again', fn:tutSoloRetry }], true), 0);
+}
+function tutSoloRetry(){
+    sayHide();
+    /* NOT refundOre(): that is the Restore Ore talent, a per-ore roll at 10% a rank, so unranked it
+       gives back nothing. A retry that costs the ore is not a retry - this puts back every ore in
+       the route, which is what 'reset to the earlier stage' means. */
+    segs.forEach(g=>gainOre(g.ore,1));
+    resetRun();
+    if(INV_TAB===0) buildShelf();
+    tutGarricHandsOff();       /* and he is back where he was when he said he would try alone */
+}
+function tutSoloDone(){ TUT_SOLO=false; TUT_SOLO_ASKED=false; tutSpotOn(null); }
 function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
 function claimGift(){
     const m=document.getElementById('sfGiftModal'); if(m) m.classList.remove('show');
@@ -7301,7 +7334,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -7429,8 +7462,14 @@ function sayQueue(){
 /* r115: a line can end in a question. While an answer is pending the bubble does NOT advance on a
    tap - the only way on is to pick one. */
 let SAY_CHOICES=null;
-function sayChoose(list){
+/* r189: normally a question blocks - the bubble will not advance until it is answered (r115), which
+   is right for 'do you want to customise it?'. The retry offered on D130a is not a question: the
+   player may be doing fine and just wants the line gone. An optional choice keeps its button and
+   keeps the go button working. */
+let SAY_CHOICES_OPT=false;
+function sayChoose(list, optional){
     SAY_CHOICES = (list && list.length) ? list : null;
+    SAY_CHOICES_OPT = !!(SAY_CHOICES && optional);
     const box=document.getElementById('sayChoices'); if(!box) return;
     box.innerHTML='';
     if(!SAY_CHOICES){ box.style.display='none'; return; }
@@ -7439,7 +7478,8 @@ function sayChoose(list){
         box.appendChild(b); });
     box.style.display='flex';
     /* say() sets the hint before the choices are attached, so correct it here */
-    ['dragonSayGo','screenDragonSayGo','shSayGo','ddSayGo'].forEach(id=>{ const g=document.getElementById(id); if(g && SAY_CHOICES) sayGoIcon(g,'none'); });   /* r174 */
+    ['dragonSayGo','screenDragonSayGo','shSayGo','ddSayGo'].forEach(id=>{ const g=document.getElementById(id);
+        if(g && SAY_CHOICES && !SAY_CHOICES_OPT) sayGoIcon(g,'none'); });   /* r174/r189 */
     sayLayout();
 }
 /* r174: drawn rather than typed - a glyph for either would render as an emoji on one platform and
@@ -7547,7 +7587,8 @@ function sayAgain(){
 }
 function sayStart(){ if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
-    if(SAY_CHOICES) return;   /* r115: answer the question first */
+    if(SAY_CHOICES && !SAY_CHOICES_OPT) return;   /* r115: answer the question first. r189: unless it is only an offer */
+    if(SAY_CHOICES) sayChoose(null);
     /* r85: the click that closes D8 restarts the world. r179: a paused RUN holds until its LAST
        line is closed - the hazard beat is three lines. For a one-line pause (D8, D9, D16) the
        current line IS the last, so those are unchanged. */

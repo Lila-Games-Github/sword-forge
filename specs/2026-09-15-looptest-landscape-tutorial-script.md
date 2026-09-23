@@ -1681,3 +1681,34 @@ Measured on a copper route: the closest approach to gale is **27.1 units**. `ALI
 `ALIGN_FINE` is **20**, so that stop is **Weak** — Epic is not merely late, it is unreachable by
 pulling. Timing is not the lever. What would move it: gale's position, the route the copper draws,
 `ALIGN_EPIC`, or letting the pull steer rather than run straight at spawn. Owner to choose.
+
+### r189 — Garric's solo run: a marked target and a way back
+
+**D130a** — Dragon
+> "How is it going?"
+
+*with one response,* **"Let me try again"** *, which is a retry button.*
+
+Taking "Let me try to do it on my own." on D130 now leaves the **balanced trait ringed** on the map
+— `tutSpotOn()`, the same mark fire and gale get, so the target is shown without being explained. The
+first ore to reach the smelter brings D130a and the retry.
+
+*Two details from the owner's wording, kept literally: the ring comes down on **iron** specifically,
+the ore the balanced route needs, while **any** ore is enough for him to ask how it is going. A
+player who starts with copper therefore gets the question with the ring still up.*
+
+**The retry restores the ore in full, and deliberately does not call `refundOre()`.** That function
+is the Restore Ore talent: a per-ore roll at 10% a rank, so unranked it gives back **nothing** — a
+retry that costs you the ore is not a retry. `tutSoloRetry()` returns one ore per segment, clears the
+run and re-enters the hands-off state.
+
+**A new kind of choice.** `sayChoose(list, optional)`. A normal question blocks the bubble until it
+is answered (r115), which is right for "do you want to customise it?". This is not a question: the
+player may be doing fine and simply want the line gone. An optional choice keeps its button **and**
+keeps the go button working. Mandatory questions are untouched.
+
+Verified end to end. From 6 iron and 6 manganese with the ring up: three ores in leaves 4 and 5, three
+route segments, the ring **down** (iron went in), D130a on screen with "Let me try again". Pressing it
+restores **6 and 6**, clears the route to 0 segments, re-arms the solo run and puts the ring back.
+Walking past it instead closes the line and keeps the route. A real two-option question still blocks
+and still hides the go button.
