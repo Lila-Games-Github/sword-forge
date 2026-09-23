@@ -1794,3 +1794,34 @@ separate presses, and pointer capture keeps the drag working underneath the wind
 Verified both routes from a clean load: dragging him to the anvil opens the window (mid-drag, and
 still open after the release) with the heading and all three images; tapping the line away opens it
 too; a later D97 does not reopen it; breath mode still engages with the dragon at the anvil.
+
+### r195 — the five parts of the map, between D67 and D68
+
+**D67a** — Dragon
+> "The map is divided into 5 parts. You can guess where a trait could be from this image."
+
+*Trigger: arriving at the forge on the fire run. **r196: the line comes first, alone, with its button
+lit** — r195 opened the window at the same moment and it covered the very line it was illustrating.
+Pressing continue opens the window; closing the window plays D68. The INGREDIENTS halo goes up with
+D68, so it appears when the instruction does, not a window early.*
+
+*The button reads **continue**, not close, although D67a ends its run: `SAY_GO_MORE` marks ids whose
+run ends but whose beat does not. And the window hangs off `SAY_AFTER`, one table for what follows a
+line once it leaves the screen — `sayHide()` is the single place that catches both exits a line can
+have, which is what r194 learned with D97.*
+
+*Note: "You can guess where a trait could be from this image" can be read for a moment as "a trait
+from this image". Implemented as written; "From this image you can guess where a trait could be"
+would remove the wobble.*
+
+**The window now bounds both axes**, `max-width: 100%` and `max-height: 400px` with `width/height:
+auto`. One rule serves Bram's 844x471 and this 929 square: for a square, height is the binding limit,
+since the frame is 600 tall and the close sits under the art. Verified both — the map shows 400x400,
+Bram 572x319, unchanged from before.
+
+**Payload:** 929x929, **1626KB PNG → 85KB WebP** at 800px, twice the 400px it is displayed at.
+Manifest 144 → 145.
+
+Verified through the real beat: leaving the cave and walking to the forge reaches `fire-grind`, speaks
+D67a and opens the window with the art at its natural 800x800 drawn at 400, inside the frame. Closing
+gives D68, and with the player on the wrong tab the INGREDIENTS halo comes up with it.

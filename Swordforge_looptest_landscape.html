@@ -718,7 +718,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r193: a story illustration, shown full-bleed inside its own window. Built generic - the art, the
    alt text and what happens on close are all arguments - because there will be more of these. */
 .illus-box { max-width: 600px; padding: 12px; }
-.illus-box img { width: 100%; height: auto; display: block; border-radius: 7px;
+/* r195: bounded on BOTH axes, so one rule serves Bram's 844x471 and MAP_parts' 929 square. Height is
+   the binding one for a square: the frame is 600 tall and the close sits under the art. */
+.illus-box img { max-width: 100%; max-height: 400px; width: auto; height: auto;
+    margin: 0 auto; display: block; border-radius: 7px;
     box-shadow: 0 6px 16px rgba(0,0,0,.5); }
 .tier-box { max-width: 460px; }
 .tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 2px; }
@@ -5761,6 +5764,7 @@ const DIALOGUE = {
     D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores.",
     D66: "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all.",
     D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
+    D67a: "The map is divided into 5 parts. You can guess where a trait could be from this image.",   /* r195 */
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
     D69: "Now heat it, take it to the anvil and hammer.",
     D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
@@ -6591,6 +6595,13 @@ function tutSoloDone(){ TUT_SOLO=false; TUT_SOLO_ASKED=false; tutSpotOn(null); }
    reached the anvil. That auto-hide happens mid-pull, and a window over the board at that moment
    would interrupt the very thing the line just asked for. */
 let TUT_SAW_TIERS=false;
+/* r196: what follows a line once it is off the screen. sayHide() is the single place that catches
+   BOTH exits a line can have - the player dismissing it, and the game retiring it (r194 learned that
+   the hard way with D97). Each entry is responsible for being once-only. */
+let TUT_SAW_PARTS=false;
+function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
+    openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
+const SAY_AFTER={ D97:function(){ openTiers(); }, D67a:function(){ openParts(); } };
 /* r193: the close is what carries the story on, so the callback is the point of this window, not an
    afterthought. It is cleared before it runs, so a double close cannot fire it twice. */
 let ILLUS_AFTER=null;
@@ -6810,13 +6821,20 @@ function tutStowed(){
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 /* ---- back at the forge: 2 iron + 1 manganese, all ground full ---- */
+/* r195: D67a and the map-parts window sit between arriving at the forge and D68. The window's close
+   is what plays D68, the same shape as Bram's illustration in r193. */
 function tutFireForge(){
     if(TUT_STAGE!=='to-forge2') return;
     TUT_STAGE='fire-grind'; tutArrow(null,null);   /* r114: the disc is no longer hidden - see below */
+    /* r196: the line FIRST, with its button lit. r195 opened the window at the same moment and it
+       covered the very line it was illustrating. SAY_AFTER carries the window to the dismissal. */
+    if(SAY_SEQ.indexOf('D67a')<0) SAY_SEQ.push('D67a');
+    SAY_I=SAY_SEQ.indexOf('D67a'); say('D67a');
+}
+function tutFireParts(){
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
-    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab.
-                        AFTER tutArrow(null,null) - that call clears the tab halo as well. */
+    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab. */
 }
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){
@@ -7394,7 +7412,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SAW_PARTS=false;   /* r196 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -7548,7 +7566,11 @@ function sayChoose(list, optional){
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
 const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1,
-                    D89:1, D90:1, D100:1, D116:1, D117:1 };   /* r188 */
+                    D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
+                    D67a:1 };   /* r196 */
+/* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
+   follows the tap even though no line does. */
+const SAY_GO_MORE={ D67a:1 };
 const SAY_GO_NEXT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8 7-8 7z" fill="currentColor"/><path d="M13 5l8 7-8 7z" fill="currentColor"/></svg>';
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -7572,7 +7594,8 @@ function say(id){
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
-    sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'), id);   /* r115/r174/r184 */
+    sayGoIcon(go, SAY_CHOICES ? 'none' :
+        ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next'), id);   /* r115/r174/r184/r196 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */
@@ -7602,8 +7625,8 @@ function sayHide(){
        to the anvil left the line hidden, TUT_SAW_TIERS false and the modal closed.
        Nothing is interrupted by opening here: positioning him and holding to breathe are separate
        presses, and the pointer capture keeps the drag working under the window. */
-    const wasD97 = (SAY_ON==='D97');
-    if(wasD97) setTimeout(openTiers, 0);
+    const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
+    if(after) setTimeout(after, 0);
     SAY_ON=null; sayChoose(null);   /* r115 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
