@@ -2298,5 +2298,20 @@
    600,
    335
   ]
+ },
+ {
+  "src": "assets/ui/MAP_parts.png",
+  "out": "assets/ui/MAP_parts.webp",
+  "w": 800,
+  "q": 0.86,
+  "bytes": 1664962,
+  "nat": [
+   929,
+   929
+  ],
+  "display": [
+   400,
+   400
+  ]
  }
 ]

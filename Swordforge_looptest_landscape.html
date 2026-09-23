@@ -718,7 +718,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r193: a story illustration, shown full-bleed inside its own window. Built generic - the art, the
    alt text and what happens on close are all arguments - because there will be more of these. */
 .illus-box { max-width: 600px; padding: 12px; }
-.illus-box img { width: 100%; height: auto; display: block; border-radius: 7px;
+/* r195: bounded on BOTH axes, so one rule serves Bram's 844x471 and MAP_parts' 929 square. Height is
+   the binding one for a square: the frame is 600 tall and the close sits under the art. */
+.illus-box img { max-width: 100%; max-height: 400px; width: auto; height: auto;
+    margin: 0 auto; display: block; border-radius: 7px;
     box-shadow: 0 6px 16px rgba(0,0,0,.5); }
 .tier-box { max-width: 460px; }
 .tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 2px; }
@@ -5761,6 +5764,7 @@ const DIALOGUE = {
     D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores.",
     D66: "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all.",
     D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
+    D67a: "The map is divided into 5 parts. You can guess where a trait could be from this image.",   /* r195 */
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
     D69: "Now heat it, take it to the anvil and hammer.",
     D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
@@ -6810,13 +6814,19 @@ function tutStowed(){
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 /* ---- back at the forge: 2 iron + 1 manganese, all ground full ---- */
+/* r195: D67a and the map-parts window sit between arriving at the forge and D68. The window's close
+   is what plays D68, the same shape as Bram's illustration in r193. */
 function tutFireForge(){
     if(TUT_STAGE!=='to-forge2') return;
     TUT_STAGE='fire-grind'; tutArrow(null,null);   /* r114: the disc is no longer hidden - see below */
+    if(SAY_SEQ.indexOf('D67a')<0) SAY_SEQ.push('D67a');
+    SAY_I=SAY_SEQ.indexOf('D67a'); say('D67a');
+    setTimeout(()=>openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts), 0);
+}
+function tutFireParts(){
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
-    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab.
-                        AFTER tutArrow(null,null) - that call clears the tab halo as well. */
+    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab. */
 }
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){

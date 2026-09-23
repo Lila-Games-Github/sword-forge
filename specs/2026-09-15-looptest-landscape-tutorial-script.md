@@ -1794,3 +1794,28 @@ separate presses, and pointer capture keeps the drag working underneath the wind
 Verified both routes from a clean load: dragging him to the anvil opens the window (mid-drag, and
 still open after the release) with the heading and all three images; tapping the line away opens it
 too; a later D97 does not reopen it; breath mode still engages with the dragon at the anvil.
+
+### r195 — the five parts of the map, between D67 and D68
+
+**D67a** — Dragon
+> "The map is divided into 5 parts. You can guess where a trait could be from this image."
+
+*Trigger: arriving at the forge on the fire run. The `MAP_parts` window opens with it, and **closing
+the window is what plays D68** — the same shape as Bram's illustration (r193). The INGREDIENTS halo
+moved to D68 with it, so it appears when the instruction does, not a window early.*
+
+*Note: "You can guess where a trait could be from this image" can be read for a moment as "a trait
+from this image". Implemented as written; "From this image you can guess where a trait could be"
+would remove the wobble.*
+
+**The window now bounds both axes**, `max-width: 100%` and `max-height: 400px` with `width/height:
+auto`. One rule serves Bram's 844x471 and this 929 square: for a square, height is the binding limit,
+since the frame is 600 tall and the close sits under the art. Verified both — the map shows 400x400,
+Bram 572x319, unchanged from before.
+
+**Payload:** 929x929, **1626KB PNG → 85KB WebP** at 800px, twice the 400px it is displayed at.
+Manifest 144 → 145.
+
+Verified through the real beat: leaving the cave and walking to the forge reaches `fire-grind`, speaks
+D67a and opens the window with the art at its natural 800x800 drawn at 400, inside the frame. Closing
+gives D68, and with the player on the wrong tab the INGREDIENTS halo comes up with it.
