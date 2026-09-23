@@ -6854,3 +6854,23 @@ sweeping round the wheel is exactly what the maths already described.
 Verified: hotspot 72→100% x, 20→54% y; indicator 65x65px on the handle; the ore orb at 40.8→59.2% x,
 31.1→52.9% y, with **no overlap** against either. Grabbing the handle and sweeping two full turns
 about the wheel centre takes the ore 0 → 1 and the guide retires itself.
+### r175 — gale's approach is kept clear
+
+Reported with a screenshot: one bone cluster sitting in the way on the run to gale.
+
+**Hazards are not authored, they are seeded** — `HAZ_KINDS` rolls positions from `rnd()` — so there
+was no entry to delete. Identified it instead by measurement: gale sits at world **(1037, 649)**, and
+labelling every zone on the board named the circled one as index 52, a `speck` at (976, 565).
+`partsClear()` puts it **89px** off gale. The next-nearest zone is **118px** away.
+
+So the rule is `GALE_CLEAR = 110`: no hazard within 110px of gale. Chosen against that measured gap,
+it removes exactly one zone and touches nothing else. Every trait already gets 70px of clearance;
+gale gets more because the day-2 script sends the player to it.
+
+**Removed after placement, not rejected during it.** A rejection inside the loop `continue`s and the
+next attempt draws the *next* random values, so every zone placed afterwards would shift — reshuffling
+half the board to delete one speck. The post-pass leaves the map exactly as it was, minus that one.
+
+Verified: 70 zones before, **69** after, in both `hazards` and the DOM; the speck at (976,565) gone;
+the island at (1154,748) and the ribbon at (1010,853) still at their own coordinates; the nearest
+zone to gale now 118px.

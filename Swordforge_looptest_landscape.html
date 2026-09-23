@@ -4143,6 +4143,20 @@ function initMap(){
             got++; placed++; }
     });
 
+    /* r175: gale keeps a wider berth than the other traits. Every trait gets 70; the seeded layout
+       had dropped a speck 89px off gale, right on the approach the day-2 script sends the player
+       down. 110 is chosen against the measured gap: that speck clears gale by 89, the next-nearest
+       zone by 118, so this removes exactly one and touches nothing else.
+       REMOVED after the fact, not rejected inside the loop: a rejection consumes different random
+       values and every zone placed afterwards would shift, reshuffling half the board to delete one
+       speck. This way the map is the map, minus that one. */
+    const GALE_CLEAR=110;
+    (()=>{ const gp=traits.find(t=>t.trait && t.trait.id==='gale'); if(!gp) return;
+        for(let i=hazards.length-1;i>=0;i--){ const z=hazards[i];
+            if(partsClear(gp.x,gp.y,z.parts) >= GALE_CLEAR) continue;
+            if(z.el && z.el.parentNode) z.el.parentNode.removeChild(z.el);
+            hazards.splice(i,1); } })();
+
     // r32 — books. Deliberately allowed INSIDE hazard zones (the reference scatters them through the
     // bone fields), so a book in a ribbon is a real trade: 60 XP against blade integrity.
     booksG=document.getElementById('books'); booksG.innerHTML=''; books=[];
