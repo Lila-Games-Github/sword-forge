@@ -4406,6 +4406,7 @@ function checkHazard(p,dt){ if(!melt || !dt) return;
     hazards.forEach(h=>{ if(h.el) h.el.classList.toggle('hot', h===inside); });
     if(swordEl) swordEl.classList.toggle('hurt', !!inside);
     if(!inside) return;
+    tutHazardStep();   /* r179 */
     melt.hp=Math.max(0, melt.hp-HAZARD_DPS*dt); updateHpPill();
     if(melt.hp<=0) shatterBlade();
     else if(!melt._hazHint){ melt._hazHint=1; hint('⚠️ The sword is in a <b style="color:#e2503c">hazard zone</b> — it is losing integrity. Hammer on through or pull it clear with the dragon.'); } }
@@ -5631,6 +5632,9 @@ const DIALOGUE = {
     D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
     D69: "Now heat it, take it to the anvil and hammer.",
+    D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
+    D69b: "The sword will take damage if we force it through the hazards.",
+    D69c: "Good thing this is a small one. Just keep going.",
     D70: "Do you see that? I think that is the fire trait!",
     D71: "Put the metal back in the smelter; we need to go further.",
     D72: "Grind the manganese until the \u2715 mark touches the trait.",
@@ -5869,7 +5873,7 @@ function tutStrikeStep(){
 const TUT_BOOK_AT=[0.38, 0.72];
 /* r112: the stages that ARE the first craft, so its lines cannot leak into a later one */
 const FIRST_CRAFT_STAGES=['ore','bellows','gate','anvil','hammer','strike','travel','quench','acquired','shape','forge'];
-let TUT_BOOKS=false, TUT_SAIDBOOK=false;
+let TUT_BOOKS=false, TUT_SAIDBOOK=false, TUT_SAIDHAZ=false;   /* r179 */
 function tutRoutePoint(f){
     let total=0; segs.forEach(g=>{ total+=g.len*g.tPct; });
     if(total<=0) return routeEndLocal();
@@ -7114,6 +7118,15 @@ function tutMugStep(){
    #tutDim over the board and the tick held. sayNext() already lifts it on the tap that closes the
    line, so nothing new is needed to resume.
    TUT_SAIDBOOK has always made this fire for the FIRST book only; the second one is silent. */
+/* r179: the first time the travelling blade is ever inside a hazard, the world stops and the dragon
+   explains it. Once only, like the first book (D9), and not gated on the tutorial being live - the
+   first crossing is the first crossing whenever it happens. The pause also stops the damage while
+   the three lines are read, since the board tick holds on TUT_PAUSE. */
+function tutHazardStep(){
+    if(TUT_SAIDHAZ) return; TUT_SAIDHAZ=true;
+    sayQueue('D69a','D69b','D69c');
+    tutPause(true);
+}
 function tutBookStep(){
     if(TUT_SAIDBOOK) return; TUT_SAIDBOOK=true;
     if(SAY_SEQ.indexOf('D9')<0) SAY_SEQ.push('D9');
@@ -7134,7 +7147,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -7372,7 +7385,10 @@ function sayAgain(){
 function sayStart(){ if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
     if(SAY_CHOICES) return;   /* r115: answer the question first */
-    if(TUT_PAUSE){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }   /* r85: the click that closes D8 restarts the world */
+    /* r85: the click that closes D8 restarts the world. r179: a paused RUN holds until its LAST
+       line is closed - the hazard beat is three lines. For a one-line pause (D8, D9, D16) the
+       current line IS the last, so those are unchanged. */
+    if(TUT_PAUSE && SAY_I>=SAY_SEQ.length-1){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
     if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19'; SAY_I=-1; sayHide(); if(wasD19) finishD19(); return; }

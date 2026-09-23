@@ -1449,3 +1449,36 @@ Verified through the real beat: at `record` with the panel open, `tutCompStep()`
 the orb glowing and no blink. Edge cases: shaping the metal without closing reaches `forge2` with D45
 and **no stale blink**; recording with the panel already collapsed goes straight to `shape2`/D44. At
 the 50% frame the button computes to the amber face with dark text.
+
+### r179 — the first hazard crossing stops the world
+
+**D69a** — Dragon
+> "Oh! We are crossing over a hazard zone."
+
+**D69b** — Dragon
+> "The sword will take damage if we force it through the hazards."
+
+**D69c** — Dragon
+> "Good thing this is a small one. Just keep going."
+
+*Trigger: the first moment the travelling blade is ever inside a hazard zone — `checkHazard()` calls
+`tutHazardStep()` the first time `inside` is truthy. Once per game, like the first book (D9), and
+**not** gated on the tutorial still running: the first crossing is the first crossing whenever it
+happens. The D8 pause effect: `#tutDim` over the board, the board tick held, and (r173) the bubble
+lifted clear of the dim and ringed.*
+
+*Note: the owner wrote "a hazard zone" in D69a and "the hazards" in D69b. Implemented verbatim.*
+
+**Ids are `D69a`/`D69b`/`D69c`, inserted beside D69** rather than appended: `lastLine()` is the map's
+final key and drives the guide-to-pet switch. Still D139, now 142 keys.
+
+**One change to `sayNext()` this needed.** The pause used to lift on the first tap, which was right
+when every paused beat was a single line. This one is three. It now lifts only when the line being
+closed is the run's **last** — `SAY_I >= SAY_SEQ.length-1`. For a one-line run the current line *is*
+the last, so D8, D9 and D16 are untouched; both were re-checked.
+
+Verified: first touch leaves `TUT_PAUSE` true, the dim on, D69a spoken, the bubble lit, and the flag
+set. Taps walk D69a → D69b → D69c with the dim still on, and it lifts on the third. **40 real `tick()`
+frames (640ms) while paused leave `hp` at exactly 99.6**, so no integrity drains while the lines are
+read — only the single frame that triggered it costs anything. A second call to `tutHazardStep()`
+does nothing. D8 and D9 still lift on one tap.
