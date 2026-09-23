@@ -6942,3 +6942,26 @@ reached → **glow gone**, `#furnaceGate` blinking; real `openGate()` → `#orb 
 blink; `placeOnAnvil()` → `#hammerTool → anvil`. Cave: not lit on arrival with the wrong tab open,
 lit after `invTab(3)` plus six frames. Record: the blink wiped behind the guide's back is back after
 six frames.
+
+### r187 — one arrow at a time
+
+`#hintArrow`, the white idle nudge, now stands down whenever `TUT_ARROW` is set. Two arrows pointing
+the same way read as two instructions, and the scripted one is the one that knows which step this is.
+
+The rule is deliberately narrow: **`TUT_ARROW` only**, not any tutorial pointer. A glow or a blink
+marks a thing to press and does not compete with an arrow that shows a drag, so those still coexist.
+
+r186's `fire-spot` line still earns its place, and the table below shows why: at D70 `TUT_ARROW` is
+empty, so this new rule would not have covered it and the white arrow would have been the only arrow
+on screen.
+
+| state | `TUT_ARROW` | white arrow |
+| --- | --- | --- |
+| idle, no script | — | **shown** |
+| tutorial arrow up | `#orb → furnace` | hidden |
+| tutorial arrow cleared | — | **shown** again |
+| D70 (`fire-spot`) | — | hidden, by r186 |
+| D71, after `tutFireBack()` | `#orb → furnace` | hidden |
+
+Verified with real `tick()` frames and a 9-second idle in the state that wants the nudge: metal
+`onAnvil`, sword at the route end, nothing banked.
