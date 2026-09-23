@@ -1548,3 +1548,34 @@ Verified through the real beat. At **D38** and **D39**: locked, no glow, no poin
 the press works, and 30 real `tick()` frames of pumping take heat 0 → 21.6. Reaching heat gives D41,
 stage `regrind-work`, glow off, lock off. **The first craft is untouched**: D4 still glows the bellows
 with no lock, and pumping raises heat straight away (0 → 12.8 in 20 frames).
+
+### r183 — D92 closes on arrival, and the sweep that should have come with r169
+
+D92 ("Let's go check the counter.") stayed on screen after the walk it asked for. Same family as
+r158/r159/r164/r169: **the `d2-counter` → `d2-bell` branch re-points but says nothing, so nothing
+retired the line.** It calls `sayHide()` now.
+
+**The sweep.** Rather than wait for a sixth report, every arrival branch that changes stage was
+checked for the same hole:
+
+| branch | what retires the old line |
+| --- | --- |
+| `to-basement` → `base-table` | speaks D49 |
+| `fire-basement` → `dec-table` | speaks D49 |
+| `base-back` → `sell2` | speaks D23 |
+| `dec-back` → `sell3` | speaks D23 |
+| `to-cave` → `cave-pick` | speaks D65 |
+| `to-forge2` → `fire-grind` | speaks D68 |
+| `to-bed` → `bed` | speaks D88 |
+| `d2-cave` → `d2-mine` | speaks D94b (r164) |
+| `d2-back` → `d2-copper` | speaks D95 |
+| `bram2-forge` → `bram2-ingot` | speaks D113 |
+| `bram2-sell` → `bram2-sell2` | `sayHide()` (r169) |
+| `d2-gale-sell` → `d2-gale-sell2` | `sayHide()` (r169) |
+| `d2-counter` → `d2-bell` | **nothing — fixed here** |
+
+That is all of them; `d2-counter` was the last one holding a stale line.
+
+Verified through the real beat: closing the skill tree after spending speaks D92 at the forge with
+`#panLeft` blinking; walking to the counter reaches `d2-bell` with **both** say boxes closed, the bell
+on the counter and blinking.

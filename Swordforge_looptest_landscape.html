@@ -6166,7 +6166,9 @@ function tutDay2SkillClosed(){
 /* every Day 2 screen arrival in one place */
 function tutDay2Screen(name){
     if(TUT_STAGE==='d2-counter' && name==='customer'){
-        TUT_STAGE='d2-bell'; bellShow(true); updateTutorialCounterUi();
+        /* r183: D92 is "Let's go check the counter" - the walk is done, so the line goes with it.
+           Same family as r169: this branch re-points but says nothing, so nothing retired it. */
+        TUT_STAGE='d2-bell'; sayHide(); bellShow(true); updateTutorialCounterUi();
         setTimeout(()=>tutExit(()=>document.querySelector("#screenProps [data-act='bell']")), 0);
         return; }
     if(TUT_STAGE==='d2-cave'){
