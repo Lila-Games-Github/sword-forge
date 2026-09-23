@@ -58,7 +58,7 @@ zero, so its slot shows on the shelf but cannot be dragged — the cave is where
 holds 2 Iron and 2 Manganese.*
 
 **D4** — Dragon
-> "Heat up the smelter with the bellows."
+> "Heat up the smelter with the bellows. Tap and hold."
 
 *Trigger: fires by itself the moment the fourth ore lands. Pointer: an arrow down onto the bellows,
 and the bellows glows. Both stay up until the smelter is actually hot — r83; they used to clear on the
@@ -66,6 +66,10 @@ first pump, so one tap left the player with no pointer, a cold smelter and no ne
 
 *Note: the owner wrote "bellow"; the tool is a **bellows**, and the station caption was changed from
 "Bellow" to match its own tooltip and every hint in the game.*
+
+*r180: "Tap and hold" added by the owner. Their text had no closing full stop; one was added, since
+every other line in `DIALOGUE` ends in `.`, `!` or `?`. The pointer already matches the new words —
+the bellows glows, which is r152's vocabulary for a tap-or-hold.*
 
 **D5** — Dragon
 > "Tap on the smelter gate to open it."
