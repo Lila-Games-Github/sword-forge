@@ -451,7 +451,19 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #dragonSay p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; }
 #dragonSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px;
     letter-spacing: .7px; color: #8a6a34; margin-bottom: 5px; }
-#dragonSay .go { position: absolute; right: 9px; bottom: 3px; font-size: 8px; color: #8a7350; }
+/* r174: the prompt is a BUTTON below the line now, not grey text tucked in the corner, and it
+   carries an icon: a double play for 'there is more', an X for 'this closes it'. The three dragon
+   boxes share the look; .cs-bram-dlg (the customer's own box) is left as it was. */
+.say-go, #dragonSay .go, #screenDragonSay .go, .tut-iconsay .go {
+    position: absolute; right: 8px; bottom: -36px; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 26px; padding: 0; color: #f3e7c6;
+    background: linear-gradient(180deg,#7a6038,#54411f); border: 2px solid #3a2c14;
+    border-radius: 7px; box-shadow: 0 3px 8px rgba(0,0,0,.5); cursor: pointer; }
+.say-go:hover, #dragonSay .go:hover, #screenDragonSay .go:hover, .tut-iconsay .go:hover {
+    background: linear-gradient(180deg,#9a7a46,#6d5528); border-color: #c8a84b; }
+.say-go svg { width: 15px; height: 15px; display: block; }
+.say-go.none { display: none; }   /* a question is pending: answer it, do not skip past it */
 /* the tail: two stacked triangles, the back one the border colour, so the join reads as one shape */
 #dragonSay .tail, #dragonSay .tail::after { position: absolute; width: 0; height: 0;
     border-style: solid; border-color: transparent; }
@@ -1023,7 +1035,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenDragonSay.show { display: block; animation: sayIn .22s ease-out; }
 #screenDragonSay p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; }
 #screenDragonSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px; letter-spacing: .7px; color: #8a6a34; margin-bottom: 4px; }
-#screenDragonSay .go { position: absolute; right: 9px; bottom: 3px; font-size: 8px; color: #8a7350; }
 #screenDragonSay .tail, #screenDragonSay .tail::after { position: absolute; width: 0; height: 0; border-style: solid; border-color: transparent; }
 #screenDragonSay .tail { left: 17px; bottom: -16px; border-width: 16px 14px 0 0; border-top-color: #6a5636; }
 #screenDragonSay .tail::after { content: ''; left: -1px; bottom: 3.5px; border-width: 13px 11px 0 0; border-top-color: #f3e7c6; }
@@ -1329,13 +1340,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: 0 10px 22px rgba(0,0,0,.55); }
 .tut-iconsay .who { display: block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 9px;
     letter-spacing: .12em; color: #8a6d3f; margin-bottom: 3px; }
-.tut-iconsay p { margin: 0; font-size: 12px; line-height: 1.34; color: #3a2b18; }
-.tut-iconsay .go { position: absolute; right: 10px; bottom: 3px; font-size: 8px; color: #8a6d3f; }
+/* r174: 17px, the same as #dragonSay, #screenDragonSay and the customer's box. This class serves
+   the sharpening screen AND the design desk; they are the same construction, so both move. */
+.tut-iconsay p { margin: 0; font-size: 17px; line-height: 1.4; color: #3a2b18; }
 /* r170: the sharpening screen puts him at the BOTTOM, centred between CANCEL and DONE. Top-left he
    shared that corner with #shMeter, the bar the whole screen is about. The gap between the two
    buttons is 12.66%..84.03% and he is 383px wide, so centring fits with room to spare; bottom 4.1%
    puts his lower edge on 95.9%, level with both buttons. */
-#shSayWrap { left: 50%; top: auto; bottom: 4.1%; transform: translateX(-50%); }
+#shSayWrap { left: 50%; top: auto; bottom: 10.2%; transform: translateX(-50%); }   /* r174: +36px for the go button, which now sits level with the two buttons */
 #ddSayWrap { left: 2.2%; top: 3.4%; z-index: 12; }
 #shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
     background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
@@ -1583,7 +1595,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
             <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
-        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
+        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go say-go" id="screenDragonSayGo"></span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
         <div class="eod-box">
@@ -1603,14 +1615,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="sh-spin" src="assets/forge/grindstone_spin.webp" alt="">
         </div>
         <div id="shFx"></div>
-        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
+        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go say-go" id="shSayGo"></span></div></div>
         <div id="shSword"><div class="sh-art" id="shArt"></div></div>
         <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
         <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
     </div>
     <!-- ===== Design Desk (r52) - tiles are built by buildDesign() ===== -->
     <div id="sfDesignModal" class="sf-modal">
-        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go" id="ddSayGo">tap to continue</span></div></div>
+        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go say-go" id="ddSayGo"></span></div></div>
         <div id="ddStage">
             <div class="dd-swordbox"><div class="dd-sword" id="ddSword"></div></div>
         </div>
@@ -1879,7 +1891,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
         <!-- r75: the dragon's line, placed against #dragon by sayLayout() -->
         <div id="sayChoices"></div>
-        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go" id="dragonSayGo">tap to continue</span><span class="tail"></span></div>
+        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go say-go" id="dragonSayGo"></span><span class="tail"></span></div>
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
         <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
@@ -5545,7 +5557,6 @@ const DIALOGUE = {
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28: "Go ahead, try it!",
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good, sharp one.",
-    D30: "I didn't think you would get so many customers on your first day!",
     D31: "No tea break for us, I guess. Let's see how to make a sword and sharpen it to perfection! Back to the forge we go.",
     D32: "I found 1 iron and 1 manganese. Last time we used 2 of each.",
     D33: "We won't get the balanced trait we discovered last time if we forge this sword in the same way.",
@@ -5557,7 +5568,7 @@ const DIALOGUE = {
     D39: "Heat up the smelter. Oh, I almost forgot to tell you!",
     D40: "The hotter the metal is, the faster the sword icon travels on the defined path when you hammer.",
     D41: "Hot enough! Move it to the anvil and start hammering.",
-    D42: "Wait, since we discovered how to craft a 'balanced' sword using lesser ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
+    D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
     D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
     D44: "Tap on the metal to select a shape.",
     D45: "You remember what to do, right? Go ahead, I'm ready!",
@@ -6910,8 +6921,8 @@ function tutBellRung(){
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
     typeAfter(()=>{
-        ['D30','D31'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
-        SAY_I=SAY_SEQ.indexOf('D30'); say('D30');
+        if(SAY_SEQ.indexOf('D31')<0) SAY_SEQ.push('D31');   /* r174: D30 deleted */
+        SAY_I=SAY_SEQ.indexOf('D31'); say('D31');
     });
 }
 function tutBackToForge(){
@@ -7173,7 +7184,7 @@ function sayLayout(){
           const tr=t.getBoundingClientRect();   /* x only: the transform is what centres it */
           if(!(x + w < tr.left || x > tr.right))
               topGuard = Math.max(topGuard, fr.top + t.offsetTop + t.offsetHeight + 8); } }
-    y = Math.min(fr.bottom - h - 6, y);
+    y = Math.min(fr.bottom - h - 42, y);   /* r174: and the go button hangs 36px below the bubble */
     y = Math.max(topGuard, y);   /* the guard wins: never sit under the toast */
     box.classList.toggle('tail-left', beside);
     if(beside) box.style.setProperty('--tailY', Math.max(14, Math.min(h-36, headY - y - 15)).toFixed(0)+'px');
@@ -7208,8 +7219,18 @@ function sayChoose(list){
         box.appendChild(b); });
     box.style.display='flex';
     /* say() sets the hint before the choices are attached, so correct it here */
-    ['dragonSayGo','screenDragonSayGo','shSayGo'].forEach(id=>{ const g=document.getElementById(id); if(g && SAY_CHOICES) g.textContent=''; });
+    ['dragonSayGo','screenDragonSayGo','shSayGo','ddSayGo'].forEach(id=>{ const g=document.getElementById(id); if(g && SAY_CHOICES) sayGoIcon(g,'none'); });   /* r174 */
     sayLayout();
+}
+/* r174: drawn rather than typed - a glyph for either would render as an emoji on one platform and
+   a box on another, and these two have to be unmistakable. */
+const SAY_GO_NEXT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8 7-8 7z" fill="currentColor"/><path d="M13 5l8 7-8 7z" fill="currentColor"/></svg>';
+const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
+function sayGoIcon(go, kind){
+    if(!go) return;
+    go.classList.toggle('none', kind==='none');
+    go.title = kind==='close' ? 'Close' : 'Continue';
+    go.innerHTML = kind==='none' ? '' : (kind==='close' ? SAY_GO_CLOSE : SAY_GO_NEXT);
 }
 function say(id){
     const where=sayWhere(), B=SAY_BOXES[where];
@@ -7225,7 +7246,7 @@ function say(id){
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
-    if(go) go.textContent = SAY_CHOICES ? '' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue');   /* r115 */
+    sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'));   /* r115/r174 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */

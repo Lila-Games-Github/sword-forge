@@ -299,15 +299,16 @@ dragon waits for it to finish before answering.*
 
 *Note: the owner wrote "gleaming at his sword" — a sword gleams; a person beams.*
 
-**D30** — Dragon
-> "I didn't think you would get so many customers on your first day!"
+**D30** — ~~"I didn't think you would get so many customers on your first day!"~~ **deleted r174.**
+The key is gone from `DIALOGUE` (139 left) and the bell beat now speaks D31 straight after the
+customer. `lastLine()` is unaffected — it is D139 and D30 was mid-map.
 
 **D31** — Dragon
 > "No tea break for us, I guess. Let's see how to make a sword and sharpen it to perfection! Back to the
 > forge we go."
 
-*Trigger: D30 fires once D29 has finished typing, and a click gives D31, which points an arrow at the
-right-hand screen arrow. Arriving at the forge clears it. D31 is the last line in the script, so this is
+*Trigger: D31 fires once D29 has finished typing (r174: it was D30, then a click for D31), and it
+points an arrow at the right-hand screen arrow. Arriving at the forge clears it. D31 is the last line in the script, so this is
 where the dragon becomes a pet.*
 
 *Note: the owner wrote "Back to the craft room we go" — the game has no room by that name; the screen is
@@ -375,7 +376,7 @@ continuation; it is its own bubble, so it takes a capital and a full stop.*
 the player has been told how every station works once already.*
 
 **D42** — Dragon
-> "Wait, since we discovered how to craft a 'balanced' sword using lesser ores, we should update our
+> "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our
 > crafting process. It will be helpful later. Tap 'record craft'."
 
 *Trigger: acquiring the trait. The 💾 button is now labelled **RECORD CRAFT** so the line names
@@ -1390,3 +1391,27 @@ Verified through the real path: a shape picked, the minigame open, `tutHmHeat(fa
 `TUT_PAUSE` true, the dim on and **deep** at z-1050, and the bubble lit at z-1101 above it. With
 `hmHeat` at 0.8, two `hmTick()` calls leave it at exactly 0.8; released, it cools. On the board D8
 keeps the dim at z-45 with the bubble lit above it. The tap clears pause, dim, deep and the ring.
+### r174 — the script edits, the bubble size, and a real button to advance
+
+- **D30 deleted.** `DIALOGUE` holds 139 keys; the bell beat speaks D31 directly.
+- **D42**: "lesser ores" → **"fewer ores"**. Ores are countable.
+- **The sharpening and design-desk bubble** was `font-size: 12px` where every other dialogue box is
+  **17px**. `.tut-iconsay p` now matches. That class serves both screens; they are the same
+  construction, so both moved.
+- **"tap to continue" is now a button**, `.say-go`, hanging 36px below the bubble on the right, with
+  a **double play** icon while more follows and an **X** on the line that closes. Both are inline SVG,
+  not glyphs: ⏩ and ✕ render as emoji on one platform and as boxes on another, and these two have
+  to be unmistakable. It hides itself while a question is pending, so a choice cannot be skipped.
+
+Two knock-ons the button forced:
+
+- `sayLayout()`'s bottom clamp went from `fr.bottom - h - 6` to `- h - 42`, or the button would hang
+  off the frame under a low bubble.
+- `#shSayWrap` rose from `bottom: 4.1%` to `10.2%`, so that the **button** is what lines up with
+  CANCEL and DONE. That keeps r170's intent with one more thing in the stack: measured, the button's
+  bottom is 95.47% against CANCEL's 95.89%.
+
+Verified: D30 absent and `lastLine()` still D139; the bell beat reaching `to-forge` with D31 spoken
+and no D30 in the run; D42 reading "fewer ores"; the sharpening text computing 17px; the button 8px
+below the bubble and inside the frame on both the bench and the sharpening screen; two paths and
+title "Continue" mid-run, one stroked path and "Close" on the last line.
