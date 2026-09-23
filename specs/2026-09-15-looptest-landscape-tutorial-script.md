@@ -58,7 +58,7 @@ zero, so its slot shows on the shelf but cannot be dragged — the cave is where
 holds 2 Iron and 2 Manganese.*
 
 **D4** — Dragon
-> "Heat up the smelter with the bellows."
+> "Heat up the smelter with the bellows. Tap and hold."
 
 *Trigger: fires by itself the moment the fourth ore lands. Pointer: an arrow down onto the bellows,
 and the bellows glows. Both stay up until the smelter is actually hot — r83; they used to clear on the
@@ -66,6 +66,10 @@ first pump, so one tap left the player with no pointer, a cold smelter and no ne
 
 *Note: the owner wrote "bellow"; the tool is a **bellows**, and the station caption was changed from
 "Bellow" to match its own tooltip and every hint in the game.*
+
+*r180: "Tap and hold" added by the owner. Their text had no closing full stop; one was added, since
+every other line in `DIALOGUE` ends in `.`, `!` or `?`. The pointer already matches the new words —
+the bellows glows, which is r152's vocabulary for a tap-or-hold.*
 
 **D5** — Dragon
 > "Tap on the smelter gate to open it."
@@ -299,15 +303,16 @@ dragon waits for it to finish before answering.*
 
 *Note: the owner wrote "gleaming at his sword" — a sword gleams; a person beams.*
 
-**D30** — Dragon
-> "I didn't think you would get so many customers on your first day!"
+**D30** — ~~"I didn't think you would get so many customers on your first day!"~~ **deleted r174.**
+The key is gone from `DIALOGUE` (139 left) and the bell beat now speaks D31 straight after the
+customer. `lastLine()` is unaffected — it is D139 and D30 was mid-map.
 
 **D31** — Dragon
 > "No tea break for us, I guess. Let's see how to make a sword and sharpen it to perfection! Back to the
 > forge we go."
 
-*Trigger: D30 fires once D29 has finished typing, and a click gives D31, which points an arrow at the
-right-hand screen arrow. Arriving at the forge clears it. D31 is the last line in the script, so this is
+*Trigger: D31 fires once D29 has finished typing (r174: it was D30, then a click for D31), and it
+points an arrow at the right-hand screen arrow. Arriving at the forge clears it. D31 is the last line in the script, so this is
 where the dragon becomes a pet.*
 
 *Note: the owner wrote "Back to the craft room we go" — the game has no room by that name; the screen is
@@ -375,7 +380,7 @@ continuation; it is its own bubble, so it takes a capital and a full stop.*
 the player has been told how every station works once already.*
 
 **D42** — Dragon
-> "Wait, since we discovered how to craft a 'balanced' sword using lesser ores, we should update our
+> "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our
 > crafting process. It will be helpful later. Tap 'record craft'."
 
 *Trigger: acquiring the trait. The 💾 button is now labelled **RECORD CRAFT** so the line names
@@ -868,8 +873,18 @@ it again; the run only moves on once a point has actually been spent.*
 **D94** — Dragon
 > "We should go and gather ores. Go back to the cave."
 
-*Trigger: her line finishing. Exits blink back through the forge to the cave. The cave holds its full
-set of **five** seams, and the walk home is only offered once every seam is empty.*
+*Trigger: her line finishing. Exits blink back through the forge to the cave.*
+
+**D94b** — Dragon (r164)
+> "Gather everything."
+
+*Trigger: arriving in the cave. D94 sends the player there and this replaces it on arrival, so the
+standing instruction is no longer the one about walking. The cave holds its full set of **five**
+seams, and the walk home is only offered once every seam is empty.*
+
+*The id is `D94b`, inserted next to D94 rather than appended to the end of `DIALOGUE`: `lastLine()`
+is the map's final key and drives the guide-to-pet switch, so a new line at the end would move it.
+`lastLine()` is still `D139`, with 140 keys.*
 
 ### Open: the cave is 35 swings
 
@@ -1272,3 +1287,510 @@ the dragon's pair follows in the bench bubble.*
 **D131 says he is not paying, and now he does not.** Outcome 1 banks no gold and writes a 0g ledger
 row; he still takes the sword. The refusal is decided inside `sellCounter`, so the toast reads "He took
 it and paid nothing" rather than "Sold for 0g".
+
+### r163 — D91 gives the SKILL TREE button a glow that survives the rail
+
+D91 (*"Open the skill tree and use your points. You will feel more... powerful!"*) has blinked
+`#skillBtn` since r122, via `tutDay2Skill()`. The class was there and the animation was running; it
+just did not read. `#rail` is `overflow: hidden` and the button sits **9px** from its right edge, so
+`.tut-blink` — a 15px halo with 5px of spread — was cut off exactly where the eye would catch it.
+
+`#skillBtn.tut-blink` now pulses **inward** as well: border colour, an inset glow and
+`brightness(1.22)` on the face. None of those can be clipped by an ancestor, so the guide reads
+wherever the button sits.
+
+The rule is declared **before** `#skillBtn.levelled` on purpose. The two have equal specificity
+(1,1,0), so source order decides, and the level-up flash should win for its 1.2s and hand the guide
+back afterwards.
+
+Verified through the real beat: `TUT_STAGE` `day2-forge` → `tutDay2Morning()` → D89 and D90 leave the
+button with `animation-name: none`; D91 turns on `tutBlinkSkill`. Opening the tree clears it
+(`d2-skill`), and closing without spending brings it back — the r122 behaviour, unchanged.
+
+**Not done, because it would be inventing design:** nothing guides the player to a particular node
+once the tree is open. `tutDay2Spent()` accepts any spend.
+
+### r167 — four tab guides, and the skill button finally reads
+
+**The pointer that was not.** r163 made `#skillBtn.tut-blink` pulse its border, an inset glow and
+`brightness(1.22)`. Driving the animation to its 50% frame showed all three computing exactly as
+written — and the owner still could not see it. Reported twice is the answer: it was too subtle in
+motion against an already-gold button. r167 swaps the **face** instead, to a bright amber gradient
+with dark text, which is the treatment `#panPad`'s `tutExitBlink` has always given the screen exits.
+The build's own vocabulary, not a new one. `.sk-lv` carries its own colour, so it gets a matching
+pass or it stays pale on a bright button.
+
+`.matTab.tut-tab` got the same swap, for the same reason: `#rail` is `overflow: hidden` and
+**ITEMS & DECOR sits 9px from its right edge** — the same 9px as the skill button — so a halo alone is
+cut off on the side the eye is on. The other three tabs have 59px or more, but one rule for all four
+beats two.
+
+**The four tab guides.** `tutNeedTab(n)` was only ever reached through `tutArrow`'s `opt.tab`. It is
+now called directly at four beats. `tutTabUi()` already drops the halo the moment `INV_TAB===n`, and
+`invTab()` already calls it, so "until the player clicks it" needed no new machinery.
+
+| beat | tab | note |
+| --- | --- | --- |
+| D68 | INGREDIENTS | set **after** `tutArrow(null,null)`, which clears the tab halo too |
+| D94b | ITEMS & DECOR | passed as `tutPickTab`, which answers `null` once the pickaxe is out |
+| D95 | INGREDIENTS | |
+| — | cleared | `tutDay2Mined()`, when the last seam empties |
+
+`dropPick()` now calls `tutTabUi()`: `tutPickTab` starts answering `null` the moment the pickaxe
+leaves the bag, but nothing was re-reading it there, so the halo would have lingered.
+
+**D94b closes itself.** `tutDay2Mined()` calls `sayHide()` — "Gather everything" is an instruction,
+and it stops being one when every seam is empty.
+
+Verified through the real beats, not by setting classes. D68: from `to-forge2`, `tutFireForge()`
+reaches `fire-grind`, speaks D68 and haloes tab 0 while the player stands on tab 2; clicking tab 0
+clears it. D94b: arriving in the cave from `d2-cave` haloes tab 3, clicking it clears it, and taking
+the pickaxe out clears it as well. Emptying every node hides the bubble, clears the halo and blinks
+`#panLeft`. D95: `goScreen('forge')` from `d2-back` reaches `d2-copper`, speaks D95 and haloes tab 0.
+At the 50% frame both the skill button and tab 3 compute to the amber face with dark text.
+
+### r169 — D107 stops following the player to the counter
+
+Reported: "Go sell it!" still up on the counter screen, over Gale's friend asking his question.
+
+**Four beats end a walk at the counter.** Two of them re-speak D23 on arrival (`sell2` from
+`base-back`, `sell3` from `dec-back`), so the travel instruction is replaced and nothing is left over.
+The other two only re-point — `bram2-sell2` and `d2-gale-sell2` set the sword-to-counter arrow and
+say nothing — so whatever was on screen when the walk began was still on screen when it ended. For
+the gale run that is D107, an instruction the player has just carried out.
+
+Both branches now call `sayHide()`. `bram2-sell` speaks no line of its own either, so it had the same
+hole; it is closed in the same edit rather than waiting for it to be reported.
+
+This is the third of its kind (r158, r159, r164, and now this): **a pointer or a line that the player
+has finished with is only retired if something explicitly retires it.** Setting the next state is not
+enough unless that state speaks or points.
+
+Verified through the real beat: `tutGaleCrafted()` from `d2-gale-forge` reaches `d2-gale-sell`, speaks
+D107 and blinks `#panLeft`; walking to the counter reaches `d2-gale-sell2` with the bubble **hidden**,
+the sword-to-counter arrow up and the SWORDS tab open. `bram2-sell` behaves the same. `sell2` is
+unchanged and still speaks D23 on arrival.
+
+### r173 — D16 stops the world, and the line it stops for is lit
+
+D16 ("The metal cools down slowly...") is spoken **inside the hammering minigame**, by `tutHmHeat()`
+when the metal first goes cold. It now pauses, the way D8 and D9 do.
+
+Two things had to change for that to work in a modal.
+
+- **The dim.** `#tutDim` is `z-index: 45`, under the minigame's `z-1000` modal. It gets a `.deep`
+  class (`z-index: 1050`) only while that modal is open. It must **not** be deep on the board: D8 and
+  D9 are spoken with no modal, and the bench bubble sits at z-46 there, which a deep dim would bury.
+- **The clock.** `hmTick()` was not gated on `TUT_PAUSE`, so the heat kept draining behind the line
+  explaining that the heat drains. It now holds, and moves `hmLast` with it so `dt` does not spike on
+  resume — the same shape as the board tick.
+
+**The highlight** is `tutLit()`, called from `tutPause()`: whichever of the four say boxes is showing
+gets `.tut-lit`, which rings it and lifts it to `z-index: 1101`, over either dim. It applies to D8 and
+D9 too, which is the point — a paused line should look paused-for.
+
+`sayNext()` already lifts the pause on the tap that closes the line, so nothing new resumes it.
+
+Verified through the real path: a shape picked, the minigame open, `tutHmHeat(false)` speaks D16 with
+`TUT_PAUSE` true, the dim on and **deep** at z-1050, and the bubble lit at z-1101 above it. With
+`hmHeat` at 0.8, two `hmTick()` calls leave it at exactly 0.8; released, it cools. On the board D8
+keeps the dim at z-45 with the bubble lit above it. The tap clears pause, dim, deep and the ring.
+### r174 — the script edits, the bubble size, and a real button to advance
+
+- **D30 deleted.** `DIALOGUE` holds 139 keys; the bell beat speaks D31 directly.
+- **D42**: "lesser ores" → **"fewer ores"**. Ores are countable.
+- **The sharpening and design-desk bubble** was `font-size: 12px` where every other dialogue box is
+  **17px**. `.tut-iconsay p` now matches. That class serves both screens; they are the same
+  construction, so both moved.
+- **"tap to continue" is now a button**, `.say-go`, hanging 36px below the bubble on the right, with
+  a **double play** icon while more follows and an **X** on the line that closes. Both are inline SVG,
+  not glyphs: ⏩ and ✕ render as emoji on one platform and as boxes on another, and these two have
+  to be unmistakable. It hides itself while a question is pending, so a choice cannot be skipped.
+
+Two knock-ons the button forced:
+
+- `sayLayout()`'s bottom clamp went from `fr.bottom - h - 6` to `- h - 42`, or the button would hang
+  off the frame under a low bubble.
+- `#shSayWrap` rose from `bottom: 4.1%` to `10.2%`, so that the **button** is what lines up with
+  CANCEL and DONE. That keeps r170's intent with one more thing in the stack: measured, the button's
+  bottom is 95.47% against CANCEL's 95.89%.
+
+Verified: D30 absent and `lastLine()` still D139; the bell beat reaching `to-forge` with D31 spoken
+and no D30 in the run; D42 reading "fewer ores"; the sharpening text computing 17px; the button 8px
+below the bubble and inside the frame on both the bench and the sharpening screen; two paths and
+title "Continue" mid-run, one stroked path and "Close" on the last line.
+
+### r177 — a beat between D43 and D44: shut the blade panel
+
+The blade panel is expanded over the top-left of the board when the craft is recorded, and D44 ("Tap
+on the metal to select a shape") then asks for the metal underneath it. A new stage, **`record-close`**,
+sits between them: `tutRecorded()` no longer speaks D44, it blinks the collapse control and waits.
+D43 stays on screen throughout, so **no new line was written**.
+
+**The control is `#hudToggle`, the collapse chevron, NOT the X in the panel.** The X is `#cancelCraft`,
+which runs `refundOre(); resetRun()` — it throws the craft away. Pointing a tutorial at it would
+destroy the blade the player just recorded.
+
+`toggleHud()` calls `tutHudClosed()` when it collapses, which is what speaks D44 and glows the orb.
+
+Three things that had to hold:
+
+- **TUT_HM2 is still set at `tutRecorded()`**, not at the close. A player who ignores the guide and
+  shapes the metal anyway must still get the second run's prompts.
+- `tutNudgeApply()` gets a `record-close` branch, so the blink is put back if anything wipes it — the
+  r155 discipline, and the fourth time it has mattered.
+- `tutHmStep()`'s `TUT_HM2` branch now calls `tutExit(null)`, so bypassing the guide does not leave
+  the blink up. That is the r158/r159/r164/r169 pattern, headed off this time rather than reported.
+
+`#hudToggle.tut-blink` also takes the **face swap** (r167's `tutBlinkTab`): `#frame` is
+`overflow: hidden` and the button sits **6px** from its left edge, so a plain halo (15px blur, 5px
+spread) is cut off on that side. Third button to need this; the rule is simply that a halo near a
+clipped edge does not read.
+
+Verified through the real beat: at `record` with the panel open, `tutCompStep()` speaks D43;
+`tutRecorded()` leaves stage `record-close`, D43 still up, `#hudToggle` blinking, no orb glow, and
+`TUT_HM2` already true. An idle nudge keeps the blink. `toggleHud()` then gives stage `shape2`, D44,
+the orb glowing and no blink. Edge cases: shaping the metal without closing reaches `forge2` with D45
+and **no stale blink**; recording with the panel already collapsed goes straight to `shape2`/D44. At
+the 50% frame the button computes to the amber face with dark text.
+
+### r179 — the first hazard crossing stops the world
+
+**D69a** — Dragon
+> "Oh! We are crossing over a hazard zone."
+
+**D69b** — Dragon
+> "The sword will take damage if we force it through the hazards."
+
+**D69c** — Dragon
+> "Good thing this is a small one. Just keep going."
+
+*Trigger: the first moment the travelling blade is ever inside a hazard zone — `checkHazard()` calls
+`tutHazardStep()` the first time `inside` is truthy. Once per game, like the first book (D9), and
+**not** gated on the tutorial still running: the first crossing is the first crossing whenever it
+happens. The D8 pause effect: `#tutDim` over the board, the board tick held, and (r173) the bubble
+lifted clear of the dim and ringed.*
+
+*Note: the owner wrote "a hazard zone" in D69a and "the hazards" in D69b. Implemented verbatim.*
+
+**Ids are `D69a`/`D69b`/`D69c`, inserted beside D69** rather than appended: `lastLine()` is the map's
+final key and drives the guide-to-pet switch. Still D139, now 142 keys.
+
+**One change to `sayNext()` this needed.** The pause used to lift on the first tap, which was right
+when every paused beat was a single line. This one is three. It now lifts only when the line being
+closed is the run's **last** — `SAY_I >= SAY_SEQ.length-1`. For a one-line run the current line *is*
+the last, so D8, D9 and D16 are untouched; both were re-checked.
+
+Verified: first touch leaves `TUT_PAUSE` true, the dim on, D69a spoken, the bubble lit, and the flag
+set. Taps walk D69a → D69b → D69c with the dim still on, and it lifts on the third. **40 real `tick()`
+frames (640ms) while paused leave `hp` at exactly 99.6**, so no integrity drains while the lines are
+read — only the single frame that triggered it costs anything. A second call to `tutHazardStep()`
+does nothing. D8 and D9 still lift on one tap.
+
+### r181 — the hammering minigame gets its own two pointers
+
+**D14** ("Just hold on the metal...") glows `#hmOrb`, the metal itself. That is r152's vocabulary:
+a hold is a glow.
+
+**D15** ("Now pick up your hammer and strike...") raises `#hmSwing`, a double-headed arrow sliding
+back and forth along the line the hammer actually travels — from the metal at `HM_RIG.anvil` to the
+hammer head at rest, `(0.77w, 0.30h)`, which are **the same two points `wireHmHammer()`'s `inZone()`
+uses**, so the hint and the hitbox can never drift apart.
+
+**Why a new element and not `tutArrow`.** The shared `#tutArrow` is `z-index: 70` and this modal is
+`z-1000` — an arrow drawn out there is simply invisible in here. `#hmSwing` lives inside `#hmScene`.
+
+Three things learned the hard way, all visible in the build:
+
+- **The heads are paths, not markers.** r151 found that a marker referenced from a hidden SVG never
+  paints; drawing the triangles directly avoids the whole class of problem.
+- **The viewBox is the measured pixel box, 1:1**, so the arrow's angle survives any scene aspect.
+  A fixed `0 0 100 100` box would have flattened the diagonal.
+- **The heads are sized off the shaft** (`headW = stroke*1.5`), not fixed. At a fixed 30x15 against a
+  17px shaft the upper head was barely wider than the line and read as a taper rather than an arrow —
+  exactly where it lands on the pale hammer. The filter is also a tight dark `drop-shadow`, which acts
+  as an outline for the same reason.
+
+Both retire themselves: D15 puts out D14's glow, `hmStrike()` puts out the swing hint the moment the
+player does it, and `hmClear()` clears both when the minigame closes.
+
+Verified through the real path: a shape picked, `tutHmStep()` speaks D13 with nothing lit; a tap gives
+D14 with the metal glowing; the metal reaching heat speaks D15, which drops the glow and raises the
+arrow — 3 paths, heads 47x48px against a 236px shaft, spanning 45.8..81.3% x and 22.2..61.3% y of the
+scene, with the heads landing on the metal (53.4, 49.8) and the hammer (72.2, 35). One strike clears
+it; cancelling the minigame leaves neither behind.
+
+### r182 — the second craft's bellows waits for D40
+
+The heat step opens on three lines: D38 (the path reaches balanced), D39 ("Heat up the smelter. Oh, I
+almost forgot to tell you!") and D40, which is the one that actually explains **why** heat matters.
+A player could pump straight through all three and never read the explanation.
+
+`TUT_BELLOWS_LOCK` is raised where `regrind-heat` begins and lifted by **D40 itself**, from `say()`'s
+id hooks. While it is up:
+
+- `wireBellowGate()`'s `startB` returns immediately, so the bellows is inert — not merely unpointed.
+- `tutNudgeApply()`'s `regrind-heat` branch shows **no pointer at all**, rather than pointing at a
+  control that would do nothing.
+
+D40 lifts the lock and lights the bellows in the same breath, so it glows the moment it becomes usable.
+
+*A glow, not an arrow, and that falls out of r152 rather than being a special case: `tutArrow(null,
+'#bellowtop', ...)` has a **null `from`**, which r152 routes to `tutTap()`, and `#bellowtop` is an
+`<img>`, so it takes `tut-glow`. The idle nudge and the D40 hook therefore agree by construction; the
+hook only makes it appear on the line instead of on the next tick.*
+
+Scope is the second craft alone: nothing else raises the flag, and `tutGateStep()` and `tutReset()`
+both clear it.
+
+Verified through the real beat. At **D38** and **D39**: locked, no glow, no pointer, and a real
+`pointerdown` on `#bellowHot` leaves `bellowing` false with heat at 0. At **D40**: unlocked, glowing,
+the press works, and 30 real `tick()` frames of pumping take heat 0 → 21.6. Reaching heat gives D41,
+stage `regrind-work`, glow off, lock off. **The first craft is untouched**: D4 still glows the bellows
+with no lock, and pumping raises heat straight away (0 → 12.8 in 20 frames).
+
+### r183 — D92 closes on arrival, and the sweep that should have come with r169
+
+D92 ("Let's go check the counter.") stayed on screen after the walk it asked for. Same family as
+r158/r159/r164/r169: **the `d2-counter` → `d2-bell` branch re-points but says nothing, so nothing
+retired the line.** It calls `sayHide()` now.
+
+**The sweep.** Rather than wait for a sixth report, every arrival branch that changes stage was
+checked for the same hole:
+
+| branch | what retires the old line |
+| --- | --- |
+| `to-basement` → `base-table` | speaks D49 |
+| `fire-basement` → `dec-table` | speaks D49 |
+| `base-back` → `sell2` | speaks D23 |
+| `dec-back` → `sell3` | speaks D23 |
+| `to-cave` → `cave-pick` | speaks D65 |
+| `to-forge2` → `fire-grind` | speaks D68 |
+| `to-bed` → `bed` | speaks D88 |
+| `d2-cave` → `d2-mine` | speaks D94b (r164) |
+| `d2-back` → `d2-copper` | speaks D95 |
+| `bram2-forge` → `bram2-ingot` | speaks D113 |
+| `bram2-sell` → `bram2-sell2` | `sayHide()` (r169) |
+| `d2-gale-sell` → `d2-gale-sell2` | `sayHide()` (r169) |
+| `d2-counter` → `d2-bell` | **nothing — fixed here** |
+
+That is all of them; `d2-counter` was the last one holding a stale line.
+
+Verified through the real beat: closing the skill tree after spending speaks D92 at the forge with
+`#panLeft` blinking; walking to the counter reaches `d2-bell` with **both** say boxes closed, the bell
+on the counter and blinking.
+
+### r184 — a batch of "click here" lights
+
+One class does all of it: `.tut-lit-ctl`, deliberately **additive** — `brightness` and `box-shadow`
+only, no background of its own — so the same rule can light the go button, a paper SELL button, a
+response box and two answer buttons, each with a different base. Its inset half cannot be clipped by
+an ancestor, which is the trap that cost r163 and r167.
+
+**The go button**, on the lines whose only next step is to read on:
+`D1, D2, D8, D9, D13, D19, D32, D33, D34, D38, D57, D70`. Held in `SAY_GO_GLOW` and applied by
+`sayGoIcon()`, which now takes the id. D8 and D9 are in the list and show an **X** there, since each
+is the last line of its own paused run.
+
+**D20** lights both of Bram's answers when `finishD19()` shows them; `chooseBram()` puts them out.
+
+**The sword on the counter** lights SELL through `tutSellLit()`, called from `placeCounter()` and
+cleared by `takeCounter()` and by the sale. It replaces Bram's old `tutExit()` blink, so every guided
+sale now behaves the same way. `tutSellLit()` skips a disabled control, so it never lights a SELL
+that cannot be pressed.
+
+**D65 lights the pickaxe** — and this one needed care. `tutPickSrc()` falls back to the whole
+`#oreShelf` while ITEMS & DECOR is closed, so a glow set once at D65 lit **the shelf**. `tutPickLit()`
+resolves it fresh and lights only the real thing, `tutMined()` re-applies it after every swing, and a
+`cave-pick` branch in `tutNudgeApply()` re-runs that when the player switches tab.
+
+**D69 is three instructions in one line**, and the pointer now walks all three: the bellows glows
+while the metal heats, the gate blinks once it is ready, then the metal is pointed to the anvil and
+then the hammer. All four states live in one `fire-heat1` branch of `tutNudgeApply()`, so they
+self-heal. (Bellows and gate come out as a glow and a blink rather than arrows because r152 routes a
+null `from` to `tutTap()`.)
+
+**D70 clears every pointer** and lights its own button instead — it is a look-at-this line, and the
+metal-to-smelter arrow belongs to D71, which still raises it.
+
+Verified, each through its own path: all 12 ids light the button and D3 (a control) does not; D8 and
+D9 light it showing the X; D20 lights 2 of 2 answers and a choice clears them; placing a sword during
+`sell2` lights SELL, and selling clears it; the pickaxe is **not** lit on arrival (wrong tab), is lit
+the moment ITEMS & DECOR opens, and the glow follows it into the cave; the fire heat step gives
+bellows glow → `#furnaceGate` blink → `#orb → anvil` → `#hammerTool → anvil`; D70 leaves no arrow, no
+glow, and a lit button.
+
+**Open:** "make the response glow as well" is wired to `#csPanel > .cs-resp`, but that box is
+`offsetParent: null` during the sale — it only appears **after** it, carrying "Thank you." / "Take
+care". The class is applied and would light it the instant it showed, but nothing is visible at the
+moment asked for. Owner to say which element was meant.
+
+### r186 — D70: the WHITE arrow, which r184 did not touch
+
+**There are two arrows on the forge screen and r184 cleared the wrong one.** `#tutArrow` is the
+tutorial's dashed pointer; `#hintArrow` is `assets/ui/arrow.webp`, the plain white idle nudge that
+fades in after `HINT_IDLE_MS` (4s) of no input. `tutFireSpot()` cleared `TUT_ARROW`, which was
+already empty, and left the white one alone.
+
+`hintArrowWanted()` asks for: the forge screen, metal `onAnvil`, no trait reached, none banked, no
+modal, sword at the route end, 4s idle. **That is exactly the state D70 is spoken in**, so it faded
+in over the line every time. `fire-spot` now returns false from that function.
+
+Scoped to `fire-spot` alone: D71 is the line that actually asks for the metal, and `tutFireBack()`
+raises a proper pointer with it.
+
+Verified with real `tick()` frames and a 9-second idle: in the same state **off-script** the white
+arrow still shows (unchanged); at D70 it is `display: none` and `hintArrowWanted()` is false, with the
+go button lit; at D71 it returns, alongside the tutorial's own `#orb → furnace`.
+
+*Both arrows being up together at D71 is older behaviour, untouched here.*
+
+### r188 — five more lit buttons, a real blink, and four Day-2 pointers
+
+- **D89, D90, D100, D116, D117** join `SAY_GO_GLOW`.
+- **The skill button now blinks rather than pulses.** r167's curve eased *through* its bright frame,
+  so the lit state was an instant at the top of a slow swell. The keyframes now **hold** each state
+  (dark 0..38%, lit 46..88%) and cross quickly, on `linear` — `ease-in-out` would soften the very
+  edges the effect depends on. Measured across one cycle: dark at 0/200/380/460ms, lit at 700/880ms,
+  dark again by 960ms.
+  *Note: the old one was running correctly — class applied, `tutBlinkSkill` at 1.1s infinite,
+  surviving a board click and ten frames. It read as merely warm, which is the thing that was wrong.*
+- **D97** is retired the moment the dragon reaches the anvil, from `wireDragon()`'s drag: the line
+  says where to put him, and once he is there it has been obeyed and is sitting over the anvil.
+- **D98** sends him home. `homeDragon()` clears the inline `left`/`top`/`right` that `wireDragon()`
+  is the only writer of, so clearing those three **is** the opening position.
+- **D101** haloes INGREDIENTS until it is the open tab.
+- **D104** points from the Copper slot to the smelter, via a new `tutOreSlot(name)` that finds any
+  ore's slot by the alt text `buildShelf()` writes.
+
+Verified: all five ids light their button; the blink holds its two states as measured above; D97
+shows, then hides the instant `dragonAtAnvil()` turns true mid-drag; D98 leaves the dragon with no
+inline position; D100/D101 halo tab 0 while standing on tab 2 and clear on the click; D104 draws with
+its source resolving to the Copper slot.
+
+### Open — "stop the sword on gale as soon as Epic is available"
+
+Asked for in the same round, **not implemented**, because the measurement says it cannot work as
+described.
+
+The dragon-pull already stops at the **closest approach**: it clamps the step to the projection of
+(trait − sword) onto the line toward spawn, which is the nearest the sword can ever get on that path.
+Stopping *sooner* can only land it further away.
+
+Measured on a copper route: the closest approach to gale is **27.1 units**. `ALIGN_EPIC` is **9** and
+`ALIGN_FINE` is **20**, so that stop is **Weak** — Epic is not merely late, it is unreachable by
+pulling. Timing is not the lever. What would move it: gale's position, the route the copper draws,
+`ALIGN_EPIC`, or letting the pull steer rather than run straight at spawn. Owner to choose.
+
+### r189 — Garric's solo run: a marked target and a way back
+
+**D130a** — Dragon
+> "How is it going?"
+
+*with one response,* **"Let me try again"** *, which is a retry button.*
+
+Taking "Let me try to do it on my own." on D130 now leaves the **balanced trait ringed** on the map
+— `tutSpotOn()`, the same mark fire and gale get, so the target is shown without being explained. The
+first ore to reach the smelter brings D130a and the retry.
+
+*Two details from the owner's wording, kept literally: the ring comes down on **iron** specifically,
+the ore the balanced route needs, while **any** ore is enough for him to ask how it is going. A
+player who starts with copper therefore gets the question with the ring still up.*
+
+**The retry restores the ore in full, and deliberately does not call `refundOre()`.** That function
+is the Restore Ore talent: a per-ore roll at 10% a rank, so unranked it gives back **nothing** — a
+retry that costs you the ore is not a retry. `tutSoloRetry()` returns one ore per segment, clears the
+run and re-enters the hands-off state.
+
+**A new kind of choice.** `sayChoose(list, optional)`. A normal question blocks the bubble until it
+is answered (r115), which is right for "do you want to customise it?". This is not a question: the
+player may be doing fine and simply want the line gone. An optional choice keeps its button **and**
+keeps the go button working. Mandatory questions are untouched.
+
+Verified end to end. From 6 iron and 6 manganese with the ring up: three ores in leaves 4 and 5, three
+route segments, the ring **down** (iron went in), D130a on screen with "Let me try again". Pressing it
+restores **6 and 6**, clears the route to 0 segments, re-arms the solo run and puts the ring back.
+Walking past it instead closes the line and keeps the route. A real two-option question still blocks
+and still hides the go button.
+
+### r190 — the tier legend after D97
+
+`#sfTierModal`, headed **"Alignment for Tiers"** (r191; the owner's trailing full stop was their
+list numbering, and no other modal heading carries one): `assets/ui/weak.png`, `fine.png` and
+`epic.png` in three equal columns, labelled
+WEAK / FINE / EPIC, with a close control. The label colours are `tierColor()`'s exactly — `#c0a48a`,
+`#49b6ff`, `#ffcf3a` — so the window and every tier readout in the game agree.
+
+**It opens when the player DISMISSES D97, not whenever D97 disappears.** Those became different
+events in r188: D97 now also hides by itself the moment the dragon reaches the anvil, which happens
+mid-pull. A window over the board at that moment would interrupt the very thing the line just asked
+for. The hook is in `sayNext()`, where a run ends with `SAY_LAST === 'D97'`.
+
+Shown once per game (`TUT_SAW_TIERS`), cleared by `tutReset()`, and closed by `resetRun()` with every
+other window.
+
+Verified: D97 up with no window; dismissing it opens the window with all three images loaded at 124px
+each and the three labels; close hides it; a second D97 dismissal does **not** reopen it; and
+`sayHide()` — the auto-hide r188 uses — does not open it at all.
+
+**Payload (settled r192).** Converted through the r136 browser pipeline at **248px**, twice the 124px
+they are displayed at: **314KB → 20KB** (68→7, 121→7, 125→6). The PNGs stay as the source, as every
+other converted asset does, and the three entries are in `tooling/asset-diet/manifest.json` (140 → 143)
+so a re-run includes them.
+
+### r192 — D128 rewritten, and the tier art on a diet
+
+**D128** — Garric
+> "Craft a Balanced sword and show me! Extra gold and rewards if it is Epic tier, customized and
+> sharpened!"
+
+*Was: "...Also, I want to see how well you can design it. Make it sharp!" The new line names the
+reward, which the old one left implicit even though `garricGrade()` has always paid for exactly these
+three things.*
+
+*Note: the owner wrote "epic tier"; capitalised to **Epic**, matching D76 ("It is not Epic tier.") and
+the tier labels the game prints everywhere else. "customized" is the owner's spelling and matches D79.*
+
+The three tier images are WebP now — see the payload note above.
+
+### r193 — Bram's illustration, between his reply and D111
+
+Answering D110 with "I am glad you survived." now opens a window showing
+`assets/Illustrations/Bram_illustration.webp`. **Closing it is what plays D111**, so the picture sits
+in the gap the reply used to jump straight across.
+
+`openIllus(src, alt, after)` / `closeIllus()` are deliberately generic — art, alt text and the
+continuation are all arguments — because there will be more of these. The callback is cleared before
+it runs, so closing twice cannot fire the continuation twice (checked).
+
+**Payload:** 844x471, **989KB PNG → 154KB WebP** through the r136 pipeline, re-encoded at native size
+rather than downscaled. Manifest 143 → 144.
+
+*One compromise worth recording: the window shows it 573px wide against an 844px source, so about
+1.5x, not the 2x the diet asks for. The source has no more pixels; the alternative was showing it at
+422px, which is small for a story beat. Native re-encode was the right trade.*
+
+Verified through the real beat: D110 up with the single response and no window; clicking it opens the
+window with the art loaded at its natural 844x471; closing gives **D111** in Bram's box, stage
+`bram2-forge`, D112 from the dragon and `#panRight` blinking. A second close changes nothing.
+
+### r194 — the tier window actually appears
+
+r190 built the window and hooked it to the player **dismissing** D97. r188 had already given D97 a
+second exit: it hides itself the moment the dragon reaches the anvil — which is **precisely what the
+line tells the player to do**. So on the natural path the line was never dismissed and the window
+never appeared at all.
+
+Measured before the fix: dragging the dragon to the anvil left the line hidden, `TUT_SAW_TIERS` false
+and the modal closed. r190 had been verified by calling `sayNext()`, which is the route a player
+following the instruction does not take.
+
+The hook moved into `sayHide()`, so the window follows D97 **whichever way it goes**, and the r190
+special case in `sayNext()` is gone — one path, not two.
+
+*Nothing is interrupted by opening there: positioning the dragon and holding him to breathe are
+separate presses, and pointer capture keeps the drag working underneath the window.*
+
+Verified both routes from a clean load: dragging him to the anvil opens the window (mid-drag, and
+still open after the release) with the heading and all three images; tapping the line away opens it
+too; a later D97 does not reopen it; breath mode still engages with the dragon at the anvil.

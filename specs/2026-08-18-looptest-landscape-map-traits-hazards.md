@@ -6352,3 +6352,616 @@ silently vanished**. `tutPickSrc()` returns the cave pickaxe or the bag slot, wh
 | pickaxe out in the cave | nothing lit, arrow drawn |
 | **stowed mid-beat**, then away from ITEMS | **ITEMS** lit, and the arrow still drawn, now from the bag slot |
 | pickaxe taken back out | halo clears itself, arrow still drawn |
+
+## r154 — the toast goes to the very top, and the bubble yields
+
+The level-up toast sat at `top: 12%` of the frame, right where the dragon's bubble likes to be. It is
+at **`top: 6px`** now, and `z-index: 1200` so it also clears the bubble's `z-1100` "above" state inside
+the hammer modal.
+
+**The bubble moves out of the way, but only when it would really collide.** `sayLayout()` gained a top
+guard: if the toast's horizontal span overlaps where the bubble is about to sit, the bubble is pushed
+to just under it. An ordinary toast that does not overlap never jogs a line the player is reading.
+
+Two details that decide whether this works at all:
+
+- The guard reads the toast's **layout** box (`offsetTop + offsetHeight`), not
+  `getBoundingClientRect()`. `sfToastIn` animates `translateY(-8px) → 0`, so a rect taken in the first
+  frames is 8px high and the guard would be computed off a position the toast is about to leave.
+- `toast()` calls `sayLayout()` **synchronously**, not through `requestAnimationFrame`. The first
+  attempt used rAF and the bubble did not move at all in testing, because a hidden or backgrounded tab
+  throttles it. The class is already applied by then, so the toast has its box.
+
+`toast()` also re-runs `sayLayout()` when the toast expires, so the bubble returns to where it was.
+
+### Verification
+
+Driven exactly as the game does, with no manual layout call:
+
+| | bubble top in frame |
+|---|---|
+| before | 27.6 |
+| toast up | **60.6** (gap 16.6 under the toast, no overlap) |
+| toast gone | back to **27.6** |
+
+Toast `offsetTop` 6 (the very top), `z-index` 1200 against the bubble's 46.
+
+**A measuring note:** a toast that has expired is `display:none`, so its rect reads 0x0 at the origin;
+and one caught mid-animation reads 8px high. Both produced nonsense "overlap" numbers before I checked
+`classList.contains('show')` and switched to the layout box.
+
+## r155 — the second craft stops making you wait, and D35 stops pointing at the wrong tab
+
+### The four-second delay is gone
+
+r100 only pointed at the second run's next step **after `HINT_IDLE_MS` of inactivity**, and r102 did
+the same for the hammering minigame's own lines. In practice that was four silent seconds at every
+step of the craft, which reads as the game having nothing to say rather than as a deliberate pause.
+
+- `updateHintArrow()` calls `tutNudge()` **every frame** for the `regrind*` and `record` stages.
+- `tutHm2Idle()` speaks its **first** line at once. Re-speaking still waits for a stall, or it would
+  nag over active play, so `TUT_HM2_SAID` separates the two cases and entering `forge2` resets it.
+
+**Calling `tutNudge()` every frame is free**, because it now compares a signature of the inputs its
+choice is made from and returns immediately when none has moved: stage, the ore on the wheel, whether
+that ore is fully ground, the melt stage, `reachedTrait`, `gateReady`, the open inventory tab, and
+whether the blade panel is open. `prep.grind` is quantised to the one threshold that matters, or
+grinding would churn the signature on every frame while the pointer sat perfectly still.
+
+### D35's arrow
+
+While a different inventory tab was open, `tutWheelArrow()` could not find the ore's slot and fell back
+to `#oreShelf` **itself**, so it drew a line out of the whole rail toward the grindstone — which reads
+as pointing at whatever happens to be in the rail, in this case a sword. Nothing is drawn now: r153's
+INGREDIENTS halo asks for the tab, and the arrow appears from the ore once it is actually on screen.
+
+### Verification
+
+| case | result |
+|---|---|
+| `regrind-grind` with SWORDS open | **no arrow**, INGREDIENTS tab lit |
+| switch to INGREDIENTS | arrow appears, halo out, **373 ms** after the last action (was 4000) |
+| 30 idle frames | **0** pointer re-applications |
+| one state change, then 30 frames | exactly **1** |
+| entering the minigame | D46 spoken in **3 ms** |
+
+## r156 — D9 stops the world, the way D8 does
+
+The book line is triggered mid-swing, so the sword carried on travelling underneath it and the player
+read about experience points while the thing they were watching moved on. `tutBookStep()` now calls
+`tutPause(true)`, which is exactly D8's effect: `#tutDim` over the board at z-45 and the tick held.
+`sayNext()` already lifts the pause on the tap that closes a line, so resuming needed nothing new.
+
+**Once only, for the first book** — that part was already true. `TUT_SAIDBOOK` has guarded this since
+r73 and is reset only by `tutReset()` on a new game, so the second book on the route is silent. Checked
+rather than assumed (below).
+
+### Verification
+
+Real route, real books (`tutPlaceBooks()`), real `takeBook()`:
+
+| | result |
+|---|---|
+| first book | **D9**, `TUT_PAUSE` true, `#tutDim` on at z-45 |
+| 20 ticks while paused | `sword.frac` **does not move** |
+| tap to close | pause lifted, dim off |
+| **second book** | no line, no pause, no dim |
+
+## r157 — the tab halo stops going out when you click anywhere
+
+Reported: the INGREDIENTS halo vanished on any tap and never came back.
+
+Two causes, one old and one mine.
+
+**`noteAction()` wiped the pointer on every click.** It fires on every `pointerdown`/`up`/`wheel`/
+`keydown` inside the frame and called `tutHm2Clear()` for the `regrind*`, `record` and `forge2`
+stages — and `tutHm2Clear()` ends in `tutArrow(null,null)`, which clears the tab need with everything
+else. That made sense under the **old** model, where the bench pointer was an idle nudge shown after
+four seconds of nothing: any action meant "they are busy, hide it". r155 made that pointer continuous
+and instant, so the wipe just makes guidance blink out on every tap. Only `forge2` still works the old
+way, so only `forge2` still clears.
+
+**r155's signature guard then refused to restore it.** The guard skips the work when none of the
+inputs the pointer is chosen from has moved — and a click moves none of them, so once something else
+had cleared the pointer, the nudge concluded there was nothing to do and left the screen bare. The
+signature now also carries **what is actually on screen** (`TUT_ARROW`, `TUT_TAB`, any `.tut-blink`,
+any `.tut-glow`) and is recorded **after** the pointer is applied, by a wrapper — the body has too many
+early returns to do it at the top. So a pointer anything wipes no longer matches, and the next frame
+puts it back.
+
+### Verification
+
+At `regrind-grind` with the SWORDS tab open:
+
+| | INGREDIENTS lit |
+|---|---|
+| halo up | yes |
+| immediately after a click in the frame | **yes** |
+| after a frame or two | yes |
+| after five more clicks | yes |
+| player opens INGREDIENTS | **no**, and the arrow appears |
+
+Self-healing: `tutArrow(null,null)` called behind the nudge's back clears the halo, and the **next
+tick restores it**. The minigame is unaffected: `forge2` still speaks D46 and still hides its hint on
+the next action.
+
+### r158 — and the quench arrow it left hanging
+
+Reported straight after r157: at D42 the mug-to-metal splash arrow was still drawn, over a line that
+asks for something else entirely.
+
+`tutNudge()`'s `record` branch is **the only one that sets no arrow** — it blinks a control instead
+(r121). Every other branch replaces the previous pointer simply by setting its own. This branch never
+had to, because `noteAction()` cleared the arrow on the very tap that reached the record step. r157
+removed that wipe for exactly the right reason, and this was the one place relying on it. The branch
+retires the arrow itself now.
+
+Verified through the real transition: at `regrind-work` with the trait reached the pointer is
+`#mug → #orb`; `tutRecordStep()` then leaves **no arrow** and a blink on `#hudToggle`; opening the
+panel moves the blink to `#saveBlade` without the arrow coming back.
+
+### r159 — and the sword-to-counter arrow, same cause
+
+Reported after r158: the arrow from the inventory sword to the counter was still drawn after the
+sword had been dropped there.
+
+Same root as r158, a different call site. Five beats draw that arrow — Bram (`chooseBram`), `sell2`,
+`sell3`, `bram2-sell2`, `d2-gale-sell2` — and only **Bram's** branch in `placeCounter()` retired it.
+The other four leaned on `noteAction()` wiping the arrow on the drop, which r157 stopped doing.
+The basement equivalent was never affected: `tutWorkPlaced()` clears the arrow for `base-table` and
+`dec-table` itself.
+
+`placeCounter()` now clears the pointer for **every** drop, before the Bram branch runs. The drag is
+the thing the arrow asked for, so finishing it retires the arrow regardless of which beat is running.
+
+Verified through the real beat, not a hand-built state: with `TUT_SHARP_RUN` set and `TUT_STAGE`
+`base-back`, `goScreen('customer')` reaches `sell2`, speaks D23 and shows the arrow
+(`#tutArrow` computed `display: block`). `placeCounter()` leaves it `display: none`, and two idle
+`tutNudge()` calls do not bring it back. Bram unchanged: state `counter-ready`, D24 spoken, no arrow,
+SELL enabled and blinking.
+
+**The pattern, stated once.** r155 made the pointer continuous instead of an idle nudge, which moved
+responsibility for clearing it from `noteAction()` onto whatever sets the next state. r158 and r159
+are the two places that had been relying on the old wipe. Any further stale pointer is the same bug:
+find the transition that the player has just completed and clear it there.
+
+### r160 — the dragon moves to the top of the basement screen
+
+One element, `#screenDragon`, serves both the counter and the basement, at one position: `left 1%`,
+`bottom 17%` (r146/r150, chosen for the counter). On the basement that lands him on the **assembly
+bench**, which is the `designDesk` hotspot, and puts his bubble across the **sharpening wheel** — the
+two things that screen exists for.
+
+`goScreen()` already writes an `sc-<name>` class on the layer, so the position is now per screen:
+
+```css
+#screenLayer.sc-basement > #screenDragon { top: 5%; bottom: auto; width: 20%; }
+```
+
+**Why 5% and 20%, not 1% and 23%.** At the full 23% he is 37.3% tall, so `top: 1%` clears the desk
+(top 39.1%) by 0.6%, and his bubble then overlapped the bottom 10px of the `#panUp` exit arrow — the
+way out of the basement — which sits at `z-index: auto` under the bubble's 47. Measured five
+width/top pairs: 20% wide at `top: 5%` is the one that clears the desk by 1.6% and `#panUp` by 7px.
+The layer is a fixed 1080x600 scaled by transform, so those percentages hold at every pane size
+(checked at two).
+
+**The drag no longer follows him off the counter.** He is draggable on the counter screen only, but
+the inline `left`/`top` that wrote went with the element everywhere and beat any per-screen CSS — so
+the rule above would have been silently undone by one drag. `SD_POS` remembers that position for the
+counter, and `screenDragonPlace()` (called from `goScreen`) applies it there and clears the inline
+styles on every other screen. `tutReset()` forgets it.
+
+Verified through the real beat: `TUT_SHARP_RUN` with `TUT_STAGE` `to-basement`, `goScreen('basement')`
+reaches `base-table` and speaks D49. Dragon `t 5 → 37.5`, bubble `t 6.1 → 21`; `designDesk` starts at
+39.1 and `sharpen` at 38.9; all four overlap tests false, and the bubble clears `#panUp`. Counter
+unchanged at `l 1, t 45.7, w 23`. Dragging him on the counter, walking to the basement and back
+restores the dragged spot while the basement keeps its own.
+
+### r161 — the cave, the same way, at half size
+
+```css
+#screenLayer.sc-cave > #screenDragon { top: 5%; bottom: auto; width: 11.5%; }
+```
+
+11.5% is half the 23% default, as asked. At the default he spanned `t 45.7 → 83` and covered both the
+lower-left ore node (`l 17.3 → 23.7, t 81.7 → 93.2`) and `#panLeft`, the way back to the forge
+(`t 47 → 53`). **Every** cave node sits below 52% of the screen, so the top band is free by
+construction, not by luck.
+
+Verified through the real beat: `TUT_FIRE_RUN` with `TUT_STAGE` `to-cave`, `goScreen('cave')` reaches
+`cave-pick` and speaks D65. Dragon `l 1 → 12.5, t 5 → 23.7`; bubble `l 12.4 → 40.7, t 2.4 → 17.4`.
+Neither touches any of the five nodes or `#panLeft`.
+
+Per-screen positions now stand at: counter `left 1%, bottom 17%, 23%` (the default), basement
+`top 5%, 20%`, cave `top 5%, 11.5%`.
+
+### r162 — the day transition
+
+Going to bed now fades the whole frame to black, names the day, and fades back.
+
+`#dayCard` is `inset: 0` inside `#frame` at `z-index: 1400`, above the toast (1200) and the modals
+(1000), so it covers the inventory rail and the HUD as well as the board — the entire screen, not
+just the scene. While it is up it takes pointer events, so nothing underneath can be clicked.
+
+`dayTransition(n, mid)` runs: fade in 550ms (the text follows 200ms behind), `mid()` at 610ms,
+fade out starting at 1550ms, card removed at 2140ms. **`mid()` is the work** — the day number, the
+fresh cave seams, the screen change — so the player never sees the screen change under them.
+
+Two things worth keeping:
+
+- The reflow between `.on` (which sets `display: flex`) and `.lit` is forced with `void c.offsetWidth`,
+  **not** `requestAnimationFrame`. rAF is frozen while the tab is hidden; that is what left the r154
+  toast standing still. Note the CSS transition itself is also frozen while hidden, so in a hidden
+  pane the card is present but stays at opacity 0 — the timers still run and the day still turns.
+- A second press while it is fading is **ignored**. The first draft ran `mid()` bare in that case,
+  which advanced the day a second time under the black and dropped the tutorial out of the bedroom.
+
+`confirmEndDay()` is the **only** place a day changes — `dayNum` is written nowhere else but
+`loadState()` and the new-game reset — so "every day transition" is this one call site today. The
+day-advancing half now lives in `advanceDay(day)`, which is what `mid()` calls.
+
+Verified: from the bedroom with `TUT_STAGE` `bed`, one press leaves day 2, screen `bedroom`, stage
+`day2-forge` and `#panDown` blinking — the r120 behaviour, unchanged — and a second press during the
+fade changes nothing. Two ordinary nights in a row show "Day 3" then "Day 4" and land on the forge.
+The end state renders as a full-frame black with the day centred in Cinzel.
+
+### r164 — the bubble follows the dragon across a screen change
+
+Reported: in the cave, D94 was floating in the middle of the screen with the dragon up in the corner.
+
+`say()` positions the bubble against the dragon **once**, and `goScreen()` never laid it out again.
+That was harmless while the dragon stood in the same place on every screen; r160 and r161 gave him a
+position and a size per screen, so a line spoken before the walk kept the coordinates of the screen it
+was spoken on. Measured: D94 said at the counter sat 1px off his right edge there, and arrived in the
+cave **123px clear of him and 257px below his head**.
+
+`goScreen()` now calls `sayLayout()` after the screen's classes and props are in place, and the
+screen art's `onload` does too, since the props the bubble clamps against move when the plate decodes.
+
+**The sweep, since the ask was "check the rest of the dialogues as well".** One line spoken on each
+surface, measuring the gap from his right edge to the bubble's left:
+
+| surface | line | placement | gap |
+| --- | --- | --- | --- |
+| forge bench | D3 | beside, tail left | -2px |
+| counter | D92 | beside, tail left | -1px |
+| basement | D49 | beside, tail left | -1px |
+| cave | D94b | beside, tail left | -1px |
+| bedroom | D88 | **above**, tail down | n/a |
+
+The bedroom is the one that cannot be on his right, and not for want of trying: the dragon painted on
+the bed spans x 549 to 762 and `#rail` starts at 853, so there are **91px** of room for a 306px
+bubble. It takes the r93 above-and-left placement instead, which puts it directly over his head with
+the tail pointing down at him. Attached, just not to his right. Forcing it right would either run it
+under the inventory rail or slide it back on top of him.
+
+### r165 — a cheat to skip the hammering minigame
+
+`#cheatBar` is a **sibling of `#frame`**, not a child, fixed to the page at `left: 8px, bottom: 8px`.
+It holds one button, SKIP HAMMER. Being outside the frame it costs the game screen nothing, and it
+is reachable while the minigame's `z-1000` modal is up. On a window smaller than 1080x600 it lands on
+the frame's bottom-left corner; at 1200x700 the button sits at y 666 and the frame ends at 650.
+
+```js
+function hmSkip(){
+    const m=document.getElementById('sfHammerModal');
+    if(!m || !m.classList.contains('show')) return false;
+    hmProg=2; hmQuenching=false; tutHm2Clear();
+    finishBlade();
+    return true;
+}
+```
+
+**Why that is the whole cheat.** Striking decides nothing about the result: the shape is picked
+before the minigame opens (`selectShape` sets `hmShape` then calls `openHammer`), and the traits
+belong to the melt, not to the hammering. `hmProg` only gates the mug. So skipping is the end of the
+normal path — the same `finishBlade()` the quench reaches after its 780ms — and every tutorial hook
+inside it (`tutHm2Done`, the fire/gale/bram2 branches) still runs.
+
+`cheatUi()` disables the button whenever the minigame is closed, called from `openHammer()`,
+`hmCancel()` and `finishBlade()`. `hmSkip()` also refuses on its own, so the console route is safe.
+
+Verified through the real path: a melt on the anvil, `selectShape('Longsword')` opens the minigame
+and enables the button; one dispatched click closes the modal, puts a Longsword in the inventory with
+its Swift/Fine trait and `swift_longsword_blade` art, opens the Sword Crafted window and disables the
+button again. `hmSkip()` with the minigame closed returns false and adds nothing.
+
+**Open for the owner:** the bar is unconditional, so the deployed Pages build shows it to anyone who
+opens the link. Gating it on `location.search.indexOf('cheats')>=0` in the `load` handler is a
+one-line change if that matters.
+
+### r166 — the pickaxe stops sliding under the inventory panel
+
+**The rule this build already follows:** a dragged item is drawn by a **ghost parented to `#frame`**,
+not by the element it came from. That is the only way to be over the rail, because the rail is
+`z-index: 45` on `#frame` and `#screenLayer` is `z-index: 40` — so nothing inside a screen, at any
+z-index of its own, can paint over the inventory. `#caveLayer` is `z-index: 41` **inside** that
+context, which buys it nothing against the rail.
+
+`wirePickDrag()` was the one drag that moved the real element instead: the pickaxe already out in the
+cave is a `.cv-pick` inside `#caveLayer`, so the drag that puts it away ran it under the panel.
+Measured before the fix: parked at x 904-1002 with the rail starting at 913, `elementFromPoint` at
+its centre returned an `.ore-slot`.
+
+It now lifts a `.pick-ghost` onto `#frame` on the first movement and hides the real one. The ghost
+copies the live computed width (97.3px in the cave at 1200x700) so nothing appears to resize, and
+both carry `translate(-50%,-50%)`, so the pointer is the same anchor for each. `visibility: hidden`
+rather than `display: none` on the real one matters: its rect stays live, and `pickCheck()` keeps
+reading the head position from it while the drag continues.
+
+**The audit, since the ask was to check the rest.** Every inventory tab's drag, at runtime:
+
+| tab | drag | ghost parent | z | beats rail (45) |
+| --- | --- | --- | --- | --- |
+| INGREDIENTS | `startOreDrag` | `#frame` | 120 | yes |
+| INGOTS | `startIngotDrag` | `#frame` | 120 | yes |
+| SWORDS | `startSwordDrag` / `wireWorkDrag` | `#frame` | 120 | yes |
+| ITEMS & DECOR | `startPickDrag` (out of the bag) | `#frame` | 55 | yes |
+| — | `wirePickDrag` (already in the cave) | **was `#caveLayer`** | 1 | **no — fixed here** |
+
+Note `.pick-ghost` is z 55 against the others’ 120. Both clear the rail, and 55 still clears the say
+bubble (47), so it was left alone.
+
+**On testing this:** `elementFromPoint` is useless on the ghosts — they are all `pointer-events: none`,
+so it reads straight through them to whatever is beneath. Paint order was confirmed instead with a
+probe element given the same parent and z-index, which does hit-test on top of the rail.
+
+### r168 — the second pickaxe (an r166 regression)
+
+Reported: two pickaxes, one in the cave and one stuck over the inventory panel, "after clearing the
+ores".
+
+r166 gave the cave pickaxe a drag ghost on `#frame` and hid the real `.cv-pick`. The ghost is removed
+by the drag's own `end` handler — which assumes the element survives the drag. It does not.
+`mineNode()` ends with:
+
+```js
+if(n.left<=0){ ... stopStriking(); setTimeout(buildCave, 420); ... }
+```
+
+and `buildCave()` does `box.innerHTML=''`. Mining is a **hold**: the player keeps the pickaxe against
+the seam and it swings on a timer. So the moment a seam runs dry, the element under their finger is
+destroyed mid-drag, no `pointerup` ever reaches it, `end` never runs, and the ghost is orphaned on
+`#frame` — where, being above the rail by design, it sits in front of the inventory looking like a
+second pickaxe. "After clearing the ores" is the tell: that is the only thing that calls `buildCave()`
+while a drag is live.
+
+`pickGhostClear()` now owns the cleanup, and `buildCave()` calls it first: the function that breaks
+the drag is the function that tidies up after it. `lift()` and `land()` route through the same call,
+so a stray can never stack, and a `lostpointercapture` listener lands the drag if the capture is lost
+any other way.
+
+**Verified both ways.** Positive: hold a real drag, fire `setTimeout(buildCave, 420)` with no
+`pointerup` — the old element detaches and **0** ghosts remain, with exactly 1 cave pickaxe; a fresh
+drag on the new element still lifts and lands. End to end: a genuinely striking pickaxe (`.striking`
+on) takes a seam 7 → 0, and afterwards 0 stray ghosts, 1 cave pickaxe, 0 shelf pickaxes. Negative
+control: with `pickGhostClear` stubbed out, the same sequence leaves **1 stray ghost and 1 cave
+pickaxe** — the reported screenshot.
+
+**The general shape, worth remembering:** a ghost parented to `#frame` outlives the element that owns
+it. Any drag whose source element can be rebuilt mid-gesture needs a cleanup that does not depend on
+the gesture ending normally. The ore, ingot and sword drags are safe only because nothing rebuilds
+the rail while they are in flight.
+
+### r170 — the sharpening screen moves the dragon to the bottom
+
+```css
+#shSayWrap { left: 50%; top: auto; bottom: 4.1%; transform: translateX(-50%); }
+```
+
+He was at `left 2.2%, top 3.4%`, sharing the top-left corner with `#shMeter` — the bar the whole
+screen is about. He now sits centred between CANCEL and DONE.
+
+The numbers: the gap between the buttons runs 12.66% to 84.03%, and the wrap is 383px (74px icon,
+9px gap, 300px bubble) = 35.5% wide, so centring leaves it at 32.27% to 67.73% with room either side.
+`bottom: 4.1%` puts its lower edge on 95.90%, level with both buttons, which sit at 87.67% to 95.89%.
+
+Verified on the real screen, with a real sword on the wheel and D51 speaking: centred on 50%, inside
+the button gap, bottoms level to within 0.01%, and no overlap with CANCEL, DONE, `#shSword` (bottom
+50.97%) or `#shMeter`.
+
+The Design Desk's `#ddSayWrap` is the same construction and still sits top-left. It was not asked for
+and its screen has a different button layout, so it was left alone.
+
+### r171 — nothing can be parked under the inventory panel any more
+
+**The trap.** `#screenLayer` spans the whole frame, rail included — measured: layer 60→1140, rail
+913→1140. Anything positioned from a raw pointer x can therefore be placed under the panel, and the
+panel is `z-index: 45` over the screen's `40`, so it both hides the thing and swallows the pointer.
+There was no way to get it back.
+
+Two things could fall in. The **dragon**'s drag clamped to the layer, so its right limit was 1140.
+The **pickaxe** was worse: `overCave()` also tested the layer box, so *dropping it on the inventory
+while taking it out of the bag counted as dropping it in the cave* — a click that lost the pickaxe.
+
+`railEdgeX()` is now the single answer to "where does the playable area stop", and four places use it:
+
+- `overCave()` — a point over the panel is not a point in the cave, so that drop simply leaves the
+  pickaxe in the bag.
+- `dropPick()` and `wirePickDrag()` — clamp `PICK_OUT`. The **ghost still follows the finger**, since
+  it is on `#frame` above the panel and carrying it there is how you stow the pickaxe; only the real
+  position is held back.
+- `wireScreenDragon()` — the drag's `maxX`.
+- `screenDragonPlace()` — a remembered `SD_POS` from a build that allowed it.
+
+**And the rescue, which is the part that matters for anyone already stuck.** `layoutCave()` clamps the
+pickaxe on every layout and **writes the corrected value back into `PICK_OUT`**, so a pickaxe parked
+under the panel by an older build, a save, or any path missed above is pulled out and stays out.
+
+Verified, all at 1200x700 with the rail edge at 913:
+
+| case | result |
+| --- | --- |
+| pickaxe placed at x 1050, `buildCave()` | right edge 907, `PICK_OUT.x` rewritten to 73.93 |
+| dragged right to x 1100 | real one stops at 907, ghost follows the finger to 1051 |
+| released there | stowed, tab 3, 0 cave pickaxes, 0 stray ghosts |
+| taken from the bag, released over the panel | stays in the bag, `PICK_OUT` null, nothing in the cave |
+| taken from the bag, released in the cave | places normally |
+| dragon dragged to x 1130 | right edge exactly 913 |
+| `SD_POS` forced to `left: 95%` | rewritten to 56.001%, right edge 913 |
+
+### r172 — the route flashes when an ore lands, on the first craft
+
+Every ore dropped in the smelter extends the route, which is a quiet change on a busy map. On the
+**first** craft each of the four ores now makes its new stretch flash outward.
+
+`pathBurst(seg)` builds the polyline for the **newly added stretch only** (`segPoint(seg, 0 → tPct)`,
+the same sampling `drawRoute()` uses) and drops three copies of it into `#pathBurst`, staggered 0 /
+170 / 340ms. Each swells `stroke-width` 6px → 56px while fading .95 → 0 over 850ms, so it reads as a
+glow radiating off the line rather than one line getting fat. The copies remove themselves, and
+`resetRun()` empties the group.
+
+`#pathBurst` is a `<g>` placed **immediately after `#pathline`** so it stacks exactly as the route
+does, above the same things and below the same things.
+
+**The gate is `TUT_STAGE==='ore'`**, which is the first craft's ore step and nothing else — the second
+craft runs on `regrind-iron`/`regrind-mang`. The call sits in `addSegment()` **before** `tutCheckOre()`,
+which is what moves the stage on when the fourth ore lands, so all four fire.
+
+Verified through the real step: `tutOreStep()` then the four ores the tutorial asks for (iron, iron,
+manganese, manganese). Each drop produced 3 bursts with delays 0/170/340ms, each one's `d` starting
+and ending exactly on its segment's own endpoints, and each cleared itself within 1.7s. The fourth
+fires even though `tutCheckOre()` moves the stage to `bellows` in the same call. Driving the
+animation: 6px/.95 at 0ms, 31.7px/.46 at 300ms, 53.5px/.05 at 700ms, 56px/0 at the end. With
+`TUT_STAGE` set to `regrind-iron`, dropping another ore adds nothing.
+
+### r173 — the Sword Crafted window, and turning the grindstone by its handle
+
+**The window is half again as big.** `.sf-craft-box` takes `transform: scale(1.5)`. A scale rather
+than raising each px value, so art, rows and rule lines stay in proportion instead of drifting apart.
+Measured 344x354 → **516x531**, centred in a 1080x600 frame with 35px above and below.
+
+Two things that could have broken and do not: `flyCraft()` reads the art's rect **after** the
+transform, so the blade still flies to the rail from where it was seen; `sizeFlat()` reads
+`clientWidth`, which is the unscaled layout box, so the sword is laid out at 1x and scaled with
+everything else.
+
+**The grindstone turns by its handle now.** `#grindHot` was `left 22%, top 4%, 56x56%` — over the
+wheel, which is exactly where the ore sits, so the turn hotspot **and** the rotate indicator
+(`tutSpinOn('#grindHot')` centres on it) both sat on top of the ore.
+
+Measured off `anchor_grindwheel.webp` by overlaying a 10% grid on it: the art is 416x350 and is drawn
+`object-fit: fill` into `#stMortar`, so image % and station % are the same number. The crank arm and
+its grip run **x 76..98%, y 25..50%**. The hotspot is now `left 72%, top 20%, 28x34%` — 58x59px at a
+1200x700 window, with a little margin round the art. The indicator's size floor went 30 → 46px, since
+it is measured as 70% of the hotspot and the handle is a smaller target than the wheel was.
+
+**What did not have to change.** Dropping an ore is hit-tested by `overTarget(..., 'mortar')` from the
+LAYOUT table, not by this element, so the ore still goes on the wheel. And `wireGrindWheel()` always
+measured its angle about the **wheel's** centre, not the hotspot's — so grabbing the handle and
+sweeping round the wheel is exactly what the maths already described.
+
+Verified: hotspot 72→100% x, 20→54% y; indicator 65x65px on the handle; the ore orb at 40.8→59.2% x,
+31.1→52.9% y, with **no overlap** against either. Grabbing the handle and sweeping two full turns
+about the wheel centre takes the ore 0 → 1 and the guide retires itself.
+### r175 — gale's approach is kept clear
+
+Reported with a screenshot: one bone cluster sitting in the way on the run to gale.
+
+**Hazards are not authored, they are seeded** — `HAZ_KINDS` rolls positions from `rnd()` — so there
+was no entry to delete. Identified it instead by measurement: gale sits at world **(1037, 649)**, and
+labelling every zone on the board named the circled one as index 52, a `speck` at (976, 565).
+`partsClear()` puts it **89px** off gale. The next-nearest zone is **118px** away.
+
+So the rule is `GALE_CLEAR = 110`: no hazard within 110px of gale. Chosen against that measured gap,
+it removes exactly one zone and touches nothing else. Every trait already gets 70px of clearance;
+gale gets more because the day-2 script sends the player to it.
+
+**Removed after placement, not rejected during it.** A rejection inside the loop `continue`s and the
+next attempt draws the *next* random values, so every zone placed afterwards would shift — reshuffling
+half the board to delete one speck. The post-pass leaves the map exactly as it was, minus that one.
+
+Verified: 70 zones before, **69** after, in both `hazards` and the DOM; the speck at (976,565) gone;
+the island at (1154,748) and the ribbon at (1010,853) still at their own coordinates; the nearest
+zone to gale now 118px.
+
+### r176 — the map controls move to the top right
+
+```css
+.zoom { position: absolute; right: 8px; top: 8px; ... }   /* was bottom: 8px */
+```
+
+Zoom in, zoom out and the fog cheat sat in the bottom-right corner of `#map-wrap`, which is where the
+grindstone bleeds up out of the bench (`#bench` is `overflow: visible` on purpose, so props cross
+zones). The top right is empty: `#panUp` is centred at 47.9..52.1% and `#panRight` does not start
+until 59.1% down.
+
+Verified at 1200x700: the column now spans 96.2..99.1% x, **1.7..19.3%** y, with no overlap against
+`#panUp`, `#panRight` or `#hudToggle`. All three still work — zoom in narrows `view.w`, zoom out
+widens it, and the fog cheat toggles its own class.
+
+### r178 — the bench drags stop at the rail too
+
+r171 clamped the counter dragon and the cave pickaxe, which have their own handlers. The **bench**
+props share one box, `dragBox()`, and it bounded them to `#frame` **plus a 30px bleed** — so the bench
+dragon, the hammer and the mug could all be dragged clean under the inventory panel, which is z-45
+over the bench and swallows the pointer. Reported for the dragon; the other two had the same hole.
+
+`dragBox()` now takes its right edge from `railEdgeX()` (r171's one definition of where the playable
+area stops) and applies **no bleed on that edge** — bleed is for letting a prop hang past the frame,
+and there is nothing good on the far side of the rail to hang into. The other three edges are
+untouched: the dragon still bleeds 30px past the frame on the left, as before.
+
+**The mug needed more than that, twice.** It is rotated, so its painted box is wider than its layout
+box (78px against 57px) and clamping on `offsetWidth` let it slide 16px under the rail. Averaging the
+two widths, which is exact for a rotation about the centre, still left 6px — its origin is off-centre.
+The version that holds does not model the transform at all: it **measures** the overhang,
+`rr.right - (b.left + el.offsetLeft + el.offsetWidth)`, at the moment of the drag, and guards against
+an unexpected `offsetParent` by falling back to 0.
+
+Verified mid-drag, before any snap-home, with the rail edge at 913: dragon **912.7**, hammer
+**913.5**, mug **913.0**. Left bleed still 30px past the frame. The clamp only moves the far-right
+limit, so nothing that matters to play changes — the anvil, the blade and the furnace are all well
+left of it.
+
+### r185 — which stages the frame loop keeps pointing for
+
+Reported: the bellows kept glowing after the gate was opened.
+
+`updateHintArrow()` ran the nudge for one hardcoded set of stages:
+
+```js
+if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record') tutNudge();
+```
+
+**r177 and r184 both added branches to `tutNudgeApply()` without adding their stage here.** So
+`fire-heat1`, `cave-pick` and `record-close` had their pointer set once, by whatever called
+`tutNudge()` directly, and then never revised. The fire run's bellows glow was raised while the metal
+was cold and nothing ever ran the branch again to take it down.
+
+The list is now named, `TUT_TICK_STAGES`, so the next branch is harder to forget.
+
+**How the tests missed it, which matters more than the fix.** Both rounds verified by calling
+`tutNudge(true)` by hand, which proves the branch is correct but says nothing about whether anything
+**runs** it. The verification below drives real `tick()` frames and nothing else — that is the only
+check that would have caught this, and it is the one to use for anything the loop is meant to
+maintain.
+
+Verified by the frame loop alone. Fire heat step: heating → bellows glowing, nothing else; heat
+reached → **glow gone**, `#furnaceGate` blinking; real `openGate()` → `#orb → anvil`, no glow, no
+blink; `placeOnAnvil()` → `#hammerTool → anvil`. Cave: not lit on arrival with the wrong tab open,
+lit after `invTab(3)` plus six frames. Record: the blink wiped behind the guide's back is back after
+six frames.
+
+### r187 — one arrow at a time
+
+`#hintArrow`, the white idle nudge, now stands down whenever `TUT_ARROW` is set. Two arrows pointing
+the same way read as two instructions, and the scripted one is the one that knows which step this is.
+
+The rule is deliberately narrow: **`TUT_ARROW` only**, not any tutorial pointer. A glow or a blink
+marks a thing to press and does not compete with an arrow that shows a drag, so those still coexist.
+
+r186's `fire-spot` line still earns its place, and the table below shows why: at D70 `TUT_ARROW` is
+empty, so this new rule would not have covered it and the white arrow would have been the only arrow
+on screen.
+
+| state | `TUT_ARROW` | white arrow |
+| --- | --- | --- |
+| idle, no script | — | **shown** |
+| tutorial arrow up | `#orb → furnace` | hidden |
+| tutorial arrow cleared | — | **shown** again |
+| D70 (`fire-spot`) | — | hidden, by r186 |
+| D71, after `tutFireBack()` | `#orb → furnace` | hidden |
+
+Verified with real `tick()` frames and a 9-second idle in the state that wants the nudge: metal
+`onAnvil`, sword at the route end, nothing banked.

@@ -77,6 +77,15 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 @keyframes sfRotSpin { 0%,28% { transform: rotate(0deg); } 58%,100% { transform: rotate(-90deg); } }
 body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; display: flex; align-items: safe center; justify-content: safe center; overflow: auto; padding: 0; overscroll-behavior: none; }   /* r134: "safe" centring keeps the overflow reachable when the window is under 1080px (a plain centred flex item hides its left edge with no way to scroll to it); overscroll-behavior stops Chrome Android pull-to-refresh firing from a drag that starts near the top */
 
+/* r165: the cheat bar. Fixed to the PAGE and a sibling of #frame, never a child, so it lives in the
+   margin around the game and nothing on the game screen has to make room for it. On a window
+   smaller than 1080x600 it lands on the frame's corner - it is a cheat, so that is a fair trade. */
+#cheatBar { position: fixed; left: 8px; bottom: 8px; z-index: 5; display: flex; gap: 6px; }
+#cheatBar button { font: 700 10px/1 'Cinzel', serif; letter-spacing: .6px; color: #d8c79a;
+    background: rgba(20,14,7,.9); border: 1px solid #6a5636; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+#cheatBar button:disabled { opacity: .35; cursor: default; }
+#cheatBar button:not(:disabled):hover { color: #ffe08a; border-color: #c8a84b; }
+
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
 /* SKELETON: a CSS grid of named zones (hud / map / bench). Two grid-template-areas — portrait
    (default) and landscape (#frame.landscape) — flip the whole layout. Props are placed INSIDE
@@ -207,7 +216,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: inset 0 0 46px rgba(48,30,10,.5); }   /* r11b: dropped the strong bottom inset band — it drew a dark line across the whole map/bench boundary */
 #board { width: 100%; height: 100%; display: block; touch-action: none; }
 /* r16: the painted territory art (#mapArt) was removed - the board is now the flat beige base rect, so traits/hazards can be placed truthfully instead of being hidden behind a picture. */
-.zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
+/* r176: the map controls sit at the TOP right. At the bottom they shared that corner with the
+   grindstone, which bleeds up out of the bench (#bench is overflow:visible on purpose). The top
+   right is empty: #panUp is centred at 47.9..52.1% and #panRight starts at 59.1% down. */
+.zoom { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
 .zoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid #6a5636; background: rgba(25,20,12,0.8); color: #f0e8d6; font-size: 18px; font-weight: bold; cursor: pointer; line-height: 1; }
 .map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
 
@@ -280,7 +292,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    It had been display:none since r10, when the molten pot was baked into the re-cut anchor_furnace.png,
    so it drew nothing — the glowing pot you see on the furnace crown is part of the furnace art. */
 /* ---- station JUICE (Phase B feel) ---- */
-#grindHot { position: absolute; left: 22%; top: 4%; width: 56%; height: 56%; z-index: 6; cursor: pointer; }
+/* r173: the crank HANDLE, not the wheel. Measured off anchor_grindwheel.webp (416x350, drawn with
+   object-fit:fill so image % == station %): the handle arm and its grip run x 76..98%, y 25..50%.
+   The old box covered the wheel, which is where the ORE sits - so the turn hotspot and the rotate
+   indicator both sat on top of it. Dropping an ore is unaffected: that is hit-tested by
+   overTarget(...,'mortar') from the LAYOUT table, not by this element. Turning still measures its
+   angle about the wheel's centre, which is what 'hold the handle and turn' means. */
+#grindHot { position: absolute; left: 72%; top: 20%; width: 28%; height: 34%; z-index: 6; cursor: pointer; }
 .mortar.grinding { animation: grindShake .11s linear infinite; }   /* the wheel judders as it grinds */
 @keyframes grindShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-1px,.5px); } 75% { transform: translate(1px,-.5px); } }
 /* furnace heat glow — opacity is driven live from the heat gauge (0→1) */
@@ -379,11 +397,30 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes fakeBlink { 0%,100% { opacity: 1; } 50% { opacity: .18; } }
 #tutDim { position: absolute; inset: 0; z-index: 45; background: rgba(6,4,2,.74); display: none; }
 #tutDim.on { display: block; }
+/* r173: D16 is spoken INSIDE the hammering minigame, whose modal is z-1000, so the dim has to
+   clear it there. It must NOT do that on the board: D8 and D9 are spoken with no modal open and
+   the bench bubble sits at z-46, which a deep dim would bury. Hence the class, not a new value. */
+#tutDim.deep { z-index: 1050; }
+/* the line the world stopped for, lifted clear of the dim and ringed */
+.tut-lit { z-index: 1101 !important; animation: tutLit 1.25s ease-in-out infinite; }
+@keyframes tutLit {
+    0%,100% { box-shadow: 0 0 0 3px rgba(255,214,140,.7), 0 0 16px 5px rgba(255,170,60,.3), 0 10px 22px rgba(0,0,0,.55); }
+    50%     { box-shadow: 0 0 0 3px rgba(255,241,205,1), 0 0 32px 13px rgba(255,180,70,.75), 0 10px 22px rgba(0,0,0,.55); }
+}
 #tutArrow { position: absolute; inset: 0; z-index: 70; pointer-events: none; display: none; overflow: visible; }
 #tutArrow.on { display: block; }
 #tutArrow.above { z-index: 1090; }   /* r102: over the hammer modal, just under the bubble */
 /* r111/r113: the dragon spots a trait through the fog. The ring pulses over the fog; the trait
    itself stays hidden until the sword actually reaches it. */
+/* r172: the first craft only. Every ore that lands in the smelter extends the route, which is a
+   quiet change on a busy map - so the new stretch flashes outward from itself. Three staggered
+   copies read as a glow radiating off the line rather than one line getting fat. */
+#pathBurst path { fill: none; stroke: #ffd27a; stroke-linecap: round; opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255,190,80,.9)); animation: pathBurst .85s ease-out forwards; }
+@keyframes pathBurst {
+    0%   { stroke-width: 6;  opacity: .95; }
+    100% { stroke-width: 56; opacity: 0; }
+}
 @keyframes tutTraitPulse { 0%,100% { opacity:.30; transform:scale(1); } 50% { opacity:1; transform:scale(1.30); } }
 #tutSpot circle { animation: tutTraitPulse 1.1s ease-in-out infinite;
     transform-box: fill-box; transform-origin: center;
@@ -417,7 +454,29 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #dragonSay p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; }
 #dragonSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px;
     letter-spacing: .7px; color: #8a6a34; margin-bottom: 5px; }
-#dragonSay .go { position: absolute; right: 9px; bottom: 3px; font-size: 8px; color: #8a7350; }
+/* r174: the prompt is a BUTTON below the line now, not grey text tucked in the corner, and it
+   carries an icon: a double play for 'there is more', an X for 'this closes it'. The three dragon
+   boxes share the look; .cs-bram-dlg (the customer's own box) is left as it was. */
+.say-go, #dragonSay .go, #screenDragonSay .go, .tut-iconsay .go {
+    position: absolute; right: 8px; bottom: -36px; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 26px; padding: 0; color: #f3e7c6;
+    background: linear-gradient(180deg,#7a6038,#54411f); border: 2px solid #3a2c14;
+    border-radius: 7px; box-shadow: 0 3px 8px rgba(0,0,0,.5); cursor: pointer; }
+.say-go:hover, #dragonSay .go:hover, #screenDragonSay .go:hover, .tut-iconsay .go:hover {
+    background: linear-gradient(180deg,#9a7a46,#6d5528); border-color: #c8a84b; }
+.say-go svg { width: 15px; height: 15px; display: block; }
+.say-go.none { display: none; }   /* a question is pending: answer it, do not skip past it */
+/* r184: "click HERE". Deliberately additive - brightness and shadow only, no background of its
+   own - so one class can light the go button, a paper SELL button, a response box and the two
+   answer buttons, each of which has a different base. The inset half cannot be clipped by an
+   ancestor, which is what caught r163 and r167. */
+.tut-lit-ctl { animation: tutLitCtl 1.15s ease-in-out infinite; }
+@keyframes tutLitCtl {
+    0%,100% { filter: none; box-shadow: 0 0 0 0 rgba(255,170,60,0), inset 0 0 0 0 rgba(255,190,90,0); }
+    50%     { filter: brightness(1.45);
+              box-shadow: 0 0 18px 7px rgba(255,170,60,.95), inset 0 0 15px 4px rgba(255,190,90,.6); }
+}
 /* the tail: two stacked triangles, the back one the border colour, so the join reads as one shape */
 #dragonSay .tail, #dragonSay .tail::after { position: absolute; width: 0; height: 0;
     border-style: solid; border-color: transparent; }
@@ -649,7 +708,27 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-acquire-body .cnt { font-size: 11px; color: #6b573c; margin-top: 6px; }
 /* r90 - the Sword Crafted window. Same shell as the acquire popup, with the blade drawn by the same
    flatArt/sizeFlat pair the racks use, so one sword is rendered one way everywhere. */
-.sf-craft-box { max-width: 344px; }
+/* r173: half again as big. A scale keeps every part in proportion - art, rows, rule lines - where
+   raising each px value would drift. Measured 344x354, so 516x531 inside a 1080x600 frame, and
+   flyCraft() reads the art's rect AFTER the transform, so the blade still flies from where it
+   was seen. sizeFlat() reads clientWidth, which is the unscaled box, so the art scales with it. */
+.sf-craft-box { max-width: 344px; transform: scale(1.5); }
+/* r190: the three alignment tiers, shown once, right after D97 explains what aligning is for.
+   Three equal columns rather than a fixed width each, so the row stays centred whatever the art is. */
+/* r193: a story illustration, shown full-bleed inside its own window. Built generic - the art, the
+   alt text and what happens on close are all arguments - because there will be more of these. */
+.illus-box { max-width: 600px; padding: 12px; }
+.illus-box img { width: 100%; height: auto; display: block; border-radius: 7px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+.tier-box { max-width: 460px; }
+.tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 2px; }
+.tier-one { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tier-one img { width: 100%; max-width: 124px; height: auto; display: block;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+.tier-one span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: .6px; }
+.tier-weak span { color: #c0a48a; }
+.tier-fine span { color: #49b6ff; }
+.tier-epic span { color: #ffcf3a; }
 /* pointer-events: the part images are full-canvas squares with the blade on the diagonal, so their
    transparent corners reach over the title and the rows - and would swallow clicks meant for them. */
 .cr-art, .cr-art * { pointer-events: none; }
@@ -687,6 +766,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes hmJolt  { 0%,100% { transform: translate(0,0); } 35% { transform: translate(0,5px); } 70% { transform: translate(0,-2px); } }
 @keyframes hmChill { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-6px,0); } 75% { transform: translate(6px,0); } }
 /* the sphere is the crafting screen's orb, both of its states stacked: .hot fades in with the heat */
+/* r181: D15's swing hint. Drawn inside #hmScene - the shared #tutArrow is z-70 and this modal is
+   z-1000, so an arrow out there is simply invisible in here. Heads are PATHS, not markers: r151
+   learned that a marker referenced from a display:none SVG never paints. */
+#hmSwing { position: absolute; z-index: 9; display: none; pointer-events: none; overflow: visible;
+    /* the tight shadow is an OUTLINE: the upper head lands on the pale hammer and was lost in it */
+    filter: drop-shadow(0 0 3px rgba(22,13,4,.95)) drop-shadow(0 3px 7px rgba(0,0,0,.8)); }
+#hmSwing.on { display: block; }
+#hmSwing path { fill: #fff6df; stroke: none; }
+#hmSwing path.shaft { fill: none; stroke: #fff6df; stroke-linecap: round; }
+#hmSwingG { animation: hmSwingMove 1.15s ease-in-out infinite; }
+@keyframes hmSwingMove {
+    0%,100% { transform: translate(calc(var(--sx) * -1px), calc(var(--sy) * -1px)); }
+    50%     { transform: translate(calc(var(--sx) * 1px), calc(var(--sy) * 1px)); }
+}
 #hmOrb { border-radius: 50%; }
 #hmOrb > div { position: absolute; inset: 0; border-radius: 50%; }
 #hmOrb .cold { background: radial-gradient(circle at 38% 32%, #d9d2c6, #6f6a62 52%, #2a2724 100%);
@@ -834,6 +927,34 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: rgba(0,0,0,.5); overflow: hidden; }
 #skillBtn .sk-xp i { display: block; height: 100%; width: 0; border-radius: 2px;
     background: linear-gradient(90deg,#a8842a,#ffe08a); transition: width .35s ease-out; }
+/* r163/r167: D91 asks the player to open the skill tree, and tutDay2Skill() has blinked this button
+   since r122. #rail is overflow:hidden and the button sits 9px from its right edge, so the plain
+   .tut-blink halo is cut off exactly where the eye would catch it. r163 answered that with an
+   inset glow and a brighter face, which computes correctly but still read as nothing in motion.
+   r167 goes the whole way and swaps the FACE - the same treatment #panPad's tutExitBlink already
+   gives the screen exits, so this is the build's own vocabulary, not a new one. The children carry
+   their own colour, so .sk-lv gets a matching pass or it stays pale on a bright button.
+   Declared BEFORE .levelled on purpose: equal specificity, so source order decides, and the
+   level-up flash should win for its 1.2s and hand the guide back after. */
+/* r188: a BLINK, not a pulse. r167's curve eased through its bright frame, so the lit state was an
+   instant at the top of a slow swell and the button read as merely warm. These keyframes HOLD each
+   state - dark 0..38%, lit 46..88% - and cross between them quickly, which is what 'blinking' looks
+   like. `linear` matters: ease-in-out would soften the very edges this depends on. */
+#skillBtn.tut-blink { animation: tutBlinkSkill 1.05s linear infinite; }
+#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.05s linear infinite; }
+@keyframes tutBlinkSkill {
+    0%,38%   { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
+               box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
+    46%,88%  { background: linear-gradient(180deg,#ffe8bb,#ffb43e); border-color: #fff8e6; color: #2a1d0c;
+               box-shadow: inset 0 0 18px 5px rgba(255,140,20,.5), 0 0 20px 8px rgba(255,170,60,1); }
+    96%,100% { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
+               box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
+}
+@keyframes tutBlinkSkillTxt {
+    0%,38%   { color: #e8cf92; }
+    46%,88%  { color: #3a2a10; }
+    96%,100% { color: #e8cf92; }
+}
 #skillBtn.levelled { animation: skLvl 1.2s ease-out; }
 @keyframes skLvl { 0%,100% { box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
     30% { box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 3px rgba(142,240,160,.85); } }
@@ -877,6 +998,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     cursor: pointer; font-size: 11px; line-height: 1; color: #f7edd4;
     background: linear-gradient(180deg,#6d5532,#493720); border: 2px solid #241a0c; border-radius: 5px;
     box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
+/* r177: the same face swap the skill button (r167) and the tabs got, and for the same reason -
+   #frame is overflow:hidden and this button sits 6px from its left edge, so a .tut-blink halo
+   (15px blur, 5px spread) is cut off on that side. Swapping the face cannot be clipped. */
+#hudToggle.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }
 #hudToggle:active { transform: scale(.94); }
 #hud.collapsed #bladePanel { display: none; }
 /* r34 — map pan arrows. The pad covers the LEFT SECTION only (frame minus the rail), so the arrows sit
@@ -914,7 +1039,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
 .sw-ghost.ingot .inv-orb { width: 100%; }
 #stAnvil.drop-hot .anvil { filter: drop-shadow(0 0 12px rgba(255,190,90,.95)) brightness(1.12); }
-#sfToast { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); z-index: 60; display: none;
+/* r162: the day transition. The whole frame goes black, names the day and comes back, and the
+   work that advances the day runs at the darkest point, so the screen never changes in view. */
+#dayCard { position: absolute; inset: 0; z-index: 1400; display: none; align-items: center; justify-content: center;
+    background: #000; opacity: 0; transition: opacity .55s ease; pointer-events: none; }
+#dayCard.on { display: flex; pointer-events: auto; }   /* and it swallows every click while it is up */
+#dayCard.lit { opacity: 1; }
+#dayCard span { font-family: 'Cinzel', serif; font-weight: 900; font-size: 44px; letter-spacing: 3px;
+    color: #f0dfae; text-shadow: 0 2px 18px rgba(0,0,0,.9); opacity: 0; transition: opacity .5s ease .2s; }
+#dayCard.lit span { opacity: 1; }
+#sfToast { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 1200; display: none;   /* r154: the very top, and over the z-1100 bubble */
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; color: #ffe08a; white-space: nowrap;
     background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 10px; padding: 8px 16px;
     box-shadow: 0 6px 20px rgba(0,0,0,.6); }
@@ -941,6 +1075,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenLayer.tut-counter > #screenDragon { display: block; }
 #screenLayer.tut-dragon > #screenDragon { display: block; }   /* r103: and onto the basement */
 #screenDragon { position: absolute; left: 1%; bottom: 17%; width: 23%;   /* r146: bottom-left. r150: lifted to clear the ledger button, which now sits under him */ z-index: 46; display: none; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+/* r160: on the basement screen he goes to the TOP. Bottom-left puts him squarely over the assembly
+   bench - which IS the design-desk hotspot - and his bubble then reaches across the sharpening
+   wheel, so both of the things that screen is for sit under him. */
+#screenLayer.sc-basement > #screenDragon { top: 5%; bottom: auto; width: 20%; }
+/* r161: the cave the same way, at half size. Bottom-left he covered the lower-left ore node and
+   the #panLeft way out; every node sits below 52% of the screen, so the top band is free. */
+#screenLayer.sc-cave > #screenDragon { top: 5%; bottom: auto; width: 11.5%; }
 #screenDragon.dragging { cursor: grabbing; }
 #screenDragon .dragoncrop { width: 100%; }
 #screenDragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
@@ -948,7 +1089,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #screenDragonSay.show { display: block; animation: sayIn .22s ease-out; }
 #screenDragonSay p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; }
 #screenDragonSay .who { display: block; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px; letter-spacing: .7px; color: #8a6a34; margin-bottom: 4px; }
-#screenDragonSay .go { position: absolute; right: 9px; bottom: 3px; font-size: 8px; color: #8a7350; }
 #screenDragonSay .tail, #screenDragonSay .tail::after { position: absolute; width: 0; height: 0; border-style: solid; border-color: transparent; }
 #screenDragonSay .tail { left: 17px; bottom: -16px; border-width: 16px 14px 0 0; border-top-color: #6a5636; }
 #screenDragonSay .tail::after { content: ''; left: -1px; bottom: 3.5px; border-width: 13px 11px 0 0; border-top-color: #f3e7c6; }
@@ -1254,9 +1394,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: 0 10px 22px rgba(0,0,0,.55); }
 .tut-iconsay .who { display: block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 9px;
     letter-spacing: .12em; color: #8a6d3f; margin-bottom: 3px; }
-.tut-iconsay p { margin: 0; font-size: 12px; line-height: 1.34; color: #3a2b18; }
-.tut-iconsay .go { position: absolute; right: 10px; bottom: 3px; font-size: 8px; color: #8a6d3f; }
-#shSayWrap { left: 2.2%; top: 3.4%; }
+/* r174: 17px, the same as #dragonSay, #screenDragonSay and the customer's box. This class serves
+   the sharpening screen AND the design desk; they are the same construction, so both move. */
+.tut-iconsay p { margin: 0; font-size: 17px; line-height: 1.4; color: #3a2b18; }
+/* r170: the sharpening screen puts him at the BOTTOM, centred between CANCEL and DONE. Top-left he
+   shared that corner with #shMeter, the bar the whole screen is about. The gap between the two
+   buttons is 12.66%..84.03% and he is 383px wide, so centring fits with room to spare; bottom 4.1%
+   puts his lower edge on 95.9%, level with both buttons. */
+#shSayWrap { left: 50%; top: auto; bottom: 10.2%; transform: translateX(-50%); }   /* r174: +36px for the go button, which now sits level with the two buttons */
 #ddSayWrap { left: 2.2%; top: 3.4%; z-index: 12; }
 #shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
     background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
@@ -1445,9 +1590,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
-/* r153: the tutorial wants something out of a tab the player is not looking at. Same halo the
-   screen exits use - a tab is a rectangular button, so a box-shadow is the right shape here. */
-.matTab.tut-tab { animation: tutBlinkHalo 1s ease-in-out infinite; }
+/* r153: the tutorial wants something out of a tab the player is not looking at.
+   r167: the same face swap the skill button just got, and for the same reason - #rail is
+   overflow:hidden and ITEMS & DECOR, the tab this round asks for, sits 9px from its right edge,
+   so a halo alone is cut off on the side the eye is on. Swapping the face cannot be clipped. */
+.matTab.tut-tab { animation: tutBlinkTab 1.1s ease-in-out infinite; }
+@keyframes tutBlinkTab {
+    0%,100% { background: linear-gradient(180deg,#4c3a21,#2c2013); border-color: #241a0c; color: #e8d3a4;
+              box-shadow: 0 0 0 0 rgba(255,170,60,0); }
+    50%     { background: linear-gradient(180deg,#ffe0a4,#ffb43e); border-color: #fff3d4; color: #2a1d0c;
+              box-shadow: inset 0 0 12px 3px rgba(255,140,20,.45), 0 0 15px 5px rgba(255,170,60,.9); }
+}
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
@@ -1496,7 +1649,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
             <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
-        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go" id="screenDragonSayGo">tap to continue</span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
+        </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go say-go" id="screenDragonSayGo"></span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
         <div class="eod-box">
@@ -1516,14 +1669,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="sh-spin" src="assets/forge/grindstone_spin.webp" alt="">
         </div>
         <div id="shFx"></div>
-        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go" id="shSayGo">tap to continue</span></div></div>
+        <div id="shSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="shSayText"></p><span class="go say-go" id="shSayGo"></span></div></div>
         <div id="shSword"><div class="sh-art" id="shArt"></div></div>
         <button class="sh-btn sh-cancel" type="button" onclick="closeSharpen(true)">CANCEL</button>
         <button class="sh-btn sh-done"   type="button" onclick="closeSharpen(false)">DONE</button>
     </div>
     <!-- ===== Design Desk (r52) - tiles are built by buildDesign() ===== -->
     <div id="sfDesignModal" class="sf-modal">
-        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go" id="ddSayGo">tap to continue</span></div></div>
+        <div id="ddSayWrap" class="tut-iconsay" onclick="sayNext()"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="ddSayText"></p><span class="go say-go" id="ddSayGo"></span></div></div>
         <div id="ddStage">
             <div class="dd-swordbox"><div class="dd-sword" id="ddSword"></div></div>
         </div>
@@ -1607,6 +1760,25 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <small>Sword Forge is played in landscape.</small>
     </div>
     <!-- ===== r129: the gift Bram leaves behind ===== -->
+    <!-- r190: the tier legend. Colours on the labels are tierColor()'s, so the window and every
+         tier readout in the game agree. -->
+    <div id="sfIllusModal" class="sf-modal">   <!-- r193 -->
+        <div class="sf-modal-box illus-box">
+            <img id="sfIllusArt" src="" alt="">
+            <div class="sf-continue" onclick="closeIllus()">close</div>
+        </div>
+    </div>
+    <div id="sfTierModal" class="sf-modal">
+        <div class="sf-modal-box tier-box">
+            <h3 class="sf-modal-h">Alignment for Tiers</h3>
+            <div class="tier-row">
+                <div class="tier-one tier-weak"><img src="assets/ui/weak.webp" alt="Weak"><span>WEAK</span></div>
+                <div class="tier-one tier-fine"><img src="assets/ui/fine.webp" alt="Fine"><span>FINE</span></div>
+                <div class="tier-one tier-epic"><img src="assets/ui/epic.webp" alt="Epic"><span>EPIC</span></div>
+            </div>
+            <div class="sf-continue" onclick="closeTiers()">close</div>
+        </div>
+    </div>
     <div id="sfGiftModal" class="sf-modal">
         <div class="sf-modal-box gift-box">
             <h3 class="sf-modal-h">A gift from Bram</h3>
@@ -1653,6 +1825,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <path d="M0,0 L10,5 L0,10 Z" fill="#ffd27a"></path></marker></defs>
         <path id="tutPath" marker-end="url(#tutHead)"></path>
     </svg>
+    <div id="dayCard"><span></span></div>
     <div id="sfToast"></div>
     <div id="panPad">
         <button id="panUp"    type="button" title="Pan up"    aria-label="Pan up">▲</button>
@@ -1709,6 +1882,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <path id="pathpreviewsolid" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" opacity="0.78" style="display:none;"/>
             <path id="fakepath" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
             <path id="pathline" d="" fill="none" stroke="#e0392b" stroke-width="6" stroke-linecap="round" style="display:none;"/>
+            <g id="pathBurst"></g>   <!-- r172: the ore-landed flash, beside #pathline so it stacks with it -->
             <!-- r113: the dragon spots a trait THROUGH the fog. Above #fog on purpose: a glow that
                  had to clear the fog to be visible would give the trait away, which is the thing
                  the owner did not want. -->
@@ -1790,7 +1964,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
         <!-- r75: the dragon's line, placed against #dragon by sayLayout() -->
         <div id="sayChoices"></div>
-        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go" id="dragonSayGo">tap to continue</span><span class="tail"></span></div>
+        <div id="dragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="dragonSayText"></p><span class="go say-go" id="dragonSayGo"></span><span class="tail"></span></div>
 
         <!-- crafting orb: flows ore → dull sphere → glowing orb through the stations -->
         <div id="orb"><img id="orb-ore" alt=""><div id="orb-sphere"></div></div>
@@ -1872,6 +2046,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.webp" alt="">
             <div id="hmGrip" title="drag the hammer"></div>
             <div id="hmAimPad" title="hold the metal so the dragon heats it"></div>
+            <svg id="hmSwing" aria-hidden="true"><g id="hmSwingG"></g></svg>   <!-- r181: the back-and-forth swing hint -->
             <div id="hmMug" title="splash the shaped blade to finish"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div>
             <div id="hmFx"></div>
             <div class="hm-hud">
@@ -1962,6 +2137,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </div>
 
 </div>
+
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button></div>
 
 <script>
 // ============================================================
@@ -2447,6 +2624,7 @@ function sellCounter(){
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
+    tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
@@ -2459,10 +2637,23 @@ function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
     COUNTER=sw; refreshCounter();
     toast('&#9876;&#65039; ' + sw.shape + ' on the counter &mdash; ' + swordPrice(sw) + 'g');
-    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24');
-        tutArrow(null,null); setTimeout(()=>tutExit('#csPanel .cs-sell'), 0);   /* r148 */ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
+    /* r159: the drag has been done, so the pointer asking for it goes. Every scripted sale draws
+       the same sword-to-counter arrow (sell2, sell3, bram2-sell2, d2-gale-sell2), and only Bram's
+       branch below used to retire it - the rest leaned on noteAction() wiping the arrow on the
+       drop, which r157 stopped doing. Clearing it here covers all of them. */
+    tutArrow(null,null);
+    setTimeout(()=>tutSellLit(true), 0);   /* r184: the drag is done, so the thing to press now says so */
+    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24'); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
 }
-function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
+/* r184: SELL and the response box, lit together once a sword is sitting on the counter during a
+   guided sale. Every beat that re-speaks D23 ends here, and so does Bram's own. */
+function tutSellLit(on){
+    ['#csPanel .cs-sell', '#csPanel > .cs-resp'].forEach(sel=>{
+        const el=document.querySelector(sel);
+        if(el) el.classList.toggle('tut-lit-ctl', !!on && !el.disabled);
+    });
+}
+function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; tutSellLit(false);   /* r184 */ INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }
 function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); sellLabel(); }   /* r103 */
 
@@ -2505,7 +2696,10 @@ function showZone(on,hot){ const z=document.getElementById('workZone'); if(!z) r
 let TOAST_T=null;
 function toast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) return;
     t.innerHTML=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-    clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>t.classList.remove('show'), ms||1900); }
+    if(typeof sayLayout==='function') sayLayout();   /* r154: synchronous - the class is already applied, so the toast has its box, and rAF is throttled in a hidden tab */
+    clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>{ t.classList.remove('show');
+        if(typeof sayLayout==='function') sayLayout();   /* r154: and let it come back */
+    }, ms||1900); }
 function refreshWork(){ if(SF_SCREEN==='basement') buildScreenProps('basement'); if(INV_TAB===2) buildShelf(); }
 function placeWork(sw){
     if(WORK) INV.swords.push(WORK);                     // owner's call: a second sword SWAPS
@@ -2659,8 +2853,15 @@ function rollCaveNodes(){
     CAVE_NODES=CAVE_METALS.map((m,i)=>({ metal:m, spot:idx[i], left:NODE_YIELD }));
 }
 function oreName(id){ return ORE_BY[id] ? ORE_BY[id].name : id; }
+/* r168: the r166 drag ghost belongs to one .cv-pick element. mineNode() calls buildCave() 420ms
+   after a seam is worked out, which DESTROYS that element while the player is still holding it -
+   no pointerup ever reaches it, so the ghost was orphaned on #frame and sat there looking like a
+   second pickaxe in the inventory. buildCave() is the thing that breaks the drag, so it is the
+   thing that clears up after it. */
+function pickGhostClear(){ document.querySelectorAll('#frame > .pick-ghost').forEach(g=>g.remove()); }
 function buildCave(){
     const box=document.getElementById('caveLayer'); if(!box) return;
+    pickGhostClear();   /* r168 */
     box.innerHTML=''; box.classList.remove('armed');
     if(SF_SCREEN!=='cave') return;
     CAVE_NODES.forEach(n=>{ if(n.left<=0) return;
@@ -2684,8 +2885,15 @@ function layoutCave(){
         if(el._node){ const sp=CAVE_SPOTS[el._node.spot], w=NODE_W/100*b.aw;
             el.style.width=w.toFixed(1)+'px'; el.style.height=w.toFixed(1)+'px';
             el.style.left=(ax+sp.x/100*b.aw).toFixed(1)+'px'; el.style.top=(ay+sp.y/100*b.ah).toFixed(1)+'px'; }
-        else if(el._pick && PICK_OUT){ el.style.width=(PICK_W/100*b.aw).toFixed(1)+'px';
-            el.style.left=(ax+PICK_OUT.x/100*b.aw).toFixed(1)+'px'; el.style.top=(ay+PICK_OUT.y/100*b.ah).toFixed(1)+'px'; } });
+        else if(el._pick && PICK_OUT){ const pw=PICK_W/100*b.aw;
+            el.style.width=pw.toFixed(1)+'px';
+            /* r171: and the rescue. A pickaxe already parked under the panel - from an older build,
+               a save, or any path missed above - is pulled back to the edge and PICK_OUT rewritten,
+               so it stays rescued. The art is translate(-50%,-50%), hence the half width. */
+            let x=ax+PICK_OUT.x/100*b.aw;
+            const lim=railEdgeX()-b.lr.left-pw*0.5-6;
+            if(isFinite(lim) && x>lim){ x=lim; PICK_OUT.x=(x-ax)/b.aw*100; }
+            el.style.left=x.toFixed(1)+'px'; el.style.top=(ay+PICK_OUT.y/100*b.ah).toFixed(1)+'px'; } });
     pickCheck();                                           // positions moved, so what the head touches may have too
 }
 // r69 — the pickaxe strikes whatever seam its head is resting against, exactly as #hammerTool strikes
@@ -2767,7 +2975,14 @@ function flyOre(metal,x,y){
 // --- the pickaxe leaves and re-enters the bag ---
 function overCave(e){ if(SF_SCREEN!=='cave') return false;
     const l=document.getElementById('screenLayer').getBoundingClientRect();
-    return e.clientX>=l.left && e.clientX<=l.right && e.clientY>=l.top && e.clientY<=l.bottom; }
+    const right=Math.min(l.right, railEdgeX());   /* r171: dropping on the panel is not dropping in the cave */
+    return e.clientX>=l.left && e.clientX<=right && e.clientY>=l.top && e.clientY<=l.bottom; }
+/* r171: #screenLayer spans the WHOLE frame, rail included, so anything positioned from a raw
+   pointer x can be put UNDER the inventory panel - which is z-45 over the screen's z-40, so it
+   covers the thing and eats the pointer, and there is no way to get it back. Everything that
+   places by pointer now stops here instead. */
+function railEdgeX(){ const r=document.getElementById('rail');
+    return r ? r.getBoundingClientRect().left : Infinity; }
 function caveHot(on){ const b=document.getElementById('caveLayer'); if(b) b.classList.toggle('armed', !!on || !!PICK_OUT); }
 function startPickDrag(e){
     if(PICK_OUT) return;
@@ -2783,23 +2998,44 @@ function startPickDrag(e){
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 function dropPick(e){ const b=plateBox(); if(!b) return;
-    PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
-    buildCave(); if(INV_TAB===3) buildShelf();
+    const cx=Math.min(e.clientX, railEdgeX()-PICK_W/100*b.aw*0.5-6);   /* r171 */
+    PICK_OUT={ x:(cx-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
+    buildCave(); if(INV_TAB===3) buildShelf(); tutTabUi();   /* r167: tutPickTab now answers null */
     toast('⛏️ Rest the pickaxe against an <b>ore seam</b> to mine it'); }
+/* r166: #caveLayer sits inside #screenLayer (z 40) and the inventory rail is z 45, so NOTHING drawn
+   in the cave can come out over the rail - the pickaxe slid under the panel on the very drag that
+   is meant to put it away. The ore, ingot and sword drags all answer this the same way, with a
+   ghost parented to #frame; this follows them. The real .cv-pick only goes invisible, so its rect
+   is still live and pickCheck() keeps reading the head position from it. */
 function wirePickDrag(el){
-    let drag=false, moved=false, sx=0, sy=0;
+    let drag=false, moved=false, sx=0, sy=0, ghost=null;
+    const lift=()=>{ if(ghost) return;
+        const frame=document.getElementById('frame');
+        pickGhostClear();   /* r168 */
+        ghost=document.createElement('div'); ghost.className='pick-ghost';
+        ghost.style.width=getComputedStyle(el).width;   /* the live cave width, so it does not jump */
+        ghost.innerHTML='<img src="'+PICK_SRC+'" alt="">';
+        frame.appendChild(ghost); el.style.visibility='hidden'; };
+    const land=()=>{ ghost=null; pickGhostClear(); el.style.visibility=''; };   /* r168 */
     el.addEventListener('pointerdown', e=>{ e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY;
         try{ el.setPointerCapture(e.pointerId); }catch(err){} });
     el.addEventListener('pointermove', e=>{ if(!drag) return;
         if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<=6) return;
         moved=true;
         const b=plateBox(); if(!b) return;
-        PICK_OUT={ x:(e.clientX-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
-        layoutCave(); railHot(overRail(e)); });
-    const end=e=>{ if(!drag) return; drag=false; railHot(false);
+        /* r171: the GHOST still follows the finger - it is on #frame, above the panel, and carrying
+           it there is how you stow the pickaxe. Only the real position is held back. */
+        const cx=Math.min(e.clientX, railEdgeX()-PICK_W/100*b.aw*0.5-6);
+        PICK_OUT={ x:(cx-b.ax)/b.aw*100, y:(e.clientY-b.ay)/b.ah*100 };
+        layoutCave(); railHot(overRail(e));
+        lift();   /* r166: both carry translate(-50%,-50%), so the pointer is the same anchor */
+        const fr=document.getElementById('frame').getBoundingClientRect();
+        ghost.style.left=(e.clientX-fr.left)+'px'; ghost.style.top=(e.clientY-fr.top)+'px'; });
+    const end=e=>{ if(!drag) return; drag=false; railHot(false); land();   /* r166 */
         if(moved && e && overRail(e)){ stowPick(); return; }
         pickCheck(); };                                    // released next to a seam? keep swinging
     el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+    el.addEventListener('lostpointercapture', ()=>{ if(drag) end(null); });   /* r168 */
 }
 function stowPick(){ stopStriking(); PICK_OUT=null; buildCave(); invTab(3); setTimeout(()=>{ tutDrawArrow(); tutTabUi(); },0);   /* r153b */ toast('Pickaxe back in your bag'); tutStowed(); }   /* r111 */
 // ---- r70: swords on the shop racks ---------------------------------------------------------------
@@ -3712,10 +3948,32 @@ function wireRacks(){
 }
 function openEndDay(){ document.getElementById('sfEndDayModal').classList.add('show'); }
 function closeEndDay(){ document.getElementById('sfEndDayModal').classList.remove('show'); }
+/* r162: fade to black, name the day, run the day's work while nothing can be seen, fade back.
+   The reflow between 'on' and 'lit' is forced with offsetWidth rather than a requestAnimationFrame:
+   rAF is frozen while the tab is hidden, which is what left the r154 toast standing still. */
+let DAY_FADING=false;
+const DAY_IN=550, DAY_HOLD=1000, DAY_OUT=550;
+function dayTransition(n, mid){
+    const c=document.getElementById('dayCard');
+    if(!c){ if(mid) mid(); return; }          /* no card in the markup: the day still turns */
+    if(DAY_FADING) return;                    /* a second press is ignored, NOT run bare - running it
+                                                 bare advanced the day a second time under the black */
+    DAY_FADING=true;
+    c.querySelector('span').textContent='Day '+n;
+    c.classList.add('on'); void c.offsetWidth; c.classList.add('lit');
+    setTimeout(()=>{ if(mid) mid(); }, DAY_IN+60);
+    setTimeout(()=>c.classList.remove('lit'), DAY_IN+DAY_HOLD);
+    setTimeout(()=>{ c.classList.remove('on'); DAY_FADING=false; }, DAY_IN+DAY_HOLD+DAY_OUT+40);
+}
 function confirmEndDay(){
     closeEndDay();
     const d=document.getElementById('dayNum');            // cosmetic: there is no day system behind this yet
-    if(d) d.textContent = (parseInt(d.textContent,10)||0) + 1;
+    const day=(parseInt(d&&d.textContent,10)||0)+1;
+    dayTransition(day, ()=>advanceDay(day));
+}
+function advanceDay(day){
+    const d=document.getElementById('dayNum');
+    if(d) d.textContent = day;
     rollCaveNodes(); buildCave();                         // r68: five fresh seams, in new places
     /* r120: the tutorial's own night ends where it was spent. The player wakes in the bedroom and
        walks down to the forge, with the exit blinking; every other day still jumps straight there. */
@@ -3748,13 +4006,14 @@ function goScreen(name){
     if(name==='forge'){ layer.classList.remove('on'); }
     else { const [src,tag]=SCREEN_ART[name];
         const art=document.getElementById('screenArt');
-        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); };   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
+        art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); sayLayout(); };   /* r164 */   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
         art.src=src;
         document.getElementById('screenTag').textContent=tag+' \u00b7 placeholder';
         layer.classList.add('on'); }
     /* one sc-<name> class drives that screen's own panel cluster */
     [...layer.classList].filter(c=>c.indexOf('sc-')===0).forEach(c=>layer.classList.remove(c));
     layer.classList.add('sc-'+name);
+    screenDragonPlace();   /* r160 */
     buildScreenProps(name);
     buildCave();
     buildRackSwords();
@@ -3763,6 +4022,10 @@ function goScreen(name){
     buildScreenUi(name);
     updateScreenArrows();
     updateTutorialCounterUi();
+    /* r164: the dragon has a different place and size on each screen since r160/r161, but a line
+       spoken before the walk kept the coordinates of the screen it was spoken on - so D94, said at
+       the counter, arrived in the cave sitting 123px clear of him. Lay it out again here. */
+    sayLayout();
     if(name==='customer') setTimeout(tutCounterArrival, 0);
     setTimeout(()=>tutScreenArrived(name), 0);   /* r103 */
 }
@@ -3963,6 +4226,20 @@ function initMap(){
             got++; placed++; }
     });
 
+    /* r175: gale keeps a wider berth than the other traits. Every trait gets 70; the seeded layout
+       had dropped a speck 89px off gale, right on the approach the day-2 script sends the player
+       down. 110 is chosen against the measured gap: that speck clears gale by 89, the next-nearest
+       zone by 118, so this removes exactly one and touches nothing else.
+       REMOVED after the fact, not rejected inside the loop: a rejection consumes different random
+       values and every zone placed afterwards would shift, reshuffling half the board to delete one
+       speck. This way the map is the map, minus that one. */
+    const GALE_CLEAR=110;
+    (()=>{ const gp=traits.find(t=>t.trait && t.trait.id==='gale'); if(!gp) return;
+        for(let i=hazards.length-1;i>=0;i--){ const z=hazards[i];
+            if(partsClear(gp.x,gp.y,z.parts) >= GALE_CLEAR) continue;
+            if(z.el && z.el.parentNode) z.el.parentNode.removeChild(z.el);
+            hazards.splice(i,1); } })();
+
     // r32 — books. Deliberately allowed INSIDE hazard zones (the reference scatters them through the
     // bone fields), so a book in a ribbon is a real trade: 60 XP against blade integrity.
     booksG=document.getElementById('books'); booksG.innerHTML=''; books=[];
@@ -3992,9 +4269,22 @@ function initMap(){
 // r22: drag bounds = the whole FRAME, not the bench band. Props live inside #bench (overflow:visible),
 // so the frame box is translated into bench-local coords. Without this a prop stops a few px above the
 // bench top, which since r16 is ~75% of the way DOWN the screen.
+/* r178: the right edge of every bench drag stops at the INVENTORY RAIL, not at the frame. The rail
+   is z-45 over the bench, so anything dragged under it is both hidden and unreachable. r171 fixed
+   the counter dragon and the cave pickaxe, which have their own handlers; this box is the other
+   three - the bench dragon, the hammer and the mug - and they all shared the same hole.
+   No bleed on that edge: bleed is for letting a prop hang past the frame, and there is nothing
+   good on the far side of the rail to hang into. */
 function dragBox(el, b, bleed){ bleed=(bleed==null)?20:bleed;
     const fr=document.getElementById('frame').getBoundingClientRect();
-    return { x0: fr.left-b.left-bleed,  x1: fr.right-b.left-el.offsetWidth+bleed,
+    const right=Math.min(fr.right, railEdgeX());
+    /* the mug is ROTATED about an off-centre origin, so its painted box is both wider than its
+       layout box (78px against 57px) and not centred on it. Rather than model the transform, MEASURE
+       the overhang right now: how far the painted right edge sits past the layout right edge. */
+    const rr=el.getBoundingClientRect();
+    let over=rr.right - (b.left + el.offsetLeft + el.offsetWidth);
+    if(!(over>0) || over>200) over=0;   /* no transform, or an offsetParent we did not expect */
+    return { x0: fr.left-b.left-bleed,  x1: right-b.left-el.offsetWidth-over,
              y0: fr.top-b.top-bleed,    y1: fr.bottom-b.top-el.offsetHeight+bleed }; }
 function makeDraggable(el){
     if(!el) return;
@@ -4043,6 +4333,11 @@ let melt=null;               // accumulated melt: {heat,smeltT0,stage:'smelting'
 let prep=null;               // ore being prepped in the mortar: {ore,grind}
 let pull={x:0,y:0};          // dragon-fire drag: an offset applied to the WHOLE rendered route (sword + remaining path + ✕)
 let bellowing=false, pestleGrinding=false, dragonBreathing=false, retreating=false, gateReady=false;
+/* r182: the second craft's heat step opens on D38 and D39, and D40 is the one that explains WHY
+   heat matters. The bellows is dead until that line has been read, so the player cannot pump past
+   the explanation - and it lights up the moment they can use it. Second craft only: nothing else
+   raises this. */
+let TUT_BELLOWS_LOCK=false;
 let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, waterTimer=null;
 
 function benchEl(){ return document.getElementById('bench'); }
@@ -4058,7 +4353,21 @@ function segPointLocal(seg,frac){ measure.setAttribute('d',seg.d); const p=measu
 function segPoint(seg,frac){ const l=segPointLocal(seg,frac); return {x:l.x+pull.x, y:l.y+pull.y}; }   // rendered = local + dragon pull
 function routeEndLocal(){ if(!segs.length) return {x:START.x,y:START.y}; const s=segs[segs.length-1]; return segPointLocal(s,s.tPct); }
 function routeEnd(){ const l=routeEndLocal(); return {x:l.x+pull.x, y:l.y+pull.y}; }
-function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); tutCheckOre(); }
+/* r172: gated on TUT_STAGE==='ore', which is the first craft's ore step and nothing else - the
+   second craft runs on regrind-iron/regrind-mang. Called BEFORE tutCheckOre(), which is what moves
+   the stage on when the fourth ore lands, so all four get it. */
+function pathBurst(seg){
+    if(TUT_STAGE!=='ore' || !seg) return;
+    const g=document.getElementById('pathBurst'); if(!g) return;
+    const steps=Math.max(2, Math.round(seg.len*seg.tPct/10));
+    let d='';
+    for(let i=0;i<=steps;i++){ const p=segPoint(seg, seg.tPct*i/steps); d+=(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; }
+    [0,170,340].forEach(ms=>{
+        const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+        p.setAttribute('d',d); p.style.animationDelay=ms+'ms';
+        g.appendChild(p); setTimeout(()=>p.remove(), 1200+ms); });
+}
+function addSegment(oreId,grind){ const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); const o=routeEndLocal(); segs.push({ore:oreId,d:d,len:len,origin:{x:o.x,y:o.y},tPct:0.5+0.5*grind}); drawRoute(); moveX(); pathBurst(segs[segs.length-1]);   /* r172 */ tutSoloOre(oreId);   /* r189 */ tutCheckOre(); }
 function drawRoute(fromSword){ if(fromSword===undefined) fromSword=true; if(!segs.length){ pathEl.style.display='none'; return; }   // fromSword: draw only the REMAINING route (sword→✕) so the traveled part is erased; false = whole route
     const ss=fromSword?sword.seg:0, sf=fromSword?sword.frac:0; let d='',first=true;
     for(let si=ss; si<segs.length; si++){ const s=segs[si], from=(si===ss)?sf:0, to=s.tPct; if(to<=from+0.0001) continue; const steps=Math.max(2,Math.round(s.len*(to-from)/10)); for(let i=0;i<=steps;i++){ const frac=from+(to-from)*i/steps; const p=segPoint(s,frac); d+=(first?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; first=false; } }
@@ -4178,6 +4487,7 @@ function checkHazard(p,dt){ if(!melt || !dt) return;
     hazards.forEach(h=>{ if(h.el) h.el.classList.toggle('hot', h===inside); });
     if(swordEl) swordEl.classList.toggle('hurt', !!inside);
     if(!inside) return;
+    tutHazardStep();   /* r179 */
     melt.hp=Math.max(0, melt.hp-HAZARD_DPS*dt); updateHpPill();
     if(melt.hp<=0) shatterBlade();
     else if(!melt._hazHint){ melt._hazHint=1; hint('⚠️ The sword is in a <b style="color:#e2503c">hazard zone</b> — it is losing integrity. Hammer on through or pull it clear with the dragon.'); } }
@@ -4249,7 +4559,8 @@ function toggleHud(){ const h=document.getElementById('hud'), b=document.getElem
     const nowCollapsed=h.classList.toggle('collapsed');
     b.innerHTML = nowCollapsed ? '&#9660;' : '&#9650;';
     b.setAttribute('aria-expanded', String(!nowCollapsed));
-    b.title = nowCollapsed ? 'Expand the blade panel' : 'Collapse the blade panel'; }
+    b.title = nowCollapsed ? 'Expand the blade panel' : 'Collapse the blade panel';
+    if(nowCollapsed && typeof tutHudClosed==='function') tutHudClosed(); }   /* r177 */
 function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=document.getElementById('saveBlade');
     const tg=document.getElementById('hudToggle'); if(tg) tg.addEventListener('click', toggleHud);
     if(c) c.addEventListener('click', ()=>{ refundOre(); resetRun(); hint('Crafting cancelled — the blade and its traits are gone. Grind an ore to start again.'); });
@@ -4574,7 +4885,42 @@ const HM_FORGE = {
 let hmShape='Longsword', hmAngle=HM_RIG.base;
 let hmHeat=0, hmProg=0;                    // 0..1 heat, 0..2 shape progress (sphere -> rough -> finished)
 let hmRaf=null, hmLast=0, hmLastStrike=0;
-function hmClear(){ hmBreath(false); hmStop(); }
+/* r181: a double-headed arrow along the line the hammer actually travels - from the metal on the
+   anvil (HM_RIG.anvil) up to the hammer head at rest (0.77w, 0.30h, the same two points
+   wireHmHammer's inZone() uses) - sliding back and forth along its own axis.
+   The viewBox is set to the measured pixel box, 1:1, so the angle survives any scene aspect. */
+function hmSwingOn(on){
+    const svg=document.getElementById('hmSwing'), g=document.getElementById('hmSwingG'), sc=document.getElementById('hmScene');
+    if(!svg||!g||!sc) return;
+    if(!on){ svg.classList.remove('on'); return; }
+    const r=sc.getBoundingClientRect(); if(r.width<2) return;
+    const a={ x:r.width*HM_RIG.anvil.x/100, y:r.height*HM_RIG.anvil.y/100 };
+    const b={ x:r.width*0.77, y:r.height*0.30 };
+    const pad=46;
+    const x0=Math.min(a.x,b.x)-pad, y0=Math.min(a.y,b.y)-pad;
+    const w=Math.abs(b.x-a.x)+pad*2, h=Math.abs(b.y-a.y)+pad*2;
+    svg.setAttribute('viewBox','0 0 '+w.toFixed(1)+' '+h.toFixed(1));
+    svg.style.left=x0.toFixed(1)+'px'; svg.style.top=y0.toFixed(1)+'px';
+    svg.style.width=w.toFixed(1)+'px'; svg.style.height=h.toFixed(1)+'px';
+    const A={x:a.x-x0,y:a.y-y0}, B={x:b.x-x0,y:b.y-y0};
+    let ux=B.x-A.x, uy=B.y-A.y; const len=Math.hypot(ux,uy)||1; ux/=len; uy/=len;
+    const stroke=Math.max(7, len*0.055);
+    /* the heads are sized off the SHAFT, not fixed: at a fixed 30x15 the upper head was barely wider
+       than the line itself and read as a taper rather than an arrow, right where it lands on the
+       pale hammer. */
+    const headL=stroke*2.2, headW=stroke*1.5, trim=stroke*1.7;
+    const p1={x:A.x+ux*trim, y:A.y+uy*trim}, p2={x:B.x-ux*trim, y:B.y-uy*trim};
+    const head=(tip,dx,dy)=>{ const bx=tip.x-dx*headL, by=tip.y-dy*headL, nx=-dy*headW, ny=dx*headW;
+        return 'M'+tip.x.toFixed(1)+' '+tip.y.toFixed(1)+' L'+(bx+nx).toFixed(1)+' '+(by+ny).toFixed(1)+
+               ' L'+(bx-nx).toFixed(1)+' '+(by-ny).toFixed(1)+' Z'; };
+    g.innerHTML='<path class="shaft" stroke-width="'+stroke.toFixed(1)+'" d="M'+p1.x.toFixed(1)+' '+p1.y.toFixed(1)+
+                ' L'+p2.x.toFixed(1)+' '+p2.y.toFixed(1)+'"/>'+
+                '<path d="'+head(p2, ux, uy)+'"/>'+'<path d="'+head(p1,-ux,-uy)+'"/>';
+    g.style.setProperty('--sx', (ux*9).toFixed(2));
+    g.style.setProperty('--sy', (uy*9).toFixed(2));
+    svg.classList.add('on');
+}
+function hmClear(){ hmBreath(false); hmStop(); hmSwingOn(false); tutGlow('#hmOrb', false); }   /* r181 */
 function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
     document.getElementById('sfShapeModal').classList.remove('show');
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
@@ -4583,7 +4929,7 @@ function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay();
     document.getElementById('sfHammerModal').classList.add('show');
-    hmStart(); tutHmStep();
+    hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
 // Place everything that is not already registered on the shared canvas.
 function hmLayout(){
@@ -4663,10 +5009,24 @@ function hmQuench(){
     setTimeout(()=>{ hmQuenching=false;
         if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, 780);
 }
+/* r165: the cheat. Striking decides nothing about the result - the shape was picked before the
+   minigame opened and the traits belong to the melt - so skipping is just the end of it:
+   hmProg to full, then the same finishBlade() the quench would have reached. */
+function hmSkip(){
+    const m=document.getElementById('sfHammerModal');
+    if(!m || !m.classList.contains('show')) return false;
+    hmProg=2; hmQuenching=false; tutHm2Clear();
+    finishBlade();
+    return true;
+}
+function cheatUi(){
+    const b=document.getElementById('cheatSkipHm'), m=document.getElementById('sfHammerModal');
+    if(b) b.disabled = !(m && m.classList.contains('show'));
+}
 /* r88: backing out is not throwing the blade away. The bench is untouched while the minigame runs -
    the metal and its traits are still sitting on the anvil - so closing the panel is the whole job. */
 function hmCancel(){
-    document.getElementById('sfHammerModal').classList.remove('show'); hmClear();
+    document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     toast('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
 }
 function wireHmMug(){
@@ -4766,6 +5126,7 @@ function hmStart(){ if(hmRaf) return; hmLast=0; hmRaf=requestAnimationFrame(hmTi
 function hmStop(){ if(hmRaf) cancelAnimationFrame(hmRaf); hmRaf=null; }
 function hmTick(ts){
     hmRaf=requestAnimationFrame(hmTick);
+    if(TUT_PAUSE){ hmLast=ts; return; }   /* r173: and the stamp moves with it, so dt does not spike on resume */
     const dt=hmLast ? Math.min(0.1,(ts-hmLast)/1000) : 0; hmLast=ts;
     const F=HM_FORGE, was=hmHeat;
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
@@ -4798,6 +5159,7 @@ function hmImpact(hot){
 }
 function hmStrike(){
     const now=performance.now(); if(now-hmLastStrike<HM_FORGE.strikeGap) return; hmLastStrike=now;
+    hmSwingOn(false);   /* r181: they have done it */
     const h=document.getElementById('hmHammer');
     h.classList.remove('hit'); void h.offsetWidth;   // restart the swing even on a fast second blow
     h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240);
@@ -4850,7 +5212,7 @@ function wireHmHammer(){
     grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
     paint();
 }
-function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear();
+function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):'';
     // r60: the sword is kept. Default design = whatever the Design Desk currently has selected.
     const cOres=segs.map(g=>g.ore), cGrinds=segs.map(g=>g.tPct);
@@ -4875,7 +5237,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
-    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ document.getElementById('sfIllusModal').classList.remove('show');   /* r193 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -4907,13 +5269,26 @@ const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.
 const HINT_IDLE_MS = 4000;
 let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
 function noteAction(){ lastActAt = performance.now();
-    if(String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record' || TUT_STAGE==='forge2'){ tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101/r121 */
+    /* r157: only the minigame still hides its hint on activity. The bench pointer is recomputed
+       from state every frame now, so wiping it here just made it blink out on every tap - which
+       is what took the INGREDIENTS tab halo away mid-beat. */
+    if(TUT_STAGE==='forge2'){ tutHm2Clear(); tutSpinOn(null); } }   /* r100/r101/r121/r157 */
 function swordAtRouteEnd(){ if(!segs.length) return false;
     const last = segs.length-1;
     return sword.seg >= last && sword.frac >= segs[last].tPct - 0.001; }
 // stuck: the ore is out on the anvil, the route is spent, nothing is under the sword, and the player has
 // gone quiet. Re-heating at the furnace is the only way forward, so point at it.
 function hintArrowWanted(){
+    /* r186: NOT the tutorial's own arrow - this is #hintArrow, the white idle nudge from arrow.webp,
+       and r184 cleared the wrong one. At fire-spot the metal is on the anvil at the route end with
+       no trait banked, which is exactly this arrow's condition, so it faded in over D70 four seconds
+       in. D70 is a look-at-this line; the only thing to do is read on, and its go button says so.
+       D71 is the line that asks for the metal, and tutFireBack() raises a proper arrow with it. */
+    if(TUT_STAGE==='fire-spot') return false;
+    /* r187: and never alongside the tutorial's own arrow. Two arrows pointing the same way read as
+       two instructions; the scripted one is the one that knows what step this is. The fire-spot line
+       above still earns its place - there TUT_ARROW is empty and this one would be the only arrow. */
+    if(TUT_ARROW) return false;
     if(SF_SCREEN!=='forge') return false;
     if(!melt || melt.stage!=='onAnvil' || melt.reachedTrait) return false;
     if(melt.traits && melt.traits.length) return false;   // r40: a trait is banked - the down-arrow owns this state
@@ -4952,10 +5327,11 @@ function placeHintArrow(){
     a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
     a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
 function updateHintArrow(){
-    /* r100: after HINT_IDLE_MS of nothing, the second run points at its own next step */
-    if(TUT_STAGE && String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='record'){
-        if(performance.now()-lastActAt > HINT_IDLE_MS) tutNudge();
-    }
+    /* r155: the second run points at its next step IMMEDIATELY. r100 waited HINT_IDLE_MS of
+       inactivity first, which meant four silent seconds at every step of the craft. tutNudge()
+       is a no-op unless the thing it would point at has actually changed, so running it on every
+       frame costs nothing. */
+    if(tutTicks()) tutNudge();   /* r185 */
     const want=hintArrowWanted();
     if(want) placeHintArrow();                       // re-place every frame: the orb and the furnace both move
     if(want!==hintArrowOn){ hintArrowOn=want;
@@ -5213,7 +5589,10 @@ function wireDragon(){
             const q=dragBox(d,b,30);
             x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y));
             /* r22: frame-wide bounds; wireDragon is the LIVE dragon handler (makeDraggable/wireMovable are dead code) */
-            d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; dragonCap(); }
+            d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; dragonCap();
+            /* r188: D97 explains where to put him; once he is there it has been read and obeyed,
+               and it sits over the anvil he is now working on. */
+            if(TUT_STAGE==='d2-pull' && dragonAtAnvil()) sayHide(); }
         updateFirePos();
         if(SAY_ON) sayLayout(); });
     const end=(e)=>{
@@ -5224,7 +5603,8 @@ function wireDragon(){
     d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
 
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const smoke=document.getElementById('furnaceSmoke');
-    const startB=e=>{ e.preventDefault(); if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
+    const startB=e=>{ e.preventDefault(); if(TUT_BELLOWS_LOCK) return;   /* r182 */
+        if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
 // ---- JUICE: particle bursts + interactive grind wheel (Phase B station feel) ----
 let fxAcc={grind:0,bellow:0,fire:0,strike:0};
@@ -5318,7 +5698,7 @@ const DIALOGUE = {
     D1: "Hm, this forge looks like it hasn't been used for a long time. Why don't we craft something simple to see if everything works?",
     D2: "Don't worry, I know you're exhausted. I'll guide you through it.",
     D3: "Add 2 Iron and 2 Manganese to the smelter. Note the path it creates on the trait map.",
-    D4: "Heat up the smelter with the bellows.",
+    D4: "Heat up the smelter with the bellows. Tap and hold.",
     D5: "Tap on the smelter gate to open it.",
     D6: "Nice! Let's take this hot metal to the anvil.",
     D7: "Pick up the hammer and strike the hot metal on the anvil.",
@@ -5344,7 +5724,6 @@ const DIALOGUE = {
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28: "Go ahead, try it!",
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good, sharp one.",
-    D30: "I didn't think you would get so many customers on your first day!",
     D31: "No tea break for us, I guess. Let's see how to make a sword and sharpen it to perfection! Back to the forge we go.",
     D32: "I found 1 iron and 1 manganese. Last time we used 2 of each.",
     D33: "We won't get the balanced trait we discovered last time if we forge this sword in the same way.",
@@ -5356,7 +5735,7 @@ const DIALOGUE = {
     D39: "Heat up the smelter. Oh, I almost forgot to tell you!",
     D40: "The hotter the metal is, the faster the sword icon travels on the defined path when you hammer.",
     D41: "Hot enough! Move it to the anvil and start hammering.",
-    D42: "Wait, since we discovered how to craft a 'balanced' sword using lesser ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
+    D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
     D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
     D44: "Tap on the metal to select a shape.",
     D45: "You remember what to do, right? Go ahead, I'm ready!",
@@ -5384,6 +5763,9 @@ const DIALOGUE = {
     D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
     D69: "Now heat it, take it to the anvil and hammer.",
+    D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
+    D69b: "The sword will take damage if we force it through the hazards.",
+    D69c: "Good thing this is a small one. Just keep going.",
     D70: "Do you see that? I think that is the fire trait!",
     D71: "Put the metal back in the smelter; we need to go further.",
     D72: "Grind the manganese until the \u2715 mark touches the trait.",
@@ -5409,6 +5791,7 @@ const DIALOGUE = {
     D92: "Let's go check the counter.",
     D93: "Do you have a sword with the Gale trait?",
     D94: "We should go and gather ores. Go back to the cave.",
+    D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
     D95: "Grind two copper and add it to the smelter.",
     D96: "Take it to the anvil and start hammering.",
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
@@ -5442,9 +5825,10 @@ const DIALOGUE = {
     D125: "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
     D126: "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today, so consider this a little free wisdom.",
     D127: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool.",
-    D128: "Craft a Balanced sword and show me! Also, I want to see how well you can design it. Make it sharp!",
+    D128: "Craft a Balanced sword and show me! Extra gold and rewards if it is Epic tier, customized and sharpened!",
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
     D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!",
+    D130a: "How is it going?",   /* r189: he checks in once, on the first ore of the solo run */
     D131: "What is this? You didn't even put in any effort. I'm not paying for this junk.",
     D132: "No. Huh ... it wasn't good enough.",
     D133: "But we will show him next time! Let's practice more. I know we can do it!",
@@ -5543,7 +5927,7 @@ function tutSpinOn(sel){
     const svg=document.getElementById('tutSpin'); if(!svg) return;
     const box=sel && tutRect(sel);
     if(!box){ svg.classList.remove('on'); return; }
-    const side=Math.max(30, Math.min(box.w, box.h)*0.70);   /* r151: smaller, and now measured against the hotspot rather than the whole prop */
+    const side=Math.max(46, Math.min(box.w, box.h)*0.70);   /* r151: measured against the hotspot, not the whole prop. r173: the hotspot is the handle now, ~58x59px, so the floor carries it */
     svg.style.left=(box.x+box.w/2-side/2).toFixed(0)+'px';
     svg.style.top =(box.y+box.h/2-side/2).toFixed(0)+'px';
     svg.style.width=side.toFixed(0)+'px'; svg.style.height=side.toFixed(0)+'px';
@@ -5556,6 +5940,11 @@ function tutUnglow(){ TUT_GLOWED.forEach(el=>el.classList.remove('tut-glow')); T
 let TUT_STAGE=null;
 let TUT_COUNTER_VISITED=false;
 let TUT_BRAM_STATE=null;
+/* r188: any ore's slot on the shelf, by the alt text buildShelf() writes. tutIronSlot() is the
+   original of this and is left alone. */
+function tutOreSlot(name){ return function(){
+    const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===name);
+    return im ? im.closest('.ore-slot') : document.getElementById('oreShelf'); }; }
 function tutIronSlot(){
     const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt==='Iron');
     return im ? im.closest('.ore-slot') : document.getElementById('oreShelf');
@@ -5584,7 +5973,22 @@ function tutDone(){ TUT_STAGE=null; tutArrow(null,null); tutSpinOn(null); tutUng
 /* ---- r85: the hammer, and the beat of hammering that earns D8 --------------------------------- */
 const TUT_STRIKE_BEAT=0.7;       /* seconds of real striking before the game freezes to point it out */
 let TUT_STRIKE=0, TUT_PAUSE=false;
-function tutPause(on){ TUT_PAUSE=!!on; const d=document.getElementById('tutDim'); if(d) d.classList.toggle('on', !!on); }
+function tutPause(on){ TUT_PAUSE=!!on;
+    const d=document.getElementById('tutDim');
+    const hm=document.getElementById('sfHammerModal');
+    const inHm=!!(hm && hm.classList.contains('show'));   /* r173 */
+    if(d){ d.classList.toggle('on', !!on); d.classList.toggle('deep', !!on && inHm); }
+    tutLit(!!on);
+}
+/* r173: whichever bubble is currently speaking gets the ring and rises over the dim. Four boxes
+   can hold a line; only one is ever showing. */
+function tutLit(on){
+    document.querySelectorAll('.tut-lit').forEach(e=>e.classList.remove('tut-lit'));
+    if(!on) return;
+    const box=['dragonSay','screenDragonSay','shSayWrap','ddSayWrap']
+        .map(id=>document.getElementById(id)).find(e=>e && e.classList.contains('show'));
+    if(box) box.classList.add('tut-lit');
+}
 function tutHammerStep(){
     if(TUT_STAGE==='hammer') return;
     TUT_STAGE='hammer'; tutUnglow(); TUT_STRIKE=0;
@@ -5606,7 +6010,7 @@ function tutStrikeStep(){
 const TUT_BOOK_AT=[0.38, 0.72];
 /* r112: the stages that ARE the first craft, so its lines cannot leak into a later one */
 const FIRST_CRAFT_STAGES=['ore','bellows','gate','anvil','hammer','strike','travel','quench','acquired','shape','forge'];
-let TUT_BOOKS=false, TUT_SAIDBOOK=false;
+let TUT_BOOKS=false, TUT_SAIDBOOK=false, TUT_SAIDHAZ=false;   /* r179 */
 function tutRoutePoint(f){
     let total=0; segs.forEach(g=>{ total+=g.len*g.tPct; });
     if(total<=0) return routeEndLocal();
@@ -5648,14 +6052,16 @@ function tutShapeStep(){
 let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false;
 /* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
    and it re-speaks on every further HINT_IDLE_MS of nothing. D46 covers fire+hammer, D47 the mug. */
-let TUT_HM2=false, TUT_HM2_AT=0;
+let TUT_HM2=false, TUT_HM2_AT=0, TUT_HM2_SAID=false;   /* r155 */
 function tutHm2WasOn(){ return TUT_HM2; }   /* r103 */
 function tutHm2Clear(){ const a=document.getElementById('tutArrow'); if(a) a.classList.remove('above'); tutArrow(null,null); }
 function tutHm2Idle(){
     if(TUT_STAGE!=='forge2' || hmQuenching) return;
     const now=performance.now();
-    if(now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS) return;
-    TUT_HM2_AT=now;
+    /* r155: the FIRST line is instant. r102 made the player stall for HINT_IDLE_MS before hearing
+       anything at all. Re-speaking still waits for a stall, or it would nag over active play. */
+    if(TUT_HM2_SAID && (now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS)) return;
+    TUT_HM2_AT=now; TUT_HM2_SAID=true;
     const mug=hmMugReady(), id=mug?'D47':'D46';
     if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
     SAY_I=SAY_SEQ.indexOf(id); say(id);
@@ -5840,20 +6246,28 @@ function tutDay2SkillClosed(){
 /* every Day 2 screen arrival in one place */
 function tutDay2Screen(name){
     if(TUT_STAGE==='d2-counter' && name==='customer'){
-        TUT_STAGE='d2-bell'; bellShow(true); updateTutorialCounterUi();
+        /* r183: D92 is "Let's go check the counter" - the walk is done, so the line goes with it.
+           Same family as r169: this branch re-points but says nothing, so nothing retired it. */
+        TUT_STAGE='d2-bell'; sayHide(); bellShow(true); updateTutorialCounterUi();
         setTimeout(()=>tutExit(()=>document.querySelector("#screenProps [data-act='bell']")), 0);
         return; }
     if(TUT_STAGE==='d2-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
-        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); return; } }
+        if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); sayQueue('D94b');
+            tutNeedTab(tutPickTab); return; } }   /* r164. r167: and the pickaxe's tab blinks - tutPickTab
+                                                    answers null once it is already out, so it stops asking */
     if(TUT_STAGE==='d2-back' && name==='forge'){ tutDay2Copper(); return; }   /* r123 */
     if(TUT_STAGE==='bram2-forge' && name==='forge'){ tutBram2Forge(); return; }   /* r127 */
+    /* r169: four beats end a walk at the counter. sell2 and sell3 re-speak D23 on arrival, so the
+       travel instruction is replaced; these two only re-point, and left the old line sitting over
+       the customer who is now talking - D107 'Go sell it!' was still up while Gale's friend asked
+       his question. The walk is done, so the line that asked for it goes. */
     if(TUT_STAGE==='bram2-sell' && name==='customer'){   /* r127 */
-        TUT_STAGE='bram2-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        TUT_STAGE='bram2-sell2'; tutExit(null); sayHide(); invTab(2); updateTutorialCounterUi();
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
     if(TUT_STAGE==='d2-gale-sell' && name==='customer'){   /* r126 */
-        TUT_STAGE='d2-gale-sell2'; tutExit(null); invTab(2); updateTutorialCounterUi();
+        TUT_STAGE='d2-gale-sell2'; tutExit(null); sayHide(); invTab(2); updateTutorialCounterUi();   /* r169 */
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
         return; }
 }
@@ -5884,9 +6298,17 @@ function tutDay2Pull(){
     setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
         tutGlow('#dragon', true); }, 0);
 }
+/* r188: back to the spot the CSS gives him - wireDragon() only ever writes inline left/top/right,
+   so clearing those three IS the opening position. */
+function homeDragon(){
+    const d=document.getElementById('dragon'); if(!d) return;
+    d.classList.remove('dragging');
+    d.style.left=''; d.style.top=''; d.style.right='';
+    dragonCap(); updateFirePos(); if(SAY_ON) sayLayout();
+}
 function tutSwiftAligned(){
     if(TUT_STAGE!=='d2-pull') return;
-    TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow();
+    TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow(); homeDragon();   /* r188 */
     sayQueue('D98');
     setTimeout(tutMugPointer, 0);
 }
@@ -5901,6 +6323,7 @@ function tutSwiftStored(){ if(TUT_STAGE==='d2-store') tutGaleStart(); }   /* r12
 function tutGaleStart(){
     TUT_STAGE='d2-gale1'; tutArrow(null,null); tutUnglow();
     sayQueue('D100','D101');
+    tutNeedTab(0);   /* r188: D101 asks for copper, so INGREDIENTS blinks until it is the open tab */
 }
 function tutGaleSmelted(){
     if(TUT_STAGE==='d2-gale1' && fireOreWanted()===false){
@@ -5908,7 +6331,10 @@ function tutGaleSmelted(){
     if(TUT_STAGE==='d2-gale2' && fireOreWanted()===false){
         TUT_STAGE='d2-gale3'; tutArrow(null,null);
         const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(g) tutSpotOn(g);   /* highlight it */
-        sayQueue('D104'); return; }
+        sayQueue('D104');
+        setTimeout(()=>tutArrow(tutOreSlot('Copper'), '#stSmelt .furnace',
+            { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 }), 0);   /* r188 */
+        return; }
     if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
         TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
         sayQueue('D105'); return; }   /* r126: the ring stays up until the trait is taken */
@@ -5979,6 +6405,10 @@ function tutBram2Reply(){
     if(TUT_BRAM2_STATE!=='awaiting') return;
     TUT_BRAM2_STATE='asked'; typeDone();
     const r=document.getElementById('bramResponses'); if(r) r.style.display='none';
+    /* r193: the illustration comes between the reply and D111, and closing it is what resumes. */
+    openIllus('assets/Illustrations/Bram_illustration.webp', 'Bram, back from his mission', tutBram2Illus);
+}
+function tutBram2Illus(){
     typeAfter(()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); });
     custLine(document.getElementById('bramLine'), DIALOGUE.D111);
 }
@@ -6102,6 +6532,7 @@ function garricGrade(w){
 }
 function tutGarricSold(){
     if(TUT_GARRIC_STATE!=='asked') return;
+    tutSoloDone();   /* r189 */
     const w=GARRIC_SOLD_W; GARRIC_SOLD_W=null;
     const grade=garricGrade(w);
     TUT_GARRIC_STATE='reacted'; TUT_GARRIC_GRADE=grade;
@@ -6124,7 +6555,59 @@ function garricLeaves(){
     sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139');
 }
 let TUT_GARRIC_GRADE=0;
-function tutGarricHandsOff(){ sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow(); }
+/* r189: Garric's solo run. The dragon steps back, but the target stays marked and he checks in once,
+   with a way back if it is going badly. */
+let TUT_SOLO=false, TUT_SOLO_ASKED=false;
+function tutGarricHandsOff(){
+    sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow();
+    TUT_SOLO=true; TUT_SOLO_ASKED=false;
+    const b=traits.find(t=>t.trait && t.trait.id==='balanced');
+    if(b) tutSpotOn(b);   /* the same ring fire and gale get - marked, not explained */
+}
+/* every ore that reaches the smelter, from addSegment() */
+function tutSoloOre(oreId){
+    if(!TUT_SOLO) return;
+    /* the mark comes down on IRON specifically - that is the one the balanced route needs. Any ore
+       at all is enough for him to ask how it is going, which is the owner's wording and means a
+       player who starts with copper gets the question while the mark is still up. */
+    if(oreId==='iron') tutSpotOn(null);
+    if(TUT_SOLO_ASKED) return;
+    TUT_SOLO_ASKED=true;
+    sayQueue('D130a');
+    setTimeout(()=>sayChoose([{ label:'Let me try again', fn:tutSoloRetry }], true), 0);
+}
+function tutSoloRetry(){
+    sayHide();
+    /* NOT refundOre(): that is the Restore Ore talent, a per-ore roll at 10% a rank, so unranked it
+       gives back nothing. A retry that costs the ore is not a retry - this puts back every ore in
+       the route, which is what 'reset to the earlier stage' means. */
+    segs.forEach(g=>gainOre(g.ore,1));
+    resetRun();
+    if(INV_TAB===0) buildShelf();
+    tutGarricHandsOff();       /* and he is back where he was when he said he would try alone */
+}
+function tutSoloDone(){ TUT_SOLO=false; TUT_SOLO_ASKED=false; tutSpotOn(null); }
+/* r190: shown once, when the player DISMISSES D97 - not when r188 hides it because the dragon has
+   reached the anvil. That auto-hide happens mid-pull, and a window over the board at that moment
+   would interrupt the very thing the line just asked for. */
+let TUT_SAW_TIERS=false;
+/* r193: the close is what carries the story on, so the callback is the point of this window, not an
+   afterthought. It is cleared before it runs, so a double close cannot fire it twice. */
+let ILLUS_AFTER=null;
+function openIllus(src, alt, after){
+    const m=document.getElementById('sfIllusModal'), im=document.getElementById('sfIllusArt');
+    ILLUS_AFTER = after || null;
+    if(!m || !im){ const f=ILLUS_AFTER; ILLUS_AFTER=null; if(f) f(); return; }
+    im.src=src; im.alt=alt||'';
+    m.classList.add('show');
+}
+function closeIllus(){
+    const m=document.getElementById('sfIllusModal'); if(m) m.classList.remove('show');
+    const f=ILLUS_AFTER; ILLUS_AFTER=null; if(f) f();
+}
+function openTiers(){ if(TUT_SAW_TIERS) return; TUT_SAW_TIERS=true;
+    const m=document.getElementById('sfTierModal'); if(m) m.classList.add('show'); }
+function closeTiers(){ const m=document.getElementById('sfTierModal'); if(m) m.classList.remove('show'); }
 function openGift(){ const m=document.getElementById('sfGiftModal'); if(m) m.classList.add('show'); }
 function claimGift(){
     const m=document.getElementById('sfGiftModal'); if(m) m.classList.remove('show');
@@ -6172,6 +6655,7 @@ function tutDay2Copper(){
     if(TUT_STAGE!=='d2-back') return;
     TUT_STAGE='d2-copper'; tutExit(null);
     sayQueue('D95');
+    tutNeedTab(0);   /* r167 */
 }
 function tutDay2Smelted(){
     if(TUT_STAGE!=='d2-copper' || fireOreWanted()!==false) return;
@@ -6182,6 +6666,7 @@ function tutDay2Mined(){
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;
     TUT_STAGE='d2-back';
+    sayHide(); tutNeedTab(null);   /* r167: 'Gather everything' is done, so it stops being said */
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 function tutBedroom(){
@@ -6296,15 +6781,23 @@ function tutSeam(metal){ return ()=>[...document.querySelectorAll('#caveLayer .c
         .find(el=>el._node && el._node.metal===metal) || null; }
 function tutPickEl(){ return document.querySelector('#caveLayer .cv-pick'); }
 function tutPickSlot(){ return document.querySelector('#oreShelf .inv-pick') || document.getElementById('oreShelf'); }
+/* r184: light the pickaxe itself. Resolved fresh every time, because tutPickSlot() answers the whole
+   shelf until ITEMS & DECOR is the open tab - a glow set once at D65 lit the shelf instead. Only the
+   real thing is ever lit, never that fallback. */
+function tutPickLit(){
+    tutUnglow();
+    const el = PICK_OUT ? tutPickEl() : document.querySelector('#oreShelf .inv-pick');
+    if(el) tutGlow(el, true);
+}
 function tutPickSrc(){ return PICK_OUT ? tutPickEl() : tutPickSlot(); }   /* r153b */
 function tutPickTab(){ return PICK_OUT ? null : 3; }
 function tutSeamLeft(metal){ const n=CAVE_NODES.find(c=>c.metal===metal); return n? n.left : 0; }
 /* after every swing: iron first, then manganese, then the pickaxe goes home */
 function tutMined(){
     if(TUT_STAGE!=='cave-pick') return;
-    if(tutSeamLeft('iron')>0){ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
-    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickSrc, tutSeam('manganese'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
-    TUT_STAGE='cave-stow'; tutArrow(null,null);
+    if(tutSeamLeft('iron')>0){ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); tutPickLit(); return; }   /* r184 */
+    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickSrc, tutSeam('manganese'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); tutPickLit(); return; }   /* r184 */
+    TUT_STAGE='cave-stow'; tutArrow(null,null); tutUnglow();   /* r184 */
     if(SAY_SEQ.indexOf('D66')<0) SAY_SEQ.push('D66');
     SAY_I=SAY_SEQ.indexOf('D66'); say('D66');
     setTimeout(()=>tutArrow(tutPickSrc, '#oreShelf', { tab:tutPickTab, tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
@@ -6322,13 +6815,18 @@ function tutFireForge(){
     TUT_STAGE='fire-grind'; tutArrow(null,null);   /* r114: the disc is no longer hidden - see below */
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
+    tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab.
+                        AFTER tutArrow(null,null) - that call clears the tab halo as well. */
 }
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){
     if(TUT_STAGE!=='fire-grind' || fireOreWanted()!==false) return;
-    TUT_STAGE='fire-heat1'; tutArrow(null,null);
+    TUT_STAGE='fire-heat1'; tutArrow(null,null); tutUnglow();
     if(SAY_SEQ.indexOf('D69')<0) SAY_SEQ.push('D69');
     SAY_I=SAY_SEQ.indexOf('D69'); say('D69');
+    /* r184: D69 is three instructions in one line - heat it, take it to the anvil, hammer. The
+       pointer now walks the same three steps; see the fire-heat1 branch in tutNudgeApply(). */
+    setTimeout(function(){ tutNudge(true); }, 0);
 }
 /* hammering to the end of that short route is where the dragon spots Fire through the fog */
 let TUT_SAIDSPOT=false;
@@ -6345,6 +6843,7 @@ function tutFireSpot(){
     if(TUT_STAGE!=='fire-heat1' || TUT_SAIDSPOT) return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
     TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
+    tutArrow(null,null); tutUnglow();   /* r184: D70 is a look-at-this line - the only thing to do is read on */
     const f=traits.find(t=>t.trait && t.trait.id==='fire');
     if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */
     ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
@@ -6428,13 +6927,14 @@ function tutCaveArrived(){
     TUT_STAGE='cave-pick'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D65')<0) SAY_SEQ.push('D65');
     SAY_I=SAY_SEQ.indexOf('D65'); say('D65');
-    setTimeout(()=>tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
+    setTimeout(()=>{ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 });
+        tutPickLit(); }, 0);   /* r184: the arrow says where to take it, the glow says what to take */
 }
 function tutHmStep(){
     if(TUT_STAGE==='bram2-shape'){ tutBram2Hammering(); return; }   /* r127 */
     if(TUT_STAGE==='d2-gale-shape'){ tutGaleHammering(); return; }   /* r126 */
     if(TUT_STAGE==='fire-shape'){ tutFireHammer(); return; }   /* r111 */
-    if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=performance.now();
+    if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=0; TUT_HM2_SAID=false; tutExit(null);   /* r155: next tick speaks. r177: and the close-the-panel blink goes, if it was still up */
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
         SAY_I=SAY_SEQ.indexOf('D45'); say('D45'); return; }   /* r102 */
     if(tutOver() || TUT_STAGE==='forge') return;
@@ -6449,7 +6949,8 @@ function tutHmHeat(hot){
         SAY_I=SAY_SEQ.indexOf('D15'); say('D15'); return; }
     if(!hot && TUT_HMHOT && !TUT_HMCOLD){ TUT_HMCOLD=true;
         if(SAY_SEQ.indexOf('D16')<0) SAY_SEQ.push('D16');
-        SAY_I=SAY_SEQ.indexOf('D16'); say('D16'); }
+        SAY_I=SAY_SEQ.indexOf('D16'); say('D16');
+        tutPause(true); }   /* r173: the metal is going cold under the line that explains it */
 }
 function tutCounterStep(){
     if(TUT_COUNTER_VISITED || tutOver()) return;
@@ -6471,7 +6972,9 @@ function finishD19(){
     (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; })();   /* r104 */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
-    if(r) r.style.display='flex'; if(p) p.classList.add('show'); buildScreenProps('customer');
+    if(r){ r.style.display='flex';
+        r.querySelectorAll('button').forEach(b=>b.classList.add('tut-lit-ctl')); }   /* r184: both answers */
+    if(p) p.classList.add('show'); buildScreenProps('customer');
     const d=document.getElementById('screenDragon'), b=document.getElementById('screenDragonSay'), layer=document.getElementById('screenLayer');
     if(d){ d.style.display='none'; d.classList.remove('dragging'); } if(b) b.classList.remove('show'); if(layer) layer.classList.remove('tut-counter');
     const old=document.querySelector('#csPanel .cs-dlg'), resp=document.querySelector('#csPanel > .cs-resp');
@@ -6504,6 +7007,7 @@ function typeLine(el, text){
 function chooseBram(choice){
     if(TUT_BRAM_STATE!=='awaiting') return;
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
+    if(r) r.querySelectorAll('button').forEach(b=>b.classList.remove('tut-lit-ctl'));   /* r184 */
     typeDone();
     typeAfter(()=>{ say('D23'); invTab(2);
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
@@ -6664,8 +7168,25 @@ function tutCompStep(){
 }
 /* r102: recording no longer ends the guide - D44 sends the player to the shape picker, and the
    second hammering run is guided by idle prompts only (D46/D47). */
+/* r177: a beat between D43 and D44. The blade panel is still expanded over the top-left of the
+   board, and D44 is about to ask for the metal underneath it - so the guide asks for the panel to
+   be shut first. The control is #hudToggle, the collapse chevron; the X inside the panel is
+   #cancelCraft, which THROWS THE CRAFT AWAY, so it is not the thing to point at.
+   TUT_HM2 is still set here, not at the close: a player who ignores the guide and taps the metal
+   anyway must still get the second run's prompts. */
 function tutRecorded(){ if(TUT_STAGE!=='record') return;
-    TUT_STAGE='shape2'; TUT_HM2=true; tutArrow(null,null); tutSpinOn(null); tutUnglow();
+    TUT_STAGE='record-close'; TUT_HM2=true; tutArrow(null,null); tutSpinOn(null); tutUnglow();
+    tutHudStep();
+}
+function tutHudStep(){
+    if(TUT_STAGE!=='record-close') return;
+    const h=document.getElementById('hud');
+    if(h && h.classList.contains('collapsed')){ tutHudClosed(); return; }   /* already shut: nothing to ask */
+    tutExit('#hudToggle');
+}
+function tutHudClosed(){
+    if(TUT_STAGE!=='record-close') return;
+    TUT_STAGE='shape2'; tutExit(null);
     if(SAY_SEQ.indexOf('D44')<0) SAY_SEQ.push('D44');
     SAY_I=SAY_SEQ.indexOf('D44'); say('D44'); tutGlow('#orb', true);
 }
@@ -6680,8 +7201,8 @@ function tutBellRung(){
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
     typeAfter(()=>{
-        ['D30','D31'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
-        SAY_I=SAY_SEQ.indexOf('D30'); say('D30');
+        if(SAY_SEQ.indexOf('D31')<0) SAY_SEQ.push('D31');   /* r174: D30 deleted */
+        SAY_I=SAY_SEQ.indexOf('D31'); say('D31');
     });
 }
 function tutBackToForge(){
@@ -6709,14 +7230,48 @@ function tutFakePath(on){
 }
 /* r100 - the second run is guided by ARROWS rather than more dialogue: the player has been told how
    each station works already. tutNudge() is what the 4-second idle timer asks for. */
+/* r155: while a different inventory tab is open the ore has no slot to point FROM, and the old
+   fallback aimed the arrow at #oreShelf itself - a line out of the whole rail, which read as
+   pointing at whatever happened to be in it. Now nothing is drawn: the INGREDIENTS halo (r153)
+   asks for the tab, and the arrow appears from the ore once it is actually on screen. */
 function tutWheelArrow(oreName){
-    const slot=()=>{ const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===oreName);
-        return im ? im.closest('.ore-slot') : document.getElementById('oreShelf'); };
-    tutArrow(slot, '#stMortar .mortar', { tab:0, tfx:0.5, tfy:0.42, bow:0.20, back:26 });
+    const find=()=>{ const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===oreName);
+        return im ? im.closest('.ore-slot') : null; };
+    if(!find()){ tutArrow(null,null); tutNeedTab(0); return; }
+    tutArrow(find, '#stMortar .mortar', { tab:0, tfx:0.5, tfy:0.42, bow:0.20, back:26 });
 }
 function tutSmelterArrow(){ tutArrow('#orb', '#furnaceGlow', { tfx:0.5, tfy:0.30, bow:0.20, back:24 }); }
 /* what the player should do RIGHT NOW in the second run, as an arrow */
-function tutNudge(){
+/* r155: the inputs the choice below is made from. If none of them moved, the pointer would be
+   re-applied identically, so there is nothing to do - which is what makes calling this every
+   frame free. prep.grind is quantised to the one threshold that matters, or grinding would
+   churn the signature on every frame while the pointer sat still. */
+let TUT_NUDGE_SIG='';
+function tutNudgeSig(){
+    const panel=document.getElementById('bladePanel');
+    return [TUT_STAGE, prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
+            melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, gateReady?1:0, INV_TAB,
+            panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,
+            /* r157: what is actually ON SCREEN, so a pointer someone else wiped is put back */
+            TUT_ARROW?1:0, TUT_TAB==null?0:1, document.querySelector('.tut-blink')?1:0,
+            document.querySelector('.tut-glow')?1:0].join('|');
+}
+/* r185: which stages keep a LIVE pointer, one the frame loop has to keep revising. This was written
+   inline in updateHintArrow() as 'regrind*' or record, and r177 and r184 both added branches to
+   tutNudgeApply() without adding their stage here - so those pointers were set once and never
+   revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
+   ran the branch again to take it down. A named list, so the next branch is harder to forget. */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick'];
+function tutTicks(){ const t=String(TUT_STAGE||'');
+    return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
+function tutNudge(force){
+    if(!force && tutNudgeSig()===TUT_NUDGE_SIG) return;
+    tutNudgeApply();
+    TUT_NUDGE_SIG = tutNudgeSig();   /* r157: record what is on screen AFTER applying it, so a
+                                        pointer anything else wipes no longer matches and the
+                                        next frame restores it */
+}
+function tutNudgeApply(){
     tutSpinOn(null);
     /* r101: with the ore already on the wheel the next move is to TURN it, so the pointer becomes a
        turn rather than another line from the shelf. */
@@ -6730,7 +7285,21 @@ function tutNudge(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow('Manganese'); return; }
-    if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+    /* r184: the fire run's heat step, pointed the whole way: the bellows until the gate is ready,
+       then the gate, then the metal to the anvil, then the hammer. tutArrow(null, '#bellowtop') is
+       a GLOW, not an arrow - r152 routes a null `from` to tutTap(), and the bellows is an <img>. */
+    if(TUT_STAGE==='cave-pick'){ tutMined(); return; }   /* r184: re-resolves the pickaxe after a tab switch */
+    if(TUT_STAGE==='fire-heat1'){
+        if(!melt) return;
+        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
+        if(melt.stage==='onAnvil'){ tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
+        return;
+    }
+    if(TUT_STAGE==='regrind-heat'){
+        if(TUT_BELLOWS_LOCK){ tutArrow(null,null); return; }   /* r182: D38/D39 are still being read */
+        tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
     if(TUT_STAGE==='regrind-work'){
         if(!melt) return;
         if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
@@ -6742,12 +7311,18 @@ function tutNudge(){
         }
         return;
     }
+    if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); return; }   /* r177 */
     if(TUT_STAGE==='record'){
         const panel=document.getElementById('bladePanel');
         const open=panel && getComputedStyle(panel).display!=='none';
         /* r101 drew an arrow here and had to bend it up from below-right, because the toggle sits in
            the very top-left corner and an arrow above it was clipped by the frame. r121 blinks the
            control instead, which has no such problem. */
+        /* r158: this is the one branch that sets NO arrow, so it has to retire the previous stage-s
+           - the mug-to-metal quench line, which the player has just finished following. It used to
+           be cleared by noteAction() on the very tap that got here; r157 stopped that wipe, which
+           left the splash arrow hanging over D42. */
+        tutArrow(null,null);
         tutExit(open ? '#saveBlade' : '#hudToggle');   /* r121 */
     }
 }
@@ -6775,6 +7350,7 @@ function tutSmeltCheck(ore, grind){
     }
     if(TUT_STAGE==='regrind-mang' && ore==='manganese'){
         TUT_STAGE='regrind-heat'; tutArrow(null,null);
+        TUT_BELLOWS_LOCK=true;   /* r182: lifted by D40 */
         ['D38','D39','D40'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
         SAY_I=SAY_SEQ.indexOf('D38'); say('D38');
     }
@@ -6784,10 +7360,25 @@ function tutMugStep(){
     if(SAY_SEQ.indexOf('D17')<0) SAY_SEQ.push('D17');
     SAY_I=SAY_SEQ.indexOf('D17'); say('D17');
 }   /* no pointer of its own: the mug already pulses once it is live, and .ready would fight tut-glow */
+/* r156: D9 stops the world while it is read, the same way D8 does - the book is collected mid-swing
+   and the sword keeps travelling underneath the line otherwise. tutPause(true) is the D8 effect:
+   #tutDim over the board and the tick held. sayNext() already lifts it on the tap that closes the
+   line, so nothing new is needed to resume.
+   TUT_SAIDBOOK has always made this fire for the FIRST book only; the second one is silent. */
+/* r179: the first time the travelling blade is ever inside a hazard, the world stops and the dragon
+   explains it. Once only, like the first book (D9), and not gated on the tutorial being live - the
+   first crossing is the first crossing whenever it happens. The pause also stops the damage while
+   the three lines are read, since the board tick holds on TUT_PAUSE. */
+function tutHazardStep(){
+    if(TUT_SAIDHAZ) return; TUT_SAIDHAZ=true;
+    sayQueue('D69a','D69b','D69c');
+    tutPause(true);
+}
 function tutBookStep(){
     if(TUT_SAIDBOOK) return; TUT_SAIDBOOK=true;
     if(SAY_SEQ.indexOf('D9')<0) SAY_SEQ.push('D9');
     SAY_I=SAY_SEQ.indexOf('D9'); say('D9');
+    tutPause(true);   /* r156 */
 }
 /* r82b: a new game has to rewind the RUN as well. D4 and D5 are appended to SAY_SEQ as they fire, so
    without this the intro replays them, and a stale SAY_I leaves the ore step unarmed. */
@@ -6795,6 +7386,7 @@ const SAY_OPENING = ['D1','D2','D3'];
 function tutReset(){
     tutDone(); sayHide();
     TUT_COUNTER_VISITED=false; TUT_BRAM_STATE=null; TUT_BRAM_SOLD=false;
+    SD_POS=null;   /* r160 */
     const d=document.getElementById('screenDragon'); if(d){ d.style.display=''; d.style.left=''; d.style.top=''; d.style.bottom=''; d.classList.remove('dragging'); }
     const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
     typeStop();
@@ -6802,7 +7394,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -6811,7 +7403,7 @@ function tutReset(){
 function tutGateStep(){
     /* r100: the second run gets D41 here instead, then is left to the idle arrows */
     if(TUT_STAGE==='regrind-heat'){
-        TUT_STAGE='regrind-work'; tutArrow(null,null);
+        TUT_STAGE='regrind-work'; tutArrow(null,null); tutGlow('#bellowtop', false); TUT_BELLOWS_LOCK=false;   /* r182 */
         if(SAY_SEQ.indexOf('D41')<0) SAY_SEQ.push('D41');
         SAY_I=SAY_SEQ.indexOf('D41'); say('D41'); return;
     }
@@ -6896,7 +7488,17 @@ function sayLayout(){
     const rail=document.getElementById('rail');
     const rightLimit = (onScreen && rail) ? Math.min(bb.right, rail.getBoundingClientRect().left) : bb.right;
     x = Math.max(fr.left + 6, Math.min(rightLimit - w - 6, x));   /* r118 */
-    y = Math.max(fr.top  + 6, Math.min(fr.bottom - h - 6, y));
+    /* r154: a level-up toast now sits at the very top of the frame, where the bubble also likes to
+       go. The bubble yields - but only when the two would actually meet, so an ordinary toast
+       somewhere off to the side never jogs a line the player is reading. */
+    let topGuard = fr.top + 6;
+    { const t=document.getElementById('sfToast');
+      if(t && t.classList.contains('show') && t.offsetWidth>0){
+          const tr=t.getBoundingClientRect();   /* x only: the transform is what centres it */
+          if(!(x + w < tr.left || x > tr.right))
+              topGuard = Math.max(topGuard, fr.top + t.offsetTop + t.offsetHeight + 8); } }
+    y = Math.min(fr.bottom - h - 42, y);   /* r174: and the go button hangs 36px below the bubble */
+    y = Math.max(topGuard, y);   /* the guard wins: never sit under the toast */
     box.classList.toggle('tail-left', beside);
     if(beside) box.style.setProperty('--tailY', Math.max(14, Math.min(h-36, headY - y - 15)).toFixed(0)+'px');
     const host=b.getBoundingClientRect();
@@ -6920,8 +7522,14 @@ function sayQueue(){
 /* r115: a line can end in a question. While an answer is pending the bubble does NOT advance on a
    tap - the only way on is to pick one. */
 let SAY_CHOICES=null;
-function sayChoose(list){
+/* r189: normally a question blocks - the bubble will not advance until it is answered (r115), which
+   is right for 'do you want to customise it?'. The retry offered on D130a is not a question: the
+   player may be doing fine and just wants the line gone. An optional choice keeps its button and
+   keeps the go button working. */
+let SAY_CHOICES_OPT=false;
+function sayChoose(list, optional){
     SAY_CHOICES = (list && list.length) ? list : null;
+    SAY_CHOICES_OPT = !!(SAY_CHOICES && optional);
     const box=document.getElementById('sayChoices'); if(!box) return;
     box.innerHTML='';
     if(!SAY_CHOICES){ box.style.display='none'; return; }
@@ -6930,8 +7538,25 @@ function sayChoose(list){
         box.appendChild(b); });
     box.style.display='flex';
     /* say() sets the hint before the choices are attached, so correct it here */
-    ['dragonSayGo','screenDragonSayGo','shSayGo'].forEach(id=>{ const g=document.getElementById(id); if(g && SAY_CHOICES) g.textContent=''; });
+    ['dragonSayGo','screenDragonSayGo','shSayGo','ddSayGo'].forEach(id=>{ const g=document.getElementById(id);
+        if(g && SAY_CHOICES && !SAY_CHOICES_OPT) sayGoIcon(g,'none'); });   /* r174/r189 */
     sayLayout();
+}
+/* r174: drawn rather than typed - a glyph for either would render as an emoji on one platform and
+   a box on another, and these two have to be unmistakable. */
+/* r184: lines whose only next step is to read on. The button that does it is lit, so there is
+   never a question of where to click. D8 and D9 are here too - they pause the world, and the
+   button shows an X there because each is the last line of its own run. */
+const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1,
+                    D89:1, D90:1, D100:1, D116:1, D117:1 };   /* r188 */
+const SAY_GO_NEXT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8 7-8 7z" fill="currentColor"/><path d="M13 5l8 7-8 7z" fill="currentColor"/></svg>';
+const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
+function sayGoIcon(go, kind, id){
+    if(!go) return;
+    go.classList.toggle('none', kind==='none');
+    go.classList.toggle('tut-lit-ctl', kind!=='none' && !!SAY_GO_GLOW[id]);   /* r184 */
+    go.title = kind==='close' ? 'Close' : 'Continue';
+    go.innerHTML = kind==='none' ? '' : (kind==='close' ? SAY_GO_CLOSE : SAY_GO_NEXT);
 }
 function say(id){
     const where=sayWhere(), B=SAY_BOXES[where];
@@ -6947,9 +7572,12 @@ function say(id){
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
-    if(go) go.textContent = SAY_CHOICES ? '' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'tap to close' : 'tap to continue');   /* r115 */
+    sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'), id);   /* r115/r174/r184 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
+    if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */
+    if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
+    if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */
@@ -6966,7 +7594,17 @@ function say(id){
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
-function sayHide(){ SAY_ON=null; sayChoose(null);   /* r115 */
+function sayHide(){
+    /* r194: the window follows D97 whichever way it goes. r190 hooked only the player DISMISSING it,
+       and r188 had already given D97 a second exit - it hides itself the moment the dragon reaches
+       the anvil, which is precisely what the line tells the player to do. So on the natural path the
+       line never got dismissed and the window never appeared at all. Measured: dragging the dragon
+       to the anvil left the line hidden, TUT_SAW_TIERS false and the modal closed.
+       Nothing is interrupted by opening here: positioning him and holding to breathe are separate
+       presses, and the pointer capture keeps the drag working under the window. */
+    const wasD97 = (SAY_ON==='D97');
+    if(wasD97) setTimeout(openTiers, 0);
+    SAY_ON=null; sayChoose(null);   /* r115 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
@@ -6985,11 +7623,28 @@ function lastLine(){ const k=Object.keys(DIALOGUE); return k[k.length-1]; }
 let TUT_SEEN_END=false;
 function tutOver(){ return TUT_SEEN_END; }
 function dragonTap(e, layer){ if(tutOver()){ popHearts(e, layer); return true; } return sayAgain(); }
+/* r160: where the player last dragged him, remembered for the COUNTER screen alone. He is only
+   draggable there, but the inline left/top it wrote used to travel with the element to every other
+   screen and beat their CSS - which would silently undo the basement position above. */
+let SD_POS=null;
+function screenDragonPlace(){
+    const d=document.getElementById('screenDragon'); if(!d) return;
+    if(SF_SCREEN==='customer' && SD_POS){ d.style.left=SD_POS.left; d.style.top=SD_POS.top; d.style.bottom='auto';
+        /* r171: a spot remembered from a build that allowed it is brought back into view */
+        const layer=document.getElementById('screenLayer');
+        if(layer){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect();
+            const maxX=Math.min(b.width-q.width, railEdgeX()-b.left-q.width);
+            if(isFinite(maxX) && q.left-b.left>maxX){ d.style.left=(maxX/b.width*100).toFixed(3)+'%';
+                SD_POS={ left:d.style.left, top:d.style.top }; } } }
+    else { d.style.left=''; d.style.top=''; d.style.bottom=''; }
+}
 function wireScreenDragon(){
     const d=document.getElementById('screenDragon'), layer=document.getElementById('screenLayer'); if(!d||!layer) return;
     let active=false, moved=false, sx=0, sy=0, dx=0, dy=0;
     d.addEventListener('pointerdown', e=>{ if(SF_SCREEN!=='customer') return; e.preventDefault(); active=true; moved=false; sx=e.clientX; sy=e.clientY; const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; try{d.setPointerCapture(e.pointerId);}catch(err){} });
-    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect(); let x=Math.max(0,Math.min(b.width-q.width,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; sayLayout(); } });
+    d.addEventListener('pointermove', e=>{ if(!active) return; if(!moved && Math.hypot(e.clientX-sx,e.clientY-sy)>6){ moved=true; d.classList.add('dragging'); } if(moved){ const b=layer.getBoundingClientRect(), q=d.getBoundingClientRect();
+            const maxX=Math.min(b.width-q.width, railEdgeX()-b.left-q.width);   /* r171 */
+            let x=Math.max(0,Math.min(maxX,e.clientX-b.left-dx)), y=Math.max(0,Math.min(b.height-q.height,e.clientY-b.top-dy)); d.style.left=(x/b.width*100).toFixed(3)+'%'; d.style.top=(y/b.height*100).toFixed(3)+'%'; d.style.bottom='auto'; SD_POS={ left:d.style.left, top:d.style.top };   /* r160 */ sayLayout(); } });
     d.addEventListener('pointerup', e=>{ const tap=!moved; active=false; d.classList.remove('dragging'); if(tap) dragonTap(e,layer); });
     d.addEventListener('pointercancel', ()=>{ active=false; moved=false; d.classList.remove('dragging'); });
 }
@@ -7002,11 +7657,17 @@ function sayAgain(){
 }
 function sayStart(){ if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
-    if(SAY_CHOICES) return;   /* r115: answer the question first */
-    if(TUT_PAUSE){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }   /* r85: the click that closes D8 restarts the world */
+    if(SAY_CHOICES && !SAY_CHOICES_OPT) return;   /* r115: answer the question first. r189: unless it is only an offer */
+    if(SAY_CHOICES) sayChoose(null);
+    /* r85: the click that closes D8 restarts the world. r179: a paused RUN holds until its LAST
+       line is closed - the hazard beat is three lines. For a one-line pause (D8, D9, D16) the
+       current line IS the last, so those are unchanged. */
+    if(TUT_PAUSE && SAY_I>=SAY_SEQ.length-1){ tutPause(false); if(TUT_STAGE==='strike') TUT_STAGE='travel'; }
     if(SAY_I<0){ sayHide(); return; }   /* r106: a finished run does NOT start over at D1 */
     SAY_I++;
-    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19'; SAY_I=-1; sayHide(); if(wasD19) finishD19(); return; }
+    if(SAY_I>=SAY_SEQ.length){ const wasD19=SAY_LAST==='D19';
+        SAY_I=-1; sayHide(); if(wasD19) finishD19();   /* r194: sayHide() now raises the tier window */
+        return; }
     say(SAY_SEQ[SAY_I]);
 }
 function initMechanics(){ stMortar=document.getElementById('stMortar'); stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
@@ -7063,6 +7724,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('bbox')>=0) console.log('FRAMEBOXES '+JSON.stringify(frameBoxes()));
     if(location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
     if(location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
+    (()=>{ const b=document.getElementById('cheatSkipHm'); if(b) b.addEventListener('click', ()=>{ hmSkip(); cheatUi(); }); cheatUi(); })();   /* r165 */
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
