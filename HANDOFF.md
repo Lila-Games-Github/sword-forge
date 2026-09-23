@@ -15,8 +15,17 @@ continuation prompt printed at close time.
   PR #17 landed r195–r196; Pages redeployed on both (`.github/workflows/deploy.yml` fires on every push
   to `main`). Verified against the deployed site, not assumed: **144 dialogue keys**, `lastLine()`
   `D139`, `MAP_parts.webp` served at 87 KB.
-- **Branch:** `tutorial-polish`, level with `main`. **Do not commit directly to `main`** — every push
-  there publishes the site.
+- **Branch:** `tutorial-polish`. Level with `main` **in game code** (the HTML is byte-identical) but
+  **not in the git graph**: `main` carries the two merge commits, and this branch carries the docs
+  commit that PR #18 is for. `git pull` on it is a no-op and will NOT bring you up to date.
+- **Start a new round like this**, not by committing to `tutorial-polish`:
+  ```bash
+  git checkout main && git pull
+  git checkout -b sword-forge/<2-5-kebab-keywords>
+  ```
+  `tutorial-polish` predates the `<project-slug>/<keywords>` convention the other branches follow
+  (`sword-forge/mobile-compat`, `sword-forge/tutorial-script-and-craft-systems`). Name new ones that way.
+- **Do not commit directly to `main`** — every push there publishes the site.
 
 ### What this session changed (r154–r196)
 
@@ -40,14 +49,34 @@ Roughly forty rounds of play-test polish. The themes, not the list:
 
 ## Next steps
 
+**Ordering.** #1 is blocked on an owner answer — ask, then park it. **#2 and #3 are the ones a fresh
+agent can ship unblocked**, and #2 matters because the build is public. #4 and #5 are backlog.
+There is no written definition of "polished" for the tutorial: the owner drives it beat by beat from
+play-testing, so expect the next session's work to arrive as fresh reports rather than from this list.
+
 1. **The gale/Epic alignment bug — the owner parked this deliberately and it is the top item.**
-   The dragon-pull already stops at the **closest approach** (it clamps to the projection of the trait
-   onto the line toward spawn), so "stop as soon as Epic is available" cannot be done by changing
-   *when* it stops — stopping sooner only lands further away. Measured on a copper route the closest
-   approach to gale is **27.1 units** against `ALIGN_EPIC 9` / `ALIGN_FINE 20`, i.e. **Weak**. Epic is
-   unreachable by pulling. The levers are: move gale, re-cut the copper route, widen `ALIGN_EPIC`, or
-   let the pull steer rather than run straight at spawn. **Ask the owner which** — this is a tuning
-   decision, not a bug fix.
+   "gale" here is the **trait** (`TRAIT_POS.gale`), not the gale *ore* — they share a name, and the ore
+   is irrelevant to this.
+   The dragon-pull already stops at the **closest approach**: `tick()`'s `fireOnAnvil` branch clamps the
+   step to `t = (trait − sword) · û`, the projection onto the unit vector toward `START`. That is the
+   nearest the sword can ever get on that path, so "stop as soon as Epic is available" cannot be done by
+   changing *when* it stops — stopping sooner only lands further away.
+   **Re-measure it before acting** (one paste in the console on the forge screen, no fixture needed):
+   ```js
+   resetRun(); ORE_COUNT.copper=9; buildShelf();
+   for(let i=0;i<3;i++){ startPrep('copper'); prep.grind=1; addOreDirect('copper'); }
+   sword={seg:segs.length-1, frac:segs[segs.length-1].tPct};
+   const p=swordPoint(), g=traits.find(t=>t.trait&&t.trait.id==='gale');
+   const dx=START.x-p.x, dy=START.y-p.y, d=Math.hypot(dx,dy), ux=dx/d, uy=dy/d;
+   const t=(g.x-p.x)*ux+(g.y-p.y)*uy;
+   Math.hypot(g.x-(p.x+ux*t), g.y-(p.y+uy*t));   // 27.1 on 2026-09-23
+   ```
+   **27.1** against `ALIGN_EPIC 9` / `ALIGN_FINE 20` is **Weak** — Epic is unreachable by pulling.
+   Four levers: move the gale trait, re-cut the copper route, widen `ALIGN_EPIC`, or let the pull steer
+   instead of running straight at spawn. **This needs the owner's answer before any code changes** — it
+   is a tuning decision. *If pressed for a default:* re-cutting the copper route is the least invasive,
+   because `ALIGN_EPIC` is global (it would make every trait easier) and moving a trait rearranges the
+   hazard field around it — which is exactly what bit r111 when Fire moved.
 2. **Gate the SKIP HAMMER cheat** if the owner wants it off the public link. `#cheatBar` is
    unconditional, so it is visible on the deployed Pages site to anyone with the URL. One line in the
    `load` handler (`location.search.indexOf('cheats')>=0`).
@@ -77,6 +106,15 @@ prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0. Screenshots work when
 visible — retry once on timeout, then fall back to `javascript_tool` measurements.
 
 ## Gotchas
+
+- **The verify commands are bash** (Git Bash is present). On PowerShell use
+  `.claude/hooks/verify-living-docs.ps1`, which sits beside the `.sh` for exactly this reason.
+- **Two of the repo's three test suites cannot run here.** `tooling/anchor-match` needs Python, which
+  is not installed, and so does the `docs/wiki/` search script. `tooling/mobile-fit/fit.test.mjs` is
+  the one that runs.
+- **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives as
+  prose in this file. If the backlog grows past the "Next steps" list, file issues rather than
+  lengthening it.
 
 - **Verify through the path a player takes.** This cost three bugs this session. Driving a function
   directly proves the branch is correct and says **nothing** about whether anything reaches it. Drive

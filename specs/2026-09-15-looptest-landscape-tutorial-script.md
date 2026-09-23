@@ -1397,7 +1397,9 @@ Verified through the real path: a shape picked, the minigame open, `tutHmHeat(fa
 keeps the dim at z-45 with the bubble lit above it. The tap clears pause, dim, deep and the ring.
 ### r174 — the script edits, the bubble size, and a real button to advance
 
-- **D30 deleted.** `DIALOGUE` holds 139 keys; the bell beat speaks D31 directly.
+- **D30 deleted.** `DIALOGUE` held 139 keys **at this round**; the bell beat speaks D31 directly.
+  (Lines added after r174 have moved the total on — 144 as of r196. Only `lastLine()` is load-bearing,
+  and it is still `D139`.)
 - **D42**: "lesser ores" → **"fewer ores"**. Ores are countable.
 - **The sharpening and design-desk bubble** was `font-size: 12px` where every other dialogue box is
   **17px**. `.tut-iconsay p` now matches. That class serves both screens; they are the same
