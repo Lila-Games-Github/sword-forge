@@ -715,6 +715,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-craft-box { max-width: 344px; transform: scale(1.5); }
 /* r190: the three alignment tiers, shown once, right after D97 explains what aligning is for.
    Three equal columns rather than a fixed width each, so the row stays centred whatever the art is. */
+/* r193: a story illustration, shown full-bleed inside its own window. Built generic - the art, the
+   alt text and what happens on close are all arguments - because there will be more of these. */
+.illus-box { max-width: 600px; padding: 12px; }
+.illus-box img { width: 100%; height: auto; display: block; border-radius: 7px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.5); }
 .tier-box { max-width: 460px; }
 .tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 2px; }
 .tier-one { display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -1757,6 +1762,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== r129: the gift Bram leaves behind ===== -->
     <!-- r190: the tier legend. Colours on the labels are tierColor()'s, so the window and every
          tier readout in the game agree. -->
+    <div id="sfIllusModal" class="sf-modal">   <!-- r193 -->
+        <div class="sf-modal-box illus-box">
+            <img id="sfIllusArt" src="" alt="">
+            <div class="sf-continue" onclick="closeIllus()">close</div>
+        </div>
+    </div>
     <div id="sfTierModal" class="sf-modal">
         <div class="sf-modal-box tier-box">
             <h3 class="sf-modal-h">Alignment for Tiers</h3>
@@ -5226,7 +5237,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
-    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
+    clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ document.getElementById('sfIllusModal').classList.remove('show');   /* r193 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=3; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
 
 function handleOrbDrop(){ const c=orbCenter();
     if(prep){ if(overTarget(c,'furnaceTop')){ addPrep(); return; } placeOrbInMortar(); return; }
@@ -6394,6 +6405,10 @@ function tutBram2Reply(){
     if(TUT_BRAM2_STATE!=='awaiting') return;
     TUT_BRAM2_STATE='asked'; typeDone();
     const r=document.getElementById('bramResponses'); if(r) r.style.display='none';
+    /* r193: the illustration comes between the reply and D111, and closing it is what resumes. */
+    openIllus('assets/Illustrations/Bram_illustration.webp', 'Bram, back from his mission', tutBram2Illus);
+}
+function tutBram2Illus(){
     typeAfter(()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); });
     custLine(document.getElementById('bramLine'), DIALOGUE.D111);
 }
@@ -6576,6 +6591,20 @@ function tutSoloDone(){ TUT_SOLO=false; TUT_SOLO_ASKED=false; tutSpotOn(null); }
    reached the anvil. That auto-hide happens mid-pull, and a window over the board at that moment
    would interrupt the very thing the line just asked for. */
 let TUT_SAW_TIERS=false;
+/* r193: the close is what carries the story on, so the callback is the point of this window, not an
+   afterthought. It is cleared before it runs, so a double close cannot fire it twice. */
+let ILLUS_AFTER=null;
+function openIllus(src, alt, after){
+    const m=document.getElementById('sfIllusModal'), im=document.getElementById('sfIllusArt');
+    ILLUS_AFTER = after || null;
+    if(!m || !im){ const f=ILLUS_AFTER; ILLUS_AFTER=null; if(f) f(); return; }
+    im.src=src; im.alt=alt||'';
+    m.classList.add('show');
+}
+function closeIllus(){
+    const m=document.getElementById('sfIllusModal'); if(m) m.classList.remove('show');
+    const f=ILLUS_AFTER; ILLUS_AFTER=null; if(f) f();
+}
 function openTiers(){ if(TUT_SAW_TIERS) return; TUT_SAW_TIERS=true;
     const m=document.getElementById('sfTierModal'); if(m) m.classList.add('show'); }
 function closeTiers(){ const m=document.getElementById('sfTierModal'); if(m) m.classList.remove('show'); }

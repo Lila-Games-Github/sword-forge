@@ -1752,3 +1752,24 @@ three things.*
 the tier labels the game prints everywhere else. "customized" is the owner's spelling and matches D79.*
 
 The three tier images are WebP now — see the payload note above.
+
+### r193 — Bram's illustration, between his reply and D111
+
+Answering D110 with "I am glad you survived." now opens a window showing
+`assets/Illustrations/Bram_illustration.webp`. **Closing it is what plays D111**, so the picture sits
+in the gap the reply used to jump straight across.
+
+`openIllus(src, alt, after)` / `closeIllus()` are deliberately generic — art, alt text and the
+continuation are all arguments — because there will be more of these. The callback is cleared before
+it runs, so closing twice cannot fire the continuation twice (checked).
+
+**Payload:** 844x471, **989KB PNG → 154KB WebP** through the r136 pipeline, re-encoded at native size
+rather than downscaled. Manifest 143 → 144.
+
+*One compromise worth recording: the window shows it 573px wide against an 844px source, so about
+1.5x, not the 2x the diet asks for. The source has no more pixels; the alternative was showing it at
+422px, which is small for a story beat. Native re-encode was the right trade.*
+
+Verified through the real beat: D110 up with the single response and no window; clicking it opens the
+window with the art loaded at its natural 844x471; closing gives **D111** in Bram's box, stage
+`bram2-forge`, D112 from the dragon and `#panRight` blinking. A second close changes nothing.

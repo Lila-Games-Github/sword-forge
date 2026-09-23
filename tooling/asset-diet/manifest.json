@@ -2283,5 +2283,20 @@
    124,
    118
   ]
+ },
+ {
+  "src": "assets/Illustrations/Bram_illustration.png",
+  "out": "assets/Illustrations/Bram_illustration.webp",
+  "w": 844,
+  "q": 0.86,
+  "bytes": 1012240,
+  "nat": [
+   844,
+   471
+  ],
+  "display": [
+   600,
+   335
+  ]
  }
 ]
