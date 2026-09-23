@@ -1800,9 +1800,15 @@ too; a later D97 does not reopen it; breath mode still engages with the dragon a
 **D67a** — Dragon
 > "The map is divided into 5 parts. You can guess where a trait could be from this image."
 
-*Trigger: arriving at the forge on the fire run. The `MAP_parts` window opens with it, and **closing
-the window is what plays D68** — the same shape as Bram's illustration (r193). The INGREDIENTS halo
-moved to D68 with it, so it appears when the instruction does, not a window early.*
+*Trigger: arriving at the forge on the fire run. **r196: the line comes first, alone, with its button
+lit** — r195 opened the window at the same moment and it covered the very line it was illustrating.
+Pressing continue opens the window; closing the window plays D68. The INGREDIENTS halo goes up with
+D68, so it appears when the instruction does, not a window early.*
+
+*The button reads **continue**, not close, although D67a ends its run: `SAY_GO_MORE` marks ids whose
+run ends but whose beat does not. And the window hangs off `SAY_AFTER`, one table for what follows a
+line once it leaves the screen — `sayHide()` is the single place that catches both exits a line can
+have, which is what r194 learned with D97.*
 
 *Note: "You can guess where a trait could be from this image" can be read for a moment as "a trait
 from this image". Implemented as written; "From this image you can guess where a trait could be"
