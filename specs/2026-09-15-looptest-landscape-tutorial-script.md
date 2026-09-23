@@ -1365,3 +1365,28 @@ Verified through the real beat: `tutGaleCrafted()` from `d2-gale-forge` reaches 
 D107 and blinks `#panLeft`; walking to the counter reaches `d2-gale-sell2` with the bubble **hidden**,
 the sword-to-counter arrow up and the SWORDS tab open. `bram2-sell` behaves the same. `sell2` is
 unchanged and still speaks D23 on arrival.
+
+### r173 — D16 stops the world, and the line it stops for is lit
+
+D16 ("The metal cools down slowly...") is spoken **inside the hammering minigame**, by `tutHmHeat()`
+when the metal first goes cold. It now pauses, the way D8 and D9 do.
+
+Two things had to change for that to work in a modal.
+
+- **The dim.** `#tutDim` is `z-index: 45`, under the minigame's `z-1000` modal. It gets a `.deep`
+  class (`z-index: 1050`) only while that modal is open. It must **not** be deep on the board: D8 and
+  D9 are spoken with no modal, and the bench bubble sits at z-46 there, which a deep dim would bury.
+- **The clock.** `hmTick()` was not gated on `TUT_PAUSE`, so the heat kept draining behind the line
+  explaining that the heat drains. It now holds, and moves `hmLast` with it so `dt` does not spike on
+  resume — the same shape as the board tick.
+
+**The highlight** is `tutLit()`, called from `tutPause()`: whichever of the four say boxes is showing
+gets `.tut-lit`, which rings it and lifts it to `z-index: 1101`, over either dim. It applies to D8 and
+D9 too, which is the point — a paused line should look paused-for.
+
+`sayNext()` already lifts the pause on the tap that closes the line, so nothing new resumes it.
+
+Verified through the real path: a shape picked, the minigame open, `tutHmHeat(false)` speaks D16 with
+`TUT_PAUSE` true, the dim on and **deep** at z-1050, and the bubble lit at z-1101 above it. With
+`hmHeat` at 0.8, two `hmTick()` calls leave it at exactly 0.8; released, it cools. On the board D8
+keeps the dim at z-45 with the bubble lit above it. The tap clears pause, dim, deep and the ring.

@@ -6824,3 +6824,33 @@ and ending exactly on its segment's own endpoints, and each cleared itself withi
 fires even though `tutCheckOre()` moves the stage to `bellows` in the same call. Driving the
 animation: 6px/.95 at 0ms, 31.7px/.46 at 300ms, 53.5px/.05 at 700ms, 56px/0 at the end. With
 `TUT_STAGE` set to `regrind-iron`, dropping another ore adds nothing.
+
+### r173 — the Sword Crafted window, and turning the grindstone by its handle
+
+**The window is half again as big.** `.sf-craft-box` takes `transform: scale(1.5)`. A scale rather
+than raising each px value, so art, rows and rule lines stay in proportion instead of drifting apart.
+Measured 344x354 → **516x531**, centred in a 1080x600 frame with 35px above and below.
+
+Two things that could have broken and do not: `flyCraft()` reads the art's rect **after** the
+transform, so the blade still flies to the rail from where it was seen; `sizeFlat()` reads
+`clientWidth`, which is the unscaled layout box, so the sword is laid out at 1x and scaled with
+everything else.
+
+**The grindstone turns by its handle now.** `#grindHot` was `left 22%, top 4%, 56x56%` — over the
+wheel, which is exactly where the ore sits, so the turn hotspot **and** the rotate indicator
+(`tutSpinOn('#grindHot')` centres on it) both sat on top of the ore.
+
+Measured off `anchor_grindwheel.webp` by overlaying a 10% grid on it: the art is 416x350 and is drawn
+`object-fit: fill` into `#stMortar`, so image % and station % are the same number. The crank arm and
+its grip run **x 76..98%, y 25..50%**. The hotspot is now `left 72%, top 20%, 28x34%` — 58x59px at a
+1200x700 window, with a little margin round the art. The indicator's size floor went 30 → 46px, since
+it is measured as 70% of the hotspot and the handle is a smaller target than the wheel was.
+
+**What did not have to change.** Dropping an ore is hit-tested by `overTarget(..., 'mortar')` from the
+LAYOUT table, not by this element, so the ore still goes on the wheel. And `wireGrindWheel()` always
+measured its angle about the **wheel's** centre, not the hotspot's — so grabbing the handle and
+sweeping round the wheel is exactly what the maths already described.
+
+Verified: hotspot 72→100% x, 20→54% y; indicator 65x65px on the handle; the ore orb at 40.8→59.2% x,
+31.1→52.9% y, with **no overlap** against either. Grabbing the handle and sweeping two full turns
+about the wheel centre takes the ore 0 → 1 and the guide retires itself.

@@ -289,7 +289,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    It had been display:none since r10, when the molten pot was baked into the re-cut anchor_furnace.png,
    so it drew nothing — the glowing pot you see on the furnace crown is part of the furnace art. */
 /* ---- station JUICE (Phase B feel) ---- */
-#grindHot { position: absolute; left: 22%; top: 4%; width: 56%; height: 56%; z-index: 6; cursor: pointer; }
+/* r173: the crank HANDLE, not the wheel. Measured off anchor_grindwheel.webp (416x350, drawn with
+   object-fit:fill so image % == station %): the handle arm and its grip run x 76..98%, y 25..50%.
+   The old box covered the wheel, which is where the ORE sits - so the turn hotspot and the rotate
+   indicator both sat on top of it. Dropping an ore is unaffected: that is hit-tested by
+   overTarget(...,'mortar') from the LAYOUT table, not by this element. Turning still measures its
+   angle about the wheel's centre, which is what 'hold the handle and turn' means. */
+#grindHot { position: absolute; left: 72%; top: 20%; width: 28%; height: 34%; z-index: 6; cursor: pointer; }
 .mortar.grinding { animation: grindShake .11s linear infinite; }   /* the wheel judders as it grinds */
 @keyframes grindShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-1px,.5px); } 75% { transform: translate(1px,-.5px); } }
 /* furnace heat glow — opacity is driven live from the heat gauge (0→1) */
@@ -388,6 +394,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes fakeBlink { 0%,100% { opacity: 1; } 50% { opacity: .18; } }
 #tutDim { position: absolute; inset: 0; z-index: 45; background: rgba(6,4,2,.74); display: none; }
 #tutDim.on { display: block; }
+/* r173: D16 is spoken INSIDE the hammering minigame, whose modal is z-1000, so the dim has to
+   clear it there. It must NOT do that on the board: D8 and D9 are spoken with no modal open and
+   the bench bubble sits at z-46, which a deep dim would bury. Hence the class, not a new value. */
+#tutDim.deep { z-index: 1050; }
+/* the line the world stopped for, lifted clear of the dim and ringed */
+.tut-lit { z-index: 1101 !important; animation: tutLit 1.25s ease-in-out infinite; }
+@keyframes tutLit {
+    0%,100% { box-shadow: 0 0 0 3px rgba(255,214,140,.7), 0 0 16px 5px rgba(255,170,60,.3), 0 10px 22px rgba(0,0,0,.55); }
+    50%     { box-shadow: 0 0 0 3px rgba(255,241,205,1), 0 0 32px 13px rgba(255,180,70,.75), 0 10px 22px rgba(0,0,0,.55); }
+}
 #tutArrow { position: absolute; inset: 0; z-index: 70; pointer-events: none; display: none; overflow: visible; }
 #tutArrow.on { display: block; }
 #tutArrow.above { z-index: 1090; }   /* r102: over the hammer modal, just under the bubble */
@@ -667,7 +683,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-acquire-body .cnt { font-size: 11px; color: #6b573c; margin-top: 6px; }
 /* r90 - the Sword Crafted window. Same shell as the acquire popup, with the blade drawn by the same
    flatArt/sizeFlat pair the racks use, so one sword is rendered one way everywhere. */
-.sf-craft-box { max-width: 344px; }
+/* r173: half again as big. A scale keeps every part in proportion - art, rows, rule lines - where
+   raising each px value would drift. Measured 344x354, so 516x531 inside a 1080x600 frame, and
+   flyCraft() reads the art's rect AFTER the transform, so the blade still flies from where it
+   was seen. sizeFlat() reads clientWidth, which is the unscaled box, so the art scales with it. */
+.sf-craft-box { max-width: 344px; transform: scale(1.5); }
 /* pointer-events: the part images are full-canvas squares with the blade on the diagonal, so their
    transparent corners reach over the title and the rows - and would swallow clicks meant for them. */
 .cr-art, .cr-art * { pointer-events: none; }
@@ -4942,6 +4962,7 @@ function hmStart(){ if(hmRaf) return; hmLast=0; hmRaf=requestAnimationFrame(hmTi
 function hmStop(){ if(hmRaf) cancelAnimationFrame(hmRaf); hmRaf=null; }
 function hmTick(ts){
     hmRaf=requestAnimationFrame(hmTick);
+    if(TUT_PAUSE){ hmLast=ts; return; }   /* r173: and the stamp moves with it, so dt does not spike on resume */
     const dt=hmLast ? Math.min(0.1,(ts-hmLast)/1000) : 0; hmLast=ts;
     const F=HM_FORGE, was=hmHeat;
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
@@ -5724,7 +5745,7 @@ function tutSpinOn(sel){
     const svg=document.getElementById('tutSpin'); if(!svg) return;
     const box=sel && tutRect(sel);
     if(!box){ svg.classList.remove('on'); return; }
-    const side=Math.max(30, Math.min(box.w, box.h)*0.70);   /* r151: smaller, and now measured against the hotspot rather than the whole prop */
+    const side=Math.max(46, Math.min(box.w, box.h)*0.70);   /* r151: measured against the hotspot, not the whole prop. r173: the hotspot is the handle now, ~58x59px, so the floor carries it */
     svg.style.left=(box.x+box.w/2-side/2).toFixed(0)+'px';
     svg.style.top =(box.y+box.h/2-side/2).toFixed(0)+'px';
     svg.style.width=side.toFixed(0)+'px'; svg.style.height=side.toFixed(0)+'px';
@@ -5765,7 +5786,22 @@ function tutDone(){ TUT_STAGE=null; tutArrow(null,null); tutSpinOn(null); tutUng
 /* ---- r85: the hammer, and the beat of hammering that earns D8 --------------------------------- */
 const TUT_STRIKE_BEAT=0.7;       /* seconds of real striking before the game freezes to point it out */
 let TUT_STRIKE=0, TUT_PAUSE=false;
-function tutPause(on){ TUT_PAUSE=!!on; const d=document.getElementById('tutDim'); if(d) d.classList.toggle('on', !!on); }
+function tutPause(on){ TUT_PAUSE=!!on;
+    const d=document.getElementById('tutDim');
+    const hm=document.getElementById('sfHammerModal');
+    const inHm=!!(hm && hm.classList.contains('show'));   /* r173 */
+    if(d){ d.classList.toggle('on', !!on); d.classList.toggle('deep', !!on && inHm); }
+    tutLit(!!on);
+}
+/* r173: whichever bubble is currently speaking gets the ring and rises over the dim. Four boxes
+   can hold a line; only one is ever showing. */
+function tutLit(on){
+    document.querySelectorAll('.tut-lit').forEach(e=>e.classList.remove('tut-lit'));
+    if(!on) return;
+    const box=['dragonSay','screenDragonSay','shSayWrap','ddSayWrap']
+        .map(id=>document.getElementById(id)).find(e=>e && e.classList.contains('show'));
+    if(box) box.classList.add('tut-lit');
+}
 function tutHammerStep(){
     if(TUT_STAGE==='hammer') return;
     TUT_STAGE='hammer'; tutUnglow(); TUT_STRIKE=0;
@@ -6642,7 +6678,8 @@ function tutHmHeat(hot){
         SAY_I=SAY_SEQ.indexOf('D15'); say('D15'); return; }
     if(!hot && TUT_HMHOT && !TUT_HMCOLD){ TUT_HMCOLD=true;
         if(SAY_SEQ.indexOf('D16')<0) SAY_SEQ.push('D16');
-        SAY_I=SAY_SEQ.indexOf('D16'); say('D16'); }
+        SAY_I=SAY_SEQ.indexOf('D16'); say('D16');
+        tutPause(true); }   /* r173: the metal is going cold under the line that explains it */
 }
 function tutCounterStep(){
     if(TUT_COUNTER_VISITED || tutOver()) return;
