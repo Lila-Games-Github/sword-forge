@@ -1624,3 +1624,23 @@ glow, and a lit button.
 `offsetParent: null` during the sale — it only appears **after** it, carrying "Thank you." / "Take
 care". The class is applied and would light it the instant it showed, but nothing is visible at the
 moment asked for. Owner to say which element was meant.
+
+### r186 — D70: the WHITE arrow, which r184 did not touch
+
+**There are two arrows on the forge screen and r184 cleared the wrong one.** `#tutArrow` is the
+tutorial's dashed pointer; `#hintArrow` is `assets/ui/arrow.webp`, the plain white idle nudge that
+fades in after `HINT_IDLE_MS` (4s) of no input. `tutFireSpot()` cleared `TUT_ARROW`, which was
+already empty, and left the white one alone.
+
+`hintArrowWanted()` asks for: the forge screen, metal `onAnvil`, no trait reached, none banked, no
+modal, sword at the route end, 4s idle. **That is exactly the state D70 is spoken in**, so it faded
+in over the line every time. `fire-spot` now returns false from that function.
+
+Scoped to `fire-spot` alone: D71 is the line that actually asks for the metal, and `tutFireBack()`
+raises a proper pointer with it.
+
+Verified with real `tick()` frames and a 9-second idle: in the same state **off-script** the white
+arrow still shows (unchanged); at D70 it is `display: none` and `hintArrowWanted()` is false, with the
+go button lit; at D71 it returns, alongside the tutorial's own `#orb → furnace`.
+
+*Both arrows being up together at D71 is older behaviour, untouched here.*

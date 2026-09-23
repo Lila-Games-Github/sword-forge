@@ -5237,6 +5237,12 @@ function swordAtRouteEnd(){ if(!segs.length) return false;
 // stuck: the ore is out on the anvil, the route is spent, nothing is under the sword, and the player has
 // gone quiet. Re-heating at the furnace is the only way forward, so point at it.
 function hintArrowWanted(){
+    /* r186: NOT the tutorial's own arrow - this is #hintArrow, the white idle nudge from arrow.webp,
+       and r184 cleared the wrong one. At fire-spot the metal is on the anvil at the route end with
+       no trait banked, which is exactly this arrow's condition, so it faded in over D70 four seconds
+       in. D70 is a look-at-this line; the only thing to do is read on, and its go button says so.
+       D71 is the line that asks for the metal, and tutFireBack() raises a proper arrow with it. */
+    if(TUT_STAGE==='fire-spot') return false;
     if(SF_SCREEN!=='forge') return false;
     if(!melt || melt.stage!=='onAnvil' || melt.reachedTrait) return false;
     if(melt.traits && melt.traits.length) return false;   // r40: a trait is banked - the down-arrow owns this state
