@@ -920,17 +920,24 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    their own colour, so .sk-lv gets a matching pass or it stays pale on a bright button.
    Declared BEFORE .levelled on purpose: equal specificity, so source order decides, and the
    level-up flash should win for its 1.2s and hand the guide back after. */
-#skillBtn.tut-blink { animation: tutBlinkSkill 1.1s ease-in-out infinite; }
-#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.1s ease-in-out infinite; }
+/* r188: a BLINK, not a pulse. r167's curve eased through its bright frame, so the lit state was an
+   instant at the top of a slow swell and the button read as merely warm. These keyframes HOLD each
+   state - dark 0..38%, lit 46..88% - and cross between them quickly, which is what 'blinking' looks
+   like. `linear` matters: ease-in-out would soften the very edges this depends on. */
+#skillBtn.tut-blink { animation: tutBlinkSkill 1.05s linear infinite; }
+#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.05s linear infinite; }
 @keyframes tutBlinkSkill {
-    0%,100% { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
-              box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
-    50%     { background: linear-gradient(180deg,#ffe0a4,#ffb43e); border-color: #fff3d4; color: #2a1d0c;
-              box-shadow: inset 0 0 18px 5px rgba(255,140,20,.5), 0 0 16px 6px rgba(255,170,60,.95); }
+    0%,38%   { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
+               box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
+    46%,88%  { background: linear-gradient(180deg,#ffe8bb,#ffb43e); border-color: #fff8e6; color: #2a1d0c;
+               box-shadow: inset 0 0 18px 5px rgba(255,140,20,.5), 0 0 20px 8px rgba(255,170,60,1); }
+    96%,100% { background: linear-gradient(180deg,#6d5532,#493720); border-color: #241a0c; color: #f7edd4;
+               box-shadow: inset 0 1px 0 rgba(255,220,150,.22), 0 0 0 0 rgba(255,170,60,0); }
 }
 @keyframes tutBlinkSkillTxt {
-    0%,100% { color: #e8cf92; }
-    50%     { color: #3a2a10; }
+    0%,38%   { color: #e8cf92; }
+    46%,88%  { color: #3a2a10; }
+    96%,100% { color: #e8cf92; }
 }
 #skillBtn.levelled { animation: skLvl 1.2s ease-out; }
 @keyframes skLvl { 0%,100% { box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }
@@ -5547,7 +5554,10 @@ function wireDragon(){
             const q=dragBox(d,b,30);
             x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y));
             /* r22: frame-wide bounds; wireDragon is the LIVE dragon handler (makeDraggable/wireMovable are dead code) */
-            d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; dragonCap(); }
+            d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; dragonCap();
+            /* r188: D97 explains where to put him; once he is there it has been read and obeyed,
+               and it sits over the anvil he is now working on. */
+            if(TUT_STAGE==='d2-pull' && dragonAtAnvil()) sayHide(); }
         updateFirePos();
         if(SAY_ON) sayLayout(); });
     const end=(e)=>{
@@ -5894,6 +5904,11 @@ function tutUnglow(){ TUT_GLOWED.forEach(el=>el.classList.remove('tut-glow')); T
 let TUT_STAGE=null;
 let TUT_COUNTER_VISITED=false;
 let TUT_BRAM_STATE=null;
+/* r188: any ore's slot on the shelf, by the alt text buildShelf() writes. tutIronSlot() is the
+   original of this and is left alone. */
+function tutOreSlot(name){ return function(){
+    const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt===name);
+    return im ? im.closest('.ore-slot') : document.getElementById('oreShelf'); }; }
 function tutIronSlot(){
     const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt==='Iron');
     return im ? im.closest('.ore-slot') : document.getElementById('oreShelf');
@@ -6247,9 +6262,17 @@ function tutDay2Pull(){
     setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
         tutGlow('#dragon', true); }, 0);
 }
+/* r188: back to the spot the CSS gives him - wireDragon() only ever writes inline left/top/right,
+   so clearing those three IS the opening position. */
+function homeDragon(){
+    const d=document.getElementById('dragon'); if(!d) return;
+    d.classList.remove('dragging');
+    d.style.left=''; d.style.top=''; d.style.right='';
+    dragonCap(); updateFirePos(); if(SAY_ON) sayLayout();
+}
 function tutSwiftAligned(){
     if(TUT_STAGE!=='d2-pull') return;
-    TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow();
+    TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow(); homeDragon();   /* r188 */
     sayQueue('D98');
     setTimeout(tutMugPointer, 0);
 }
@@ -6264,6 +6287,7 @@ function tutSwiftStored(){ if(TUT_STAGE==='d2-store') tutGaleStart(); }   /* r12
 function tutGaleStart(){
     TUT_STAGE='d2-gale1'; tutArrow(null,null); tutUnglow();
     sayQueue('D100','D101');
+    tutNeedTab(0);   /* r188: D101 asks for copper, so INGREDIENTS blinks until it is the open tab */
 }
 function tutGaleSmelted(){
     if(TUT_STAGE==='d2-gale1' && fireOreWanted()===false){
@@ -6271,7 +6295,10 @@ function tutGaleSmelted(){
     if(TUT_STAGE==='d2-gale2' && fireOreWanted()===false){
         TUT_STAGE='d2-gale3'; tutArrow(null,null);
         const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(g) tutSpotOn(g);   /* highlight it */
-        sayQueue('D104'); return; }
+        sayQueue('D104');
+        setTimeout(()=>tutArrow(tutOreSlot('Copper'), '#stSmelt .furnace',
+            { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 }), 0);   /* r188 */
+        return; }
     if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
         TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
         sayQueue('D105'); return; }   /* r126: the ring stays up until the trait is taken */
@@ -7420,7 +7447,8 @@ function sayChoose(list){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1 };
+const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1,
+                    D89:1, D90:1, D100:1, D116:1, D117:1 };   /* r188 */
 const SAY_GO_NEXT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8 7-8 7z" fill="currentColor"/><path d="M13 5l8 7-8 7z" fill="currentColor"/></svg>';
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){

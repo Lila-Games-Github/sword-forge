@@ -1644,3 +1644,40 @@ arrow still shows (unchanged); at D70 it is `display: none` and `hintArrowWanted
 go button lit; at D71 it returns, alongside the tutorial's own `#orb → furnace`.
 
 *Both arrows being up together at D71 is older behaviour, untouched here.*
+
+### r188 — five more lit buttons, a real blink, and four Day-2 pointers
+
+- **D89, D90, D100, D116, D117** join `SAY_GO_GLOW`.
+- **The skill button now blinks rather than pulses.** r167's curve eased *through* its bright frame,
+  so the lit state was an instant at the top of a slow swell. The keyframes now **hold** each state
+  (dark 0..38%, lit 46..88%) and cross quickly, on `linear` — `ease-in-out` would soften the very
+  edges the effect depends on. Measured across one cycle: dark at 0/200/380/460ms, lit at 700/880ms,
+  dark again by 960ms.
+  *Note: the old one was running correctly — class applied, `tutBlinkSkill` at 1.1s infinite,
+  surviving a board click and ten frames. It read as merely warm, which is the thing that was wrong.*
+- **D97** is retired the moment the dragon reaches the anvil, from `wireDragon()`'s drag: the line
+  says where to put him, and once he is there it has been obeyed and is sitting over the anvil.
+- **D98** sends him home. `homeDragon()` clears the inline `left`/`top`/`right` that `wireDragon()`
+  is the only writer of, so clearing those three **is** the opening position.
+- **D101** haloes INGREDIENTS until it is the open tab.
+- **D104** points from the Copper slot to the smelter, via a new `tutOreSlot(name)` that finds any
+  ore's slot by the alt text `buildShelf()` writes.
+
+Verified: all five ids light their button; the blink holds its two states as measured above; D97
+shows, then hides the instant `dragonAtAnvil()` turns true mid-drag; D98 leaves the dragon with no
+inline position; D100/D101 halo tab 0 while standing on tab 2 and clear on the click; D104 draws with
+its source resolving to the Copper slot.
+
+### Open — "stop the sword on gale as soon as Epic is available"
+
+Asked for in the same round, **not implemented**, because the measurement says it cannot work as
+described.
+
+The dragon-pull already stops at the **closest approach**: it clamps the step to the projection of
+(trait − sword) onto the line toward spawn, which is the nearest the sword can ever get on that path.
+Stopping *sooner* can only land it further away.
+
+Measured on a copper route: the closest approach to gale is **27.1 units**. `ALIGN_EPIC` is **9** and
+`ALIGN_FINE` is **20**, so that stop is **Weak** — Epic is not merely late, it is unreachable by
+pulling. Timing is not the lever. What would move it: gale's position, the route the copper draws,
+`ALIGN_EPIC`, or letting the pull steer rather than run straight at spawn. Owner to choose.
