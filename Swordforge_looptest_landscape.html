@@ -467,6 +467,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: linear-gradient(180deg,#9a7a46,#6d5528); border-color: #c8a84b; }
 .say-go svg { width: 15px; height: 15px; display: block; }
 .say-go.none { display: none; }   /* a question is pending: answer it, do not skip past it */
+/* r184: "click HERE". Deliberately additive - brightness and shadow only, no background of its
+   own - so one class can light the go button, a paper SELL button, a response box and the two
+   answer buttons, each of which has a different base. The inset half cannot be clipped by an
+   ancestor, which is what caught r163 and r167. */
+.tut-lit-ctl { animation: tutLitCtl 1.15s ease-in-out infinite; }
+@keyframes tutLitCtl {
+    0%,100% { filter: none; box-shadow: 0 0 0 0 rgba(255,170,60,0), inset 0 0 0 0 rgba(255,190,90,0); }
+    50%     { filter: brightness(1.45);
+              box-shadow: 0 0 18px 7px rgba(255,170,60,.95), inset 0 0 15px 4px rgba(255,190,90,.6); }
+}
 /* the tail: two stacked triangles, the back one the border colour, so the join reads as one shape */
 #dragonSay .tail, #dragonSay .tail::after { position: absolute; width: 0; height: 0;
     border-style: solid; border-color: transparent; }
@@ -2572,6 +2582,7 @@ function sellCounter(){
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
+    tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
@@ -2589,10 +2600,18 @@ function placeCounter(sw){
        branch below used to retire it - the rest leaned on noteAction() wiping the arrow on the
        drop, which r157 stopped doing. Clearing it here covers all of them. */
     tutArrow(null,null);
-    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24');
-        setTimeout(()=>tutExit('#csPanel .cs-sell'), 0);   /* r148 */ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
+    setTimeout(()=>tutSellLit(true), 0);   /* r184: the drag is done, so the thing to press now says so */
+    if(TUT_BRAM_STATE==='give'){ TUT_BRAM_STATE='counter-ready'; say('D24'); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=false; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } }
 }
-function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
+/* r184: SELL and the response box, lit together once a sword is sitting on the counter during a
+   guided sale. Every beat that re-speaks D23 ends here, and so does Bram's own. */
+function tutSellLit(on){
+    ['#csPanel .cs-sell', '#csPanel > .cs-resp'].forEach(sel=>{
+        const el=document.querySelector(sel);
+        if(el) el.classList.toggle('tut-lit-ctl', !!on && !el.disabled);
+    });
+}
+function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; tutSellLit(false);   /* r184 */ INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }
 function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); sellLabel(); }   /* r103 */
 
@@ -6632,15 +6651,23 @@ function tutSeam(metal){ return ()=>[...document.querySelectorAll('#caveLayer .c
         .find(el=>el._node && el._node.metal===metal) || null; }
 function tutPickEl(){ return document.querySelector('#caveLayer .cv-pick'); }
 function tutPickSlot(){ return document.querySelector('#oreShelf .inv-pick') || document.getElementById('oreShelf'); }
+/* r184: light the pickaxe itself. Resolved fresh every time, because tutPickSlot() answers the whole
+   shelf until ITEMS & DECOR is the open tab - a glow set once at D65 lit the shelf instead. Only the
+   real thing is ever lit, never that fallback. */
+function tutPickLit(){
+    tutUnglow();
+    const el = PICK_OUT ? tutPickEl() : document.querySelector('#oreShelf .inv-pick');
+    if(el) tutGlow(el, true);
+}
 function tutPickSrc(){ return PICK_OUT ? tutPickEl() : tutPickSlot(); }   /* r153b */
 function tutPickTab(){ return PICK_OUT ? null : 3; }
 function tutSeamLeft(metal){ const n=CAVE_NODES.find(c=>c.metal===metal); return n? n.left : 0; }
 /* after every swing: iron first, then manganese, then the pickaxe goes home */
 function tutMined(){
     if(TUT_STAGE!=='cave-pick') return;
-    if(tutSeamLeft('iron')>0){ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
-    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickSrc, tutSeam('manganese'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); return; }
-    TUT_STAGE='cave-stow'; tutArrow(null,null);
+    if(tutSeamLeft('iron')>0){ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); tutPickLit(); return; }   /* r184 */
+    if(tutSeamLeft('manganese')>0){ tutArrow(tutPickSrc, tutSeam('manganese'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }); tutPickLit(); return; }   /* r184 */
+    TUT_STAGE='cave-stow'; tutArrow(null,null); tutUnglow();   /* r184 */
     if(SAY_SEQ.indexOf('D66')<0) SAY_SEQ.push('D66');
     SAY_I=SAY_SEQ.indexOf('D66'); say('D66');
     setTimeout(()=>tutArrow(tutPickSrc, '#oreShelf', { tab:tutPickTab, tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
@@ -6664,9 +6691,12 @@ function tutFireForge(){
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){
     if(TUT_STAGE!=='fire-grind' || fireOreWanted()!==false) return;
-    TUT_STAGE='fire-heat1'; tutArrow(null,null);
+    TUT_STAGE='fire-heat1'; tutArrow(null,null); tutUnglow();
     if(SAY_SEQ.indexOf('D69')<0) SAY_SEQ.push('D69');
     SAY_I=SAY_SEQ.indexOf('D69'); say('D69');
+    /* r184: D69 is three instructions in one line - heat it, take it to the anvil, hammer. The
+       pointer now walks the same three steps; see the fire-heat1 branch in tutNudgeApply(). */
+    setTimeout(function(){ tutNudge(true); }, 0);
 }
 /* hammering to the end of that short route is where the dragon spots Fire through the fog */
 let TUT_SAIDSPOT=false;
@@ -6683,6 +6713,7 @@ function tutFireSpot(){
     if(TUT_STAGE!=='fire-heat1' || TUT_SAIDSPOT) return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
     TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
+    tutArrow(null,null); tutUnglow();   /* r184: D70 is a look-at-this line - the only thing to do is read on */
     const f=traits.find(t=>t.trait && t.trait.id==='fire');
     if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */
     ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
@@ -6766,7 +6797,8 @@ function tutCaveArrived(){
     TUT_STAGE='cave-pick'; tutArrow(null,null);
     if(SAY_SEQ.indexOf('D65')<0) SAY_SEQ.push('D65');
     SAY_I=SAY_SEQ.indexOf('D65'); say('D65');
-    setTimeout(()=>tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 }), 0);
+    setTimeout(()=>{ tutArrow(tutPickSrc, tutSeam('iron'), { tab:tutPickTab, tfx:0.5, tfy:0.4, bow:0.18, back:22 });
+        tutPickLit(); }, 0);   /* r184: the arrow says where to take it, the glow says what to take */
 }
 function tutHmStep(){
     if(TUT_STAGE==='bram2-shape'){ tutBram2Hammering(); return; }   /* r127 */
@@ -6810,7 +6842,9 @@ function finishD19(){
     (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; })();   /* r104 */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
-    if(r) r.style.display='flex'; if(p) p.classList.add('show'); buildScreenProps('customer');
+    if(r){ r.style.display='flex';
+        r.querySelectorAll('button').forEach(b=>b.classList.add('tut-lit-ctl')); }   /* r184: both answers */
+    if(p) p.classList.add('show'); buildScreenProps('customer');
     const d=document.getElementById('screenDragon'), b=document.getElementById('screenDragonSay'), layer=document.getElementById('screenLayer');
     if(d){ d.style.display='none'; d.classList.remove('dragging'); } if(b) b.classList.remove('show'); if(layer) layer.classList.remove('tut-counter');
     const old=document.querySelector('#csPanel .cs-dlg'), resp=document.querySelector('#csPanel > .cs-resp');
@@ -6843,6 +6877,7 @@ function typeLine(el, text){
 function chooseBram(choice){
     if(TUT_BRAM_STATE!=='awaiting') return;
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
+    if(r) r.querySelectorAll('button').forEach(b=>b.classList.remove('tut-lit-ctl'));   /* r184 */
     typeDone();
     typeAfter(()=>{ say('D23'); invTab(2);
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
@@ -7112,6 +7147,18 @@ function tutNudgeApply(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow('Manganese'); return; }
+    /* r184: the fire run's heat step, pointed the whole way: the bellows until the gate is ready,
+       then the gate, then the metal to the anvil, then the hammer. tutArrow(null, '#bellowtop') is
+       a GLOW, not an arrow - r152 routes a null `from` to tutTap(), and the bellows is an <img>. */
+    if(TUT_STAGE==='cave-pick'){ tutMined(); return; }   /* r184: re-resolves the pickaxe after a tab switch */
+    if(TUT_STAGE==='fire-heat1'){
+        if(!melt) return;
+        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
+        if(melt.stage==='onAnvil'){ tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
+        return;
+    }
     if(TUT_STAGE==='regrind-heat'){
         if(TUT_BELLOWS_LOCK){ tutArrow(null,null); return; }   /* r182: D38/D39 are still being read */
         tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
@@ -7352,11 +7399,16 @@ function sayChoose(list){
 }
 /* r174: drawn rather than typed - a glyph for either would render as an emoji on one platform and
    a box on another, and these two have to be unmistakable. */
+/* r184: lines whose only next step is to read on. The button that does it is lit, so there is
+   never a question of where to click. D8 and D9 are here too - they pause the world, and the
+   button shows an X there because each is the last line of its own run. */
+const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1 };
 const SAY_GO_NEXT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5l8 7-8 7z" fill="currentColor"/><path d="M13 5l8 7-8 7z" fill="currentColor"/></svg>';
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
-function sayGoIcon(go, kind){
+function sayGoIcon(go, kind, id){
     if(!go) return;
     go.classList.toggle('none', kind==='none');
+    go.classList.toggle('tut-lit-ctl', kind!=='none' && !!SAY_GO_GLOW[id]);   /* r184 */
     go.title = kind==='close' ? 'Close' : 'Continue';
     go.innerHTML = kind==='none' ? '' : (kind==='close' ? SAY_GO_CLOSE : SAY_GO_NEXT);
 }
@@ -7374,7 +7426,7 @@ function say(id){
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     const go=document.getElementById(B[2]);
-    sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'));   /* r115/r174 */
+    sayGoIcon(go, SAY_CHOICES ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1) ? 'close' : 'next'), id);   /* r115/r174/r184 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */

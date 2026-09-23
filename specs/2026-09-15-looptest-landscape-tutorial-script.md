@@ -1579,3 +1579,48 @@ That is all of them; `d2-counter` was the last one holding a stale line.
 Verified through the real beat: closing the skill tree after spending speaks D92 at the forge with
 `#panLeft` blinking; walking to the counter reaches `d2-bell` with **both** say boxes closed, the bell
 on the counter and blinking.
+
+### r184 — a batch of "click here" lights
+
+One class does all of it: `.tut-lit-ctl`, deliberately **additive** — `brightness` and `box-shadow`
+only, no background of its own — so the same rule can light the go button, a paper SELL button, a
+response box and two answer buttons, each with a different base. Its inset half cannot be clipped by
+an ancestor, which is the trap that cost r163 and r167.
+
+**The go button**, on the lines whose only next step is to read on:
+`D1, D2, D8, D9, D13, D19, D32, D33, D34, D38, D57, D70`. Held in `SAY_GO_GLOW` and applied by
+`sayGoIcon()`, which now takes the id. D8 and D9 are in the list and show an **X** there, since each
+is the last line of its own paused run.
+
+**D20** lights both of Bram's answers when `finishD19()` shows them; `chooseBram()` puts them out.
+
+**The sword on the counter** lights SELL through `tutSellLit()`, called from `placeCounter()` and
+cleared by `takeCounter()` and by the sale. It replaces Bram's old `tutExit()` blink, so every guided
+sale now behaves the same way. `tutSellLit()` skips a disabled control, so it never lights a SELL
+that cannot be pressed.
+
+**D65 lights the pickaxe** — and this one needed care. `tutPickSrc()` falls back to the whole
+`#oreShelf` while ITEMS & DECOR is closed, so a glow set once at D65 lit **the shelf**. `tutPickLit()`
+resolves it fresh and lights only the real thing, `tutMined()` re-applies it after every swing, and a
+`cave-pick` branch in `tutNudgeApply()` re-runs that when the player switches tab.
+
+**D69 is three instructions in one line**, and the pointer now walks all three: the bellows glows
+while the metal heats, the gate blinks once it is ready, then the metal is pointed to the anvil and
+then the hammer. All four states live in one `fire-heat1` branch of `tutNudgeApply()`, so they
+self-heal. (Bellows and gate come out as a glow and a blink rather than arrows because r152 routes a
+null `from` to `tutTap()`.)
+
+**D70 clears every pointer** and lights its own button instead — it is a look-at-this line, and the
+metal-to-smelter arrow belongs to D71, which still raises it.
+
+Verified, each through its own path: all 12 ids light the button and D3 (a control) does not; D8 and
+D9 light it showing the X; D20 lights 2 of 2 answers and a choice clears them; placing a sword during
+`sell2` lights SELL, and selling clears it; the pickaxe is **not** lit on arrival (wrong tab), is lit
+the moment ITEMS & DECOR opens, and the glow follows it into the cave; the fire heat step gives
+bellows glow → `#furnaceGate` blink → `#orb → anvil` → `#hammerTool → anvil`; D70 leaves no arrow, no
+glow, and a lit button.
+
+**Open:** "make the response glow as well" is wired to `#csPanel > .cs-resp`, but that box is
+`offsetParent: null` during the sale — it only appears **after** it, carrying "Thank you." / "Take
+care". The class is applied and would light it the instant it showed, but nothing is visible at the
+moment asked for. Owner to say which element was meant.
