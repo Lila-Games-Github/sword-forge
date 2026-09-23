@@ -17,7 +17,7 @@ Sword Forge is a 2D grid-based blacksmith crafting game. It is a **single, self-
 
 ## Canonical files
 
-- **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (D1–D43) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. Note PR #10 (`fm/sf-lazy-load`, open) also proposes naming this build canonical across the docs.
+- **`Swordforge_looptest_landscape.html`** — ⚠️ **the build actually under development** (as of 2026-09-18): the landscape loop-test, carrying the guided tutorial (**D1–D139**, 144 keys as of 2026-09-23) and the current craft/economy systems. Edit this one unless told otherwise. Its companion `Swordforge_new_looptest.html` (portrait) is **deliberately never touched** — the two have diverged. (PR #10, `fm/sf-lazy-load`, was cited here as open; it is **closed** — its lazy-load work was never landed, its canonical-build rename was applied directly.)
 - **`swordforgeV2.html`** — the **previous** canonical build (V2: path-map furnace build + guided tutorial). Historical unless a task names it; the landscape loop-test above is what is under development.
 - **`index.html`** — since 2026-09-22 a **redirect to the landscape build**, so the Pages root serves the game under development. It is 20 lines; do not put game code here.
 - **`v1.html`** — V1, kept for historical reference only (it was `index.html` until 2026-09-22). Do not develop here.

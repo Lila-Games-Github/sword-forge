@@ -26,6 +26,10 @@ continuation prompt printed at close time.
   `tutorial-polish` predates the `<project-slug>/<keywords>` convention the other branches follow
   (`sword-forge/mobile-compat`, `sword-forge/tutorial-script-and-craft-systems`). Name new ones that way.
 - **Do not commit directly to `main`** — every push there publishes the site.
+- **While PR #18 is open, `main`’s copies of this file and of `CLAUDE.md` are badly stale.** Main’s
+  HANDOFF still says the build has **43 dialogue keys ending at D43** — it has **144, ending at D139**
+  — and main’s `CLAUDE.md` still gives the preview port as 5678 in one section. Read the docs from
+  this branch until #18 lands: `git show tutorial-polish:HANDOFF.md`. **Seeing 144 keys is not a bug.**
 
 ### What this session changed (r154–r196)
 
