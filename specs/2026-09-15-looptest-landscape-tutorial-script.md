@@ -1415,3 +1415,37 @@ Verified: D30 absent and `lastLine()` still D139; the bell beat reaching `to-for
 and no D30 in the run; D42 reading "fewer ores"; the sharpening text computing 17px; the button 8px
 below the bubble and inside the frame on both the bench and the sharpening screen; two paths and
 title "Continue" mid-run, one stroked path and "Close" on the last line.
+
+### r177 — a beat between D43 and D44: shut the blade panel
+
+The blade panel is expanded over the top-left of the board when the craft is recorded, and D44 ("Tap
+on the metal to select a shape") then asks for the metal underneath it. A new stage, **`record-close`**,
+sits between them: `tutRecorded()` no longer speaks D44, it blinks the collapse control and waits.
+D43 stays on screen throughout, so **no new line was written**.
+
+**The control is `#hudToggle`, the collapse chevron, NOT the X in the panel.** The X is `#cancelCraft`,
+which runs `refundOre(); resetRun()` — it throws the craft away. Pointing a tutorial at it would
+destroy the blade the player just recorded.
+
+`toggleHud()` calls `tutHudClosed()` when it collapses, which is what speaks D44 and glows the orb.
+
+Three things that had to hold:
+
+- **TUT_HM2 is still set at `tutRecorded()`**, not at the close. A player who ignores the guide and
+  shapes the metal anyway must still get the second run's prompts.
+- `tutNudgeApply()` gets a `record-close` branch, so the blink is put back if anything wipes it — the
+  r155 discipline, and the fourth time it has mattered.
+- `tutHmStep()`'s `TUT_HM2` branch now calls `tutExit(null)`, so bypassing the guide does not leave
+  the blink up. That is the r158/r159/r164/r169 pattern, headed off this time rather than reported.
+
+`#hudToggle.tut-blink` also takes the **face swap** (r167's `tutBlinkTab`): `#frame` is
+`overflow: hidden` and the button sits **6px** from its left edge, so a plain halo (15px blur, 5px
+spread) is cut off on that side. Third button to need this; the rule is simply that a halo near a
+clipped edge does not read.
+
+Verified through the real beat: at `record` with the panel open, `tutCompStep()` speaks D43;
+`tutRecorded()` leaves stage `record-close`, D43 still up, `#hudToggle` blinking, no orb glow, and
+`TUT_HM2` already true. An idle nudge keeps the blink. `toggleHud()` then gives stage `shape2`, D44,
+the orb glowing and no blink. Edge cases: shaping the metal without closing reaches `forge2` with D45
+and **no stale blink**; recording with the panel already collapsed goes straight to `shape2`/D44. At
+the 50% frame the button computes to the amber face with dark text.
