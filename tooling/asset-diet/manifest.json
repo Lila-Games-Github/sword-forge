@@ -2238,5 +2238,50 @@
    158
   ],
   "forced": false
+ },
+ {
+  "src": "assets/ui/weak.png",
+  "out": "assets/ui/weak.webp",
+  "w": 248,
+  "q": 0.86,
+  "bytes": 70125,
+  "nat": [
+   416,
+   396
+  ],
+  "display": [
+   124,
+   118
+  ]
+ },
+ {
+  "src": "assets/ui/fine.png",
+  "out": "assets/ui/fine.webp",
+  "w": 248,
+  "q": 0.86,
+  "bytes": 124306,
+  "nat": [
+   416,
+   396
+  ],
+  "display": [
+   124,
+   118
+  ]
+ },
+ {
+  "src": "assets/ui/epic.png",
+  "out": "assets/ui/epic.webp",
+  "w": 248,
+  "q": 0.86,
+  "bytes": 127602,
+  "nat": [
+   416,
+   396
+  ],
+  "display": [
+   124,
+   118
+  ]
  }
 ]

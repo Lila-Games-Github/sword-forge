@@ -1733,6 +1733,22 @@ Verified: D97 up with no window; dismissing it opens the window with all three i
 each and the three labels; close hides it; a second D97 dismissal does **not** reopen it; and
 `sayHide()` — the auto-hide r188 uses — does not open it at all.
 
-**Open — payload.** The three files are PNG, **322KB** together (70 + 124 + 128). Every other asset in
-the build is WebP; the same three through the r136 pipeline would be roughly a tenth of that. They
-are not first-paint, so this is not urgent, but it is against the diet. Not converted yet.
+**Payload (settled r192).** Converted through the r136 browser pipeline at **248px**, twice the 124px
+they are displayed at: **314KB → 20KB** (68→7, 121→7, 125→6). The PNGs stay as the source, as every
+other converted asset does, and the three entries are in `tooling/asset-diet/manifest.json` (140 → 143)
+so a re-run includes them.
+
+### r192 — D128 rewritten, and the tier art on a diet
+
+**D128** — Garric
+> "Craft a Balanced sword and show me! Extra gold and rewards if it is Epic tier, customized and
+> sharpened!"
+
+*Was: "...Also, I want to see how well you can design it. Make it sharp!" The new line names the
+reward, which the old one left implicit even though `garricGrade()` has always paid for exactly these
+three things.*
+
+*Note: the owner wrote "epic tier"; capitalised to **Epic**, matching D76 ("It is not Epic tier.") and
+the tier labels the game prints everywhere else. "customized" is the owner's spelling and matches D79.*
+
+The three tier images are WebP now — see the payload note above.
