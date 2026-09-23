@@ -6874,3 +6874,18 @@ half the board to delete one speck. The post-pass leaves the map exactly as it w
 Verified: 70 zones before, **69** after, in both `hazards` and the DOM; the speck at (976,565) gone;
 the island at (1154,748) and the ribbon at (1010,853) still at their own coordinates; the nearest
 zone to gale now 118px.
+
+### r176 — the map controls move to the top right
+
+```css
+.zoom { position: absolute; right: 8px; top: 8px; ... }   /* was bottom: 8px */
+```
+
+Zoom in, zoom out and the fog cheat sat in the bottom-right corner of `#map-wrap`, which is where the
+grindstone bleeds up out of the bench (`#bench` is `overflow: visible` on purpose, so props cross
+zones). The top right is empty: `#panUp` is centred at 47.9..52.1% and `#panRight` does not start
+until 59.1% down.
+
+Verified at 1200x700: the column now spans 96.2..99.1% x, **1.7..19.3%** y, with no overlap against
+`#panUp`, `#panRight` or `#hudToggle`. All three still work — zoom in narrows `view.w`, zoom out
+widens it, and the fog cheat toggles its own class.

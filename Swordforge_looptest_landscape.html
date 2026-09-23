@@ -216,7 +216,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: inset 0 0 46px rgba(48,30,10,.5); }   /* r11b: dropped the strong bottom inset band — it drew a dark line across the whole map/bench boundary */
 #board { width: 100%; height: 100%; display: block; touch-action: none; }
 /* r16: the painted territory art (#mapArt) was removed - the board is now the flat beige base rect, so traits/hazards can be placed truthfully instead of being hidden behind a picture. */
-.zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
+/* r176: the map controls sit at the TOP right. At the bottom they shared that corner with the
+   grindstone, which bleeds up out of the bench (#bench is overflow:visible on purpose). The top
+   right is empty: #panUp is centred at 47.9..52.1% and #panRight starts at 59.1% down. */
+.zoom { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 7; }
 .zoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid #6a5636; background: rgba(25,20,12,0.8); color: #f0e8d6; font-size: 18px; font-weight: bold; cursor: pointer; line-height: 1; }
 .map-tag { position: absolute; left: 8px; top: 8px; z-index: 6; background: rgba(20,15,8,0.72); color: #e9dcbf; border: 1px solid #6a5636; border-radius: 7px; padding: 3px 8px; font-size: 10px; font-weight: bold; }
 
