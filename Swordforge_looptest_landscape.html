@@ -3610,7 +3610,7 @@ function applyState(o){
                reachedTrait:null, alignDist:null, acquiredTrait:null, tier:null,
                traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
         segs=g.segs.map(x=>Object.assign({},x,{origin:Object.assign({},x.origin)}));
-        sword={seg:g.sword.seg, frac:g.sword.frac};
+        sword={seg:g.sword.seg, frac:g.sword.frac}; pull=g.pull?{x:g.pull.x, y:g.pull.y}:{x:0,y:0};   /* r197 */
         const p=swordPoint(); setSword(p.x,p.y); drawRoute(); moveX();
         orbEl.style.display='block'; updateOrbLook();
         if(melt.stage==='onAnvil'){ const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); } else snapToGate(); }
@@ -5417,11 +5417,13 @@ function ingotSnapshot(){
     return { id:INV_SEQ++, at:performance.now(), heat:melt.heat, hp:melt.hp, stage:melt.stage,
         traits:(melt.traits||[]).map(a=>({tid:a.t.id, tier:a.tier})),
         segs:segs.map(g=>({ore:g.ore, d:g.d, len:g.len, origin:{x:g.origin.x,y:g.origin.y}, tPct:g.tPct})),
-        sword:{seg:sword.seg, frac:sword.frac} };
+        sword:{seg:sword.seg, frac:sword.frac}, pull:{x:pull.x, y:pull.y} };   /* r197: the dragon pull is part of where the route sits */
 }
 // clear the bench WITHOUT touching the modals or the inventory (resetRun does far more than this)
+/* r197: pull is zeroed here too. It used to survive a stored ingot, so the next route was drawn
+   offset from the sword by whatever the last blade had been pulled (seen after the Swift blade). */
 function benchClear(){
-    segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; gateReady=false;
+    segs=[]; sword={seg:0,frac:0}; melt=null; prep=null; gateReady=false; pull={x:0,y:0};
     const g=document.getElementById('furnaceGate'); if(g) g.classList.remove('ready');
     orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0;
     clearTraitHighlight(); hidePreviewPaths(); pathEl.style.display='none'; xmark.style.display='none';
@@ -5465,7 +5467,7 @@ function restoreIngot(id){
            reachedTrait:null, alignDist:null, acquiredTrait:null, tier:null,      // the tick recomputes these
            traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
     segs=g.segs.map(x=>({...x, origin:{...x.origin}}));
-    sword={seg:g.sword.seg, frac:g.sword.frac};
+    sword={seg:g.sword.seg, frac:g.sword.frac}; pull=g.pull?{x:g.pull.x, y:g.pull.y}:{x:0,y:0};   /* r197 */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); ensureSwordVisible();
     orbEl.style.display='block'; updateOrbLook();
     if(melt.stage==='onAnvil'){ const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); } else snapToGate();
