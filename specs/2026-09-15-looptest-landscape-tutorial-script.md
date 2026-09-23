@@ -1715,7 +1715,9 @@ and still hides the go button.
 
 ### r190 — the tier legend after D97
 
-`#sfTierModal`: `assets/ui/weak.png`, `fine.png` and `epic.png` in three equal columns, labelled
+`#sfTierModal`, headed **"Alignment for Tiers"** (r191; the owner's trailing full stop was their
+list numbering, and no other modal heading carries one): `assets/ui/weak.png`, `fine.png` and
+`epic.png` in three equal columns, labelled
 WEAK / FINE / EPIC, with a close control. The label colours are `tierColor()`'s exactly — `#c0a48a`,
 `#49b6ff`, `#ffcf3a` — so the window and every tier readout in the game agree.
 
