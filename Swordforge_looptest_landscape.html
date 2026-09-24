@@ -5261,8 +5261,9 @@ function hammerStriking(){ return hammerEl && hammerEl.classList.contains('strik
 function ensureSwordVisible(){ const mx=0.18,myTop=0.14,myBot=0.62,vw=view.w,vh=vw*aspect; let nx=view.x,ny=view.y; if(marker.x<view.x+vw*mx) nx=marker.x-vw*mx; else if(marker.x>view.x+vw*(1-mx)) nx=marker.x-vw*(1-mx); if(marker.y<view.y+vh*myTop) ny=marker.y-vh*myTop; else if(marker.y>view.y+vh*myBot) ny=marker.y-vh*myBot; if(nx!==view.x||ny!==view.y){ view.x=nx; view.y=ny; setView(); } }
 
 // --- sword travel across the stacked route ---
-function advanceSword(dt){ if(!segs.length || !melt) return; let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
+function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-gale-quench') return;   /* r198: parked on Gale until it is splashed */ let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
     while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
+    tutGaleEpicStop();   /* r198: clamps the sword back onto Gale's centre if this step passed it */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); checkHazard(p,dt); checkBooks(p); }   // drawRoute() erases the part behind the sword
 
 // ---- r39: the idle nudge arrow ----
@@ -6342,7 +6343,7 @@ function tutGaleSmelted(){
             { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 }), 0);   /* r188 */
         return; }
     if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
-        TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
+        TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; TUT_GALE_KEY=''; tutArrow(null,null);   /* r198: fresh route, fresh stop point */
         sayQueue('D105'); return; }   /* r126: the ring stays up until the trait is taken */
 }
 /* the end of the three-ore route: back to the smelter for a fourth */
@@ -6350,7 +6351,32 @@ function tutGaleSmelted(){
 function tutGaleAligned(){
     if(TUT_STAGE!=='d2-gale-work') return;
     TUT_STAGE='d2-gale-quench'; tutArrow(null,null); tutUnglow(); tutSpotOn(null);
+    sayQueue('D98');   /* r198: "Stop! This looks perfect." - the same line as the Swift park */
     setTimeout(tutMugPointer, 0);
+}
+/* r198: the five-copper route runs straight through Gale (closest 0.4) and ends 37.4 past it, out of
+   reach of any trait, so hammering on used to carry the sword off it. The hammer now stops the sword
+   at the route's CLOSEST point to Gale (the owner asked for the centre, not the edge of Epic), homes
+   the hammer, locks the pull, and hands over to the mug. The point is sampled once per route + pull,
+   and only counts if it is inside ALIGN_EPIC. */
+let TUT_GALE_STOP=null, TUT_GALE_KEY='';
+function tutGaleStopAt(){
+    if(TUT_STAGE!=='d2-gale-work' || !segs.length) return null;
+    const key=segs.length+'|'+pull.x.toFixed(2)+'|'+pull.y.toFixed(2);
+    if(key===TUT_GALE_KEY) return TUT_GALE_STOP;
+    TUT_GALE_KEY=key; TUT_GALE_STOP=null;
+    const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(!g) return null;
+    let best=null, bd=Infinity;
+    segs.forEach((s,si)=>{ for(let i=0;i<=600;i++){ const f=s.tPct*i/600, p=segPoint(s,f), d=Math.hypot(p.x-g.x,p.y-g.y); if(d<bd){ bd=d; best={seg:si,frac:f}; } } });
+    if(bd<=ALIGN_EPIC) TUT_GALE_STOP=best;
+    return TUT_GALE_STOP;
+}
+function tutGaleEpicStop(){
+    const at=tutGaleStopAt(); if(!at) return false;
+    if(sword.seg<at.seg || (sword.seg===at.seg && sword.frac<at.frac-0.0001)) return false;
+    sword={seg:at.seg, frac:at.frac};
+    TUT_SWIFT_LOCK=true; homeHammer(); tutGaleAligned();
+    return true;
 }
 function tutGaleGot(){
     if(TUT_STAGE!=='d2-gale-quench') return;

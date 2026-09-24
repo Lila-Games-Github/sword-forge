@@ -1005,6 +1005,17 @@ Two ways to settle it: leave the pull as the finisher, which is consistent with 
 move Gale out to 563 so the fifth ore lands on it, which costs the "almost there" moment (the fourth
 ore would then sit 64 away rather than 28).
 
+**Settled 2026-09-24 (r198), by the owner, a third way:** the hammer stops the sword on Gale's
+centre. The five-copper route runs straight through Gale (closest 0.4), so while `d2-gale-work` is
+up, `tutGaleStopAt()` samples the route for its closest point to Gale (used only if that is within
+`ALIGN_EPIC`, 9), and `tutGaleEpicStop()` clamps the sword onto it the frame the hammer passes it -
+measured stop 0.34 - then homes the hammer, locks the fire-pull (`TUT_SWIFT_LOCK`) and hands over to
+the mug (`tutGaleAligned()` → `d2-gale-quench`: the guide says **D98** "Stop! This looks perfect.",
+the same line as the Swift park, and the arrow and glow go to the mug). `advanceSword()` does nothing
+during `d2-gale-quench`, so neither the hammer nor the pull can carry it off. The splash gives
+**Gale Epic**. Gale, the route and `ALIGN_EPIC` are unchanged; the pull-park on Gale still works if
+the player pulls before the hammer gets there.
+
 ---
 
 ## The gale sword is sold, and Bram returns — D105–D114, D44 again
@@ -1012,7 +1023,9 @@ ore would then sit 64 away rather than 28).
 **D105** — Dragon
 > "Heat it up and hammer."
 
-*Trigger: the fifth copper going in. Gale stays **ringed** until the trait is taken.*
+*Trigger: the fifth copper going in. Gale stays **ringed** until the trait is taken. Hammering stops
+the sword on Gale's centre (Epic), **D98** plays again, and the mug is pointed to (r198, see "Open: the
+fifth copper overshoots" above).*
 
 **D106** — Dragon
 > "Amazing, you got it! We got it! Tap on the metal to select the shape."
