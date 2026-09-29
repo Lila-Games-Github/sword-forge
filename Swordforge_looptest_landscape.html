@@ -2179,7 +2179,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button></div>
 
 <script>
 // ============================================================
@@ -2208,8 +2208,18 @@ const FTUE = {
                        gpc2:[ { kind:'blueprint', trait:'balanced', shape:'Broadsword' }, { kind:'unlock', id:'grindstone' } ] } },
         2: { gpc:[ { trait:'balanced', qty:5 } ], ensureOre:{ iron:5, manganese:5 }, after:'bell2',
              rewards:{ tc:  [ { kind:'pages', n:5 } ],
-                       gpc1:[ { kind:'unlock', id:'designDesk' } ] } }
+                       gpc1:[ { kind:'unlock', id:'designDesk' } ] } },
+        3: { gpc:[ { trait:'fire', qty:1 }, { trait:'balanced', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-bell',
+             rewards:{ tc:  [ { kind:'parts', trait:'balanced' }, { kind:'parts', trait:'fire' }, { kind:'blueprint', trait:'fire', shape:'Longsword' } ],
+                       gpc1:[ { kind:'blueprint', trait:'fire', shape:'Broadsword' } ],
+                       gpc2:[],
+                       gpc3:[ { kind:'parts', trait:'fire' } ] } }
     },
+    /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
+    startParts: 3,
+    /* r203: the Day 2 cave, straight after the skill tree - everything Day 2 needs, +5 of each */
+    day2Cave:  { iron:12, manganese:12, copper:24, aluminium:7 },
+    day2Swing: [2, 3],
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24' } },
     retryLine: 'D28a'
 };
@@ -2217,7 +2227,7 @@ const FTUE = {
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{} }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
@@ -2245,6 +2255,7 @@ function ftueRewardName(r){
     if(r.kind==='blueprint') return TRAIT_BY[r.trait].name+' '+r.shape+' blueprint';
     if(r.kind==='unlock' && r.id==='grindstone') return 'Grindstone';
     if(r.kind==='pages') return r.n+' recipe book pages';
+    if(r.kind==='parts') return TRAIT_BY[r.trait].name+' sword parts x3';
     if(r.kind==='unlock' && r.id==='designDesk') return 'Design desk';
     return r.id || r.kind; }
 function ftueRewardSub(r){
@@ -2252,6 +2263,7 @@ function ftueRewardSub(r){
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
     if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the forge bench. The tutorial will show you how to use it.';
     if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
+    if(r.kind==='parts') return 'A new grip, guard and pommel at the design desk.';
     if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
     return ''; }
 function ftueRewardApply(r){
@@ -2259,10 +2271,13 @@ function ftueRewardApply(r){
     else if(r.kind==='blueprint') FTUE_ST.shapes[r.trait+':'+r.shape]=true;
     else if(r.kind==='unlock' && r.id==='grindstone'){ FTUE_ST.grind=true; ftueGrindUi(); }
     else if(r.kind==='pages') FTUE_ST.pages=(FTUE_ST.pages||0)+r.n;
+    else if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced'; FTUE_ST.dd=FTUE_ST.dd||{}; FTUE_ST.dd[sk]=(FTUE_ST.dd[sk]||0)+1; }   /* r203 */
     else if(r.kind==='unlock' && r.id==='designDesk'){ FTUE_ST.desk=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
     if(INV_TAB===3) buildShelf(); }
 function ftueRewardIcon(r){
     if(r.kind==='decor') return '<span class="rwd-ic rwd-sq" style="background:'+((FTUE.decor[r.id]||{}).fill||'#888')+'"></span>';
+    if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced';   /* r203: the first guard of that set */
+        return '<img class="rwd-ic" src="'+ddSrc('guard', ((DD_SETS[sk]||DD_SETS.balanced).guard||[])[0])+'" alt="">'; }
     const src = (r.kind==='blueprint' || r.kind==='pages') ? 'assets/ui/icon_recipe.webp'
               : (r.id==='designDesk') ? 'assets/Game-elements/design_desk.webp' : 'assets/forge/anchor_grindwheel.webp';   /* r202: the forge's grinding wheel, not the basement sharpening wheel (grindstone.webp) */
     return '<img class="rwd-ic" src="'+src+'" alt="">'; }
@@ -2461,7 +2476,7 @@ function startDecorDrag(id, e, idx){
 function ftuePart(n){
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
-    if(n>3) return 'Part '+n+' is not built yet';
+    if(n>4) return 'Part '+n+' is not built yet';
     newGame();
     setTimeout(()=>{   /* newGame() speaks D1 after 500 ms; set up after it */
         sayHide(); tutDone();
@@ -2483,12 +2498,22 @@ function ftuePart(n){
             for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
             FTUE_ST.part=2; FTUE_ST.gpc=1; FTUE_ST.grindUse=true; FTUE_ST.pages=5; FTUE_ST.desk=true;
             ORE_COUNT.iron=0; ORE_COUNT.manganese=0; GOLD=280; exp=260; TUT_STAGE='bell2'; }
+        if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */
+            const ft=traits.find(t=>t.trait && t.trait.id==='fire');
+            if(ft){ ft.discovered=true; ft.txtEl.textContent=ft.trait.symbol; ft.txtEl.removeAttribute('font-weight'); reveal(ft.x,ft.y,'tr'+ft.trait.id); }
+            RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[1,1,1,0.85], at:Date.now() };
+            for(let i=59;i<=94;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D94b');
+            FTUE_ST.part=3; FTUE_ST.gpc=3; FTUE_ST.dd={ balanced:1, flame:2 };
+            FTUE_ST.shapes['fire:Longsword']=true; FTUE_ST.shapes['fire:Broadsword']=true;
+            TUT_D2_SPENT=true; PICK_OUT=null; CAVE_NODES=[]; buildCave();
+            (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='2'; })();
+            ORE_COUNT.iron=7; ORE_COUNT.manganese=7; ORE_COUNT.copper=24; ORE_COUNT.aluminium=7; GOLD=520; exp=420; TUT_STAGE='d2-bell'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
         ftueBellGlow();
     }, 650);
-    return n===2 ? 'Part 2: setting up (TC2 is at the bell)' : 'Part 3: setting up (TC3 is at the bell)';
+    return 'Part '+n+': setting up (TC'+n+' is at the bell)';
 }
 window.ftuePart=ftuePart;
 
@@ -3201,6 +3226,13 @@ function setTutorialCave(){
     CAVE_NODES=[{ metal:'iron', spot:2, left:2 }, { metal:'manganese', spot:7, left:2 }];
     PICK_OUT={ x:40.0, y:88.0 };   /* lying on the cave floor, not in the bag */
 }
+/* r203: the tutorial's Day 2 cave (FTUE.day2Cave) - one seam per ore on random spots, and each
+   swing takes 2-3 (FTUE.day2Swing) so 55 ores is not 55 swings. No nickel: the FTUE never uses it. */
+function ftueDay2Cave(){
+    const ids=Object.keys(FTUE.day2Cave), idx=CAVE_SPOTS.map((s,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    CAVE_NODES=ids.map((m,i)=>({ metal:m, spot:idx[i], left:FTUE.day2Cave[m], per:FTUE.day2Swing.slice() }));
+}
 function rollCaveNodes(){
     const idx=CAVE_SPOTS.map((s,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
@@ -3285,7 +3317,8 @@ function pickCheck(){
 }
 function mineNode(n,el){
     if(!PICK_OUT || n.left<=0) return;
-    n.left--; gainOre(n.metal,1); setTimeout(tutMined, 0); setTimeout(tutDay2Mined, 0);   /* r111/r122 */
+    const take = n.per ? Math.min(n.left, n.per[0]+Math.floor(Math.random()*(n.per[1]-n.per[0]+1))) : 1;   /* r203 */
+    n.left-=take; gainOre(n.metal,take); setTimeout(tutMined, 0); setTimeout(tutDay2Mined, 0);   /* r111/r122 */
     if(INV_TAB===0) buildShelf();                         // the count moves NOW, not when the ore lands
     el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
     const r=el.getBoundingClientRect();
@@ -3724,7 +3757,10 @@ function ddBonus(tab, skin){
     return (DD_BONUS.balanced||{})[tab] || [];
 }
 function ddSet(tab, skin){ const set=DD_SETS[skin]||DD_SETS.balanced;
-    return (set[tab]||DD_SETS.balanced[tab]).concat(ddBonus(tab, skin)); }   /* r131 */
+    /* r203: only the parts this trait has earned - FTUE.startParts, plus one per 'parts' reward */
+    const all=(set[tab]||DD_SETS.balanced[tab]).concat(((DD_EXTRA[skin]||{})[tab])||[]);
+    const n=FTUE.startParts + ((FTUE_ST.dd||{})[skin]||0);
+    return all.slice(0, n).concat(ddBonus(tab, skin)); }   /* r131 */
 /* a pick from one set cannot survive a change of set, so fall back to that set's first part */
 function ddCoerce(sel, skin){
     const out=Object.assign({}, sel||{});
@@ -3737,7 +3773,12 @@ const DD_COLS = [1.41, 15.05, 28.70, 42.35, 56.00, 69.64, 83.29], DD_ROWTOP = 4.
 let DD_TAB = 'grip', DD_SEL = { grip:'grip1', guard:'guard1', pommel:'pommel1' }, DD_WAS = null;
 let DD_BLADE = 'balanced_shortsword_blade';                // placeholder: the blade comes from forging. r199: Shortsword, the FTUE's open shape
 let DD_SCROLL = 0, DD_MAX = 0;
-const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+f+'.webp';
+/* r203: placeholder parts. The FTUE rewards need more fire parts than there is art for, so these
+   ids (the names on the owner's art list) show an existing image until the real file lands - then
+   delete the line and the real art is used. DD_EXTRA puts them on the end of their set. */
+const DD_ALIAS = { flame_grip4:'flame_grip1', flame_grip5:'flame_grip2', flame_pommel3:'flame_pommel1', flame_pommel4:'flame_pommel2', flame_pommel5:'flame_pommel1' };
+const DD_EXTRA = { flame:{ grip:['flame_grip4','flame_grip5'], pommel:['flame_pommel3','flame_pommel4','flame_pommel5'] } };
+const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+(DD_ALIAS[f]||f)+'.webp';
 
 // --- measuring the art at runtime, so no hand-kept table of boxes can go stale ---
 const PART_BOX = {}, COMBO_FIT = {};
@@ -4385,7 +4426,9 @@ function confirmEndDay(){
 function advanceDay(day){
     const d=document.getElementById('dayNum');
     if(d) d.textContent = day;
-    rollCaveNodes(); buildCave();                         // r68: five fresh seams, in new places
+    rollCaveNodes();                                      // r68: five fresh seams, in new places
+    if(TUT_STAGE==='bed') ftueDay2Cave();                 /* r203: the tutorial's Day 2 stocks what Day 2 needs */
+    buildCave();
     /* r120: the tutorial's own night ends where it was spent. The player wakes in the bedroom and
        walks down to the forge, with the exit blinking; every other day still jumps straight there. */
     if(TUT_STAGE==='bed'){ TUT_STAGE='day2-forge'; sayHide(); tutArrow(null,null);
@@ -6554,9 +6597,10 @@ function tutScreenArrived(name){
     if(FTUE_ST.part===1 && TUT_BRAM_SOLD){   /* r199: part 1 gameplay - the counter and its bell are where it goes on */
         if(TUT_STAGE==='bell'){ ftueToCounter(); return; }
         if(TUT_STAGE==='p1-gpc' && name==='customer' && !CUSTOMER) ftueBellGlow(); }
-    if(FTUE_ST.part===2){   /* r201: part 2 - GPC3's bell, the order, and TC3's bell */
-        if(TUT_STAGE==='p2-bell' || TUT_STAGE==='bell2'){ ftueToCounter(); return; }
-        if(TUT_STAGE==='p2-gpc'){ ftueBulkStep(); return; } }
+    if(FTUE_ST.part>=2 && FTUE.parts[FTUE_ST.part]){   /* r201/r203: a part's bells, its orders, and the next TC's bell */
+        const pp='p'+FTUE_ST.part;
+        if(TUT_STAGE===pp+'-bell' || TUT_STAGE===FTUE.parts[FTUE_ST.part].after){ ftueToCounter(); return; }
+        if(TUT_STAGE===pp+'-gpc'){ if(name==='customer' && !CUSTOMER) ftueBellGlow(); ftueBulkStep(); return; } }
     if(TUT_STAGE==='day2-forge'){ if(name==='forge') tutDay2Morning(); return; }   /* r120/r122 */
     if(TUT_STAGE==='g-bell' || TUT_STAGE==='garric' || String(TUT_STAGE).indexOf('g-')===0){   /* r130b */
         if(TUT_STAGE==='g-forge' && name==='forge') tutGarricForge();
@@ -6691,8 +6735,10 @@ function tutThankYou3(){
     CUSTOMER=null; TUT_STAGE='to-bed'; TUT_FIRE_RUN=false;
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi();
-    sayQueue('D87');
-    setTimeout(()=>tutExit('#panRight'), 0);
+    /* r203: part 3 - TC3's rewards first (parts x3 for balanced and fire, the fire Longsword), then bed */
+    ftueReward(FTUE_ST.part===3 ? FTUE.parts[3].rewards.tc : [], ()=>{
+        sayQueue('D87');
+        setTimeout(()=>tutExit('#panRight'), 0); });
 }
 /* the dragon already asleep on the bed is the one who says goodnight */
 /* ---- r122: Day 2. The skill tree is spent, the bell is rung, and the order that follows sends the
@@ -6710,18 +6756,24 @@ function tutDay2Spent(){ if(TUT_STAGE==='d2-skill') TUT_D2_SPENT=true; }
 function tutDay2SkillClosed(){
     if(TUT_STAGE!=='d2-skill') return;
     if(!TUT_D2_SPENT){ tutDay2Skill(); return; }   /* closed without spending: ask again */
-    TUT_STAGE='d2-counter'; tutExit(null);
-    sayQueue('D92');
-    setTimeout(()=>tutExit('#panLeft'), 0);
+    /* r203: the ore run moved here, straight after the skill tree (it used to follow TC4's order).
+       D94 "go back to the cave", D94b "gather everything", and only then D92 and the counter. */
+    TUT_STAGE='d2-cave'; tutExit(null);
+    sayQueue('D94');
+    setTimeout(()=>tutExit('#panRight'), 0);
 }
 /* every Day 2 screen arrival in one place */
 function tutDay2Screen(name){
     if(TUT_STAGE==='d2-counter' && name==='customer'){
         /* r183: D92 is "Let's go check the counter" - the walk is done, so the line goes with it.
            Same family as r169: this branch re-points but says nothing, so nothing retired it. */
-        TUT_STAGE='d2-bell'; sayHide(); bellShow(true); updateTutorialCounterUi();
-        setTimeout(()=>tutExit(()=>document.querySelector("#screenProps [data-act='bell']")), 0);
+        /* r203: part 3's gameplay customers (GPC4-6) come before TC4's gale order */
+        const gpcFirst = FTUE_ST.part===3 && FTUE_ST.gpc<FTUE.parts[3].gpc.length;
+        TUT_STAGE = gpcFirst ? 'p3-bell' : 'd2-bell'; sayHide(); bellShow(true); updateTutorialCounterUi();
+        if(gpcFirst){ tutExit(null); ftueBellGlow(); }
+        else setTimeout(()=>tutExit(()=>document.querySelector("#screenProps [data-act='bell']")), 0);
         return; }
+    if(TUT_STAGE==='d2-counter' && name==='forge'){ tutExit('#panLeft'); return; }   /* r203: from the cave, via the forge */
     if(TUT_STAGE==='d2-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
         if(name==='cave'){ TUT_STAGE='d2-mine'; tutExit(null); sayQueue('D94b');
@@ -6747,8 +6799,11 @@ function tutDay2Customer(){
     if(TUT_STAGE!=='d2-bell') return;
     TUT_STAGE='d2-ask'; tutExit(null); sayHide();
     CUSTOMER={ portrait:'assets/customer/man2.webp', tid:'gale', name:'Gale' };
+    FTUE_ST.part=4; FTUE_ST.gpc=0;   /* r203: TC4 opens part 4 */
     buildScreenProps('customer'); counterUi();
-    typeAfter(()=>{ TUT_STAGE='d2-cave'; sayQueue('D94'); setTimeout(()=>tutExit('#panRight'), 0); });
+    /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
+       cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */
+    typeAfter(()=>{ TUT_STAGE='d2-back'; setTimeout(()=>tutExit('#panRight'), 0); });
     custLine(null, DIALOGUE.D93);
 }
 /* the cave is emptied before the walk home */
@@ -7172,8 +7227,9 @@ function tutDay2Smelted(){
 function tutDay2Mined(){
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;
-    TUT_STAGE='d2-back';
+    TUT_STAGE='d2-counter';   /* r203: was 'd2-back' (to the forge for TC4's copper); now D92 and the counter */
     sayHide(); tutNeedTab(null);   /* r167: 'Gather everything' is done, so it stops being said */
+    sayQueue('D92');
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 function tutBedroom(){
@@ -7646,7 +7702,7 @@ function ringBell(){
     if(!BELL_ON) return;
     /* r96b: whoever answers rebuilds the props, so ring AFTER that - otherwise the shake is applied
        to an element that is replaced a frame later and the player sees nothing. */
-    if(TUT_STAGE==='p1-bell' || TUT_STAGE==='p1-gpc' || TUT_STAGE==='p2-bell' || TUT_STAGE==='p2-gpc') ftueGpcArrive();   /* r199/r201: the parts' gameplay customers */
+    if(/^p\d-(bell|gpc)$/.test(String(TUT_STAGE))) ftueGpcArrive();   /* r199/r201/r203: any part's gameplay customers */
     else if(TUT_STAGE==='bell') tutBellRung();                /* the scripted first customer - TC2 since r199 */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
     else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */

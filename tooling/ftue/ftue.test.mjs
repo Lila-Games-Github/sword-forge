@@ -48,6 +48,22 @@ eq('part 2 after', FTUE.parts[2].after, 'bell2');
 eq('part 2 rewards', FTUE.parts[2].rewards, {
   tc:   [ { kind: 'pages', n: 5 } ],
   gpc1: [ { kind: 'unlock', id: 'designDesk' } ] });
+/* part 3 (r203) */
+eq('startParts (per trait, per kind)', FTUE.startParts, 3);
+eq('part 3 gpc', FTUE.parts[3].gpc, [ { trait: 'fire', qty: 1 }, { trait: 'balanced', qty: 1 }, { trait: 'fire', qty: 1 } ]);
+eq('part 3 after', FTUE.parts[3].after, 'd2-bell');
+eq('part 3 rewards', FTUE.parts[3].rewards, {
+  tc:   [ { kind: 'parts', trait: 'balanced' }, { kind: 'parts', trait: 'fire' }, { kind: 'blueprint', trait: 'fire', shape: 'Longsword' } ],
+  gpc1: [ { kind: 'blueprint', trait: 'fire', shape: 'Broadsword' } ],
+  gpc2: [],
+  gpc3: [ { kind: 'parts', trait: 'fire' } ] });
+eq('day2Cave', FTUE.day2Cave, { iron: 12, manganese: 12, copper: 24, aluminium: 7 });
+eq('day2Swing', FTUE.day2Swing, [2, 3]);
+/* placeholder parts carry the owner's art-list names and show an existing image until the art lands */
+const alias = src.match(/const DD_ALIAS = (\{[^}]*\});/);
+eq('DD_ALIAS present', !!alias, true);
+eq('DD_ALIAS names', Object.keys(new Function('return ' + alias[1])()).sort(),
+  ['flame_grip4', 'flame_grip5', 'flame_pommel3', 'flame_pommel4', 'flame_pommel5']);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
 eq('retryLine',  FTUE.retryLine,  'D28a');
 

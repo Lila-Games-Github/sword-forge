@@ -386,3 +386,27 @@ New customer wording for the owner to check: "I need 5 Balanced swords. Can you 
   grinder (`#stMortar`, art `anchor_grindwheel.webp`), but the reward window showed
   `grindstone.webp`, which is the **basement sharpening wheel**. The window now shows
   `anchor_grindwheel.webp`, and its text says "on the forge bench".
+
+## Part 3 build record (2026-09-29), r203
+
+New `FTUE` values (asserted by the test): `startParts` 3; part 3 `gpc` = fire, balanced, fire (one
+each); `after` 'd2-bell' (the bell that brings TC4); rewards: TC3 **balanced parts x3 + fire parts
+x3 + fire Longsword blueprint**, GPC4 **fire Broadsword blueprint**, GPC5 nothing, GPC6 **fire parts
+x3**; `day2Cave` iron 12, manganese 12, copper 24, aluminium 7 (no nickel); `day2Swing` [2, 3].
+
+**Design desk parts are earned.** `ddSet()` shows the first `startParts` of each kind for the sword's
+set, plus one per `parts` reward for that set (`FTUE_ST.dd`, per skin: fire is `flame`). Garric's
+bonus parts still add on top. Fire needs more parts than there is art for, so `DD_ALIAS` gives
+`flame_grip4-5` and `flame_pommel3-5` (the art-list names) an existing image and `DD_EXTRA` puts
+them at the end of the flame set. When the real file lands, delete its `DD_ALIAS` entry.
+
+Flow: TC3 at the bell (the adventurer, D59-D63) → cave (D64-D67) → fire craft (D67a-D78) →
+decorating with the starting parts (D79-D85) → sale (D86) → "Thank you." → **reward window (TC3)** →
+D87, bed, D88 → Day 2: the tutorial's night stocks the **Day 2 cave** (`ftueDay2Cave`) → D89-D91 and
+the skill tree → **D94 and D94b: the cave, right after the skill tree** (moved from after TC4's order)
+→ each swing takes 2-3 (the last swing on a seam takes what is left) → D92 "Let's go check the
+counter." → the bell brings **GPC4 (fire), GPC5 (balanced), GPC6 (fire)**, each refusing another
+trait → the bell (`d2-bell`) brings **TC4** (D93, part 4 opens) → TC4 now sends the player to the
+**forge** (D95), not the cave, since the ores are already in the bag.
+
+Console / cheat bar: `ftuePart(4)` and a PART 4 button start part 4 (TC4 at the bell).
