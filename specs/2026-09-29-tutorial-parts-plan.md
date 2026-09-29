@@ -346,3 +346,43 @@ as the page load does. `ftuePart(1)` depends on it.
   done message is now "Quest complete: claim your reward in the quest list". `claimed` is saved.
 - **Part 1 quest step:** both FTUE quests' CLAIM buttons blink; the list cannot close until both are
   claimed; then Close blinks; closing it gives D119, D27, D28 as before.
+
+## Part 2 build record (2026-09-29), r201
+
+New `FTUE` values (asserted by the test): `recipePages` 3; `tc2Ore` iron 6 + manganese 6;
+`tc2Craft` iron 1 + manganese 1; part 2 `gpc` = one customer, 5 balanced; `ensureOre` iron 5 +
+manganese 5; `after` 'bell2'; rewards: TC2 **+5 recipe pages**, GPC3 **design desk**. D32-D34 carry
+the owner's text (with the D32/D33 fixes).
+
+Flow: TC2 at the bell (D29, D31) → the forge (D32-D35): iron and manganese are **set to 6 + 6**
+(safety net), and the TC2 sword is capped at 1 + 1 the same silent way as the first sword (the
+slot greys) → grind, smelt, hammer, record craft (D36-D43), shape (D44-D47) → **no basement**:
+D55 "Back to the counter now." → D23 at the counter → sale → D56 → "Thank you." → **reward
+window (+5 pages)** → D58 → the bell brings **GPC3** ("I need 5 Balanced swords. Can you make them
+all?"). Iron and manganese are topped up to at least 5 + 5 when GPC3 arrives.
+
+GPC3 pointers (only): the CRAFT BOOK button → the balanced page with the fewest ores (the ground
+one) → CRAFT 5 → (shape window, craft window) → the book's close button → a drag arrow from the
+sword to the counter. GPC3 buys one sword at a time and stays ("Good. N more, please.") until the
+fifth; then the **design desk** reward, and the bell (`bell2`) brings **TC3**, the adventurer, which
+opens part 3 (the old flow from D59 on).
+
+Locks now on: the **design desk** (prop greyed in the basement, "The design desk is locked") until
+the GPC3 reward; the **craft book page limit** (3, 8 after the reward), which blocks automatic
+recording of a new trait, "record new", and a first-time "Update", each with a "craft book is full"
+message.
+
+Not in part 2 any more: D48-D54 and D57 (sharpening, and its bonus line); they return in part 5.
+Console / cheat bar: `ftuePart(3)` and a PART 3 button start part 3 (TC3 at the bell).
+
+New customer wording for the owner to check: "I need 5 Balanced swords. Can you make them all?" and
+"Good. N more, please."
+
+## Fixes (owner play-test, 2026-09-29), r202
+
+- **Empty recipe pages show:** the craft book's bookmark row draws one blank `bookmark_paper` for
+  every free page, up to the page limit (3, then 8). They have no symbol and do nothing when tapped.
+- **The grindstone reward is the forge's grinding wheel.** The lock was already on the forge
+  grinder (`#stMortar`, art `anchor_grindwheel.webp`), but the reward window showed
+  `grindstone.webp`, which is the **basement sharpening wheel**. The window now shows
+  `anchor_grindwheel.webp`, and its text says "on the forge bench".

@@ -717,6 +717,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .gold-pop { position: fixed; z-index: 100001; pointer-events: none; transform: translate(-50%,-100%); font: 700 14px/1 'Cinzel', serif; color: #ffe38a; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,.8); animation: goldPop 1.1s ease-out forwards; }
 @keyframes goldPop { 0% { opacity: 0; margin-top: 4px; } 15% { opacity: 1; } 100% { opacity: 0; margin-top: -26px; } }
 #oreShelf .ore-slot.ftue-spent { filter: grayscale(1) brightness(0.6); opacity: 0.55; }
+#screenProps img.ftue-lock-prop { filter: grayscale(1) brightness(0.6); }
 #stMortar.ftue-lock { filter: grayscale(1) brightness(0.55); opacity: 0.45; }
 #decorLayer { position: absolute; inset: 0; z-index: 41; pointer-events: none; }
 .decor-item { position: absolute; transform: translate(-50%,-50%); box-sizing: border-box; border: 2px solid rgba(0,0,0,.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; color: #f6e7c8; font: 700 11px/1.15 sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,.7); box-shadow: 0 3px 8px rgba(0,0,0,.45); user-select: none; touch-action: none; }
@@ -2178,7 +2179,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button></div>
 
 <script>
 // ============================================================
@@ -2196,11 +2197,18 @@ const FTUE = {
     startShape: 'Shortsword',
     shapes: { balanced:['Shortsword','Longsword','Broadsword'], fire:['Shortsword','Longsword','Broadsword'],
               gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Rapier'] },
+    recipePages: 3,
+    tc2Ore: { iron:6, manganese:6 },
+    tc2Craft: { iron:1, manganese:1 },
+    /* after: the stage the last GPC sale leaves behind - the bell that brings the next part's TC */
     parts: {
-        1: { gpc:[ { trait:'balanced', qty:1 }, { trait:'balanced', qty:1 } ],
+        1: { gpc:[ { trait:'balanced', qty:1 }, { trait:'balanced', qty:1 } ], after:'bell',
              rewards:{ tc:  [ { kind:'decor', id:'banner' } ],
                        gpc1:[ { kind:'blueprint', trait:'balanced', shape:'Longsword' } ],
-                       gpc2:[ { kind:'blueprint', trait:'balanced', shape:'Broadsword' }, { kind:'unlock', id:'grindstone' } ] } }
+                       gpc2:[ { kind:'blueprint', trait:'balanced', shape:'Broadsword' }, { kind:'unlock', id:'grindstone' } ] } },
+        2: { gpc:[ { trait:'balanced', qty:5 } ], ensureOre:{ iron:5, manganese:5 }, after:'bell2',
+             rewards:{ tc:  [ { kind:'pages', n:5 } ],
+                       gpc1:[ { kind:'unlock', id:'designDesk' } ] } }
     },
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24' } },
     retryLine: 'D28a'
@@ -2209,7 +2217,9 @@ const FTUE = {
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[] }; }
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open */
+function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
+function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
 const DECOR_SCREENS = ['customer','shop','bedroom'];
 function ftueTraitKey(ids){ ids=ids||[];
@@ -2234,25 +2244,34 @@ function ftueRewardName(r){
     if(r.kind==='decor') return (FTUE.decor[r.id]||{}).name || r.id;
     if(r.kind==='blueprint') return TRAIT_BY[r.trait].name+' '+r.shape+' blueprint';
     if(r.kind==='unlock' && r.id==='grindstone') return 'Grindstone';
+    if(r.kind==='pages') return r.n+' recipe book pages';
+    if(r.kind==='unlock' && r.id==='designDesk') return 'Design desk';
     return r.id || r.kind; }
 function ftueRewardSub(r){
     if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
-    if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the bench. The tutorial will show you how to use it.';
+    if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the forge bench. The tutorial will show you how to use it.';
+    if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
+    if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
     return ''; }
 function ftueRewardApply(r){
     if(r.kind==='decor') FTUE_ST.decor.push(r.id);
     else if(r.kind==='blueprint') FTUE_ST.shapes[r.trait+':'+r.shape]=true;
     else if(r.kind==='unlock' && r.id==='grindstone'){ FTUE_ST.grind=true; ftueGrindUi(); }
+    else if(r.kind==='pages') FTUE_ST.pages=(FTUE_ST.pages||0)+r.n;
+    else if(r.kind==='unlock' && r.id==='designDesk'){ FTUE_ST.desk=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
     if(INV_TAB===3) buildShelf(); }
+function ftueRewardIcon(r){
+    if(r.kind==='decor') return '<span class="rwd-ic rwd-sq" style="background:'+((FTUE.decor[r.id]||{}).fill||'#888')+'"></span>';
+    const src = (r.kind==='blueprint' || r.kind==='pages') ? 'assets/ui/icon_recipe.webp'
+              : (r.id==='designDesk') ? 'assets/Game-elements/design_desk.webp' : 'assets/forge/anchor_grindwheel.webp';   /* r202: the forge's grinding wheel, not the basement sharpening wheel (grindstone.webp) */
+    return '<img class="rwd-ic" src="'+src+'" alt="">'; }
 function ftueReward(list, then){
     list=list||[]; if(!list.length){ if(then) then(); return; }
     list.forEach(ftueRewardApply);
     const box=document.getElementById('rwList'); if(box){ box.innerHTML='';
         list.forEach(r=>{ const row=document.createElement('div'); row.className='rwd-row';
-            const ic = r.kind==='decor' ? '<span class="rwd-ic rwd-sq" style="background:'+((FTUE.decor[r.id]||{}).fill||'#888')+'"></span>'
-                     : '<img class="rwd-ic" src="'+(r.kind==='blueprint' ? 'assets/ui/icon_recipe.webp' : 'assets/forge/grindstone.webp')+'" alt="">';
-            row.innerHTML=ic+'<span class="rwd-tx"><b>'+ftueRewardName(r)+'</b><span>'+ftueRewardSub(r)+'</span></span>';
+            row.innerHTML=ftueRewardIcon(r)+'<span class="rwd-tx"><b>'+ftueRewardName(r)+'</b><span>'+ftueRewardSub(r)+'</span></span>';
             box.appendChild(row); }); }
     RW_THEN=then||null; sayHide();
     const m=document.getElementById('sfRewardModal'); if(m) m.classList.add('show'); }
@@ -2296,10 +2315,56 @@ function ftueGpcArrive(){
     const P=FTUE.parts[FTUE_ST.part], o=P && P.gpc[FTUE_ST.gpc]; if(!o) return;
     const tr=TRAIT_BY[o.trait], pool=CUST_POOL.filter(x=>x!=='man1');   /* man1 is TC2 */
     CUSTOMER={ portrait:'assets/customer/'+pool[Math.floor(Math.random()*pool.length)]+'.webp',
-               tid:o.trait, name:tr.name, ftue:true, qty:o.qty };
-    TUT_STAGE='p1-gpc'; tutUnglow(); sayHide();
+               tid:o.trait, name:tr.name, ftue:true, qty:o.qty, got:0 };
+    TUT_STAGE='p'+FTUE_ST.part+'-gpc'; tutUnglow(); sayHide();
+    /* r201: an order the bulk craft is meant for must be affordable, whatever went before */
+    if(P.ensureOre) Object.keys(P.ensureOre).forEach(id=>{ ORE_COUNT[id]=Math.max(ORE_COUNT[id]||0, P.ensureOre[id]); });
+    if(INV_TAB===0) buildShelf();
     buildScreenProps('customer'); counterUi();
-    custLine(null, CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
+    custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
+                           : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
+    if(o.qty>1) setTimeout(ftueBulkStep, 0);
+}
+/* r201: a sale to an order of several. Returns true while the customer still wants more. */
+function ftueOrderSold(c){
+    c.got=(c.got||0)+1;
+    if(c.got>=c.qty) return false;
+    CUSTOMER=c; buildScreenProps('customer'); counterUi();
+    const left=c.qty-c.got; custLine(null, 'Good. '+left+' more, please.');
+    return true;
+}
+/* r201: TC2's sword is done. Sharpening moved to part 5, so straight to the counter to sell it.
+   'base-back' + TUT_SHARP_RUN is the old basement run's own return path (D55, then D23 at the
+   counter, then tutSold2), which is exactly the walk this needs. */
+function ftueTc2Sell(){
+    TUT_SHARP_RUN=true; TUT_STAGE='base-back';
+    sayQueue('D55');
+    setTimeout(()=>tutExit('#panLeft'), 0);
+}
+/* r201: GPC3 wants five, so the bulk craft. Pointers only, worked out from the state each time:
+   enough balanced swords in the bag -> carry one to the counter; not enough -> the craft book,
+   then its balanced page with the fewest ores (the ground one), then CRAFT 5. */
+function ftueBulkKey(){
+    let best=null;
+    Object.keys(RECIPES).forEach(k=>{ const r=RECIPES[k], t=recipeTraits(r);
+        if(t.length===1 && t[0].tid==='balanced' && (!best || r.ores.length<RECIPES[best].ores.length)) best=k; });
+    return best; }
+function ftueBulkStep(){
+    const c=CUSTOMER; if(TUT_STAGE!=='p2-gpc' || !c || !c.ftue || !(c.qty>1)) return;
+    const need=c.qty-(c.got||0);
+    const have=INV.swords.filter(w=>swordHasTrait(w,c.tid)).length + ((COUNTER && swordHasTrait(COUNTER,c.tid))?1:0);
+    const book=document.getElementById('sfBookModal'), open=book && book.classList.contains('show');
+    if(document.getElementById('sfCraftModal').classList.contains('show') || document.getElementById('sfShapeModal').classList.contains('show')) return;
+    if(have>=need && open){ tutArrow(null,null); tutExit('#sfBookModal .cb-close'); return; }   /* made: shut the book */
+    if(have>=need){
+        if(SF_SCREEN!=='customer'){ tutArrow(null,null); ftueToCounter(); return; }
+        if(COUNTER){ tutArrow(null,null); tutExit(null); return; }   /* placeCounter lights SELL */
+        tutExit(null); tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }); return; }
+    tutArrow(null,null);
+    if(!open){ tutExit(SF_SCREEN==='customer' ? "#screenUi .sc-btn[title='Craft book']" : '#recipeBtn'); return; }
+    const k=ftueBulkKey();
+    if(k && CB_SEL!==k){ tutExit(".cb-mark.rec[data-key='"+k+"']"); return; }
+    tutExit('#cbCraft5');
 }
 function ftueBellGlow(){ setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0); }
 /* back to the counter from wherever the player went; then the bell glows */
@@ -2309,7 +2374,8 @@ function ftueToCounter(){
 function ftueGpcSold(){
     FTUE_ST.gpc++;
     const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;
-    TUT_STAGE = more ? 'p1-gpc' : 'bell';   /* 'bell' is what brings TC2 (tutBellRung) */
+    TUT_STAGE = more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC */
+    tutArrow(null,null); tutExit(null);
     setTimeout(()=>ftueReward(list, ftueToCounter), 700);
 }
 /* part 1 GPC swords: 3 of one ore is one too many; fewer than 2 of one is caught at the gate */
@@ -2332,8 +2398,15 @@ function ftueGateOk(){
     return true;
 }
 /* the first sword: a hard cap, not a retry - the tutorial is still holding the player's hand */
-/* r200: no message - the owner wants the spent ore greyed out on the shelf and nothing else */
-function ftueFirstSpent(oreId){ return ftueFirstCraft() && ftueOreIn(oreId)>=(FTUE.firstCraft[oreId]||0); }
+/* r200: no message - the owner wants the spent ore greyed out on the shelf and nothing else.
+   r201: the TC2 sword (every 'regrind' stage) is capped the same way, at 1 + 1 - D34's "6 more
+   swords" is the TC2 sword plus GPC3's five, and only holds if this one takes exactly 1 + 1. */
+function ftueOreCap(oreId){
+    if(ftueFirstCraft()) return FTUE.firstCraft[oreId]||0;
+    if(String(TUT_STAGE).indexOf('regrind')===0) return FTUE.tc2Craft[oreId]||0;
+    return null; }
+function ftueFirstSpent(oreId){ const c=ftueOreCap(oreId); if(c==null) return false;
+    return ftueOreIn(oreId)+((prep && prep.ore===oreId)?1:0) >= c; }
 function ftueFirstCap(oreId){ return ftueFirstSpent(oreId); }
 
 /* ---- build mode: decor sits behind every prop and the dragon, on the counter, shop and bedroom ---- */
@@ -2388,26 +2461,34 @@ function startDecorDrag(id, e, idx){
 function ftuePart(n){
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
-    if(n!==2) return 'Part '+n+' is not built yet';
+    if(n>3) return 'Part '+n+' is not built yet';
     newGame();
     setTimeout(()=>{   /* newGame() speaks D1 after 500 ms; set up after it */
         sayHide(); tutDone();
+        /* the end of part 1: Bram and GPC1-2 served, TC2 waiting at the bell */
         const bt=traits.find(t=>t.trait && t.trait.id==='balanced');
         if(bt){ bt.discovered=true; bt.txtEl.textContent=bt.trait.symbol; bt.txtEl.removeAttribute('font-weight'); reveal(bt.x,bt.y,'tr'+bt.trait.id); }
         RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[0.5,0.5,0.5,0.5], at:Date.now() };
         TUT_COUNTER_VISITED=true; TUT_BRAM_STATE='done'; TUT_BRAM_SOLD=true;
         TUT_HMHOT=true; TUT_HMCOLD=true; TUT_BOOKS=true; TUT_SAIDBOOK=true; TUT_SAIDHAZ=true; TUT_SAIDMUG=true;
-        SAY_SEQ.length=0; for(let i=1;i<=28;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D118','D119'); SAY_I=SAY_SEQ.length;
+        SAY_SEQ.length=0; for(let i=1;i<=28;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D118','D119');
         FTUE.preQuests.forEach(p=>{ const q=questBy(p.id); if(q){ q.progress=q.goal; q.done=true; q.claimed=true; } });
         RAIL_QUEST=true; railUi();
-        GOLD=60; exp=100; LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud();
+        GOLD=60; exp=100;
         FTUE_ST=ftueFresh(); FTUE_ST.gpc=2; FTUE_ST.grind=true; FTUE_ST.decor=['banner'];
-        FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true; ftueGrindUi();
-        ORE_COUNT.iron=6; ORE_COUNT.manganese=6; buildShelf();
+        FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true;
+        ORE_COUNT.iron=6; ORE_COUNT.manganese=6; TUT_STAGE='bell';
+        if(n>=3){   /* the end of part 2: TC2's sword sold, GPC3's five sold, TC3 waiting at the bell */
+            RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','manganese'], grinds:[1,1], at:Date.now() };
+            for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
+            FTUE_ST.part=2; FTUE_ST.gpc=1; FTUE_ST.grindUse=true; FTUE_ST.pages=5; FTUE_ST.desk=true;
+            ORE_COUNT.iron=0; ORE_COUNT.manganese=0; GOLD=280; exp=260; TUT_STAGE='bell2'; }
+        SAY_I=SAY_SEQ.length;
+        LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
-        TUT_STAGE='bell'; ftueBellGlow();
+        ftueBellGlow();
     }, 650);
-    return 'Part 2: setting up (TC2 is at the bell)';
+    return n===2 ? 'Part 2: setting up (TC2 is at the bell)' : 'Part 3: setting up (TC3 is at the bell)';
 }
 window.ftuePart=ftuePart;
 
@@ -2900,7 +2981,7 @@ function sellCounter(){
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
-    if(ftueC) ftueGpcSold();   /* r199 */
+    if(ftueC){ if(ftueOrderSold(ftueC)) setTimeout(ftueBulkStep, 0); else ftueGpcSold(); }   /* r199. r201: an order of several stays */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
     else toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
@@ -3028,7 +3109,7 @@ function startSwordDrag(w,e){
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
-    designDesk: ()=>{ if(requireWork()) openDesign(); },
+    designDesk: ()=>{ if(!FTUE_ST.desk){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201 */
     sharpen:    ()=>{ if(requireWork()) openSharpen(); },
     work:       ()=>takeWork() };
 function buildScreenProps(name){
@@ -3063,7 +3144,7 @@ function buildScreenProps(name){
             box.appendChild(d);
             return; }                                     /* sized by layoutScreenProps, which knows the box */
         const im=document.createElement('img');
-        im._prop=p; im.src=p.src; im.alt='';
+        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !FTUE_ST.desk) im.classList.add('ftue-lock-prop');   /* r201 */
         if(p.act) im.dataset.act=p.act;   /* r103 */
         if(p.act){ im.classList.add('hot'); im.title=p.title||'';
             if(p.act==='rack') im.addEventListener('click', ()=>openRacks(p.rack||0));   // r70: this rack, not "the racks"
@@ -3763,6 +3844,7 @@ let DD_FORCE_DEFAULT=false;                                // r65c: set by the r
 function ddWork(){ return DD_FORCE_DEFAULT ? null : WORK; } // what the desk is editing
 function ddSkin(){ return skinOf(ddWork()); }                // ...and whose parts it may show
 function openDesign(){
+    if(!FTUE_ST.desk){ toast('The design desk is locked'); return; }   /* r201: the GPC3 reward opens it */
     DD_WAS=Object.assign({}, DD_SEL);                      // Cancel puts the selection back
     if(ddWork()) DD_SEL=Object.assign({}, ddWork().design); // r61: edit the sword that is on the table
     DD_SEL=ddCoerce(DD_SEL, ddSkin());                     // r91: never open on a part this sword cannot wear
@@ -4739,10 +4821,10 @@ function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
 function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,hp:BLADE_HP_MAX,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
 /* r101: the ore leaves the shelf HERE, not at the smelter. Once it is on the wheel it is committed -
    nothing puts it back - so a shelf still counting it was just wrong. */
-function startPrep(oreId){ if(!oreLeft(oreId)) return; if(ftueGrindBlock()) return;   /* r199 */
+function startPrep(oreId){ if(!oreLeft(oreId)) return; if(ftueGrindBlock()) return;   /* r199 */ if(ftueFirstSpent(oreId)) return;   /* r201: capped, silently */
     { const want=fireOreWanted();   /* r111 */
       if(want===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
-      if(want && want!==oreId){ toast('Not that one: this craft wants <b>'+oreName(want)+'</b> next'); return; } } spendOre(oreId); prep={ore:oreId,grind:0}; oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+      if(want && want!==oreId){ toast('Not that one: this craft wants <b>'+oreName(want)+'</b> next'); return; } } spendOre(oreId); prep={ore:oreId,grind:0}; if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r201: grey it now the ore is in the mortar */ oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
 /* r104: the fire route is 2 fully ground iron + 2 manganese at roughly three quarters. Past ~85%
    the route overshoots fire, and at 90-100% it ends INSIDE the 'island' hazard at (839,1011) -
    measured, not guessed. So while the fire craft is being taught the manganese cannot be ground
@@ -4793,7 +4875,7 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(fireOreWanted()!==null && !rawOnly()){ toast('Not straight in: grind it first'); return; }   /* r111/r125 */
     if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
     if(ftueFirstCap(oreId)) return;   /* r199 */
-    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix();   /* r199 */ if(ftueFirstCraft() && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
+    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix();   /* r199 */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(!ftueGateOk()) return;   /* r199 */ if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
@@ -4874,6 +4956,7 @@ function recipeName(k){ const l=recipeTraits(RECIPES[k]); return l.length ? l.ma
 function recordRecipe(tid,tier){
     const k=recipeKey([tid]);
     if(RECIPES[k]) return false;   // r67: automatic recording is FIRST DISCOVERY only — every later change is the player's call, through the composition window
+    if(recipeFull()){ setTimeout(()=>toast('The craft book is full: <b>'+recipeCap()+'</b> pages'), 1200); return false; }   /* r201 */
     RECIPES[k]={ key:k, traits:[{tid:tid, tier:tier}], ores:segs.map(g=>g.ore), grinds:segs.map(g=>g.tPct), at:Date.now() };
     return true;
 }
@@ -4925,8 +5008,15 @@ function buildBookMarks(){
         d.title=list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', ');
         d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>'+list.map(a=>TRAIT_BY[a.tid]?TRAIT_BY[a.tid].symbol:'?').join('')+'</span>';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
-        d.addEventListener('click', ()=>{ CB_SEL=k; renderRecipe(); });
+        d.dataset.key=k; d.addEventListener('click', ()=>{ CB_SEL=k; renderRecipe(); ftueBulkStep(); });   /* r201: data-key so a pointer can find a page */
         top.appendChild(d); });
+    /* r202: the free pages show too - the same bookmark, left blank, up to the book's page limit */
+    const used=top.children.length, cap=Math.min(CB_MARK_SLOTS, recipeCap());
+    for(let i=used;i<cap;i++){ const d=document.createElement('div'); d.className='cb-mark empty';
+        d.title='Empty page';
+        d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt="">';
+        d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
+        top.appendChild(d); }
 }
 function renderRecipe(){
     const ids=Object.keys(RECIPES);
@@ -5033,8 +5123,8 @@ function buildSkillNodes(){
 }
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
-function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); }
-function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); }
+function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); }   /* r201 */
+function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueBulkStep(); }   /* r201 */
 // ---- r67: Update Composition ------------------------------------------------------------------
 // The blade panel's disk compares what the book has RECORDED for this blade's trait(s) against the ore
 // route that actually made it. One trait -> UPDATE, replacing that trait's page. Several traits ->
@@ -5086,6 +5176,7 @@ function closeComp(){ document.getElementById('sfCompModal').classList.remove('s
    of its own - the name still resolves, because it is read off the record's own trait list. */
 function recordNewComp(){
     const sub=compSubject(); if(!sub){ closeComp(); return; }
+    if(recipeFull()){ toast('The craft book is full: <b>'+recipeCap()+'</b> pages. Tap <b>Update</b> instead'); return; }   /* r201 */
     const base=recipeKey(sub.traits.map(a=>a.tid));
     let k=base, n=2; while(RECIPES[k]) k=base+'#'+(n++);
     RECIPES[k]={ key:k, traits:sub.traits.map(a=>({tid:a.tid, tier:a.tier})), ores:sub.ores.slice(), grinds:sub.grinds.slice(), at:Date.now() };
@@ -5095,6 +5186,7 @@ function recordNewComp(){
 function confirmComp(){
     const s=compSubject(); if(!s){ closeComp(); return; }
     const k=recipeKey(s.traits.map(a=>a.tid)), had=!!RECIPES[k];
+    if(!had && recipeFull()){ toast('The craft book is full: <b>'+recipeCap()+'</b> pages'); return; }   /* r201 */
     RECIPES[k]={ key:k, traits:s.traits.map(a=>({tid:a.tid, tier:a.tier})), ores:s.ores.slice(), grinds:s.grinds.slice(), at:Date.now() };
     CB_SEL=k; closeComp(); bumpQuest('update3'); tutRecorded();
     toast((had?'Updated <b>':'Recorded <b>')+recipeName(k)+'</b> in the craft book');
@@ -5134,6 +5226,7 @@ function closeCraft(){
     if(modal) modal.classList.remove('show');
     if(show && from) flyCraft(from, show.w, show.n);
     if(typeof after==='function') after();
+    ftueBulkStep();   /* r201 */
 }
 /* The blades fly to the SWORDS tab on the rail - the place they can be found again. */
 function flyCraft(from, w, n){
@@ -5579,7 +5672,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
-        if(second) tutBasementStep(); else if(fireSword) tutFireCustomise();
+        if(second) ftueTc2Sell(); else if(fireSword) tutFireCustomise();   /* r201: was tutBasementStep - sharpening moved to part 5 */
         else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
 }
@@ -5836,6 +5929,7 @@ function buildShelf(){
     const cells=Math.max(MAT_CELLS, Math.ceil(n/3)*3);
     for(let i=n;i<cells;i++){ const x=document.createElement('div'); x.className='ore-slot empty'; shelf.appendChild(x); }
     ftueDecorStep();   /* r200: the banner beat re-marks the slots it has just lost */
+    ftueBulkStep();    /* r201 */
 }
 /* r140: an ore you do not have is not drawn at all - the greyed .out slot used to sit there as an
    unusable placeholder, and with five of the seven at zero on day 1 the rail was mostly dead space.
@@ -6095,9 +6189,9 @@ const DIALOGUE = {
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
-    D32: "I found 1 iron and 1 manganese. Last time we used 2 of each.",
-    D33: "We won't get the balanced trait we discovered last time if we forge this sword in the same way.",
-    D34: "But don't worry, if we grind them properly, we can still craft a good sword.",
+    D32: "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?",
+    D33: "We can travel further on the map if we grind the ores before we put them in the smelter.",
+    D34: "If we do it properly, we can craft 6 more swords instead of just 3!",
     D35: "Drag one iron to the grindstone. Hold the handle and turn the stone. Note how the path on the map is getting longer.",
     D36: "Drag the ground ore to the smelter.",
     D37: "Do the same with manganese ore.",
@@ -6460,6 +6554,9 @@ function tutScreenArrived(name){
     if(FTUE_ST.part===1 && TUT_BRAM_SOLD){   /* r199: part 1 gameplay - the counter and its bell are where it goes on */
         if(TUT_STAGE==='bell'){ ftueToCounter(); return; }
         if(TUT_STAGE==='p1-gpc' && name==='customer' && !CUSTOMER) ftueBellGlow(); }
+    if(FTUE_ST.part===2){   /* r201: part 2 - GPC3's bell, the order, and TC3's bell */
+        if(TUT_STAGE==='p2-bell' || TUT_STAGE==='bell2'){ ftueToCounter(); return; }
+        if(TUT_STAGE==='p2-gpc'){ ftueBulkStep(); return; } }
     if(TUT_STAGE==='day2-forge'){ if(name==='forge') tutDay2Morning(); return; }   /* r120/r122 */
     if(TUT_STAGE==='g-bell' || TUT_STAGE==='garric' || String(TUT_STAGE).indexOf('g-')===0){   /* r130b */
         if(TUT_STAGE==='g-forge' && name==='forge') tutGarricForge();
@@ -7106,19 +7203,24 @@ function tutThankYou(){
     CUSTOMER=null; TUT_STAGE='bonus';
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();   /* r105 */
     refreshCounter(); counterUi();
+    /* r201: part 2 - no sharpening, so no bonus to talk about: D57 waits for Bram in part 5. The
+       pages reward, then D58, whose hook (tutBell2) arms the bell for GPC3. */
+    if(FTUE_ST.part===2){ ftueReward(FTUE.parts[2].rewards.tc, ()=>sayQueue('D58')); return; }
     ['D57','D58'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D57'); say('D57');
 }
 /* D58 arms the bell for the second time */
 function tutBell2(){
     if(TUT_STAGE!=='bonus') return;
-    TUT_STAGE='bell2'; bellShow(true);
+    TUT_STAGE = (FTUE_ST.part===2 && FTUE_ST.gpc<FTUE.parts[2].gpc.length) ? 'p2-bell' : 'bell2';   /* r201: GPC3 comes first */
+    bellShow(true);
     setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
 }
 /* ---- the adventurer: one line, two replies, the same request either way ---- */
 function tutFireCustomer(){
     if(TUT_STAGE!=='bell2') return;
-    TUT_STAGE='fire-meet'; TUT_FIRE_STATE='awaiting'; tutUnglow(); sayHide();
+    TUT_STAGE='fire-meet'; TUT_FIRE_STATE='awaiting'; tutUnglow(); sayHide(); tutExit(null);
+    FTUE_ST.part=3; FTUE_ST.gpc=0;   /* r201: part 3 opens with TC3 */
     CUSTOMER={ portrait:'assets/customer/woman1.webp', tid:'fire', name:null };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
@@ -7544,7 +7646,7 @@ function ringBell(){
     if(!BELL_ON) return;
     /* r96b: whoever answers rebuilds the props, so ring AFTER that - otherwise the shake is applied
        to an element that is replaced a frame later and the player sees nothing. */
-    if(TUT_STAGE==='p1-bell' || TUT_STAGE==='p1-gpc') ftueGpcArrive();   /* r199: part 1's gameplay customers */
+    if(TUT_STAGE==='p1-bell' || TUT_STAGE==='p1-gpc' || TUT_STAGE==='p2-bell' || TUT_STAGE==='p2-gpc') ftueGpcArrive();   /* r199/r201: the parts' gameplay customers */
     else if(TUT_STAGE==='bell') tutBellRung();                /* the scripted first customer - TC2 since r199 */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
     else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */
@@ -7749,7 +7851,7 @@ function tutNudgeApply(){
 function tutForgeAgain(){
     if(TUT_STAGE==='regrind') return;
     TUT_STAGE='regrind';
-    ORE_COUNT=Object.assign({}, ORE_START, { iron:1, manganese:1 });   /* r99: one of each this time */
+    ORE_COUNT.iron=FTUE.tc2Ore.iron; ORE_COUNT.manganese=FTUE.tc2Ore.manganese;   /* r99: one of each this time. r201: 6 + 6, the safety net D34 counts on */
     buildShelf();
     ['D32','D33','D34','D35'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D32'); say('D32');
