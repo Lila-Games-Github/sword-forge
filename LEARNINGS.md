@@ -126,3 +126,39 @@ render sweep happened to paint: a measurement pass only ever sees the assets tha
 
 Related: the same round found two assets counted in the payload that live **only inside comments**, so
 the "before" number was 1.84 MB too high until the scan learned to tell code from prose.
+
+## Verifying the thing that runs, not the thing you called (tutorial polish, 2026-09-23)
+
+The same mistake produced three separate bugs in one session, and each time the verification I ran
+came back green.
+
+- **Calling a branch proves the branch; it proves nothing about whether anything reaches it.** The
+  idle-pointer logic runs from the frame loop, but only for a hardcoded list of stages. Two rounds
+  added new branches without adding their stage to that list, so those pointers were set once and
+  never revised — the bellows kept glowing after the gate opened. Both rounds had been "verified" by
+  calling `tutNudge(true)` by hand. The check that would have caught it drives real `tick()` frames
+  and nothing else.
+- **A one-shot window hooked to the wrong exit never opens at all.** A line can leave the screen two
+  ways — the player dismissing it, or the game retiring it — and D97 had gained a second exit (it
+  hides itself when the dragon reaches the anvil, which is *exactly what the line tells the player to
+  do*). The window was hooked to the dismissal, so on the natural path it never appeared. Verified by
+  calling `sayNext()`, which is the one route a player following the instruction does not take. The
+  fix is structural: hook `sayHide()`, the single place that catches both exits, and keep one table of
+  what follows a line.
+- **Two things can be "the arrow".** `#tutArrow` is the scripted pointer; `#hintArrow` is a separate
+  white idle nudge. Asked to remove "the arrow", I cleared the one that was already empty and reported
+  it done. Name the element, not the concept, before claiming a fix.
+
+The habit that comes out of all three: **before claiming a fix, ask what actually invokes this code in
+play, and make the test do that.** `elementFromPoint` has the same trap in a different costume —
+ghosts are `pointer-events: none`, so it reads straight through them; to check paint order, probe with
+an element that shares the parent and z-index.
+
+Two smaller ones from the same rounds:
+
+- **A pulse is not a blink.** An `ease-in-out` curve passes *through* its bright frame, so the lit
+  state is an instant at the top of a swell and reads as "warm". Holding each state and crossing
+  quickly on `linear` is what people mean by blinking. Measured across a cycle rather than argued.
+- **Check what a "refund" helper actually does.** `refundOre()` is the Restore Ore *talent* — a per-ore
+  roll at 10 % a rank — so unranked it returns nothing. Wiring a retry button to it would have quietly
+  cost the player their ore.
