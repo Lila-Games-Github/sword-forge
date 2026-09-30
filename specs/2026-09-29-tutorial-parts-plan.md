@@ -435,3 +435,27 @@ onto the balanced parts. A gale sword still uses the balanced blade art (`bladeF
 
 Console / cheat bar: `ftuePart(5)` and a PART 5 button start part 5 (Bram at the bell, the swift ingot
 in the bag).
+
+## Part 5 build record (2026-09-30), r205
+
+New `FTUE` values (asserted by the test): part 5 `gpc` = gale, swift (one each); `after` 'g-bell'
+(the bell that brings Garric); rewards: Bram none in the window (his reward is the diary, through its
+own gift window), GPC9 **swift Rapier blueprint**, GPC10 **swift parts x3**; `bramLine` 'D111a'. New
+line **D111a** "The previous sword was good, but it wasn't very sharp. Can you make it sharper?"
+(owner's text, with the two capitals).
+
+Flow: Bram on the bell (D110, reply, his illustration) → **D111 and D111a as one speech**, typed together
+(chained, D111a replaced D111 the moment it finished, unread) → D112, D113 → the stored swift ingot on
+the anvil (the swift guard lifts here, `FTUE_ST.swiftFree`) → shape → **sharpening, moved here from
+part 2** (D48-D55: basement, table, wheel, back) → D23 at the counter → sale to Bram → D114 → "Thank you
+for the gift." → **D57** (the sharpness bonus) → the diary window → D115 and the diary steps →
+**D116, D117** (D118/D119, the quest list, are part 1's now) → the bell brings **GPC9 (gale)** and
+**GPC10 (swift)** → the bell (`g-bell`) brings **Garric**, which opens part 6.
+
+Fix to r204: the swift guard only holds until Bram's own step; it used to hold until the whole
+tutorial ended, which would have blocked a swift ingot the player makes for GPC10.
+
+Note: D57 quotes the real bonus. A sword not sharpened into the zone (`SH_ZONE_LO` 80) earns 0, and
+D57 then says "We got 0g bonus this time!" (the same as the old TC2 run).
+
+Console / cheat bar: `ftuePart(6)` and a PART 6 button start part 6 (Garric at the bell).

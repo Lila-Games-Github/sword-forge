@@ -2179,7 +2179,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="toast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button></div>
 
 <script>
 // ============================================================
@@ -2217,8 +2217,15 @@ const FTUE = {
         4: { gpc:[ { trait:'gale', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-praise',
              rewards:{ tc:  [ { kind:'blueprint', trait:'gale', shape:'Longsword' }, { kind:'parts', trait:'gale' } ],
                        gpc1:[ { kind:'blueprint', trait:'gale', shape:'Rapier' }, { kind:'parts', trait:'gale' } ],
-                       gpc2:[] } }
+                       gpc2:[] } },
+        /* r205: Bram's own reward is the diary (his gift window), so the TC list is empty */
+        5: { gpc:[ { trait:'gale', qty:1 }, { trait:'swift', qty:1 } ], after:'g-bell',
+             rewards:{ tc:  [],
+                       gpc1:[ { kind:'blueprint', trait:'swift', shape:'Rapier' } ],
+                       gpc2:[ { kind:'parts', trait:'swift' } ] } }
     },
+    /* r205: Bram's new line after D111 - he wants the swift sword sharper, which brings sharpening back */
+    bramLine: 'D111a',
     /* r204: said when the stored swift ingot is taken out before Bram asks for it (part 5) */
     swiftLine: 'D99a',
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
@@ -2233,7 +2240,7 @@ const FTUE = {
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{} }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
@@ -2387,6 +2394,11 @@ function ftueBulkStep(){
     if(k && CB_SEL!==k){ tutExit(".cb-mark.rec[data-key='"+k+"']"); return; }
     tutExit('#cbCraft5');
 }
+/* r205: D117 is off the screen - the diary is done, and the bell brings part 5's customers */
+function ftueAfterDiary(){
+    if(FTUE_ST.part!==5 || TUT_STAGE!=='gift-read') return;
+    TUT_STAGE='p5-bell'; bellShow(true); ftueToCounter();
+}
 function ftueBellGlow(){ setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0); }
 /* back to the counter from wherever the player went; then the bell glows */
 function ftueToCounter(){
@@ -2482,7 +2494,7 @@ function startDecorDrag(id, e, idx){
 function ftuePart(n){
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
-    if(n>5) return 'Part '+n+' is not built yet';
+    if(n>6) return 'Part '+n+' is not built yet';
     newGame();
     setTimeout(()=>{   /* newGame() speaks D1 after 500 ms; set up after it */
         sayHide(); tutDone();
@@ -2528,6 +2540,12 @@ function ftuePart(n){
             FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.shapes['gale:Rapier']=true;
             TUT_SAW_TIERS=true;
             ORE_COUNT.iron=5; ORE_COUNT.manganese=5; ORE_COUNT.copper=12; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }
+        if(n>=6){   /* the end of part 5: Bram's sharpened swift sword sold, the diary read, GPC9-10 served, Garric at the bell */
+            INV.ingots.length=0; for(let i=110;i<=117;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D111a');
+            for(let i=48;i<=57;i++) SAY_SEQ.push('D'+i);
+            RAIL_DIARY=true; railUi();
+            FTUE_ST.part=5; FTUE_ST.gpc=2; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Rapier']=true;
+            ORE_COUNT.copper=5; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
@@ -5973,7 +5991,7 @@ function restoreIngot(id){
     const i=INV.ingots.findIndex(g=>g.id===id); if(i<0) return;
     /* r204: the stored swift metal is Bram's (part 5). Until he asks for it (bram2-ingot) it stays in
        the bag: the dragon says so, and nothing is taken out. */
-    if(!tutOver() && TUT_STAGE!=='bram2-ingot' && (INV.ingots[i].traits||[]).some(t=>t.tid==='swift')){
+    if(!FTUE_ST.swiftFree && TUT_STAGE!=='bram2-ingot' && (INV.ingots[i].traits||[]).some(t=>t.tid==='swift')){   /* r205: only until Bram's step - a later swift ingot is the player's own */
         sayQueue(FTUE.swiftLine); if(INV_TAB===1) buildShelf(); return; }
     const g=INV.ingots.splice(i,1)[0];
     setTimeout(tutBram2Restored, 0);   /* r127 */
@@ -6348,6 +6366,7 @@ const DIALOGUE = {
     D109: "Great work!",
     D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords!",
     D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift sword for me?",
+    D111a: "The previous sword was good, but it wasn't very sharp. Can you make it sharper?",
     D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
     D113: "Find it in your inventory and drag it to the anvil.",
     D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be of more use to you.",
@@ -6674,7 +6693,8 @@ function tutScreenArrived(name){
     if(name==='forge' && TUT_STAGE==='base-back'){
         tutExit('#panLeft'); return; }
     if(name==='customer' && TUT_STAGE==='base-back'){
-        TUT_STAGE='sell2'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
+        TUT_STAGE = FTUE_ST.part===5 ? 'bram2-sell2' : 'sell2';   /* r205: in part 5 the sharpened sword is Bram's */
+        if(FTUE_ST.part===5) TUT_SHARP_RUN=false; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         if(SAY_SEQ.indexOf('D23')<0) SAY_SEQ.push('D23');
         SAY_I=SAY_SEQ.indexOf('D23'); say('D23');
         setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0);
@@ -6997,8 +7017,11 @@ function tutBram2Reply(){
     openIllus('assets/Illustrations/Bram_illustration.webp', 'Bram, back from his mission', tutBram2Illus);
 }
 function tutBram2Illus(){
-    typeAfter(()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); });
-    custLine(document.getElementById('bramLine'), DIALOGUE.D111);
+    const toForge=()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); };
+    /* r205: he also wants it sharper (D111a), which is what brings the basement back into the run.
+       One speech, typed together: chained, D111a replaced D111 the instant it finished, unread. */
+    typeAfter(toForge);
+    custLine(document.getElementById('bramLine'), DIALOGUE.D111+' '+DIALOGUE[FTUE.bramLine]);
 }
 function tutBram2Forge(){
     if(TUT_STAGE!=='bram2-forge') return;
@@ -7008,14 +7031,16 @@ function tutBram2Forge(){
 }
 function tutBram2Restored(){
     if(TUT_STAGE!=='bram2-ingot') return;
-    TUT_STAGE='bram2-shape'; tutArrow(null,null);
+    TUT_STAGE='bram2-shape'; tutArrow(null,null); FTUE_ST.swiftFree=true;   /* r205 */
     sayQueue('D44');   /* the same instruction as the fire sword's */
     setTimeout(()=>tutGlow('#orb', true), 0);
 }
 function tutBram2Hammering(){ if(TUT_STAGE==='bram2-shape'){ TUT_STAGE='bram2-forge2'; tutUnglow(); } }
 function tutBram2Crafted(){
     if(TUT_STAGE!=='bram2-forge2') return;
-    TUT_STAGE='bram2-sell'; tutUnglow();
+    tutUnglow();
+    if(FTUE_ST.part===5){ tutBasementStep(); return; }   /* r205: sharpening moved here from part 2 (D48-D55) */
+    TUT_STAGE='bram2-sell';
     setTimeout(()=>tutExit('#panLeft'), 0);
 }
 function tutBram2Sold(){
@@ -7035,7 +7060,8 @@ function tutBram2Gift(){
     const re=document.querySelector('#csPanel > .cs-resp');
     if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
     CUSTOMER=null; TUT_BRAM2_STATE=null; TUT_STAGE='gift';   /* r129: the diary is handed over */
-    setTimeout(openGift, 420);
+    if(FTUE_ST.part===5) setTimeout(()=>sayQueue('D57'), 420);   /* r205: the bonus line, then the gift (SAY_AFTER.D57) */
+    else setTimeout(openGift, 420);
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     refreshCounter(); counterUi(); updateTutorialCounterUi();
@@ -7053,6 +7079,7 @@ function tutGarricBell(){
 }
 function tutGarricArrive(){
     if(TUT_STAGE!=='g-bell') return;
+    FTUE_ST.part=6; FTUE_ST.gpc=0; tutExit(null);   /* r205: TC6 */
     TUT_STAGE='garric'; TUT_GARRIC_STATE='awaiting'; tutUnglow(); sayHide();
     CUSTOMER={ portrait:'assets/customer/man4.webp', tid:'balanced', name:'Balanced' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
@@ -7186,7 +7213,9 @@ let TUT_SAW_PARTS=false;
 function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
 const SAY_AFTER={ D97:function(){ openTiers(); }, D67a:function(){ openParts(); },
-                  D26:function(){ ftueAfterBram(); } };   /* r199 */
+                  D26:function(){ ftueAfterBram(); },   /* r199 */
+                  D57:function(){ if(TUT_STAGE==='gift') openGift(); },   /* r205 */
+                  D117:function(){ ftueAfterDiary(); } };   /* r205 */
 /* r193: the close is what carries the story on, so the callback is the point of this window, not an
    afterthought. It is cleared before it runs, so a double close cannot fire it twice. */
 let ILLUS_AFTER=null;
@@ -7232,6 +7261,7 @@ function tutDiaryClosed(){
         TUT_STAGE='gift-open'; tutExit('#diaryBtn'); return; }
     if(TUT_STAGE!=='gift-close') return;
     TUT_STAGE='gift-read'; tutExit(null);
+    if(FTUE_ST.part===5){ sayQueue('D116','D117'); return; }   /* r205: D118/D119 are part 1's now */
     sayQueue('D116','D117','D118');
 }
 /* D118 is the line that promises the list, so the button arrives with it */

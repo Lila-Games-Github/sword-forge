@@ -74,6 +74,14 @@ eq('part 4 rewards', FTUE.parts[4].rewards, {
   gpc2: [] });
 eq('swiftLine', FTUE.swiftLine, 'D99a');
 eq('gale has its own part set', /const DD_SKIN_OF = {[^}]*gale:'gale'/.test(src), true);
+/* part 5 (r205) */
+eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', qty: 1 }, { trait: 'swift', qty: 1 } ]);
+eq('part 5 after', FTUE.parts[5].after, 'g-bell');
+eq('part 5 rewards', FTUE.parts[5].rewards, {
+  tc:   [],
+  gpc1: [ { kind: 'blueprint', trait: 'swift', shape: 'Rapier' } ],
+  gpc2: [ { kind: 'parts', trait: 'swift' } ] });
+eq('bramLine', FTUE.bramLine, 'D111a');
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
 eq('retryLine',  FTUE.retryLine,  'D28a');
 
@@ -81,6 +89,7 @@ eq('retryLine',  FTUE.retryLine,  'D28a');
 const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)"')); return r ? r[1] : null; };
 eq('D28a text', line('D28a'), 'Use 2 iron and 2 manganese for the balanced sword.');
 eq('D99a text', line('D99a'), "Use it later. We don't need that now.");
+eq('D111a text', line('D111a'), "The previous sword was good, but it wasn't very sharp. Can you make it sharper?");
 eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.");
 eq('D31 text',  line('D31'),  'So many customers. No tea break for us. Back to the forge we go.');
 eq('D32 text',  line('D32'),  "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?");
@@ -91,6 +100,7 @@ eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, ma
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');
+eq('D111a follows D111', keys[keys.indexOf('D111a') - 1], 'D111');
 eq('last key still D139', keys[keys.length - 1], 'D139');
 
 console.log('[ftue] GREEN / ' + n + ' checks');
