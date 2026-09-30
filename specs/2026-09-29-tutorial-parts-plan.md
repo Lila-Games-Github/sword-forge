@@ -410,3 +410,28 @@ trait → the bell (`d2-bell`) brings **TC4** (D93, part 4 opens) → TC4 now se
 **forge** (D95), not the cave, since the ores are already in the bag.
 
 Console / cheat bar: `ftuePart(4)` and a PART 4 button start part 4 (TC4 at the bell).
+
+## Part 4 build record (2026-09-29), r204
+
+New `FTUE` values (asserted by the test): part 4 `gpc` = gale, fire (one each); `after`
+'d2-praise'; rewards: TC4 **gale Longsword blueprint + gale parts x3**, GPC7 **gale Rapier blueprint +
+gale parts x3**, GPC8 nothing; `swiftLine` 'D99a'. New line **D99a** "Use it later. We don't need that
+now." (owner's text, with the capital "We").
+
+Flow: TC4 at the bell (D93) → the forge (D95; the ores came from the Day 2 cave in part 3) → swift
+copper, the pull and the tier window (D96-D98, r190), the swift metal stored as an ingot (D99) → the
+gale run (D100-D107, with the r198 stop on Gale) → sale (D108) → "You're welcome." → **reward window
+(TC4)** → D109 "Great work!" → the bell brings **GPC7 (gale)** and **GPC8 (fire)** → the bell
+(`d2-praise`) brings **Bram**, which opens part 5. (Bram used to walk in 1.2 s after D109.)
+
+**The stored swift ingot stays in the bag until Bram asks for it** (`bram2-ingot`): dropping it on the
+anvil before then says D99a and takes nothing out.
+
+**Gale gets its own design desk set** (`DD_SKIN_OF.gale`). There is no gale art yet, so all 15 ids
+(`gale_grip1-5`, `gale_guard1-5`, `gale_pommel1-5`, the art-list names) are `DD_ALIAS` placeholders
+onto the balanced parts. A gale sword still uses the balanced blade art (`bladeFor` falls back).
+**Rapier** has no hammer mid-blade art, so `HM_MID_ALIAS` shows the Longsword's until
+`balanced_rapier_midblade` lands.
+
+Console / cheat bar: `ftuePart(5)` and a PART 5 button start part 5 (Bram at the bell, the swift ingot
+in the bag).

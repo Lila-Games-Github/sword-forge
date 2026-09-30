@@ -63,13 +63,24 @@ eq('day2Swing', FTUE.day2Swing, [2, 3]);
 const alias = src.match(/const DD_ALIAS = (\{[^}]*\});/);
 eq('DD_ALIAS present', !!alias, true);
 eq('DD_ALIAS names', Object.keys(new Function('return ' + alias[1])()).sort(),
-  ['flame_grip4', 'flame_grip5', 'flame_pommel3', 'flame_pommel4', 'flame_pommel5']);
+  ['flame_grip4', 'flame_grip5', 'flame_pommel3', 'flame_pommel4', 'flame_pommel5'].concat(
+    ...['grip', 'guard', 'pommel'].map(k => [1, 2, 3, 4, 5].map(i => 'gale_' + k + i))).sort());
+/* part 4 (r204) */
+eq('part 4 gpc', FTUE.parts[4].gpc, [ { trait: 'gale', qty: 1 }, { trait: 'fire', qty: 1 } ]);
+eq('part 4 after', FTUE.parts[4].after, 'd2-praise');
+eq('part 4 rewards', FTUE.parts[4].rewards, {
+  tc:   [ { kind: 'blueprint', trait: 'gale', shape: 'Longsword' }, { kind: 'parts', trait: 'gale' } ],
+  gpc1: [ { kind: 'blueprint', trait: 'gale', shape: 'Rapier' }, { kind: 'parts', trait: 'gale' } ],
+  gpc2: [] });
+eq('swiftLine', FTUE.swiftLine, 'D99a');
+eq('gale has its own part set', /const DD_SKIN_OF = {[^}]*gale:'gale'/.test(src), true);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
 eq('retryLine',  FTUE.retryLine,  'D28a');
 
 /* the shipped dialogue and ore start must agree with it */
 const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)"')); return r ? r[1] : null; };
 eq('D28a text', line('D28a'), 'Use 2 iron and 2 manganese for the balanced sword.');
+eq('D99a text', line('D99a'), "Use it later. We don't need that now.");
 eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.");
 eq('D31 text',  line('D31'),  'So many customers. No tea break for us. Back to the forge we go.');
 eq('D32 text',  line('D32'),  "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?");

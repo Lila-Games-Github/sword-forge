@@ -2179,7 +2179,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button></div>
 
 <script>
 // ============================================================
@@ -2213,8 +2213,14 @@ const FTUE = {
              rewards:{ tc:  [ { kind:'parts', trait:'balanced' }, { kind:'parts', trait:'fire' }, { kind:'blueprint', trait:'fire', shape:'Longsword' } ],
                        gpc1:[ { kind:'blueprint', trait:'fire', shape:'Broadsword' } ],
                        gpc2:[],
-                       gpc3:[ { kind:'parts', trait:'fire' } ] } }
+                       gpc3:[ { kind:'parts', trait:'fire' } ] } },
+        4: { gpc:[ { trait:'gale', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-praise',
+             rewards:{ tc:  [ { kind:'blueprint', trait:'gale', shape:'Longsword' }, { kind:'parts', trait:'gale' } ],
+                       gpc1:[ { kind:'blueprint', trait:'gale', shape:'Rapier' }, { kind:'parts', trait:'gale' } ],
+                       gpc2:[] } }
     },
+    /* r204: said when the stored swift ingot is taken out before Bram asks for it (part 5) */
+    swiftLine: 'D99a',
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
     startParts: 3,
     /* r203: the Day 2 cave, straight after the skill tree - everything Day 2 needs, +5 of each */
@@ -2476,7 +2482,7 @@ function startDecorDrag(id, e, idx){
 function ftuePart(n){
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
-    if(n>4) return 'Part '+n+' is not built yet';
+    if(n>5) return 'Part '+n+' is not built yet';
     newGame();
     setTimeout(()=>{   /* newGame() speaks D1 after 500 ms; set up after it */
         sayHide(); tutDone();
@@ -2508,6 +2514,20 @@ function ftuePart(n){
             TUT_D2_SPENT=true; PICK_OUT=null; CAVE_NODES=[]; buildCave();
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='2'; })();
             ORE_COUNT.iron=7; ORE_COUNT.manganese=7; ORE_COUNT.copper=24; ORE_COUNT.aluminium=7; GOLD=520; exp=420; TUT_STAGE='d2-bell'; }
+        if(n>=5){   /* the end of part 4: swift ingot stored, gale sword sold to TC4, GPC7-8 served, Bram at the bell */
+            ['swift','gale'].forEach(id=>{ const t=traits.find(x=>x.trait && x.trait.id===id);
+                if(t){ t.discovered=true; t.txtEl.textContent=t.trait.symbol; t.txtEl.removeAttribute('font-weight'); reveal(t.x,t.y,'tr'+id); } });
+            RECIPES.gale={ key:'gale', traits:[{ tid:'gale', tier:'Epic' }], ores:['copper','copper','copper','copper','copper'], grinds:[1,1,1,1,0.5], at:Date.now() };
+            RECIPES.swift={ key:'swift', traits:[{ tid:'swift', tier:'Epic' }], ores:['copper','copper'], grinds:[1,1], at:Date.now() };
+            (()=>{ for(let i=0;i<2;i++){ addSegment('copper',1); } sword={seg:segs.length-1, frac:segs[segs.length-1].tPct};
+                INV.ingots.push({ id:INV_SEQ++, at:performance.now(), heat:60, hp:BLADE_HP_MAX, stage:'onAnvil', traits:[{ tid:'swift', tier:'Epic' }],
+                    segs:segs.map(g=>({ ore:g.ore, d:g.d, len:g.len, origin:{ x:g.origin.x, y:g.origin.y }, tPct:g.tPct })), sword:{ seg:sword.seg, frac:sword.frac }, pull:{ x:0, y:0 } });
+                benchClear(); })();
+            for(let i=95;i<=109;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D99a');
+            FTUE_ST.part=4; FTUE_ST.gpc=2; FTUE_ST.dd.gale=2;
+            FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.shapes['gale:Rapier']=true;
+            TUT_SAW_TIERS=true;
+            ORE_COUNT.iron=5; ORE_COUNT.manganese=5; ORE_COUNT.copper=12; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
@@ -3720,7 +3740,7 @@ function wireSharpen(){
    that belongs to the sword being designed; anything without art of its own falls back to the
    unprefixed 'balanced' set, which is the owner's placeholder default.
    'fire' is the one trait whose files are not named after it - the art is flame_*. */
-const DD_SKIN_OF = { fire:'flame', swift:'swift', ice:'ice', water:'water' };
+const DD_SKIN_OF = { fire:'flame', swift:'swift', gale:'gale', ice:'ice', water:'water' };   /* r204: gale gets its own part set */
 const DD_SETS = {
     balanced: { grip:['grip1','grip2','grip3','grip4'],
                 guard:['guard1','guard2','guard3','guard4'],
@@ -3731,6 +3751,10 @@ const DD_SETS = {
     swift:    { grip:['swift_grip1','swift_grip2','swift_grip3','swift_grip4','swift_grip5'],
                 guard:['swift_guard1','swift_guard2','swift_guard3','swift_guard4','swift_guard5'],
                 pommel:['swift_pommel1','swift_pommel2','swift_pommel3','swift_pommel4','swift_pommel5'] },
+    /* r204: gale has no art yet - every id is a DD_ALIAS placeholder onto the balanced set */
+    gale:     { grip:['gale_grip1','gale_grip2','gale_grip3','gale_grip4','gale_grip5'],
+                guard:['gale_guard1','gale_guard2','gale_guard3','gale_guard4','gale_guard5'],
+                pommel:['gale_pommel1','gale_pommel2','gale_pommel3','gale_pommel4','gale_pommel5'] },
     ice:      { grip:['ice_grip1'], guard:['ice_guard1'], pommel:['ice_pommel1'] },
     water:    { grip:['water_grip1'], guard:['water_guard1'], pommel:['water_pommel1'] }
 };
@@ -3776,7 +3800,7 @@ let DD_SCROLL = 0, DD_MAX = 0;
 /* r203: placeholder parts. The FTUE rewards need more fire parts than there is art for, so these
    ids (the names on the owner's art list) show an existing image until the real file lands - then
    delete the line and the real art is used. DD_EXTRA puts them on the end of their set. */
-const DD_ALIAS = { flame_grip4:'flame_grip1', flame_grip5:'flame_grip2', flame_pommel3:'flame_pommel1', flame_pommel4:'flame_pommel2', flame_pommel5:'flame_pommel1' };
+const DD_ALIAS = { flame_grip4:'flame_grip1', flame_grip5:'flame_grip2', flame_pommel3:'flame_pommel1', flame_pommel4:'flame_pommel2', flame_pommel5:'flame_pommel1', gale_grip1:'grip1', gale_grip2:'grip2', gale_grip3:'grip3', gale_grip4:'grip4', gale_grip5:'grip1', gale_guard1:'guard1', gale_guard2:'guard2', gale_guard3:'guard3', gale_guard4:'guard4', gale_guard5:'guard1', gale_pommel1:'pommel1', gale_pommel2:'pommel2', gale_pommel3:'pommel3', gale_pommel4:'pommel4', gale_pommel5:'pommel5' };
 const DD_EXTRA = { flame:{ grip:['flame_grip4','flame_grip5'], pommel:['flame_pommel3','flame_pommel4','flame_pommel5'] } };
 const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+(DD_ALIAS[f]||f)+'.webp';
 
@@ -5410,6 +5434,8 @@ function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
     document.getElementById('sfShapeModal').classList.remove('show');
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
     hmShape=shape; openHammer(); }
+/* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
+const HM_MID_ALIAS = { Rapier:'Longsword' };
 function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay();
@@ -5422,7 +5448,7 @@ function hmLayout(){
     const orb=document.getElementById('hmOrb'), rough=document.getElementById('hmRough');
     orb.style.left=R.anvil.x+'%'; orb.style.top=R.anvil.y+'%'; orb.style.width=R.oreW+'%'; orb.style.aspectRatio='1';
     rough.style.left=R.anvil.x+'%'; rough.style.top=R.anvil.y+'%'; rough.style.width=R.roughW+'%';
-    rough.src='assets/hammer/balanced_'+hmShape.toLowerCase()+'_midblade.webp';
+    rough.src='assets/hammer/balanced_'+(HM_MID_ALIAS[hmShape]||hmShape).toLowerCase()+'_midblade.webp';   /* r204 */
     const mo=document.getElementById('hmMorph');
     mo.style.left=R.anvil.x+'%'; mo.style.top=R.anvil.y+'%'; mo.style.width='34%'; mo.style.aspectRatio='1';
     mo.style.transform='translate(-50%,-50%)';
@@ -5945,6 +5971,10 @@ function startIngotDrag(g,e){
 function restoreIngot(id){
     if(benchBusy()){ hint('Finish or store the ingot on the bench before taking another one out.'); return; }
     const i=INV.ingots.findIndex(g=>g.id===id); if(i<0) return;
+    /* r204: the stored swift metal is Bram's (part 5). Until he asks for it (bram2-ingot) it stays in
+       the bag: the dragon says so, and nothing is taken out. */
+    if(!tutOver() && TUT_STAGE!=='bram2-ingot' && (INV.ingots[i].traits||[]).some(t=>t.tid==='swift')){
+        sayQueue(FTUE.swiftLine); if(INV_TAB===1) buildShelf(); return; }
     const g=INV.ingots.splice(i,1)[0];
     setTimeout(tutBram2Restored, 0);   /* r127 */
     melt={ heat:invCooled(g), hp:g.hp, smeltT0:performance.now(), stage:g.stage,
@@ -6305,6 +6335,7 @@ const DIALOGUE = {
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
     D98: "Stop! This looks perfect.",
     D99: "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But don't worry. You can store it for later.",
+    D99a: "Use it later. We don't need that now.",
     D100: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further.",
     D101: "Grind 3 copper. Let's see how far we can go.",
     D102: "Use the hammer to travel along the path on the map.",
@@ -6931,8 +6962,13 @@ function tutGaleThanks(){
     CUSTOMER=null; TUT_STAGE='d2-praise';
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi();
-    sayQueue('D109');
     typeAfter(null);
+    /* r204: part 4 - TC4's rewards, D109, then the bell brings GPC7 and GPC8; Bram (part 5) comes
+       on the bell after them (FTUE.parts[4].after is this same 'd2-praise' stage) */
+    if(FTUE_ST.part===4){
+        ftueReward(FTUE.parts[4].rewards.tc, ()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); });
+        return; }
+    sayQueue('D109');
     setTimeout(tutBram2Arrive, 1200);   /* r127: Bram walks in behind the praise */
 }
 /* ---- r127: Bram's second visit. He asks for swift, which is already sitting in the bag as an
@@ -6941,7 +6977,8 @@ let TUT_BRAM2_STATE=null;
 function tutIngotSlot(){ return document.querySelector('#oreShelf .inv-ingot') || document.getElementById('oreShelf'); }
 function tutBram2Arrive(){
     if(TUT_STAGE!=='d2-praise') return;
-    TUT_STAGE='bram2'; TUT_BRAM2_STATE='awaiting'; sayHide();
+    TUT_STAGE='bram2'; TUT_BRAM2_STATE='awaiting'; sayHide(); tutUnglow(); tutExit(null);
+    FTUE_ST.part=5; FTUE_ST.gpc=0;   /* r204: Bram opens part 5 */
     CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='BRAM';
@@ -7703,6 +7740,7 @@ function ringBell(){
     /* r96b: whoever answers rebuilds the props, so ring AFTER that - otherwise the shake is applied
        to an element that is replaced a frame later and the player sees nothing. */
     if(/^p\d-(bell|gpc)$/.test(String(TUT_STAGE))) ftueGpcArrive();   /* r199/r201/r203: any part's gameplay customers */
+    else if(TUT_STAGE==='d2-praise' && FTUE_ST.part===4) tutBram2Arrive();   /* r204: Bram, after GPC7-8 */
     else if(TUT_STAGE==='bell') tutBellRung();                /* the scripted first customer - TC2 since r199 */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
     else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */
