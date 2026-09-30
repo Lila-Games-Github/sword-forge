@@ -82,6 +82,10 @@ eq('part 5 rewards', FTUE.parts[5].rewards, {
   gpc1: [ { kind: 'blueprint', trait: 'swift', shape: 'Rapier' } ],
   gpc2: [ { kind: 'parts', trait: 'swift' } ] });
 eq('bramLine', FTUE.bramLine, 'D111a');
+/* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
+eq('endLines', FTUE.endLines, ['D133', 'D136', 'D139']);
+eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139')"), true);
+eq('say() ends the FTUE on any end line', src.includes('FTUE.endLines.indexOf(id)>=0'), true);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
 eq('retryLine',  FTUE.retryLine,  'D28a');
 

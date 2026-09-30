@@ -2226,6 +2226,10 @@ const FTUE = {
     },
     /* r205: Bram's new line after D111 - he wants the swift sword sharper, which brings sharpening back */
     bramLine: 'D111a',
+    /* r206: part 6 is Garric (TC6), no gameplay and no rewards. He has three endings (graded sword),
+       and each ends the FTUE - only D139, the map's last key, used to, so after a Weak or middling
+       sword the dragon never stopped guiding */
+    endLines: ['D133','D136','D139'],
     /* r204: said when the stored swift ingot is taken out before Bram asks for it (part 5) */
     swiftLine: 'D99a',
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
@@ -2240,7 +2244,7 @@ const FTUE = {
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
@@ -4034,7 +4038,8 @@ function applyState(o){
     (o.quests||[]).forEach(x=>{ const q=questBy(x.id); if(q){ q.progress=x.progress||0; q.done=!!x.done; q.claimed=!!x.claimed; } });   /* r200 */
     RAIL_DIARY = o.rail ? !!o.rail.diary : true; RAIL_QUEST = o.rail ? !!o.rail.quest : true; railUi();   /* r129 */
     DIARY_MET = Object.assign({}, o.met||{});   /* r130 */
-    FTUE_ST = Object.assign(ftueFresh(), o.ftue ? JSON.parse(JSON.stringify(o.ftue)) : {}); ftueGrindUi();   /* r199; renderDecor runs with the screen below */
+    FTUE_ST = Object.assign(ftueFresh(), o.ftue ? JSON.parse(JSON.stringify(o.ftue)) : {}); ftueGrindUi();
+    if(FTUE_ST.done) TUT_SEEN_END=true;   /* r206: a save made after the FTUE loads with it finished */   /* r199; renderDecor runs with the screen below */
     PARTS_GARRIC = !!(o.parts && o.parts.garric);   /* r131 */
     INV.ingots=(o.inv&&o.inv.ingots||[]).map(g=>Object.assign({},g,{at:performance.now()}));
     INV.swords=(o.inv&&o.inv.swords)||[]; INV_SEQ=(o.inv&&o.inv.seq)||1;
@@ -8221,6 +8226,7 @@ function say(id){
     /* r103: the guide-to-pet switch still keys off the script's last line, but a scripted TAIL can
        follow it (D55 is the last key, yet D23 is spoken after it). tutTail() holds the switch. */
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
+    if(FTUE.endLines.indexOf(id)>=0 && !tutTail()){ TUT_SEEN_END=true; FTUE_ST.done=true; }   /* r206: any of Garric's endings */
     const go=document.getElementById(B[2]);
     sayGoIcon(go, SAY_CHOICES ? 'none' :
         ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next'), id);   /* r115/r174/r184/r196 */

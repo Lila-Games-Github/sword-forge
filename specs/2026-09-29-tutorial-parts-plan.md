@@ -459,3 +459,19 @@ Note: D57 quotes the real bonus. A sword not sharpened into the zone (`SH_ZONE_L
 D57 then says "We got 0g bonus this time!" (the same as the old TC2 run).
 
 Console / cheat bar: `ftuePart(6)` and a PART 6 button start part 6 (Garric at the bell).
+
+## Part 6 build record (2026-09-30), r206
+
+Part 6 is **Garric (TC6), with no gameplay and no rewards** (owner). His beat (D120-D139) is unchanged:
+he arrives on the bell after GPC10 (part 5's `after` is 'g-bell'), lectures, orders a Balanced sword,
+the player makes it alone (r189 solo run), and he grades it: Weak + undecorated + unsharpened = 1
+(D131, then D132-D133), Epic + decorated + sharpened = 3 (D137 and his parts gift, then D138-D139),
+anything else = 2 (D134, then D135-D136).
+
+**Fix: every ending ends the FTUE.** Only D139, the dialogue map's last key, used to set the end
+(`TUT_SEEN_END`, the guide-to-pet switch), so after a grade 1 or grade 2 sword the dragon never stopped
+guiding. `FTUE.endLines` = D133, D136, D139 (asserted by the test), and `say()` ends the FTUE on any of
+them (`FTUE_ST.done`). A save made after the end loads with the tutorial finished. Verified in the
+browser for all three grades; with the old rule the grade 1 ending left `tutOver()` false (RED).
+
+**The FTUE is complete: parts 1-6 are built.**
