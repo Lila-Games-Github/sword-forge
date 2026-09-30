@@ -4,155 +4,154 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-09-23)
+## Current state (2026-09-30)
 
-- **Active build:** `Swordforge_looptest_landscape.html` — the **landscape loop-test**, and the only
+- **Active build:** `Swordforge_looptest_landscape.html`, the **landscape loop-test**, and the only
   file being developed. The portrait loop-test (`Swordforge_new_looptest.html`) is deliberately never
-  touched. `swordforgeV2.html` / `v1.html` are older canon and were not touched this session.
+  touched. `swordforgeV2.html` / `v1.html` are older canon.
 - **Repo:** https://github.com/Lila-Games-Github/sword-forge
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
-- **Status:** rounds **r154–r196** are **merged and live**. PR #16 landed 41 commits (r154–r194) and
-  PR #17 landed r195–r196; Pages redeployed on both (`.github/workflows/deploy.yml` fires on every push
-  to `main`). Verified against the deployed site, not assumed: **144 dialogue keys**, `lastLine()`
-  `D139`, `MAP_parts.webp` served at 87 KB.
-- **Branch:** `tutorial-polish`. Level with `main` **in game code** (the HTML is byte-identical) but
-  **not in the git graph**: `main` carries the two merge commits, and this branch carries the docs
-  commit that PR #18 is for. `git pull` on it is a no-op and will NOT bring you up to date.
-- **Start a new round like this**, not by committing to `tutorial-polish`:
+- **Status:** rounds **r197-r206 are merged and live** (PR #19, merge `77931a7`, 2026-09-30); the docs
+  PR #18 is merged too (`7b3748b`). Verified against the deployed site, not assumed: the live
+  `Swordforge_looptest_landscape.html` is byte-identical to the file on `main`, and carries the `FTUE`
+  config and the PART 1-6 buttons. **147 dialogue keys**, `lastLine()` `D139`.
+- **The tutorial is now the FTUE in six parts** (r199-r206). Design record and build records per part:
+  `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the top of
+  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (50 checks).
+  **The owner play-tested parts 1-4: all good.** Parts 5-6 were verified by script only.
+- **Start a new round like this:**
   ```bash
   git checkout main && git pull
   git checkout -b sword-forge/<2-5-kebab-keywords>
   ```
-  `tutorial-polish` predates the `<project-slug>/<keywords>` convention the other branches follow
-  (`sword-forge/mobile-compat`, `sword-forge/tutorial-script-and-craft-systems`). Name new ones that way.
-- **Do not commit directly to `main`** — every push there publishes the site.
-- **While PR #18 is open, `main`’s copies of this file and of `CLAUDE.md` are badly stale.** Main’s
-  HANDOFF still says the build has **43 dialogue keys ending at D43** — it has **144, ending at D139**
-  — and main’s `CLAUDE.md` still gives the preview port as 5678 in one section. Read the docs from
-  this branch until #18 lands: `git show tutorial-polish:HANDOFF.md`. **Seeing 144 keys is not a bug.**
+  The FTUE branch was named `Swordforge_FTUE_v2` on the owner's instruction (deleted after the merge);
+  the convention is still `sword-forge/<keywords>`.
+- **Do not commit directly to `main`**: every push there publishes the site.
+- **Stale local branches** (not on GitHub's `main` path any more): `sword-forge/playtest-polish-r197`
+  (its r197/r198 are in #19), `tutorial-polish` (#18's, merged), `swordforge-ftue-tutorial` (not made
+  in that session, left alone). Delete only if the owner says so.
 
-### What this session changed (r154–r196)
+### What changed (r197-r206)
 
-Roughly forty rounds of play-test polish. The themes, not the list:
+| Part | Tutorial customer | Gameplay customers | Rewards |
+| --- | --- | --- | --- |
+| 1 | Bram: first balanced sword, quest list, build mode, bell | GPC1, GPC2 (balanced) | shop banner; balanced Longsword; balanced Broadsword + grindstone |
+| 2 | TC2 (`man1`): grinding, record craft | GPC3 (5 balanced, bulk craft) | +5 recipe pages (8); design desk |
+| 3 | TC3 (`woman1`): fire, decorating, Day 1 end, skill tree, Day 2 cave | GPC4 fire, GPC5 balanced, GPC6 fire | balanced + fire parts, fire Longsword; fire Broadsword; fire parts |
+| 4 | TC4 (`man2`): tier alignment, storing swift, gale | GPC7 gale, GPC8 fire | gale Longsword + parts; gale Rapier + parts |
+| 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Rapier; swift parts |
+| 6 | Garric (`man4`): no gameplay, no rewards | none | none |
 
-- **Dialogue script.** New lines D69a/b/c (the first hazard crossing stops the world), D94b, D130a,
-  D67a. D30 deleted; D4, D42, D128 reworded. **New ids are inserted beside their neighbours, never
-  appended** — `lastLine()` is the map's final key and drives the guide-to-pet switch. Still `D139`.
-- **Pointer vocabulary, finished.** "tap to continue" became a real button (`.say-go`) with a
-  double-play / X icon that **lights up** on lines whose only next step is a click (`SAY_GO_GLOW`).
-  Tab halos, the skill-tree blink and the panel-close chevron all take a **face swap** instead of a
-  halo. `.tut-lit-ctl` lights any control (SELL, answer buttons, the go button) additively.
-- **Windows.** Day transitions fade the whole frame to black and name the day. "Alignment for Tiers"
-  after D97. Bram's illustration between his reply and D111. The map-parts window after D67a. The
-  Sword Crafted window is 50% bigger.
-- **Layout and input.** The dragon has a **position per screen**; nothing can be dragged under the
-  inventory panel any more (counter dragon, cave pickaxe, bench dragon, hammer, mug). Map controls
-  moved to the top right. A SKIP HAMMER cheat sits outside the frame.
-- **Payload.** weak/fine/epic, Bram's illustration and MAP_parts converted to WebP:
-  **2.93 MB → 259 KB**. Manifest 140 → 145 entries.
+- **Systems:** reward window; blueprints per trait + shape (Shortsword always open); design desk parts
+  earned per trait (`FTUE.startParts` 3, +1 of each per reward); recipe page limit (3, then 8); locked
+  grindstone and design desk; quests pay on **CLAIM** (coins fly to the gold counter); **build mode**
+  (decor from ITEMS & DECOR onto the counter, shop or bedroom, behind every prop); silent ore caps on
+  the tutorial swords; D28a + Retry for part 1's customer swords; the Day 2 cave stocked for Day 2
+  (2-3 ores a swing); PART 1-6 buttons beside SKIP HAMMER (`ftuePart(n)` in the console).
+- **New lines:** D28a, D99a, D111a (inserted beside D28, D99, D111). **Reworded:** D29, D31, D32-D34.
+  **Moved:** the quest list (D118/D119) to part 1; sharpening (D48-D55) and D57 to part 5; the Day 2
+  ore run (D94/D94b) to right after the skill tree.
+- **Fixes:** r197, a stored dragon-pulled blade offset the next path; r198, hammering the gale route
+  stops the sword on Gale's centre, then D98 and the mug; the menu's New Game never spoke D1; only D139
+  ended the tutorial, now any of Garric's three endings does (`FTUE.endLines`).
 
 ## Next steps
 
-**Ordering.** #1 is blocked on an owner answer — ask, then park it. **#2 and #3 are the ones a fresh
-agent can ship unblocked**, and #2 matters because the build is public. #4 and #5 are backlog.
-There is no written definition of "polished" for the tutorial: the owner drives it beat by beat from
-play-testing, so expect the next session's work to arrive as fresh reports rather than from this list.
+The owner drives the work beat by beat from play-testing; expect fresh reports rather than this list.
 
-1. **The gale/Epic alignment bug — the owner parked this deliberately and it is the top item.**
-   "gale" here is the **trait** (`TRAIT_POS.gale`), not the gale *ore* — they share a name, and the ore
-   is irrelevant to this.
-   The dragon-pull already stops at the **closest approach**: `tick()`'s `fireOnAnvil` branch clamps the
-   step to `t = (trait − sword) · û`, the projection onto the unit vector toward `START`. That is the
-   nearest the sword can ever get on that path, so "stop as soon as Epic is available" cannot be done by
-   changing *when* it stops — stopping sooner only lands further away.
-   **Re-measure it before acting** (one paste in the console on the forge screen, no fixture needed):
-   ```js
-   resetRun(); ORE_COUNT.copper=9; buildShelf();
-   for(let i=0;i<3;i++){ startPrep('copper'); prep.grind=1; addOreDirect('copper'); }
-   sword={seg:segs.length-1, frac:segs[segs.length-1].tPct};
-   const p=swordPoint(), g=traits.find(t=>t.trait&&t.trait.id==='gale');
-   const dx=START.x-p.x, dy=START.y-p.y, d=Math.hypot(dx,dy), ux=dx/d, uy=dy/d;
-   const t=(g.x-p.x)*ux+(g.y-p.y)*uy;
-   Math.hypot(g.x-(p.x+ux*t), g.y-(p.y+uy*t));   // 27.1 on 2026-09-23
-   ```
-   **27.1** against `ALIGN_EPIC 9` / `ALIGN_FINE 20` is **Weak** — Epic is unreachable by pulling.
-   Four levers: move the gale trait, re-cut the copper route, widen `ALIGN_EPIC`, or let the pull steer
-   instead of running straight at spawn. **This needs the owner's answer before any code changes** — it
-   is a tuning decision. *If pressed for a default:* re-cutting the copper route is the least invasive,
-   because `ALIGN_EPIC` is global (it would make every trait easier) and moving a trait rearranges the
-   hazard field around it — which is exactly what bit r111 when Fire moved.
-2. **Gate the SKIP HAMMER cheat** if the owner wants it off the public link. `#cheatBar` is
-   unconditional, so it is visible on the deployed Pages site to anyone with the URL. One line in the
-   `load` handler (`location.search.indexOf('cheats')>=0`).
-3. **D67a wording.** "You can guess where a trait could be from this image" can read for a moment as
-   "a trait from this image". Flagged to the owner, not changed.
-4. **The "Alignment for Tiers" window is once-per-game.** The owner said a re-open will live under
-   settings → tutorial later. Nothing built for it yet.
-5. Older, still open: the 35-swing Day 2 cave; whether a re-quench may upgrade a trait tier; the
-   `DD_BONUS.balanced` part lists ship **empty** pending art (dropping filenames into that one object
-   is all that is needed); no day system behind the end-of-day flow beyond the r162 transition;
-   talent points buy nothing on the 8 yellow/green skill nodes; tutorial state is not in the save.
+1. **Owner play-through of parts 5-6.** Not yet done. The sharpening minigame and Garric's solo craft
+   were jumped over in testing (both beats are unchanged, but now run in a new order).
+2. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` (unlocks, decor, rewards,
+   `done`) and quest claims, but not `TUT_STAGE`. Planned fix: save the part number at each part
+   boundary. Not built; ask the owner before building.
+3. **Art from the owner** (full list: "Art needed" in the design record). When a file lands:
+   delete its `DD_ALIAS` line (fire and gale parts); add gale blades to `DD_BLADES`; delete
+   `HM_MID_ALIAS.Rapier` for `balanced_rapier_midblade`; replace the banner's red rectangle
+   (`FTUE.decor.banner`); swap the emoji lock / rapier icons.
+4. **Owner questions still open:**
+   - the GPC3 wording ("I need 5 Balanced swords. Can you make them all?" / "Good. N more, please.");
+   - lock the basement sharpening wheel until part 5?
+   - should the PART 1-6 buttons stay public? (SKIP HAMMER stays public: owner's decision, 2026-09-23);
+   - the r197 path-offset report ("still not fixed"): never confirmed whether it was tested on the live
+     link (which did not have the fix then) or locally. The fix is live now; ask for a re-test.
+5. Older, still open: D67a wording ("a trait could be from this image"); the Alignment for Tiers window
+   is once per game (a re-open under settings is planned); whether a re-quench may upgrade a trait
+   tier; `DD_BONUS.balanced` (Garric's gift) ships empty pending art; talent points buy nothing on the
+   8 yellow/green skill nodes.
+
+**Closed since the last handoff:** the gale/Epic item (r198; the old 27.1 measurement used raw copper,
+the real route passes within 0.4 of Gale); gating SKIP HAMMER (the owner said no); the 35-swing Day 2
+cave (r203, 2-3 ores a swing).
 
 ## How to verify current state
 
 ```bash
 git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
+node tooling/ftue/ftue.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect
-`Object.keys(DIALOGUE).length === 144` and `lastLine() === "D139"`.
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 147 dialogue keys, `lastLine()`
+`"D139"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the mobile-fit test prints GREEN at 23 cases; the living-docs audit
-prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0. Screenshots work when the app window is
-visible — retry once on timeout, then fall back to `javascript_tool` measurements.
+**Baselines, not regressions:** the FTUE test prints GREEN at 50 checks; the mobile-fit test prints
+GREEN at **21** cases (the old handoff said 23, which was wrong: the file has not changed since r135);
+the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 ## Gotchas
 
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
-  `.claude/hooks/verify-living-docs.ps1`, which sits beside the `.sh` for exactly this reason.
-- **Two of the repo's three test suites cannot run here.** `tooling/anchor-match` needs Python, which
-  is not installed, and so does the `docs/wiki/` search script. `tooling/mobile-fit/fit.test.mjs` is
-  the one that runs.
-- **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives as
-  prose in this file. If the backlog grows past the "Next steps" list, file issues rather than
-  lengthening it.
-
-- **Verify through the path a player takes.** This cost three bugs this session. Driving a function
-  directly proves the branch is correct and says **nothing** about whether anything reaches it. Drive
-  real `tick()` frames and real `PointerEvent`s. See LEARNINGS.
-- **There are two arrows.** `#tutArrow` is the scripted dashed pointer; `#hintArrow` is
-  `assets/ui/arrow.webp`, a white idle nudge that fades in after 4 s. Clearing one is not clearing the
-  other. Since r187 the white one stands down whenever `TUT_ARROW` is set.
-- **A halo near a clipped edge does not read.** `#rail` and `#frame` are `overflow: hidden`. Anything
-  within ~20 px of their edges needs a face swap (`tutBlinkTab` / `tutBlinkSkill`), not a box-shadow.
+  `.claude/hooks/verify-living-docs.ps1`.
+- **Tests that run here:** `tooling/ftue` and `tooling/mobile-fit`. `tooling/anchor-match` and the
+  `docs/wiki/` search script need Python, which is not installed. (`tooling/asset-diet` is a manifest
+  generator, not a test.)
+- **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.
+- **An FTUE value is changed in three places together:** the design record, the `FTUE` object, and
+  the test. Write the test change first and watch it fail.
+- **"Grindstone" is two things.** In the FTUE it is the forge's ore grinding wheel (`#stMortar`, art
+  `anchor_grindwheel.webp`). `assets/forge/grindstone.webp` is the **basement sharpening wheel**.
+  r202 fixed a reward window that showed the wrong one.
+- **The shelf rebuilds its slots on every change**, so a blink put on a slot is lost. Pointers that
+  mark a slot are recomputed from state after every `buildShelf()` (`ftueDecorStep`, `ftueBulkStep`).
+- **A new CSS class can already be taken.** `rw-row` belonged to the rack window and broke the reward
+  window's layout (renamed `rwd-`). Grep a class name before using it.
+- **Chained customer lines replace each other at once.** `typeAfter` fires the moment a line finishes,
+  so a second `custLine` wipes the first unread. Bram's D111 + D111a are one typed speech for this reason.
+- **Rewards and coins time out; they never wait on an animation.** A hidden pane freezes animations,
+  so `flyCoins` lands the gold on a `setTimeout`, not `onfinish`.
+- **`ftuePart(n)` builds an approximate state** (gold, exp, fog and books are guesses). It is a test
+  aid for jumping to a part, not a save.
+- **Verify through the path a player takes.** Drive real `tick()` frames and real `PointerEvent`s, and
+  click through `elementFromPoint`. See LEARNINGS.
+- **There are two arrows.** `#tutArrow` is the scripted dashed pointer; `#hintArrow` is the white idle
+  nudge. Since r187 the white one stands down whenever `TUT_ARROW` is set.
+- **A halo near a clipped edge does not read.** `#rail` and `#frame` are `overflow: hidden`; use a face
+  swap there (`tutBlinkTab` / `tutBlinkSkill`).
 - **A pointer or line is retired only if something retires it.** Setting the next stage is not enough
-  unless that stage speaks or points. Every arrival branch was swept in r183; the table is in the
-  tutorial script spec.
+  unless that stage speaks or points.
 - **`TUT_TICK_STAGES` gates the idle pointer.** A new branch in `tutNudgeApply()` is dead unless its
   stage is in that list.
-- **`refundOre()` is the Restore Ore talent, not a refund** — a per-ore roll at 10 % a rank, so
-  unranked it returns nothing. For a real restore, loop `segs` and `gainOre`.
-- **One file, terse style.** Never put an inline `//` comment mid-line — it silently deletes the rest
-  of the line. Block or own-line comments only.
-- **Patch by script, not by hand.** Anchored `replace` with a uniqueness check, a CRLF-aware `nl()`
-  normaliser, and **syntax-check each `<script>` block separately** (there are two).
+- **`refundOre()` is the Restore Ore talent, not a refund.** For a real restore, loop `segs` and
+  `gainOre` (as `ftueRetry` does).
+- **One file, terse style.** Never put an inline `//` comment mid-line; it silently deletes the rest of
+  the line. Block or own-line comments only.
+- **Patch by script, not by hand.** Anchored `replace` with a uniqueness check, and **syntax-check each
+  `<script>` block separately** (there are two).
 - The Browser pane reports `innerWidth: 0` until `resize_window`, and a **hidden pane freezes
-  `requestAnimationFrame` and CSS animations/transitions** — drive `tick()` by hand, and pin an
-  animation's `currentTime` to inspect a keyframe.
+  `requestAnimationFrame` and CSS animations/transitions**. Drive `tick()` by hand.
 
 ## Documentation drift you will hit
 
+- **The FTUE design record wins over the tutorial script SSOT on order and rewards.**
+  `specs/2026-09-15-looptest-landscape-tutorial-script.md` still holds the dialogue text and the beat
+  notes, but its order is the pre-FTUE one (sharpening in the TC2 run, the quest list with the diary,
+  the Day 2 cave after TC4's order). `specs/2026-09-29-tutorial-parts-plan.md` has the current order.
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.
-- `docs/wiki/` describes `index.html`/`swordforgeV2.html`, including a `Tutorial Flow` page about a
-  `tutorialFlow` array the landscape build does not have. Its search script needs Python, which is not
-  installed here. The 10 audit orphans are these pages.
+- `docs/wiki/` describes `index.html`/`swordforgeV2.html`. The 10 audit orphans are these pages.
 - **`specs/game-design.md`** is named the mechanics SSOT by CLAUDE.md, but its header still names the
-  portrait build canon. In practice mechanics are recorded in the dated round spec
-  (`specs/2026-08-18-...md`) and the tutorial script SSOT (`specs/2026-09-15-...md`). Keep doing that
-  until someone reconciles the header, and say so in the commit.
+  portrait build canon. Mechanics are recorded in the dated specs instead; say so in the commit.
 - `specs/README.md` and `README.md` still name older builds in their bodies, under dated banners.
 - `plan.md`'s "Next up" is V1/V2 scope.
