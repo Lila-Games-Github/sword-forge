@@ -162,3 +162,21 @@ Two smaller ones from the same rounds:
 - **Check what a "refund" helper actually does.** `refundOre()` is the Restore Ore *talent* — a per-ore
   roll at 10 % a rank — so unranked it returns nothing. Wiring a retry button to it would have quietly
   cost the player their ore.
+
+## 2026-10-01: hammer hit points, owner art
+
+- **Shell quoting eats regex backslashes.** A test line written through `node -e "..."` or an unquoted
+  heredoc lost every `\` in a regex (`\{` became `{`), and the test then failed to parse or matched the
+  wrong thing. Write regex-bearing test lines with the Edit tool, or a script file from a quoted
+  heredoc (`<<'EOF'`), and inside `new RegExp('...')` strings double every backslash.
+- **The tutorial owns the screen while it runs.** Testing the hammer from a fresh load, a cold strike
+  spoke D16, which pauses the game under `#tutDim`, and every later `elementFromPoint` tap hit the
+  dimmer. The dragon's bubble (`#dragonSay`, z 1100) also covers the scene's top. Set `TUT_HMHOT` /
+  `TUT_HMCOLD`, `tutPause(false)`, `sayHide()` before driving a minigame outside its tutorial beat.
+- **Converting owner art:** there is no sharp/ImageMagick here, so the browser is the encoder: load
+  the PNG in the preview page, draw it to a canvas, `toBlob('image/webp', 0.86)`, POST to the dev
+  server's `/__save?path=`. Never crop sword parts (they share one canvas so they register when
+  stacked); a free-standing image such as decor may be cropped to its alpha bounds.
+- **Random placement on narrow art needs restarts, not a bigger try budget.** Greedy placement of 3
+  spaced marks on the Shortsword mid-blade failed ~5% of the time because a bad first pick boxes the
+  rest in; restarting the whole set (20 times) took it to 0 in 1000 runs.

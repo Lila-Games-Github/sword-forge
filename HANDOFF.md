@@ -4,7 +4,7 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-09-30)
+## Current state (2026-10-01)
 
 - **Active build:** `Swordforge_looptest_landscape.html`, the **landscape loop-test**, and the only
   file being developed. The portrait loop-test (`Swordforge_new_looptest.html`) is deliberately never
@@ -14,11 +14,22 @@ continuation prompt printed at close time.
 - **Status:** rounds **r197-r206 are merged and live** (PR #19, merge `77931a7`, 2026-09-30); the docs
   PR #18 is merged too (`7b3748b`). Verified against the deployed site, not assumed: the live
   `Swordforge_looptest_landscape.html` is byte-identical to the file on `main`, and carries the `FTUE`
-  config and the PART 1-6 buttons. **147 dialogue keys**, `lastLine()` `D139`.
+  config and the PART 1-6 buttons. **148 dialogue keys** (D15a added in r209), `lastLine()` `D139`.
 - **The tutorial is now the FTUE in six parts** (r199-r206). Design record and build records per part:
   `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the top of
-  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (50 checks).
+  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (58 checks).
   **The owner play-tested parts 1-4: all good.** Parts 5-6 were verified by script only.
+- **Rounds r207-r211** (branch `Swordforge_FTUEv2_polish`, the owner's name for "minor errors, bugs and
+  art"; PR #21, merged at the 2026-10-01 session close):
+  - r207 the hammer shows each trait and shape (sphere -> mid-blade -> the sword's own blade, heat glow);
+  - r208 the swift Dagger replaces the swift Rapier (GPC9's blueprint);
+  - **r209 the hammer minigame on hit points** (design record `specs/2026-10-01-hammer-hit-points.md`,
+    test `tooling/hammer/hammer.test.mjs`, 27 checks): 1 orb point x3 strikes, 3 random mid-blade
+    points, an aim ring below the head (drag to move, tap to strike) coloured by the band the strike
+    would get (yellow/blue/red), forging band Masterwork/Good/Crude on the price, new line D15a;
+  - r210 D57 now says the bonus is from sharpening, and `{b}` is the sharpening bonus alone;
+  - r211 the owner's art: all fire and gale parts, gale blades, shop banner, Garric's gift parts.
+  **Not yet play-tested by the owner** (verified by script and in the browser pane).
 - **Start a new round like this:**
   ```bash
   git checkout main && git pull
@@ -27,9 +38,10 @@ continuation prompt printed at close time.
   The FTUE branch was named `Swordforge_FTUE_v2` on the owner's instruction (deleted after the merge);
   the convention is still `sword-forge/<keywords>`.
 - **Do not commit directly to `main`**: every push there publishes the site.
-- **Stale local branches** (not on GitHub's `main` path any more): `sword-forge/playtest-polish-r197`
-  (its r197/r198 are in #19), `tutorial-polish` (#18's, merged), `swordforge-ftue-tutorial` (not made
-  in that session, left alone). Delete only if the owner says so.
+- **Old branches:** `sword-forge/playtest-polish-r197`, `tutorial-polish` and `swordforge-ftue-tutorial`
+  were deleted on the owner's instruction (2026-09-30). Remote leftovers from older work
+  (`fm/sf-lazy-load`, `sword-forge/core-loop-mapping`, `sword-forge/pathforge-cluster-infusion`,
+  `variation-a-prototype`) are untouched.
 
 ### What changed (r197-r206)
 
@@ -39,7 +51,7 @@ continuation prompt printed at close time.
 | 2 | TC2 (`man1`): grinding, record craft | GPC3 (5 balanced, bulk craft) | +5 recipe pages (8); design desk |
 | 3 | TC3 (`woman1`): fire, decorating, Day 1 end, skill tree, Day 2 cave | GPC4 fire, GPC5 balanced, GPC6 fire | balanced + fire parts, fire Longsword; fire Broadsword; fire parts |
 | 4 | TC4 (`man2`): tier alignment, storing swift, gale | GPC7 gale, GPC8 fire | gale Longsword + parts; gale Rapier + parts |
-| 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Rapier; swift parts |
+| 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Dagger (r208); swift parts |
 | 6 | Garric (`man4`): no gameplay, no rewards | none | none |
 
 - **Systems:** reward window; blueprints per trait + shape (Shortsword always open); design desk parts
@@ -59,16 +71,21 @@ continuation prompt printed at close time.
 
 The owner drives the work beat by beat from play-testing; expect fresh reports rather than this list.
 
-1. **Owner play-through of parts 5-6.** Not yet done. The sharpening minigame and Garric's solo craft
+1. **Owner play-test of the r209 hammer** (feel of drag + tap, ring distance, mark size 5% of the
+   stage, the price multipliers) and of the r211 art in place. Then the **owner play-through of parts
+   5-6**, not yet done. The sharpening minigame and Garric's solo craft
    were jumped over in testing (both beats are unchanged, but now run in a new order).
 2. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` (unlocks, decor, rewards,
    `done`) and quest claims, but not `TUT_STAGE`. Planned fix: save the part number at each part
    boundary. Not built; ask the owner before building.
-3. **Art from the owner** (full list: "Art needed" in the design record). When a file lands:
-   delete its `DD_ALIAS` line (fire and gale parts); add gale blades to `DD_BLADES`; delete
-   `HM_MID_ALIAS.Rapier` for `balanced_rapier_midblade`; replace the banner's red rectangle
-   (`FTUE.decor.banner`); swap the emoji lock / rapier icons.
+3. **Art from the owner** (full list: "Art needed" in the design record). **Landed in r211:** all fire
+   and gale parts (`DD_ALIAS` now empty), the gale blades, the shop banner, and balanced grips 5-6,
+   guards 5-6, pommel 6 (Garric's gift). Still to come: `balanced_rapier_midblade` /
+   `balanced_dagger_midblade` (then delete `HM_MID_ALIAS.Rapier` / `.Dagger`); the emoji lock / rapier
+   icons; the reward and UI icons. A new PNG needs its `.webp` (see CLAUDE.md, `assets/sword-parts/`).
 4. **Owner questions still open:**
+   - r209 forging price multipliers (Masterwork x1.3, Good x1.0, Crude x0.8) are Claude's proposal, not
+     yet confirmed; one place to change: `HM_HITS.bands` (and the record and test with it);
    - the GPC3 wording ("I need 5 Balanced swords. Can you make them all?" / "Good. N more, please.");
    - lock the basement sharpening wheel until part 5?
    - should the PART 1-6 buttons stay public? (SKIP HAMMER stays public: owner's decision, 2026-09-23);
@@ -76,7 +93,7 @@ The owner drives the work beat by beat from play-testing; expect fresh reports r
      link (which did not have the fix then) or locally. The fix is live now; ask for a re-test.
 5. Older, still open: D67a wording ("a trait could be from this image"); the Alignment for Tiers window
    is once per game (a re-open under settings is planned); whether a re-quench may upgrade a trait
-   tier; `DD_BONUS.balanced` (Garric's gift) ships empty pending art; talent points buy nothing on the
+   tier; talent points buy nothing on the
    8 yellow/green skill nodes.
 
 **Closed since the last handoff:** the gale/Epic item (r198; the old 27.1 measurement used raw copper,
@@ -89,14 +106,15 @@ cave (r203, 2-3 ores a swing).
 git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
 node tooling/ftue/ftue.test.mjs
+node tooling/hammer/hammer.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 147 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 148 dialogue keys, `lastLine()`
 `"D139"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 50 checks; the mobile-fit test prints
+**Baselines, not regressions:** the FTUE test prints GREEN at 58 checks; the hammer test GREEN at 26; the mobile-fit test prints
 GREEN at **21** cases (the old handoff said 23, which was wrong: the file has not changed since r135);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
