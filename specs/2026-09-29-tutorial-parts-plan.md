@@ -255,9 +255,9 @@ Parts: each trait needs 3 of each piece at the start, +1 of each per "parts x3" 
 
 | Trait | Needs (grip / guard / pommel) | Has now | **To make** |
 | --- | --- | --- | --- |
-| balanced | 4 / 4 / 4 (start + TC3) | 4 / 4 / 5 | none |
-| fire (flame) | 5 / 5 / 5 (start + TC3 + GPC6) | 3 / 5 / 2 | **2 grips, 3 pommels** |
-| gale | 5 / 5 / 5 (start + TC4 + GPC7) | 0 / 0 / 0 | **5 grips, 5 guards, 5 pommels** |
+| balanced | 4 / 4 / 4 (start + TC3) | 6 / 6 / 6 (r211: 5-6 of each are Garric's gift) | none |
+| fire (flame) | 5 / 5 / 5 (start + TC3 + GPC6) | 5 / 5 / 5 (r211) | none |
+| gale | 5 / 5 / 5 (start + TC4 + GPC7) | 5 / 5 / 5 (r211) | none |
 | swift | 4 / 4 / 4 (start + part 5) | 5 / 5 / 5 | none |
 
 Blades (`assets/sword-parts/blades/`):
@@ -491,3 +491,20 @@ blade** (`assets/sword-parts/blades/`, by `bladeFor(skin, shape)`: fire Longswor
 `flame_longsword_blade`, balanced Broadsword = `balanced_broadsword_blade`, and so on), drawn in the
 mid-blade's box on the same diagonal. `hammer_sword.*` is no longer drawn. Heat shows as a glow layer
 masked to each blade image (`.hm-heat`), its opacity the heat level.
+
+## Owner art (2026-10-01), r211
+
+The owner added PNGs for the fire and gale parts, the gale blades, the shop banner and five new
+balanced parts. Each got a `.webp` (512 wide, quality 0.86; the banner cropped to its visible art,
+258 x 457).
+
+- **Placeholders gone:** `DD_ALIAS` is empty (fire grips 4-5, fire pommels 3-5, all 15 gale parts).
+- **Gale blades:** `DD_BLADES.gale` = longsword, rapier, shortsword.
+- **New balanced parts go to Garric's gift** (`DD_BONUS.balanced`, unlocked by the best sword for
+  Garric): grips 5-6, guards 5-6, pommels 5-6. `pommel5` moved there from the balanced set: the set
+  only ever showed 4 balanced parts (`FTUE.startParts` 3 + the TC3 reward), so it was unreachable.
+  This placement is Claude's reading of the code's own note on `DD_BONUS`; the owner may move them.
+- **Banner:** `FTUE.decor.banner.img` = `assets/Decor/Banner.webp`, drawn whole (no box, border or
+  label) on the screen, in the ITEMS & DECOR slot and in the reward window. The box stays 10% x 24%.
+- **Test:** `tooling/ftue/ftue.test.mjs` asserts the above and that every part, blade and decor image
+  the build names exists on disk.

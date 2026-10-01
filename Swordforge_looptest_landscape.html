@@ -729,6 +729,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame .ore-slot.inv-build.on { background: linear-gradient(180deg,#ffe38a,#e0b545); }
 #frame .ore-slot.inv-build .bm-state { font-size: 12px; }
 .ore-slot.inv-decor .dec-sq { width: 60%; height: 44%; border: 2px solid rgba(0,0,0,.45); border-radius: 3px; }
+/* r211: decor with art - the image, whole, with no placeholder box, border or label */
+.decor-item.has-art, .dec-sq.has-art, .rwd-sq.has-art { background: center / contain no-repeat; border: 0; box-shadow: none; border-radius: 0; }
+.decor-item.has-art { filter: drop-shadow(0 3px 6px rgba(0,0,0,.5)); }
 /* trait acquired popup */
 .sf-acquire-box { max-width: 260px; }
 .sf-acquire-body { text-align: center; margin: 8px 0 6px; }
@@ -861,6 +864,29 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 }
 #hmGrip { position: absolute; z-index: 5; left: 53%; top: 3%; width: 44%; height: 66%; pointer-events: auto; cursor: grab; touch-action: none; }
 #hmGrip.dragging { cursor: grabbing; }
+/* r209: hit points on the metal, the hammer's aim ring, and a strike pad on the hammer head. The pad
+   sits above #hmAimPad, so a tap on the head over the metal strikes instead of calling the fire. */
+#hmPoints { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.hm-pt { position: absolute; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%,-50%); box-sizing: border-box;
+    border: 3px solid #fff6df;
+    background: radial-gradient(circle, rgba(255,240,190,.55), rgba(255,170,60,.18) 60%, rgba(255,170,60,0) 72%);
+    box-shadow: 0 0 0 2px rgba(40,14,2,.8), 0 0 12px rgba(255,190,80,.9), inset 0 0 0 2px rgba(40,14,2,.55); animation: hmPtPulse 1.1s ease-in-out infinite; }
+.hm-pt.cold { border-color: rgba(205,210,216,.8); background: none; box-shadow: 0 0 0 2px rgba(22,13,4,.6); animation: none; }
+.hm-pt.done { animation: hmPtDone .35s ease-out forwards; }
+@keyframes hmPtPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.08); } }
+@keyframes hmPtDone { to { transform: translate(-50%,-50%) scale(1.7); opacity: 0; } }
+#hmRing { position: absolute; z-index: 8; aspect-ratio: 1; border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%);
+    box-sizing: border-box; border: 3px dashed #fff6df; box-shadow: 0 0 0 2px rgba(22,13,4,.85), inset 0 0 0 2px rgba(22,13,4,.6); }
+#hmRing.on { border-style: solid; border-color: #ffd36a; box-shadow: 0 0 0 2px rgba(22,13,4,.85), 0 0 14px rgba(255,200,80,.95); }
+/* r209: over a point the ring takes the colour of the band that strike would get (owner, 2026-10-01) */
+#hmRing.on.q-good  { border-color: #5aa8ff; box-shadow: 0 0 0 2px rgba(22,13,4,.85), 0 0 14px rgba(80,160,255,.95); }
+#hmRing.on.q-crude { border-color: #ff4a3a; box-shadow: 0 0 0 2px rgba(22,13,4,.85), 0 0 14px rgba(255,70,50,.95); }
+#hmRing.off { display: none; }
+#hmStrikePad { position: absolute; z-index: 7; left: 54%; top: 5%; width: 17%; height: 27%; pointer-events: auto; cursor: grab; touch-action: none; }
+#hmStrikePad.dragging { cursor: grabbing; }
+.hm-acc { transform: translate(-50%,-100%); font: bold 15px/1 Georgia, serif; color: #fff3c8; white-space: nowrap;
+    text-shadow: 0 0 3px #2a1606, 0 2px 4px #000; animation: hmAcc .8s ease-out forwards; }
+@keyframes hmAcc { from { opacity: 1; transform: translate(-50%,-100%); } to { opacity: 0; transform: translate(-50%,-230%); } }
 /* --- strike sparks --- */
 #hmFx { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 #hmFx > * { position: absolute; pointer-events: none; }
@@ -2092,9 +2118,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div id="hmSnout"></div><div id="hmAim"></div>
                 <div id="hmHead" title="tap the dragon"></div>
             </div>
+            <div id="hmPoints"></div>   <!-- r209: the hit points -->
             <img class="hm-layer" id="hmHammer" src="assets/hammer/hammer_hammer.webp" alt="">
             <div id="hmGrip" title="drag the hammer"></div>
             <div id="hmAimPad" title="hold the metal so the dragon heats it"></div>
+            <div id="hmStrikePad" title="drag the hammer, tap it to strike"></div>   <!-- r209 -->
+            <div id="hmRing"></div>   <!-- r209: where the hammer lands -->
             <svg id="hmSwing" aria-hidden="true"><g id="hmSwingG"></g></svg>   <!-- r181: the back-and-forth swing hint -->
             <div id="hmMug" title="splash the shaped blade to finish"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div>
             <div id="hmFx"></div>
@@ -2245,7 +2274,7 @@ const FTUE = {
     /* r203: the Day 2 cave, straight after the skill tree - everything Day 2 needs, +5 of each */
     day2Cave:  { iron:12, manganese:12, copper:24, aluminium:7 },
     day2Swing: [2, 3],
-    decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24' } },
+    decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
     retryLine: 'D28a'
 };
 /* FTUE-CONFIG-END */
@@ -2300,7 +2329,9 @@ function ftueRewardApply(r){
     else if(r.kind==='unlock' && r.id==='designDesk'){ FTUE_ST.desk=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
     if(INV_TAB===3) buildShelf(); }
 function ftueRewardIcon(r){
-    if(r.kind==='decor') return '<span class="rwd-ic rwd-sq" style="background:'+((FTUE.decor[r.id]||{}).fill||'#888')+'"></span>';
+    if(r.kind==='decor'){ const d=FTUE.decor[r.id]||{};   /* r211: the art, when there is some */
+        return d.img ? '<span class="rwd-ic rwd-sq has-art" style="background-image:url('+d.img+')"></span>'
+                     : '<span class="rwd-ic rwd-sq" style="background:'+(d.fill||'#888')+'"></span>'; }
     if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced';   /* r203: the first guard of that set */
         return '<img class="rwd-ic" src="'+ddSrc('guard', ((DD_SETS[sk]||DD_SETS.balanced).guard||[])[0])+'" alt="">'; }
     const src = (r.kind==='blueprint' || r.kind==='pages') ? 'assets/ui/icon_recipe.webp'
@@ -2462,10 +2493,14 @@ function renderDecor(){
         const d=FTUE.decor[p.id]||{ name:p.id, w:10, h:10, fill:'#888' };
         const el=document.createElement('div'); el.className='decor-item';
         el.style.left=p.x+'%'; el.style.top=p.y+'%'; el.style.width=d.w+'%'; el.style.height=d.h+'%';
-        el.style.background=d.fill; el.textContent=d.name;
+        decorPaint(el, d);   /* r211 */
         el.addEventListener('pointerdown', e=>{ if(!BUILD_ON) return; startDecorDrag(p.id, e, i); });
         layer.appendChild(el); });
 }
+/* r211: art when the decor has it (drawn whole, no box or label), else the placeholder rectangle */
+function decorPaint(el, d){
+    if(d.img){ el.classList.add('has-art'); el.style.backgroundImage='url("'+d.img+'")'; el.textContent=''; }
+    else { el.style.background=d.fill; el.textContent=d.name; } }
 function setBuild(on){
     BUILD_ON=!!on;
     const layer=document.getElementById('screenLayer'); if(layer) layer.classList.toggle('build-on', BUILD_ON);
@@ -2483,7 +2518,7 @@ function startDecorDrag(id, e, idx){
     const lay=document.getElementById('screenLayer'), lr=lay.getBoundingClientRect();
     const ghost=document.createElement('div'); ghost.className='decor-item decor-ghost';
     ghost.style.width=(d.w/100*lr.width)+'px'; ghost.style.height=(d.h/100*lr.height)+'px';
-    ghost.style.background=d.fill; ghost.textContent=d.name; frame.appendChild(ghost);
+    decorPaint(ghost, d); frame.appendChild(ghost);   /* r211 */
     const src = idx!=null ? e.currentTarget : null; if(src) src.style.visibility='hidden';
     const move=ev=>{ ghost.style.left=(ev.clientX-fr.left)+'px'; ghost.style.top=(ev.clientY-fr.top)+'px'; };
     move(e);
@@ -3000,7 +3035,7 @@ function swordBestTier(w){
 function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
 // the price a sword fetches right now, with both multipliers applied
 function swordBase(w){
-    let g = swordValue(w) * popMul();
+    let g = swordValue(w) * popMul() * hmForgeMul(w);   /* r209: the forging grade */
     if(REP < 0) g = g*0.8; else if(REP > 10) g = g*1.2;
     return Math.max(1, Math.floor(g));
 }
@@ -3043,7 +3078,7 @@ function sellCounter(){
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
     const pay = refused ? 0 : g;
-    SAY_VARS.g=g; SAY_VARS.b=P.sharp+P.design;   /* r104: D56 and D57 quote the real numbers */
+    SAY_VARS.g=g; SAY_VARS.b=P.sharp;   /* r104: D56 and D57 quote the real numbers. r210: D57 names the sharpening, so {b} is that bonus alone */
     GOLD += pay; REP += 1;   /* r132 */
     POP += (POP_GAIN[tier]||0);
     let levelled=false;
@@ -3774,14 +3809,14 @@ const DD_SKIN_OF = { fire:'flame', swift:'swift', gale:'gale', ice:'ice', water:
 const DD_SETS = {
     balanced: { grip:['grip1','grip2','grip3','grip4'],
                 guard:['guard1','guard2','guard3','guard4'],
-                pommel:['pommel1','pommel2','pommel3','pommel4','pommel5'] },
+                pommel:['pommel1','pommel2','pommel3','pommel4'] },   /* r211: pommel5 moved to Garric's gift (DD_BONUS) */
     flame:    { grip:['flame_grip1','flame_grip2','flame_grip3'],
                 guard:['flame_guard1','flame_guard2','flame_guard3','flame_guard4','flame_guard5'],
                 pommel:['flame_pommel1','flame_pommel2'] },
     swift:    { grip:['swift_grip1','swift_grip2','swift_grip3','swift_grip4','swift_grip5'],
                 guard:['swift_guard1','swift_guard2','swift_guard3','swift_guard4','swift_guard5'],
                 pommel:['swift_pommel1','swift_pommel2','swift_pommel3','swift_pommel4','swift_pommel5'] },
-    /* r204: gale has no art yet - every id is a DD_ALIAS placeholder onto the balanced set */
+    /* r204: gale's own set. r211: the art has landed */
     gale:     { grip:['gale_grip1','gale_grip2','gale_grip3','gale_grip4','gale_grip5'],
                 guard:['gale_guard1','gale_guard2','gale_guard3','gale_guard4','gale_guard5'],
                 pommel:['gale_pommel1','gale_pommel2','gale_pommel3','gale_pommel4','gale_pommel5'] },
@@ -3791,6 +3826,7 @@ const DD_SETS = {
 /* which shapes each skin actually has a blade for; everything else borrows the balanced blade */
 const DD_BLADES = { flame:['broadsword','longsword','shortsword'],
                     swift:['dagger','longsword','shortsword'],
+                    gale:['longsword','rapier','shortsword'],   /* r211 */
                     ice:['longsword'], water:['longsword'] };
 function skinOf(w){
     if(!w || !w.traits) return 'balanced';
@@ -3804,7 +3840,7 @@ function bladeFor(skin, shape){
 /* r131: parts that exist but are not available until they have been earned. The lists are empty
    until the art lands - drop the new balanced pieces in here and they appear at the design desk the
    moment Garric's gift is taken, and not before. */
-const DD_BONUS = { balanced: { grip:[], guard:[], pommel:[] } };
+const DD_BONUS = { balanced: { grip:['grip5','grip6'], guard:['guard5','guard6'], pommel:['pommel5','pommel6'] } };   /* r211: owner art, 2026-10-01 */
 let PARTS_GARRIC=false;
 function ddBonus(tab, skin){
     if(skin!=='balanced' || !PARTS_GARRIC) return [];
@@ -3830,7 +3866,7 @@ let DD_SCROLL = 0, DD_MAX = 0;
 /* r203: placeholder parts. The FTUE rewards need more fire parts than there is art for, so these
    ids (the names on the owner's art list) show an existing image until the real file lands - then
    delete the line and the real art is used. DD_EXTRA puts them on the end of their set. */
-const DD_ALIAS = { flame_grip4:'flame_grip1', flame_grip5:'flame_grip2', flame_pommel3:'flame_pommel1', flame_pommel4:'flame_pommel2', flame_pommel5:'flame_pommel1', gale_grip1:'grip1', gale_grip2:'grip2', gale_grip3:'grip3', gale_grip4:'grip4', gale_grip5:'grip1', gale_guard1:'guard1', gale_guard2:'guard2', gale_guard3:'guard3', gale_guard4:'guard4', gale_guard5:'guard1', gale_pommel1:'pommel1', gale_pommel2:'pommel2', gale_pommel3:'pommel3', gale_pommel4:'pommel4', gale_pommel5:'pommel5' };
+const DD_ALIAS = {};   /* r211: every placeholder's real file has landed (fire grips 4-5, pommels 3-5; all gale parts) */
 const DD_EXTRA = { flame:{ grip:['flame_grip4','flame_grip5'], pommel:['flame_pommel3','flame_pommel4','flame_pommel5'] } };
 const ddSrc = (k,f) => 'assets/sword-parts/'+DD_DIR[k]+'/'+(DD_ALIAS[f]||f)+'.webp';
 
@@ -5310,6 +5346,7 @@ function showCraft(w, n, after){
     const row=(k,v)=>'<div class="cr-row"><span>'+k+'</span><b>'+v+'</b></div>';
     body.innerHTML =
         row('Quality', '<span style="color:'+tierColor(tier)+'">'+tier+'</span>') +
+        (w.quality ? row('Forging', w.quality+(w.forge!=null ? ', '+Math.round(w.forge*100)+'%' : '')) : '') +   /* r209 */
         row('Shape', w.shape) +
         row('Value', price+' g'+(n>1? ' <span style="font-weight:400">each &middot; '+(price*n)+' g total</span>' : '')) +
         row('Ores used', tallyText(oreTally(w.ores)) || '\u2014') +
@@ -5422,6 +5459,97 @@ const HM_FORGE = {
     cone:       34,     // degrees off the flame's axis that still count as on-target
     strikeGap:  170     // ms between strikes, so one fast sweep is not ten hits
 };
+/* r209: strikes land on hit points. Design record: specs/2026-10-01-hammer-hit-points.md;
+   tooling/hammer/hammer.test.mjs reads both blocks below out of this file. */
+/* HAMMER-HITS-BEGIN */
+const HM_HITS = {
+    orbStrikes: 3,      /* the orb has one point, and it takes this many strikes */
+    midPoints:  3,      /* points on the mid-blade, one strike each, random every craft */
+    size:       5,      /* hit point and aim ring diameter, % of the stage width */
+    inset:      0.6,    /* this much of the radius around a point's centre must be solid metal */
+    gap:        1.6,    /* mid-blade points at least this many diameters apart */
+    ring:       { x:55, y:46.5 },   /* the aim ring with the hammer at rest, % of the stage (owner: clear of the head) */
+    bands: [ { name:'Masterwork', min:0.85, mul:1.3 }, { name:'Good', min:0.60, mul:1.0 }, { name:'Crude', min:0, mul:0.8 } ],
+    skip:     'Good',   /* SKIP HAMMER */
+    unforged: 'Good'    /* swords that never saw the minigame: recipe crafts, old saves */
+};
+/* HAMMER-HITS-END */
+/* HAMMER-PURE-BEGIN */
+/* accuracy of one strike: 1 with the centres together, 0 where the circles only touch (D = diameter) */
+function hmGrade(d, D){ return Math.max(0, 1 - d/D); }
+function hmBand(avg){ const B=HM_HITS.bands; return B.find(b=>avg>=b.min) || B[B.length-1]; }
+/* n points in image space (0..1), each solid at its centre and on a circle of inset*r around it, at
+   least gap diameters apart. A narrow blade can be boxed in by a bad first pick, so a set that will not
+   fit starts again (20 times); only then are the missing points placed without the spacing. */
+function hmPlacePoints(n, isMetal, r, inset, gap, rnd){
+    const ok=(u,v)=>{ if(!isMetal(u,v)) return false;
+        for(let a=0;a<12;a++){ const t=a*Math.PI/6; if(!isMetal(u+r*inset*Math.cos(t), v+r*inset*Math.sin(t))) return false; }
+        return true; };
+    const pick=(spaced, pts)=>{ let tries=0, cand=0;
+        while(pts.length<n && tries<20000 && cand<400){ tries++;
+            const u=rnd(), v=rnd(); if(!ok(u,v)) continue; cand++;
+            if(!spaced || pts.every(p=>Math.hypot(p.u-u, p.v-v) >= gap*2*r)) pts.push({ u:u, v:v }); }
+        return pts; };
+    let best=[];
+    for(let k=0;k<20;k++){ const p=pick(true, []); if(p.length===n) return p; if(p.length>best.length) best=p; }
+    return pick(false, best); }
+/* HAMMER-PURE-END */
+/* the mid-blade's alpha, read once per image, so points land on metal and not on transparent canvas */
+const HM_MASKS={};
+function hmMask(src){
+    if(HM_MASKS[src]!==undefined) return HM_MASKS[src];
+    HM_MASKS[src]=null; const im=new Image();
+    im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight;
+        const x=c.getContext('2d'); x.drawImage(im,0,0);
+        const d=x.getImageData(0,0,c.width,c.height).data, a=new Uint8Array(c.width*c.height);
+        for(let i=0;i<a.length;i++) a[i]=d[i*4+3]>128?1:0;
+        HM_MASKS[src]={ w:c.width, h:c.height, a:a }; }catch(e){ HM_MASKS[src]=false; } };
+    im.src=src; return null; }
+function hmIsMetal(m){
+    if(!m) return (u,v)=>Math.hypot(u-0.5, v-0.5)<0.1;   /* not read yet (or unreadable): near the centre */
+    return (u,v)=>{ const X=Math.floor(u*m.w), Y=Math.floor(v*m.h); return X>=0 && Y>=0 && X<m.w && Y<m.h && m.a[Y*m.w+X]===1; }; }
+let hmPts=[], hmScores=[], hmShow=0, hmHx=0, hmHy=0, HM_QUAL=null, HM_PAINT=null, hmSwingWant=false;
+const HM_TAP_PX=8;   /* a press that moves less than this is a tap (a strike), not a drag */
+function hmForgeMul(w){ const n=(w && w.quality) || HM_HITS.unforged, b=HM_HITS.bands.find(x=>x.name===n); return b ? b.mul : 1; }
+/* stage 0: one point on the orb. stage 1: random points on the mid-blade, rotated with it. */
+function hmSetPoints(stage){
+    const R=HM_RIG, H=HM_HITS, AR=1877/1025;
+    if(stage===0) hmPts=[{ x:R.anvil.x, y:R.anvil.y, left:H.orbStrikes }];
+    else if(stage===1){
+        const rough=document.getElementById('hmRough'), r=H.size/2/R.roughW;
+        const uv=hmPlacePoints(H.midPoints, hmIsMetal(hmMask(rough.src)), r, H.inset, H.gap, Math.random);
+        while(uv.length<H.midPoints) uv.push({ u:0.5, v:0.5 });
+        const t=R.roughRot*Math.PI/180, c=Math.cos(t), sn=Math.sin(t);
+        hmPts=uv.map(p=>{ const dx=(p.u-0.5)*R.roughW, dy=(p.v-0.5)*R.roughW;   /* % of the stage width */
+            return { x:R.anvil.x+dx*c-dy*sn, y:R.anvil.y+(dx*sn+dy*c)*AR, left:1 }; }); }
+    else hmPts=[];
+    hmPointsDraw(); }
+function hmPointsDraw(){
+    const L=document.getElementById('hmPoints'); if(!L) return; L.innerHTML='';
+    const cold=hmHeat<HM_FORGE.workMin;
+    hmPts.forEach(p=>{ if(p.left<=0) return; const d=document.createElement('div'); d.className='hm-pt'+(cold?' cold':'');
+        d.style.left=p.x+'%'; d.style.top=p.y+'%'; d.style.width=HM_HITS.size+'%'; L.appendChild(d); }); }
+/* the ring's centre in stage px, and the point it covers (the nearer one, while the circles overlap) */
+function hmRingAt(){ const r=document.getElementById('hmScene').getBoundingClientRect();
+    return { x:r.width*HM_HITS.ring.x/100+hmHx, y:r.height*HM_HITS.ring.y/100+hmHy, W:r.width, H:r.height }; }
+function hmTarget(){ const a=hmRingAt(), D=a.W*HM_HITS.size/100; let best=null, bd=1e9;
+    hmPts.forEach(p=>{ if(p.left<=0) return; const d=Math.hypot(a.x-a.W*p.x/100, a.y-a.H*p.y/100); if(d<D && d<bd){ bd=d; best=p; } });
+    return best ? { p:best, d:bd, D:D } : null; }
+function hmRingPaint(){ const g=document.getElementById('hmRing'); if(!g) return;
+    g.style.left='calc('+HM_HITS.ring.x+'% + '+hmHx.toFixed(1)+'px)'; g.style.top='calc('+HM_HITS.ring.y+'% + '+hmHy.toFixed(1)+'px)';
+    g.style.width=HM_HITS.size+'%';
+    const t=hmTarget(), q=t ? hmBand(hmGrade(t.d, t.D)).name : '';
+    g.classList.toggle('on', !!t); g.classList.toggle('off', hmProg>=2);
+    g.classList.toggle('q-good', q==='Good'); g.classList.toggle('q-crude', q==='Crude');   /* Masterwork keeps the gold */
+    const h=document.getElementById('hmHammer'); if(h) h.classList.toggle('striking', !!t);
+    if(hmSwingWant) hmSwingOn(true); }
+function hmAccPop(at, acc){
+    const layer=document.getElementById('hmFx'); if(!layer) return;
+    const b=document.createElement('div'); b.className='hm-pt done'; b.style.left=at.x+'%'; b.style.top=at.y+'%'; b.style.width=HM_HITS.size+'%';
+    const t=document.createElement('div'); t.className='hm-acc'; t.style.left=at.x+'%'; t.style.top=(at.y-4)+'%'; t.textContent=Math.round(acc*100)+'%';
+    layer.appendChild(b); layer.appendChild(t); setTimeout(()=>{ b.remove(); t.remove(); }, 820); }
+function hmQualOf(sc){ if(!sc.length) return { name:HM_HITS.unforged, acc:null };
+    const a=sc.reduce((x,y)=>x+y,0)/sc.length; return { name:hmBand(a).name, acc:+a.toFixed(3) }; }
 let hmShape='Longsword', hmAngle=HM_RIG.base;
 let hmHeat=0, hmProg=0;                    // 0..1 heat, 0..2 shape progress (sphere -> rough -> finished)
 let hmRaf=null, hmLast=0, hmLastStrike=0;
@@ -5429,13 +5557,19 @@ let hmRaf=null, hmLast=0, hmLastStrike=0;
    anvil (HM_RIG.anvil) up to the hammer head at rest (0.77w, 0.30h, the same two points
    wireHmHammer's inZone() uses) - sliding back and forth along its own axis.
    The viewBox is set to the measured pixel box, 1:1, so the angle survives any scene aspect. */
+/* r209: it now runs from the hammer's aim ring to the next hit point, one head at the point, and is
+   redrawn as the hammer moves (hmRingPaint) until the first strike that counts. */
 function hmSwingOn(on){
     const svg=document.getElementById('hmSwing'), g=document.getElementById('hmSwingG'), sc=document.getElementById('hmScene');
     if(!svg||!g||!sc) return;
+    hmSwingWant=!!on;
     if(!on){ svg.classList.remove('on'); return; }
     const r=sc.getBoundingClientRect(); if(r.width<2) return;
-    const a={ x:r.width*HM_RIG.anvil.x/100, y:r.height*HM_RIG.anvil.y/100 };
-    const b={ x:r.width*0.77, y:r.height*0.30 };
+    const nx=hmPts.find(p=>p.left>0); if(!nx || hmTarget()){ svg.classList.remove('on'); return; }
+    const ra=hmRingAt(), D=r.width*HM_HITS.size/100;
+    const b={ x:ra.x, y:ra.y }, a={ x:r.width*nx.x/100, y:r.height*nx.y/100 };
+    { let ux=b.x-a.x, uy=b.y-a.y; const l=Math.hypot(ux,uy)||1; ux/=l; uy/=l;   /* start and end at the rims, not the centres */
+      a.x+=ux*D*0.55; a.y+=uy*D*0.55; b.x-=ux*D*0.55; b.y-=uy*D*0.55; }
     const pad=46;
     const x0=Math.min(a.x,b.x)-pad, y0=Math.min(a.y,b.y)-pad;
     const w=Math.abs(b.x-a.x)+pad*2, h=Math.abs(b.y-a.y)+pad*2;
@@ -5455,7 +5589,7 @@ function hmSwingOn(on){
                ' L'+(bx-nx).toFixed(1)+' '+(by-ny).toFixed(1)+' Z'; };
     g.innerHTML='<path class="shaft" stroke-width="'+stroke.toFixed(1)+'" d="M'+p1.x.toFixed(1)+' '+p1.y.toFixed(1)+
                 ' L'+p2.x.toFixed(1)+' '+p2.y.toFixed(1)+'"/>'+
-                '<path d="'+head(p2, ux, uy)+'"/>'+'<path d="'+head(p1,-ux,-uy)+'"/>';
+                '<path d="'+head(p1,-ux,-uy)+'"/>';   /* r209: one head, at the point */
     g.style.setProperty('--sx', (ux*9).toFixed(2));
     g.style.setProperty('--sy', (uy*9).toFixed(2));
     svg.classList.add('on');
@@ -5469,8 +5603,10 @@ function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
 const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword' };   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
 function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
-    hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay();
+    hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false;   /* r209 */
+    hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay(); hmSetPoints(0);
     document.getElementById('sfHammerModal').classList.add('show');
+    if(HM_PAINT) HM_PAINT(); else hmRingPaint();
     hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
 // Place everything that is not already registered on the shared canvas.
@@ -5484,6 +5620,7 @@ function hmLayout(){
     orb.style.left=R.anvil.x+'%'; orb.style.top=R.anvil.y+'%'; orb.style.width=R.oreW+'%'; orb.style.aspectRatio='1';
     rough.style.left=R.anvil.x+'%'; rough.style.top=R.anvil.y+'%'; rough.style.width=R.roughW+'%';
     rough.src='assets/hammer/balanced_'+(HM_MID_ALIAS[hmShape]||hmShape).toLowerCase()+'_midblade.webp';   /* r204 */
+    hmMask(rough.src);   /* r209: read now, so the mid-blade's points are ready when the orb is done */
     /* r207: the finished blade is the one this trait + shape will actually be (fire Longsword =
        flame_longsword_blade, and so on), drawn in the mid-blade's box: both files are 512x512 on the
        same diagonal, so the mid-blade grows into it in place. bladeFor() falls back to the balanced
@@ -5533,6 +5670,7 @@ function hmHeatWatch(){
     const hot = hmHeat>=HM_FORGE.workMin;
     if(hot===HM_WASHOT) return;
     HM_WASHOT=hot; hmSay();
+    document.querySelectorAll('#hmPoints .hm-pt').forEach(p=>p.classList.toggle('cold', !hot));   /* r209 */
     if(!hmQuenching) tutHmHeat(hot);   /* the final quench is not "it went cold, reheat it" */
 }
 function homeHmMug(){ const m=document.getElementById('hmMug'); if(!m) return;
@@ -5572,6 +5710,7 @@ function hmSkip(){
     const m=document.getElementById('sfHammerModal');
     if(!m || !m.classList.contains('show')) return false;
     hmProg=2; hmQuenching=false; tutHm2Clear();
+    HM_QUAL={ name:HM_HITS.skip, acc:null };   /* r209: owner, 2026-10-01 */
     finishBlade();
     return true;
 }
@@ -5635,16 +5774,18 @@ function hmRender(){
     const orb=document.getElementById('hmOrb'), rough=document.getElementById('hmRough'),
           fin=document.getElementById('hmFinal'), mo=document.getElementById('hmMorph'), R=HM_RIG;
     if(!orb) return;
-    const t1=Math.min(1,hmProg), t2=Math.max(0,Math.min(1,hmProg-1));
+    /* r209: hmShow, not hmProg: it eases toward hmProg in hmTick, so each strike visibly moves the metal */
+    const t1=Math.min(1,hmShow), t2=Math.max(0,Math.min(1,hmShow-1));
     // Each shape change is a SHORT, complementary fade (the two alphas always sum to 1) rather than a
     // fade spread over the whole stage — the metal spends most of its time looking solid.
-    const k1=hmRamp(t1,0.34,0.62), k2=hmRamp(t2,0.34,0.62);
+    /* r209: 3 strikes a stage, so the swap is the stage's LAST strike (2/3 to 1), not mid-stage */
+    const k1=hmRamp(t1,0.67,1), k2=hmRamp(t2,0.67,1);
     orb.style.opacity=(1-k1).toFixed(3);
     rough.style.opacity=(k1*(1-k2)).toFixed(3);
     fin.style.opacity=k2.toFixed(3);
     // geometry carries the rest of the read: the sphere is flattened out, and the blade is drawn to length
     orb.style.transform='translate(-50%,-50%) scale('+(1-0.34*t1).toFixed(3)+','+(1-0.62*t1).toFixed(3)+')';
-    rough.style.transform='translate(-50%,-50%) rotate('+R.roughRot+'deg) scale('+(0.66+0.34*hmRamp(t1,0.30,0.92)).toFixed(3)+')';
+    rough.style.transform='translate(-50%,-50%) rotate('+R.roughRot+'deg) scale('+(0.66+0.34*hmRamp(t1,0.67,1)).toFixed(3)+')';
     const bloom=Math.max(k1*(1-k1), k2*(1-k2))*1.7;   // peaks mid-swap, zero at either end
     mo.style.opacity=bloom.toFixed(3);
     // ---- heat ----
@@ -5667,9 +5808,9 @@ function hmRender(){
 function hmSay(){
     const el=document.getElementById('hmSay'); if(!el) return;
     hmMugState();
-    el.innerHTML = hmProg>=2 ? 'Blade shaped &mdash; <b>splash it with the mug</b> to finish'
-        : hmHeat>=HM_FORGE.workMin ? 'It glows &mdash; <b>strike</b> it: swing the hammer onto the anvil'
-        : 'Hold the <b>metal</b> &mdash; the dragon turns its head and breathes on it';
+    el.innerHTML = hmProg>=2 ? 'Blade shaped: <b>splash it with the mug</b> to finish'
+        : hmHeat>=HM_FORGE.workMin ? 'It glows: put the <b>ring</b> on a <b>mark</b>, then <b>tap the hammer</b>'   /* r209 */
+        : 'Hold the <b>metal</b>: the dragon turns its head and breathes on it';
 }
 // ---- is the flame actually landing on the workpiece? ----
 function hmFireOnWork(){
@@ -5694,16 +5835,17 @@ function hmTick(ts){
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
     hmHeat=Math.max(0, hmHeat-F.heatCool*dt);
     if(Math.abs(hmHeat-was)>0.0004){ hmRender(); hmHeatWatch(); }
+    if(hmShow!==hmProg){ const st=2.5*dt; hmShow = Math.abs(hmProg-hmShow)<=st ? hmProg : hmShow+Math.sign(hmProg-hmShow)*st; hmRender(); }   /* r209 */
     tutHm2Idle();   /* r102 */
 }
 // ---- a strike ----
 function hmJolt(cls){ const w=document.getElementById('hmWork'); w.classList.remove('jolt','chill'); void w.offsetWidth; w.classList.add(cls); }
 // A hot blow gets the full treatment — white flash, shock ring, a shower of arcing sparks. A cold blow
 // gets a few dull grey chips and nothing else, so the two read differently without any text.
-function hmImpact(hot){
-    const layer=document.getElementById('hmFx'), R=HM_RIG;
+function hmImpact(hot, at){   /* r209: at = where, in % of the stage (the anvil when absent) */
+    const layer=document.getElementById('hmFx'), R=HM_RIG, P=at||{ x:R.anvil.x, y:R.anvil.y-2 };
     const add=(cls,life,style)=>{ const d=document.createElement('div'); d.className=cls;
-        d.style.left=R.anvil.x+'%'; d.style.top=(R.anvil.y-2)+'%';
+        d.style.left=P.x+'%'; d.style.top=P.y+'%';
         Object.assign(d.style, style||{}); layer.appendChild(d); setTimeout(()=>d.remove(),life); return d; };
     if(hot){ add('hm-flash',330); add('hm-ring',460); }
     const n = hot ? 22 : 6;
@@ -5719,17 +5861,26 @@ function hmImpact(hot){
         d.style.animationDelay=Math.round(Math.random()*(hot?90:40))+'ms';
     }
 }
+/* r209: a strike lands where the aim ring is. Off every point it is free (no heat, no progress, no
+   grade); on a point it needs heat, and then it is graded by how close the centres were. */
 function hmStrike(){
     const now=performance.now(); if(now-hmLastStrike<HM_FORGE.strikeGap) return; hmLastStrike=now;
-    hmSwingOn(false);   /* r181: they have done it */
     const h=document.getElementById('hmHammer');
     h.classList.remove('hit'); void h.offsetWidth;   // restart the swing even on a fast second blow
     h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240);
     if(hmProg>=2) return;
-    if(hmHeat<HM_FORGE.workMin){ hmJolt('chill'); hmImpact(false); return; }   // too cold to move
+    const a=hmRingAt(), t=hmTarget(), at={ x:a.x/a.W*100, y:a.y/a.H*100 };
+    if(!t){ hmImpact(false, at); return; }   /* owner: no penalty outside the points */
+    if(hmHeat<HM_FORGE.workMin){ hmJolt('chill'); hmImpact(false, at); return; }   // too cold to move
+    hmSwingOn(false);   /* r181: they have done it */
+    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y };
+    hmScores.push(acc); t.p.left--;
     hmHeat=Math.max(0, hmHeat-HM_FORGE.strikeBite);
-    hmProg=Math.min(2, hmProg+HM_FORGE.strikeGain);
-    hmJolt('jolt'); hmImpact(true); hmRender(); hmSay(); hmHeatWatch();
+    if(hmProg<1){ hmProg=Math.min(1, hmProg+1/HM_HITS.orbStrikes); if(t.p.left<=0){ hmProg=1; hmSetPoints(1); } else hmPointsDraw(); }
+    else { hmProg=Math.min(2, hmProg+1/HM_HITS.midPoints);
+        if(hmPts.every(p=>p.left<=0)){ hmProg=2; hmSetPoints(2); } else hmPointsDraw(); }
+    hmAccPop(P, acc);
+    hmJolt('jolt'); hmImpact(true, P); hmRender(); hmSay(); hmHeatWatch(); hmRingPaint();
     if(hmProg>=2){ hmMugState(); tutMugStep(); }
 }
 // ---- input ----
@@ -5751,28 +5902,29 @@ function wireHmDragon(){
     }
     if(head) head.addEventListener('click', e=>{ e.preventDefault(); dragonTap(e, sc); });
 }
-// Drag the hammer. The sprite is a full-canvas layer, so a transparent grip pad carries the pointer
-// events and the layer itself is only translated (--hx/--hy, which the hover animation also reads).
-// A strike fires when the head ENTERS the anvil zone, so lifting and dropping repeatedly is the
-// hammering motion — one slow sweep across the anvil is a single blow, not a burst.
+// Drag the hammer. The sprite is a full-canvas layer, so transparent pads carry the pointer events
+// and the layer itself is only translated (--hx/--hy, which the hover animation also reads).
+/* r209: a drag moves the hammer (and its aim ring); a press that does not move is a tap, and a tap
+   strikes. Two pads: the old grip, and #hmStrikePad on the head, which sits above #hmAimPad. */
 function wireHmHammer(){
-    const h=document.getElementById('hmHammer'), grip=document.getElementById('hmGrip'), sc=document.getElementById('hmScene');
+    const h=document.getElementById('hmHammer'), grip=document.getElementById('hmGrip'), pad=document.getElementById('hmStrikePad'), sc=document.getElementById('hmScene');
     if(!h||!grip||!sc) return;
-    let live=false, px=0, py=0, x=0, y=0, wasIn=false;
-    const inZone=()=>{ const r=sc.getBoundingClientRect();
-        const hx=r.width*0.77+x, hy=r.height*0.30+y;   // hammer head, in stage px, plus the drag offset
-        return Math.hypot(hx-r.width*HM_RIG.anvil.x/100, hy-r.height*HM_RIG.anvil.y/100) < r.width*0.16; };
-    const paint=()=>{ h.style.setProperty('--hx',x+'px'); h.style.setProperty('--hy',y+'px');
-        grip.style.transform='translate('+x+'px,'+y+'px)';
-        const now=inZone(); h.classList.toggle('striking', now);
-        if(now && !wasIn && live) hmStrike(); wasIn=now; };
-    grip.addEventListener('pointerdown', e=>{ live=true; px=e.clientX-x; py=e.clientY-y; h.classList.add('dragging'); grip.classList.add('dragging'); try{ grip.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault(); });
-    grip.addEventListener('pointermove', e=>{ if(!live) return; const r=sc.getBoundingClientRect();
-        x=Math.max(-r.width*0.55, Math.min(r.width*0.16, e.clientX-px));
-        y=Math.max(-r.height*0.10, Math.min(r.height*0.55, e.clientY-py)); paint(); });
-    const end=()=>{ live=false; h.classList.remove('dragging'); grip.classList.remove('dragging'); paint(); };
-    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
-    paint();
+    let live=null, px=0, py=0, sx=0, sy=0, moved=false;
+    const paint=()=>{ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px');
+        const tr='translate('+hmHx+'px,'+hmHy+'px)'; grip.style.transform=tr; if(pad) pad.style.transform=tr;
+        hmRingPaint(); };
+    [grip, pad].forEach(el=>{ if(!el) return;
+        el.addEventListener('pointerdown', e=>{ live=el; moved=false; sx=e.clientX; sy=e.clientY; px=e.clientX-hmHx; py=e.clientY-hmHy;
+            h.classList.add('dragging'); el.classList.add('dragging'); try{ el.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault(); });
+        el.addEventListener('pointermove', e=>{ if(live!==el) return;
+            if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<HM_TAP_PX) return; moved=true;
+            const r=sc.getBoundingClientRect();
+            hmHx=Math.max(-r.width*0.55, Math.min(r.width*0.25, e.clientX-px));
+            hmHy=Math.max(-r.height*0.24, Math.min(r.height*0.45, e.clientY-py)); paint(); });   /* the ring sits lower now: reach the blade's top end */
+        const end=e=>{ if(live!==el) return; live=null; h.classList.remove('dragging'); el.classList.remove('dragging');
+            if(!moved && e.type==='pointerup') hmStrike(); paint(); };
+        el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); });
+    HM_PAINT=paint; paint();
 }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):'';
@@ -5780,8 +5932,9 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     const cOres=segs.map(g=>g.ore), cGrinds=segs.map(g=>g.tPct);
     const cTraits=(melt&&melt.traits?melt.traits:[]).map(a=>({tid:a.t.id, tier:a.tier, val:a.val}));
     const cSkin=skinOf({traits:cTraits});                              // r91
+    const fq=HM_QUAL || hmQualOf(hmScores);   /* r209: the forging grade (SKIP HAMMER sets HM_QUAL) */
     INV.swords.push({ id:INV_SEQ++, shape:hmShape, blade:bladeFor(cSkin, hmShape),
-        design:ddCoerce(DD_SEL, cSkin), sharp:0, ores:cOres, grinds:cGrinds, traits:cTraits });
+        design:ddCoerce(DD_SEL, cSkin), sharp:0, ores:cOres, grinds:cGrinds, traits:cTraits, quality:fq.name, forge:fq.acc });
     if(cTraits.length) LAST_CRAFT={ traits:cTraits.map(a=>({tid:a.tid, tier:a.tier})), ores:cOres, grinds:cGrinds };   // r67: resetRun wipes the bench, the composition window still needs this route
     gainExp(XP_CRAFT,'craft');                            // r73
     if(cTraits.some(a=>a.tier==='Epic')) bumpQuest('epic5');
@@ -6110,7 +6263,7 @@ function shelfMisc(shelf){
     FTUE_ST.decor.forEach(id=>{ const d=FTUE.decor[id]||{ name:id, fill:'#888' };
         const s=document.createElement('div'); s.className='ore-slot inv-decor'; s.style.cursor='grab';
         s.title=d.name+': turn on BUILD, then drag it onto the counter, shop or bedroom';
-        s.innerHTML='<div class="dec-sq" style="background:'+d.fill+'"></div><span class="ore-name">'+d.name+'</span>';
+        s.innerHTML='<div class="dec-sq'+(d.img?' has-art':'')+'" style="'+(d.img?'background-image:url('+d.img+')':'background:'+d.fill)+'"></div><span class="ore-name">'+d.name+'</span>';   /* r211 */
         s.addEventListener('pointerdown', e=>startDecorDrag(id, e, null));
         shelf.appendChild(s); n++; });
     if(PICK_OUT) return n;
@@ -6297,6 +6450,7 @@ const DIALOGUE = {
     D13: "I'll help you heat up the metal again so you can start shaping it!",
     D14: "Just hold on the metal and I will heat that part for you to hammer.",
     D15: "It is hot enough. Now pick up your hammer and strike the hot metal!",
+    D15a: "Line up the ring on the hammer with the glowing mark, then tap the hammer.",
     D16: "The metal cools down slowly. You will have to heat it again. Tell me where to FIRE!",
     D17: "Pick up the mug and splash water on the blade to finish.",
     D18: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!",
@@ -6338,7 +6492,7 @@ const DIALOGUE = {
     D54: "Put the sword back in the inventory.",
     D55: "Back to the counter now.",
     D56: "Hmm. I see. Not bad. {g}g for your efforts.",
-    D57: "We got {b}g bonus this time! Let's make a lot of money, then we can buy whatever we want! Muwahaha",
+    D57: "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!",
     D58: "Ring the bell! I am ready for more!",
     D59: "Hello. Anyone here? I heard the sound of a hammer striking an anvil here. Are you a blacksmith? This forge has not been in use for so long. Are you new?",
     D60: "Oh, another blacksmith! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day.",
@@ -7620,7 +7774,7 @@ function tutHmStep(){
 function tutHmHeat(hot){
     if(tutOver()) return;
     if(hot && !TUT_HMHOT){ TUT_HMHOT=true;
-        if(SAY_SEQ.indexOf('D15')<0) SAY_SEQ.push('D15');
+        ['D15','D15a'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });   /* r209 */
         SAY_I=SAY_SEQ.indexOf('D15'); say('D15'); return; }
     if(!hot && TUT_HMHOT && !TUT_HMCOLD){ TUT_HMCOLD=true;
         if(SAY_SEQ.indexOf('D16')<0) SAY_SEQ.push('D16');

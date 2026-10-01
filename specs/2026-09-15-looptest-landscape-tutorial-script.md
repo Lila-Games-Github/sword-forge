@@ -209,6 +209,13 @@ strike starts moving the metal, which is what the line claims.*
 
 *Note: the owner wrote "pick you hammer".*
 
+**D15a** - Dragon (r209, 2026-10-01; owner approved the text)
+> "Line up the ring on the hammer with the glowing mark, then tap the hammer."
+
+*Trigger: spoken right after D15, as one queue. Since r209 a strike lands on a hit point under the
+hammer's aim ring (`specs/2026-10-01-hammer-hit-points.md`); D15's pointer (`hmSwingOn`) now runs
+from the ring to the next point.*
+
 **D16** — Dragon
 > "The metal cools down slowly. You will have to heat it again. Tell me where to FIRE!"
 
@@ -543,9 +550,11 @@ and show the same "tap to continue" / "tap to close".
 **"Thank you."**; tapping it sends the customer away.*
 
 **D57** — Dragon
-> "We got {b}g bonus this time! Let's make a lot of money, then we can buy whatever we want! Muwahaha"
+> "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!"
 
-*`{b}` is the sharpening and design bonus actually earned.*
+*`{b}` is the sharpening bonus actually earned. (r210, owner, 2026-10-01: the line now names the
+sharpening, so `{b}` no longer adds the design desk bonus; the design bonus is still paid and still
+shows on the sell button. Owner also took "a {b}g bonus" and the closing "!".)*
 
 *Note: the owner wrote "whatever we want!. Muwahaha" — the stray full stop after the exclamation mark
 is dropped.*
