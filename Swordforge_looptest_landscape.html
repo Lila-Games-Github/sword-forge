@@ -820,6 +820,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmOrb .hot { opacity: 0; background: radial-gradient(circle at 40% 34%, #fff2c4, #ff9a3c 44%, #c0431a 100%);
     box-shadow: inset -6px -8px 12px rgba(120,20,0,.5); }
 #hmRough, #hmFinal { opacity: 0; }
+/* r207: the heat glow. A warm gradient masked by the SAME image it sits on, so it lights the metal and
+   nothing around it; screen-blended, so hot metal brightens instead of being painted over. Its
+   opacity is the heat level (hmRender). */
+.hm-heat { position: absolute; opacity: 0; pointer-events: none; aspect-ratio: 1; mix-blend-mode: screen;
+    background: radial-gradient(ellipse at 50% 50%, rgba(255,246,205,1), rgba(255,170,70,.95) 40%, rgba(255,96,24,.85) 78%);
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 /* a bloom of forge-glow over the anvil, brightest halfway through a shape change — it hides the moment
    where both renders are semi-transparent, which otherwise reads as a ghost rather than as metal moving */
 #hmMorph { position: absolute; opacity: 0; border-radius: 50%; pointer-events: none;
@@ -2075,8 +2081,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div id="hmWork">
                 <div id="hmOrb"><div class="cold"></div><div class="hot"></div></div>
                 <img id="hmRough" src="" alt="">
+                <div class="hm-heat" id="hmRoughHeat"></div>   <!-- r207: heat glow, cut to the blade's outline -->
                 <div id="hmMorph"></div>
-                <img class="hm-layer" id="hmFinal" src="assets/hammer/hammer_sword.webp" alt="">
+                <img id="hmFinal" src="" alt="">   <!-- r207: the trait+shape blade (bladeFor), not hammer_sword -->
+                <div class="hm-heat" id="hmFinalHeat"></div>
             </div>
             <div id="hmDragon">
                 <img src="assets/hammer/hammer_dragon.webp" alt="">
@@ -2196,7 +2204,7 @@ const FTUE = {
                   { id:'craftOne', label:'Craft a sword', gold:10, xp:20 } ],
     startShape: 'Shortsword',
     shapes: { balanced:['Shortsword','Longsword','Broadsword'], fire:['Shortsword','Longsword','Broadsword'],
-              gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Rapier'] },
+              gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Dagger'] },   /* r208: the swift Dagger (swift_dagger_blade) replaces the swift Rapier */
     recipePages: 3,
     tc2Ore: { iron:6, manganese:6 },
     tc2Craft: { iron:1, manganese:1 },
@@ -2221,7 +2229,7 @@ const FTUE = {
         /* r205: Bram's own reward is the diary (his gift window), so the TC list is empty */
         5: { gpc:[ { trait:'gale', qty:1 }, { trait:'swift', qty:1 } ], after:'g-bell',
              rewards:{ tc:  [],
-                       gpc1:[ { kind:'blueprint', trait:'swift', shape:'Rapier' } ],
+                       gpc1:[ { kind:'blueprint', trait:'swift', shape:'Dagger' } ],
                        gpc2:[ { kind:'parts', trait:'swift' } ] } }
     },
     /* r205: Bram's new line after D111 - he wants the swift sword sharper, which brings sharpening back */
@@ -2548,7 +2556,7 @@ function ftuePart(n){
             INV.ingots.length=0; for(let i=110;i<=117;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D111a');
             for(let i=48;i<=57;i++) SAY_SEQ.push('D'+i);
             RAIL_DIARY=true; railUi();
-            FTUE_ST.part=5; FTUE_ST.gpc=2; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Rapier']=true;
+            FTUE_ST.part=5; FTUE_ST.gpc=2; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true;
             ORE_COUNT.copper=5; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
@@ -5361,7 +5369,7 @@ function openShapeSelect(){
 /* r199: the shapes on offer depend on the blade's trait (FTUE.shapes); Shortsword is always open and
    the other two need their blueprint. A recipe craft (SHAPE_CB) reads the recipe's traits, a forged
    blade reads the ones on the bench. */
-const SHAPE_IC={ Shortsword:'🗡️', Longsword:'⚔️', Broadsword:'🔱', Rapier:'🤺' };
+const SHAPE_IC={ Shortsword:'🗡️', Longsword:'⚔️', Broadsword:'🔱', Rapier:'🤺', Dagger:'🔪' };   /* r208: Dagger */
 function shapeTraitKey(){
     const r=(SHAPE_CB && CB_SEL) ? RECIPES[CB_SEL] : null;
     const ids = r ? recipeTraits(r).map(a=>a.tid) : ((melt && melt.traits) ? melt.traits.map(a=>a.t.id) : []);
@@ -5458,7 +5466,7 @@ function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
     hmShape=shape; openHammer(); }
 /* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
-const HM_MID_ALIAS = { Rapier:'Longsword' };
+const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword' };   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
 function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay();
@@ -5466,12 +5474,26 @@ function openHammer(){
     hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
 // Place everything that is not already registered on the shared canvas.
+/* r207: which blade file this sword ends as - its trait's set (skinOf), its shape */
+function hmBladeFile(){
+    const ids=(melt && melt.traits) ? melt.traits.map(a=>({ tid:a.t.id })) : [];
+    return bladeFor(skinOf({ traits:ids }), hmShape); }
 function hmLayout(){
     const R=HM_RIG, d=document.getElementById('hmDragon'); if(!d) return;
     const orb=document.getElementById('hmOrb'), rough=document.getElementById('hmRough');
     orb.style.left=R.anvil.x+'%'; orb.style.top=R.anvil.y+'%'; orb.style.width=R.oreW+'%'; orb.style.aspectRatio='1';
     rough.style.left=R.anvil.x+'%'; rough.style.top=R.anvil.y+'%'; rough.style.width=R.roughW+'%';
     rough.src='assets/hammer/balanced_'+(HM_MID_ALIAS[hmShape]||hmShape).toLowerCase()+'_midblade.webp';   /* r204 */
+    /* r207: the finished blade is the one this trait + shape will actually be (fire Longsword =
+       flame_longsword_blade, and so on), drawn in the mid-blade's box: both files are 512x512 on the
+       same diagonal, so the mid-blade grows into it in place. bladeFor() falls back to the balanced
+       blade where a trait has no art for that shape. */
+    const fin=document.getElementById('hmFinal');
+    fin.src='assets/sword-parts/blades/'+hmBladeFile()+'.webp';
+    [fin, document.getElementById('hmRoughHeat'), document.getElementById('hmFinalHeat')].forEach(el=>{
+        el.style.left=R.anvil.x+'%'; el.style.top=R.anvil.y+'%'; el.style.width=R.roughW+'%'; });
+    [['hmRoughHeat', rough.src], ['hmFinalHeat', fin.src]].forEach(([id, src])=>{
+        const h=document.getElementById(id), u='url("'+src+'")'; h.style.webkitMaskImage=u; h.style.maskImage=u; });
     const mo=document.getElementById('hmMorph');
     mo.style.left=R.anvil.x+'%'; mo.style.top=R.anvil.y+'%'; mo.style.width='34%'; mo.style.aspectRatio='1';
     mo.style.transform='translate(-50%,-50%)';
@@ -5635,6 +5657,12 @@ function hmRender(){
     const metal='brightness('+(0.70+0.90*g).toFixed(2)+') saturate('+(0.30+0.85*g).toFixed(2)+')'+
         (g>0.02 ? ' drop-shadow(0 0 '+Math.round(4+34*g)+'px rgba(255,205,115,'+(0.9*g).toFixed(2)+'))' : '');
     rough.style.filter=metal; fin.style.filter=metal;
+    /* r207: the finished blade lies on the mid-blade's axis at full size; each heat layer copies its
+       image's transform, and glows by heat, only as much as its image is showing */
+    fin.style.transform='translate(-50%,-50%) rotate('+R.roughRot+'deg)';
+    const rh=document.getElementById('hmRoughHeat'), fh=document.getElementById('hmFinalHeat');
+    if(rh){ rh.style.transform=rough.style.transform; rh.style.opacity=(g*0.85*k1*(1-k2)).toFixed(3); }
+    if(fh){ fh.style.transform=fin.style.transform; fh.style.opacity=(g*0.85*k2).toFixed(3); }
 }
 function hmSay(){
     const el=document.getElementById('hmSay'); if(!el) return;

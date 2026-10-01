@@ -14,13 +14,13 @@ Terms: **TC** = tutorial customer (scripted). **GPC** = gameplay customer (rando
 | 2 | TC2 (4th customer): grinding + updating the recipe (D29, D31-D43). | GPC3 asks for **5 balanced swords in one order**, so the player must use bulk craft (CRAFT 5). | TC2: **+5 recipe pages** (8 in total). GPC3: **design desk**. |
 | 3 | TC3 asks for the **fire sword** (the adventurer, D59-D63). Cave and ore gathering (D64-D65). Fire sword craft (D66-D78). **Design desk tutorial** (decorating, D79-D85). Sale, **Day 1 ends** (D86-D88). Day 2 opens with the **skill tree** (D89-D94). | GPC4 wants **fire**, GPC5 wants **balanced**, GPC6 wants **fire**. | TC3: **balanced parts x3** (1 grip, 1 pommel, 1 guard) + **fire parts x3** + **fire Longsword blueprint**. GPC4: **fire Broadsword blueprint**. GPC5: nothing. GPC6: **fire parts x3**. |
 | 4 | TC4 asks for the **gale sword** (the Day 2 gale order). Teaches **tier alignment** (D97 + the tier window), **storing a metal with its traits in the inventory** (D99), and crafts the **swift** and **gale** swords (D95-D107). | GPC7 wants **gale**, GPC8 wants **fire**. | TC4: **gale Longsword blueprint** + **gale parts x3**. GPC7: **gale Rapier blueprint** + **gale parts x3**. |
-| 5 | TC5 = **Bram returns** (D110-D113). He wants a swift sword, **sharpened**: new line after D111. The stored **swift ingot** is used (D112-D113). **Sharpening in the basement moves here** (D48-D55). Sale to Bram, then the **diary** (D114-D117). | GPC9 wants **gale**, GPC10 wants **swift**. | Bram: **diary**. GPC9: **swift Rapier blueprint**. GPC10: **swift parts x3**. |
+| 5 | TC5 = **Bram returns** (D110-D113). He wants a swift sword, **sharpened**: new line after D111. The stored **swift ingot** is used (D112-D113). **Sharpening in the basement moves here** (D48-D55). Sale to Bram, then the **diary** (D114-D117). | GPC9 wants **gale**, GPC10 wants **swift**. | Bram: **diary**. GPC9: **swift Dagger blueprint** (r208; was the swift Rapier). GPC10: **swift parts x3**. |
 | 6 | TC6 = **Garric** (D120-D139) runs and **ends the FTUE**. `lastLine()` is D139, so the guide-to-pet switch still happens at the end. | none | (Garric's existing gift) |
 
 Customer order: Bram (TC1), GPC1, GPC2, TC2, GPC3, TC3, GPC4, GPC5, GPC6, TC4, GPC7, GPC8.
 
 **Blueprints are per trait AND shape** (for example "fire Longsword"). Shapes by trait: balanced and
-fire use Shortsword / Longsword / Broadsword; **swift and gale use Rapier in place of Broadsword**
+fire use Shortsword / Longsword / Broadsword; **gale uses Rapier in place of Broadsword**, and **swift uses Dagger** (`swift_dagger_blade`, r208; it was Rapier until then)
 (owner, 2026-09-29).
 
 **Not placed in any part yet** (current beats with no part): sharpening in the basement (D48-D55,
@@ -263,7 +263,7 @@ Parts: each trait needs 3 of each piece at the start, +1 of each per "parts x3" 
 Blades (`assets/sword-parts/blades/`):
 - **gale_shortsword_blade**, **gale_longsword_blade**, **gale_rapier_blade** (gale has no blades; it
   borrows balanced now).
-- **swift_rapier_blade** (swift has shortsword, longsword, dagger).
+- ~~**swift_rapier_blade**~~ **not needed since r208**: the swift third shape is the Dagger, which has art (`swift_dagger_blade`).
 
 Hammer minigame (`assets/hammer/`):
 - **balanced_rapier_midblade** (mid art exists only for short, long and broad).
@@ -475,3 +475,19 @@ them (`FTUE_ST.done`). A save made after the end loads with the tutorial finishe
 browser for all three grades; with the old rule the grade 1 ending left `tutOver()` false (RED).
 
 **The FTUE is complete: parts 1-6 are built.**
+
+## Swift Dagger (owner, 2026-09-30), r208
+
+The swift third shape is the **Dagger**, not the Rapier: `FTUE.shapes.swift` = Shortsword, Longsword,
+Dagger, and GPC9's reward is the **swift Dagger blueprint** (both asserted by the test). The finished
+blade is `swift_dagger_blade`, which already existed (`DD_BLADES.swift`). There is no dagger mid-blade,
+so `HM_MID_ALIAS` shows the Shortsword's until `balanced_dagger_midblade` exists. This supersedes every
+earlier "swift Rapier" line in this record; `swift_rapier_blade` leaves the art list. Gale keeps the Rapier.
+
+## Hammer minigame art (owner, 2026-09-30), r207
+
+The minigame's stages are the metal sphere, then `balanced_<shape>_midblade`, then **the sword's own
+blade** (`assets/sword-parts/blades/`, by `bladeFor(skin, shape)`: fire Longsword =
+`flame_longsword_blade`, balanced Broadsword = `balanced_broadsword_blade`, and so on), drawn in the
+mid-blade's box on the same diagonal. `hammer_sword.*` is no longer drawn. Heat shows as a glow layer
+masked to each blade image (`.hm-heat`), its opacity the heat level.

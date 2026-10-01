@@ -39,7 +39,7 @@ continuation prompt printed at close time.
 | 2 | TC2 (`man1`): grinding, record craft | GPC3 (5 balanced, bulk craft) | +5 recipe pages (8); design desk |
 | 3 | TC3 (`woman1`): fire, decorating, Day 1 end, skill tree, Day 2 cave | GPC4 fire, GPC5 balanced, GPC6 fire | balanced + fire parts, fire Longsword; fire Broadsword; fire parts |
 | 4 | TC4 (`man2`): tier alignment, storing swift, gale | GPC7 gale, GPC8 fire | gale Longsword + parts; gale Rapier + parts |
-| 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Rapier; swift parts |
+| 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Dagger (r208); swift parts |
 | 6 | Garric (`man4`): no gameplay, no rewards | none | none |
 
 - **Systems:** reward window; blueprints per trait + shape (Shortsword always open); design desk parts
@@ -66,7 +66,7 @@ The owner drives the work beat by beat from play-testing; expect fresh reports r
    boundary. Not built; ask the owner before building.
 3. **Art from the owner** (full list: "Art needed" in the design record). When a file lands:
    delete its `DD_ALIAS` line (fire and gale parts); add gale blades to `DD_BLADES`; delete
-   `HM_MID_ALIAS.Rapier` for `balanced_rapier_midblade`; replace the banner's red rectangle
+   `HM_MID_ALIAS.Rapier` / `.Dagger` for `balanced_rapier_midblade` / `balanced_dagger_midblade`; replace the banner's red rectangle
    (`FTUE.decor.banner`); swap the emoji lock / rapier icons.
 4. **Owner questions still open:**
    - the GPC3 wording ("I need 5 Balanced swords. Can you make them all?" / "Good. N more, please.");

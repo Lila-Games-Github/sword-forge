@@ -31,7 +31,7 @@ eq('shapes',     FTUE.shapes,     {
   balanced: ['Shortsword', 'Longsword', 'Broadsword'],
   fire:     ['Shortsword', 'Longsword', 'Broadsword'],
   gale:     ['Shortsword', 'Longsword', 'Rapier'],
-  swift:    ['Shortsword', 'Longsword', 'Rapier'] });
+  swift:    ['Shortsword', 'Longsword', 'Dagger'] });   /* r208: the swift Dagger replaces the swift Rapier */
 eq('part 1 gpc', FTUE.parts[1].gpc, [ { trait: 'balanced', qty: 1 }, { trait: 'balanced', qty: 1 } ]);
 eq('part 1 rewards', FTUE.parts[1].rewards, {
   tc:   [ { kind: 'decor', id: 'banner' } ],
@@ -79,13 +79,14 @@ eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', qty: 1 }, { trait: 'swift
 eq('part 5 after', FTUE.parts[5].after, 'g-bell');
 eq('part 5 rewards', FTUE.parts[5].rewards, {
   tc:   [],
-  gpc1: [ { kind: 'blueprint', trait: 'swift', shape: 'Rapier' } ],
+  gpc1: [ { kind: 'blueprint', trait: 'swift', shape: 'Dagger' } ],
   gpc2: [ { kind: 'parts', trait: 'swift' } ] });
 eq('bramLine', FTUE.bramLine, 'D111a');
 /* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
 eq('endLines', FTUE.endLines, ['D133', 'D136', 'D139']);
 eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139')"), true);
 eq('say() ends the FTUE on any end line', src.includes('FTUE.endLines.indexOf(id)>=0'), true);
+eq('swift Dagger blade is swift_dagger_blade', /swift:['dagger','longsword','shortsword']/.test(src), true);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
 eq('retryLine',  FTUE.retryLine,  'D28a');
 
