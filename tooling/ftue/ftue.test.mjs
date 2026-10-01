@@ -96,7 +96,7 @@ eq('part 5 rewards', FTUE.parts[5].rewards, {
   gpc2: [ { kind: 'parts', trait: 'swift' } ] });
 eq('bramLine', FTUE.bramLine, 'D111a');
 /* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
-eq('endLines', FTUE.endLines, ['D133', 'D136', 'D139']);
+eq('endLines', FTUE.endLines, ['D140']);   /* r213: the shared closing line after every ending */
 /* r212 (owner, 2026-10-01): Garric's old rewards (r131/r132) come back through the reward window */
 eq('garricRewards', FTUE.garricRewards, {
   1: [],
@@ -104,7 +104,7 @@ eq('garricRewards', FTUE.garricRewards, {
   3: [ { kind: 'gold', n: 10 }, { kind: 'unlock', id: 'garricParts' } ] });
 eq('Garric leaves through the reward window', src.includes('ftueReward(FTUE.garricRewards[g]'), true);
 eq('the sale no longer pays the tip itself', /function tutGarricSold\(\)\{[\s\S]{0,500}GOLD \+= GARRIC_TIP/.test(src), false);
-eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139')"), true);
+eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139', 'D140')"), true);
 eq('say() ends the FTUE on any end line', src.includes('FTUE.endLines.indexOf(id)>=0'), true);
 eq('swift Dagger blade is swift_dagger_blade', /swift:['dagger','longsword','shortsword']/.test(src), true);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
@@ -114,7 +114,7 @@ eq('retryLine',  FTUE.retryLine,  'D28a');
 const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)"')); return r ? r[1] : null; };
 eq('D28a text', line('D28a'), 'Use 2 iron and 2 manganese for the balanced sword.');
 eq('D99a text', line('D99a'), "Use it later. We don't need that now.");
-eq('D111a text', line('D111a'), "The previous sword was good, but it wasn't very sharp. Can you make it sharper?");
+/* D111a: see r213 below */
 eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.");
 eq('D31 text',  line('D31'),  'So many customers. No tea break for us. Back to the forge we go.');
 eq('D32 text',  line('D32'),  "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?");
@@ -123,12 +123,44 @@ eq('D34 text',  line('D34'),  'If we do it properly, we can craft 6 more swords 
 /* r210 (owner, 2026-10-01): D57 names the sharpening, so {b} is the sharpening bonus alone */
 eq('D57 text', line('D57'), "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!");
 eq('{b} is the sharpening bonus only', src.includes('SAY_VARS.b=P.sharp;'), true);
+/* r213 (owner, 2026-10-01): the dialogue review - fixes A1-A8, B10, C11-C19, new lines D20-D24 */
+const R213 = {
+  D8:   "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
+  D10:  "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in.",
+  D14:  'Press and hold the metal, and I will heat it for you to hammer.',
+  D15:  'It is hot enough. Now strike the hot metal!',
+  D22:  "You don't need to know who I am! Assassins are after me. I lost my sword too!",
+  D26:  'Phew! That was a lot of hard work.',
+  D28b: 'Now you try! Make a balanced sword like the last one.',
+  D58a: "Five swords! Let's use the craft book. It can make them all at once.",
+  D67a: 'The map is divided into 5 parts. This picture gives you a hint about where each trait might be.',
+  D76:  'Yes! We got it! It is not perfect, but it is okay for now.',
+  D82:  'Tap the design desk and pick your favorite designs.',
+  D90:  'Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point.',
+  D92a: 'Remember the fire route? The craft book can help.',
+  D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",
+  D99:  "We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later.",
+  D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way.",
+  D111a: 'The last one was good, but not very sharp. Can you make this one sharper?',
+  D114: 'Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you.',
+  D118: 'I made something for you. To keep you motivated, I put together a small quest list.',
+  D128: 'Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!',
+  D130: 'Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!',
+  D132: "Huh... it wasn't good enough.",
+  D140: "From now on, ring the bell when you are ready for customers. I'll be here if you need me." };
+for (const id in R213) eq(id + ' text (r213)', line(id), R213[id]);
+eq('no curly quotes left in any line', [...src.matchAll(/\n\s*D\d+[a-z]?: "([^"]*)"/g)].filter(x => /[‘’“”]/.test(x[1])).length, 0);
+eq('grindstone reward sub-line (r213)', src.includes("return 'It is on the forge bench. We will use it soon.';"), true);
+eq('Bram is unnamed on Day 1 (r213)', src.includes("if(w) w.textContent='???'; })();   /* r213"), true);
+eq('Bram is named as he says it (r213)', src.includes("typeAfter(()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; });"), true);
+eq('D57 before D114 (r213)', src.includes("TUT_STAGE='bram2-bonus'; sayQueue('D57');"), true);
 eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, manganese:FTUE\.oreStart\.manganese/.test(src), true);
 
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');
 eq('D111a follows D111', keys[keys.indexOf('D111a') - 1], 'D111');
-eq('last key still D139', keys[keys.length - 1], 'D139');
+eq('last key is D140 (r213: the closing line is the final line)', keys[keys.length - 1], 'D140');
+for (const [k, prev] of [['D28b', 'D28a'], ['D58a', 'D58'], ['D92a', 'D92'], ['D93a', 'D93']]) eq(k + ' follows ' + prev, keys[keys.indexOf(k) - 1], prev);
 
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -1714,7 +1714,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cs-resp">Response &mdash; placeholder</div>
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
             <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
-            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">BRAM</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
+            <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">???</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
         </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go say-go" id="screenDragonSayGo"></span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
     <div id="sfEndDayModal" class="sf-modal">
@@ -2267,7 +2267,7 @@ const FTUE = {
     /* r206: part 6 is Garric (TC6), no gameplay and no rewards. He has three endings (graded sword),
        and each ends the FTUE - only D139, the map's last key, used to, so after a Weak or middling
        sword the dragon never stopped guiding */
-    endLines: ['D133','D136','D139'],
+    endLines: ['D140'],   /* r213: every ending now closes on D140, the shared last line */
     /* r212 (owner, 2026-10-01): part 6 does have rewards after all - Garric's old ones (r131/r132), by
        his grade, now in the reward window when he leaves: grade 1 nothing (he refuses the sword),
        grade 2 his 10g tip, grade 3 the tip and his balanced parts (DD_BONUS) */
@@ -2322,7 +2322,7 @@ function ftueRewardName(r){
 function ftueRewardSub(r){
     if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
-    if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the forge bench. The tutorial will show you how to use it.';
+    if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the forge bench. We will use it soon.';   /* r213 */
     if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
     if(r.kind==='parts') return 'A new grip, guard and pommel at the design desk.';
     if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
@@ -2405,6 +2405,10 @@ function ftueGpcArrive(){
     if(P.ensureOre) Object.keys(P.ensureOre).forEach(id=>{ ORE_COUNT[id]=Math.max(ORE_COUNT[id]||0, P.ensureOre[id]); });
     if(INV_TAB===0) buildShelf();
     buildScreenProps('customer'); counterUi();
+    /* r213: the dragon's word on the first unguided craft (GPC1), the bulk order (GPC3), the first fire order (GPC4) */
+    const nudge = (FTUE_ST.part===1 && FTUE_ST.gpc===0) ? 'D28b' : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
+                : (FTUE_ST.part===3 && FTUE_ST.gpc===0) ? 'D92a' : null;
+    if(nudge) typeAfter(()=>sayQueue(nudge));
     custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
@@ -6455,14 +6459,14 @@ const DIALOGUE = {
     D5: "Tap on the smelter gate to open it.",
     D6: "Nice! Let's take this hot metal to the anvil.",
     D7: "Pick up the hammer and strike the hot metal on the anvil.",
-    D8: "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the ‘?’.",
+    D8: "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
     D9: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up.",
-    D10: "Now that we have reached a ‘?’ trait on the map, we can splash water on the metal to lock it in.",
+    D10: "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in.",
     D11: "Pick up the mug from the bucket and drag it to the metal.",
     D12: "Tap on the metal to select the shape of the sword blade.",
     D13: "I'll help you heat up the metal again so you can start shaping it!",
-    D14: "Just hold on the metal and I will heat that part for you to hammer.",
-    D15: "It is hot enough. Now pick up your hammer and strike the hot metal!",
+    D14: "Press and hold the metal, and I will heat it for you to hammer.",
+    D15: "It is hot enough. Now strike the hot metal!",
     D15a: "Line up the ring on the hammer with the glowing mark, then tap the hammer.",
     D16: "The metal cools down slowly. You will have to heat it again. Tell me where to FIRE!",
     D17: "Pick up the mug and splash water on the blade to finish.",
@@ -6470,14 +6474,15 @@ const DIALOGUE = {
     D19: "Not too bad. We can use it. But you should really consider decorating it later!",
     D20: "Oh, God, save me! I didn't think I would find anyone here. Who are you?",
     D21: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me.",
-    D22: "You don’t need to know who I am! Assassins are after me. I lost my sword too!",
+    D22: "You don't need to know who I am! Assassins are after me. I lost my sword too!",
     D23: "Find the sword in your inventory and place it on the counter.",
     D24: "He looks pleased and he is offering gold! Tap the sell button to confirm the trade.",
     D25: "Thanks! If I survive the night I will come back to thank you properly.",
-    D26: "Phew- that was a lot of hard work.",
+    D26: "Phew! That was a lot of hard work.",
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28: "Go ahead, try it!",
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
+    D28b: "Now you try! Make a balanced sword like the last one.",   /* r213 */
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?",
@@ -6507,6 +6512,7 @@ const DIALOGUE = {
     D56: "Hmm. I see. Not bad. {g}g for your efforts.",
     D57: "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!",
     D58: "Ring the bell! I am ready for more!",
+    D58a: "Five swords! Let's use the craft book. It can make them all at once.",   /* r213 */
     D59: "Hello. Anyone here? I heard the sound of a hammer striking an anvil here. Are you a blacksmith? This forge has not been in use for so long. Are you new?",
     D60: "Oh, another blacksmith! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day.",
     D61: "Oh! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day. Sorry, I don't know much.",
@@ -6516,7 +6522,7 @@ const DIALOGUE = {
     D65: "I see a pickaxe. How lucky! Pick it up and drag it to the ores.",
     D66: "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all.",
     D67: "2 iron and 2 manganese. Not bad. Let's go back to the forge.",
-    D67a: "The map is divided into 5 parts. You can guess where a trait could be from this image.",   /* r195 */
+    D67a: "The map is divided into 5 parts. This picture gives you a hint about where each trait might be.",   /* r195 */
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
     D69: "Now heat it, take it to the anvil and hammer.",
     D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
@@ -6528,13 +6534,13 @@ const DIALOGUE = {
     D73: "Enough! Now add this to the smelter.",
     D74: "Heat it, take it to the anvil and hammer.",
     D75: "Splash water on it! I hope this is the fire trait!",
-    D76: "Yes! We got it! It is not Epic tier. But it is okay for now.",
+    D76: "Yes! We got it! It is not perfect, but it is okay for now.",
     D77: "Tap the metal and select a shape.",
     D78: "I'm ready!",
     D79: "Wow. A fire sword! Do you want to customize it?",
     D80: "Wrong answer. Think again.",
     D81: "Yes! Let's go to the basement.",
-    D82: "Tap the assembly bench and pick your favorite designs.",
+    D82: "Tap the design desk and pick your favorite designs.",
     D83: "You can customize it freely. Pick whatever you like. Tap 'done' when you are satisfied.",
     D84: "Wow, look at that. It looks so hot!",
     D85: "Okay, back to the counter!",
@@ -6542,17 +6548,19 @@ const DIALOGUE = {
     D87: "*Yawn* - I'm sleepy. Can we go to bed now?",
     D88: "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat.",
     D89: "Good morning! Are you ready to craft perfect swords today? I'll show you how to.",
-    D90: "Oh, one more thing. Remember all the skill points you have been collecting on the map?",
+    D90: "Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point.",
     D91: "Open the skill tree and use your points. You will feel more... powerful!",
     D92: "Let's go check the counter.",
+    D92a: "Remember the fire route? The craft book can help.",   /* r213 */
     D93: "Do you have a sword with the Gale trait?",
+    D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",   /* r213 */
     D94: "We should go and gather ores. Go back to the cave.",
     D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
     D95: "Grind two copper and add it to the smelter.",
     D96: "Take it to the anvil and start hammering.",
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
     D98: "Stop! This looks perfect.",
-    D99: "We got a sword with the swift trait. Very cool, but this is not what the customer asked for. But don't worry. You can store it for later.",
+    D99: "We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later.",
     D99a: "Use it later. We don't need that now.",
     D100: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further.",
     D101: "Grind 3 copper. Let's see how far we can go.",
@@ -6564,16 +6572,16 @@ const DIALOGUE = {
     D107: "Go sell it!",
     D108: "Thanks, this will do.",
     D109: "Great work!",
-    D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords!",
+    D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way.",
     D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift sword for me?",
-    D111a: "The previous sword was good, but it wasn't very sharp. Can you make it sharper?",
+    D111a: "The last one was good, but not very sharp. Can you make this one sharper?",
     D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
     D113: "Find it in your inventory and drag it to the anvil.",
-    D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it will be of more use to you.",
+    D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you.",
     D115: "Bram gave you a diary! Open it!",
     D116: "It has a list of so many towns! I wonder if we can go on an adventure later.",
     D117: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!",
-    D118: "I also made something for you. To keep you motivated, I put together a small quest list.",
+    D118: "I made something for you. To keep you motivated, I put together a small quest list.",
     D119: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from.",
     D120: "*cough* *cough* ... You new here?",
     D121: "Then why is your shop still so dirty? You came here yesterday! Bah, kids these days. If you can't clean, hire someone to do it for you!",
@@ -6583,19 +6591,20 @@ const DIALOGUE = {
     D125: "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
     D126: "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today, so consider this a little free wisdom.",
     D127: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool.",
-    D128: "Craft a Balanced sword and show me! Extra gold and rewards if it is Epic tier, customized and sharpened!",
+    D128: "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!",
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
-    D130: "Make the best sword you can and show him what we are made of! That will shut him up, muahaha!",
+    D130: "Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!",
     D130a: "How is it going?",   /* r189: he checks in once, on the first ore of the solo run */
     D131: "What is this? You didn't even put in any effort. I'm not paying for this junk.",
-    D132: "No. Huh ... it wasn't good enough.",
+    D132: "Huh... it wasn't good enough.",
     D133: "But we will show him next time! Let's practice more. I know we can do it!",
     D134: "This is ... okay-ish. Don't expect to be rich if this is all you can do. Here is some extra money.",
     D135: "Hey! I know you did your best! Don't let that cranky old man get to you.",
     D136: "We just need more practice.",
     D137: "Hmm. You do have potential. Here is a gift. Use it well. Consider it a donation toward cleaning your shop.",
     D138: "I knew it! You are the best blacksmith ever! He doesn't even DESERVE your amazing creations!",
-    D139: "When you are famous, he will sell the same sword for a million gold. Humph, as if we need a donation for cleaning!"
+    D139: "When you are famous, he will sell the same sword for a million gold. Humph, as if we need a donation for cleaning!",
+    D140: "From now on, ring the bell when you are ready for customers. I'll be here if you need me."   /* r213: the shared closing line, and the map's last key (lastLine) */
 };
 const SAY_SEQ = ['D1','D2','D3'];      // r76: the opening run. The real flow will drive this from the script.
 let SAY_ON=null, SAY_I=-1, SAY_LAST=null;
@@ -7054,7 +7063,7 @@ function tutDay2Customer(){
     buildScreenProps('customer'); counterUi();
     /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
        cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */
-    typeAfter(()=>{ TUT_STAGE='d2-back'; setTimeout(()=>tutExit('#panRight'), 0); });
+    typeAfter(()=>{ TUT_STAGE='d2-back'; sayQueue('D93a'); setTimeout(()=>tutExit('#panRight'), 0); });   /* r213: why copper */
     custLine(null, DIALOGUE.D93);
 }
 /* the cave is emptied before the walk home */
@@ -7201,7 +7210,9 @@ function tutBram2Arrive(){
     FTUE_ST.part=5; FTUE_ST.gpc=0;   /* r204: Bram opens part 5 */
     CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
-    const w=document.getElementById('custWho'); if(w) w.textContent='BRAM';
+    /* r213: still unnamed until D110 says "I'm Bram" - the tag changes when the line has landed */
+    const w=document.getElementById('custWho'); if(w) w.textContent='???';
+    typeAfter(()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; });
     const r=document.getElementById('bramResponses');
     if(r){ r.style.display=''; r.innerHTML='';
         const b=document.createElement('button'); b.type='button'; b.textContent='I am glad you survived.';
@@ -7245,7 +7256,14 @@ function tutBram2Crafted(){
 }
 function tutBram2Sold(){
     if(TUT_STAGE!=='bram2-sell2') return;
-    TUT_STAGE='bram2-paid'; tutArrow(null,null); sayHide();
+    tutArrow(null,null); sayHide();
+    /* r213 (owner): D57, the sharpening bonus, comes right after the sale and before Bram's D114 */
+    if(FTUE_ST.part===5){ (()=>{ const p=document.getElementById('bramLine'); if(p) p.textContent=''; })();
+        TUT_STAGE='bram2-bonus'; sayQueue('D57'); return; }
+    tutBram2Thanks();
+}
+function tutBram2Thanks(){
+    TUT_STAGE='bram2-paid';
     setTimeout(()=>{
         custLine(document.getElementById('bramLine'), DIALOGUE.D114);
         const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
@@ -7260,8 +7278,7 @@ function tutBram2Gift(){
     const re=document.querySelector('#csPanel > .cs-resp');
     if(re){ re.style.display='none'; re.onclick=null; re.textContent='Response \u2014 placeholder'; }
     CUSTOMER=null; TUT_BRAM2_STATE=null; TUT_STAGE='gift';   /* r129: the diary is handed over */
-    if(FTUE_ST.part===5) setTimeout(()=>sayQueue('D57'), 420);   /* r205: the bonus line, then the gift (SAY_AFTER.D57) */
-    else setTimeout(openGift, 420);
+    setTimeout(openGift, 420);   /* r213: D57 now comes before D114 (tutBram2Sold) */
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     refreshCounter(); counterUi(); updateTutorialCounterUi();
@@ -7366,7 +7383,7 @@ function garricLeaves(){
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     buildScreenProps('customer'); refreshCounter(); counterUi(); updateTutorialCounterUi();
     /* r212: his rewards in the reward window, then the dragon's answer (grade 1 has none: straight on) */
-    ftueReward(FTUE.garricRewards[g]||[], ()=>sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139'));
+    ftueReward(FTUE.garricRewards[g]||[], ()=>sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139', 'D140'));   /* r213: then the shared close */
 }
 let TUT_GARRIC_GRADE=0;
 /* r189: Garric's solo run. The dragon steps back, but the target stays marked and he checks in once,
@@ -7413,7 +7430,7 @@ function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
 const SAY_AFTER={ D97:function(){ openTiers(); }, D67a:function(){ openParts(); },
                   D26:function(){ ftueAfterBram(); },   /* r199 */
-                  D57:function(){ if(TUT_STAGE==='gift') openGift(); },   /* r205 */
+                  D57:function(){ if(TUT_STAGE==='bram2-bonus') tutBram2Thanks(); },   /* r205. r213: then Bram's D114 */
                   D117:function(){ ftueAfterDiary(); } };   /* r205 */
 /* r193: the close is what carries the story on, so the callback is the point of this window, not an
    afterthought. It is cleared before it runs, so a double close cannot fire it twice. */
@@ -7810,7 +7827,7 @@ function tutCounterArrival(){
 function finishD19(){
     if(TUT_STAGE!=='counter' || TUT_BRAM_STATE) return;
     TUT_STAGE='bram-intro'; TUT_BRAM_STATE='awaiting';
-    (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; })();   /* r104 */
+    (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='???'; })();   /* r213: he will not say who he is (D22); BRAM from his return (D110) */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
     if(r){ r.style.display='flex';

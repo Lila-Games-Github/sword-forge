@@ -527,3 +527,16 @@ unchanged in amount, now shown in the **reward window** like parts 1-5 (option 2
   window applies both.
 - The gold row shows a coin emoji until there is a coin icon (art list).
 - Asserted by `tooling/ftue/ftue.test.mjs` (61 checks).
+
+## Dialogue review (owner, 2026-10-01), r213
+
+Full record: the r213 section of `specs/2026-09-15-looptest-landscape-tutorial-script.md`. What it
+changes in this record's flows:
+- **Part 1:** GPC1 arrives with **D28b** after the customer's order.
+- **Part 2:** GPC3 arrives with **D58a**; the CRAFT BOOK pointer stays on.
+- **Part 3:** GPC4 arrives with **D92a**.
+- **Part 4:** TC4's D93 is followed by **D93a**, then the way to the forge (D95 there).
+- **Part 5:** the sale to Bram → **D57** → Bram's D114 → "Thank you for the gift." → the diary window
+  (D57 used to come after the thanks).
+- **Part 6:** every ending (D133, D136, D139) is followed by **D140**; `FTUE.endLines` is `['D140']`
+  (supersedes r206's D133/D136/D139).

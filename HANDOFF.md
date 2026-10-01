@@ -11,39 +11,35 @@ continuation prompt printed at close time.
   touched. `swordforgeV2.html` / `v1.html` are older canon.
 - **Repo:** https://github.com/Lila-Games-Github/sword-forge
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
-- **Status:** rounds **r197-r206 are merged and live** (PR #19, merge `77931a7`, 2026-09-30); the docs
-  PR #18 is merged too (`7b3748b`). Verified against the deployed site, not assumed: the live
-  `Swordforge_looptest_landscape.html` is byte-identical to the file on `main`, and carries the `FTUE`
-  config and the PART 1-6 buttons. **148 dialogue keys** (D15a added in r209), `lastLine()` `D139`.
-- **The tutorial is now the FTUE in six parts** (r199-r206). Design record and build records per part:
-  `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the top of
-  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (61 checks).
-  **The owner play-tested parts 1-4: all good.** Parts 5-6 were verified by script only.
-- **Rounds r207-r211** (branch `Swordforge_FTUEv2_polish`, the owner's name for "minor errors, bugs and
-  art"; PR #21, merged at the 2026-10-01 session close):
-  - r207 the hammer shows each trait and shape (sphere -> mid-blade -> the sword's own blade, heat glow);
-  - r208 the swift Dagger replaces the swift Rapier (GPC9's blueprint);
-  - **r209 the hammer minigame on hit points** (design record `specs/2026-10-01-hammer-hit-points.md`,
-    test `tooling/hammer/hammer.test.mjs`, 27 checks): 1 orb point x3 strikes, 3 random mid-blade
-    points, an aim ring below the head (drag to move, tap to strike) coloured by the band the strike
-    would get (yellow/blue/red), forging band Masterwork/Good/Crude on the price, new line D15a;
-  - r210 D57 now says the bonus is from sharpening, and `{b}` is the sharpening bonus alone;
-  - r211 the owner's art: all fire and gale parts, gale blades, shop banner, Garric's gift parts.
-  **Not yet play-tested by the owner** (verified by script and in the browser pane).
+- **Status: rounds r197-r212 are merged and live.**
+  - r197-r206, the FTUE in six parts: PR #19 (2026-09-30), plus the docs PRs #18 and #20.
+  - r207-r211, hammer, Dagger, D57 and owner art: PR #21 (2026-10-01).
+  - r212, Garric's rewards: PR #22 (2026-10-01).
+  After each merge the Pages deploy succeeded, and the live `Swordforge_looptest_landscape.html` was
+  checked byte-identical to `main`. **153 dialogue keys** (D15a in r209; D28b, D58a, D92a, D93a, D140 in r213), `lastLine()` `D140`.
+- **The tutorial is the FTUE in six parts** (r199-r206, r212). Design record and build records per
+  part: `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the
+  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (92 checks).
+- **The hammer minigame is on hit points** (r209). Design record `specs/2026-10-01-hammer-hit-points.md`;
+  every value is in `HM_HITS`; `tooling/hammer/hammer.test.mjs` asserts it (27 checks).
+- **Owner play-testing:** parts 1-4 "all good" (before r207). **Not yet play-tested by the owner:**
+  parts 5-6, the new hammer (r209), the art in place (r211), Garric's reward window (r212). All of
+  these were verified by script and in the browser pane only.
 - **Start a new round like this:**
   ```bash
   git checkout main && git pull
   git checkout -b sword-forge/<2-5-kebab-keywords>
   ```
-  The FTUE branch was named `Swordforge_FTUE_v2` on the owner's instruction (deleted after the merge);
-  the convention is still `sword-forge/<keywords>`.
-- **Do not commit directly to `main`**: every push there publishes the site.
+  The owner named two branches themselves (`Swordforge_FTUE_v2`, `Swordforge_FTUEv2_polish`; both merged
+  and deleted); the convention is still `sword-forge/<keywords>`.
+- **Do not commit directly to `main`**: every push there publishes the site. Docs changes go through a
+  branch and PR too.
 - **Old branches:** `sword-forge/playtest-polish-r197`, `tutorial-polish` and `swordforge-ftue-tutorial`
   were deleted on the owner's instruction (2026-09-30). Remote leftovers from older work
   (`fm/sf-lazy-load`, `sword-forge/core-loop-mapping`, `sword-forge/pathforge-cluster-infusion`,
   `variation-a-prototype`) are untouched.
 
-### What changed (r197-r206)
+### The FTUE by part
 
 | Part | Tutorial customer | Gameplay customers | Rewards |
 | --- | --- | --- | --- |
@@ -60,32 +56,69 @@ continuation prompt printed at close time.
   (decor from ITEMS & DECOR onto the counter, shop or bedroom, behind every prop); silent ore caps on
   the tutorial swords; D28a + Retry for part 1's customer swords; the Day 2 cave stocked for Day 2
   (2-3 ores a swing); PART 1-6 buttons beside SKIP HAMMER (`ftuePart(n)` in the console).
-- **New lines:** D28a, D99a, D111a (inserted beside D28, D99, D111). **Reworded:** D29, D31, D32-D34.
-  **Moved:** the quest list (D118/D119) to part 1; sharpening (D48-D55) and D57 to part 5; the Day 2
-  ore run (D94/D94b) to right after the skill tree.
+- **New lines:** D28a, D99a, D111a, D15a (inserted beside D28, D99, D111, D15). **Reworded:** D29, D31,
+  D32-D34, D57 (r210). **Moved:** the quest list (D118/D119) to part 1; sharpening (D48-D55) and D57 to
+  part 5; the Day 2 ore run (D94/D94b) to right after the skill tree.
 - **Fixes:** r197, a stored dragon-pulled blade offset the next path; r198, hammering the gale route
   stops the sword on Gale's centre, then D98 and the mug; the menu's New Game never spoke D1; only D139
-  ended the tutorial, now any of Garric's three endings does (`FTUE.endLines`).
+  ended the tutorial, then any of Garric's three endings did (`FTUE.endLines`); since r213 all three
+  endings close on the shared line D140, which is the map's last key and the only `FTUE.endLines` entry.
+
+### What changed in r207-r212
+
+- **r207:** the hammer shows each trait and shape. Stages: metal sphere, then
+  `balanced_<shape>_midblade`, then the sword's own blade (`bladeFor(skin, shape)`). Heat glow masked
+  to each blade (`.hm-heat`). `hammer_sword.*` is no longer drawn.
+- **r208:** swift's third shape is the **Dagger** (`swift_dagger_blade`), not the Rapier; GPC9 gives the
+  swift Dagger blueprint. Gale keeps the Rapier.
+- **r209:** **hit points.**
+  - The orb has 1 point, struck 3 times. Then 3 random points sit on the mid-blade's solid pixels.
+  - An aim ring sits below the hammer head (`HM_HITS.ring` 55%, 46.5%). Drag the hammer to move it;
+    tap the hammer to strike. Over a point, the ring is yellow, blue or red for the band that strike
+    would get.
+  - A strike off every point is free. A counted strike still needs heat.
+  - The 6 accuracies average into a band: 85% Masterwork, 60% Good, else Crude. The band is stored as
+    `w.quality` / `w.forge` and multiplies the base price (x1.3 / x1.0 / x0.8).
+  - SKIP HAMMER, recipe crafts and old saves count as Good. New line D15a.
+- **r210:** D57 says the bonus is from sharpening; `{b}` is the sharpening bonus alone (the design
+  bonus is still paid).
+- **r211:** the owner's art.
+  - All fire and gale parts are real now (`DD_ALIAS` is empty); gale blades are in `DD_BLADES`.
+  - Balanced grips, guards and pommels 5-6 are Garric's gift (`DD_BONUS`). `pommel5` moved there,
+    because the balanced set never showed more than 4.
+  - The shop banner is `assets/Decor/Banner.webp`.
+- **r212:** Garric's old rewards (r131/r132) open in the reward window when he leaves:
+  `FTUE.garricRewards`, new reward kinds `gold` and unlock `garricParts`. The sale no longer pays the
+  tip.
+- **r213:** the owner's dialogue review. 18 lines reworded (record: the r213 sections of the tutorial
+  script and the FTUE design record); five new lines: D28b (GPC1), D58a (GPC3), D92a (GPC4), D93a
+  (TC4, why copper), D140 (the shared close after every Garric ending); D57 moved before Bram's D114;
+  D110 ends "I'm Bram, by the way.", and Bram's name tag is "???" until that line has typed out; no curly
+  quotes in any line.
 
 ## Next steps
 
 The owner drives the work beat by beat from play-testing; expect fresh reports rather than this list.
 
-1. **Owner play-test of the r209 hammer** (feel of drag + tap, ring distance, mark size 5% of the
-   stage, the price multipliers) and of the r211 art in place. Then the **owner play-through of parts
-   5-6**, not yet done. The sharpening minigame and Garric's solo craft
-   were jumped over in testing (both beats are unchanged, but now run in a new order).
+1. **Owner play-test** of the r209 hammer (feel of drag + tap, ring distance, mark size 5% of the
+   stage), the r211 art in place, Garric's reward window (r212), and parts 5-6. The sharpening minigame
+   and Garric's solo craft were jumped over in testing (both beats are unchanged, but now run in a new
+   order).
 2. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` (unlocks, decor, rewards,
    `done`) and quest claims, but not `TUT_STAGE`. Planned fix: save the part number at each part
    boundary. Not built; ask the owner before building.
-3. **Art from the owner** (full list: "Art needed" in the design record). **Landed in r211:** all fire
-   and gale parts (`DD_ALIAS` now empty), the gale blades, the shop banner, and balanced grips 5-6,
-   guards 5-6, pommel 6 (Garric's gift). Still to come: `balanced_rapier_midblade` /
-   `balanced_dagger_midblade` (then delete `HM_MID_ALIAS.Rapier` / `.Dagger`); the emoji lock / rapier
-   icons; the reward and UI icons. A new PNG needs its `.webp` (see CLAUDE.md, `assets/sword-parts/`).
+3. **Art still to come** (full list: "Art needed" in the FTUE design record):
+   - `balanced_rapier_midblade` / `balanced_dagger_midblade`; then delete `HM_MID_ALIAS.Rapier` /
+     `.Dagger`;
+   - a coin icon (the gold reward row shows 🪙);
+   - the emoji lock / rapier icons;
+   - the reward and UI icons (the "parts" reward icon would replace the small `guard5` in Garric's
+     window).
+   A new PNG needs its `.webp` (see CLAUDE.md, `assets/sword-parts/`).
 4. **Owner questions still open:**
-   - r209 forging price multipliers (Masterwork x1.3, Good x1.0, Crude x0.8) are Claude's proposal, not
-     yet confirmed; one place to change: `HM_HITS.bands` (and the record and test with it);
+   - the r209 forging price multipliers (x1.3 / x1.0 / x0.8) are Claude's proposal; the owner gave only
+     the bands. One place to change: `HM_HITS.bands` (with the record and the test);
+   - Garric's gift is now 6 balanced parts (r211 placement, Claude's reading of the code); confirm;
    - the GPC3 wording ("I need 5 Balanced swords. Can you make them all?" / "Good. N more, please.");
    - lock the basement sharpening wheel until part 5?
    - should the PART 1-6 buttons stay public? (SKIP HAMMER stays public: owner's decision, 2026-09-23);
@@ -93,12 +126,11 @@ The owner drives the work beat by beat from play-testing; expect fresh reports r
      link (which did not have the fix then) or locally. The fix is live now; ask for a re-test.
 5. Older, still open: D67a wording ("a trait could be from this image"); the Alignment for Tiers window
    is once per game (a re-open under settings is planned); whether a re-quench may upgrade a trait
-   tier; talent points buy nothing on the
-   8 yellow/green skill nodes.
+   tier; talent points buy nothing on the 8 yellow/green skill nodes.
 
-**Closed since the last handoff:** the gale/Epic item (r198; the old 27.1 measurement used raw copper,
-the real route passes within 0.4 of Gale); gating SKIP HAMMER (the owner said no); the 35-swing Day 2
-cave (r203, 2-3 ores a swing).
+**Closed since the last handoff:** "no rewards in part 6" (r212: the owner called it a mistake);
+`DD_BONUS.balanced` shipping empty (r211); the fire and gale placeholder parts (r211); the
+stale hammer baseline count (26, now 27).
 
 ## How to verify current state
 
@@ -111,26 +143,34 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 148 dialogue keys, `lastLine()`
-`"D139"`, and `ftuePart(3)` to land at TC3's bell.
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 153 dialogue keys, `lastLine()`
+`"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 61 checks; the hammer test GREEN at 27; the mobile-fit test prints
-GREEN at **21** cases (the old handoff said 23, which was wrong: the file has not changed since r135);
+**Baselines, not regressions:** the FTUE test prints GREEN at 92 checks; the hammer test GREEN at 27;
+the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 ## Gotchas
 
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here:** `tooling/ftue` and `tooling/mobile-fit`. `tooling/anchor-match` and the
-  `docs/wiki/` search script need Python, which is not installed. (`tooling/asset-diet` is a manifest
-  generator, not a test.)
+- **Tests that run here:** `tooling/ftue`, `tooling/hammer` and `tooling/mobile-fit`.
+  `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
+  (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.
-- **An FTUE value is changed in three places together:** the design record, the `FTUE` object, and
-  the test. Write the test change first and watch it fail.
+- **A recorded value is changed in three places together:** the design record, the config object
+  (`FTUE` or `HM_HITS`), and the test. Write the test change first and watch it fail.
 - **"Grindstone" is two things.** In the FTUE it is the forge's ore grinding wheel (`#stMortar`, art
   `anchor_grindwheel.webp`). `assets/forge/grindstone.webp` is the **basement sharpening wheel**.
-  r202 fixed a reward window that showed the wrong one.
+- **"Quality" is two things.** The craft window's **Quality** row is the trait tier (Weak/Fine/Epic);
+  the r209 hammer grade is **Forging** (Masterwork/Good/Crude, `w.quality`). Do not merge the names.
+- **The hammer's tap pad sits above the dragon's.** `#hmAimPad` (hold the metal to heat it) covers the
+  anvil, so `#hmStrikePad` on the hammer head is z-index 7. A new layer over the anvil must keep that
+  order, or taps on the head heat the metal instead of striking.
+- **The tutorial owns the screen in tests.** Driving the hammer from a fresh load, a cold strike speaks
+  D16 and pauses under `#tutDim`, and `#dragonSay` covers the scene top. See LEARNINGS (2026-10-01).
+- **Owner art arrives as PNG; the game loads WebP.** Convert in the preview page and save through the
+  dev server's `/__save` (CLAUDE.md, `assets/sword-parts/`). Never crop sword parts.
 - **The shelf rebuilds its slots on every change**, so a blink put on a slot is lost. Pointers that
   mark a slot are recomputed from state after every `buildShelf()` (`ftueDecorStep`, `ftueBulkStep`).
 - **A new CSS class can already be taken.** `rw-row` belonged to the rack window and broke the reward
@@ -139,8 +179,8 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   so a second `custLine` wipes the first unread. Bram's D111 + D111a are one typed speech for this reason.
 - **Rewards and coins time out; they never wait on an animation.** A hidden pane freezes animations,
   so `flyCoins` lands the gold on a `setTimeout`, not `onfinish`.
-- **`ftuePart(n)` builds an approximate state** (gold, exp, fog and books are guesses). It is a test
-  aid for jumping to a part, not a save.
+- **`ftuePart(n)` builds an approximate state** (gold, exp, fog and books are guesses), and part of it
+  settles after a delay. It is a test aid for jumping to a part, not a save.
 - **Verify through the path a player takes.** Drive real `tick()` frames and real `PointerEvent`s, and
   click through `elementFromPoint`. See LEARNINGS.
 - **There are two arrows.** `#tutArrow` is the scripted dashed pointer; `#hintArrow` is the white idle
@@ -156,7 +196,8 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 - **One file, terse style.** Never put an inline `//` comment mid-line; it silently deletes the rest of
   the line. Block or own-line comments only.
 - **Patch by script, not by hand.** Anchored `replace` with a uniqueness check, and **syntax-check each
-  `<script>` block separately** (there are two).
+  `<script>` block separately** (there are two). The working tree is CRLF: normalise to LF, patch,
+  restore CRLF. Write regex-bearing lines with the Edit tool or a quoted heredoc (LEARNINGS).
 - The Browser pane reports `innerWidth: 0` until `resize_window`, and a **hidden pane freezes
   `requestAnimationFrame` and CSS animations/transitions**. Drive `tick()` by hand.
 
@@ -166,6 +207,8 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   `specs/2026-09-15-looptest-landscape-tutorial-script.md` still holds the dialogue text and the beat
   notes, but its order is the pre-FTUE one (sharpening in the TC2 run, the quest list with the diary,
   the Day 2 cave after TC4's order). `specs/2026-09-29-tutorial-parts-plan.md` has the current order.
+  Within that record, a later dated section supersedes an earlier one (for example r212 over r206's
+  "no rewards").
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.
 - `docs/wiki/` describes `index.html`/`swordforgeV2.html`. The 10 audit orphans are these pages.
