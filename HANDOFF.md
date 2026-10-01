@@ -16,10 +16,10 @@ continuation prompt printed at close time.
   - r207-r211, hammer, Dagger, D57 and owner art: PR #21 (2026-10-01).
   - r212, Garric's rewards: PR #22 (2026-10-01).
   After each merge the Pages deploy succeeded, and the live `Swordforge_looptest_landscape.html` was
-  checked byte-identical to `main`. **153 dialogue keys** (D15a in r209; D28b, D58a, D92a, D93a, D140 in r213), `lastLine()` `D140`.
+  checked byte-identical to `main`. **154 dialogue keys** (D15a in r209; D28b, D58a, D92a, D93a, D140 in r213; D69d in r215), `lastLine()` `D140`.
 - **The tutorial is the FTUE in six parts** (r199-r206, r212). Design record and build records per
   part: `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the
-  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (92 checks).
+  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (95 checks).
 - **The hammer minigame is on hit points** (r209). Design record `specs/2026-10-01-hammer-hit-points.md`;
   every value is in `HM_HITS`; `tooling/hammer/hammer.test.mjs` asserts it (27 checks).
 - **Owner play-testing:** parts 1-4 "all good" (before r207). **Not yet play-tested by the owner:**
@@ -95,6 +95,16 @@ continuation prompt printed at close time.
   (TC4, why copper), D140 (the shared close after every Garric ending); D57 moved before Bram's D114;
   D110 ends "I'm Bram, by the way.", and Bram's name tag is "???" until that line has typed out; no curly
   quotes in any line.
+- **r214:** selling Garric a sword short of his best grade (Epic + customized + sharpened) first opens
+  "Sell this sword?" (`#sfGarricAsk`), naming what the sword lacks; "No, keep it" leaves it on the
+  counter. Garric only; every other sale is unchanged.
+- **r215: hazard integrity** (design record `specs/2026-10-01-hazard-integrity.md`, test
+  `tooling/hazard/hazard.test.mjs`, 28 checks). The sword keeps its health (`w.hp`) and the zones it
+  crossed (`w.haz`, each zone once). Health lowers the base price (x 0.5 + 0.5 x health); 3+ zones drop
+  every trait one tier, 5+ two (owner chose the trait tier; Claude set the numbers, owner may rework).
+  Recipes keep their route's health and zones, so bulk craft cannot dodge it. Craft window: Integrity
+  row. Tutorial: D69b names the cost; new D69d over the fire sword's craft window (the bubble lifts
+  above the window, `.say-over-modal`); the island the part 4 gale route crossed is removed (`HAZ.clear`).
 
 ## Next steps
 
@@ -139,14 +149,15 @@ git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
 node tooling/ftue/ftue.test.mjs
 node tooling/hammer/hammer.test.mjs
+node tooling/hazard/hazard.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 153 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 154 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 92 checks; the hammer test GREEN at 27;
+**Baselines, not regressions:** the FTUE test prints GREEN at 95 checks; the hammer test GREEN at 27; the hazard test GREEN at 28;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -154,7 +165,7 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here:** `tooling/ftue`, `tooling/hammer` and `tooling/mobile-fit`.
+- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.

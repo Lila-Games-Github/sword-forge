@@ -540,3 +540,21 @@ changes in this record's flows:
   (D57 used to come after the thanks).
 - **Part 6:** every ending (D133, D136, D139) is followed by **D140**; `FTUE.endLines` is `['D140']`
   (supersedes r206's D133/D136/D139).
+
+## Garric's sell confirmation (owner, 2026-10-01), r214
+
+**Garric only.** While Garric waits for his sword (`TUT_GARRIC_STATE` 'asked'), SELL on a sword that
+is not grade 3 (Epic balanced tier, customized and sharpened) opens a window first (owner's scope
+choice, over "every sale"; owner approved the words):
+
+> **Sell this sword?**
+> Garric gives his best reward only for an **Epic, customized and sharpened** sword.
+> This one is not **Epic** and not **sharpened**. *(only what the sword lacks)*
+> Sell it anyway?
+> [ Yes, sell it ] [ No, keep it ]
+
+- **Yes, sell it:** the sale goes on as before (`garricSellAnswer(true)` calls `sellCounter()` again,
+  past the gate once), and Garric grades the sword.
+- **No, keep it:** the window closes; the sword stays on the counter.
+- A grade 3 sword sells with no window; no other customer ever sees it.
+- Asserted by `tooling/ftue/ftue.test.mjs` (95 checks).

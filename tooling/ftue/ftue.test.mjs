@@ -154,6 +154,15 @@ eq('grindstone reward sub-line (r213)', src.includes("return 'It is on the forge
 eq('Bram is unnamed on Day 1 (r213)', src.includes("if(w) w.textContent='???'; })();   /* r213"), true);
 eq('Bram is named as he says it (r213)', src.includes("typeAfter(()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; });"), true);
 eq('D57 before D114 (r213)', src.includes("TUT_STAGE='bram2-bonus'; sayQueue('D57');"), true);
+/* r214 (owner, 2026-10-01): selling Garric anything short of grade 3 asks first (Garric only) */
+eq('Garric sell confirmation: gate', src.includes("if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }"), true);
+eq('Garric sell confirmation: words', [
+  '<h3 class="sf-modal-h">Sell this sword?</h3>',
+  'Garric gives his best reward only for an <b>Epic, customized and sharpened</b> sword.',
+  'Sell it anyway?',
+  'onclick="garricSellAnswer(true)">Yes, sell it</button>',
+  'onclick="garricSellAnswer(false)">No, keep it</button>' ].every(t => src.includes(t)), true);
+eq('Garric sell confirmation: names what is missing', src.includes("This one is '+t+'."), true);
 eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, manganese:FTUE\.oreStart\.manganese/.test(src), true);
 
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
