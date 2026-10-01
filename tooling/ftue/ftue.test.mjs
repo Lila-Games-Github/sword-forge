@@ -97,6 +97,13 @@ eq('part 5 rewards', FTUE.parts[5].rewards, {
 eq('bramLine', FTUE.bramLine, 'D111a');
 /* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
 eq('endLines', FTUE.endLines, ['D133', 'D136', 'D139']);
+/* r212 (owner, 2026-10-01): Garric's old rewards (r131/r132) come back through the reward window */
+eq('garricRewards', FTUE.garricRewards, {
+  1: [],
+  2: [ { kind: 'gold', n: 10 } ],
+  3: [ { kind: 'gold', n: 10 }, { kind: 'unlock', id: 'garricParts' } ] });
+eq('Garric leaves through the reward window', src.includes('ftueReward(FTUE.garricRewards[g]'), true);
+eq('the sale no longer pays the tip itself', /function tutGarricSold\(\)\{[\s\S]{0,500}GOLD \+= GARRIC_TIP/.test(src), false);
 eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139')"), true);
 eq('say() ends the FTUE on any end line', src.includes('FTUE.endLines.indexOf(id)>=0'), true);
 eq('swift Dagger blade is swift_dagger_blade', /swift:['dagger','longsword','shortsword']/.test(src), true);

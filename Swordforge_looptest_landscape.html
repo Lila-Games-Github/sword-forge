@@ -706,6 +706,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .rwd-row { display: flex; align-items: center; gap: 10px; background: #f3ead6; border: 2px solid #cbb98f; border-radius: 10px; padding: 8px 10px; }
 .rwd-ic { width: 44px; height: 44px; object-fit: contain; flex: 0 0 44px; }
 .rwd-sq { display: block; border: 2px solid rgba(0,0,0,.45); border-radius: 4px; }
+.rwd-emo { display: flex; align-items: center; justify-content: center; font-size: 34px; line-height: 1; }   /* r212 */
 .rwd-tx { display: flex; flex-direction: column; gap: 2px; font-size: 12px; text-align: left; }
 .rwd-tx span { font-size: 10px; color: #6b5536; }
 .rwd-ok { display: flex; justify-content: center; }
@@ -2267,6 +2268,10 @@ const FTUE = {
        and each ends the FTUE - only D139, the map's last key, used to, so after a Weak or middling
        sword the dragon never stopped guiding */
     endLines: ['D133','D136','D139'],
+    /* r212 (owner, 2026-10-01): part 6 does have rewards after all - Garric's old ones (r131/r132), by
+       his grade, now in the reward window when he leaves: grade 1 nothing (he refuses the sword),
+       grade 2 his 10g tip, grade 3 the tip and his balanced parts (DD_BONUS) */
+    garricRewards: { 1:[], 2:[ { kind:'gold', n:10 } ], 3:[ { kind:'gold', n:10 }, { kind:'unlock', id:'garricParts' } ] },
     /* r204: said when the stored swift ingot is taken out before Bram asks for it (part 5) */
     swiftLine: 'D99a',
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
@@ -2311,6 +2316,8 @@ function ftueRewardName(r){
     if(r.kind==='pages') return r.n+' recipe book pages';
     if(r.kind==='parts') return TRAIT_BY[r.trait].name+' sword parts x3';
     if(r.kind==='unlock' && r.id==='designDesk') return 'Design desk';
+    if(r.kind==='gold') return r.n+' gold';   /* r212 */
+    if(r.kind==='unlock' && r.id==='garricParts') return 'Balanced sword parts x6';
     return r.id || r.kind; }
 function ftueRewardSub(r){
     if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
@@ -2319,6 +2326,8 @@ function ftueRewardSub(r){
     if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
     if(r.kind==='parts') return 'A new grip, guard and pommel at the design desk.';
     if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
+    if(r.kind==='gold') return "Garric's tip, on top of the price.";   /* r212 */
+    if(r.kind==='unlock' && r.id==='garricParts') return 'Two new grips, guards and pommels at the design desk.';
     return ''; }
 function ftueRewardApply(r){
     if(r.kind==='decor') FTUE_ST.decor.push(r.id);
@@ -2327,11 +2336,15 @@ function ftueRewardApply(r){
     else if(r.kind==='pages') FTUE_ST.pages=(FTUE_ST.pages||0)+r.n;
     else if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced'; FTUE_ST.dd=FTUE_ST.dd||{}; FTUE_ST.dd[sk]=(FTUE_ST.dd[sk]||0)+1; }   /* r203 */
     else if(r.kind==='unlock' && r.id==='designDesk'){ FTUE_ST.desk=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
+    else if(r.kind==='gold'){ GOLD+=r.n; updateHud(); }   /* r212 */
+    else if(r.kind==='unlock' && r.id==='garricParts') PARTS_GARRIC=true;
     if(INV_TAB===3) buildShelf(); }
 function ftueRewardIcon(r){
     if(r.kind==='decor'){ const d=FTUE.decor[r.id]||{};   /* r211: the art, when there is some */
         return d.img ? '<span class="rwd-ic rwd-sq has-art" style="background-image:url('+d.img+')"></span>'
                      : '<span class="rwd-ic rwd-sq" style="background:'+(d.fill||'#888')+'"></span>'; }
+    if(r.kind==='gold') return '<span class="rwd-ic rwd-emo">🪙</span>';   /* r212: no coin art yet */
+    if(r.kind==='unlock' && r.id==='garricParts') return '<img class="rwd-ic" src="'+ddSrc('guard', DD_BONUS.balanced.guard[0])+'" alt="">';
     if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced';   /* r203: the first guard of that set */
         return '<img class="rwd-ic" src="'+ddSrc('guard', ((DD_SETS[sk]||DD_SETS.balanced).guard||[])[0])+'" alt="">'; }
     const src = (r.kind==='blueprint' || r.kind==='pages') ? 'assets/ui/icon_recipe.webp'
@@ -7318,7 +7331,7 @@ function tutGarricForge(){
 /* ---- r131: three outcomes, graded on the BALANCED trait he asked for plus the two finishing
    steps. Tier 3 designed AND sharpened is the best; tier 1 with neither is the worst; everything
    in between is the middle. The base price and the +7g bonuses are already paid by sellCounter;
-   this adds Garric's own +10g, and the gift on the best outcome. ---- */
+   Garric's own +10g, and the gift on the best outcome, are FTUE.garricRewards (r212). ---- */
 let GARRIC_SOLD_W=null;
 const GARRIC_TIP = 10;
 function traitIdOf(x){ return x ? (x.tid || (x.t && x.t.id) || null) : null; }   /* r133: sword vs ingot */
@@ -7338,9 +7351,7 @@ function tutGarricSold(){
     const w=GARRIC_SOLD_W; GARRIC_SOLD_W=null;
     const grade=garricGrade(w);
     TUT_GARRIC_STATE='reacted'; TUT_GARRIC_GRADE=grade;
-    if(grade>1){ GOLD += GARRIC_TIP; updateHud(); }
-    if(grade===3){ PARTS_GARRIC=true;
-        setTimeout(()=>toast('🎁 Garric left you <b>new parts for balanced swords</b>', 2800), 900); }
+    /* r212: his tip and gift are no longer paid here: garricLeaves() opens the reward window */
     const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
     if(se) se.style.display='none'; if(de) de.style.display='none';
     updateTutorialCounterUi();
@@ -7354,7 +7365,8 @@ function garricLeaves(){
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     buildScreenProps('customer'); refreshCounter(); counterUi(); updateTutorialCounterUi();
-    sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139');
+    /* r212: his rewards in the reward window, then the dragon's answer (grade 1 has none: straight on) */
+    ftueReward(FTUE.garricRewards[g]||[], ()=>sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139'));
 }
 let TUT_GARRIC_GRADE=0;
 /* r189: Garric's solo run. The dragon steps back, but the target stays marked and he checks in once,

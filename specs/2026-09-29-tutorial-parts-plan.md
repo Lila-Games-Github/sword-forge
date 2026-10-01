@@ -508,3 +508,22 @@ balanced parts. Each got a `.webp` (512 wide, quality 0.86; the banner cropped t
   label) on the screen, in the ITEMS & DECOR slot and in the reward window. The box stays 10% x 24%.
 - **Test:** `tooling/ftue/ftue.test.mjs` asserts the above and that every part, blade and decor image
   the build names exists on disk.
+
+## Garric's rewards (owner, 2026-10-01), r212
+
+The owner: "no rewards in part 6" was a mistake; Garric (TC6) gets **the older reward system back**.
+This supersedes "no rewards" in the part 6 build record above. The rewards are the r131/r132 ones,
+unchanged in amount, now shown in the **reward window** like parts 1-5 (option 2 of three offered).
+
+| Grade | Sword | `FTUE.garricRewards` |
+| --- | --- | --- |
+| 1 | Weak, not designed, not sharpened | none (he refuses it, pays 0; no window, straight to D132) |
+| 2 | anything else | `{ kind:'gold', n:10 }`: his 10g tip |
+| 3 | Epic, designed and sharpened | the 10g tip + `{ kind:'unlock', id:'garricParts' }` (`PARTS_GARRIC`: `DD_BONUS.balanced`, grips/guards/pommels 5-6) |
+
+- **When:** the window opens as Garric leaves the counter (`garricLeaves()`), after his line (D134 or
+  D137) and before the dragon's closing lines (D135-D136 or D138-D139).
+- **The sale no longer pays the tip** (`tutGarricSold()`), and the old toast for the gift is gone: the
+  window applies both.
+- The gold row shows a coin emoji until there is a coin icon (art list).
+- Asserted by `tooling/ftue/ftue.test.mjs` (61 checks).

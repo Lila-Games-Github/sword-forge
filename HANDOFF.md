@@ -17,7 +17,7 @@ continuation prompt printed at close time.
   config and the PART 1-6 buttons. **148 dialogue keys** (D15a added in r209), `lastLine()` `D139`.
 - **The tutorial is now the FTUE in six parts** (r199-r206). Design record and build records per part:
   `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the top of
-  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (58 checks).
+  the main script, and `tooling/ftue/ftue.test.mjs` asserts it against the record (61 checks).
   **The owner play-tested parts 1-4: all good.** Parts 5-6 were verified by script only.
 - **Rounds r207-r211** (branch `Swordforge_FTUEv2_polish`, the owner's name for "minor errors, bugs and
   art"; PR #21, merged at the 2026-10-01 session close):
@@ -52,7 +52,7 @@ continuation prompt printed at close time.
 | 3 | TC3 (`woman1`): fire, decorating, Day 1 end, skill tree, Day 2 cave | GPC4 fire, GPC5 balanced, GPC6 fire | balanced + fire parts, fire Longsword; fire Broadsword; fire parts |
 | 4 | TC4 (`man2`): tier alignment, storing swift, gale | GPC7 gale, GPC8 fire | gale Longsword + parts; gale Rapier + parts |
 | 5 | Bram (`BramD2`): sharpened swift sword, the diary | GPC9 gale, GPC10 swift | swift Dagger (r208); swift parts |
-| 6 | Garric (`man4`): no gameplay, no rewards | none | none |
+| 6 | Garric (`man4`): no gameplay; he grades his sword | none | by grade (r212): 1 nothing, 2 a 10g tip, 3 the tip + balanced parts x6 |
 
 - **Systems:** reward window; blueprints per trait + shape (Shortsword always open); design desk parts
   earned per trait (`FTUE.startParts` 3, +1 of each per reward); recipe page limit (3, then 8); locked
@@ -114,7 +114,7 @@ Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 148 dialogue keys, `lastLine()`
 `"D139"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 58 checks; the hammer test GREEN at 26; the mobile-fit test prints
+**Baselines, not regressions:** the FTUE test prints GREEN at 61 checks; the hammer test GREEN at 27; the mobile-fit test prints
 GREEN at **21** cases (the old handoff said 23, which was wrong: the file has not changed since r135);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
