@@ -1849,3 +1849,54 @@ Manifest 144 → 145.
 Verified through the real beat: leaving the cave and walking to the forge reaches `fire-grind`, speaks
 D67a and opens the window with the art at its natural 800x800 drawn at 400, inside the frame. Closing
 gives D68, and with the player on the wrong tab the INGREDIENTS halo comes up with it.
+
+## Dialogue review (owner, 2026-10-01), r213
+
+The owner had every line read in FTUE order for flow and sense, then approved these changes. The new
+text below supersedes the text quoted for these ids earlier in this script; `tooling/ftue/ftue.test.mjs`
+asserts every one.
+
+| Id | New text | Why |
+| --- | --- | --- |
+| D8, D10 | '?' with straight quotes | one quote style |
+| D14 | Press and hold the metal, and I will heat it for you to hammer. | "hold on" read as "wait" |
+| D15 | It is hot enough. Now strike the hot metal! | since r209 the hammer is dragged and tapped (D15a explains) |
+| D22 | You don't need to know who I am! ... | straight apostrophe |
+| D26 | Phew! That was a lot of hard work. | was "Phew- that" |
+| D67a | The map is divided into 5 parts. This picture gives you a hint about where each trait might be. | the open D67a wording item |
+| D76 | Yes! We got it! It is not perfect, but it is okay for now. | tiers are not taught until part 4 |
+| D82 | Tap the design desk and pick your favorite designs. | was "assembly bench"; everything else says design desk |
+| D90 | Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point. | D9 calls them experience points |
+| D99 | We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later. | it is metal, not a sword; two "But"s |
+| D110 | ... You make reliable swords! I'm Bram, by the way. | he never said his name; added on the owner's word |
+| D111a | The last one was good, but not very sharp. Can you make this one sharper? | "it" was unclear |
+| D114 | ... but I thought it would be of more use to you. | grammar (was "will") |
+| D118 | I made something for you. To keep you motivated, I put together a small quest list. | "also" pointed back at nothing since the quest list moved to part 1 |
+| D128 | Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened! | grade 2 also gets the tip since r212 |
+| D130 | ... That will shut him up! Muwahaha! | one spelling of the laugh (D57's) |
+| D132 | Huh... it wasn't good enough. | "No." read oddly |
+
+**New lines** (beside their neighbours, except D140):
+- **D28b** (dragon, when GPC1 arrives, the first unguided craft): "Now you try! Make a balanced sword like the last one."
+- **D58a** (dragon, when GPC3 arrives with the 5-sword order): "Five swords! Let's use the craft book. It can make them all at once."
+- **D92a** (dragon, when GPC4 arrives, the first fire order; the fire route is auto-recorded on first discovery): "Remember the fire route? The craft book can help."
+- **D93a** (dragon, after TC4's D93): "Gale? We have never made that. Let's try copper and see where the path goes."
+- **D140** (dragon, after D133, D136 or D139, every ending): "From now on, ring the bell when you are ready for customers. I'll be here if you need me." The map's last key, so `lastLine()` and `FTUE.endLines` are D140.
+
+**Order:** in part 5, **D57 now comes right after the sale to Bram, before his D114** (it used to cut in
+between his gift line and the diary window). **Bram's name tag** is "???" on Day 1 (he will not say
+who he is, D22) and on his return until D110 has typed out "I'm Bram, by the way."; then "BRAM". Reward window: the grindstone's sub-line is "It is
+on the forge bench. We will use it soon." (was "The tutorial will show you how to use it.").
+
+Left as they were (owner): D59 ("This forge has not been in use for so long"), D2 ("exhausted": the
+intro explains it), and pointers only for the build-mode beat.
+
+## Hazard cost (owner, 2026-10-01), r215
+
+Since r215 a hazard costs value (`specs/2026-10-01-hazard-integrity.md`). Supersedes the D69b text above.
+
+- **D69b** (changed): "The sword will take damage if we force it through the hazards, and a damaged sword sells for less."
+- **D69d** (new, after D69c): "See the integrity? That hazard scratched it, so it will sell for a little less."
+  *Trigger: the fire sword's craft window in part 3, only when the hazard took health. The bubble sits
+  above the window for this line, and the Integrity row blinks.*
+- The hazard zone the part 4 gale route crossed is gone, so that beat has no hazard line.
