@@ -1896,7 +1896,7 @@ intro explains it), and pointers only for the build-mode beat.
 Since r215 a hazard costs value (`specs/2026-10-01-hazard-integrity.md`). Supersedes the D69b text above.
 
 - **D69b** (changed): "The sword will take damage if we force it through the hazards, and a damaged sword sells for less."
-- **D69d** (new, after D69c): "See the integrity? That hazard scratched it, so it will sell for a little less."
+- **D69d** (new, after D69c): "See its health? That hazard scratched it, so it will sell for a little less." (r217 wording; first written as "See the integrity?")
   *Trigger: the fire sword's craft window in part 3, only when the hazard took health. The bubble sits
   above the window for this line, and the Integrity row blinks.*
 - The hazard zone the part 4 gale route crossed is gone, so that beat has no hazard line.

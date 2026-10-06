@@ -1516,6 +1516,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r214: "Sell this sword?" - Garric only, before a sword short of his best grade is sold */
 /* r215: a dragon line that talks ABOUT an open window (D69d) sits above it; modals are z 1000 */
 .say-over-modal { z-index: 1001 !important; }
+.cr-lost { color: #c0392b; }   /* r217: gold lost to hazard damage */
 .gsa-box { max-width: 330px; text-align: center; }
 .gsa-box .sf-modal-sub { margin-bottom: 6px; font-size: 12px; }
 .gsa-btns { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
@@ -1921,7 +1922,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="map-wrap">
         <span class="map-tag">🗺️ Ore-path map</span>
         <img id="compass" src="assets/map/compass.webp" alt="">
-        <div id="sfHp" title="Blade integrity — hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
+        <div id="sfHp" title="Blade health: hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
         <svg id="board" viewBox="0 250 2800 1400" preserveAspectRatio="xMidYMid slice" aria-label="Crafting map">
             <defs>
                 <mask id="fogMask">
@@ -2584,7 +2585,7 @@ function ftuePart(n){
         if(bt){ bt.discovered=true; bt.txtEl.textContent=bt.trait.symbol; bt.txtEl.removeAttribute('font-weight'); reveal(bt.x,bt.y,'tr'+bt.trait.id); }
         RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[0.5,0.5,0.5,0.5], at:Date.now() };
         TUT_COUNTER_VISITED=true; TUT_BRAM_STATE='done'; TUT_BRAM_SOLD=true;
-        TUT_HMHOT=true; TUT_HMCOLD=true; TUT_BOOKS=true; TUT_SAIDBOOK=true; TUT_SAIDHAZ=true; TUT_SAIDMUG=true;
+        TUT_HMHOT=true; TUT_HMCOLD=true; TUT_BOOKS=true; TUT_SAIDBOOK=true; TUT_SAIDMUG=true;   /* r216: TUT_SAIDHAZ only from part 4 (below) */
         SAY_SEQ.length=0; for(let i=1;i<=28;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D118','D119');
         FTUE.preQuests.forEach(p=>{ const q=questBy(p.id); if(q){ q.progress=q.goal; q.done=true; q.claimed=true; } });
         RAIL_QUEST=true; railUi();
@@ -2597,6 +2598,7 @@ function ftuePart(n){
             for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
             FTUE_ST.part=2; FTUE_ST.gpc=1; FTUE_ST.grindUse=true; FTUE_ST.pages=5; FTUE_ST.desk=true;
             ORE_COUNT.iron=0; ORE_COUNT.manganese=0; GOLD=280; exp=260; TUT_STAGE='bell2'; }
+        if(n>=4) TUT_SAIDHAZ=true;   /* r216: parts 2-3 start before the fire sword, so its hazard lines are still to come */
         if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */
             const ft=traits.find(t=>t.trait && t.trait.id==='fire');
             if(ft){ ft.discovered=true; ft.txtEl.textContent=ft.trait.symbol; ft.txtEl.removeAttribute('font-weight'); reveal(ft.x,ft.y,'tr'+ft.trait.id); }
@@ -5095,7 +5097,7 @@ function checkHazard(p,dt){ if(!melt || !dt) return;
     tutHazardStep();   /* r179 */
     melt.hp=Math.max(0, melt.hp-HAZARD_DPS*dt); updateHpPill();
     if(melt.hp<=0) shatterBlade();
-    else if(!melt._hazHint){ melt._hazHint=1; hint('⚠️ The sword is in a <b style="color:#e2503c">hazard zone</b> — it is losing integrity. Hammer on through or pull it clear with the dragon.'); } }
+    else if(!melt._hazHint){ melt._hazHint=1; hint('⚠️ The sword is in a <b style="color:#e2503c">hazard zone</b> — it is losing health. Hammer on through or pull it clear with the dragon.'); } }
 function shatterBlade(){ const n=(melt&&melt.traits)?melt.traits.length:0;
     refundOre();                                          // r74: Restore Ore, before resetRun clears segs
     clearHazardFx(); resetRun();
@@ -5390,6 +5392,11 @@ function confirmComp(){
    time it opens - the flight on close is decoration, never the thing that stores them (r68b). */
 let CRAFT_SHOW=null, CRAFT_AFTER=null;
 function oreTally(list){ const t={}; (list||[]).forEach(o=>{ t[o]=(t[o]||0)+1; }); return t; }
+/* r217 (owner): the Health row shows what the damage cost, in gold and in red, not a percentage */
+function hazLostHtml(w){
+    const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);
+    const tiers=hazTierDrop(w.haz), note=tiers ? ', '+w.haz+' hazards: -'+tiers+' tier' : '';
+    return lost>0 ? '<span class="cr-lost">-'+lost+'g</span>'+note : 'No loss'+note; }
 function showCraft(w, n, after){
     n=n||1; CRAFT_SHOW={ w:w, n:n }; CRAFT_AFTER=after||null;
     sayHide();   /* r92: the result stands alone - the dragon's next line waits for 'close' */
@@ -5407,7 +5414,7 @@ function showCraft(w, n, after){
     body.innerHTML =
         row('Quality', '<span style="color:'+tierColor(tier)+'">'+tier+'</span>') +
         (w.quality ? row('Forging', w.quality+(w.forge!=null ? ', '+Math.round(w.forge*100)+'%' : '')) : '') +   /* r209 */
-        (w.hp!=null ? row('Integrity', w.hp+'%'+(hazTierDrop(w.haz) ? ', '+w.haz+' hazards: -'+hazTierDrop(w.haz)+' tier' : '')) : '') +   /* r215 */
+        (w.hp!=null ? row('Health', hazLostHtml(w)) : '') +   /* r215. r217: 'Health', and the gold it cost, in red */
         row('Shape', w.shape) +
         row('Value', price+' g'+(n>1? ' <span style="font-weight:400">each &middot; '+(price*n)+' g total</span>' : '')) +
         row('Ores used', tallyText(oreTally(w.ores)) || '\u2014') +
@@ -6017,9 +6024,9 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         if(second) ftueTc2Sell(); else if(fireSword) tutFireCustomise();   /* r201: was tutBasementStep - sharpening moved to part 5 */
         else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
-    if(fireHurt) setTimeout(()=>{ sayQueue('D69d');   /* r215: and the Integrity row blinks with it */
+    if(fireHurt) setTimeout(()=>{ sayQueue('D69d');   /* r215: and the Health row blinks with it */
         const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb) sb.classList.add('say-over-modal');
-        const r=[...document.querySelectorAll('#sfCraftBody .cr-row')].find(x=>/^Integrity/.test(x.textContent)); if(r) r.classList.add('tut-blink'); }, 350);
+        const r=[...document.querySelectorAll('#sfCraftBody .cr-row')].find(x=>/^Health/.test(x.textContent)); if(r) r.classList.add('tut-blink'); }, 350);
 }
 function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
@@ -6583,7 +6590,7 @@ const DIALOGUE = {
     D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
     D69b: "The sword will take damage if we force it through the hazards, and a damaged sword sells for less.",   /* r215 */
     D69c: "Good thing this is a small one. Just keep going.",
-    D69d: "See the integrity? That hazard scratched it, so it will sell for a little less.",   /* r215: over the fire sword's craft window */
+    D69d: "See its health? That hazard scratched it, so it will sell for a little less.",   /* r215: over the fire sword's craft window */
     D70: "Do you see that? I think that is the fire trait!",
     D71: "Put the metal back in the smelter; we need to go further.",
     D72: "Grind the manganese until the \u2715 mark touches the trait.",
@@ -8304,8 +8311,12 @@ function tutMugStep(){
    explains it. Once only, like the first book (D9), and not gated on the tutorial being live - the
    first crossing is the first crossing whenever it happens. The pause also stops the damage while
    the three lines are read, since the board tick holds on TUT_PAUSE. */
+/* r216 (owner): not the first crossing EVER - the first crossing while the fire sword is being built,
+   which is the run the tutorial routes through D69's speck. A hazard touched before that (a free
+   craft in parts 1-2) no longer spends the lines. */
+const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2'];
 function tutHazardStep(){
-    if(TUT_SAIDHAZ) return; TUT_SAIDHAZ=true;
+    if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;
     sayQueue('D69a','D69b','D69c');
     tutPause(true);
 }

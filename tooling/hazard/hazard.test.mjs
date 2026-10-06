@@ -57,8 +57,18 @@ eq('cbCraft applies the recipe route', src.includes('hp:(r.hp!=null?r.hp:100), h
 eq('ingots keep the zones crossed', src.includes('hazSeen:(melt.hazSeen||[]).slice()'), true);
 const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)"')); return r ? r[1] : null; };
 eq('D69b text', line('D69b'), 'The sword will take damage if we force it through the hazards, and a damaged sword sells for less.');
-eq('D69d text', line('D69d'), 'See the integrity? That hazard scratched it, so it will sell for a little less.');
+eq('D69d text', line('D69d'), 'See its health? That hazard scratched it, so it will sell for a little less.');   /* r217: owner approved */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D69d follows D69c', keys[keys.indexOf('D69d') - 1], 'D69c');
 
+/* r216 (owner, 2026-10-01): the hazard lines play the first time the sword crosses a hazard WHILE
+   BUILDING THE FIRE SWORD, not on the first crossing ever; the PART 2-3 jumps leave them unsaid */
+eq('fire-run stages', (src.match(/const TUT_FIRE_BUILD = (\[[^\]]*\]);/) || [])[1],
+  "['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2']");
+eq('tutHazardStep waits for the fire run', src.includes('if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;'), true);
+eq('PART 2-3 jumps leave the hazard lines unsaid', src.includes('TUT_SAIDBOOK=true; TUT_SAIDMUG=true;') && src.includes('if(n>=4) TUT_SAIDHAZ=true;'), true);
+/* r217 (owner, 2026-10-01): "Integrity" is "Health" to the player, and the row shows the gold lost, in red */
+eq('craft window row is Health, gold lost in red', src.includes("row('Health', hazLostHtml(w))"), true);
+eq('gold lost = full-health base minus base', src.includes('const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);'), true);
+eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
 console.log('[hazard] GREEN / ' + n + ' checks');

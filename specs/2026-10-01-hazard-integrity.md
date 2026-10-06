@@ -52,3 +52,28 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
 - **D69d** (new, after D69c in the map): "See the integrity? That hazard scratched it, so it will sell
   for a little less." Said over the fire sword's craft window in part 3, only when the sword lost
   health; the Integrity row blinks with it.
+
+## When the hazard lines play (owner, 2026-10-01), r216
+
+The owner did not see D69a-D69c: the fire sword crossed its speck with no pause and no line. Two causes:
+
+1. `ftuePart(n)` (the PART 2-6 buttons) set `TUT_SAIDHAZ` for every part from 2 on, so a run started
+   with PART 2 or PART 3 could never play the lines.
+2. The lines played on the **first hazard crossing ever** (r179). A crossing before the fire sword
+   (a free craft in parts 1-2) spent them, and the fire sword then crossed in silence.
+
+**Rule now (owner):** D69a, D69b, D69c play the first time the sword crosses a hazard **while the fire
+sword is being built**: `TUT_STAGE` in `TUT_FIRE_BUILD` = fire-grind, fire-heat1, fire-spot,
+fire-reheat, fire-mang, fire-heat2. A crossing before that stays silent and does not spend them. The
+game still pauses for the three lines. `ftuePart(n)` marks them said only from part 4 (after the fire
+sword). Verified with real `tick()` frames: a crossing at stage null stays silent (the blade still
+loses health); at fire-heat1 the game pauses on entry at full health, then D69a, D69b, D69c, and the run
+goes on. Asserted by `tooling/hazard/hazard.test.mjs` (31 checks).
+
+## Health, in gold (owner, 2026-10-01), r217
+
+To the player the value is **Health**, not integrity: the craft window row is "Health", the health bar tooltip
+is "Blade health: hazard zones damage the active sword", and the hazard toast says "it is losing health". The
+row shows the **gold the damage cost, in red** ("-4g": the base price at full health minus the real base
+price), not a percentage; full health shows "No loss". The tier note stays (", 3 hazards: -1 tier").
+D69d is now "See its health? That hazard scratched it, so it will sell for a little less." (owner approved, 2026-10-06).
