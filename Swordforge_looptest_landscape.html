@@ -401,6 +401,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    clear it there. It must NOT do that on the board: D8 and D9 are spoken with no modal open and
    the bench bubble sits at z-46, which a deep dim would bury. Hence the class, not a new value. */
 #tutDim.deep { z-index: 1050; }
+/* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
+   not the map's SVG text, because the map sits under #tutDim. */
+.xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;
+    font-family: 'Cinzel', serif; font-weight: 700; font-size: 34px; color: #ffe9a8; white-space: nowrap;
+    text-shadow: 0 0 2px #140e07, 0 0 4px #140e07, 0 0 14px rgba(255,200,80,.95), 0 0 28px rgba(255,170,50,.7);
+    animation: xpHoldPulse 1.1s ease-in-out infinite; }
+.xp-hold.off { animation: xpHoldOff .35s ease-in forwards; }
+@keyframes xpHoldPulse { 0%,100% { transform: translate(-50%,-100%) scale(1); } 50% { transform: translate(-50%,-100%) scale(1.12); } }
+@keyframes xpHoldOff { to { transform: translate(-50%,-140%) scale(.9); opacity: 0; } }
 /* the line the world stopped for, lifted clear of the dim and ringed */
 .tut-lit { z-index: 1101 !important; animation: tutLit 1.25s ease-in-out infinite; }
 @keyframes tutLit {
@@ -422,6 +431,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     100% { stroke-width: 56; opacity: 0; }
 }
 @keyframes tutTraitPulse { 0%,100% { opacity:.30; transform:scale(1); } 50% { opacity:1; transform:scale(1.30); } }
+/* r221: the waiting customer's trait - pale gold, dashed, slower than #tutSpot so the two never read as one */
+#custSpot circle { animation: tutTraitPulse 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center;
+    filter: drop-shadow(0 0 6px rgba(255,240,170,.9)); }
 #tutSpot circle { animation: tutTraitPulse 1.1s ease-in-out infinite;
     transform-box: fill-box; transform-origin: center;
     filter: drop-shadow(0 0 7px rgba(255,150,40,.9)); }
@@ -763,9 +775,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .tier-one img { width: 100%; max-width: 124px; height: auto; display: block;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
 .tier-one span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: .6px; }
-.tier-weak span { color: #c0a48a; }
-.tier-fine span { color: #49b6ff; }
-.tier-epic span { color: #ffcf3a; }
+.tier-weak span { color: #4d4d4d; }   /* r225: tierColor()'s colours */
+.tier-fine span { color: #2b7fd8; }
+.tier-epic span { color: #8e44d9; }
 /* pointer-events: the part images are full-canvas squares with the blade on the diagonal, so their
    transparent corners reach over the title and the rows - and would swallow clicks meant for them. */
 .cr-art, .cr-art * { pointer-events: none; }
@@ -873,6 +885,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: radial-gradient(circle, rgba(255,240,190,.55), rgba(255,170,60,.18) 60%, rgba(255,170,60,0) 72%);
     box-shadow: 0 0 0 2px rgba(40,14,2,.8), 0 0 12px rgba(255,190,80,.9), inset 0 0 0 2px rgba(40,14,2,.55); animation: hmPtPulse 1.1s ease-in-out infinite; }
 .hm-pt.cold { border-color: rgba(205,210,216,.8); background: none; box-shadow: 0 0 0 2px rgba(22,13,4,.6); animation: none; }
+/* r219: the marks wear the heat as a gradient - one colour (--pt, "r,g,b") set on #hmPoints by hmPtsHeat() */
+#hmPoints { --pt: 255,224,58; }
+#hmPoints .hm-pt:not(.cold) { border-color: rgb(var(--pt));
+    background: radial-gradient(circle, rgba(var(--pt),.5), rgba(var(--pt),.15) 60%, rgba(var(--pt),0) 72%);
+    box-shadow: 0 0 0 2px rgba(40,14,2,.8), 0 0 12px rgba(var(--pt),.9), inset 0 0 0 2px rgba(40,14,2,.5); }
 .hm-pt.done { animation: hmPtDone .35s ease-out forwards; }
 @keyframes hmPtPulse { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.08); } }
 @keyframes hmPtDone { to { transform: translate(-50%,-50%) scale(1.7); opacity: 0; } }
@@ -885,9 +902,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmRing.off { display: none; }
 #hmStrikePad { position: absolute; z-index: 7; left: 54%; top: 5%; width: 17%; height: 27%; pointer-events: auto; cursor: grab; touch-action: none; }
 #hmStrikePad.dragging { cursor: grabbing; }
-.hm-acc { transform: translate(-50%,-100%); font: bold 15px/1 Georgia, serif; color: #fff3c8; white-space: nowrap;
-    text-shadow: 0 0 3px #2a1606, 0 2px 4px #000; animation: hmAcc .8s ease-out forwards; }
-@keyframes hmAcc { from { opacity: 1; transform: translate(-50%,-100%); } to { opacity: 0; transform: translate(-50%,-230%); } }
+/* r226 (owner): bigger, twice as long, and it rises almost to the top of the scene (--rise, set per strike) before it fades */
+.hm-acc { transform: translate(-50%,-100%); font: bold 26px/1 Georgia, serif; color: #fff3c8; white-space: nowrap;
+    text-shadow: 0 0 3px #2a1606, 0 0 6px #2a1606, 0 2px 5px #000; animation: hmAcc 1.6s cubic-bezier(.2,.7,.4,1) forwards; }
+@keyframes hmAcc { 0% { opacity: 1; transform: translate(-50%,-100%) scale(.85); }
+                   10% { opacity: 1; transform: translate(-50%,-100%) scale(1.1); }
+                   75% { opacity: 1; }
+                   100% { opacity: 0; transform: translate(-50%, calc(-100% - var(--rise, 60px))) scale(1); } }
 /* --- strike sparks --- */
 #hmFx { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 #hmFx > * { position: absolute; pointer-events: none; }
@@ -1148,6 +1169,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r161: the cave the same way, at half size. Bottom-left he covered the lower-left ore node and
    the #panLeft way out; every node sits below 52% of the screen, so the top band is free. */
 #screenLayer.sc-cave > #screenDragon { top: 5%; bottom: auto; width: 11.5%; }
+/* r227 (owner): on the counter screen he is 25% smaller (23% -> 17.25%) */
+#screenLayer.sc-customer > #screenDragon { width: 17.25%; }
 #screenDragon.dragging { cursor: grabbing; }
 #screenDragon .dragoncrop { width: 100%; }
 #screenDragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
@@ -1971,6 +1994,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                  had to clear the fog to be visible would give the trait away, which is the thing
                  the owner did not want. -->
             <g id="tutSpot" style="display:none;"><circle r="26" fill="none" stroke="#ffb347" stroke-width="4"/></g>
+            <g id="custSpot" style="display:none;"><circle r="31" fill="none" stroke="#fff3b0" stroke-width="3" stroke-dasharray="7 5"/></g>   <!-- r221: the waiting customer's trait -->
             <g id="xmark" style="display:none;">
                 <line x1="-10" y1="-10" x2="10" y2="10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
                 <line x1="-10" y1="10" x2="10" y2="-10" stroke="#e0392b" stroke-width="5" stroke-linecap="round"/>
@@ -2826,7 +2850,18 @@ function updateXpHud(){
 // Sword Master's books land immediately, into the fog; Sword Master and Restore Ore cost 1 point a rank.
 const SM_EXTRA_PCT = 0.10;        // ranks 1-5: +10% of the base book count, per rank
 const SM_BIG_PER_RANK = 3;        // ranks 6-10: how many 100-200 exp books each rank scatters
+/* r218: the yellow and green nodes get skills. Design record specs/2026-10-06-skill-tree-trade-ore.md;
+   tooling/skills/skills.test.mjs reads this block out of the file. */
+/* SKILLS-BEGIN */
 const SKILLS = [
+    { id:'trade',   name:'Improved Trading Skills', max:20, cost:1, node:0,
+      desc:r=>'+'+(r*5)+'% selling price on every sword' },
+    { id:'extract', name:'Ore Extraction Upgrade',  max:5,  cost:1, node:4,
+      desc:r=>(r*5)+'% chance a seam holds 3-4 more ore' },
+    { id:'pick',    name:'Pickaxe Upgrade',         max:5,  cost:1, node:5,
+      desc:r=>'the pickaxe swings '+(r*10)+'% faster' },
+    { id:'bounty',  name:'Ore Bountifulness',       max:10, cost:1, node:6,
+      desc:r=>'+'+r+' ore on every seam' },
     { id:'bulk',    name:'Bulk Craft',   max:7,  cost:7, node:8,
       desc:r=>'auto-craft uses '+(r*10)+'% less ore' },
     { id:'master',  name:'Sword Master', max:10, cost:1, node:9,
@@ -2836,6 +2871,12 @@ const SKILLS = [
     { id:'restore', name:'Restore Ore',  max:3,  cost:1, node:11,
       desc:r=>(r*10)+'% of your ore back if a blade is lost' }
 ];
+function tradeMul(r){ return 1 + 0.05*(r||0); }                 /* rank 20 doubles the base price */
+function extractChance(r){ return Math.round(5*(r||0))/100; }    /* 5% a rank, rolled once per seam */
+function extractBonus(roll){ return roll<0.5 ? 3 : 4; }           /* a rich seam holds 3 or 4 more */
+function pickSwingMs(r){ return Math.round(340*(1 - 0.1*(r||0))); }   /* 10% faster a rank */
+function bountyExtra(r){ return r||0; }                          /* +1 ore a rank on every seam */
+/* SKILLS-END */
 const SKILL_BY={}; SKILLS.forEach(k=>SKILL_BY[k.id]=k);
 let SKILL_RANK={ bulk:0, master:0, vision:0, restore:0 };
 function rank(id){ return SKILL_RANK[id]||0; }
@@ -2895,6 +2936,8 @@ function buySkill(id){
     if(TALENT < sk.cost){ toast('<b>'+sk.name+'</b> needs '+sk.cost+' talent point'+(sk.cost>1?'s':'')+' \u2014 you have '+TALENT); return; }
     TALENT -= sk.cost; SKILL_RANK[id]=r+1; tutDay2Spent();   /* r122 */
     let extra='';
+    if(id==='bounty'){ CAVE_NODES.forEach(c=>{ if(!c.script && c.left>0) c.left+=1; }); if(SF_SCREEN==='cave') buildCave(); }   /* r218 */
+    if(id==='pick') stopStriking();   /* r218: the next swing restarts at the new speed */
     if(id==='master'){ const n=masterSpawn(r+1); extra = n? ' \u2014 '+n+(r+1>5?' great tomes':' books')+' hidden in the fog' : ''; }
     buildSkillNodes(); updateXpHud();
     toast('\u2b50 <b>'+sk.name+'</b> rank '+(r+1)+'/'+sk.max+' \u2014 '+sk.desc(r+1)+extra, 2600);
@@ -2925,7 +2968,7 @@ function addBook(K,x,y,xpOverride){
 }
 function takeBook(b){
     b.taken=true; gainExp(b.xp,'book');
-    if(b.tut && FIRST_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep();   /* r73/r112 */
+    if(b.tut && FIRST_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);   /* r73/r112. r224: the book, for its +xp */
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
     const t=document.createElementNS(NS,'text'); t.setAttribute('class','bookXp'); t.setAttribute('text-anchor','middle');
@@ -3071,7 +3114,7 @@ function swordBestTier(w){
 function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
 // the price a sword fetches right now, with both multipliers applied
 function swordBase(w){
-    let g = swordValue(w) * popMul() * hmForgeMul(w) * hazPriceMul(w && w.hp);   /* r215: blade health */   /* r209: the forging grade */
+    let g = swordValue(w) * popMul() * hmForgeMul(w) * hazPriceMul(w && w.hp) * tradeMul(rank('trade'));   /* r218: Improved Trading Skills */   /* r215: blade health */   /* r209: the forging grade */
     if(REP < 0) g = g*0.8; else if(REP > 10) g = g*1.2;
     return Math.max(1, Math.floor(g));
 }
@@ -3347,7 +3390,7 @@ function gainOre(id,n){ ORE_COUNT[id]=(ORE_COUNT[id]||0)+(n||1); }
 /* r104: the scripted cave. The fire craft needs exactly 2 iron and 2 manganese, so this stage
    stocks exactly that - two seams of two - instead of the usual five seams of seven. */
 function setTutorialCave(){
-    CAVE_NODES=[{ metal:'iron', spot:2, left:2 }, { metal:'manganese', spot:7, left:2 }];
+    CAVE_NODES=[{ metal:'iron', spot:2, left:2, script:true }, { metal:'manganese', spot:7, left:2, script:true }];   /* r218: exact - no ore skills here */
     PICK_OUT={ x:40.0, y:88.0 };   /* lying on the cave floor, not in the bag */
 }
 /* r203: the tutorial's Day 2 cave (FTUE.day2Cave) - one seam per ore on random spots, and each
@@ -3355,12 +3398,12 @@ function setTutorialCave(){
 function ftueDay2Cave(){
     const ids=Object.keys(FTUE.day2Cave), idx=CAVE_SPOTS.map((s,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    CAVE_NODES=ids.map((m,i)=>({ metal:m, spot:idx[i], left:FTUE.day2Cave[m], per:FTUE.day2Swing.slice() }));
+    CAVE_NODES=ids.map((m,i)=>({ metal:m, spot:idx[i], left:FTUE.day2Cave[m], per:FTUE.day2Swing.slice(), script:true }));   /* r218: stocked for Day 2 - no ore skills here */
 }
 function rollCaveNodes(){
     const idx=CAVE_SPOTS.map((s,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    CAVE_NODES=CAVE_METALS.map((m,i)=>({ metal:m, spot:idx[i], left:NODE_YIELD }));
+    CAVE_NODES=CAVE_METALS.map((m,i)=>({ metal:m, spot:idx[i], left:NODE_YIELD+bountyExtra(rank('bounty')) }));   /* r218: Ore Bountifulness */
 }
 function oreName(id){ return ORE_BY[id] ? ORE_BY[id].name : id; }
 /* r168: the r166 drag ghost belongs to one .cv-pick element. mineNode() calls buildCave() 420ms
@@ -3435,12 +3478,17 @@ function pickCheck(){
         sp.style.left=(r.left+r.width*0.5-lr.left).toFixed(0)+'px';
         sp.style.top =(r.top +r.height*0.34-lr.top ).toFixed(0)+'px'; sp.classList.add('on'); }
     else if(sp) sp.classList.remove('on');
+    if(p) p.style.animationDuration=(pickSwingMs(rank('pick'))/1000).toFixed(3)+'s';   /* r218: Pickaxe Upgrade */
     if(el){ if(!PICK_T) PICK_T=setInterval(()=>{ const cur=pickSeam();
-                if(cur) mineNode(cur._node, cur); else pickCheck(); }, PICK_SWING); }
+                if(cur) mineNode(cur._node, cur); else pickCheck(); }, pickSwingMs(rank('pick'))); }
     else if(PICK_T){ clearInterval(PICK_T); PICK_T=null; }
 }
 function mineNode(n,el){
     if(!PICK_OUT || n.left<=0) return;
+    /* r218: Ore Extraction Upgrade - a seam rolls once, on its first swing; scripted seams never do */
+    if(!n.script && !n.rolled){ n.rolled=true;
+        if(Math.random() < extractChance(rank('extract'))){ const b=extractBonus(Math.random()); n.left+=b;
+            toast('⛏️ A rich seam: <b>+'+b+' '+oreName(n.metal)+'</b>', 2200); } }
     const take = n.per ? Math.min(n.left, n.per[0]+Math.floor(Math.random()*(n.per[1]-n.per[0]+1))) : 1;   /* r203 */
     n.left-=take; gainOre(n.metal,take); setTimeout(tutMined, 0); setTimeout(tutDay2Mined, 0);   /* r111/r122 */
     if(INV_TAB===0) buildShelf();                         // the count moves NOW, not when the ore lands
@@ -4632,13 +4680,32 @@ function wirePan(){ wireRacks(); wireDesign(); wireSharpen();
         e.preventDefault(); noteAction(); screenStep(d); });
     updateScreenArrows();
 }
+/* r220 (owner): a trait icon on the map opens the craft book on that trait's newest page.
+   Record: specs/2026-10-06-map-trait-links.md; tooling/map/map.test.mjs reads this block. */
+/* MAP-PURE-BEGIN */
+const TRAIT_TAP = { movePx:6, radius:21 };   /* a press+release this still is a tap; the icon's circle is r17, plus 4 */
+function latestPageFor(recipes, tid){ let best=null, at=-Infinity;
+    Object.keys(recipes||{}).forEach(k=>{ const r=recipes[k], l=r.traits || (r.tid ? [{ tid:r.tid }] : []);
+        if(l.some(a=>a.tid===tid) && (r.at||0)>at){ at=r.at||0; best=k; } });
+    return best; }
+/* MAP-PURE-END */
+function traitAt(cx,cy){ const p=clientToWorld(cx,cy); let best=null, bd=TRAIT_TAP.radius;
+    traits.forEach(t=>{ const d=Math.hypot(p.x-t.x, p.y-t.y); if(d<=bd){ bd=d; best=t; } }); return best; }
+function mapTraitTap(ev){
+    const t=traitAt(ev.clientX, ev.clientY); if(!t || inFog(t.x, t.y)) return;   /* the fog keeps its secrets */
+    if(!t.discovered){ toast('Discover this trait first'); return; }
+    const k=latestPageFor(RECIPES, t.trait.id);
+    if(!k){ toast('No saved page for <b>'+t.trait.name+'</b> yet'); return; }
+    CB_SEL=k; openBook(); }
 function clientToWorld(cx,cy){ const r=board.getBoundingClientRect(); const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; return { x:view.x+fx*view.w, y:view.y+fy*(view.w*aspect) }; }
 function wireZoomPan(){
     board.addEventListener('wheel', ev=>{ ev.preventDefault(); const wp=clientToWorld(ev.clientX,ev.clientY); zoomAt(ev.deltaY<0?0.85:1.18, wp.x, wp.y); }, {passive:false});
     let pan=null, pinch=null;
     board.addEventListener('pointerdown', ev=>{ pan={sx:ev.clientX, sy:ev.clientY, vx:view.x, vy:view.y}; try{ board.setPointerCapture(ev.pointerId); }catch(e){} });
-    board.addEventListener('pointermove', ev=>{ if(!pan) return; const r=board.getBoundingClientRect(); view.x=pan.vx-(ev.clientX-pan.sx)/r.width*view.w; view.y=pan.vy-(ev.clientY-pan.sy)/r.height*(view.w*aspect); setView(); });
-    const endPan=()=>{ pan=null; }; board.addEventListener('pointerup', endPan); board.addEventListener('pointercancel', endPan);
+    board.addEventListener('pointermove', ev=>{ if(!pan){ const t=traitAt(ev.clientX, ev.clientY); board.style.cursor=(t && t.discovered && !inFog(t.x,t.y)) ? 'pointer' : ''; return; }   /* r220 */ const r=board.getBoundingClientRect(); view.x=pan.vx-(ev.clientX-pan.sx)/r.width*view.w; view.y=pan.vy-(ev.clientY-pan.sy)/r.height*(view.w*aspect); setView(); });
+    const endPan=ev=>{ const tap = pan && ev && ev.type==='pointerup' && Math.hypot(ev.clientX-pan.sx, ev.clientY-pan.sy) < TRAIT_TAP.movePx;
+        pan=null; if(tap) mapTraitTap(ev); };   /* r220: a still press on a trait icon opens its page */
+    board.addEventListener('pointerup', endPan); board.addEventListener('pointercancel', endPan);
     board.addEventListener('touchmove', ev=>{ if(ev.touches.length===2){ ev.preventDefault(); pan=null; const d=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX, ev.touches[0].clientY-ev.touches[1].clientY); if(pinch){ const mx=(ev.touches[0].clientX+ev.touches[1].clientX)/2, my=(ev.touches[0].clientY+ev.touches[1].clientY)/2, wp=clientToWorld(mx,my); zoomAt(pinch/d, wp.x, wp.y); } pinch=d; } }, {passive:false});
     board.addEventListener('touchend', ()=>{ pinch=null; });
     const zi=document.getElementById('zoomIn'), zo=document.getElementById('zoomOut');
@@ -4982,9 +5049,12 @@ function moveX(){ if(!segs.length){ xmark.style.display='none'; return; } const 
 function swordPoint(){ if(!segs.length) return {x:START.x,y:START.y}; const s=segs[Math.min(sword.seg,segs.length-1)]; return segPoint(s,sword.frac); }
 function swordOut(){ return sword.seg>0 || sword.frac>0.004; }
 // preview shows the ore's FULL potential path from the current ✕: SOLID 0→solidPct, DOTTED solidPct→1.0, with the ✕ sitting at the boundary. solidPct starts at 0.5 (raw ore) and grows to 1.0 as you grind — so the solid part & ✕ advance together, the dotted tail shrinks. All rendered above the fog (no reveal), so the map stays hidden until the sword actually travels.
+/* r222 (owner): the dotted tail is what grinding would add - so until the grinder can be used (TC2 on,
+   FTUE_ST.grindUse) only the first, solid part of the path is shown */
+function ftueGrindHidden(){ return !FTUE_ST.grindUse && !tutOver(); }
 function drawSegmentPreview(oreId,solidPct){ const o=routeEnd(); const d=ORE_BY[oreId].d; measure.setAttribute('d',d); const len=measure.getTotalLength(); solidPct=Math.max(0,Math.min(1,solidPct));
     let sd='',ss=Math.max(2,Math.round(len*solidPct/10)); for(let i=0;i<=ss;i++){ const lp=measure.getPointAtLength(solidPct*i/ss*len); sd+=(i?'L':'M')+(o.x+lp.x).toFixed(1)+','+(o.y+lp.y).toFixed(1)+' '; } previewSolidEl.setAttribute('d',sd); previewSolidEl.removeAttribute('transform'); previewSolidEl.style.display= solidPct>0.002?'':'none';
-    if(solidPct<0.998){ let dd='',ds=Math.max(2,Math.round(len*(1-solidPct)/10)); for(let i=0;i<=ds;i++){ const frac=solidPct+(1-solidPct)*i/ds; const lp=measure.getPointAtLength(frac*len); dd+=(i?'L':'M')+(o.x+lp.x).toFixed(1)+','+(o.y+lp.y).toFixed(1)+' '; } previewEl.setAttribute('d',dd); previewEl.removeAttribute('transform'); previewEl.style.display=''; }
+    if(solidPct<0.998 && !ftueGrindHidden()){ let dd='',ds=Math.max(2,Math.round(len*(1-solidPct)/10)); for(let i=0;i<=ds;i++){ const frac=solidPct+(1-solidPct)*i/ds; const lp=measure.getPointAtLength(frac*len); dd+=(i?'L':'M')+(o.x+lp.x).toFixed(1)+','+(o.y+lp.y).toFixed(1)+' '; } previewEl.setAttribute('d',dd); previewEl.removeAttribute('transform'); previewEl.style.display=''; }
     else previewEl.style.display='none';
     const bp=measure.getPointAtLength(solidPct*len); xmark.setAttribute('transform','translate('+(o.x+bp.x)+','+(o.y+bp.y)+')'); xmark.style.display=''; }
 function hidePreviewPaths(){ previewEl.style.display='none'; previewSolidEl.style.display='none'; }
@@ -5075,7 +5145,7 @@ function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ 
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
 function placeOnAnvil(){ if(TUT_STAGE==='anvil') tutHammerStep(); melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Drag the hammer onto the anvil</b> to run the sword along the route. Reach a trait, then <b>pour the mug</b> over the anvil to lock it in.'); }
 function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
-function tierColor(t){ return t==='Epic'?'#ffcf3a':(t==='Fine'?'#49b6ff':'#c0a48a'); }
+function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }   /* r225 (owner): purple Epic, blue Fine, dark grey Weak - yellow did not read on the beige windows */
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
 function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if(r) r.style.display='none'; }
 function updateHpPill(){ const el=document.getElementById('sfHp'); if(!el) return;
@@ -5537,6 +5607,9 @@ const HM_HITS = {
     size:       5,      /* hit point and aim ring diameter, % of the stage width */
     inset:      0.6,    /* this much of the radius around a point's centre must be solid metal */
     gap:        1.6,    /* mid-blade points at least this many diameters apart */
+    /* r219 (owner): the marks show the heat as a smooth gradient - yellow, orange, red, then grey at
+       HM_FORGE.workMin (0.35), below which a strike does not count. Blended between stops every frame. */
+    heat: [ { h:1.00, c:[255,224,58] }, { h:0.70, c:[255,140,26] }, { h:0.45, c:[232,50,30] }, { h:0.35, c:[200,205,212] } ],
     ring:       { x:55, y:46.5 },   /* the aim ring with the hammer at rest, % of the stage (owner: clear of the head) */
     bands: [ { name:'Masterwork', min:0.85, mul:1.3 }, { name:'Good', min:0.60, mul:1.0 }, { name:'Crude', min:0, mul:0.8 } ],
     skip:     'Good',   /* SKIP HAMMER */
@@ -5546,6 +5619,12 @@ const HM_HITS = {
 /* HAMMER-PURE-BEGIN */
 /* accuracy of one strike: 1 with the centres together, 0 where the circles only touch (D = diameter) */
 function hmGrade(d, D){ return Math.max(0, 1 - d/D); }
+/* r219: the mark colour for a heat, blended between the two stops around it */
+function hmHeatColor(h){ const S=HM_HITS.heat;
+    if(h>=S[0].h) return S[0].c.slice(); if(h<=S[S.length-1].h) return S[S.length-1].c.slice();
+    for(let i=0;i<S.length-1;i++){ const a=S[i], b=S[i+1];
+        if(h<=a.h && h>=b.h){ const t=(a.h-h)/(a.h-b.h); return a.c.map((v,k)=>Math.round(v+(b.c[k]-v)*t)); } }
+    return S[S.length-1].c.slice(); }
 function hmBand(avg){ const B=HM_HITS.bands; return B.find(b=>avg>=b.min) || B[B.length-1]; }
 /* n points in image space (0..1), each solid at its centre and on a circle of inset*r around it, at
    least gap diameters apart. A narrow blade can be boxed in by a bad first pick, so a set that will not
@@ -5593,9 +5672,16 @@ function hmSetPoints(stage){
             return { x:R.anvil.x+dx*c-dy*sn, y:R.anvil.y+(dx*sn+dy*c)*AR, left:1 }; }); }
     else hmPts=[];
     hmPointsDraw(); }
+/* r219: the marks' colour follows the heat smoothly (one CSS variable on the layer, every heat change);
+   the cold class (no pulse, no fill) goes on below HM_FORGE.workMin */
+function hmPtsHeat(){
+    const L=document.getElementById('hmPoints'); if(!L) return;
+    L.style.setProperty('--pt', hmHeatColor(hmHeat).join(','));
+    const cold=hmHeat<HM_FORGE.workMin;
+    L.querySelectorAll('.hm-pt').forEach(p=>p.classList.toggle('cold', cold)); }
 function hmPointsDraw(){
     const L=document.getElementById('hmPoints'); if(!L) return; L.innerHTML='';
-    const cold=hmHeat<HM_FORGE.workMin;
+    const cold=hmHeat<HM_FORGE.workMin; hmPtsHeat();   /* r219: the colour is on the layer */
     hmPts.forEach(p=>{ if(p.left<=0) return; const d=document.createElement('div'); d.className='hm-pt'+(cold?' cold':'');
         d.style.left=p.x+'%'; d.style.top=p.y+'%'; d.style.width=HM_HITS.size+'%'; L.appendChild(d); }); }
 /* the ring's centre in stage px, and the point it covers (the nearer one, while the circles overlap) */
@@ -5612,11 +5698,14 @@ function hmRingPaint(){ const g=document.getElementById('hmRing'); if(!g) return
     g.classList.toggle('q-good', q==='Good'); g.classList.toggle('q-crude', q==='Crude');   /* Masterwork keeps the gold */
     const h=document.getElementById('hmHammer'); if(h) h.classList.toggle('striking', !!t);
     if(hmSwingWant) hmSwingOn(true); }
+const HM_ACC_TOP=10;   /* r226: the accuracy popup ends this far (% of the scene) from the top */
 function hmAccPop(at, acc){
     const layer=document.getElementById('hmFx'); if(!layer) return;
     const b=document.createElement('div'); b.className='hm-pt done'; b.style.left=at.x+'%'; b.style.top=at.y+'%'; b.style.width=HM_HITS.size+'%';
     const t=document.createElement('div'); t.className='hm-acc'; t.style.left=at.x+'%'; t.style.top=(at.y-4)+'%'; t.textContent=Math.round(acc*100)+'%';
-    layer.appendChild(b); layer.appendChild(t); setTimeout(()=>{ b.remove(); t.remove(); }, 820); }
+    const sc=document.getElementById('hmScene').getBoundingClientRect();   /* r226: rise to HM_ACC_TOP % from the top */
+    t.style.setProperty('--rise', Math.max(0, (at.y-4-HM_ACC_TOP)/100*sc.height).toFixed(0)+'px');
+    layer.appendChild(b); layer.appendChild(t); setTimeout(()=>b.remove(), 820); setTimeout(()=>t.remove(), 1650); }
 function hmQualOf(sc){ if(!sc.length) return { name:HM_HITS.unforged, acc:null };
     const a=sc.reduce((x,y)=>x+y,0)/sc.length; return { name:hmBand(a).name, acc:+a.toFixed(3) }; }
 let hmShape='Longsword', hmAngle=HM_RIG.base;
@@ -5739,7 +5828,7 @@ function hmHeatWatch(){
     const hot = hmHeat>=HM_FORGE.workMin;
     if(hot===HM_WASHOT) return;
     HM_WASHOT=hot; hmSay();
-    document.querySelectorAll('#hmPoints .hm-pt').forEach(p=>p.classList.toggle('cold', !hot));   /* r209 */
+    hmPtsHeat();   /* r219: was the cold toggle (r209); now every band */
     if(!hmQuenching) tutHmHeat(hot);   /* the final quench is not "it went cold, reheat it" */
 }
 function homeHmMug(){ const m=document.getElementById('hmMug'); if(!m) return;
@@ -5903,7 +5992,7 @@ function hmTick(ts){
     const F=HM_FORGE, was=hmHeat;
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
     hmHeat=Math.max(0, hmHeat-F.heatCool*dt);
-    if(Math.abs(hmHeat-was)>0.0004){ hmRender(); hmHeatWatch(); }
+    if(Math.abs(hmHeat-was)>0.0004){ hmRender(); hmHeatWatch(); hmPtsHeat(); }   /* r219 */
     if(hmShow!==hmProg){ const st=2.5*dt; hmShow = Math.abs(hmProg-hmShow)<=st ? hmProg : hmShow+Math.sign(hmProg-hmShow)*st; hmRender(); }   /* r209 */
     tutHm2Idle();   /* r102 */
 }
@@ -6146,6 +6235,7 @@ let lastT=0;
 function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
+    custSpotSync();   /* r221 */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
     if(melt && melt.stage==='smelting'){ if(bellowing){ melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt);
@@ -6779,15 +6869,18 @@ function tutIronSlot(){
     const im=[...document.querySelectorAll('#oreShelf .ore-slot img')].find(x=>x.alt==='Iron');
     return im ? im.closest('.ore-slot') : document.getElementById('oreShelf');
 }
+/* r223 (owner): the arrow starts at the metal still needed - iron until 2 are in, then manganese */
+function tutFirstOreSlot(){ return (segs.filter(g=>g.ore==='iron').length<2 ? tutIronSlot : tutOreSlot('Manganese'))(); }
 function tutOreStep(){
     TUT_STAGE='ore';
     tutGlow('#bellowtop', false);
-    tutArrow(tutIronSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
+    tutArrow(tutFirstOreSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
 }
 function tutCheckOre(){
     if(TUT_STAGE!=='ore') return;
     const n=id=>segs.filter(g=>g.ore===id).length;
-    if(n('iron')>=2 && n('manganese')>=2) tutBellowsStep();
+    if(n('iron')>=2 && n('manganese')>=2){ tutBellowsStep(); return; }
+    tutDrawArrow();   /* r223 */   /* an ore landed: the arrow's start is re-read (iron -> manganese) */
 }
 function tutBellowsStep(){
     if(TUT_STAGE==='bellows') return;
@@ -6804,6 +6897,7 @@ function tutDone(){ TUT_STAGE=null; tutArrow(null,null); tutSpinOn(null); tutUng
 const TUT_STRIKE_BEAT=0.7;       /* seconds of real striking before the game freezes to point it out */
 let TUT_STRIKE=0, TUT_PAUSE=false;
 function tutPause(on){ TUT_PAUSE=!!on;
+    if(!on) tutXpHoldOff();   /* r224: the held +xp goes with the pause */
     const d=document.getElementById('tutDim');
     const hm=document.getElementById('sfHammerModal');
     const inHm=!!(hm && hm.classList.contains('show'));   /* r173 */
@@ -7271,7 +7365,7 @@ function tutBram2Arrive(){
     if(TUT_STAGE!=='d2-praise') return;
     TUT_STAGE='bram2'; TUT_BRAM2_STATE='awaiting'; sayHide(); tutUnglow(); tutExit(null);
     FTUE_ST.part=5; FTUE_ST.gpc=0;   /* r204: Bram opens part 5 */
-    CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram' };
+    CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram', want:'swift' };   /* r221: D111 asks for swift */
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     /* r213: still unnamed until D110 says "I'm Bram" - the tag changes when the line has landed */
     const w=document.getElementById('custWho'); if(w) w.textContent='???';
@@ -7751,10 +7845,13 @@ function tutFireForge(){
     if(SAY_SEQ.indexOf('D67a')<0) SAY_SEQ.push('D67a');
     SAY_I=SAY_SEQ.indexOf('D67a'); say('D67a');
 }
+let TUT_FIRE_PTR=false;   /* r223: D68 has asked for the fire ores, so the ore arrow may show */
 function tutFireParts(){
+    TUT_FIRE_PTR=true;   /* r223 */
     if(SAY_SEQ.indexOf('D68')<0) SAY_SEQ.push('D68');
     SAY_I=SAY_SEQ.indexOf('D68'); say('D68');
     tutNeedTab(0);   /* r167: D68 asks for ore, so INGREDIENTS blinks until it is the open tab. */
+    setTimeout(()=>tutNudge(true), 0);   /* r223: the ore arrow goes up with D68, not on the next change */
 }
 /* the third ore landing in the smelter closes the first half */
 function tutFireSmelted(){
@@ -7769,6 +7866,18 @@ function tutFireSmelted(){
 /* hammering to the end of that short route is where the dragon spots Fire through the fog */
 let TUT_SAIDSPOT=false;
 /* r113: show/hide the pulsing ring over a trait, WITHOUT touching the fog. */
+/* r221 (owner): during the tutorial, the trait the waiting customer asked for is ringed on the map -
+   but only once it is discovered, so the ring never gives away an unfound trait. Runs from tick();
+   it touches the DOM only when the answer changes. */
+let CUST_SPOT_KEY='';
+function custSpotSync(){
+    const g=document.getElementById('custSpot'); if(!g) return;
+    const tid = (!tutOver() && CUSTOMER) ? (CUSTOMER.tid || CUSTOMER.want || null) : null;
+    const t = tid ? traits.find(x=>x.trait && x.trait.id===tid && x.discovered) : null;
+    const key = t ? tid+'@'+t.x+','+t.y : '';
+    if(key===CUST_SPOT_KEY) return; CUST_SPOT_KEY=key;
+    if(!t){ g.style.display='none'; return; }
+    g.setAttribute('transform','translate('+t.x+','+t.y+')'); g.style.display=''; }
 function tutSpotOn(t){
     const g=document.getElementById('tutSpot'); if(!g) return;
     if(!t){ g.style.display='none'; return; }
@@ -7910,7 +8019,7 @@ function finishD19(){
     (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='???'; })();   /* r213: he will not say who he is (D22); BRAM from his return (D110) */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
-    if(r){ r.style.display='flex';
+    if(r){ r.innerHTML=BRAM_REPLIES; r.style.display='flex';   /* r227: rebuilt - the D22 reply replaces them */
         r.querySelectorAll('button').forEach(b=>b.classList.add('tut-lit-ctl')); }   /* r184: both answers */
     if(p) p.classList.add('show'); buildScreenProps('customer');
     const d=document.getElementById('screenDragon'), b=document.getElementById('screenDragonSay'), layer=document.getElementById('screenLayer');
@@ -7942,13 +8051,25 @@ function typeLine(el, text){
         counterLayout();   /* r149: the box grows as it types */
     }, TYPE_MS);
 }
+/* r98: the dragon answers once Bram has finished. r148: and points at the sword */
+function bramGiveStep(){ say('D23'); invTab(2);
+    setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); }
+/* r227: the reply after D22, in Bram's own response row */
+function bramGiveAsk(){
+    const r=document.getElementById('bramResponses'); if(!r){ bramGiveStep(); return; }
+    r.innerHTML=''; const b=document.createElement('button'); b.type='button'; b.className='tut-lit-ctl';
+    b.textContent='I can give you a sword.';
+    b.addEventListener('click', ()=>{ r.style.display='none'; bramGiveStep(); });
+    r.appendChild(b); r.style.display='flex'; }
+const BRAM_REPLIES='<button type="button" onclick="chooseBram(\'blacksmith\')">I am a blacksmith.</button><button type="button" onclick="chooseBram(\'who\')">Who are you? What is wrong?</button>';
 function chooseBram(choice){
     if(TUT_BRAM_STATE!=='awaiting') return;
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
     if(r) r.querySelectorAll('button').forEach(b=>b.classList.remove('tut-lit-ctl'));   /* r184 */
     typeDone();
-    typeAfter(()=>{ say('D23'); invTab(2);
-        setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); });   /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
+    /* r227 (owner): after D22 ('who are you?') the player answers first - "I can give you a sword." - and
+       only that click brings D23 and the sword pointer. After D21 the dragon answers straight away, as before. */
+    typeAfter(()=>{ if(choice==='who'){ bramGiveAsk(); return; } bramGiveStep(); });
     if(l) custLine(l, DIALOGUE[choice==='blacksmith'?'D21':'D22']);
     if(r) r.style.display='none'; TUT_BRAM_STATE='give'; const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=true; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } const d=document.getElementById('screenDragon'); if(d) d.style.display='block'; const ly=document.getElementById('screenLayer'); if(ly) ly.classList.remove('tut-counter');
 }
@@ -8139,7 +8260,7 @@ function tutBellRung(){
     if(TUT_STAGE!=='bell') return;
     TUT_STAGE='bell-done'; tutUnglow(); sayHide(); tutExit(null);
     FTUE_ST.part=2; FTUE_ST.gpc=0; FTUE_ST.grindUse=true;   /* r199: part 2 opens, and TC2 teaches the grindstone */
-    CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null };
+    CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null, want:'balanced' };   /* r221: 'a good one' is a balanced sword (want: for the map ring only) */
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
     typeAfter(()=>{
@@ -8191,7 +8312,7 @@ function tutSmelterArrow(){ tutArrow('#orb', '#furnaceGlow', { tfx:0.5, tfy:0.30
 let TUT_NUDGE_SIG='';
 function tutNudgeSig(){
     const panel=document.getElementById('bladePanel');
-    return [TUT_STAGE, prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
+    return [TUT_STAGE, segs.length, /* r223 */ prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
             melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, gateReady?1:0, INV_TAB,
             panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,
             /* r157: what is actually ON SCREEN, so a pointer someone else wiped is put back */
@@ -8203,7 +8324,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick'];
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind'];   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -8223,6 +8344,14 @@ function tutNudgeApply(){
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow('Iron'); return; }
     if(TUT_STAGE==='regrind-iron'){ tutSmelterArrow(); return; }
+    /* r223 (owner): the fire sword's first half had no ore arrow at all - only the INGREDIENTS blink.
+       Now it points like TC2's grind: the ore D68 still needs to the wheel, the turn, then the smelter;
+       iron until 2 are in, then manganese. Only once D68 has asked (TUT_FIRE_PTR), not over D67a's window. */
+    if(TUT_STAGE==='fire-grind'){
+        const want=fireOreWanted(); if(!TUT_FIRE_PTR || !want){ tutArrow(null,null); return; }
+        if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
+        if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
+        tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'); return; }
     if(TUT_STAGE==='regrind-mang'){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
@@ -8320,8 +8449,19 @@ function tutHazardStep(){
     sayQueue('D69a','D69b','D69c');
     tutPause(true);
 }
-function tutBookStep(){
+/* r224: hold the first book's "+N" on screen, over the dim, where the book was */
+function tutXpHold(b){
+    tutXpHoldOff(true); if(!b || !board) return;
+    const fr=document.getElementById('frame').getBoundingClientRect(), r=board.getBoundingClientRect();
+    const x=r.left+(b.x-view.x)/view.w*r.width-fr.left, y=r.top+(b.y-16-view.y)/(view.w*aspect)*r.height-fr.top;
+    const d=document.createElement('div'); d.className='xp-hold'; d.id='xpHold'; d.textContent='+'+b.xp;
+    d.style.left=x.toFixed(1)+'px'; d.style.top=y.toFixed(1)+'px';
+    document.getElementById('frame').appendChild(d); }
+function tutXpHoldOff(now){ const d=document.getElementById('xpHold'); if(!d) return;
+    d.id=''; if(now){ d.remove(); return; } d.classList.add('off'); setTimeout(()=>d.remove(), 380); }
+function tutBookStep(b){
     if(TUT_SAIDBOOK) return; TUT_SAIDBOOK=true;
+    tutXpHold(b);   /* r224 */
     if(SAY_SEQ.indexOf('D9')<0) SAY_SEQ.push('D9');
     SAY_I=SAY_SEQ.indexOf('D9'); say('D9');
     tutPause(true);   /* r156 */
@@ -8340,7 +8480,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_BOOKS=false; TUT_SAIDBOOK=false; TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SAW_PARTS=false;   /* r196 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_FIRE_PTR=false; TUT_BOOKS=false; TUT_SAIDBOOK=false;   /* r223: TUT_FIRE_PTR */ TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SAW_PARTS=false;   /* r196 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step

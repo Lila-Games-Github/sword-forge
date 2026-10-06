@@ -163,6 +163,33 @@ eq('Garric sell confirmation: words', [
   'onclick="garricSellAnswer(true)">Yes, sell it</button>',
   'onclick="garricSellAnswer(false)">No, keep it</button>' ].every(t => src.includes(t)), true);
 eq('Garric sell confirmation: names what is missing', src.includes("This one is '+t+'."), true);
+/* r221 (owner, 2026-10-06): during the tutorial, the waiting customer's trait is ringed on the map, if discovered */
+eq('TC2 wants balanced', src.includes("CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null, want:'balanced' };"), true);
+eq('Bram (part 5) wants swift', src.includes("CUSTOMER={ portrait:'assets/customer/BramD2.webp', tid:null, name:'Bram', want:'swift' };"), true);
+eq('the ring follows the customer, discovered traits only, tutorial only',
+  /function custSpotSync\(\)\{[\s\S]{0,500}tutOver\(\)[\s\S]{0,500}\.discovered/.test(src) && src.includes('custSpotSync();   /* r221 */'), true);
+eq('its own ring on the map', src.includes('<g id="custSpot"'), true);
+/* r222 (owner, 2026-10-06): before the grinder can be used, the path preview shows only its first (solid) part */
+eq('dotted grind tail hidden until the grinder is usable',
+  src.includes('function ftueGrindHidden(){ return !FTUE_ST.grindUse && !tutOver(); }') && src.includes('if(solidPct<0.998 && !ftueGrindHidden()){'), true);
+/* r223 (owner, 2026-10-06): the tutorial arrow starts at the metal the line is about, and moves on once enough of it is in */
+eq('part 1: iron until 2 are in, then manganese', src.includes("function tutFirstOreSlot(){ return (segs.filter(g=>g.ore==='iron').length<2 ? tutIronSlot : tutOreSlot('Manganese'))(); }")
+  && src.includes("tutArrow(tutFirstOreSlot, '#stSmelt .furnace'") && src.includes('tutDrawArrow();   /* r223 */'), true);
+eq('fire sword: an ore arrow for each ore D68 asks for', src.includes("if(TUT_STAGE==='fire-grind'){") && src.includes("tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese')")
+  && /const TUT_TICK_STAGES=\[[^\]]*'fire-grind'/.test(src), true);
+eq('the pointer revises when an ore lands', src.includes("segs.length, /* r223 */"), true);
+eq('the fire ore arrow goes up with D68', src.includes('setTimeout(()=>tutNudge(true), 0);   /* r223: the ore arrow goes up with D68'), true);
+/* r224 (owner, 2026-10-06): the first book's "+N" stays on screen, lit above the dim, while the game is paused for D9 */
+eq('the first book holds its +xp over the dim', src.includes('tutBookStep(b);') && src.includes('tutXpHold(b);   /* r224 */')
+  && src.includes('.xp-hold {') && /function tutPause\(on\)\{[^\n]*\n[\s\S]{0,400}if\(!on\) tutXpHoldOff\(\);/.test(src), true);
+/* r225 (owner, 2026-10-06): tier colours that read on the beige windows - purple Epic, blue Fine, dark grey Weak */
+eq('tierColor', src.includes("function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }"), true);
+eq('tier legend matches', ['.tier-weak span { color: #4d4d4d; }', '.tier-fine span { color: #2b7fd8; }', '.tier-epic span { color: #8e44d9; }'].every(t => src.includes(t)), true);
+/* r227 (owner, 2026-10-06): after D22 the player answers "I can give you a sword." before D23; the counter dragon is 25% smaller */
+eq('D22 waits for the reply', src.includes("typeAfter(()=>{ if(choice==='who'){ bramGiveAsk(); return; } bramGiveStep(); });")
+  && src.includes("b.textContent='I can give you a sword.';"), true);
+eq("Bram's two replies are rebuilt at his intro", src.includes('if(r){ r.innerHTML=BRAM_REPLIES; r.style.display=\'flex\';'), true);
+eq('counter dragon 25% smaller (23% -> 17.25%)', src.includes('#screenLayer.sc-customer > #screenDragon { width: 17.25%; }'), true);
 eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, manganese:FTUE\.oreStart\.manganese/.test(src), true);
 
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */

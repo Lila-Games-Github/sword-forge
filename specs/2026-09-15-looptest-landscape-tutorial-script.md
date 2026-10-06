@@ -1900,3 +1900,10 @@ Since r215 a hazard costs value (`specs/2026-10-01-hazard-integrity.md`). Supers
   *Trigger: the fire sword's craft window in part 3, only when the hazard took health. The bubble sits
   above the window for this line, and the Integrity row blinks.*
 - The hazard zone the part 4 gale route crossed is gone, so that beat has no hazard line.
+
+## A reply after D22 (owner, 2026-10-06), r227
+
+After Bram's **D22** (the "Who are you? What is wrong?" branch) the player answers with a button,
+**"I can give you a sword."**; only that click brings **D23** ("Find the sword in your inventory and place it on
+the counter.") with the inventory tab and the sword arrow. The "I am a blacksmith." branch (D21) goes on to
+D23 at once, as before. (The owner wrote "d33"; read as D23, the tutorial step that follows.)

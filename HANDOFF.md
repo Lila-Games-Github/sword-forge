@@ -19,7 +19,7 @@ continuation prompt printed at close time.
   checked byte-identical to `main`. **154 dialogue keys** (D15a in r209; D28b, D58a, D92a, D93a, D140 in r213; D69d in r215), `lastLine()` `D140`.
 - **The tutorial is the FTUE in six parts** (r199-r206, r212). Design record and build records per
   part: `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the
-  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (95 checks).
+  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (110 checks).
 - **The hammer minigame is on hit points** (r209). Design record `specs/2026-10-01-hammer-hit-points.md`;
   every value is in `HM_HITS`; `tooling/hammer/hammer.test.mjs` asserts it (27 checks).
 - **Owner play-testing:** parts 1-4 "all good" (before r207). **Not yet play-tested by the owner:**
@@ -108,6 +108,31 @@ continuation prompt printed at close time.
 - **r216:** D69a-D69c play the first time the sword crosses a hazard **during the fire sword build**
   (`TUT_FIRE_BUILD` stages), not on the first crossing ever; earlier crossings no longer spend them,
   and the PART 2-3 jumps no longer mark them said.
+- **r217:** "Integrity" is "Health" to the player; the craft window's Health row shows the gold lost, in
+  red. D69d: "See its health? ...".
+- **r218: four new skills** (design record `specs/2026-10-06-skill-tree-trade-ore.md`, test
+  `tooling/skills/skills.test.mjs`): Improved Trading Skills (yellow node 0, 20 ranks, +5% base price a
+  rank, x2 at 20); Ore Extraction Upgrade (green 4, 5 ranks, 5-25% chance a seam holds 3-4 more, rolled
+  once per seam); Pickaxe Upgrade (green 5, 5 ranks, 10% faster swings a rank); Ore Bountifulness
+  (green 6, 10 ranks, +1 ore a seam a rank). 1 point a rank. The ore skills skip the tutorial's
+  scripted caves (`script:true` seams). Yellow nodes 1-3 and green node 7 are still empty.
+- **r219:** the hammer's hit marks show the heat as a smooth gradient: yellow (1.0) → orange (0.7) →
+  red (0.45) → grey (0.35, too cold to strike) (`HM_HITS.heat`, `hmHeatColor()`).
+- **r220:** a trait icon on the map opens the craft book on that trait's newest page (record
+  `specs/2026-10-06-map-trait-links.md`, test `tooling/map/map.test.mjs`). A still tap on the map, not a
+  drag; undiscovered: "Discover this trait first"; no page: "No saved page for <Trait> yet"; fogged: nothing.
+- **r221:** during the tutorial the waiting customer's trait is ringed on the map (`#custSpot`), only if
+  discovered; TC2 and Bram's return carry `want` (balanced, swift) for it.
+- **r222:** until the grinder can be used (TC2), the path preview shows only its solid part, not the
+  dotted grinding tail (`ftueGrindHidden()`).
+- **r223:** tutorial ore arrows follow the metal: part 1 moves from Iron to Manganese after 2 iron; the
+  fire sword's first half (D68) gets ore arrows (Iron, then Manganese; wheel, turn, smelter).
+- **r224:** the first book's "+50" stays on screen, lit above the pause's dim layer, until D9 is closed.
+- **r225:** tier colours: purple Epic, blue Fine, dark grey Weak (`tierColor()` and the tier legend); yellow
+  Epic did not read on the beige windows.
+- **r226:** the hammer's accuracy popup is 26 px, lasts 1.6 s and rises almost to the top before fading.
+- **r227:** after D22 the player clicks "I can give you a sword." before D23 appears; the counter-screen
+  dragon is 25% smaller (17.25% wide).
 
 ## Next steps
 
@@ -139,7 +164,7 @@ The owner drives the work beat by beat from play-testing; expect fresh reports r
      link (which did not have the fix then) or locally. The fix is live now; ask for a re-test.
 5. Older, still open: D67a wording ("a trait could be from this image"); the Alignment for Tiers window
    is once per game (a re-open under settings is planned); whether a re-quench may upgrade a trait
-   tier; talent points buy nothing on the 8 yellow/green skill nodes.
+   tier; 4 skill nodes are still empty (yellow 1-3, green 7; r218 filled the other four).
 
 **Closed since the last handoff:** "no rewards in part 6" (r212: the owner called it a mistake);
 `DD_BONUS.balanced` shipping empty (r211); the fire and gale placeholder parts (r211); the
@@ -153,6 +178,8 @@ node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html'
 node tooling/ftue/ftue.test.mjs
 node tooling/hammer/hammer.test.mjs
 node tooling/hazard/hazard.test.mjs
+node tooling/skills/skills.test.mjs
+node tooling/map/map.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
@@ -160,7 +187,7 @@ Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 154 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 95 checks; the hammer test GREEN at 27; the hazard test GREEN at 34;
+**Baselines, not regressions:** the FTUE test prints GREEN at 110 checks; the hammer test GREEN at 34; the hazard test GREEN at 34; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -168,7 +195,7 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard` and `tooling/mobile-fit`.
+- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.
