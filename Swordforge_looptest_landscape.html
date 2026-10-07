@@ -1225,6 +1225,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background-image: url('assets/ui/Paper_button_wide.webp'); }
 .cs-deny { left: 68.40%; width: 8.27%; aspect-ratio: 213 / 97; color: #6d2a22;
     background-image: url('assets/ui/Paper_button_red.webp'); }
+/* r228 (owner): no DENY during the FTUE. !important beats the inline display the scripted customers set */
+.cs-deny.ftue-off { display: none !important; }
 .cs-btn:disabled { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }   /* r146: was .cs-deny only, so SELL never had a disabled look */
 /* The sword on display: same lay-flat trick as the racks, in a box the prop layer positions. NOT
    clipped - it is sized to the drawn LENGTH, so its guard reaches past the box's height on purpose. */
@@ -1744,7 +1746,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cs-dlg"><p>"I need a blade by sundown, smith. Something with a bite to it."</p></div>
             <div class="cs-resp">Response &mdash; placeholder</div>
             <button class="cs-btn cs-sell" type="button" title="Sell the sword on the counter" onclick="sellCounter()">SELL</button>
-            <button class="cs-btn cs-deny" type="button" title="Deny (placeholder)">DENY</button>
+            <button class="cs-btn cs-deny ftue-off" type="button" title="Deny (placeholder)">DENY</button>
             <div id="bramIntro" class="cs-bram"><div class="cs-bram-dlg" onclick="custDlgTap()" title="tap to continue"><span class="who" id="custWho">???</span><p id="bramLine"></p><span class="go">tap to continue</span></div><div id="bramResponses" class="cs-bram-responses"><button type="button" onclick="chooseBram('blacksmith')">I am a blacksmith.</button><button type="button" onclick="chooseBram('who')">Who are you? What is wrong?</button></div></div>
         </div><div id="screenDragon"><div class="crop dragoncrop"><img src="assets/forge/dragon.webp" alt="Dragon"></div><span class="cap">🐉 tap to talk</span></div><div id="screenDragonSay" onclick="sayNext()"><span class="who">DRAGON</span><p id="screenDragonSayText"></p><span class="go say-go" id="screenDragonSayGo"></span><span class="tail"></span></div><span class="tag" id="screenTag"></span></div>
     <!-- ===== End day (r44) ===== -->
@@ -1948,9 +1950,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div id="sfHp" title="Blade health: hazard zones damage the active sword"><span class="lbl">⚔</span><span class="bar"><span class="fill"></span></span></div>
         <svg id="board" viewBox="0 250 2800 1400" preserveAspectRatio="xMidYMid slice" aria-label="Crafting map">
             <defs>
+                <!-- r230 (owner): a soft fog edge. The holes are blurred INSIDE the mask, so their union is taken first and
+                     only the outline softens; the edge stays centred on each hole's r, so inFog() is unchanged. -->
+                <filter id="fogSoft" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="24"/></filter>
                 <mask id="fogMask">
                     <rect x="0" y="0" width="2800" height="1960" fill="#fff"/>
-                    <g id="fogHoles" fill="#000"></g>
+                    <g id="fogHoles" fill="#000" filter="url(#fogSoft)"></g>
                 </mask>
                 <!-- r26: cracked-earth fill for hazard blobs. patternUnits=userSpaceOnUse so the tile is
                      sized in WORLD units — ~150 wide against hazard diameters of ~64-160, so a few crack
@@ -6236,6 +6241,7 @@ function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
     custSpotSync();   /* r221 */
+    tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
     if(melt && melt.stage==='smelting'){ if(bellowing){ melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt);
@@ -6842,9 +6848,14 @@ function tutDrawArrow(){
     svg.classList.add('on');
 }
 let TUT_GLOWED=[];
+/* r229 (owner): the turn arrow belongs to the ORE, not to a tutorial stage - whenever ore is on the
+   grinder and can still be ground (below grindCap: a raw-only ore never asks to be turned), it shows,
+   in every stage and after the FTUE. */
+function grindSpinWanted(){ return SF_SCREEN==='forge' && !!prep && prep.grind < grindCap()-0.001; }   /* only where the wheel is seen: the bench stays laid out under the other screens */
 /* r101: place the turn arrow over a target, or hide it with no argument */
 function tutSpinOn(sel){
     const svg=document.getElementById('tutSpin'); if(!svg) return;
+    if(!sel && grindSpinWanted()) sel='#grindHot';   /* r229: "hide" cannot hide it while ore waits on the wheel */
     const box=sel && tutRect(sel);
     if(!box){ svg.classList.remove('on'); return; }
     const side=Math.max(46, Math.min(box.w, box.h)*0.70);   /* r151: measured against the hotspot, not the whole prop. r173: the hotspot is the handle now, ~58x59px, so the floor carries it */
@@ -8150,6 +8161,7 @@ function counterBoxes(){
     /* nothing to sell while a scripted customer is still saying what they want */
     const quiet = introOn && ((TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked')
                           || (TUT_GARRIC_STATE && TUT_GARRIC_STATE!=='asked'));   /* r130 */
+    { const de=document.querySelector('#csPanel .cs-deny'); if(de) de.classList.toggle('ftue-off', !FTUE_ST.done); }   /* r228 */
     if(quiet) document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{ b.style.display='none'; });
     counterLayout();   /* r149 */
     return { here:here, introOn:introOn, quiet:quiet };

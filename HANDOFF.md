@@ -133,6 +133,9 @@ continuation prompt printed at close time.
 - **r226:** the hammer's accuracy popup is 26 px, lasts 1.6 s and rises almost to the top before fading.
 - **r227:** after D22 the player clicks "I can give you a sword." before D23 appears; the counter-screen
   dragon is 25% smaller (17.25% wide).
+- **r228:** the counter's DENY button (a placeholder) is hidden during the FTUE (class `ftue-off` until `FTUE_ST.done`).
+- **r229:** the rotating turn arrow shows whenever ore is on the grinder and can still be ground, on the forge screen, in every stage (`grindSpinWanted()`, refreshed every frame in `tick()`).
+- **r230:** the fog edge is a soft gradient: `#fogHoles` is blurred by `#fogSoft` (feGaussianBlur 24 world units) inside the mask. Not yet checked for frame rate on a phone.
 
 ## Next steps
 
@@ -187,7 +190,7 @@ Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 154 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 110 checks; the hammer test GREEN at 34; the hazard test GREEN at 34; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 114 checks; the hammer test GREEN at 34; the hazard test GREEN at 34; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

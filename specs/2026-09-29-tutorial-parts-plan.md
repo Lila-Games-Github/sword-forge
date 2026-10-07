@@ -610,3 +610,28 @@ Asserted by `tooling/ftue/ftue.test.mjs` (107).
   script). Bram's two first replies are rebuilt at his intro (`BRAM_REPLIES`), since the new reply replaces them.
 - The dragon on the **counter** screen is 25% smaller: 17.25% of the screen width (was 23%); the
   basement, cave and other screens are unchanged. Asserted by `tooling/ftue/ftue.test.mjs` (110).
+
+## No DENY during the FTUE (owner, 2026-10-06), r228
+
+- The counter's DENY button (a placeholder with no action) is hidden while the FTUE runs: it starts
+  with the class `ftue-off`, and `counterBoxes()` keeps that class on until `FTUE_ST.done`. The CSS rule is
+  `!important`, so it wins over the inline `display` that the scripted customers set. Asserted by
+  `tooling/ftue/ftue.test.mjs` (112).
+
+## The turn arrow follows the ore (owner, 2026-10-06), r229
+
+- The rotating turn arrow (`#tutSpin`) shows whenever ore is on the grinder and can still be ground
+  (`prep.grind < grindCap()`), on the forge screen, in every stage and after the FTUE. Before r229 only
+  three tutorial stages (regrind-grind, regrind-mang, fire-grind) turned it on. `tick()` refreshes it every
+  frame, and `tutSpinOn(null)` cannot hide it while ore waits on the wheel. A raw-only ore (cap 0) and a
+  fully ground ore do not show it. Asserted by `tooling/ftue/ftue.test.mjs` (113).
+
+## A soft fog edge (owner, 2026-10-06), r230
+
+- The fog of war fades into the visible zone over a gradient instead of a hard edge. `#fogHoles` (the
+  black circles in `#fogMask`) is blurred by `#fogSoft`, a `feGaussianBlur` of stdDeviation **24 world units**
+  (the fade is about 100 units wide, against a travel hole of r 120 and the opening reveal of r 430).
+  The blur acts on the union of the holes, so overlapping holes do not stack into darker seams, and the
+  edge stays centred on each hole's r: `inFog()`, the save format and the fog cheat are unchanged.
+- Measured on desktop with 302 holes: 60 fps with the blur and without it. Not yet measured on a phone.
+  Asserted by `tooling/ftue/ftue.test.mjs` (114).
