@@ -52,6 +52,11 @@ eq('shaped order, wrong shape', M.orderMatches({ trait: 'balanced', shape: 'Kata
 eq('wrong trait', M.orderMatches({ trait: 'fire', shape: 'Katana' }, w('balanced', 'Katana')), false);
 eq('no shape: any shape', M.orderMatches({ trait: 'durable' }, w('durable', 'Claymore')), true);
 eq('old-save trait form (t.id)', M.orderMatches({ trait: 'fire' }, { shape: 'Longsword', traits: [{ t: { id: 'fire' } }] }), true);
+/* v3 part 4: an order may name a tier too (TC4 Epic, GC8 Weak); the sword's best tier must equal it */
+eq('tier: Epic asked, Epic given', M.orderMatches({ trait: 'durable', tier: 'Epic' }, { shape: 'Katana', traits: [{ tid: 'durable', tier: 'Epic' }] }), true);
+eq('tier: Epic asked, Fine given', M.orderMatches({ trait: 'durable', tier: 'Epic' }, w('durable', 'Katana')), false);
+eq('tier: Weak asked, Weak given', M.orderMatches({ trait: 'balanced', shape: 'Longsword', tier: 'Weak' }, { shape: 'Longsword', traits: [{ tid: 'balanced', tier: 'Weak' }] }), true);
+eq('tier: Weak asked, Fine given', M.orderMatches({ trait: 'balanced', shape: 'Longsword', tier: 'Weak' }, w('balanced', 'Longsword')), false);
 eq('label with a shape', M.orderLabel('Balanced', 'Katana'), 'Balanced Katana');
 eq('label without one', M.orderLabel('Balanced', null), 'Balanced sword');
 

@@ -58,7 +58,7 @@ eq('part 3 gpc', FTUE.parts[3].gpc, [
   { trait: 'fire', shape: 'Longsword',  qty: 1, market: { by: 'dragon', ask: 'D92h', done: 'D92a' } },
   { trait: 'fire', shape: 'Broadsword', qty: 1, market: { by: 'dragon', ask: 'D92i', done: 'D28f' } },
   { trait: 'fire', shape: 'Katana',     qty: 1, market: { by: 'player', ask: 'D92j', done: null } } ]);
-eq('part 3 after', FTUE.parts[3].after, 'd2-bell');
+eq('part 3 after (v3: the bell brings TC4)', FTUE.parts[3].after, 'p4-tc4');
 eq('part 3 rewards (D32: none)', FTUE.parts[3].rewards, { tc: [], gpc1: [], gpc2: [], gpc3: [], gpc4: [] });
 eq('day2Cave (D30: one trip for part 3)', FTUE.day2Cave, { nickel: 2, iron: 6, manganese: 6 });
 eq('day2Swing', FTUE.day2Swing, [2, 3]);
@@ -81,13 +81,7 @@ for (const set of [SETS, BONUS, EXTRA]) for (const sk in set) for (const k in se
 for (const sk in BLADES) for (const sh of BLADES[sk]) { const f = 'assets/sword-parts/blades/' + sk + '_' + sh + '_blade.webp'; if (!existsSync(f)) missing.push(f); }
 for (const id in FTUE.decor) if (FTUE.decor[id].img && !existsSync(FTUE.decor[id].img)) missing.push(FTUE.decor[id].img);
 eq('every named part, blade and decor image exists', missing, []);
-/* part 4 (r204) */
-eq('part 4 gpc', FTUE.parts[4].gpc, [ { trait: 'gale', qty: 1 }, { trait: 'fire', qty: 1 } ]);
-eq('part 4 after', FTUE.parts[4].after, 'd2-praise');
-eq('part 4 rewards', FTUE.parts[4].rewards, {
-  tc:   [ { kind: 'blueprint', trait: 'gale', shape: 'Longsword' }, { kind: 'parts', trait: 'gale' } ],
-  gpc1: [ { kind: 'blueprint', trait: 'gale', shape: 'Rapier' }, { kind: 'parts', trait: 'gale' } ],
-  gpc2: [] });
+/* part 4 (r204): superseded by the v3 part 4 checks below */
 eq('swiftLine', FTUE.swiftLine, 'D99a');
 eq('gale has its own part set', /const DD_SKIN_OF = {[^}]*gale:'gale'/.test(src), true);
 /* part 5 (r205) */
@@ -259,8 +253,28 @@ eq('Day 2 morning: no skill tree (it moved to part 6)', src.includes("sayQueue('
 eq('the Durable lesson: map window after D92c', src.includes('D92c:function(){ ftueDurableMap(); }')
   && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts\.webp'/.test(src), true);
 eq('the Durable craft takes ground nickel only', src.includes("if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;"), true);
-eq('the Durable walk reaches its screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0){ tutDay2Screen(name); return; }"), true);
+eq('the Durable and Weak walks reach their screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0 || String(TUT_STAGE).indexOf('p4-weak-')===0){ tutDay2Screen(name); return; }"), true);
 eq('a market step without a done line says nothing', src.includes('if(o.market.done) sayOver(o.market.done);'), true);
+/* v3 part 4 (D33-D38): TC4 Epic Durable with the pull lesson, TC5 gale, GC8 Weak balanced Longsword */
+eq('part 4 gpc', FTUE.parts[4].gpc, [ { trait: 'balanced', shape: 'Longsword', tier: 'Weak', qty: 1, lesson: 'weak' } ]);
+eq('part 4 after (Bram)', FTUE.parts[4].after, 'd2-praise');
+eq('part 4 rewards (D35: none)', FTUE.parts[4].rewards, { tc: [], gpc1: [] });
+eq('part 4 cave (D34, D41: one trip at TC4)', FTUE.p4Cave, { nickel: 2, copper: 12, iron: 1, manganese: 1 });
+eq('GC8 stops in the middle of the Weak band (20-34)', FTUE.weakStop, 27);
+const V3P4 = {
+  D92k: 'I want a durable sword. Make sure it is EPIC! I only want the best.',
+  D92l: 'Okay, time to learn how to craft the best tier sword!',
+  D97a: 'Remember? Drag me to the anvil and hold to pull the sword onto the trait.',
+  D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",
+  D107b: 'Stop now! This alignment will give us a weak trait tier.' };
+for (const [k, v] of Object.entries(V3P4)) eq(k + ' text', line(k), v);
+for (const [k, prev] of [['D92k','D92j'],['D92l','D92k'],['D97a','D97'],['D107a','D107'],['D107b','D107a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('the bell brings TC4', src.includes("else if(TUT_STAGE==='p4-tc4') tutTc4Arrive();"), true);
+eq('TC4 pull parks on Durable', src.includes("if(TUT_STAGE==='p4-pull') return 'durable';"), true);
+eq('TC5 swift step: the reminder, not the lesson', /function tutDay2Pull\(\)\{[\s\S]{0,300}sayQueue\('D97a'\)/.test(src), true);
+eq('GC8: the sword parks in the Weak band', /function tutWeakStop\(\)\{[\s\S]{0,900}FTUE\.weakStop/.test(src), true);
+eq('the sale checks the tier', src.includes("if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }"), true);
+eq('TC4 sold: the bell brings TC5', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='d2-bell'/.test(src), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems, parts 1-3 built 2026-10-08; parts 4-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems, parts 1-4 built 2026-10-08; parts 5-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1132,6 +1132,27 @@ Asserted by `tooling/ftue/ftue.test.mjs` (172 checks; the part 3 checks written 
   route end reaches Durable at Fine (17.4); the sale; GC5 and GC6 (the dragon buys), GC7 with the top-up
   (20g to 50g) and the purchase; after GC7 the stage is `d2-bell`.
 
+## Build record: part 4 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (190) and `tooling/market/market.test.mjs` (37); the part 4 checks were
+written first and seen failing.
+
+- `FTUE.parts[3].after` is `p4-tc4` (the bell brings TC4). `FTUE.parts[4]`: GC8 balanced Longsword, tier Weak,
+  `lesson:'weak'`; after `d2-praise` (Bram); no rewards. `FTUE.p4Cave` = 2 nickel + 12 copper + 1 iron + 1
+  manganese. `FTUE.weakStop` = 27 (the middle of the Weak band). Lines D92k, D92l, D97a, D107a, D107b.
+- **Orders may name a tier** (`orderMatches`): TC4 Epic, GC8 Weak; the counter refuses another tier.
+- **TC4** (`tutTc4Arrive`): asks (D92k), D92l, D94, one cave trip; the walk and the 2-ground-nickel craft reuse
+  part 3's Durable stages. At the route's end (Fine, 17.4) the pull lesson: D97, the tiers window, the dragon
+  to the anvil; the pull parks the sword on Durable (5.4, Epic) and D98 plays; the mug; the craft; the sale
+  (Epic only); then the bell for TC5.
+- **TC5** (the v2 gale run): the swift step says the reminder D97a; the tiers window does not open again.
+- **GC8:** D107a; to the forge; iron then manganese, ground; the heat run; the hammer parks the sword where it
+  first comes within 27 of Balanced (Weak, 26.9 measured), D107b, the mug. The recipe is not saved (Balanced
+  already has a page; automatic saving is first discovery only).
+- Checked in the browser with real frames for the pull and the hammer: every step above, the refusals of a
+  Fine sword for TC4 and GC8, and the stage after GC8 (`d2-praise`, Bram). No console errors.
+- **Interim until part 5 is built:** Bram runs his v2 visit (the stored swift metal, sharpening, the diary).
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1169,3 +1190,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: part 1 built (market lesson, three shaped GCs, no part 1 rewards, 9 + 9 ore).
 - 2026-10-08: part 2 built (TC2 raw-ore step and grindstone gift, no bulk order, TC3 without the design desk or a reward).
 - 2026-10-08: part 3 built (Day 2 without the skill tree, GC4 Durable lesson with the moved trait, GC5-GC7 fire with the market).
+- 2026-10-08: part 4 built (TC4 Epic Durable and the pull lesson, TC5 with the reminder, GC8 Weak stop, tiered orders).

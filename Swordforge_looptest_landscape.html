@@ -2352,12 +2352,12 @@ const FTUE = {
         3: { gpc:[ { trait:'durable', shape:'Shortsword', qty:1, lesson:'durable' },
                    { trait:'fire', shape:'Longsword',  qty:1, market:{ by:'dragon', ask:'D92h', done:'D92a' } },
                    { trait:'fire', shape:'Broadsword', qty:1, market:{ by:'dragon', ask:'D92i', done:'D28f' } },
-                   { trait:'fire', shape:'Katana',     qty:1, market:{ by:'player', ask:'D92j', done:null } } ], after:'d2-bell',
+                   { trait:'fire', shape:'Katana',     qty:1, market:{ by:'player', ask:'D92j', done:null } } ], after:'p4-tc4',   /* v3: the bell brings TC4 */
              rewards:{ tc:[], gpc1:[], gpc2:[], gpc3:[], gpc4:[] } },
-        4: { gpc:[ { trait:'gale', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-praise',
-             rewards:{ tc:  [ { kind:'blueprint', trait:'gale', shape:'Longsword' }, { kind:'parts', trait:'gale' } ],
-                       gpc1:[ { kind:'blueprint', trait:'gale', shape:'Rapier' }, { kind:'parts', trait:'gale' } ],
-                       gpc2:[] } },
+        /* v3 part 4: TC4 (Epic Durable, the pull lesson) and TC5 (gale) are scripted; then GC8, a Weak balanced
+           Longsword (lesson:'weak' - the sword is parked in the Weak band). No rewards (D35). */
+        4: { gpc:[ { trait:'balanced', shape:'Longsword', tier:'Weak', qty:1, lesson:'weak' } ], after:'d2-praise',
+             rewards:{ tc:[], gpc1:[] } },
         /* r205: Bram's own reward is the diary (his gift window), so the TC list is empty */
         5: { gpc:[ { trait:'gale', qty:1 }, { trait:'swift', qty:1 } ], after:'g-bell',
              rewards:{ tc:  [],
@@ -2381,6 +2381,8 @@ const FTUE = {
     /* r203: the Day 2 cave, straight after the skill tree - everything Day 2 needs, +5 of each */
     day2Cave:  { nickel:2, iron:6, manganese:6 },   /* v3 D30: part 3's one trip - GC4's nickel, GC5-GC7's fire swords */
     day2Swing: [2, 3],
+    p4Cave:    { nickel:2, copper:12, iron:1, manganese:1 },   /* v3 D34/D41: TC4's one trip - its nickel, TC5's and GC9's copper, GC8's iron and manganese */
+    weakStop:  27,   /* v3 part 4: GC8's sword parks this far from Balanced - the middle of the Weak band (ALIGN_FINE 20 to ALIGN_MAX 34) */
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
     retryLine: 'D28a',
     marketWatch: 'D28c',   /* v3: as the dragon pays */
@@ -2422,7 +2424,10 @@ function marketRow(trait, shape, c){
 /* D7: does sword w fill order o? An order with no shape takes any shape (TC2, TC4, Garric). */
 function orderMatches(o, w){ if(!o || !w) return false;
     const t=o.trait||o.tid, has=(w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===t);
-    return has && (!o.shape || w.shape===o.shape); }
+    if(!has || (o.shape && w.shape!==o.shape)) return false;
+    if(!o.tier) return true;   /* v3 part 4: TC4 wants Epic, GC8 Weak - the sword's best tier must be that one */
+    const T=['Weak','Fine','Epic'], best=(w.traits||[]).reduce((b,a)=>Math.max(b, T.indexOf(a.tier)), -1);
+    return T[best]===o.tier; }
 function orderLabel(name, shape){ return shape ? name+' '+shape : name+' sword'; }
 /* which trait's shapes a blade offers: the elemental first, then Durable, else Balanced */
 function ftueTraitKey(ids){ ids=ids||[];
@@ -2552,6 +2557,55 @@ function ftueDurableSell(){ TUT_STAGE='p3-dur-sell'; tutArrow(null,null); tutExi
 function ftueDurableAtCounter(){ if(TUT_STAGE!=='p3-dur-sell') return;
     TUT_STAGE='p3-gpc'; tutExit(null); invTab(2);
     setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); }
+/* ---- v3 part 4: TC4 wants an Epic Durable. The walk and the craft reuse part 3's Durable stages (p3-dur-*,
+   told apart by FTUE_ST.part); at the route's end the pull lesson (D97, the tiers window, D98) parks the
+   sword on Durable. ---- */
+function tutTc4Arrive(){
+    if(TUT_STAGE!=='p4-tc4') return;
+    TUT_STAGE='p4-ask'; tutUnglow(); sayHide(); tutExit(null);
+    FTUE_ST.part=4; FTUE_ST.gpc=0;
+    CUSTOMER={ portrait:'assets/customer/woman2.webp', tid:'durable', shape:null, tier:'Epic', name:'Durable', ftue:true, qty:1, got:0, tc4:true };
+    buildScreenProps('customer'); counterUi();
+    ftueStockCave(FTUE.p4Cave); buildCave();
+    custLine(null, DIALOGUE.D92k);
+    typeAfter(()=>{ TUT_STAGE='p3-dur-cave'; sayQueue('D92l','D94'); setTimeout(()=>tutExit('#panLeft'), 0); });
+}
+function tutTc4Pull(){
+    if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;
+    TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
+    sayQueue('D97');   /* its SAY_AFTER opens the tiers window */
+    setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 }); tutGlow('#dragon', true); }, 0);
+}
+function tutDurableAligned(){
+    if(TUT_STAGE!=='p4-pull') return;
+    TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon();
+    sayQueue('D98');
+    setTimeout(tutMugPointer, 0);
+}
+function ftueTc4Sold(){
+    CUSTOMER=null; refreshCounter(); counterUi(); tutArrow(null,null); tutExit(null);
+    TUT_STAGE='d2-bell';   /* TC5's gale order comes next */
+    setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>{ bellShow(true); ftueToCounter(); }), 700);
+}
+/* GC8: 1 iron + 1 manganese, ground; the hammer parks the sword in the Weak band */
+function ftueWeakStart(){ TUT_STAGE='p4-weak-go'; tutExit('#panLeft'); }
+function ftueWeakSmelted(){ if(TUT_STAGE==='p4-weak-grind' && fireOreWanted()===false){ TUT_STAGE='p4-weak-heat'; tutNudge(true); } }
+let TUT_WEAK_STOP=null, TUT_WEAK_KEY='';
+function tutWeakStop(){
+    if(TUT_STAGE!=='p4-weak-heat' || !segs.length) return false;
+    const key=segs.length+'|'+pull.x.toFixed(2)+'|'+pull.y.toFixed(2);
+    if(key!==TUT_WEAK_KEY){ TUT_WEAK_KEY=key; TUT_WEAK_STOP=null;
+        const b=traits.find(t=>t.trait && t.trait.id==='balanced');
+        if(b) segs.some((sg,si)=>{ for(let i=0;i<=600;i++){ const f=sg.tPct*i/600, p=segPoint(sg,f);
+            if(Math.hypot(p.x-b.x,p.y-b.y)<=FTUE.weakStop){ TUT_WEAK_STOP={ seg:si, frac:f }; return true; } } return false; }); }
+    const at=TUT_WEAK_STOP; if(!at) return false;
+    if(sword.seg<at.seg || (sword.seg===at.seg && sword.frac<at.frac-0.0001)) return false;
+    sword={ seg:at.seg, frac:at.frac };
+    TUT_SWIFT_LOCK=true; homeHammer();
+    TUT_STAGE='p4-weak-quench'; tutArrow(null,null);
+    sayQueue('D107b'); setTimeout(tutMugPointer, 0);
+    return true;
+}
 function ftuePreQuests(){ FTUE.preQuests.forEach(q=>bumpQuest(q.id)); }
 /* the bell brings a gameplay customer with the order the part lists next */
 function ftueGpcArrive(){
@@ -2559,7 +2613,7 @@ function ftueGpcArrive(){
     const P=FTUE.parts[FTUE_ST.part], o=P && P.gpc[FTUE_ST.gpc]; if(!o) return;
     const tr=TRAIT_BY[o.trait], pool=CUST_POOL.filter(x=>x!=='man1');   /* man1 is TC2 */
     CUSTOMER={ portrait:'assets/customer/'+pool[Math.floor(Math.random()*pool.length)]+'.webp',
-               tid:o.trait, shape:o.shape||null, name:tr.name, ftue:true, qty:o.qty, got:0 };   /* v3 D7 */
+               tid:o.trait, shape:o.shape||null, tier:o.tier||null, name:tr.name, ftue:true, qty:o.qty, got:0 };   /* v3 D7; part 4: a tier */
     TUT_STAGE='p'+FTUE_ST.part+'-gpc'; tutUnglow(); sayHide();
     if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }   /* v3 D6/D10 */
     /* r201: an order the bulk craft is meant for must be affordable, whatever went before */
@@ -2570,8 +2624,9 @@ function ftueGpcArrive(){
     const nudge = o.market ? o.market.ask : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
                 : null;
     if(o.lesson==='durable') typeAfter(ftueDurableStart);   /* v3 part 3 */
+    if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
     if(nudge) typeAfter(()=>{ sayQueue(nudge); if(o.market) setTimeout(()=>tutExit('#marketBtn'), 0); });   /* v3: and MARKET blinks */
-    custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
+    custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
 }
@@ -2748,11 +2803,12 @@ function ftuePart(n){
             if(ft){ ft.discovered=true; ft.txtEl.textContent=ft.trait.symbol; ft.txtEl.removeAttribute('font-weight'); reveal(ft.x,ft.y,'tr'+ft.trait.id); }
             RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[1,1,1,0.85], at:Date.now() };
             for(let i=59;i<=94;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D94b');
-            FTUE_ST.part=3; FTUE_ST.gpc=3; FTUE_ST.dd={ balanced:1, flame:2 };
-            FTUE_ST.shapes['fire:Longsword']=true; FTUE_ST.shapes['fire:Broadsword']=true;
+            FTUE_ST.part=3; FTUE_ST.gpc=4; FTUE_ST.dd={ balanced:1, flame:2 };   /* v3: part 3's four GCs served */
+            FTUE_ST.shapes['fire:Longsword']=true; FTUE_ST.shapes['fire:Broadsword']=true; FTUE_ST.shapes['fire:Katana']=true;
+            { const dt=traits.find(t=>t.trait && t.trait.id==='durable'); if(dt){ dt.discovered=true; dt.txtEl.textContent=dt.trait.symbol; dt.txtEl.removeAttribute('font-weight'); reveal(dt.x,dt.y,'trdurable'); } }
             TUT_D2_SPENT=true; PICK_OUT=null; CAVE_NODES=[]; buildCave();
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='2'; })();
-            ORE_COUNT.iron=7; ORE_COUNT.manganese=7; ORE_COUNT.copper=24; ORE_COUNT.aluminium=7; GOLD=520; exp=420; TUT_STAGE='d2-bell'; }
+            ORE_COUNT.iron=0; ORE_COUNT.manganese=0; GOLD=520; exp=420; TUT_STAGE='p4-tc4'; }   /* v3: TC4 at the bell */
         if(n>=5){   /* the end of part 4: swift ingot stored, gale sword sold to TC4, GPC7-8 served, Bram at the bell */
             ['swift','gale'].forEach(id=>{ const t=traits.find(x=>x.trait && x.trait.id===id);
                 if(t){ t.discovered=true; t.txtEl.textContent=t.trait.symbol; t.txtEl.removeAttribute('font-weight'); reveal(t.x,t.y,'tr'+id); } });
@@ -3272,7 +3328,7 @@ function sellCounter(){
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     const ftueC = (CUSTOMER && CUSTOMER.ftue) ? CUSTOMER : null;   /* r199: a gameplay customer with a real order */
-    if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }   /* v3 D7: the shape too */
+    if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }   /* v3 D7: the shape too; part 4: the tier */
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
@@ -3293,7 +3349,7 @@ function sellCounter(){
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
-    if(ftueC){ if(ftueOrderSold(ftueC)) setTimeout(ftueBulkStep, 0); else ftueGpcSold(); }   /* r199. r201: an order of several stays */
+    if(ftueC){ if(ftueC.tc4) ftueTc4Sold(); else if(ftueOrderSold(ftueC)) setTimeout(ftueBulkStep, 0); else ftueGpcSold(); }   /* v3: TC4 is scripted */   /* r199. r201: an order of several stays */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
     else toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
@@ -3515,10 +3571,12 @@ function setTutorialCave(){
 }
 /* r203: the tutorial's Day 2 cave (FTUE.day2Cave) - one seam per ore on random spots, and each
    swing takes 2-3 (FTUE.day2Swing) so 55 ores is not 55 swings. No nickel: the FTUE never uses it. */
-function ftueDay2Cave(){
-    const ids=Object.keys(FTUE.day2Cave), idx=CAVE_SPOTS.map((s,i)=>i);
+function ftueDay2Cave(){ ftueStockCave(FTUE.day2Cave); }
+/* v3: any tutorial cave trip - one seam per ore on random spots */
+function ftueStockCave(stock){
+    const ids=Object.keys(stock), idx=CAVE_SPOTS.map((s,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    CAVE_NODES=ids.map((m,i)=>({ metal:m, spot:idx[i], left:FTUE.day2Cave[m], per:FTUE.day2Swing.slice(), script:true }));   /* r218: stocked for Day 2 - no ore skills here */
+    CAVE_NODES=ids.map((m,i)=>({ metal:m, spot:idx[i], left:stock[m], per:FTUE.day2Swing.slice(), script:true }));   /* r218: stocked for Day 2 - no ore skills here */
 }
 function rollCaveNodes(){
     const idx=CAVE_SPOTS.map((s,i)=>i);
@@ -5231,6 +5289,8 @@ function copperIn(){ return segs.filter(g=>g.ore==='copper').length; }
 /* the last copper goes in RAW - grinding it would overshoot - so that stage inverts the rule */
 function rawOnly(){ return TUT_STAGE==='d2-gale3'; }
 function fireOreWanted(){
+    if(TUT_STAGE==='p4-weak-grind'){ const n=id=>segs.filter(g=>g.ore===id).length;   /* v3 part 4: GC8 */
+        return n('iron')<1 ? 'iron' : n('manganese')<1 ? 'manganese' : false; }
     if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;   /* v3 part 3 */
     if(TUT_STAGE==='d2-copper') return copperIn()<2 ? 'copper' : false;
     if(TUT_STAGE==='d2-gale1')  return copperIn()<3 ? 'copper' : false;
@@ -5245,7 +5305,7 @@ function fireOreWanted(){
     if(n('manganese')<1) return 'manganese';
     return false;   /* all three are in - nothing more goes in this half */
 }
-function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='p3-dur-grind'
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='p3-dur-grind' || TUT_STAGE==='p4-weak-grind'
     || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2'; }   /* r111/r123/r125 */
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
@@ -5253,6 +5313,7 @@ function addPrep(){ if(!prep) return;
     if(rawOnly() && prep.grind>0.001){ toast('This one goes in <b>unground</b>'); return; }   /* r125 */
     const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
     if(_fireStage==='p3-dur-grind') ftueDurableSmelted();   /* v3 part 3 */
+    if(_fireStage==='p4-weak-grind') ftueWeakSmelted();     /* v3 part 4 */
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
     else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
     else if(String(_fireStage).indexOf('d2-gale')===0) tutGaleSmelted();   /* r125 */
@@ -6343,7 +6404,8 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     invTab(2);                                                        // show it land in the SWORDS tab
     const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
     const fireSword = (TUT_STAGE==='fire-forge');   /* r115 */
-    const durSword = (TUT_STAGE==='p3-dur-heat');   /* v3 part 3 */
+    const durSword = (TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench');   /* v3 parts 3-4 */
+    if(TUT_STAGE==='p4-weak-quench' || TUT_STAGE==='p4-quench') TUT_SWIFT_LOCK=false;
     const fireHurt = fireSword && wHp < BLADE_HP_MAX;   /* r215: D69d */
     const galeSword = (TUT_STAGE==='d2-gale-forge');   /* r126 */
     const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
@@ -6380,9 +6442,10 @@ function hammerStriking(){ return hammerEl && hammerEl.classList.contains('strik
 function ensureSwordVisible(){ const mx=0.18,myTop=0.14,myBot=0.62,vw=view.w,vh=vw*aspect; let nx=view.x,ny=view.y; if(marker.x<view.x+vw*mx) nx=marker.x-vw*mx; else if(marker.x>view.x+vw*(1-mx)) nx=marker.x-vw*(1-mx); if(marker.y<view.y+vh*myTop) ny=marker.y-vh*myTop; else if(marker.y>view.y+vh*myBot) ny=marker.y-vh*myBot; if(nx!==view.x||ny!==view.y){ view.x=nx; view.y=ny; setView(); } }
 
 // --- sword travel across the stacked route ---
-function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-gale-quench') return;   /* r198: parked on Gale until it is splashed */ let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
+function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-gale-quench' || TUT_STAGE==='p4-weak-quench') return;   /* r198: parked on Gale until it is splashed */ let step=SWORD_SPEED*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
     while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
     tutGaleEpicStop();   /* r198: clamps the sword back onto Gale's centre if this step passed it */
+    tutWeakStop();   /* v3 part 4: GC8 */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); checkHazard(p,dt); checkBooks(p); }   // drawRoute() erases the part behind the sword
 
 // ---- r39: the idle nudge arrow ----
@@ -6501,7 +6564,7 @@ function tick(now){
               const tg = want && traits.find(t=>t.trait && t.trait.id===want);
               if(tg){ const t=(tg.x-p.x)*(dx/dist) + (tg.y-p.y)*(dy/dist);
                   if(t <= step + 0.001){ step=Math.max(0,t); TUT_SWIFT_LOCK=true;
-                      setTimeout(want==='swift'? tutSwiftAligned : tutGaleAligned, 0); } } }
+                      setTimeout(want==='swift'? tutSwiftAligned : want==='durable' ? tutDurableAligned : tutGaleAligned, 0); } } }
             pull.x+=dx/dist*step; pull.y+=dy/dist*step;
             const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); }
     } else {
@@ -6741,7 +6804,7 @@ function wireDragon(){
             d.style.left=x+'px'; d.style.top=y+'px'; d.style.right='auto'; dragonCap();
             /* r188: D97 explains where to put him; once he is there it has been read and obeyed,
                and it sits over the anvil he is now working on. */
-            if(TUT_STAGE==='d2-pull' && dragonAtAnvil()) sayHide(); }
+            if((TUT_STAGE==='d2-pull' || TUT_STAGE==='p4-pull') && dragonAtAnvil()) sayHide(); }
         updateFirePos();
         if(SAY_ON) sayLayout(); });
     const end=(e)=>{
@@ -6963,6 +7026,8 @@ const DIALOGUE = {
     D92h: "A fire Longsword! I'll buy this blueprint for you too.",
     D92i: "And a fire Broadsword. My treat, one more time!",
     D92j: "Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!",
+    D92k: "I want a durable sword. Make sure it is EPIC! I only want the best.",   /* v3 part 4: TC4 (owner) */
+    D92l: "Okay, time to learn how to craft the best tier sword!",
     D93: "Do you have a sword with the Gale trait?",
     D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",   /* r213 */
     D94: "We should go and gather ores. Go back to the cave.",
@@ -6970,6 +7035,7 @@ const DIALOGUE = {
     D95: "Grind two copper and add it to the smelter.",
     D96: "Take it to the anvil and start hammering.",
     D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
+    D97a: "Remember? Drag me to the anvil and hold to pull the sword onto the trait.",   /* v3 part 4: TC5's swift step */
     D98: "Stop! This looks perfect.",
     D99: "We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later.",
     D99a: "Use it later. We don't need that now.",
@@ -6981,6 +7047,8 @@ const DIALOGUE = {
     D105: "Heat it up and hammer.",
     D106: "Amazing, you got it! We got it! Tap on the metal to select the shape.",
     D107: "Go sell it!",
+    D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",   /* v3 part 4: GC8 (owner) */
+    D107b: "Stop now! This alignment will give us a weak trait tier.",
     D108: "Thanks, this will do.",
     D109: "Great work!",
     D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way.",
@@ -7286,7 +7354,7 @@ function tutScreenArrived(name){
         else if(TUT_STAGE==='g-bell' && name==='customer')
             setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
         return; }
-    if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0 || String(TUT_STAGE).indexOf('p3-dur-')===0){ tutDay2Screen(name); return; }   /* r122/r127; v3 part 3 */
+    if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0 || String(TUT_STAGE).indexOf('p3-dur-')===0 || String(TUT_STAGE).indexOf('p4-weak-')===0){ tutDay2Screen(name); return; }   /* r122/r127; v3 part 3 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
         else if(name==='forge') tutExit('#panUp');
         return; }   /* r118: the fire run is over by bedtime */
@@ -7447,6 +7515,8 @@ function tutDay2SkillClosed(){
 }
 /* every Day 2 screen arrival in one place */
 function tutDay2Screen(name){
+    if(TUT_STAGE==='p4-weak-go' && name==='forge'){ TUT_STAGE='p4-weak-grind'; tutExit(null); sayHide(); tutNudge(true); return; }   /* v3 part 4 */
+    if(TUT_STAGE==='p4-weak-go' && name!=='forge'){ tutExit(name==='customer' ? '#panLeft' : null); return; }
     /* v3 part 3: GC4's walk - counter, forge, cave, and back */
     if(TUT_STAGE==='p3-dur-cave'){
         if(name==='forge'){ tutExit('#panRight'); return; }
@@ -7501,6 +7571,7 @@ function tutDay2Customer(){
 let TUT_SWIFT_LOCK=false;
 /* r126: which trait the pull should park on, if any. Outside these two stages the pull is free. */
 function tutPullTarget(){
+    if(TUT_STAGE==='p4-pull') return 'durable';   /* v3 part 4: TC4 */
     if(TUT_STAGE==='d2-pull') return 'swift';
     if(TUT_STAGE==='d2-gale-work') return 'gale';
     return null;
@@ -7509,7 +7580,7 @@ function tutDay2Pull(){
     if(TUT_STAGE!=='d2-hammer') return;
     if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
     TUT_STAGE='d2-pull'; TUT_SWIFT_LOCK=false;
-    sayQueue('D97');
+    sayQueue('D97a');   /* v3 part 4: TC4 taught the pull (D97 and the tiers window) - this is the reminder */
     setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
         tutGlow('#dragon', true); }, 0);
 }
@@ -7958,6 +8029,7 @@ function tutDay2Mined(){
     if(TUT_STAGE==='p3-dur-mine'){   /* v3 part 3: the one trip is done */
         if(CAVE_NODES.some(n=>n.left>0)) return;
         TUT_STAGE='p3-dur-back'; sayHide(); tutNeedTab(null);
+        if(FTUE_ST.part===4){ tutExit('#panLeft'); return; }   /* v3 part 4: TC4's trip, nothing more to say */
         sayQueue('D92f','D92g'); return; }
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;
@@ -8471,6 +8543,7 @@ function ringBell(){
     else if(TUT_STAGE==='d2-praise' && FTUE_ST.part===4) tutBram2Arrive();   /* r204: Bram, after GPC7-8 */
     else if(TUT_STAGE==='bell') tutBellRung();                /* the scripted first customer - TC2 since r199 */
     else if(TUT_STAGE==='bell2') tutFireCustomer();           /* r104: the adventurer */
+    else if(TUT_STAGE==='p4-tc4') tutTc4Arrive();             /* v3 part 4 */
     else if(TUT_STAGE==='d2-bell') tutDay2Customer();         /* r122: the gale order */
     else if(TUT_STAGE==='g-bell') tutGarricArrive();          /* r130 */
     else nextCustomer();
@@ -8606,7 +8679,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat'];   /* v3: the Durable craft */   /* r223: fire-grind */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat'];   /* v3: the Durable craft */   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -8644,8 +8717,21 @@ function tutNudgeApply(){
         if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
             else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
         if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){ if(swordAtRouteEnd()) tutMugPointer();
+        if(melt.stage==='onAnvil'){ if(swordAtRouteEnd()){ if(FTUE_ST.part===4) tutTc4Pull(); else tutMugPointer(); }   /* v3 part 4: the pull lesson */
             else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
+        return; }
+    /* v3 part 4: GC8's craft - iron, then manganese, ground; then the heat run (the Weak stop takes over) */
+    if(TUT_STAGE==='p4-weak-grind'){
+        const want=fireOreWanted(); if(!want){ tutArrow(null,null); return; }
+        if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
+        if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
+        tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'); return; }
+    if(TUT_STAGE==='p4-weak-heat'){
+        if(!melt) return;
+        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
+        if(melt.stage==='onAnvil') tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 });
         return; }
     if(TUT_STAGE==='regrind-mang'){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
