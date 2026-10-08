@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems, parts 1 and 2 built 2026-10-08; parts 3-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems, parts 1-3 built 2026-10-08; parts 4-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1107,6 +1107,31 @@ Asserted by `tooling/ftue/ftue.test.mjs` (148 checks; the part 2 checks written 
   Balanced; TC2's +5 pages, then the bell for TC3; TC3 in part 2; the fire sword to the counter; after her
   sale part 3, no reward window, D87.
 
+## Build record: part 3 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (172 checks; the part 3 checks written first and seen failing).
+
+- `FTUE.parts[3]`: GC4 Durable Shortsword (`lesson:'durable'`), GC5 fire Longsword and GC6 fire Broadsword
+  (the dragon buys; done lines D92a and D28f), GC7 fire Katana (the player buys; no done line). No rewards.
+  `FTUE.day2Cave` = 2 nickel + 6 iron + 6 manganese (D30). Lines D92b-D92j.
+- **Durable moved** to world (1577, 740) (`TRAIT_POS` 1136, 421.667). Measured: 2 ground nickel end 17.4 away
+  (Fine), the route never comes closer than 12.8 (no Epic by stopping early), the pull from the end reaches
+  5.4 (Epic, for part 4), 340 from the spawn (visible). The route crossed no hazard on 9 random maps.
+- **Day 2 morning:** D89 then D92; the skill tree is skipped (part 6). The counter, then the bell.
+- **GC4's lesson:** D92b, D92c, the map window (`MAP_parts.webp` for now), D92d, D92e, the exits to the cave,
+  D94b, gather everything, D92f, D92g, back to the forge; nickel to the wheel (raw nickel and other ores
+  refused), the turn arrow, the smelter, twice; bellows, gate, anvil, hammer; the mug at the route's end;
+  after the craft, to the counter and the sword-to-counter arrow.
+- **Market steps without a done line** now say nothing (GC7).
+- **Found in the browser and fixed:** the walk stages (`p3-dur-*`) were not routed to the screen handler, so the
+  exits never changed and the cave never started the mining step. Test added, seen failing without the fix.
+- **Interim until part 4 is built:** after GC7 the v2 gale order (`d2-bell`) comes next, and the Day 2 cave
+  no longer holds copper for it.
+- Checked in the browser: TC3's sale to the bed, Day 2 with the new cave stock, D89/D92, the bell; GC4 asks for
+  a Durable Shortsword; the lines, the map window, the walk to the cave and back; the craft guidance; the
+  route end reaches Durable at Fine (17.4); the sale; GC5 and GC6 (the dragon buys), GC7 with the top-up
+  (20g to 50g) and the purchase; after GC7 the stage is `d2-bell`.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1143,3 +1168,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: shared systems built (market, coins, shaped orders, Durable key, buttons, no CRAFT 5).
 - 2026-10-08: part 1 built (market lesson, three shaped GCs, no part 1 rewards, 9 + 9 ore).
 - 2026-10-08: part 2 built (TC2 raw-ore step and grindstone gift, no bulk order, TC3 without the design desk or a reward).
+- 2026-10-08: part 3 built (Day 2 without the skill tree, GC4 Durable lesson with the moved trait, GC5-GC7 fire with the market).

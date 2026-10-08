@@ -52,14 +52,15 @@ eq('part 2 after', FTUE.parts[2].after, 'bell2');
 eq('part 2 rewards (v3 D20: TC2 +5 pages; the design desk moved to part 6)', FTUE.parts[2].rewards, { tc: [ { kind: 'pages', n: 5 } ] });
 /* part 3 (r203) */
 eq('startParts (per trait, per kind)', FTUE.startParts, 3);
-eq('part 3 gpc', FTUE.parts[3].gpc, [ { trait: 'fire', qty: 1 }, { trait: 'balanced', qty: 1 }, { trait: 'fire', qty: 1 } ]);
+/* v3 part 3 (D25-D32): GC4 Durable (the lesson), GC5-GC6 fire bought by the dragon, GC7 fire Katana bought by the player */
+eq('part 3 gpc', FTUE.parts[3].gpc, [
+  { trait: 'durable', shape: 'Shortsword', qty: 1, lesson: 'durable' },
+  { trait: 'fire', shape: 'Longsword',  qty: 1, market: { by: 'dragon', ask: 'D92h', done: 'D92a' } },
+  { trait: 'fire', shape: 'Broadsword', qty: 1, market: { by: 'dragon', ask: 'D92i', done: 'D28f' } },
+  { trait: 'fire', shape: 'Katana',     qty: 1, market: { by: 'player', ask: 'D92j', done: null } } ]);
 eq('part 3 after', FTUE.parts[3].after, 'd2-bell');
-eq('part 3 rewards', FTUE.parts[3].rewards, {
-  tc:   [ { kind: 'parts', trait: 'balanced' }, { kind: 'parts', trait: 'fire' }, { kind: 'blueprint', trait: 'fire', shape: 'Longsword' } ],
-  gpc1: [ { kind: 'blueprint', trait: 'fire', shape: 'Broadsword' } ],
-  gpc2: [],
-  gpc3: [ { kind: 'parts', trait: 'fire' } ] });
-eq('day2Cave', FTUE.day2Cave, { iron: 12, manganese: 12, copper: 24, aluminium: 7 });
+eq('part 3 rewards (D32: none)', FTUE.parts[3].rewards, { tc: [], gpc1: [], gpc2: [], gpc3: [], gpc4: [] });
+eq('day2Cave (D30: one trip for part 3)', FTUE.day2Cave, { nickel: 2, iron: 6, manganese: 6 });
 eq('day2Swing', FTUE.day2Swing, [2, 3]);
 /* placeholder parts carry the owner's art-list names and show an existing image until the art lands */
 const alias = src.match(/const DD_ALIAS = (\{[^}]*\});/);
@@ -239,6 +240,27 @@ eq('then the grindstone in the reward window, and the ores back', /function tutT
 eq('the grindstone may be used once it is given', /function tutTc2Grindstone\(\)\{[\s\S]{0,800}FTUE_ST\.grindUse=true/.test(src), true);
 eq('TC3: no design desk, straight to the counter', src.includes('else if(fireSword) tutFireToCounter();'), true);
 eq('TC3: no reward window (D31)', /function tutThankYou3\(\)\{[\s\S]{0,700}ftueReward\(\[\], ?\(\)=>\{/.test(src), true);
+/* v3 part 3 lines (D27, D28, D52) */
+const V3P3 = {
+  D92b: 'The Durable trait is one of the basic traits. It should be in the visible part of the map.',
+  D92c: 'The traits you discover in the hidden part of the map are elemental.',
+  D92d: 'And I also remember we need nickel for the Durable trait.',
+  D92e: "Let's see if we can find some in the cave.",
+  D92f: 'We got some nickel! We can craft a Durable sword now.',
+  D92g: 'If you explore further in the same direction, you will find elemental traits associated with light.',
+  D92h: "A fire Longsword! I'll buy this blueprint for you too.",
+  D92i: 'And a fire Broadsword. My treat, one more time!',
+  D92j: 'Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!' };
+for (const [k, v] of Object.entries(V3P3)) eq(k + ' text', line(k), v);
+for (const [k, prev] of [['D92b','D92a'],['D92c','D92b'],['D92d','D92c'],['D92e','D92d'],['D92f','D92e'],['D92g','D92f'],['D92h','D92g'],['D92i','D92h'],['D92j','D92i']])
+  eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('Durable moved (D25, measured: Fine to the end, Epic only with the pull)', /durable:\{x:1136,y:421\.667\}/.test(src), true);
+eq('Day 2 morning: no skill tree (it moved to part 6)', src.includes("sayQueue('D89','D92');"), true);
+eq('the Durable lesson: map window after D92c', src.includes('D92c:function(){ ftueDurableMap(); }')
+  && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts\.webp'/.test(src), true);
+eq('the Durable craft takes ground nickel only', src.includes("if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;"), true);
+eq('the Durable walk reaches its screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0){ tutDay2Screen(name); return; }"), true);
+eq('a market step without a done line says nothing', src.includes('if(o.market.done) sayOver(o.market.done);'), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

@@ -2347,11 +2347,13 @@ const FTUE = {
         /* v3 part 2: TC2 then TC3, no gameplay customers and no bulk order (D18); the design desk moved to part 6 */
         2: { gpc:[], after:'bell2',
              rewards:{ tc:[ { kind:'pages', n:5 } ] } },
-        3: { gpc:[ { trait:'fire', qty:1 }, { trait:'balanced', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-bell',
-             rewards:{ tc:  [ { kind:'parts', trait:'balanced' }, { kind:'parts', trait:'fire' }, { kind:'blueprint', trait:'fire', shape:'Longsword' } ],
-                       gpc1:[ { kind:'blueprint', trait:'fire', shape:'Broadsword' } ],
-                       gpc2:[],
-                       gpc3:[ { kind:'parts', trait:'fire' } ] } },
+        /* v3 part 3: GC4 Durable (lesson: the map window, the cave, 2 ground nickel), then three fire orders - the
+           dragon buys the Longsword and Broadsword, the player the Katana. done:null says nothing. No rewards (D32). */
+        3: { gpc:[ { trait:'durable', shape:'Shortsword', qty:1, lesson:'durable' },
+                   { trait:'fire', shape:'Longsword',  qty:1, market:{ by:'dragon', ask:'D92h', done:'D92a' } },
+                   { trait:'fire', shape:'Broadsword', qty:1, market:{ by:'dragon', ask:'D92i', done:'D28f' } },
+                   { trait:'fire', shape:'Katana',     qty:1, market:{ by:'player', ask:'D92j', done:null } } ], after:'d2-bell',
+             rewards:{ tc:[], gpc1:[], gpc2:[], gpc3:[], gpc4:[] } },
         4: { gpc:[ { trait:'gale', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-praise',
              rewards:{ tc:  [ { kind:'blueprint', trait:'gale', shape:'Longsword' }, { kind:'parts', trait:'gale' } ],
                        gpc1:[ { kind:'blueprint', trait:'gale', shape:'Rapier' }, { kind:'parts', trait:'gale' } ],
@@ -2377,7 +2379,7 @@ const FTUE = {
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
     startParts: 3,
     /* r203: the Day 2 cave, straight after the skill tree - everything Day 2 needs, +5 of each */
-    day2Cave:  { iron:12, manganese:12, copper:24, aluminium:7 },
+    day2Cave:  { nickel:2, iron:6, manganese:6 },   /* v3 D30: part 3's one trip - GC4's nickel, GC5-GC7's fire swords */
     day2Swing: [2, 3],
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
     retryLine: 'D28a',
@@ -2534,6 +2536,22 @@ function ftueDecorStep(){
         TUT_STAGE='p1-quest'; tutArrow(null,null); tutExit(null); tutNeedTab(null);
         setTimeout(()=>sayQueue('D118'), 0); }
 }
+/* ---- v3 part 3: GC4's Durable lesson. Stages: p3-dur-ask (D92b-D92c, the map window, D92d-D92e),
+   p3-dur-cave (to the cave), p3-dur-mine (gather it all), p3-dur-back (D92f-D92g, to the forge),
+   p3-dur-grind (2 ground nickel), p3-dur-heat (bellows, gate, anvil, hammer, quench), p3-dur-sell. ---- */
+function nickelIn(){ return segs.filter(g=>g.ore==='nickel').length; }
+function ftueDurableStart(){ TUT_STAGE='p3-dur-ask'; sayQueue('D92b','D92c'); }
+function ftueDurableMap(){ if(TUT_STAGE!=='p3-dur-ask') return;
+    openIllus('assets/ui/MAP_parts.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part', ()=>sayQueue('D92d','D92e')); }
+function ftueDurableToCave(){ if(TUT_STAGE!=='p3-dur-ask') return;
+    TUT_STAGE='p3-dur-cave'; tutExit(SF_SCREEN==='customer' ? '#panLeft' : '#panRight'); }
+function ftueDurableToForge(){ if(TUT_STAGE==='p3-dur-back') tutExit('#panLeft'); }
+function ftueDurableSmelted(){ if(TUT_STAGE==='p3-dur-grind' && nickelIn()>=2){ TUT_STAGE='p3-dur-heat'; tutNudge(true); } }
+function ftueDurableSell(){ TUT_STAGE='p3-dur-sell'; tutArrow(null,null); tutExit(SF_SCREEN==='customer' ? null : '#panLeft');
+    if(SF_SCREEN==='customer') ftueDurableAtCounter(); }
+function ftueDurableAtCounter(){ if(TUT_STAGE!=='p3-dur-sell') return;
+    TUT_STAGE='p3-gpc'; tutExit(null); invTab(2);
+    setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); }
 function ftuePreQuests(){ FTUE.preQuests.forEach(q=>bumpQuest(q.id)); }
 /* the bell brings a gameplay customer with the order the part lists next */
 function ftueGpcArrive(){
@@ -2550,7 +2568,8 @@ function ftueGpcArrive(){
     buildScreenProps('customer'); counterUi();
     /* r213: the dragon's word on the first unguided craft (GPC1), the bulk order (GPC3), the first fire order (GPC4) */
     const nudge = o.market ? o.market.ask : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
-                : (FTUE_ST.part===3 && FTUE_ST.gpc===0) ? 'D92a' : null;
+                : null;
+    if(o.lesson==='durable') typeAfter(ftueDurableStart);   /* v3 part 3 */
     if(nudge) typeAfter(()=>{ sayQueue(nudge); if(o.market) setTimeout(()=>tutExit('#marketBtn'), 0); });   /* v3: and MARKET blinks */
     custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
@@ -2888,7 +2907,7 @@ const TRAITS = [   // r17: catalog redrawn from the owner's trait-map sketch (25
 // converge (= home / START); REF_S = sketch px -> world units. The sketch's circle is the opening reveal.
 const REF_C = { x:1018, y:615 }, REF_S = 1.5;
 const TRAIT_POS = {
-    swift:{x:916,y:510}, balanced:{x:831,y:608}, durable:{x:1131,y:510}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},   /* r80: Balanced sits on the tutorial route's landing point; Durable takes its old seat so the y=510 row keeps its shape */
+    swift:{x:916,y:510}, balanced:{x:831,y:608}, durable:{x:1136,y:421.667}, flexible:{x:1189,y:662}, heavy:{x:1036,y:745},   /* r80: Balanced sits on the tutorial route's landing point; Durable takes its old seat so the y=510 row keeps its shape */
     celestial:{x:1085,y:41}, cloud:{x:633,y:150}, rainbow:{x:877,y:160}, luck:{x:1400,y:147}, lightning:{x:369,y:291},
     noble:{x:1147,y:312}, grace:{x:1721,y:333}, gale:{x:776,y:361}, floral:{x:1400,y:435}, fury:{x:200,y:517},
     ice:{x:1775,y:579}, fire:{x:641,y:634}, water:{x:1432,y:681}, magma:{x:238,y:781}, mist:{x:1622,y:882},
@@ -5212,6 +5231,7 @@ function copperIn(){ return segs.filter(g=>g.ore==='copper').length; }
 /* the last copper goes in RAW - grinding it would overshoot - so that stage inverts the rule */
 function rawOnly(){ return TUT_STAGE==='d2-gale3'; }
 function fireOreWanted(){
+    if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;   /* v3 part 3 */
     if(TUT_STAGE==='d2-copper') return copperIn()<2 ? 'copper' : false;
     if(TUT_STAGE==='d2-gale1')  return copperIn()<3 ? 'copper' : false;
     if(TUT_STAGE==='d2-gale2')  return copperIn()<4 ? 'copper' : false;
@@ -5225,13 +5245,14 @@ function fireOreWanted(){
     if(n('manganese')<1) return 'manganese';
     return false;   /* all three are in - nothing more goes in this half */
 }
-function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind'
+function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='p3-dur-grind'
     || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2'; }   /* r111/r123/r125 */
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
     if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
     if(rawOnly() && prep.grind>0.001){ toast('This one goes in <b>unground</b>'); return; }   /* r125 */
     const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
+    if(_fireStage==='p3-dur-grind') ftueDurableSmelted();   /* v3 part 3 */
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
     else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
     else if(String(_fireStage).indexOf('d2-gale')===0) tutGaleSmelted();   /* r125 */
@@ -5541,7 +5562,7 @@ function ftueMarketOpened(){
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
         m.step='gift'; sayOver(FTUE.marketWatch);
-        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; sayOver(o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }), 900);
+        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; if(o.market.done) sayOver(o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }), 900);
         return; }
     m.step='buy';
     if(GOLD<MARKET.price){ sayOver(FTUE.marketShort); setTimeout(ftueMarketTopUp, 900); }
@@ -5554,7 +5575,7 @@ function ftueMarketTopUp(){
     if(g) coinFly(dragonEl(), g, go); else go(); }
 function ftueMarketBought(k, sh){
     const m=FTUE_MK; if(!m || m.step!=='buy' || k!==m.o.trait || sh!==m.o.shape) return;
-    m.step='done'; sayOver(m.o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }
+    m.step='done'; if(m.o.market.done) sayOver(m.o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }
 /* the player buys */
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
@@ -6322,12 +6343,13 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     invTab(2);                                                        // show it land in the SWORDS tab
     const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
     const fireSword = (TUT_STAGE==='fire-forge');   /* r115 */
+    const durSword = (TUT_STAGE==='p3-dur-heat');   /* v3 part 3 */
     const fireHurt = fireSword && wHp < BLADE_HP_MAX;   /* r215: D69d */
     const galeSword = (TUT_STAGE==='d2-gale-forge');   /* r126 */
     const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
-        if(second) ftueTc2Sell(); else if(fireSword) tutFireToCounter();   /* r201: was tutBasementStep - sharpening moved to part 5 */
+        if(second) ftueTc2Sell(); else if(fireSword) tutFireToCounter(); else if(durSword) ftueDurableSell();   /* r201: was tutBasementStep - sharpening moved to part 5 */
         else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>{ sayQueue('D69d');   /* r215: and the Health row blinks with it */
@@ -6931,7 +6953,16 @@ const DIALOGUE = {
     D90: "Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point.",
     D91: "Open the skill tree and use your points. You will feel more... powerful!",
     D92: "Let's go check the counter.",
-    D92a: "Remember the fire route? The craft book can help.",   /* r213 */
+    D92a: "Remember the fire route? The craft book can help.",   /* r213; v3: GC5's line once the dragon has paid */
+    D92b: "The Durable trait is one of the basic traits. It should be in the visible part of the map.",   /* v3 part 3 (owner) */
+    D92c: "The traits you discover in the hidden part of the map are elemental.",
+    D92d: "And I also remember we need nickel for the Durable trait.",
+    D92e: "Let's see if we can find some in the cave.",
+    D92f: "We got some nickel! We can craft a Durable sword now.",
+    D92g: "If you explore further in the same direction, you will find elemental traits associated with light.",
+    D92h: "A fire Longsword! I'll buy this blueprint for you too.",
+    D92i: "And a fire Broadsword. My treat, one more time!",
+    D92j: "Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!",
     D93: "Do you have a sword with the Gale trait?",
     D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",   /* r213 */
     D94: "We should go and gather ores. Go back to the cave.",
@@ -7255,7 +7286,7 @@ function tutScreenArrived(name){
         else if(TUT_STAGE==='g-bell' && name==='customer')
             setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0);
         return; }
-    if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0){ tutDay2Screen(name); return; }   /* r122/r127 */
+    if(String(TUT_STAGE).indexOf('d2-')===0 || String(TUT_STAGE).indexOf('bram2')===0 || String(TUT_STAGE).indexOf('p3-dur-')===0){ tutDay2Screen(name); return; }   /* r122/r127; v3 part 3 */
     if(TUT_STAGE==='to-bed' || TUT_STAGE==='bed'){ if(name==='bedroom') tutBedroom();
         else if(name==='forge') tutExit('#panUp');
         return; }   /* r118: the fire run is over by bedtime */
@@ -7396,8 +7427,10 @@ function tutThankYou3(){
 let TUT_D2_SPENT=false;
 function tutDay2Morning(){
     if(TUT_STAGE!=='day2-forge') return;
-    TUT_STAGE='d2-morning'; tutExit(null);
-    sayQueue('D89','D90','D91');
+    /* v3: the skill tree moved to part 6 (D21) - the morning sends the player to the counter, where the bell waits */
+    TUT_STAGE='d2-counter'; tutExit(null);
+    sayQueue('D89','D92');
+    setTimeout(()=>tutExit('#panLeft'), 0);
 }
 /* D91 is the one that asks for the tree, so the button lights with it, not before */
 function tutDay2Skill(){ tutExit('#skillBtn'); }
@@ -7414,6 +7447,12 @@ function tutDay2SkillClosed(){
 }
 /* every Day 2 screen arrival in one place */
 function tutDay2Screen(name){
+    /* v3 part 3: GC4's walk - counter, forge, cave, and back */
+    if(TUT_STAGE==='p3-dur-cave'){
+        if(name==='forge'){ tutExit('#panRight'); return; }
+        if(name==='cave'){ TUT_STAGE='p3-dur-mine'; tutExit(null); sayQueue('D94b'); tutNeedTab(tutPickTab); return; } }
+    if(TUT_STAGE==='p3-dur-back' && name==='forge'){ TUT_STAGE='p3-dur-grind'; tutExit(null); sayHide(); tutNudge(true); return; }
+    if(TUT_STAGE==='p3-dur-sell'){ if(name==='customer') ftueDurableAtCounter(); else if(name==='forge') tutExit('#panLeft'); return; }
     if(TUT_STAGE==='d2-counter' && name==='customer'){
         /* r183: D92 is "Let's go check the counter" - the walk is done, so the line goes with it.
            Same family as r169: this branch re-points but says nothing, so nothing retired it. */
@@ -7835,7 +7874,8 @@ let TUT_SAW_TIERS=false;
 let TUT_SAW_PARTS=false;
 function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
-const SAY_AFTER={ D97:function(){ openTiers(); }, D32b:function(){ tutTc2Grindstone(); }, D67a:function(){ openParts(); },
+const SAY_AFTER={ D97:function(){ openTiers(); }, D32b:function(){ tutTc2Grindstone(); },
+                  D92c:function(){ ftueDurableMap(); }, D92e:function(){ ftueDurableToCave(); }, D92g:function(){ ftueDurableToForge(); },   /* v3 part 3 */ D67a:function(){ openParts(); },
                   D26:function(){ ftueAfterBram(); },   /* r199 */
                   D57:function(){ if(TUT_STAGE==='bram2-bonus') tutBram2Thanks(); },   /* r205. r213: then Bram's D114 */
                   D117:function(){ ftueAfterDiary(); } };   /* r205 */
@@ -7915,6 +7955,10 @@ function tutDay2Smelted(){
     sayQueue('D96');
 }
 function tutDay2Mined(){
+    if(TUT_STAGE==='p3-dur-mine'){   /* v3 part 3: the one trip is done */
+        if(CAVE_NODES.some(n=>n.left>0)) return;
+        TUT_STAGE='p3-dur-back'; sayHide(); tutNeedTab(null);
+        sayQueue('D92f','D92g'); return; }
     if(TUT_STAGE!=='d2-mine') return;
     if(CAVE_NODES.some(n=>n.left>0)) return;
     TUT_STAGE='d2-counter';   /* r203: was 'd2-back' (to the forge for TC4's copper); now D92 and the counter */
@@ -8562,7 +8606,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind'];   /* r223: fire-grind */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat'];   /* v3: the Durable craft */   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -8590,6 +8634,19 @@ function tutNudgeApply(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'); return; }
+    /* v3 part 3: GC4's Durable craft - nickel to the wheel, turn, smelter, twice; then the heat run and the quench */
+    if(TUT_STAGE==='p3-dur-grind'){
+        if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
+        if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
+        tutWheelArrow('Nickel'); return; }
+    if(TUT_STAGE==='p3-dur-heat'){
+        if(!melt) return;
+        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
+        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
+        if(melt.stage==='onAnvil'){ if(swordAtRouteEnd()) tutMugPointer();
+            else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
+        return; }
     if(TUT_STAGE==='regrind-mang'){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
