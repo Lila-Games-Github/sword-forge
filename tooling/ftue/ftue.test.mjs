@@ -20,7 +20,7 @@ let n = 0;
 function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; console.log('  ok   ' + label); }
 
 /* the record */
-eq('oreStart',   FTUE.oreStart,   { iron: 12, manganese: 12 });
+eq('oreStart (v3 D22: 4 swords in part 1 leave 1 + 1 for TC2)', FTUE.oreStart, { iron: 9, manganese: 9 });
 eq('firstCraft', FTUE.firstCraft, { iron: 2, manganese: 2 });
 eq('gpcCraft',   FTUE.gpcCraft,   { iron: 2, manganese: 2 });
 eq('preQuests',  FTUE.preQuests,  [
@@ -33,11 +33,14 @@ eq('shapes',     FTUE.shapes,     {
   gale:     ['Shortsword', 'Longsword', 'Rapier'],
   swift:    ['Shortsword', 'Longsword', 'Dagger'],      /* r208: the swift Dagger replaces the swift Rapier */
   durable:  ['Shortsword', 'Longsword', 'Broadsword'] });   /* v3 D5: Durable joins the FTUE */
-eq('part 1 gpc', FTUE.parts[1].gpc, [ { trait: 'balanced', qty: 1 }, { trait: 'balanced', qty: 1 } ]);
-eq('part 1 rewards', FTUE.parts[1].rewards, {
-  tc:   [ { kind: 'decor', id: 'banner' } ],
-  gpc1: [ { kind: 'blueprint', trait: 'balanced', shape: 'Longsword' } ],
-  gpc2: [ { kind: 'blueprint', trait: 'balanced', shape: 'Broadsword' }, { kind: 'unlock', id: 'grindstone' } ] });
+/* v3 part 1 (specs/2026-10-07-ftue-v3-rework.md D3/D10-D12, D17): three shaped orders; the dragon buys the first
+   two blueprints, the player buys the Katana. No rewards in part 1 (the banner moved to Garric, the grindstone to part 2). */
+eq('part 1 gpc', FTUE.parts[1].gpc, [
+  { trait: 'balanced', shape: 'Longsword',  qty: 1, market: { by: 'dragon', ask: 'D28b', done: 'D28d' } },
+  { trait: 'balanced', shape: 'Broadsword', qty: 1, market: { by: 'dragon', ask: 'D28e', done: 'D28f' } },
+  { trait: 'balanced', shape: 'Katana',     qty: 1, market: { by: 'player', ask: 'D28g', done: 'D28i' } } ]);
+eq('part 1 rewards', FTUE.parts[1].rewards, { tc: [], gpc1: [], gpc2: [], gpc3: [] });
+eq('market lines: the dragon pays, the top-up', [FTUE.marketWatch, FTUE.marketShort], ['D28c', 'D28h']);
 eq('part 1 after', FTUE.parts[1].after, 'bell');
 /* part 2 (r201) */
 eq('recipePages', FTUE.recipePages, 3);
@@ -132,7 +135,6 @@ const R213 = {
   D15:  'It is hot enough. Now strike the hot metal!',
   D22:  "You don't need to know who I am! Assassins are after me. I lost my sword too!",
   D26:  'Phew! That was a lot of hard work.',
-  D28b: 'Now you try! Make a balanced sword like the last one.',
   D58a: "Five swords! Let's use the craft book. It can make them all at once.",
   D67a: 'The map is divided into 5 parts. This picture gives you a hint about where each trait might be.',
   D76:  'Yes! We got it! It is not perfect, but it is okay for now.',
@@ -202,6 +204,26 @@ eq('fog edge blur (stdDeviation 24 world units)', src.includes('<filter id="fogS
   && src.includes('<g id="fogHoles" fill="#000" filter="url(#fogSoft)"></g>'), true);
 eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, manganese:FTUE\.oreStart\.manganese/.test(src), true);
 
+/* v3 part 1 lines (D8, D17) */
+const V3P1 = {
+  D28b: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you.",
+  D28c: 'Here it is. Watch this!',
+  D28d: 'There, my treat! Now make a balanced sword and pick the Longsword shape.',
+  D28e: "A Broadsword this time. To the market! I'll pay again.",
+  D28f: 'Done! Pick the Broadsword when you shape the blade.',
+  D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",
+  D28h: "Oh, you don't have enough. Don't worry, I'll help.",
+  D28i: 'Your first blueprint! Now make the Katana.' };
+for (const [k, v] of Object.entries(V3P1)) eq(k + ' text', line(k), v);
+const keyList = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
+for (const [k, prev] of [['D28c','D28b'],['D28d','D28c'],['D28e','D28d'],['D28f','D28e'],['D28g','D28f'],['D28h','D28g'],['D28i','D28h']])
+  eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('Bram: no reward window, straight to the quest list',
+  /function ftueAfterBram\(\)\{[\s\S]{0,300}TUT_STAGE='p1-quest'/.test(src) && !/function ftueAfterBram\(\)\{[^}]*ftueReward\(/.test(src), true);
+eq('a market order opens the market', src.includes("if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }"), true);
+eq('the dragon speaks inside the market window (his counter bubble cannot rise above a modal)', src.includes("box.querySelector('p').textContent=DIALOGUE[id]; box.hidden=false;") && src.includes('id="mkSay"'), true);
+eq('short of the price: topped up to it', /function ftueMarketTopUp\(\)\{[\s\S]{0,500}GOLD=Math.max\(GOLD, MARKET.price\)/.test(src), true);
+eq('grindstone (interim until the part 2 build): on the bench when part 1 ends', src.includes('if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true; ftueGrindUi(); }'), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

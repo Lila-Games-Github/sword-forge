@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems built 2026-10-08; parts 1-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems and part 1 built 2026-10-08; parts 2-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1059,6 +1059,30 @@ Asserted by `tooling/market/market.test.mjs` (33 checks, written first and seen 
   a purchase (60g to 10g), "not enough gold" and "discover first" refusals, the 10-shape picker; no console
   errors; mobile-fit GREEN.
 
+## Build record: part 1 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (134 checks; the part 1 checks written first and seen failing).
+
+- `FTUE.oreStart` 9 + 9 (D22). `FTUE.parts[1]`: three orders, balanced Longsword, Broadsword, Katana, each
+  with `market: { by, ask, done }` (dragon, dragon, player); no rewards. `FTUE.marketWatch` D28c,
+  `FTUE.marketShort` D28h. Lines D28b (changed) and D28c-D28i as approved (D17).
+- **Bram:** no reward window; D26 leads straight to the quest list (D118).
+- **A market order** opens the market (`FTUE_ST.market`), says its ask line and blinks MARKET. Opening the
+  market runs the lesson (`FTUE_MK`): the dragon buys (D28c, coins, D28d / D28f), or the player buys (with
+  D28h and the coin top-up to 50g if short; only the ordered blueprint can be bought during the lesson).
+  CLOSE blinks when it is done. Closing before buying sends the player back to MARKET.
+- **Found in the browser and fixed:** on the counter screen the dragon's bubble cannot rise above a modal
+  (it lives in the screen layer's stacking context). While the market is open his line shows in a strip
+  inside the window (`#mkSay`). Test added and seen failing without the fix.
+- **Interim until later parts are built:** the grindstone is put on the bench when part 1 ends (part 2 will
+  give it in TC2's run, D13); the banner is not given anywhere (part 6 will, D11); part 2 still runs the v2
+  script, including the 5-sword order whose CRAFT 5 button is gone (part 2 removes that order, D18).
+- `ftuePart(2)` now ends part 1 with the three balanced blueprints, the market open, 1 + 1 ore, no banner.
+- Checked in the browser: a new game has 9 + 9 ore and MARKET closed; GC1 to GC3 each ask by shape; the
+  dragon buys the Longsword and Broadsword; at 46g the top-up brings the gold to 50; a different blueprint
+  is refused during the lesson; the Katana is bought (50 to 0); a Shortsword is refused at the counter and
+  the ordered shape sells; after GC3 the stage is the bell for TC2 and the grindstone is on the bench.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1093,3 +1117,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: owner answered Q43-Q48 (D44-D49). Day 3 lines D87a, D88a, D89a drafted. All six parts planned.
 - 2026-10-08: owner closed the last questions (D50-D53). Planning complete.
 - 2026-10-08: shared systems built (market, coins, shaped orders, Durable key, buttons, no CRAFT 5).
+- 2026-10-08: part 1 built (market lesson, three shaped GCs, no part 1 rewards, 9 + 9 ore).

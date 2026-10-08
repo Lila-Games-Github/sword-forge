@@ -717,6 +717,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .mk-cell.buy:hover { filter: brightness(1.05); }
 .mk-cell.unlocking { animation: mkUnlock .7s ease-out; }
 @keyframes mkUnlock { 0% { transform: scale(1); } 35% { transform: scale(1.35); box-shadow: 0 0 14px 4px rgba(255,200,70,.9); } 100% { transform: scale(1); } }
+/* v3: the dragon speaks INSIDE the market window - on the counter screen his bubble lives in #screenLayer,
+   whose stacking context keeps it under any modal, whatever its own z-index */
+.mk-say { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border-radius: 8px;
+    background: #fff7e2; border: 2px solid #c99a3a; font-family: Georgia, serif; font-size: 12px; color: #2a1d0c; }
+.mk-say[hidden] { display: none; }
+.mk-say .who { font: 900 9px/1 'Cinzel', serif; color: #8a5a1c; letter-spacing: .6px; }
+.mk-say p { margin: 0; }
 .mk-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .mk-gold { font: 700 13px/1 'Cinzel', serif; color: #4a3623; }
 .mk-foot .paperBtn.red { flex: 0 0 auto; width: 96px; }   /* the shape picker's Cancel size, not 30% of a wide box */
@@ -2173,6 +2180,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="sf-modal-box mk-box">
             <h3 class="sf-modal-h">Market</h3>
             <p class="sf-modal-sub">Blueprints: each shape, for each trait.</p>
+            <div class="mk-say" id="mkSay" hidden><span class="who">DRAGON</span><p></p></div>
             <div class="mk-grid" id="mkGrid"></div>
             <div class="mk-foot"><span class="mk-gold">🪙 <b id="mkGold">0</b></span><button class="paperBtn red" type="button" onclick="closeMarket()">Close</button></div>
         </div>
@@ -2315,7 +2323,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 // ============================================================
 /* FTUE-CONFIG-BEGIN */
 const FTUE = {
-    oreStart:   { iron:12, manganese:12 },
+    oreStart:   { iron:9, manganese:9 },   /* v3 D22: part 1's 4 swords take 8 + 8, leaving 1 + 1 for TC2 */
     firstCraft: { iron:2, manganese:2 },
     gpcCraft:   { iron:2, manganese:2 },
     preQuests:  [ { id:'sellOne',  label:'Sell a sword',  gold:10, xp:20 },
@@ -2329,10 +2337,13 @@ const FTUE = {
     tc2Craft: { iron:1, manganese:1 },
     /* after: the stage the last GPC sale leaves behind - the bell that brings the next part's TC */
     parts: {
-        1: { gpc:[ { trait:'balanced', qty:1 }, { trait:'balanced', qty:1 } ], after:'bell',
-             rewards:{ tc:  [ { kind:'decor', id:'banner' } ],
-                       gpc1:[ { kind:'blueprint', trait:'balanced', shape:'Longsword' } ],
-                       gpc2:[ { kind:'blueprint', trait:'balanced', shape:'Broadsword' }, { kind:'unlock', id:'grindstone' } ] } },
+        /* v3 part 1: three shaped orders. market: who gets the blueprint at the market (D10: the dragon buys the
+           first two, the player the Katana), the line that sends the player there, and the line once it is open.
+           No rewards: the banner moved to Garric (D11), the grindstone to part 2 (D4). */
+        1: { gpc:[ { trait:'balanced', shape:'Longsword',  qty:1, market:{ by:'dragon', ask:'D28b', done:'D28d' } },
+                   { trait:'balanced', shape:'Broadsword', qty:1, market:{ by:'dragon', ask:'D28e', done:'D28f' } },
+                   { trait:'balanced', shape:'Katana',     qty:1, market:{ by:'player', ask:'D28g', done:'D28i' } } ], after:'bell',
+             rewards:{ tc:[], gpc1:[], gpc2:[], gpc3:[] } },
         2: { gpc:[ { trait:'balanced', qty:5 } ], ensureOre:{ iron:5, manganese:5 }, after:'bell2',
              rewards:{ tc:  [ { kind:'pages', n:5 } ],
                        gpc1:[ { kind:'unlock', id:'designDesk' } ] } },
@@ -2369,7 +2380,9 @@ const FTUE = {
     day2Cave:  { iron:12, manganese:12, copper:24, aluminium:7 },
     day2Swing: [2, 3],
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
-    retryLine: 'D28a'
+    retryLine: 'D28a',
+    marketWatch: 'D28c',   /* v3: as the dragon pays */
+    marketShort: 'D28h'    /* v3 D12: short of the price, the dragon tops the gold up */
 };
 /* FTUE-CONFIG-END */
 // ============================================================
@@ -2495,8 +2508,9 @@ function closeReward(){
 /* D26 is off the screen: the banner, then the quest list */
 function ftueAfterBram(){
     if(FTUE_ST.part!==1 || TUT_STAGE==='p1-reward') return;
-    TUT_STAGE='p1-reward';
-    ftueReward(FTUE.parts[1].rewards.tc, ()=>{ TUT_STAGE='p1-decor-tab'; ftueDecorStep(); });   /* r200: the banner goes up first */
+    /* v3: no reward window - the banner moved to Garric (D11), and its lesson with it. Straight to the quest list. */
+    TUT_STAGE='p1-quest'; tutArrow(null,null); tutExit(null);
+    setTimeout(()=>sayQueue('D118'), 0);
 }
 /* r200: hang the banner on the counter screen - ITEMS & DECOR, BUILD on, drag, BUILD off - and only
    then D118. Pointers only (owner). The pointer is worked out from the state every time, because
@@ -2529,14 +2543,15 @@ function ftueGpcArrive(){
     CUSTOMER={ portrait:'assets/customer/'+pool[Math.floor(Math.random()*pool.length)]+'.webp',
                tid:o.trait, shape:o.shape||null, name:tr.name, ftue:true, qty:o.qty, got:0 };   /* v3 D7 */
     TUT_STAGE='p'+FTUE_ST.part+'-gpc'; tutUnglow(); sayHide();
+    if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }   /* v3 D6/D10 */
     /* r201: an order the bulk craft is meant for must be affordable, whatever went before */
     if(P.ensureOre) Object.keys(P.ensureOre).forEach(id=>{ ORE_COUNT[id]=Math.max(ORE_COUNT[id]||0, P.ensureOre[id]); });
     if(INV_TAB===0) buildShelf();
     buildScreenProps('customer'); counterUi();
     /* r213: the dragon's word on the first unguided craft (GPC1), the bulk order (GPC3), the first fire order (GPC4) */
-    const nudge = (FTUE_ST.part===1 && FTUE_ST.gpc===0) ? 'D28b' : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
+    const nudge = o.market ? o.market.ask : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
                 : (FTUE_ST.part===3 && FTUE_ST.gpc===0) ? 'D92a' : null;
-    if(nudge) typeAfter(()=>sayQueue(nudge));
+    if(nudge) typeAfter(()=>{ sayQueue(nudge); if(o.market) setTimeout(()=>tutExit('#marketBtn'), 0); });   /* v3: and MARKET blinks */
     custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
@@ -2596,6 +2611,7 @@ function ftueGpcSold(){
     FTUE_ST.gpc++;
     const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;
     TUT_STAGE = more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC */
+    if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true; ftueGrindUi(); }   /* v3 interim: no longer GPC2's reward; the part 2 build gives it in TC2's run (D13) */
     tutArrow(null,null); tutExit(null);
     setTimeout(()=>ftueReward(list, ftueToCounter), 700);
 }
@@ -2700,9 +2716,9 @@ function ftuePart(n){
         FTUE.preQuests.forEach(p=>{ const q=questBy(p.id); if(q){ q.progress=q.goal; q.done=true; q.claimed=true; } });
         RAIL_QUEST=true; railUi();
         GOLD=60; exp=100;
-        FTUE_ST=ftueFresh(); FTUE_ST.gpc=2; FTUE_ST.grind=true; FTUE_ST.decor=['banner'];
-        FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true;
-        ORE_COUNT.iron=6; ORE_COUNT.manganese=6; TUT_STAGE='bell';
+        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.grind=true; FTUE_ST.market=true;   /* v3: the banner is Garric's now */
+        FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true; FTUE_ST.shapes['balanced:Katana']=true;
+        ORE_COUNT.iron=1; ORE_COUNT.manganese=1; TUT_STAGE='bell'; marketBtnUi();
         if(n>=3){   /* the end of part 2: TC2's sword sold, GPC3's five sold, TC3 waiting at the bell */
             RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','manganese'], grinds:[1,1], at:Date.now() };
             for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
@@ -5483,8 +5499,15 @@ function marketCtx(trait, shape){ return { open:marketOpen(), known:traitKnown(t
 function marketBtnUi(){ const b=document.getElementById('marketBtn'); if(b) b.classList.toggle('mk-closed', !marketOpen()); }
 function openMarket(){
     if(!marketOpen()){ toast('Play more to unlock'); return; }
-    renderMarket(); document.getElementById('sfMarketModal').classList.add('show'); }
-function closeMarket(){ document.getElementById('sfMarketModal').classList.remove('show'); }
+    renderMarket(); document.getElementById('sfMarketModal').classList.add('show'); ftueMarketOpened(); }
+function closeMarket(){
+    const m=FTUE_MK;
+    if(m && m.step==='gift') return;   /* not while the coins are in the air */
+    document.getElementById('sfMarketModal').classList.remove('show');
+    mkSayOff();
+    if(m && m.step==='done'){ FTUE_MK=null; tutExit(null); sayHide(); }
+    else if(m && m.step==='buy'){ m.step='ask'; tutExit('#marketBtn'); }   /* closed before buying: back to MARKET */
+}
 function renderMarket(){
     const g=document.getElementById('mkGrid'); if(!g) return; g.innerHTML='';
     const head=t=>{ const d=document.createElement('div'); d.className='mk-h'; d.textContent=t; g.appendChild(d); };
@@ -5503,9 +5526,42 @@ function renderMarket(){
             g.appendChild(b); }); });
     const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD;
 }
+/* v3 part 1: the market lesson. FTUE_MK = { o:the order, step }: ask (go to the market), gift (the dragon is
+   paying), buy (the player must buy this one), done (bought - close the window). */
+let FTUE_MK=null;
+function mkCellOf(o){ return ()=>document.querySelector(".mk-cell[data-k='"+o.trait+":"+o.shape+"']"); }
+/* the dragon's line while the market is open: in the window's own strip (see .mk-say) */
+function sayOver(id){
+    const box=document.getElementById('mkSay'), open=document.getElementById('sfMarketModal').classList.contains('show');
+    if(!box || !open){ sayQueue(id); return; }
+    sayHide(); if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
+    box.querySelector('p').textContent=DIALOGUE[id]; box.hidden=false; }
+function mkSayOff(){ const box=document.getElementById('mkSay'); if(box) box.hidden=true; }
+function ftueMarketOpened(){
+    const m=FTUE_MK; if(!m || m.step!=='ask') return;
+    const o=m.o; tutExit(null);
+    if(o.market.by==='dragon'){
+        m.step='gift'; sayOver(FTUE.marketWatch);
+        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; sayOver(o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }), 900);
+        return; }
+    m.step='buy';
+    if(GOLD<MARKET.price){ sayOver(FTUE.marketShort); setTimeout(ftueMarketTopUp, 900); }
+    else tutExit(mkCellOf(o));
+}
+/* D12: the dragon's coins land on the gold, which comes up to the price */
+function ftueMarketTopUp(){
+    const m=FTUE_MK, g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, MARKET.price); updateHud(); renderMarket();
+        if(m && m.step==='buy') tutExit(mkCellOf(m.o)); };
+    if(g) coinFly(dragonEl(), g, go); else go(); }
+function ftueMarketBought(k, sh){
+    const m=FTUE_MK; if(!m || m.step!=='buy' || k!==m.o.trait || sh!==m.o.shape) return;
+    m.step='done'; sayOver(m.o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }
 /* the player buys */
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
+    if(FTUE_MK && FTUE_MK.step==='gift') return;   /* the dragon is paying */
+    if(FTUE_MK && FTUE_MK.step==='buy' && (k!==FTUE_MK.o.trait || sh!==FTUE_MK.o.shape) && st==='buy'){
+        toast('Buy the <b>'+orderLabel(TRAIT_BY[FTUE_MK.o.trait].name, FTUE_MK.o.shape)+'</b> blueprint first'); return; }
     if(st==='closed'){ toast('Play more to unlock'); return; }
     if(st==='unknown'){ toast('Discover this trait first'); return; }
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+MARKET.price+'g'); return; }
@@ -5513,6 +5569,7 @@ function marketBuy(k, sh){
     GOLD-=MARKET.price; FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket();
     const c=document.querySelector(".mk-cell[data-k='"+k+":"+sh+"']"); if(c) c.classList.add('unlocking');
     toast('Bought the <b>'+nm+'</b> blueprint');
+    ftueMarketBought(k, sh);   /* v3 part 1 */
 }
 /* D10: the dragon buys it with his own gold - coins fly from him to the lock, then it opens.
    State changes on a timer, never on the animation's onfinish (a hidden pane freezes animations). */
@@ -6796,7 +6853,14 @@ const DIALOGUE = {
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28: "Go ahead, try it!",
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
-    D28b: "Now you try! Make a balanced sword like the last one.",   /* r213 */
+    D28b: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you.",   /* r213; v3 part 1 */
+    D28c: "Here it is. Watch this!",   /* v3: the dragon pays (FTUE.marketWatch) */
+    D28d: "There, my treat! Now make a balanced sword and pick the Longsword shape.",
+    D28e: "A Broadsword this time. To the market! I'll pay again.",
+    D28f: "Done! Pick the Broadsword when you shape the blade.",
+    D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",   /* owner's words */
+    D28h: "Oh, you don't have enough. Don't worry, I'll help.",   /* owner's words; FTUE.marketShort */
+    D28i: "Your first blueprint! Now make the Katana.",
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?",
