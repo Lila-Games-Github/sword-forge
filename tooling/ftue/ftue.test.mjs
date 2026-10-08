@@ -31,7 +31,8 @@ eq('shapes',     FTUE.shapes,     {
   balanced: ['Shortsword', 'Longsword', 'Broadsword'],
   fire:     ['Shortsword', 'Longsword', 'Broadsword'],
   gale:     ['Shortsword', 'Longsword', 'Rapier'],
-  swift:    ['Shortsword', 'Longsword', 'Dagger'] });   /* r208: the swift Dagger replaces the swift Rapier */
+  swift:    ['Shortsword', 'Longsword', 'Dagger'],      /* r208: the swift Dagger replaces the swift Rapier */
+  durable:  ['Shortsword', 'Longsword', 'Broadsword'] });   /* v3 D5: Durable joins the FTUE */
 eq('part 1 gpc', FTUE.parts[1].gpc, [ { trait: 'balanced', qty: 1 }, { trait: 'balanced', qty: 1 } ]);
 eq('part 1 rewards', FTUE.parts[1].rewards, {
   tc:   [ { kind: 'decor', id: 'banner' } ],

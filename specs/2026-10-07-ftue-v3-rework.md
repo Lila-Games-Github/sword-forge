@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08, nothing built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems built 2026-10-08; parts 1-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1028,6 +1028,37 @@ Then D90-D91 (the skill points, open the skill tree), the tree, and D140 to clos
 
 **Status: planning complete (2026-10-08).** Nothing built yet.
 
+## Build record: shared systems (2026-10-08)
+
+Asserted by `tooling/market/market.test.mjs` (33 checks, written first and seen failing) and the
+`FTUE.shapes` check in `tooling/ftue/ftue.test.mjs`.
+
+- **`MARKET`** (between the MARKET-CONFIG markers): price 50 (D2); traits and shapes in the chart's order
+  (D5); `extra` = the pink boxes per trait. `FTUE.shapes` (the purple boxes) gains `durable`.
+- **Rules** (MARKET-PURE): `marketShapes(trait)` (a trait's 10 shapes), `marketRow()` (free, owned, closed,
+  unknown, poor, buy, in that order), `orderMatches()` (D7: an order with no shape takes any shape),
+  `orderLabel()`, and `ftueTraitKey()` (moved here; now knows Durable).
+- **MARKET button** beside SKILL TREE, half the old width each (56 px). SKILL TREE shows a tree icon (D9) and
+  "Lv N" (+ unspent points); the xp numbers left the label, the bar still shows them.
+- **Market window** (`#sfMarketModal`): a shape column and one column per trait; "?" for an undiscovered
+  trait (D14), whose cells are locked (D16). Closed until `FTUE_ST.market` (set by part 1 later) or the end
+  of the FTUE; a click then says "Play more to unlock" (D6).
+- **The dragon buys** (`marketGift()`, D10): the window opens, 5 coins fly from the visible dragon to the
+  cell (above the window), then the blueprint is owned and the cell pops. State changes on a timer, not on
+  the animation. Measured: done 1.19 s after the call.
+- **The player buys** (`marketBuy()`): 50g; toasts for closed, unknown and not enough gold.
+- **Shaped orders:** a GPC order may carry `shape`; the customer keeps it, the ask names it ("Do you have a
+  Balanced Katana?"), and the sale refuses a wrong shape. No part config names a shape yet (parts 1-6 will).
+- **Shape picker:** lists the trait's whole column (up to 10, four to a row); a locked one says "buy ... in
+  the market".
+- **D50:** CRAFT 5 is removed from the craft book.
+- **Art stand-ins:** the new shapes borrow hammer mid-blades (`HM_MID_ALIAS`); a balanced Dagger borrows
+  `swift_dagger_blade` (`BLADE_BORROW`).
+- Checked in the browser: the button row (gear 59, SKILL 56, MARKET 56 px), the closed toast, the window with
+  Balanced known (9 buy, 5 free, 36 locked, 5 empty), the dragon's gift (5 coins in flight, owned after),
+  a purchase (60g to 10g), "not enough gold" and "discover first" refusals, the 10-shape picker; no console
+  errors; mobile-fit GREEN.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1061,3 +1092,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: part 6 described by the owner (Garric, the design desk, the banner and decor lesson, Day 3, the skill tree). I58-I66, Q43-Q48; ending order proposed.
 - 2026-10-08: owner answered Q43-Q48 (D44-D49). Day 3 lines D87a, D88a, D89a drafted. All six parts planned.
 - 2026-10-08: owner closed the last questions (D50-D53). Planning complete.
+- 2026-10-08: shared systems built (market, coins, shaped orders, Durable key, buttons, no CRAFT 5).

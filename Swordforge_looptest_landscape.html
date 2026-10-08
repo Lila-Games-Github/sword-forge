@@ -619,7 +619,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-btn:hover { filter: brightness(1.06); }
 .cb-btn:active { transform: translateY(1px) scale(.99); }
 .cb-erase  { left: 56.64%; top: 77.19%; width: 12.33%; }
-.cb-craft5 { left: 77.69%; top: 77.19%; width: 15.75%; }
 .cb-cont   { left: 54.78%; top: 87.04%; width: 16.05%; font-size: 8.5px; }
 .cb-craft1 { left: 77.54%; top: 87.04%; width: 16.05%; }
 .cb-close  { left: -6.77%; top: 95.34%; width: 14.13%; }
@@ -700,7 +699,30 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-modal-box { background: #e8dcc0; border: 2px solid #6a5636; border-radius: 12px; padding: 16px; width: 86%; max-width: 320px; box-shadow: 0 12px 34px rgba(0,0,0,0.55); }
 .sf-modal-h { margin: 0 0 4px; color: #4a3623; font-family: 'Cinzel', serif; text-align: center; font-size: 16px; }
 .sf-modal-sub { margin: 0 0 12px; font-size: 11px; color: #5c4a33; text-align: center; }
-.sf-shape-grid { display: flex; gap: 8px; }
+.sf-shape-grid { display: flex; flex-wrap: wrap; gap: 8px; }   /* v3: up to 10 shapes a trait - four to a row */
+.sf-shape-grid .sf-shape { flex: 0 0 calc(25% - 6px); min-width: 0; }
+.sf-shape.locked { opacity: .55; }
+/* v3: the market window - a shape column, then one column per trait */
+.sf-modal-box.mk-box { max-width: 600px; width: 92%; padding: 12px 14px; }
+.mk-grid { display: grid; grid-template-columns: 1.25fr repeat(5, 1fr); gap: 3px; font-family: 'Cinzel', serif; color: #4a3623; }
+.mk-grid .mk-h { font-size: 10px; font-weight: 900; text-align: center; padding: 3px 0; border-bottom: 2px solid #cbb98f; }
+.mk-grid .mk-sh { font-size: 10px; font-weight: 700; display: flex; align-items: center; padding-left: 4px; }
+.mk-cell { font: 700 10px/1 'Cinzel', serif; height: 22px; border-radius: 6px; border: 1.5px solid #cbb98f; background: #f3ead6;
+    color: #4a3623; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 0; cursor: pointer; }
+.mk-cell.none { visibility: hidden; }
+.mk-cell.free, .mk-cell.owned { background: #dfe9cf; border-color: #9fb582; color: #3f5a2a; cursor: default; }
+.mk-cell.closed, .mk-cell.unknown { background: #e3d9c3; color: #8a7a60; }
+.mk-cell.poor { color: #a0412f; }
+.mk-cell.buy { background: #fff3cf; border-color: #c99a3a; }
+.mk-cell.buy:hover { filter: brightness(1.05); }
+.mk-cell.unlocking { animation: mkUnlock .7s ease-out; }
+@keyframes mkUnlock { 0% { transform: scale(1); } 35% { transform: scale(1.35); box-shadow: 0 0 14px 4px rgba(255,200,70,.9); } 100% { transform: scale(1); } }
+.mk-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.mk-gold { font: 700 13px/1 'Cinzel', serif; color: #4a3623; }
+.mk-foot .paperBtn.red { flex: 0 0 auto; width: 96px; }   /* the shape picker's Cancel size, not 30% of a wide box */
+/* v3 D10: the dragon's coins fly over everything, the market window included */
+.coin-fly { position: absolute; z-index: 1100; font-size: 22px; line-height: 1; pointer-events: none;
+    transform: translate(-50%,-50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
 .sf-shape { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 4px; background: #f3ead6; border: 2px solid #cbb98f; border-radius: 10px; cursor: pointer; font-family: 'Cinzel', serif; color: #4a3623; font-weight: bold; }
 .sf-shape .ic { font-size: 26px; line-height: 1; }
 .sf-shape span { font-size: 10px; }
@@ -1002,12 +1024,22 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: inset 0 1px 0 rgba(255,220,150,.22); }   /* 50px, the old #skillBtn height, so nothing below reflows */
 #settingsBtn:hover { filter: brightness(1.08); }
 #settingsBtn:active { transform: scale(.97); }
-#skillBtn { flex: 1 1 auto; min-width: 0; cursor: pointer; font-family: 'Cinzel', serif; font-weight: 900;
+#skillBtn { flex: 1 1 0; min-width: 0; cursor: pointer; font-family: 'Cinzel', serif; font-weight: 900;
     font-size: 13px; letter-spacing: .6px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
     border: 2px solid #241a0c; border-radius: 5px; height: 50px; padding: 0; box-shadow: inset 0 1px 0 rgba(255,220,150,.22);
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }   /* r73: still 50px, so nothing below reflows - the level line and xp bar live INSIDE it */
 /* r73 — level, banked xp and unspent talent, all inside the skill button */
 #skillBtn .sk-t { line-height: 1.1; }
+#skillBtn .sk-ic { font-size: 19px; line-height: 1; letter-spacing: 0; }   /* v3 D9: a tree, not the words */
+/* v3: MARKET shares SKILL TREE's old width, half each, and wears the same wood */
+#marketBtn { flex: 1 1 0; min-width: 0; cursor: pointer; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px;
+    letter-spacing: .4px; color: #f7edd4; background: linear-gradient(180deg,#6d5532,#493720);
+    border: 2px solid #241a0c; border-radius: 5px; height: 50px; padding: 0; box-shadow: inset 0 1px 0 rgba(255,220,150,.22);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+#marketBtn .mk-ic { font-size: 18px; line-height: 1; }
+#marketBtn:hover { filter: brightness(1.08); }
+#marketBtn:active { transform: scale(.97); }
+#marketBtn.mk-closed { filter: grayscale(.7) brightness(.85); }
 #skillBtn .sk-lv { font-size: 8.5px; font-weight: 700; letter-spacing: .3px; color: #e8cf92; line-height: 1; }
 #skillBtn .sk-lv .pt { color: #8ef0a0; }
 #skillBtn .sk-xp { position: absolute; left: 7px; right: 7px; bottom: 4px; height: 3px; border-radius: 2px;
@@ -2104,7 +2136,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             </div>
             <div class="statRow2">
                 <button id="settingsBtn" type="button" title="Menu" aria-label="Menu">&#9881;</button>
-                <button id="skillBtn" type="button" title="Skill Tree"><span class="sk-t">SKILL TREE</span><span class="sk-lv" id="skillLv">Lv 1</span><span class="sk-xp"><i id="skillXpFill"></i></span></button>
+                <button id="skillBtn" type="button" title="Skill Tree"><span class="sk-t sk-ic">🌳</span><span class="sk-lv" id="skillLv">Lv 1</span><span class="sk-xp"><i id="skillXpFill"></i></span></button>
+                <button id="marketBtn" type="button" title="Market"><span class="mk-ic">🛒</span><span class="mk-t">MARKET</span></button>
             </div>
         </div>
         <div id="matPanel" class="railCard">
@@ -2133,6 +2166,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <h3 class="sf-modal-h">Reward!</h3>
             <div id="rwList" class="rwd-list"></div>
             <div class="rwd-ok"><button class="paperBtn wide" type="button" onclick="closeReward()">OK</button></div>
+        </div>
+    </div>
+    <!-- ===== v3: the market (blueprints per trait and shape) ===== -->
+    <div id="sfMarketModal" class="sf-modal">
+        <div class="sf-modal-box mk-box">
+            <h3 class="sf-modal-h">Market</h3>
+            <p class="sf-modal-sub">Blueprints: each shape, for each trait.</p>
+            <div class="mk-grid" id="mkGrid"></div>
+            <div class="mk-foot"><span class="mk-gold">🪙 <b id="mkGold">0</b></span><button class="paperBtn red" type="button" onclick="closeMarket()">Close</button></div>
         </div>
     </div>
     <div id="sfShapeModal" class="sf-modal">
@@ -2222,7 +2264,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cb-slot cb-shapes" id="cbShapes" style="left:52.85%; top:48.52%; width:42.65%; height:25.11%;"></div>
             <div class="cb-empty" id="cbEmpty" hidden>No recipes yet &mdash; acquire a trait and it is written down here.</div>
             <button class="cb-btn red  cb-erase"  id="cbErase"  type="button" onclick="cbErase()">ERASE</button>
-            <button class="cb-btn wide cb-craft5" id="cbCraft5" type="button" onclick="cbCraft(5)">CRAFT 5</button>
             <button class="cb-btn wide cb-cont"   id="cbCont"   type="button" onclick="cbContinue()">CONTINUE<br>FROM HERE</button>
             <button class="cb-btn wide cb-craft1" id="cbCraft1" type="button" onclick="cbCraft(1)">CRAFT 1</button>
             <button class="cb-btn red  cb-close"  type="button" onclick="closeBook()">CLOSE</button>
@@ -2281,7 +2322,8 @@ const FTUE = {
                   { id:'craftOne', label:'Craft a sword', gold:10, xp:20 } ],
     startShape: 'Shortsword',
     shapes: { balanced:['Shortsword','Longsword','Broadsword'], fire:['Shortsword','Longsword','Broadsword'],
-              gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Dagger'] },   /* r208: the swift Dagger (swift_dagger_blade) replaces the swift Rapier */
+              gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Dagger'],   /* r208: the swift Dagger (swift_dagger_blade) replaces the swift Rapier */
+              durable:['Shortsword','Longsword','Broadsword'] },   /* v3 D5: Durable joins the FTUE */
     recipePages: 3,
     tc2Ore: { iron:6, manganese:6 },
     tc2Craft: { iron:1, manganese:1 },
@@ -2330,17 +2372,56 @@ const FTUE = {
     retryLine: 'D28a'
 };
 /* FTUE-CONFIG-END */
+// ============================================================
+//  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
+//  Design record: specs/2026-10-07-ftue-v3-rework.md (D2, D5, D6, D7, D14, D16). The recorded values
+//  are in MARKET; tooling/market/market.test.mjs reads them and the rules below out of this file.
+// ============================================================
+/* MARKET-CONFIG-BEGIN */
+const MARKET = {
+    price: 50,   /* D2: every blueprint */
+    traits: ['balanced','fire','swift','gale','durable'],   /* D5: the chart's columns */
+    order: ['Shortsword','Longsword','Broadsword','Rapier','Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'],
+    /* D5: the pink boxes - shapes a trait only gets from the market. Its purple ones are FTUE.shapes. */
+    extra: { balanced:['Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'],
+             fire:    ['Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'],
+             swift:   ['Rapier','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'],
+             gale:    ['Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'],
+             durable: ['Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'] },
+    coins: 5, coinMs: 700   /* D10: the dragon's coins, how many and how long each flies */
+};
+/* MARKET-CONFIG-END */
+/* MARKET-PURE-BEGIN */
+/* a trait's whole column, in the chart's order: its base shapes plus the market-only ones */
+function marketShapes(trait){ const base=FTUE.shapes[trait]||[], ex=MARKET.extra[trait]||[];
+    return MARKET.order.filter(sh=>base.indexOf(sh)>=0 || ex.indexOf(sh)>=0); }
+/* one blueprint's state. c = { open, known, owned, gold }. Precedence matters: a free or owned shape
+   shows as such even while the market is closed or the trait undiscovered. */
+function marketRow(trait, shape, c){
+    if(shape===FTUE.startShape) return 'free';
+    if(c.owned) return 'owned';
+    if(!c.open) return 'closed';    /* D6: "Play more to unlock" */
+    if(!c.known) return 'unknown';  /* D16: an undiscovered trait's blueprints are locked */
+    if(c.gold<MARKET.price) return 'poor';
+    return 'buy'; }
+/* D7: does sword w fill order o? An order with no shape takes any shape (TC2, TC4, Garric). */
+function orderMatches(o, w){ if(!o || !w) return false;
+    const t=o.trait||o.tid, has=(w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===t);
+    return has && (!o.shape || w.shape===o.shape); }
+function orderLabel(name, shape){ return shape ? name+' '+shape : name+' sword'; }
+/* which trait's shapes a blade offers: the elemental first, then Durable, else Balanced */
+function ftueTraitKey(ids){ ids=ids||[];
+    for(const k of ['fire','gale','swift','durable']) if(ids.indexOf(k)>=0) return k;
+    return 'balanced'; }
+/* MARKET-PURE-END */
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
 const DECOR_SCREENS = ['customer','shop','bedroom'];
-function ftueTraitKey(ids){ ids=ids||[];
-    for(const k of ['fire','gale','swift']) if(ids.indexOf(k)>=0) return k;
-    return 'balanced'; }
 function ftueShapeOpen(trait, shape){ return shape===FTUE.startShape || !!FTUE_ST.shapes[trait+':'+shape]; }
 function swordHasTrait(w, tid){ return !!(w && (w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===tid)); }
 /* part 1 before Bram has paid: the first sword takes 2 iron + 2 manganese and not one more */
@@ -2446,7 +2527,7 @@ function ftueGpcArrive(){
     const P=FTUE.parts[FTUE_ST.part], o=P && P.gpc[FTUE_ST.gpc]; if(!o) return;
     const tr=TRAIT_BY[o.trait], pool=CUST_POOL.filter(x=>x!=='man1');   /* man1 is TC2 */
     CUSTOMER={ portrait:'assets/customer/'+pool[Math.floor(Math.random()*pool.length)]+'.webp',
-               tid:o.trait, name:tr.name, ftue:true, qty:o.qty, got:0 };
+               tid:o.trait, shape:o.shape||null, name:tr.name, ftue:true, qty:o.qty, got:0 };   /* v3 D7 */
     TUT_STAGE='p'+FTUE_ST.part+'-gpc'; tutUnglow(); sayHide();
     /* r201: an order the bulk craft is meant for must be affordable, whatever went before */
     if(P.ensureOre) Object.keys(P.ensureOre).forEach(id=>{ ORE_COUNT[id]=Math.max(ORE_COUNT[id]||0, P.ensureOre[id]); });
@@ -2457,7 +2538,7 @@ function ftueGpcArrive(){
                 : (FTUE_ST.part===3 && FTUE_ST.gpc===0) ? 'D92a' : null;
     if(nudge) typeAfter(()=>sayQueue(nudge));
     custLine(null, o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
-                           : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
+                           : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
 }
 /* r201: a sale to an order of several. Returns true while the customer still wants more. */
@@ -2845,7 +2926,7 @@ function levelUpFx(gained){
 }
 function updateXpHud(){
     const lv=document.getElementById('skillLv'), fill=document.getElementById('skillXpFill');
-    if(lv) lv.innerHTML='Lv '+LEVEL+' &middot; '+xpIntoLevel(exp)+'/'+XP_PER_LEVEL+(TALENT? ' &middot; <span class="pt">'+TALENT+' pt</span>' : '');
+    if(lv) lv.innerHTML='Lv '+LEVEL+(TALENT? ' &middot; <span class="pt">'+TALENT+' pt</span>' : '');   /* v3: half width - the bar carries the xp */
     if(fill) fill.style.width=(xpIntoLevel(exp)/XP_PER_LEVEL*100).toFixed(1)+'%';
     const p=document.querySelector('#sfSkillModal .st-points');
     if(p) p.innerHTML='Talent points &ndash; '+TALENT;
@@ -3157,7 +3238,7 @@ function sellCounter(){
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     const ftueC = (CUSTOMER && CUSTOMER.ftue) ? CUSTOMER : null;   /* r199: a gameplay customer with a real order */
-    if(ftueC && !swordHasTrait(COUNTER, ftueC.tid)){ toast('They asked for a <b>'+ftueC.name+'</b> sword'); return; }
+    if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }   /* v3 D7: the shape too */
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
@@ -3925,9 +4006,12 @@ function skinOf(w){
     for(const t of w.traits){ const k=DD_SKIN_OF[t.tid||t.t&&t.t.id]; if(k) return k; }
     return 'balanced';
 }
+const BLADE_BORROW = { dagger:'swift' };   /* v3: no balanced_dagger_blade yet - the swift one stands in */
 function bladeFor(skin, shape){
     const sh=String(shape||'').toLowerCase(), have=DD_BLADES[skin];
-    return ((have && have.indexOf(sh)>=0) ? skin : 'balanced')+'_'+sh+'_blade';
+    let k=(have && have.indexOf(sh)>=0) ? skin : 'balanced';
+    if(k==='balanced' && BLADE_BORROW[sh]) k=BLADE_BORROW[sh];
+    return k+'_'+sh+'_blade';
 }
 /* r131: parts that exist but are not available until they have been earned. The lists are empty
    until the art lands - drop the new balanced pieces in here and they appear at the design desk the
@@ -5254,7 +5338,8 @@ function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=do
     const qb=document.getElementById('questBtn'); if(qb) qb.addEventListener('click', openQuests);
     const sb=document.getElementById('settingsBtn'); if(sb) sb.addEventListener('click', openMenu);
     updateHud();                                      // the rail's numbers start real, not as HTML placeholders
-    const sk=document.getElementById('skillBtn'); if(sk) sk.addEventListener('click', openSkills); }
+    const sk=document.getElementById('skillBtn'); if(sk) sk.addEventListener('click', openSkills);
+    const mk=document.getElementById('marketBtn'); if(mk) mk.addEventListener('click', openMarket); marketBtnUi(); }
 function floatAcquired(bt,tier){ const b=benchEl(); const c=stationCenter(stAnvil,0.5,0.05); const f=document.createElement('div'); f.textContent='+'+bt.symbol+' '+tier; f.style.cssText='position:absolute;left:'+c.x+'px;top:'+c.y+'px;transform:translate(-50%,-50%);z-index:40;font-weight:bold;font-size:14px;color:'+tierColor(tier)+';text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;'; b.appendChild(f); f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate(-50%,-160%)',opacity:0}],{duration:1200,easing:'ease-out'}).onfinish=()=>f.remove(); }
 // trait-acquired popup — stays open until the player clicks 'continue'
 /* r86: the heading carries the name, so the body no longer repeats it. "New trait discovered" is only
@@ -5294,7 +5379,7 @@ function renderRecipe(){
     buildBookMarks();   /* after CB_SEL is resolved, or the first open highlights nothing */
     const r=CB_SEL?RECIPES[CB_SEL]:null, list=recipeTraits(r);
     document.getElementById('cbEmpty').hidden=!!r;
-    ['cbErase','cbCraft1','cbCraft5','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r; });
+    ['cbErase','cbCraft1','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r; });
     document.querySelector('.cb-title-l').textContent = r ? recipeName(CB_SEL)+' Sword' : 'No Recipe';
     // five boxes: every trait's tier as pips, the same rule as the top-left panel
     const pips=[]; list.forEach(a=>{ const n=TIER_PIPS[a.tier]||1; for(let j=0;j<n;j++) pips.push(a); });
@@ -5390,6 +5475,76 @@ function buildSkillNodes(){
             d.appendChild(lab);
             d.addEventListener('click', ()=>buySkill(sk.id)); }
         p.insertBefore(d, core); });   // behind the core, so the big icon always reads on top
+}
+/* ---- v3: the market. Open from FTUE_ST.market (part 1 opens it) or once the FTUE is over. ---- */
+function marketOpen(){ return !!(FTUE_ST.market || FTUE_ST.done); }
+function traitKnown(k){ return traits.some(t=>t.trait && t.trait.id===k && t.discovered); }
+function marketCtx(trait, shape){ return { open:marketOpen(), known:traitKnown(trait), owned:!!FTUE_ST.shapes[trait+':'+shape], gold:GOLD }; }
+function marketBtnUi(){ const b=document.getElementById('marketBtn'); if(b) b.classList.toggle('mk-closed', !marketOpen()); }
+function openMarket(){
+    if(!marketOpen()){ toast('Play more to unlock'); return; }
+    renderMarket(); document.getElementById('sfMarketModal').classList.add('show'); }
+function closeMarket(){ document.getElementById('sfMarketModal').classList.remove('show'); }
+function renderMarket(){
+    const g=document.getElementById('mkGrid'); if(!g) return; g.innerHTML='';
+    const head=t=>{ const d=document.createElement('div'); d.className='mk-h'; d.textContent=t; g.appendChild(d); };
+    head('');
+    MARKET.traits.forEach(k=>head(traitKnown(k) ? TRAIT_BY[k].name : '?'));   /* D14: a '?' for a trait not found yet */
+    MARKET.order.forEach(sh=>{
+        const l=document.createElement('div'); l.className='mk-sh'; l.textContent=sh; g.appendChild(l);
+        MARKET.traits.forEach(k=>{
+            const b=document.createElement('button'); b.type='button'; b.dataset.k=k+':'+sh;
+            if(marketShapes(k).indexOf(sh)<0){ b.className='mk-cell none'; g.appendChild(b); return; }
+            const st=marketRow(k, sh, marketCtx(k, sh));
+            b.className='mk-cell '+st;
+            b.innerHTML = st==='free' ? 'Free' : st==='owned' ? '\u2713' : (st==='closed'||st==='unknown') ? '\u{1F512}' : '\u{1FA99}'+MARKET.price;
+            b.title = (traitKnown(k) ? TRAIT_BY[k].name : '?')+' '+sh;
+            b.addEventListener('click', ()=>marketBuy(k, sh));
+            g.appendChild(b); }); });
+    const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD;
+}
+/* the player buys */
+function marketBuy(k, sh){
+    const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
+    if(st==='closed'){ toast('Play more to unlock'); return; }
+    if(st==='unknown'){ toast('Discover this trait first'); return; }
+    if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+MARKET.price+'g'); return; }
+    if(st!=='buy') return;
+    GOLD-=MARKET.price; FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket();
+    const c=document.querySelector(".mk-cell[data-k='"+k+":"+sh+"']"); if(c) c.classList.add('unlocking');
+    toast('Bought the <b>'+nm+'</b> blueprint');
+}
+/* D10: the dragon buys it with his own gold - coins fly from him to the lock, then it opens.
+   State changes on a timer, never on the animation's onfinish (a hidden pane freezes animations). */
+function dragonEl(){
+    for(const id of ['screenDragon','dragon']){ const e=document.getElementById(id); if(!e) continue;
+        const r=e.getBoundingClientRect(); if(r.width>2 && r.height>2 && getComputedStyle(e).display!=='none') return e; }
+    return null; }
+function coinFly(fromEl, toEl, then){
+    const fr=document.getElementById('frame'), F=fr.getBoundingClientRect();
+    const a=fromEl ? fromEl.getBoundingClientRect() : { left:F.left+F.width*0.12, top:F.top+F.height*0.2, width:0, height:0 };
+    const b=toEl.getBoundingClientRect();
+    const ax=a.left+a.width/2-F.left, ay=a.top+a.height/2-F.top, dx=b.left+b.width/2-F.left-ax, dy=b.top+b.height/2-F.top-ay;
+    for(let i=0;i<MARKET.coins;i++){
+        const c=document.createElement('div'); c.className='coin-fly'; c.textContent='\u{1FA99}';
+        c.style.left=ax.toFixed(0)+'px'; c.style.top=ay.toFixed(0)+'px'; fr.appendChild(c);
+        const lift=-50-i*10;
+        c.animate([ { transform:'translate(-50%,-50%) scale(.5)', opacity:0 },
+                    { transform:'translate(calc(-50% + '+(dx*0.5).toFixed(0)+'px), calc(-50% + '+(dy*0.5+lift).toFixed(0)+'px)) scale(1.15)', opacity:1, offset:.45 },
+                    { transform:'translate(calc(-50% + '+dx.toFixed(0)+'px), calc(-50% + '+dy.toFixed(0)+'px)) scale(.75)', opacity:1 } ],
+                  { duration:MARKET.coinMs, delay:i*90, easing:'ease-in-out', fill:'forwards' });
+        setTimeout(()=>c.remove(), MARKET.coinMs+i*90+60); }
+    setTimeout(()=>{ if(then) then(); }, MARKET.coinMs+(MARKET.coins-1)*90+80);
+}
+function marketGift(trait, shape, done){
+    const key=trait+':'+shape;
+    renderMarket(); document.getElementById('sfMarketModal').classList.add('show');
+    const cell=document.querySelector(".mk-cell[data-k='"+key+"']");
+    const finish=()=>{ FTUE_ST.shapes[key]=true; renderMarket();
+        const c=document.querySelector(".mk-cell[data-k='"+key+"']"); if(c) c.classList.add('unlocking');
+        toast('The dragon bought the <b>'+TRAIT_BY[trait].name+' '+shape+'</b> blueprint'); if(done) done(); };
+    if(!cell){ finish(); return; }
+    coinFly(dragonEl(), cell, finish);
 }
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
@@ -5558,11 +5713,11 @@ function shapeTraitKey(){
 function shapeGrid(){
     const g=document.querySelector('#sfShapeModal .sf-shape-grid'); if(!g) return;
     const k=shapeTraitKey(); g.innerHTML='';
-    (FTUE.shapes[k]||FTUE.shapes.balanced).forEach(sh=>{
+    marketShapes(k).forEach(sh=>{   /* v3: every shape the trait has; locked ones say where to get them */
         const open=ftueShapeOpen(k, sh), b=document.createElement('button');
         b.type='button'; b.className='sf-shape'+(open?'':' locked'); b.dataset.shape=sh;
         b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>';
-        b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ toast('Locked: earn the <b>'+TRAIT_BY[k].name+' '+sh+'</b> blueprint'); return; } selectShape(sh); });
+        b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ toast('Locked: buy the <b>'+TRAIT_BY[k].name+' '+sh+'</b> blueprint in the market'); return; } selectShape(sh); });
         g.appendChild(b); }); }
 /* Opening the picker consumes the tutorial's shape beat - 'shape' runs tutDone(), 'shape2' drops its
    arrow and glow - so a cancel there would leave the player with no pointer at the metal they still
@@ -5763,7 +5918,8 @@ function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
     hmShape=shape; openHammer(); }
 /* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
-const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword' };   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
+const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword', Katana:'Longsword', Cutlass:'Shortsword', Machete:'Shortsword',
+                       Saber:'Longsword', Scimitar:'Longsword', Claymore:'Broadsword' };   /* v3: the new shapes borrow until their mid-blades land */   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
 function openHammer(){
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false;   /* r209 */
@@ -8100,10 +8256,11 @@ function takeCare(){ if(TUT_BRAM_STATE!=='sold') return; typeStop();
 let BELL_ON=false, CUSTOMER=null;
 const CUST_POOL=['man1','man2','man3','man4','woman1','woman2','woman3'];
 const CUST_DISCOVERED=0.80;            /* 4 in 5 ask for a trait the player has already found */
-const CUST_ASKS=[ n=>'Do you have a '+n+' sword?',
-                  n=>'I want a '+n+' sword.',
-                  n=>'Give me a '+n+' sword, if you have one.',
-                  n=>'I hear you make a fine blade. A '+n+' one, if you can.' ];
+/* v3: n is the whole order now - "Balanced sword", or "Balanced Katana" when it names a shape */
+const CUST_ASKS=[ n=>'Do you have a '+n+'?',
+                  n=>'I want a '+n+'.',
+                  n=>'Give me a '+n+', if you have one.',
+                  n=>'I hear you make a fine blade. A '+n+', if you can.' ];
 function bellEl(){ return document.querySelector('#screenProps img[src$="bell.webp"]'); }
 function bellShow(on){ BELL_ON=!!on; if(SF_SCREEN==='customer') buildScreenProps('customer'); }
 function bellFx(){
@@ -8191,7 +8348,7 @@ function nextCustomer(){
     const who=CUST_POOL[Math.floor(Math.random()*CUST_POOL.length)];
     CUSTOMER={ portrait:'assets/customer/'+who+'.webp', tid:tr.id, name:tr.name };
     buildScreenProps('customer'); counterUi();
-    custLine(null, CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](tr.name));
+    custLine(null, CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, null)));
     return true;
 }
 function ringBell(){
