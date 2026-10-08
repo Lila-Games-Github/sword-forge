@@ -84,13 +84,8 @@ eq('every named part, blade and decor image exists', missing, []);
 /* part 4 (r204): superseded by the v3 part 4 checks below */
 eq('swiftLine', FTUE.swiftLine, 'D99a');
 eq('gale has its own part set', /const DD_SKIN_OF = {[^}]*gale:'gale'/.test(src), true);
-/* part 5 (r205) */
-eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', qty: 1 }, { trait: 'swift', qty: 1 } ]);
+/* part 5 (r205): gpc and rewards superseded by the v3 part 5 checks below */
 eq('part 5 after', FTUE.parts[5].after, 'g-bell');
-eq('part 5 rewards', FTUE.parts[5].rewards, {
-  tc:   [],
-  gpc1: [ { kind: 'blueprint', trait: 'swift', shape: 'Dagger' } ],
-  gpc2: [ { kind: 'parts', trait: 'swift' } ] });
 eq('bramLine', FTUE.bramLine, 'D111a');
 /* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
 eq('endLines', FTUE.endLines, ['D140']);   /* r213: the shared closing line after every ending */
@@ -275,6 +270,23 @@ eq('TC5 swift step: the reminder, not the lesson', /function tutDay2Pull\(\)\{[\
 eq('GC8: the sword parks in the Weak band', /function tutWeakStop\(\)\{[\s\S]{0,900}FTUE\.weakStop/.test(src), true);
 eq('the sale checks the tier', src.includes("if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }"), true);
 eq('TC4 sold: the bell brings TC5', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='d2-bell'/.test(src), true);
+/* v3 part 5 (D39-D43): Bram's swift Dagger (the dragon buys it), the sharpening wheel, the diary; GC9 gale Longsword */
+eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', shape: 'Longsword', qty: 1, market: { by: 'dragon', ask: 'D113a', done: null } } ]);
+eq('part 5 rewards (D42: the diary is Bram\'s own window; GC9 none)', FTUE.parts[5].rewards, { tc: [], gpc1: [] });
+eq('Bram\'s Dagger blueprint (D39)', FTUE.bramBlueprint, { trait: 'swift', shape: 'Dagger', market: { by: 'dragon', ask: 'D111b', done: null } });
+const V3P5 = {
+  D48:  "I found this sharpening wheel. I'll show you how to use it.",
+  D111: 'I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift dagger for me?',
+  D111b: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend.",
+  D113a: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!" };
+for (const [k, v] of Object.entries(V3P5)) eq(k + ' text', line(k), v);
+for (const [k, prev] of [['D111b','D111a'],['D113a','D113']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('the sharpening wheel is locked until given (D40)', src.includes("if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; }"), true);
+eq('its reward applies the unlock', src.includes("else if(r.kind==='unlock' && r.id==='sharpen'){ FTUE_ST.sharp=true;"), true);
+eq('after the Dagger, the wheel window, then the forge', /D48:function\(\)\{[^}]*ftueReward\(\[ ?\{ kind:'unlock', id:'sharpen' \} ?\]/.test(src), true);
+eq('a closed market lesson can hand on (then)', src.includes('const f=m.then; FTUE_MK=null;'), true);
+eq('Bram is sold a Dagger only', src.includes("if(TUT_STAGE==='bram2-sell2' && COUNTER && COUNTER.shape!=='Dagger'){"), true);
+eq('the basement step no longer says D48 in part 5', /function tutBasementStep\(\)\{[\s\S]{0,200}if\(FTUE_ST\.part!==5\)/.test(src), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

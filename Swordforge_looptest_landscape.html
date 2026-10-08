@@ -2359,13 +2359,14 @@ const FTUE = {
         4: { gpc:[ { trait:'balanced', shape:'Longsword', tier:'Weak', qty:1, lesson:'weak' } ], after:'d2-praise',
              rewards:{ tc:[], gpc1:[] } },
         /* r205: Bram's own reward is the diary (his gift window), so the TC list is empty */
-        5: { gpc:[ { trait:'gale', qty:1 }, { trait:'swift', qty:1 } ], after:'g-bell',
-             rewards:{ tc:  [],
-                       gpc1:[ { kind:'blueprint', trait:'swift', shape:'Dagger' } ],
-                       gpc2:[ { kind:'parts', trait:'swift' } ] } }
+        /* v3 part 5: after Bram, GC9 - a gale Longsword the dragon buys (D113a). Bram's own reward is the diary. */
+        5: { gpc:[ { trait:'gale', shape:'Longsword', qty:1, market:{ by:'dragon', ask:'D113a', done:null } } ], after:'g-bell',
+             rewards:{ tc:[], gpc1:[] } }
     },
     /* r205: Bram's new line after D111 - he wants the swift sword sharper, which brings sharpening back */
     bramLine: 'D111a',
+    /* v3 D39: Bram's swift Dagger - the dragon buys its blueprint as he asks, then gives the sharpening wheel (D40) */
+    bramBlueprint: { trait:'swift', shape:'Dagger', market:{ by:'dragon', ask:'D111b', done:null } },
     /* r206: part 6 is Garric (TC6), no gameplay and no rewards. He has three endings (graded sword),
        and each ends the FTUE - only D139, the map's last key, used to, so after a Weak or middling
        sword the dragon never stopped guiding */
@@ -2437,7 +2438,7 @@ function ftueTraitKey(ids){ ids=ids||[];
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
@@ -2461,6 +2462,7 @@ function ftueRewardName(r){
     if(r.kind==='decor') return (FTUE.decor[r.id]||{}).name || r.id;
     if(r.kind==='blueprint') return TRAIT_BY[r.trait].name+' '+r.shape+' blueprint';
     if(r.kind==='unlock' && r.id==='grindstone') return 'Grindstone';
+    if(r.kind==='unlock' && r.id==='sharpen') return 'Sharpening wheel';   /* v3 part 5 */
     if(r.kind==='pages') return r.n+' recipe book pages';
     if(r.kind==='parts') return TRAIT_BY[r.trait].name+' sword parts x3';
     if(r.kind==='unlock' && r.id==='designDesk') return 'Design desk';
@@ -2470,7 +2472,8 @@ function ftueRewardName(r){
 function ftueRewardSub(r){
     if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
-    if(r.kind==='unlock' && r.id==='grindstone') return "It is on the forge bench. Let's use it now.";   /* r213; v3: TC2 uses it at once */
+    if(r.kind==='unlock' && r.id==='grindstone') return "It is on the forge bench. Let's use it now.";
+    if(r.kind==='unlock' && r.id==='sharpen') return 'It is in the basement.';   /* r213; v3: TC2 uses it at once */
     if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
     if(r.kind==='parts') return 'A new grip, guard and pommel at the design desk.';
     if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
@@ -2481,6 +2484,7 @@ function ftueRewardApply(r){
     if(r.kind==='decor') FTUE_ST.decor.push(r.id);
     else if(r.kind==='blueprint') FTUE_ST.shapes[r.trait+':'+r.shape]=true;
     else if(r.kind==='unlock' && r.id==='grindstone'){ FTUE_ST.grind=true; ftueGrindUi(); }
+    else if(r.kind==='unlock' && r.id==='sharpen'){ FTUE_ST.sharp=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
     else if(r.kind==='pages') FTUE_ST.pages=(FTUE_ST.pages||0)+r.n;
     else if(r.kind==='parts'){ const sk=DD_SKIN_OF[r.trait]||'balanced'; FTUE_ST.dd=FTUE_ST.dd||{}; FTUE_ST.dd[sk]=(FTUE_ST.dd[sk]||0)+1; }   /* r203 */
     else if(r.kind==='unlock' && r.id==='designDesk'){ FTUE_ST.desk=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
@@ -2819,16 +2823,15 @@ function ftuePart(n){
                     segs:segs.map(g=>({ ore:g.ore, d:g.d, len:g.len, origin:{ x:g.origin.x, y:g.origin.y }, tPct:g.tPct })), sword:{ seg:sword.seg, frac:sword.frac }, pull:{ x:0, y:0 } });
                 benchClear(); })();
             for(let i=95;i<=109;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D99a');
-            FTUE_ST.part=4; FTUE_ST.gpc=2; FTUE_ST.dd.gale=2;
-            FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.shapes['gale:Rapier']=true;
+            FTUE_ST.part=4; FTUE_ST.gpc=1; FTUE_ST.dd.gale=2;   /* v3: TC4, TC5 and GC8 served; no gale blueprints */
             TUT_SAW_TIERS=true;
-            ORE_COUNT.iron=5; ORE_COUNT.manganese=5; ORE_COUNT.copper=12; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }
+            ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=5; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }   /* v3: GC9's copper */
         if(n>=6){   /* the end of part 5: Bram's sharpened swift sword sold, the diary read, GPC9-10 served, Garric at the bell */
             INV.ingots.length=0; for(let i=110;i<=117;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D111a');
             for(let i=48;i<=57;i++) SAY_SEQ.push('D'+i);
             RAIL_DIARY=true; railUi();
-            FTUE_ST.part=5; FTUE_ST.gpc=2; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true;
-            ORE_COUNT.copper=5; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
+            FTUE_ST.part=5; FTUE_ST.gpc=1; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true; FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.sharp=true;
+            ORE_COUNT.copper=0; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
@@ -3327,6 +3330,7 @@ function sellCounter(){
     if(bram && TUT_BRAM_STATE!=='counter-ready' && TUT_BRAM_STATE!=='give') return;
     if(TUT_BRAM_STATE==='give' && COUNTER) TUT_BRAM_STATE='counter-ready';
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
+    if(TUT_STAGE==='bram2-sell2' && COUNTER && COUNTER.shape!=='Dagger'){ toast('Bram asked for a <b>Swift Dagger</b>'); return; }   /* v3 part 5 */
     const ftueC = (CUSTOMER && CUSTOMER.ftue) ? CUSTOMER : null;   /* r199: a gameplay customer with a real order */
     if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }   /* v3 D7: the shape too; part 4: the tier */
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
@@ -3478,7 +3482,7 @@ function startSwordDrag(w,e){
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
     designDesk: ()=>{ if(!FTUE_ST.desk){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201 */
-    sharpen:    ()=>{ if(requireWork()) openSharpen(); },
+    sharpen:    ()=>{ if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; } if(requireWork()) openSharpen(); },
     work:       ()=>takeWork() };
 function buildScreenProps(name){
     const box=document.getElementById('screenProps'); if(!box) return;
@@ -3512,7 +3516,7 @@ function buildScreenProps(name){
             box.appendChild(d);
             return; }                                     /* sized by layoutScreenProps, which knows the box */
         const im=document.createElement('img');
-        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !FTUE_ST.desk) im.classList.add('ftue-lock-prop');   /* r201 */
+        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !FTUE_ST.desk) im.classList.add('ftue-lock-prop'); if(p.act==='sharpen' && !FTUE_ST.sharp && !FTUE_ST.done) im.classList.add('ftue-lock-prop');   /* r201 */
         if(p.act) im.dataset.act=p.act;   /* r103 */
         if(p.act){ im.classList.add('hot'); im.title=p.title||'';
             if(p.act==='rack') im.addEventListener('click', ()=>openRacks(p.rack||0));   // r70: this rack, not "the racks"
@@ -5586,7 +5590,7 @@ function closeMarket(){
     if(m && m.step==='gift') return;   /* not while the coins are in the air */
     document.getElementById('sfMarketModal').classList.remove('show');
     mkSayOff();
-    if(m && m.step==='done'){ FTUE_MK=null; tutExit(null); sayHide(); }
+    if(m && m.step==='done'){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide(); if(f) setTimeout(f, 0); }   /* v3 part 5: Bram's run goes on */
     else if(m && m.step==='buy'){ m.step='ask'; tutExit('#marketBtn'); }   /* closed before buying: back to MARKET */
 }
 function renderMarket(){
@@ -6965,7 +6969,7 @@ const DIALOGUE = {
     D45: "You remember what to do, right? Go ahead, I'm ready!",
     D46: "Tell me where to FIRE, and hammer the blade.",
     D47: "Splash water to cool the blade and finish crafting.",
-    D48: "There is a sharpening wheel in the basement. Let's go see if we can use it.",
+    D48: "I found this sharpening wheel. I'll show you how to use it.",   /* v3 part 5 (owner): with its reward window, at Bram's ask */
     D49: "Drag and drop the sword from the inventory onto the table.",
     D50: "Tap on the sharpening wheel.",
     D51: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel.",
@@ -7052,10 +7056,12 @@ const DIALOGUE = {
     D108: "Thanks, this will do.",
     D109: "Great work!",
     D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way.",
-    D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift sword for me?",
+    D111: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift dagger for me?",   /* v3: a dagger */
     D111a: "The last one was good, but not very sharp. Can you make this one sharper?",
+    D111b: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend.",   /* v3 part 5 */
     D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
     D113: "Find it in your inventory and drag it to the anvil.",
+    D113a: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!",   /* v3 part 5: GC9 */
     D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you.",
     D115: "Bram gave you a diary! Open it!",
     D116: "It has a list of so many towns! I wonder if we can go on an adventure later.",
@@ -7335,8 +7341,8 @@ function tutSharpProp(){ return document.querySelector("#screenProps [data-act='
 function tutWorkSword(){ return document.querySelector("#screenProps [data-act='work']"); }
 function tutBasementStep(){
     TUT_SHARP_RUN=true; TUT_STAGE='to-basement';
-    if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');
-    SAY_I=SAY_SEQ.indexOf('D48'); say('D48');
+    if(FTUE_ST.part!==5){ if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');   /* v3: in part 5, D48 came with the wheel's window */
+        SAY_I=SAY_SEQ.indexOf('D48'); say('D48'); }
     tutExit('#panDown');
 }
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */
@@ -7728,7 +7734,12 @@ function tutBram2Reply(){
     openIllus('assets/Illustrations/Bram_illustration.webp', 'Bram, back from his mission', tutBram2Illus);
 }
 function tutBram2Illus(){
-    const toForge=()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); };
+    /* v3 part 5: the dragon buys the swift Dagger blueprint (D111b, MARKET, coins), then D48 and the sharpening
+       wheel's window, then the forge as before */
+    const toForge=()=>{ const b=FTUE.bramBlueprint;
+        TUT_STAGE='bram2-blueprint';
+        FTUE_MK={ o:b, step:'ask', then:()=>{ TUT_STAGE='bram2-wheel'; sayQueue('D48'); } };
+        sayQueue(b.market.ask); setTimeout(()=>tutExit('#marketBtn'), 0); };
     /* r205: he also wants it sharper (D111a), which is what brings the basement back into the run.
        One speech, typed together: chained, D111a replaced D111 the instant it finished, unread. */
     typeAfter(toForge);
@@ -7945,7 +7956,9 @@ let TUT_SAW_TIERS=false;
 let TUT_SAW_PARTS=false;
 function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
-const SAY_AFTER={ D97:function(){ openTiers(); }, D32b:function(){ tutTc2Grindstone(); },
+const SAY_AFTER={ D97:function(){ openTiers(); },
+                  D48:function(){ if(TUT_STAGE!=='bram2-wheel') return;   /* v3 part 5 */
+                      ftueReward([ { kind:'unlock', id:'sharpen' } ], ()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); }); }, D32b:function(){ tutTc2Grindstone(); },
                   D92c:function(){ ftueDurableMap(); }, D92e:function(){ ftueDurableToCave(); }, D92g:function(){ ftueDurableToForge(); },   /* v3 part 3 */ D67a:function(){ openParts(); },
                   D26:function(){ ftueAfterBram(); },   /* r199 */
                   D57:function(){ if(TUT_STAGE==='bram2-bonus') tutBram2Thanks(); },   /* r205. r213: then Bram's D114 */

@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems, parts 1-4 built 2026-10-08; parts 5-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems, parts 1-5 built 2026-10-08; part 6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1153,6 +1153,26 @@ written first and seen failing.
   Fine sword for TC4 and GC8, and the stage after GC8 (`d2-praise`, Bram). No console errors.
 - **Interim until part 5 is built:** Bram runs his v2 visit (the stored swift metal, sharpening, the diary).
 
+## Build record: part 5 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (203; the part 5 checks written first and seen failing).
+
+- `FTUE.parts[5]`: GC9 gale Longsword, the dragon buys it (ask D113a); no rewards. `FTUE.bramBlueprint`: the
+  swift Dagger, the dragon buys it (ask D111b). Lines: D48 and D111 changed, D111b and D113a new.
+- **The sharpening wheel is locked** (`FTUE_ST.sharp`; greyed, "The sharpening wheel is locked") until its
+  reward window, and always open once the FTUE is done.
+- **Bram:** D110, the illustration, D111 + D111a; then D111b and MARKET; the dragon buys the Dagger; closing
+  the market hands on (the lesson's new `then`); D48 and the sharpening wheel's window; D112 and the forge as
+  before. The basement step no longer says D48. The counter sells Bram a Dagger only.
+- **GC9** after the diary: the dragon buys the gale Longsword; after the sale, `g-bell` (Garric).
+- The test aid: part 5 starts with Bram at the bell (copper 5 for GC9, no gale blueprints, no Dagger, wheel
+  locked); part 6 starts after GC9.
+- Checked in the browser: the locked wheel, Bram's new steps, the gift of the Dagger blueprint, D48 and the
+  window, the unlocked wheel, the refusal of a Shortsword, D57, the diary, GC9 and its blueprint, then
+  `g-bell`. No console errors.
+- **Interim until part 6 is built:** Garric runs his v2 visit and ends the FTUE (no design desk lesson, banner,
+  Day 3 or skill tree yet).
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1191,3 +1211,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: part 2 built (TC2 raw-ore step and grindstone gift, no bulk order, TC3 without the design desk or a reward).
 - 2026-10-08: part 3 built (Day 2 without the skill tree, GC4 Durable lesson with the moved trait, GC5-GC7 fire with the market).
 - 2026-10-08: part 4 built (TC4 Epic Durable and the pull lesson, TC5 with the reminder, GC8 Weak stop, tiered orders).
+- 2026-10-08: part 5 built (Bram's Dagger bought by the dragon, the sharpening wheel as a reward, GC9).
