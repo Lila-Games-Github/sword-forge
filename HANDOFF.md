@@ -136,7 +136,7 @@ continuation prompt printed at close time.
 - **r228:** the counter's DENY button (a placeholder) is hidden during the FTUE (class `ftue-off` until `FTUE_ST.done`).
 - **r229:** the rotating turn arrow shows whenever ore is on the grinder and can still be ground, on the forge screen, in every stage (`grindSpinWanted()`, refreshed every frame in `tick()`).
 - **r230:** the fog edge is a soft gradient: `#fogHoles` is blurred by `#fogSoft` (feGaussianBlur 24 world units) inside the mask. Not yet checked for frame rate on a phone.
-- **FTUE v3 (planning complete, `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (33). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. Interim: grindstone on the bench at the end of part 1; no banner until part 6; part 2 still v2 (its 5-sword order has no CRAFT 5 any more). Parts 2-6 are next.
+- **FTUE v3 (planning complete, `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (33). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. Interim: no banner until part 6; after the Day 1 bed the v2 Day 2 still runs. Parts 3-6 are next.
 
 ## Next steps
 
@@ -191,7 +191,7 @@ Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 154 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 134 checks; the hammer test GREEN at 34; the hazard test GREEN at 34; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 148 checks; the hammer test GREEN at 34; the hazard test GREEN at 34; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

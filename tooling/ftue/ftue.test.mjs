@@ -44,14 +44,12 @@ eq('market lines: the dragon pays, the top-up', [FTUE.marketWatch, FTUE.marketSh
 eq('part 1 after', FTUE.parts[1].after, 'bell');
 /* part 2 (r201) */
 eq('recipePages', FTUE.recipePages, 3);
-eq('tc2Ore (safety net when TC2 arrives)', FTUE.tc2Ore, { iron: 6, manganese: 6 });
+eq('tc2Ore (v3 D22: exactly 1 + 1 when TC2 arrives)', FTUE.tc2Ore, { iron: 1, manganese: 1 });
 eq('tc2Craft (the most the TC2 sword takes)', FTUE.tc2Craft, { iron: 1, manganese: 1 });
-eq('part 2 gpc', FTUE.parts[2].gpc, [ { trait: 'balanced', qty: 5 } ]);
-eq('part 2 ensureOre (for the bulk craft)', FTUE.parts[2].ensureOre, { iron: 5, manganese: 5 });
+eq('part 2 gpc (v3 D18: none, no bulk order)', FTUE.parts[2].gpc, []);
+eq('part 2 ensureOre gone with the bulk order', FTUE.parts[2].ensureOre, undefined);
 eq('part 2 after', FTUE.parts[2].after, 'bell2');
-eq('part 2 rewards', FTUE.parts[2].rewards, {
-  tc:   [ { kind: 'pages', n: 5 } ],
-  gpc1: [ { kind: 'unlock', id: 'designDesk' } ] });
+eq('part 2 rewards (v3 D20: TC2 +5 pages; the design desk moved to part 6)', FTUE.parts[2].rewards, { tc: [ { kind: 'pages', n: 5 } ] });
 /* part 3 (r203) */
 eq('startParts (per trait, per kind)', FTUE.startParts, 3);
 eq('part 3 gpc', FTUE.parts[3].gpc, [ { trait: 'fire', qty: 1 }, { trait: 'balanced', qty: 1 }, { trait: 'fire', qty: 1 } ]);
@@ -121,9 +119,9 @@ eq('D99a text', line('D99a'), "Use it later. We don't need that now.");
 /* D111a: see r213 below */
 eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.");
 eq('D31 text',  line('D31'),  'So many customers. No tea break for us. Back to the forge we go.');
-eq('D32 text',  line('D32'),  "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?");
+/* D32 changed in v3 part 2 (see V3P2 below) */
 eq('D33 text',  line('D33'),  'We can travel further on the map if we grind the ores before we put them in the smelter.');
-eq('D34 text',  line('D34'),  'If we do it properly, we can craft 6 more swords instead of just 3!');
+/* D34 removed in v3 part 2 (see below) */
 /* r210 (owner, 2026-10-01): D57 names the sharpening, so {b} is the sharpening bonus alone */
 eq('D57 text', line('D57'), "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!");
 eq('{b} is the sharpening bonus only', src.includes('SAY_VARS.b=P.sharp;'), true);
@@ -153,7 +151,7 @@ const R213 = {
   D140: "From now on, ring the bell when you are ready for customers. I'll be here if you need me." };
 for (const id in R213) eq(id + ' text (r213)', line(id), R213[id]);
 eq('no curly quotes left in any line', [...src.matchAll(/\n\s*D\d+[a-z]?: "([^"]*)"/g)].filter(x => /[‘’“”]/.test(x[1])).length, 0);
-eq('grindstone reward sub-line (r213)', src.includes("return 'It is on the forge bench. We will use it soon.';"), true);
+eq('grindstone reward sub-line (v3: used straight away)', src.includes(`return "It is on the forge bench. Let's use it now.";`), true);
 eq('Bram is unnamed on Day 1 (r213)', src.includes("if(w) w.textContent='???'; })();   /* r213"), true);
 eq('Bram is named as he says it (r213)', src.includes("typeAfter(()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; });"), true);
 eq('D57 before D114 (r213)', src.includes("TUT_STAGE='bram2-bonus'; sayQueue('D57');"), true);
@@ -215,6 +213,8 @@ const V3P1 = {
   D28h: "Oh, you don't have enough. Don't worry, I'll help.",
   D28i: 'Your first blueprint! Now make the Katana.' };
 for (const [k, v] of Object.entries(V3P1)) eq(k + ' text', line(k), v);
+/* every script block must parse: a text check cannot see a broken quote (v3 part 2 shipped one, caught here) */
+[...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m, i) => { let ok = true; try { new Function(m[1]); } catch (e) { ok = e.message; } eq('script block ' + i + ' parses', ok, true); });
 const keyList = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 for (const [k, prev] of [['D28c','D28b'],['D28d','D28c'],['D28e','D28d'],['D28f','D28e'],['D28g','D28f'],['D28h','D28g'],['D28i','D28h']])
   eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
@@ -223,7 +223,22 @@ eq('Bram: no reward window, straight to the quest list',
 eq('a market order opens the market', src.includes("if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }"), true);
 eq('the dragon speaks inside the market window (his counter bubble cannot rise above a modal)', src.includes("box.querySelector('p').textContent=DIALOGUE[id]; box.hidden=false;") && src.includes('id="mkSay"'), true);
 eq('short of the price: topped up to it', /function ftueMarketTopUp\(\)\{[\s\S]{0,500}GOLD=Math.max\(GOLD, MARKET.price\)/.test(src), true);
-eq('grindstone (interim until the part 2 build): on the bench when part 1 ends', src.includes('if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true; ftueGrindUi(); }'), true);
+/* v3 part 2 (D13, D18-D24, D31) */
+const V3P2 = {
+  D32:  "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",
+  D32a: 'We grind them!',
+  D32b: 'Here, I found this grindstone lying around. It should help.',
+  D32c: "I put your ores back. Let's try again." };
+for (const [k, v] of Object.entries(V3P2)) eq(k + ' text', line(k), v);
+for (const [k, prev] of [['D32a','D32'],['D32b','D32a'],['D32c','D32b']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('D34 removed ("6 more swords" is not true any more)', line('D34'), null);
+eq('TC2 arrives: ore set to exactly FTUE.tc2Ore', /function tutBellRung\(\)\{[\s\S]{0,700}ORE_COUNT\.iron=FTUE\.tc2Ore\.iron; ORE_COUNT\.manganese=FTUE\.tc2Ore\.manganese;/.test(src), true);
+eq('the grindstone is no longer on the bench when part 1 ends', src.includes('if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true;'), false);
+eq('raw ores first: both in, the path misses Balanced', /function tutTc2RawCheck\(\)\{[\s\S]{0,600}Math\.hypot\([^)]*\)>ALIGN_MAX/.test(src), true);
+eq('then the grindstone in the reward window, and the ores back', /function tutTc2Grindstone\(\)\{[\s\S]{0,600}ftueReward\(\[ ?\{ kind:'unlock', id:'grindstone' \} ?\][\s\S]{0,400}gainOre\(/.test(src), true);
+eq('the grindstone may be used once it is given', /function tutTc2Grindstone\(\)\{[\s\S]{0,800}FTUE_ST\.grindUse=true/.test(src), true);
+eq('TC3: no design desk, straight to the counter', src.includes('else if(fireSword) tutFireToCounter();'), true);
+eq('TC3: no reward window (D31)', /function tutThankYou3\(\)\{[\s\S]{0,700}ftueReward\(\[\], ?\(\)=>\{/.test(src), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

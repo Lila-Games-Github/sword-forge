@@ -2333,7 +2333,7 @@ const FTUE = {
               gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Dagger'],   /* r208: the swift Dagger (swift_dagger_blade) replaces the swift Rapier */
               durable:['Shortsword','Longsword','Broadsword'] },   /* v3 D5: Durable joins the FTUE */
     recipePages: 3,
-    tc2Ore: { iron:6, manganese:6 },
+    tc2Ore: { iron:1, manganese:1 },   /* v3 D22: exactly this when TC2 arrives - raw, it misses Balanced */
     tc2Craft: { iron:1, manganese:1 },
     /* after: the stage the last GPC sale leaves behind - the bell that brings the next part's TC */
     parts: {
@@ -2344,9 +2344,9 @@ const FTUE = {
                    { trait:'balanced', shape:'Broadsword', qty:1, market:{ by:'dragon', ask:'D28e', done:'D28f' } },
                    { trait:'balanced', shape:'Katana',     qty:1, market:{ by:'player', ask:'D28g', done:'D28i' } } ], after:'bell',
              rewards:{ tc:[], gpc1:[], gpc2:[], gpc3:[] } },
-        2: { gpc:[ { trait:'balanced', qty:5 } ], ensureOre:{ iron:5, manganese:5 }, after:'bell2',
-             rewards:{ tc:  [ { kind:'pages', n:5 } ],
-                       gpc1:[ { kind:'unlock', id:'designDesk' } ] } },
+        /* v3 part 2: TC2 then TC3, no gameplay customers and no bulk order (D18); the design desk moved to part 6 */
+        2: { gpc:[], after:'bell2',
+             rewards:{ tc:[ { kind:'pages', n:5 } ] } },
         3: { gpc:[ { trait:'fire', qty:1 }, { trait:'balanced', qty:1 }, { trait:'fire', qty:1 } ], after:'d2-bell',
              rewards:{ tc:  [ { kind:'parts', trait:'balanced' }, { kind:'parts', trait:'fire' }, { kind:'blueprint', trait:'fire', shape:'Longsword' } ],
                        gpc1:[ { kind:'blueprint', trait:'fire', shape:'Broadsword' } ],
@@ -2463,7 +2463,7 @@ function ftueRewardName(r){
 function ftueRewardSub(r){
     if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
-    if(r.kind==='unlock' && r.id==='grindstone') return 'It is on the forge bench. We will use it soon.';   /* r213 */
+    if(r.kind==='unlock' && r.id==='grindstone') return "It is on the forge bench. Let's use it now.";   /* r213; v3: TC2 uses it at once */
     if(r.kind==='pages') return 'Your craft book now holds '+(recipeCap())+' recipes.';
     if(r.kind==='parts') return 'A new grip, guard and pommel at the design desk.';
     if(r.kind==='unlock' && r.id==='designDesk') return 'It is in the basement. Decorate your swords there.';
@@ -2611,7 +2611,6 @@ function ftueGpcSold(){
     FTUE_ST.gpc++;
     const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;
     TUT_STAGE = more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC */
-    if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true; ftueGrindUi(); }   /* v3 interim: no longer GPC2's reward; the part 2 build gives it in TC2's run (D13) */
     tutArrow(null,null); tutExit(null);
     setTimeout(()=>ftueReward(list, ftueToCounter), 700);
 }
@@ -2716,13 +2715,13 @@ function ftuePart(n){
         FTUE.preQuests.forEach(p=>{ const q=questBy(p.id); if(q){ q.progress=q.goal; q.done=true; q.claimed=true; } });
         RAIL_QUEST=true; railUi();
         GOLD=60; exp=100;
-        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.grind=true; FTUE_ST.market=true;   /* v3: the banner is Garric's now */
+        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.market=true;   /* v3: the banner is Garric's now; the grindstone comes in TC2's run */
         FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true; FTUE_ST.shapes['balanced:Katana']=true;
         ORE_COUNT.iron=1; ORE_COUNT.manganese=1; TUT_STAGE='bell'; marketBtnUi();
         if(n>=3){   /* the end of part 2: TC2's sword sold, GPC3's five sold, TC3 waiting at the bell */
             RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','manganese'], grinds:[1,1], at:Date.now() };
             for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
-            FTUE_ST.part=2; FTUE_ST.gpc=1; FTUE_ST.grindUse=true; FTUE_ST.pages=5; FTUE_ST.desk=true;
+            FTUE_ST.part=2; FTUE_ST.gpc=0; FTUE_ST.grind=true; FTUE_ST.grindUse=true; FTUE_ST.pages=5;   /* v3: TC3 waits, the desk is Garric's */
             ORE_COUNT.iron=0; ORE_COUNT.manganese=0; GOLD=280; exp=260; TUT_STAGE='bell2'; }
         if(n>=4) TUT_SAIDHAZ=true;   /* r216: parts 2-3 start before the fire sword, so its hazard lines are still to come */
         if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */
@@ -5243,7 +5242,7 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(fireOreWanted()!==null && !rawOnly()){ toast('Not straight in: grind it first'); return; }   /* r111/r125 */
     if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
     if(ftueFirstCap(oreId)) return;   /* r199 */
-    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix();   /* r199 */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
+    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(!ftueGateOk()) return;   /* r199 */ if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
@@ -6328,7 +6327,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
-        if(second) ftueTc2Sell(); else if(fireSword) tutFireCustomise();   /* r201: was tutBasementStep - sharpening moved to part 5 */
+        if(second) ftueTc2Sell(); else if(fireSword) tutFireToCounter();   /* r201: was tutBasementStep - sharpening moved to part 5 */
         else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>{ sayQueue('D69d');   /* r215: and the Health row blinks with it */
@@ -6863,9 +6862,11 @@ const DIALOGUE = {
     D28i: "Your first blueprint! Now make the Katana.",
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
-    D32: "Hmm, we are low on ores. Why don't we use the grindstone to make our ores go further?",
+    D32: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",   /* v3 part 2 (owner) */
+    D32a: "We grind them!",
+    D32b: "Here, I found this grindstone lying around. It should help.",   /* v3: then the grindstone's reward window */
+    D32c: "I put your ores back. Let's try again.",
     D33: "We can travel further on the map if we grind the ores before we put them in the smelter.",
-    D34: "If we do it properly, we can craft 6 more swords instead of just 3!",
     D35: "Drag one iron to the grindstone. Hold the handle and turn the stone. Note how the path on the map is getting longer.",
     D36: "Drag the ground ore to the smelter.",
     D37: "Do the same with manganese ore.",
@@ -7383,8 +7384,9 @@ function tutThankYou3(){
     CUSTOMER=null; TUT_STAGE='to-bed'; TUT_FIRE_RUN=false;
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi();
-    /* r203: part 3 - TC3's rewards first (parts x3 for balanced and fire, the fire Longsword), then bed */
-    ftueReward(FTUE_ST.part===3 ? FTUE.parts[3].rewards.tc : [], ()=>{
+    /* v3: TC3 gives nothing (D31); part 3 opens with the end of Day 1 */
+    FTUE_ST.part=3; FTUE_ST.gpc=0;
+    ftueReward([], ()=>{
         sayQueue('D87');
         setTimeout(()=>tutExit('#panRight'), 0); });
 }
@@ -7833,7 +7835,7 @@ let TUT_SAW_TIERS=false;
 let TUT_SAW_PARTS=false;
 function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
-const SAY_AFTER={ D97:function(){ openTiers(); }, D67a:function(){ openParts(); },
+const SAY_AFTER={ D97:function(){ openTiers(); }, D32b:function(){ tutTc2Grindstone(); }, D67a:function(){ openParts(); },
                   D26:function(){ ftueAfterBram(); },   /* r199 */
                   D57:function(){ if(TUT_STAGE==='bram2-bonus') tutBram2Thanks(); },   /* r205. r213: then Bram's D114 */
                   D117:function(){ ftueAfterDiary(); } };   /* r205 */
@@ -7964,7 +7966,7 @@ function tutBell2(){
 function tutFireCustomer(){
     if(TUT_STAGE!=='bell2') return;
     TUT_STAGE='fire-meet'; TUT_FIRE_STATE='awaiting'; tutUnglow(); sayHide(); tutExit(null);
-    FTUE_ST.part=3; FTUE_ST.gpc=0;   /* r201: part 3 opens with TC3 */
+    /* v3: TC3 belongs to part 2 now; part 3 opens after her sale */
     CUSTOMER={ portrait:'assets/customer/woman1.webp', tid:'fire', name:null };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
@@ -8176,6 +8178,8 @@ function tutFireGot(){
 /* the minigame gets one line and then the player is left to it */
 /* r115: the fire sword is finished, and the dragon has opinions about decorating it. Refusing is
    offered once and then withdrawn - the second pair of buttons both say Yes, which is the joke. */
+/* v3: the fire sword goes straight to the counter - the design desk lesson moved to Garric (part 6) */
+function tutFireToCounter(){ TUT_STAGE='dec-back'; tutArrow(null,null); sayQueue('D85'); setTimeout(()=>tutExit('#panLeft'), 0); }
 function tutFireCustomise(){
     TUT_STAGE='fire-ask';
     if(SAY_SEQ.indexOf('D79')<0) SAY_SEQ.push('D79');
@@ -8492,7 +8496,8 @@ function tutBellStep(){
 function tutBellRung(){
     if(TUT_STAGE!=='bell') return;
     TUT_STAGE='bell-done'; tutUnglow(); sayHide(); tutExit(null);
-    FTUE_ST.part=2; FTUE_ST.gpc=0; FTUE_ST.grindUse=true;   /* r199: part 2 opens, and TC2 teaches the grindstone */
+    FTUE_ST.part=2; FTUE_ST.gpc=0;   /* r199: part 2 opens. v3: the grindstone comes later in this run (D13) */
+    ORE_COUNT.iron=FTUE.tc2Ore.iron; ORE_COUNT.manganese=FTUE.tc2Ore.manganese; if(INV_TAB===0) buildShelf();   /* v3 D22 */
     CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null, want:'balanced' };   /* r221: 'a good one' is a balanced sword (want: for the map ring only) */
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
@@ -8630,13 +8635,35 @@ function tutNudgeApply(){
         tutExit(open ? '#saveBlade' : '#hudToggle');   /* r121 */
     }
 }
+/* v3 part 2 (D13): the player loads the raw iron and manganese, the path misses Balanced, the dragon gives
+   the grindstone, the ores come back, and the grinding lesson (D33, D35...) runs as before. */
 function tutForgeAgain(){
-    if(TUT_STAGE==='regrind') return;
-    TUT_STAGE='regrind';
-    ORE_COUNT.iron=FTUE.tc2Ore.iron; ORE_COUNT.manganese=FTUE.tc2Ore.manganese;   /* r99: one of each this time. r201: 6 + 6, the safety net D34 counts on */
-    buildShelf();
-    ['D32','D33','D34','D35'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
-    SAY_I=SAY_SEQ.indexOf('D32'); say('D32');
+    if(TUT_STAGE==='tc2-raw' || TUT_STAGE==='regrind') return;
+    TUT_STAGE='tc2-raw';
+    if(!segs.length){ ORE_COUNT.iron=FTUE.tc2Ore.iron; ORE_COUNT.manganese=FTUE.tc2Ore.manganese; buildShelf(); }
+    tutArrow(tutTc2RawSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });
+}
+function tutTc2RawSlot(){ return (segs.some(g=>g.ore==='iron') ? tutOreSlot('Manganese') : tutIronSlot)(); }
+function tutTc2RawCheck(){
+    if(TUT_STAGE!=='tc2-raw') return;
+    if(!segs.some(g=>g.ore==='iron') || !segs.some(g=>g.ore==='manganese')){ tutDrawArrow(); return; }
+    const bt=traits.find(t=>t.trait && t.trait.id==='balanced'), e=routeEnd();
+    TUT_STAGE='tc2-miss'; tutArrow(null,null);
+    const miss = !bt || Math.hypot(e.x-bt.x, e.y-bt.y)>ALIGN_MAX;   /* measured: raw ends 139 from Balanced, a miss */
+    if(miss) sayQueue('D32','D32a','D32b'); else sayQueue('D32b');   /* if it ever reached, "we can't" would be false */
+}
+/* D32b is off the screen: the grindstone, then both ores back in the bag and the lesson */
+function tutTc2Grindstone(){
+    if(TUT_STAGE!=='tc2-miss') return;
+    TUT_STAGE='tc2-gift';
+    ftueReward([ { kind:'unlock', id:'grindstone' } ], ()=>{
+        segs.forEach(g=>gainOre(g.ore,1));   /* NOT refundOre(): that is the Restore Ore talent */
+        resetRun(); buildShelf();
+        FTUE_ST.grindUse=true; ftueGrindUi();
+        TUT_STAGE='regrind';
+        ['D32c','D33','D35'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+        SAY_I=SAY_SEQ.indexOf('D32c'); say('D32c');
+    });
 }
 /* the grind and the two loads, each waiting on the player */
 function tutGrindCheck(){
@@ -8866,7 +8893,7 @@ function sayChoose(list, optional){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D34:1, D38:1, D57:1, D70:1,
+const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
                     D67a:1 };   /* r196 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something

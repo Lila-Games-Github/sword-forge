@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems and part 1 built 2026-10-08; parts 2-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; shared systems, parts 1 and 2 built 2026-10-08; parts 3-6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1083,6 +1083,30 @@ Asserted by `tooling/ftue/ftue.test.mjs` (134 checks; the part 1 checks written 
   is refused during the lesson; the Katana is bought (50 to 0); a Shortsword is refused at the counter and
   the ordered shape sells; after GC3 the stage is the bell for TC2 and the grindstone is on the bench.
 
+## Build record: part 2 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (148 checks; the part 2 checks written first and seen failing).
+
+- `FTUE.tc2Ore` 1 + 1, set when TC2 arrives (D22). `FTUE.parts[2]`: no GPCs, no `ensureOre`, reward `tc` = +5
+  pages (D18, D20). Lines: D32 (changed), D32a-D32c new, D34 removed.
+- **TC2's raw step** (stage `tc2-raw`): the arrow goes from the iron, then the manganese, to the smelter. With both
+  in, the route end is checked against Balanced (raw: 139 away, a miss): D32, D32a, D32b; then the reward
+  window gives the grindstone; both ores go back to the bag, the smelter is cleared, `grindUse` is set, and
+  D32c, D33, D35 start the grinding lesson as before (stage `regrind`).
+- The grindstone is no longer given when part 1 ends (part 1's interim removed). Its reward card now says
+  "It is on the forge bench. Let's use it now."
+- **TC3:** joins part 2 (it no longer sets part 3). After the quench the fire sword goes straight to the
+  counter (D85, then the counter blinks); the design desk lesson is not run. Her sale gives no reward (D31);
+  part 3 starts with the bed (D87).
+- **Caught by review, not by the text tests:** the new reward line first shipped as `'...Let's...'`, which broke the
+  script. The FTUE test now also checks that every script block parses (seen failing on a planted error).
+- **Interim until part 3 is built:** after the bed, v2's Day 2 still runs (the skill tree, then the v2 part 3
+  customers).
+- Checked in the browser: TC2 at 1 + 1 with the grindstone locked; the raw route stops short of Balanced
+  (screenshot); D32-D32b; the grindstone window; ores back, grindstone usable; the ground route ends 2 from
+  Balanced; TC2's +5 pages, then the bell for TC3; TC3 in part 2; the fire sword to the counter; after her
+  sale part 3, no reward window, D87.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1118,3 +1142,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: owner closed the last questions (D50-D53). Planning complete.
 - 2026-10-08: shared systems built (market, coins, shaped orders, Durable key, buttons, no CRAFT 5).
 - 2026-10-08: part 1 built (market lesson, three shaped GCs, no part 1 rewards, 9 + 9 ore).
+- 2026-10-08: part 2 built (TC2 raw-ore step and grindstone gift, no bulk order, TC3 without the design desk or a reward).

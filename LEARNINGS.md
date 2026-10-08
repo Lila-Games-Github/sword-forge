@@ -180,3 +180,4 @@ Two smaller ones from the same rounds:
 - **Random placement on narrow art needs restarts, not a bigger try budget.** Greedy placement of 3
   spaced marks on the Shortsword mid-blade failed ~5% of the time because a bad first pick boxes the
   rest in; restarting the whole set (20 times) took it to 0 in 1000 runs.
+- **2026-10-08 - a text test cannot see a broken quote.** A reward line `'...Let's...'` passed every `src.includes` check and still broke the whole script. `tooling/ftue/ftue.test.mjs` now parses each `<script>` block; when writing JS strings from a patch script, prefer double quotes around text with apostrophes.
