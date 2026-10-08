@@ -90,13 +90,16 @@ eq('bramLine', FTUE.bramLine, 'D111a');
 /* part 6 (r206): Garric has three endings, and every one of them ends the FTUE */
 eq('endLines', FTUE.endLines, ['D140']);   /* r213: the shared closing line after every ending */
 /* r212 (owner, 2026-10-01): Garric's old rewards (r131/r132) come back through the reward window */
+/* v3 D11: and the shop banner in all three outcomes */
 eq('garricRewards', FTUE.garricRewards, {
-  1: [],
-  2: [ { kind: 'gold', n: 10 } ],
-  3: [ { kind: 'gold', n: 10 }, { kind: 'unlock', id: 'garricParts' } ] });
+  1: [ { kind: 'decor', id: 'banner' } ],
+  2: [ { kind: 'gold', n: 10 }, { kind: 'decor', id: 'banner' } ],
+  3: [ { kind: 'gold', n: 10 }, { kind: 'unlock', id: 'garricParts' }, { kind: 'decor', id: 'banner' } ] });
 eq('Garric leaves through the reward window', src.includes('ftueReward(FTUE.garricRewards[g]'), true);
 eq('the sale no longer pays the tip itself', /function tutGarricSold\(\)\{[\s\S]{0,500}GOLD \+= GARRIC_TIP/.test(src), false);
-eq('garricLeaves ends on the endLines', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139', 'D140')"), true);
+/* v3 D44: the ending moved - after his answer the banner lesson, the night, Day 3 and the skill tree; D140 closes */
+eq('garricLeaves: his answer, without the close', src.includes("sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139'));"), true);
+eq('the close comes after the Day 3 skill tree', /function tutDay2SkillClosed\(\)\{[\s\S]{0,600}FTUE_ST\.part===6[\s\S]{0,200}sayQueue\('D140'\)/.test(src), true);
 eq('say() ends the FTUE on any end line', src.includes('FTUE.endLines.indexOf(id)>=0'), true);
 eq('swift Dagger blade is swift_dagger_blade', /swift:['dagger','longsword','shortsword']/.test(src), true);
 eq('decor.banner size', { w: FTUE.decor.banner.w, h: FTUE.decor.banner.h }, { w: 10, h: 24 });
@@ -287,6 +290,24 @@ eq('after the Dagger, the wheel window, then the forge', /D48:function\(\)\{[^}]
 eq('a closed market lesson can hand on (then)', src.includes('const f=m.then; FTUE_MK=null;'), true);
 eq('Bram is sold a Dagger only', src.includes("if(TUT_STAGE==='bram2-sell2' && COUNTER && COUNTER.shape!=='Dagger'){"), true);
 eq('the basement step no longer says D48 in part 5', /function tutBasementStep\(\)\{[\s\S]{0,200}if\(FTUE_ST\.part!==5\)/.test(src), true);
+/* v3 part 6 (D44-D49) */
+const V3P6 = {
+  D79:  'Now let\'s make it look special. Do you want to customize it?',
+  D87a: "What a day! Even that grumpy old man couldn't ruin it. Let's get some sleep.",
+  D88a: 'Goodnight. Tomorrow - we craft - the best swords - in town - and meat. Lots of meat.',
+  D89a: 'Good morning! You have grown so much in just two days. I think you are ready for this.',
+  D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
+for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
+for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+eq('after "on my own", D130b and the design desk window', src.includes("fn:tutGarricDesk }]") && /D130b:function\(\)\{[^}]*ftueReward\(\[ ?\{ kind:'unlock', id:'designDesk' \} ?\], ?tutGarricHandsOff\)/.test(src), true);
+eq('Garric\'s crafted sword: the design desk lesson (D46)', src.includes('else if(garricSword){ TUT_FIRE_RUN=true; tutFireCustomise(); }'), true);
+eq('its screen steps pass the run gate, and it ends at the counter',
+  src.includes('TUT_STAGE=null; TUT_FIRE_RUN=false; tutArrow(null,null); tutExit(null); sayHide(); return; }   /* v3: Garric, still solo */'), true);
+eq('the banner lesson after his answer (D15)', /function ftueGarricBanner\(\)\{[\s\S]{0,200}TUT_STAGE='p1-decor-tab'; ftueDecorStep\(\);/.test(src), true);
+eq('then the night (D87a), not the quest list', src.includes("if(FTUE_ST.part===6){ TUT_STAGE='to-bed'; tutArrow(null,null); tutExit(null); tutNeedTab(null); setTimeout(()=>{ sayQueue('D87a'); tutExit('#panRight'); }, 0); return; }"), true);
+eq('Day 3: no tutorial cave (D48)', src.includes("if(TUT_STAGE==='bed' && FTUE_ST.part!==6) ftueDay2Cave();"), true);
+eq('Day 3 morning: D89a and the skill tree', src.includes("sayQueue('D89a','D90','D91');"), true);
+eq('Garric\'s ores: the cave is restocked for his run', /function tutGarricOrder\(\)\{[\s\S]{0,300}rollCaveNodes\(\); buildCave\(\);/.test(src), true);
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');

@@ -2374,7 +2374,8 @@ const FTUE = {
     /* r212 (owner, 2026-10-01): part 6 does have rewards after all - Garric's old ones (r131/r132), by
        his grade, now in the reward window when he leaves: grade 1 nothing (he refuses the sword),
        grade 2 his 10g tip, grade 3 the tip and his balanced parts (DD_BONUS) */
-    garricRewards: { 1:[], 2:[ { kind:'gold', n:10 } ], 3:[ { kind:'gold', n:10 }, { kind:'unlock', id:'garricParts' } ] },
+    garricRewards: { 1:[ { kind:'decor', id:'banner' } ], 2:[ { kind:'gold', n:10 }, { kind:'decor', id:'banner' } ],
+                     3:[ { kind:'gold', n:10 }, { kind:'unlock', id:'garricParts' }, { kind:'decor', id:'banner' } ] },   /* v3 D11: and the shop banner, always */
     /* r204: said when the stored swift ingot is taken out before Bram asks for it (part 5) */
     swiftLine: 'D99a',
     /* r203: each trait's design desk starts with this many of each part; a 'parts' reward adds one of each */
@@ -2542,6 +2543,7 @@ function ftueDecorStep(){
         TUT_STAGE='p1-decor-off'; }
     if(TUT_STAGE==='p1-decor-off'){
         if(BUILD_ON){ tutArrow(null,null); tutNeedTab(3); tutExit(buildSlot); return; }
+        if(FTUE_ST.part===6){ TUT_STAGE='to-bed'; tutArrow(null,null); tutExit(null); tutNeedTab(null); setTimeout(()=>{ sayQueue('D87a'); tutExit('#panRight'); }, 0); return; }   /* v3 part 6 */
         TUT_STAGE='p1-quest'; tutArrow(null,null); tutExit(null); tutNeedTab(null);
         setTimeout(()=>sayQueue('D118'), 0); }
 }
@@ -2830,7 +2832,7 @@ function ftuePart(n){
             INV.ingots.length=0; for(let i=110;i<=117;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D111a');
             for(let i=48;i<=57;i++) SAY_SEQ.push('D'+i);
             RAIL_DIARY=true; railUi();
-            FTUE_ST.part=5; FTUE_ST.gpc=1; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true; FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.sharp=true;
+            FTUE_ST.desk=false; FTUE_ST.part=5; FTUE_ST.gpc=1; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true; FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.sharp=true;
             ORE_COUNT.copper=0; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
@@ -4790,7 +4792,7 @@ function advanceDay(day){
     const d=document.getElementById('dayNum');
     if(d) d.textContent = day;
     rollCaveNodes();                                      // r68: five fresh seams, in new places
-    if(TUT_STAGE==='bed') ftueDay2Cave();                 /* r203: the tutorial's Day 2 stocks what Day 2 needs */
+    if(TUT_STAGE==='bed' && FTUE_ST.part!==6) ftueDay2Cave();   /* v3 D48: Day 3's cave is normal play */                 /* r203: the tutorial's Day 2 stocks what Day 2 needs */
     buildCave();
     /* r120: the tutorial's own night ends where it was spent. The player wakes in the bedroom and
        walks down to the forge, with the exit blinking; every other day still jumps straight there. */
@@ -6408,6 +6410,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     invTab(2);                                                        // show it land in the SWORDS tab
     const second = tutHm2WasOn();   /* r103: read it before tutHm2Done clears the flag */
     const fireSword = (TUT_STAGE==='fire-forge');   /* r115 */
+    const garricSword = (TUT_SOLO && TUT_GARRIC_STATE==='asked');   /* v3 part 6 */
     const durSword = (TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench');   /* v3 parts 3-4 */
     if(TUT_STAGE==='p4-weak-quench' || TUT_STAGE==='p4-quench') TUT_SWIFT_LOCK=false;
     const fireHurt = fireSword && wHp < BLADE_HP_MAX;   /* r215: D69d */
@@ -6415,7 +6418,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     const bram2Sword = (TUT_STAGE==='bram2-forge2');   /* r127 */
     tutHm2Done();   /* r102: D47 is optional, so the guide-to-pet switch cannot wait on it */
     showCraft(INV.swords[INV.swords.length-1], 1, ()=>{ resetRun();
-        if(second) ftueTc2Sell(); else if(fireSword) tutFireToCounter(); else if(durSword) ftueDurableSell();   /* r201: was tutBasementStep - sharpening moved to part 5 */
+        if(second) ftueTc2Sell(); else if(fireSword) tutFireToCounter(); else if(durSword) ftueDurableSell(); else if(garricSword){ TUT_FIRE_RUN=true; tutFireCustomise(); }   /* v3: the desk lesson's screen steps sit behind the run gate */   /* r201: was tutBasementStep - sharpening moved to part 5 */
         else if(galeSword) tutGaleCrafted(); else if(bram2Sword) tutBram2Crafted();
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>{ sayQueue('D69d');   /* r215: and the Health row blinks with it */
@@ -7006,7 +7009,7 @@ const DIALOGUE = {
     D76: "Yes! We got it! It is not perfect, but it is okay for now.",
     D77: "Tap the metal and select a shape.",
     D78: "I'm ready!",
-    D79: "Wow. A fire sword! Do you want to customize it?",
+    D79: "Now let's make it look special. Do you want to customize it?",   /* v3 part 6: Garric's sword (was the fire sword's) */
     D80: "Wrong answer. Think again.",
     D81: "Yes! Let's go to the basement.",
     D82: "Tap the design desk and pick your favorite designs.",
@@ -7015,8 +7018,11 @@ const DIALOGUE = {
     D85: "Okay, back to the counter!",
     D86: "Oh wow! I didn't think you'd be this good. I was worried I had given you a complicated order on your first day. Here's your {g}g.",
     D87: "*Yawn* - I'm sleepy. Can we go to bed now?",
+    D87a: "What a day! Even that grumpy old man couldn't ruin it. Let's get some sleep.",   /* v3 part 6: the second night */
     D88: "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat.",
+    D88a: "Goodnight. Tomorrow - we craft - the best swords - in town - and meat. Lots of meat.",
     D89: "Good morning! Are you ready to craft perfect swords today? I'll show you how to.",
+    D89a: "Good morning! You have grown so much in just two days. I think you are ready for this.",   /* v3 part 6: Day 3 */
     D90: "Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point.",
     D91: "Open the skill tree and use your points. You will feel more... powerful!",
     D92: "Let's go check the counter.",
@@ -7080,6 +7086,7 @@ const DIALOGUE = {
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
     D130: "Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!",
     D130a: "How is it going?",   /* r189: he checks in once, on the first ore of the solo run */
+    D130b: "He wants a custom designed sword. Let me get a design desk for you.",   /* v3 part 6 (owner) */
     D131: "What is this? You didn't even put in any effort. I'm not paying for this junk.",
     D132: "Huh... it wasn't good enough.",
     D133: "But we will show him next time! Let's practice more. I know we can do it!",
@@ -7383,6 +7390,7 @@ function tutScreenArrived(name){
         return; }
     if(name==='forge' && TUT_STAGE==='dec-back'){
         tutExit('#panLeft'); return; }
+    if(name==='customer' && TUT_STAGE==='dec-back' && TUT_GARRIC_STATE==='asked'){ TUT_STAGE=null; TUT_FIRE_RUN=false; tutArrow(null,null); tutExit(null); sayHide(); return; }   /* v3: Garric, still solo */
     if(name==='customer' && TUT_STAGE==='dec-back'){   /* r118: the sale she has been waiting for */
         TUT_STAGE='sell3'; tutArrow(null,null); invTab(2); updateTutorialCounterUi();
         sayQueue('D23');
@@ -7501,6 +7509,7 @@ function tutThankYou3(){
 let TUT_D2_SPENT=false;
 function tutDay2Morning(){
     if(TUT_STAGE!=='day2-forge') return;
+    if(FTUE_ST.part===6){ TUT_STAGE='d2-morning'; tutExit(null); sayQueue('D89a','D90','D91'); return; }   /* v3 part 6: Day 3, the skill tree */
     /* v3: the skill tree moved to part 6 (D21) - the morning sends the player to the counter, where the bell waits */
     TUT_STAGE='d2-counter'; tutExit(null);
     sayQueue('D89','D92');
@@ -7512,7 +7521,8 @@ function tutDay2SkillOpen(){ if(TUT_STAGE==='d2-morning'){ TUT_STAGE='d2-skill';
 function tutDay2Spent(){ if(TUT_STAGE==='d2-skill') TUT_D2_SPENT=true; }
 function tutDay2SkillClosed(){
     if(TUT_STAGE!=='d2-skill') return;
-    if(!TUT_D2_SPENT){ tutDay2Skill(); return; }   /* closed without spending: ask again */
+    if(!TUT_D2_SPENT && TALENT>0){ tutDay2Skill(); return; }   /* closed without spending: ask again (unless there is nothing to spend) */
+    if(FTUE_ST.part===6){ TUT_STAGE=null; tutExit(null); sayQueue('D140'); return; }   /* v3 part 6: the close - D140 ends the FTUE */
     /* r203: the ore run moved here, straight after the skill tree (it used to follow TC4's order).
        D94 "go back to the cave", D94b "gather everything", and only then D92 and the counter. */
     TUT_STAGE='d2-cave'; tutExit(null);
@@ -7816,6 +7826,9 @@ function tutGarricArrive(){
     counterBoxes();
     custLine(document.getElementById('bramLine'), DIALOGUE.D120);
 }
+/* v3 part 6: the banner lesson (r200's, moved from part 1), then the second night */
+function ftueGarricBanner(){ if(FTUE_ST.part!==6 || TUT_STAGE==='p1-decor-tab') return;
+    TUT_STAGE='p1-decor-tab'; ftueDecorStep(); }
 function garricWho(t){ const w=document.getElementById('custWho'); if(w) w.textContent=t; }
 function garricButtons(list){
     const r=document.getElementById('bramResponses'); if(!r) return;
@@ -7844,6 +7857,7 @@ function garricNamed(){
 }
 function tutGarricOrder(){
     TUT_GARRIC_STATE='asked'; TUT_STAGE='g-forge';
+    rollCaveNodes(); buildCave();   /* v3: parts 3-5 leave the bag and the cave empty - fresh seams for his run */
     /* there is an order to fill now, so the counter's own buttons come back */
     (()=>{ const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny');
         if(se){ se.disabled=false; se.style.display=''; } if(de){ de.disabled=false; de.style.display=''; } })();
@@ -7911,12 +7925,14 @@ function garricLeaves(){
     const bi=document.getElementById('bramIntro'); if(bi) bi.classList.remove('show');
     buildScreenProps('customer'); refreshCounter(); counterUi(); updateTutorialCounterUi();
     /* r212: his rewards in the reward window, then the dragon's answer (grade 1 has none: straight on) */
-    ftueReward(FTUE.garricRewards[g]||[], ()=>sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139', 'D140'));   /* r213: then the shared close */
+    ftueReward(FTUE.garricRewards[g]||[], ()=>sayQueue(g===1?'D132':g===2?'D135':'D138', g===1?'D133':g===2?'D136':'D139'));   /* v3: D140 waits for the end of Day 3's skill tree */   /* r213: then the shared close */
 }
 let TUT_GARRIC_GRADE=0;
 /* r189: Garric's solo run. The dragon steps back, but the target stays marked and he checks in once,
    with a way back if it is going badly. */
 let TUT_SOLO=false, TUT_SOLO_ASKED=false;
+/* v3 part 6: "on my own" - but first the dragon fetches the design desk (D130b, its reward window) */
+function tutGarricDesk(){ sayHide(); TUT_STAGE='g-desk'; sayQueue('D130b'); }
 function tutGarricHandsOff(){
     sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow();
     TUT_SOLO=true; TUT_SOLO_ASKED=false;
@@ -7957,6 +7973,8 @@ let TUT_SAW_PARTS=false;
 function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
 const SAY_AFTER={ D97:function(){ openTiers(); },
+                  D130b:function(){ if(TUT_STAGE==='g-desk') ftueReward([ { kind:'unlock', id:'designDesk' } ], tutGarricHandsOff); },   /* v3 part 6 */
+                  D133:function(){ ftueGarricBanner(); }, D136:function(){ ftueGarricBanner(); }, D139:function(){ ftueGarricBanner(); },
                   D48:function(){ if(TUT_STAGE!=='bram2-wheel') return;   /* v3 part 5 */
                       ftueReward([ { kind:'unlock', id:'sharpen' } ], ()=>{ TUT_STAGE='bram2-forge'; sayQueue('D112'); setTimeout(()=>tutExit('#panRight'), 0); }); }, D32b:function(){ tutTc2Grindstone(); },
                   D92c:function(){ ftueDurableMap(); }, D92e:function(){ ftueDurableToCave(); }, D92g:function(){ ftueDurableToForge(); },   /* v3 part 3 */ D67a:function(){ openParts(); },
@@ -8054,7 +8072,7 @@ function tutDay2Mined(){
 function tutBedroom(){
     if(TUT_STAGE!=='to-bed') return;
     TUT_STAGE='bed'; tutArrow(null,null); updateTutorialCounterUi();
-    sayQueue('D88');
+    sayQueue(FTUE_ST.part===6 ? 'D88a' : 'D88');   /* v3: the second night */
     setTimeout(()=>tutArrow(null, ()=>document.querySelector("#screenHots [data-act='bed']"),
                             { tfx:0.5, tfy:0.4, ox:118, oy:-70, bow:0.18, back:22 }), 0);
 }
@@ -9094,7 +9112,7 @@ function say(id){
     if(id==='D91') setTimeout(tutDay2Skill, 0);   /* r122: the button lights with the line that asks */
     if(id==='D118') setTimeout(tutQuestStep, 0);   /* r129 */
     if(id==='D119') setTimeout(tutGarricBell, 0);   /* r130: the bell lights with the last quest line */
-    if(id==='D130') setTimeout(()=>sayChoose([{ label:'Let me try to do it on my own.', fn:tutGarricHandsOff }]), 0);   /* r130 */
+    if(id==='D130') setTimeout(()=>sayChoose([{ label:'Let me try to do it on my own.', fn:tutGarricDesk }]), 0);   /* v3: the desk first */   /* r130 */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */

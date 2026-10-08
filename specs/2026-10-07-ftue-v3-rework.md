@@ -1,6 +1,6 @@
 # FTUE v3 rework: tracker
 
-Status: **planning complete 2026-10-08; shared systems, parts 1-5 built 2026-10-08; part 6 not built.** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
+Status: **planning complete 2026-10-08; all six parts built 2026-10-08 (owner play-test pending).** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
 what the owner wants, what the current build does, what can be kept, what must change, and any issues,
@@ -1173,6 +1173,28 @@ Asserted by `tooling/ftue/ftue.test.mjs` (203; the part 5 checks written first a
 - **Interim until part 6 is built:** Garric runs his v2 visit and ends the FTUE (no design desk lesson, banner,
   Day 3 or skill tree yet).
 
+## Build record: part 6 (2026-10-08)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (221; the part 6 checks written first and seen failing, the desk-gate fix
+checked failing without it).
+
+- `FTUE.garricRewards`: the banner in all three outcomes (D11). Lines: D79 reworded, D87a, D88a, D89a, D130b.
+- **Garric:** his order restocks the cave with normal seams (parts 3-5 leave the bag and cave empty; found while
+  building, see below). D129, D130, "Let me try to do it on my own", then D130b and the design desk's window, then
+  the solo run (D46: the dragon guides only the desk lesson).
+- **His crafted sword** opens the desk lesson (D79 reworded, D80/D81, the basement, D82-D85). Back at the counter the
+  run is solo again.
+- **Found in the browser and fixed:** the desk lesson's screen steps sit behind the `TUT_FIRE_RUN` gate, so in
+  Garric's run they never fired. The flag is now set for his lesson and cleared at the counter.
+- **After the sale:** the reward window (his grade reward + the banner); his answer (D132-D139, no D140); the
+  banner lesson (r200's, stages `p1-decor-*`); D87a; the bed and D88a; Day 3 with a normal-play cave (no tutorial
+  restock); D89a, D90, D91; the skill tree; closing it says D140, which ends the FTUE (`FTUE_ST.done`). Closing the
+  tree with no talent to spend is allowed.
+- **Open for the owner:** the cave restock at Garric's order is my choice (the plan left the player with no iron or
+  manganese for his balanced sword).
+- Checked in the browser: every step above, grade 2 (10g + banner) and grade 1 (banner) windows, the banner
+  hung, the night, Day 3, the skill tree, D140 and `done`. No console errors; mobile-fit GREEN.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1212,3 +1234,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: part 3 built (Day 2 without the skill tree, GC4 Durable lesson with the moved trait, GC5-GC7 fire with the market).
 - 2026-10-08: part 4 built (TC4 Epic Durable and the pull lesson, TC5 with the reminder, GC8 Weak stop, tiered orders).
 - 2026-10-08: part 5 built (Bram's Dagger bought by the dragon, the sharpening wheel as a reward, GC9).
+- 2026-10-08: part 6 built (Garric's design desk and lesson, the banner and its lesson, the second night, Day 3 and the skill tree, D140). FTUE v3 complete.
