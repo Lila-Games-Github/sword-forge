@@ -1588,6 +1588,16 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (1080x600 frame): the longest customer speech, D111 + D111a (195 characters), fills the box from 126px to 395px with
   the two replies under it at 405-488px; D107a with SELL under it ends at 280px; no console errors.
 
+- **r232: the inventory tabs are icons; "Items & Decor" is now "Decor" (owner, 2026-10-14).** The four `#matTabs`
+  buttons lose their text and show the game's own art: Ingredients = `assets/forge/iron_ore.webp`, Ingots =
+  `assets/hammer/ingot.webp` (scaled 2.3x, its canvas is mostly empty), Swords = a balanced Longsword built from its
+  parts (`balanced_longsword_blade`, `guard1`, `grip1`, `pommel1`, scaled 1.3x), Decor = `assets/Decor/Banner.webp`.
+  Each tab keeps its name as `title` (hover) and `aria-label`. The decor reward's sub-line reads "Decor. Place it with
+  BUILD in the Decor tab." Tabs are found by index everywhere, so the tutorial's tab blink and arrows are unchanged.
+  Note: the INGOTS tab holds metal orbs (`.inv-orb`), not ingot bars; the icon is the ingot the owner asked for. Asserted
+  by the FTUE test (428), written first. Checked in the browser (1280x720): all seven images load, each tab hit-tests at
+  its centre and switches `INV_TAB`, the Decor tab shows BUILD; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1663,3 +1673,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the Durable and Weak crafts stop pointing at the mug once the pour is done.
 - 2026-10-14: the waiting customer's guide (D107f-D107h: the ledger, craft both, call them back).
 - 2026-10-14: r231 the customer's dialogue text is 50% bigger (17px -> 25.5px).
+- 2026-10-14: r232 the inventory tabs are icons (ore, ingot, sword, banner); "Items & Decor" is "Decor".

@@ -627,5 +627,17 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
 /* r231 (owner, 2026-10-14): the customer's dialogue text is 50% bigger, 17px -> 25.5px, in both customer boxes */
 eq('customer line 25.5px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 25\.5px;/.test(src), true);
 eq('customer line 25.5px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:25\.5px;/.test(src), true);
+/* r232 (owner, 2026-10-14): the inventory tabs are icons, and the fourth tab is "Decor" (no more "Items & Decor") */
+{ const tabs = (src.match(/<div id="matTabs">([\s\S]*?)<\/div>\s*<div id="oreShelf">/) || [])[1] || '';
+  const btn = [...tabs.matchAll(/<button class="matTab[^"]*"[^>]*>[\s\S]*?<\/button>/g)].map(x => x[0]);
+  eq('four tabs', btn.length, 4);
+  eq('tab names (title + aria-label)', btn.map(b => [(b.match(/title="([^"]*)"/) || [])[1], (b.match(/aria-label="([^"]*)"/) || [])[1]]),
+    [['Ingredients', 'Ingredients'], ['Ingots', 'Ingots'], ['Swords', 'Swords'], ['Decor', 'Decor']]);
+  eq('tab icons', btn.map(b => [...b.matchAll(/src="([^"]*)"/g)].map(x => x[1])), [
+    ['assets/forge/iron_ore.webp'], ['assets/hammer/ingot.webp'],
+    ['assets/sword-parts/blades/balanced_longsword_blade.webp', 'assets/sword-parts/guards/guard1.webp', 'assets/sword-parts/grips/grip1.webp', 'assets/sword-parts/pommels/pommel1.webp'],
+    ['assets/Decor/Banner.webp']]);
+  eq('no text label left on a tab', btn.every(b => b.replace(/<[^>]*>/g, '').trim() === ''), true);
+  eq('no "Items" left in the decor reward line', !src.includes('BUILD in ITEMS & DECOR') && src.includes("return 'Decor. Place it with BUILD in the Decor tab.';"), true); }
 
 console.log('[ftue] GREEN / ' + n + ' checks');

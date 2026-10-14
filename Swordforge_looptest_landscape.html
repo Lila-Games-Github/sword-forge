@@ -1837,6 +1837,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
+/* r232 (owner): the tabs are icons - ore, ingot, a balanced sword, the banner - named by title/aria-label */
+.matTab { overflow: hidden; }
+.mt-ic { display: block; width: 100%; height: 40px; object-fit: contain; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+.mt-ingot { transform: scale(2.3); }
+.mt-sword { position: relative; transform: scale(1.3); }
+.mt-sword img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; }
 /* r153: the tutorial wants something out of a tab the player is not looking at.
    r167: the same face swap the skill button just got, and for the same reason - #rail is
    overflow:hidden and ITEMS & DECOR, the tab this round asks for, sits 9px from its right edge,
@@ -2271,10 +2277,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
         <div id="matPanel" class="railCard">
             <div id="matTabs">
-                <button class="matTab is-on" type="button" title="Ingredients">INGRE&shy;DIENTS</button>
-                <button class="matTab" type="button" title="Ingots">INGOTS</button>
-                <button class="matTab" type="button" title="Swords">SWORDS</button>
-                <button class="matTab" type="button" title="Items and Decor">ITEMS &amp; DECOR</button>
+                <button class="matTab is-on" type="button" title="Ingredients" aria-label="Ingredients"><img class="mt-ic" src="assets/forge/iron_ore.webp" alt=""></button>
+                <button class="matTab" type="button" title="Ingots" aria-label="Ingots"><img class="mt-ic mt-ingot" src="assets/hammer/ingot.webp" alt=""></button>
+                <button class="matTab" type="button" title="Swords" aria-label="Swords"><span class="mt-ic mt-sword"><img src="assets/sword-parts/blades/balanced_longsword_blade.webp" alt=""><img src="assets/sword-parts/guards/guard1.webp" alt=""><img src="assets/sword-parts/grips/grip1.webp" alt=""><img src="assets/sword-parts/pommels/pommel1.webp" alt=""></span></button>
+                <button class="matTab" type="button" title="Decor" aria-label="Decor"><img class="mt-ic" src="assets/Decor/Banner.webp" alt=""></button>
             </div>
             <div id="oreShelf">
                 <span class="badge">1</span>
@@ -2645,7 +2651,7 @@ function ftueRewardName(r){
     if(r.kind==='unlock' && r.id==='garricParts') return 'Balanced sword parts x6';
     return r.id || r.kind; }
 function ftueRewardSub(r){
-    if(r.kind==='decor') return 'Decor. Place it with BUILD in ITEMS & DECOR.';
+    if(r.kind==='decor') return 'Decor. Place it with BUILD in the Decor tab.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
     if(r.kind==='unlock' && r.id==='grindstone') return "It is on the forge bench. Let's use it now.";
     if(r.kind==='unlock' && r.id==='sharpen') return 'It is in the basement.';   /* r213; v3: TC2 uses it at once */
@@ -7032,7 +7038,7 @@ function canSpend(list,times){ const need={}; (list||[]).forEach(o=>need[o]=(nee
 function spendList(list,times){ for(let k=0;k<(times||1);k++) (list||[]).forEach(o=>spendOre(o,1)); }
 // ---- r60: the inventory ----------------------------------------------------------------------------
 const INV = { ingots: [], swords: [] };
-let INV_TAB = 0;                    // 0 ingredients, 1 ingots, 2 swords, 3 items & decor
+let INV_TAB = 0;                    // 0 ingredients, 1 ingots, 2 swords, 3 decor
 let INV_SEQ = 1;
 const STASH_COOL = 3.5;             // heat an ingot loses per second while it sits in the rack
 function benchBusy(){ return !!prep || !!melt; }
