@@ -1558,6 +1558,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   open. Asserted by the FTUE test (405), written first. Checked in the browser on D3: INGREDIENTS - arrow; INGOTS - no
   arrow, INGREDIENTS glows; INGREDIENTS again - arrow; no console errors.
 
+- **The Durable craft's mug pointer goes after the pour (owner, 2026-10-14).** In GC4 (`p3-dur-heat`) the per-frame
+  guide pointed at the mug whenever the metal was on the anvil at the route's end, Durable already on or not, so the
+  mug kept glowing after the trait was in; TC4 (`p4-quench`) and GC8 (`p4-weak-quench`) set the mug pointer once and
+  nothing cleared it. A pour in any of the three now runs `ftueDurQuenched` (pointer and glows off, the metal glows - the
+  shape is next, as GC1-GC3's `ftueGcQuenched`), and the GC4 guide stops once Durable is on. Asserted by the FTUE test
+  (407), written first. Checked in the browser: GC4 - mug lit before the pour; after it, and after the guide re-ran, the
+  mug off and the metal lit; TC4 the same; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1630,3 +1638,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: no "0g bonus": the lesson's DONE waits for the green band; D57 only with a bonus.
 - 2026-10-14: the mug glows only for a pour that adds a trait or a better tier.
 - 2026-10-14: no arrow out of a closed inventory tab (the tab glow is enough).
+- 2026-10-14: the Durable and Weak crafts stop pointing at the mug once the pour is done.

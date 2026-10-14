@@ -2791,6 +2791,8 @@ function tutWeakStop(){
    minigame), then the counter (ftueDurableSell). ---- */
 function ftueGcCraftGo(){ TUT_STAGE='p1-craft-go'; if(SF_SCREEN==='forge') ftueGcAtForge(); else tutExitTo('forge'); }
 function ftueGcAtForge(){ TUT_STAGE='p1-craft-ore'; tutExit(null); tutNudge(true); }
+/* owner, 2026-10-14: the Durable (GC4, TC4) and Weak (GC8) crafts kept pointing at the mug after the pour - the metal is next */
+function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }
 function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }
 /* ---- owner, 2026-10-09: GC5 (guide:'map') and GC6 (guide:'book') make their fire sword from the craft book.
    One step function, worked out from the state each frame (stage p3-book). ---- */
@@ -5672,6 +5674,7 @@ function tryAcquire(){
         updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
         if(bt.id==='swift') tutSwiftGot();   /* r124 */
         if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();   /* v3: GC1-GC3 */
+        if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
         if(bt.id==='gale') tutGaleGot();   /* r126 */
         showAcquire(bt,tier,melt.traits.length,firstFind);
         if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
@@ -9216,7 +9219,8 @@ function tutNudgeApply(){
         if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
             else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
         if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){ if(swordAtRouteEnd()){ if(FTUE_ST.part===4) tutTc4Pull(); else tutMugPointer(); }   /* v3 part 4: the pull lesson */
+        if(melt.stage==='onAnvil'){ if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;   /* 2026-10-14: quenched - the metal is next */
+            if(swordAtRouteEnd()){ if(FTUE_ST.part===4) tutTc4Pull(); else tutMugPointer(); }   /* v3 part 4: the pull lesson */
             else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
         return; }
     if(TUT_STAGE==='p3-book'){ ftueBookStep(); return; }   /* owner, 2026-10-09 */
