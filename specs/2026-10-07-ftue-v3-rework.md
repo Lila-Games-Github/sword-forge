@@ -1617,6 +1617,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   accuracy shows 82% and 73% inside the 86px box (paper: "Health 82%", "Good 73%"); a skipped hammer shows 100% and "-";
   no console errors.
 
+- **r236: back on the forge screen, the dragon is back at his top-left spot (owner, 2026-10-14).** Every arrival on the
+  forge screen (`goScreen('forge')`) calls `homeDragon()`, so a dragon the player dragged away is back where the game
+  opens with him. Found on the way: `homeDragon()` (r188, called by the p4 and d2 quench steps) cleared his inline
+  left/top, but that spot is LAYOUT's, written inline by `applyLayout()`; clearing it dropped him to the bench's bottom
+  left (100, 537 against 112, 86 at 1280x720). It now reapplies his LAYOUT entry (`applyLayout(SF_ORIENT, 'dragon')`;
+  `applyLayout` takes an optional single key). Asserted by the FTUE test (434), written first. Checked in the browser
+  (1280x720): a real pointer drag moved him from (112, 86) to (412, 386); counter and back: (112, 86); a moved dragon
+  through `homeDragon()`: (112, 86); no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1696,3 +1705,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r233 the Ingots tab icon is the shelf's metal orb, not the ingot bar.
 - 2026-10-14: r234 the customer's dialogue text is 25% smaller (25.5px -> 19.125px).
 - 2026-10-14: r235 the crafted card shows the health % and forging % under the heart and the hammer.
+- 2026-10-14: r236 the dragon returns to his top-left spot on every return to the forge screen (and homeDragon is fixed).

@@ -3111,7 +3111,7 @@ let SF_ORIENT = 'portrait';
 // pure: fraction entry + zone dims -> pixel box. No clamping — the self-test guards in-zone.
 function resolveLayout(name, orient, zoneW, zoneH){ const e=LAYOUT[orient] && LAYOUT[orient][name]; if(!e) return {x:0,y:0,w:0}; return { x:e.x*zoneW, y:e.y*zoneH, w:e.w*zoneW }; }
 // write every prop's position as a PERCENT of the bench zone
-function applyLayout(orient){ orient=orient||SF_ORIENT; const L=LAYOUT[orient]; if(!L) return; for(const name in L){ const e=L[name]; propIds(name).forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.style.left=(e.x*100).toFixed(3)+'%'; el.style.top=(e.y*100).toFixed(3)+'%'; el.style.width=(e.w*100).toFixed(3)+'%'; el.style.right='auto'; }); } }
+function applyLayout(orient, only){ orient=orient||SF_ORIENT; const L=LAYOUT[orient]; if(!L) return; for(const name in L){ if(only && name!==only) continue; const e=L[name]; propIds(name).forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.style.left=(e.x*100).toFixed(3)+'%'; el.style.top=(e.y*100).toFixed(3)+'%'; el.style.width=(e.w*100).toFixed(3)+'%'; el.style.right='auto'; }); } }
 function setOrientation(orient){ SF_ORIENT=orient; const f=document.getElementById('frame'); if(f) f.classList.toggle('landscape', orient==='landscape'); applyLayout(orient); }
 // snap the movable mug back into the bucket, straight from LAYOUT (orientation-aware, no captured px)
 function homeMug(){ const e=LAYOUT[SF_ORIENT]&&LAYOUT[SF_ORIENT].mug, mug=document.getElementById('mug'); if(!e||!mug) return; mug.style.left=(e.x*100).toFixed(3)+'%'; mug.style.top=(e.y*100).toFixed(3)+'%'; mug.style.width=(e.w*100).toFixed(3)+'%'; mug.style.right='auto'; }
@@ -5135,7 +5135,7 @@ function goScreen(name){
     if(SF_SCREEN==='customer' && name!=='customer' && TUT_STAGE==='counter'){ TUT_STAGE=null; TUT_COUNTER_VISITED=false; }
     SF_SCREEN = name;
     const layer=document.getElementById('screenLayer');
-    if(name==='forge'){ layer.classList.remove('on'); }
+    if(name==='forge'){ layer.classList.remove('on'); homeDragon(); }   /* r236 (owner): back at his top-left spot on every return */
     else { const [src,tag]=SCREEN_ART[name];
         const art=document.getElementById('screenArt');
         art.onload=()=>{ layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); tutDrawArrow(); sayLayout(); };   /* r164 */   /* r103: the props move when the plate decodes, so an arrow aimed at one must re-place */   // naturalWidth is 0 until the plate decodes
@@ -8108,12 +8108,12 @@ function tutDay2Pull(){
     setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
         tutGlow('#dragon', true); }, 0);
 }
-/* r188: back to the spot the CSS gives him - wireDragon() only ever writes inline left/top/right,
-   so clearing those three IS the opening position. */
+/* r188: back to his opening spot. r236: that spot is LAYOUT's (applyLayout writes it inline), so clearing the
+   inline left/top dropped him to the bench's bottom left; put the LAYOUT values back instead. */
 function homeDragon(){
     const d=document.getElementById('dragon'); if(!d) return;
     d.classList.remove('dragging');
-    d.style.left=''; d.style.top=''; d.style.right='';
+    applyLayout(SF_ORIENT, 'dragon');
     dragonCap(); updateFirePos(); if(SAY_ON) sayLayout();
 }
 function tutSwiftAligned(){

@@ -628,6 +628,11 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r236 (owner, 2026-10-14): back on the forge screen, the dragon is back at his LAYOUT spot (top left). homeDragon()
+   cleared his inline left/top, which dropped him to the bench's bottom left, not where applyLayout() puts him */
+eq('applyLayout can place one prop', src.includes('function applyLayout(orient, only){') && src.includes('for(const name in L){ if(only && name!==only) continue;'), true);
+eq('homeDragon puts him at his LAYOUT spot', src.includes("d.classList.remove('dragging');\n    applyLayout(SF_ORIENT, 'dragon');") || src.includes("d.classList.remove('dragging');\r\n    applyLayout(SF_ORIENT, 'dragon');"), true);
+eq('every arrival on the forge screen homes him', src.includes("if(name==='forge'){ layer.classList.remove('on'); homeDragon(); }"), true);
 /* r235 (owner, 2026-10-14): the main crafted card shows the health and forging percentages under the heart and the hammer */
 eq('a percentage under the heart and under the hammer', src.includes('<span class="cw-stat"><span class="cw-fill cw-hp" title="Health">')
   && src.includes('<span class="cw-pct" id="cwHpPct"></span></span>') && src.includes('<span class="cw-stat"><span class="cw-fill cw-hm" title="Forging">')
