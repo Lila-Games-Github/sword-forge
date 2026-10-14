@@ -16,8 +16,9 @@ continuation prompt printed at close time.
   serves the merged build. **196 dialogue keys**, `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
-  and content). Its "Cross-part issues" list (end of file) is the dated log of every change since;
-  each entry above it has the full record. Recorded values sit in the `FTUE` object (top of the main
+  and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
+  change's full record is a bullet appended just above **"## Cross-part issues"** (which itself only holds
+  the cross-part items X1-X2). Recorded values sit in the `FTUE` object (top of the main
   script), `MARKET` (blueprints), `HAZ` (hazards, incl. `HAZ.move`) and `HM_HITS`; seven test suites assert
   them (see "How to verify").
 - **Owner play-testing:** the owner play-tested v3 piece by piece this session and reported each issue;
@@ -117,14 +118,15 @@ continuation prompt printed at close time.
 - **r228:** the counter's DENY button (a placeholder) is hidden during the FTUE (class `ftue-off` until `FTUE_ST.done`).
 - **r229:** the rotating turn arrow shows whenever ore is on the grinder and can still be ground, on the forge screen, in every stage (`grindSpinWanted()`, refreshed every frame in `tick()`).
 - **r230:** the fog edge is a soft gradient: `#fogHoles` is blurred by `#fogSoft` (feGaussianBlur 24 world units) inside the mask. Not yet checked for frame rate on a phone.
-- **FTUE v3 (planning complete, `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
+- **FTUE v3 (history; now built, merged and live, see "Current state"; `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
 
 ## Next steps
 
 **Next session's focus (owner, 2026-10-14): keep fixing and polishing.** The owner drives the work beat
 by beat from play-testing; expect fresh reports. For each: reproduce, write the test first, fix, check in
-the browser, update the tracker's Cross-part list + the test counts in CLAUDE.md and here, then **commit
-that one feature**.
+the browser, add the change's record (a bullet just above "## Cross-part issues") and its one-line entry
+(the end of "## Log") to the tracker, update the test counts in CLAUDE.md and here, then **commit that one
+feature**.
 
 1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end.
 2. **Owner items still open (ask, do not decide):**
@@ -156,7 +158,7 @@ node tooling/map/map.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
-Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly to
+Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 196 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
@@ -179,12 +181,12 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   lines with the Write/Edit tools.
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
+- **Tests that run here (seven):** `tooling/ftue`, `tooling/market`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.
 - **A recorded value is changed in three places together:** the design record, the config object
-  (`FTUE` or `HM_HITS`), and the test. Write the test change first and watch it fail.
+  (`FTUE`, `MARKET`, `HAZ`, `SKILLS` or `HM_HITS`), and the test. Write the test change first and watch it fail.
 - **"Grindstone" is two things.** In the FTUE it is the forge's ore grinding wheel (`#stMortar`, art
   `anchor_grindwheel.webp`). `assets/forge/grindstone.webp` is the **basement sharpening wheel**.
 - **"Quality" is two things.** The craft window's **Quality** row is the trait tier (Weak/Fine/Epic);
@@ -228,12 +230,12 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 ## Documentation drift you will hit
 
-- **The FTUE design record wins over the tutorial script SSOT on order and rewards.**
+- **The FTUE v3 record (`specs/2026-10-07-ftue-v3-rework.md`) wins over the tutorial script SSOT and the
+  2026-09-29 parts plan on order, content and rewards.**
   `specs/2026-09-15-looptest-landscape-tutorial-script.md` still holds the dialogue text and the beat
   notes, but its order is the pre-FTUE one (sharpening in the TC2 run, the quest list with the diary,
-  the Day 2 cave after TC4's order). `specs/2026-09-29-tutorial-parts-plan.md` has the current order.
-  Within that record, a later dated section supersedes an earlier one (for example r212 over r206's
-  "no rewards").
+  the Day 2 cave after TC4's order); the 2026-09-29 parts plan is superseded too. Within the v3 record a
+  later dated entry supersedes an earlier one (e.g. the Day 3 cave over D48).
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.
 - `docs/wiki/` describes `index.html`/`swordforgeV2.html`. The 10 audit orphans are these pages.
