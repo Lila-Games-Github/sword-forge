@@ -26,6 +26,10 @@ eq('floor', HAZ.floor, 0.5);
 eq('free zones', HAZ.free, 2);
 eq('steps', HAZ.steps, [3, 5]);
 eq('tutorial clearing', HAZ.clear, [{ x: 1154, y: 748, kind: 'island' }]);
+/* owner, 2026-10-13: the fire run's last ore is a choice - full iron crosses a zone, full manganese goes round it.
+   The speck both full paths crossed (#59) moves, its own shape at 75%, onto the stretch only iron takes. */
+eq('tutorial move', HAZ.move, [{ kind: 'speck', x: 917.83, y: 1003.27, to: { x: 866, y: 1001 }, scale: 0.75 }]);
+eq('the move is applied after the map is built (no reshuffle)', /HAZ\.move\.forEach\(c=>\{ const z=hazards\.find\(z=>z\.kind===c\.kind && Math\.hypot\(z\.x-c\.x, z\.y-c\.y\)<=2\);/.test(src), true);
 
 /* price: full health keeps the price, 0 health halves it, unknown health is full */
 eq('price at 100', M.hazPriceMul(100), 1);
@@ -57,7 +61,7 @@ eq('cbCraft applies the recipe route', src.includes('hp:(r.hp!=null?r.hp:100), h
 eq('ingots keep the zones crossed', src.includes('hazSeen:(melt.hazSeen||[]).slice()'), true);
 const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)"')); return r ? r[1] : null; };
 eq('D69b text', line('D69b'), 'The sword will take damage if we force it through the hazards, and a damaged sword sells for less.');
-eq('D69d text', line('D69d'), 'See its health? That hazard scratched it, so it will sell for a little less.');   /* r217: owner approved */
+eq('D69d text', line('D69d'), 'The sword was damaged because of the Hazard zones. It will sell for a little less.');   /* owner, 2026-10-10 */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
 eq('D69d follows D69c', keys[keys.indexOf('D69d') - 1], 'D69c');
 
@@ -68,7 +72,9 @@ eq('fire-run stages', (src.match(/const TUT_FIRE_BUILD = (\[[^\]]*\]);/) || [])[
 eq('tutHazardStep waits for the fire run', src.includes('if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;'), true);
 eq('PART 2-3 jumps leave the hazard lines unsaid', src.includes('TUT_SAIDBOOK=true; TUT_SAIDMUG=true;') && src.includes('if(n>=4) TUT_SAIDHAZ=true;'), true);
 /* r217 (owner, 2026-10-01): "Integrity" is "Health" to the player, and the row shows the gold lost, in red */
-eq('craft window row is Health, gold lost in red', src.includes("row('Health', hazLostHtml(w))"), true);
+/* 2026-10-09: the new craft window - Health and the gold lost (in red) on its details paper */
+eq('craft window row is Health, gold lost in red', src.includes("'Health '+Math.round(hp*100)+'%'+(w.hp!=null ? '<br><small>'+hazLostHtml(w)+'</small>' : '')"), true);
+eq('the row names the gold lost', src.includes("'Gold lost: <span class=\"cr-lost\">-'+lost+'g</span>'"), true);
 eq('gold lost = full-health base minus base', src.includes('const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);'), true);
 eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
 console.log('[hazard] GREEN / ' + n + ' checks');

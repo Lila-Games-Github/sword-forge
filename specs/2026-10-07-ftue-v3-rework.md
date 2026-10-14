@@ -1195,6 +1195,346 @@ checked failing without it).
 - Checked in the browser: every step above, grade 2 (10g + banner) and grade 1 (banner) windows, the banner
   hung, the night, Day 3, the skill tree, D140 and `done`. No console errors; mobile-fit GREEN.
 
+## GC1-GC3 craft guide (owner, 2026-10-08)
+
+The owner: guide GC1 to GC3 through the entire crafting process. Pointers only, no new lines. Asserted by
+`tooling/ftue/ftue.test.mjs` (228; written first and seen failing).
+
+- Closing the market after a part 1 lesson starts it (stage `p1-craft-go`): the exit to the forge; then 2 iron and
+  2 manganese, raw, each from its slot to the smelter (`p1-craft-ore`); the bellows, the gate, the metal to the
+  anvil, the hammer, and the mug once the route is done (`p1-craft-heat`); after the quench the metal glows and the
+  ordered shape blinks in the picker (`p1-craft-shape`); the minigame runs on its own (`p1-craft-hammer`); when the
+  craft window closes, the exit and the sword-to-counter arrow (the same step as the Durable lesson's, which now
+  sets the current part's `p<n>-gpc` stage instead of always `p3-gpc`).
+- Checked in the browser: GC1 from the market to the sale, every pointer in turn, Epic at the route's end, the
+  Longsword blinking, the counter arrow, the sale. No console errors.
+
+- **Owner play-test fix (2026-10-08):** the mug arrow never came at the route's end. The per-frame guide redraws only
+  when `tutNudgeSig()` changes, and reaching the end changed nothing in it, so the hammer arrow stayed. The
+  signature now carries "at the route's end". This also fixes the same gap in part 3's Durable craft (the mug) and
+  TC4's pull lesson (started from the same branch). Test seen failing without the fix; checked with real frames
+  and no forced redraw: the hammer arrow turns into the mug arrow at the end.
+
+## Requested shape and the trait ring (owner, 2026-10-08)
+
+- **The requested shape is highlighted in the shape window, in the whole game:** a gold ring, a pulse and a
+  "Requested" tag (`.sf-req`), on the shape the waiting customer asked for, when the blade on the bench has that
+  customer's trait (`custShapeFor(k)`). The scripted customers now carry their shape too: TC3 fire Shortsword,
+  TC5 gale Shortsword, Bram a Dagger. Customers with no shape (TC2, TC4, Garric, normal play) highlight nothing.
+  The part 1 craft guide uses the same highlight.
+- **The customer's trait ring (r221) goes once their sword is made:** `custSpotSync()` hides it while a sword that
+  fills the order (trait, shape, tier) is in the bag or on the counter (`custOrderReady()`).
+- Asserted by `tooling/ftue/ftue.test.mjs` (234; written first and seen failing). Checked in the browser with real
+  frames: the ring shows while crafting, stays for a wrong shape, goes for the ordered Longsword, comes back if the
+  sword leaves; the picker highlights the Longsword (GC) and the Shortsword (TC5 gale), and nothing when the
+  blade's trait is not the customer's.
+
+## Owner play-test fixes (2026-10-09)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (249; each check written first and seen failing).
+
+- **Exits:** the screens run shop | counter | forge | cave, so from the counter the way to the forge or the cave is
+  RIGHT. Six new walks assumed left and pointed at the shop. Every new walk now asks `screenExit(from, to)` (the
+  first step of the shortest walk on `SCREENS`, between the SCREEN-PURE markers) through `tutExitTo()`.
+- **The dragon without his image:** off the forge, a line in a stage not listed in `TUT_SCREEN_STAGES` went to the
+  forge dragon's bubble while he was hidden under the screen. During the FTUE he now comes along to every screen
+  but the forge and the bedroom (on the counter once it has been visited or Bram is there), so his lines use the
+  screen bubble beside him. (A first attempt looped: `sayWhere()` calls `onScreenDragon()`; a check now forbids
+  the call back.)
+- **GC5 (fire Longsword), `guide:'map'`:** after the market, to the forge; the fire icon on the map is ringed;
+  the book opens on the fire page; CRAFT 1 blinks; the picker highlights the Longsword; then CLOSE, the counter, the
+  sword-to-counter arrow.
+- **GC6 (fire Broadsword), `guide:'book'`:** the CRAFT BOOK button; the fire page mark if another page is open;
+  CRAFT 1; the Broadsword; then the same way to the counter.
+- **The Day 2 cave holds all of Day 2 (parts 3-6) + 5 of each:** nickel 2 + 2 + 5 = 9, iron and manganese
+  6 + 1 + 1 + 5 = 13, copper 7 + 5 + 5 = 17 (`FTUE.day2Cave`). This replaces D30/D34/D41: TC4 no longer goes to
+  the cave (D94 is not said; D92l, then the forge), `FTUE.p4Cave` is gone, and Garric's order no longer refills the
+  cave (his iron and manganese are in the total).
+- Checked in the browser with real frames: the exits from the counter, shop and forge; the dragon beside his line
+  on the counter and in the cave; the cave stock (9, 13, 13, 17); GC5 and GC6 step by step.
+
+- **The trait ring (`#tutSpot`, owner 2026-10-09):** the thin orange ring merged with the yellow map. It is now a white core on a dark edge with a strong orange-red glow, pulsing, and two rings rippling outward (scale 1 to 2.6, fading), half a beat apart. Every lesson that marks a trait uses it (GC5's fire icon, TC3's fire, TC5's gale, Garric's balanced). Asserted by the FTUE test (252).
+
+## Rising prices and the 25-trait market (owner, 2026-10-09)
+
+Replaces D2 (every blueprint 50g). Asserted by `tooling/market/market.test.mjs` (50; written first and seen failing).
+
+- **Price** = `MARKET.priceStep` (50) x (the trait's place in `MARKET.traits` + the shape's step). Shortsword is free.
+- **Steps** (`marketSteps`): the trait's own base shapes, then Katana, Cutlass, Machete, Saber, Scimitar, Claymore, then its
+  last extra. Balanced: Longsword 50, Broadsword 100, Katana 150 ... Dagger 450. Fire: 100, 150, 200 ... Dagger 500.
+  Swift: Longsword 150, Dagger 200 ... Rapier 550. Gale: Longsword 200, Rapier 250. Durable: Longsword 250 ...
+- **25 traits** (`MARKET.traits`): the chart's five, then the map's other twenty in its own order (flexible, heavy,
+  celestial ... dark). The twenty use Balanced's shapes. The most expensive is Dark Claymore, 1600g.
+- **A blade of any market trait offers that trait's shapes** (`ftueTraitKey`: fire, gale, swift first; then any other
+  market trait except balanced and durable; then durable; else balanced). So an Ice blueprint opens Ice shapes.
+- **The slider:** the shape names stay on the left; the 25 trait columns scroll sideways, five in view, with ◀ ▶ and
+  dragging (`marketSlide`). The dragon's gift and the lesson's pointer slide to their column (`mkShow`). Locked
+  cells show their price too.
+- **Tutorial gold (owner: the top-up stays):** GC3's balanced Katana is now 150g and GC7's fire Katana 200g; the
+  dragon tops the gold up to that price when short.
+- Checked in the browser: 25 columns of 10; five in view, sliding; the prices above; Dark Claymore 1600 in view on
+  request; the top-up from 40g to 150g with the Katana in view and lit; the purchase (150 to 0); the dragon's coins
+  landing on a column slid into view.
+
+## The customer waiting system (owner, 2026-10-09)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (267; written first and seen failing).
+
+- **COME LATER** on the counter, beside SELL (68.8%-78.8% of the panel). It appears with the waiting customer and stays;
+  after the FTUE it is always there, with **DENY** (still a placeholder) one row below it. Before the waiting customer it
+  is hidden.
+- **In the tutorial,** COME LATER works for the waiting customer and for anyone called back; for anyone else (Bram,
+  GC9, Garric) the dragon says D107e and nothing happens. After the FTUE it works for every customer.
+- **The waiting list** (`FTUE_ST.waiting`, so it is saved and a new game clears it) is on the ledger's right page,
+  below the squashed Details box. Each entry is a button, one line per sword: "1X Gale Katana". Clicking it asks
+  "Call this customer back?" (YES / WAIT LONGER). YES with someone at the counter says "There is already a customer
+  at the counter."; otherwise the customer returns ("I'm back. I wanted a Gale Katana and a Fire Claymore."). No time
+  limit.
+- **Several swords, one customer:** the sword on the counter must be one of the request, and every other one must be in
+  the bag, or the customer says "My request was for two swords. You only have one?". With all of them, all are sold at
+  once at their own prices. No partial delivery.
+- **The waiting customer** (end of part 4, after GC8, before Bram): a gale Katana and a fire Claymore (blueprints
+  300g + 450g). D107c (theirs), D107d (the dragon refuses to pay); COME LATER blinks; the customer goes to the list
+  and the bell brings Bram. `ftuePart(5)` starts with them on the list.
+- Checked in the browser: COME LATER hidden before, shown and lit with the waiting customer; the list entry; D107e on
+  Bram; "already a customer"; the call-back line; the one-sword refusal; both sold together (2 sales); the three
+  buttons inside the scene after the FTUE. Mobile-fit GREEN.
+
+## The quest list (owner, 2026-10-09)
+
+Asserted by `tooling/ftue/ftue.test.mjs` (271; written first and seen failing). Two pages of seven (`QS_PAGES` 2,
+`QS_PER` 7, rows tightened to fit). Each quest pays **20g and 20 xp** (owner: "some gold, +20 xp"; 20g is the game's
+default `QUEST_REWARD`; the two pre-completed quests went from 10g to 20g to match). The old five (Epic x5, no refusal,
+discover 3, update 3, open the shop) are gone.
+
+| Page | Quest | Counted when |
+| --- | --- | --- |
+| 1 | Craft a sword; Sell a sword | complete when the list arrives (`FTUE.preQuests`) |
+| 1 | Buy a blueprint for the sword shape. | the player buys any blueprint |
+| 1 | Update a recipe. | the recipe is updated or saved as a new page |
+| 1 | Gather ores from cave | an ore is mined |
+| 1 | Craft a fire sword | a sword with Fire is made (forge or craft book) |
+| 1 | Go to bed. Remember to pet the dragon! | a new day starts (the player slept) |
+| 2 | Craft a durable sword | a sword with Durable is made |
+| 2 | Buy a blueprint for the fire sword. | the player buys a fire blueprint |
+| 2 | Get dragon's help for an epic tier sword. | an Epic trait is taken while the sword has been pulled |
+| 2 | Sell a weak sword. | a sword whose best tier is Weak is sold (and paid for) |
+| 2 | Craft a swift sword; Craft a gale sword | a sword with Swift / Gale is made |
+| 2 | Sharpen a sword | a sharpening is finished (not cancelled) |
+
+Checked in the browser: both pages, the rows inside the page, completions through the real hooks, a claim (+20g, +20 xp).
+
+## The "Sword crafted!" window (owner, 2026-10-09)
+
+From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._expanded_wireframe.png`. Asserted by
+`tooling/ftue/ftue.test.mjs` (280) and the hazard test's Health check (moved to the details paper); written first.
+
+- **The card:** "Sword crafted!" tab; the sword; one line "Epic Balanced Shortsword" (several traits: "Epic Fire, Fine
+  Swift Longsword", each tier in its colour); a box with the heart (fills to the health %) and the hammer (fills to the
+  forging %); a box with the most-used ore and the total count; the sword's worth (no gold is paid: owner); CLOSE.
+- **The paper behind it:** its arrow slides the card left and the paper out (and back): Health % with the gold the
+  hazards cost in red, the forging band and %, and each ore with its count.
+- **The hammering is saved in the recipe** (owner): pages written during a forge run (the automatic first save, or the
+  composition window while the metal is live) receive that run's forging when the sword is finished; a page saved
+  from the last craft carries it too. A craft-book sword takes its page's band and %; a page from before this change
+  counts as Good.
+- D69d's pointer now lights the heart (superseded 2026-10-10: see the hurt fire sword's lesson below).
+- Checked in the browser: the card and the paper (75% health, -7g, Masterwork 96%, ores x2 x1 x1); a forge run at 96%
+  writing Masterwork 96% to its new page; the craft-book sword from it at Masterwork 96% with the hammer filled to 0.958.
+
+- **The QUEST button glows green (owner, 2026-10-09)** while a finished quest waits to be claimed (`questBtnUi()`, refreshed when a quest finishes, is claimed, on load and on a new game). Asserted by the FTUE test (283); checked in the browser: off at the start, on when a quest finishes, off after the claim.
+
+- **The crafted window at the wireframe's size (owner, 2026-10-09):** the card is 470 px wide and, with its title and CLOSE tabs, fills 86% of the frame's height (the wireframe: 88%); the sword area is 200 px tall, the name 21 px, the boxes 86 px with 46 px icons, the gold 42 px; the paper scales with it. Open, the card and the paper span 117-991 px of the 1080 px frame, centred like the expanded wireframe; the paper passes over the right rail, under the window's backdrop. Asserted by the FTUE test (284).
+
+- **The first crafted window teaches itself (owner, 2026-10-10).** Once per game (`FTUE_ST.cwSeen`, saved; the PART
+  jumps set it), while the FTUE runs: D17a "Tap the arrow to see more details." with the arrow lit and no continue
+  button (the arrow is the way on); opening the paper brings D17b "The hammer icon shows how well you hammered your
+  blade. Higher percentage means more money." with the hammer (Masterwork) row lit, then D17c "This shows how much ore
+  you used for the sword." with the ore row lit; the continue on D17c lights CLOSE. All three lines sit above the
+  window (`say-over-modal`); CLOSE ends the lesson at any step. Corrections: the owner's line gained its full stop;
+  the lit rows keep a steady orange edge under the pulse. Asserted by `tooling/ftue/ftue.test.mjs` (299), written
+  first. Checked in the browser: each step, tapped as a player; the after-close step still runs; a second window
+  does not repeat it; no console errors.
+- **The hurt fire sword's window (owner, 2026-10-10).** D69d is now "The sword was damaged because of the Hazard
+  zones. It will sell for a little less." It lights the arrow and has no continue button; opening the paper lights the
+  Health row (Health % and "Gold lost: -Ng" in red) and gives D69d a continue; that continue lights CLOSE. Tapping the
+  line away early does not lose it: opening the paper says it again. Asserted by the FTUE test (305) and the hazard
+  test (35), written first. Checked in the browser by clicking: 75% health, Gold lost -8g, CLOSE lit, the
+  after-close step ran, no console errors.
+- **Garric's ore (owner, 2026-10-10: "not enough ore for Garric").** The 2026-10-09 change counted his iron and
+  manganese inside the Day 2 cave (1 + 1) and dropped the restock at his order; in play the Day 2 swords use that ore
+  up. The Day 2 cave now holds 7 more iron and 7 more manganese: `FTUE.day2Cave` = nickel 9, iron 20, manganese 20,
+  copper 17 (Garric's Epic Balanced is 2 + 2, the first sword's route, + 5 of each). The dragon does NOT refill the
+  bag (owner: a first try did, and was rejected). The PART jumps carry it: PART 4 iron and manganese 14, PARTS 5-6
+  7. Asserted by the FTUE test (307), written first. Checked in the browser: the cave stock 9 / 20 / 20 / 17; the
+  PART 6 bag 7 / 7, unchanged by his order, no toast.
+- **The Day 3 cave (owner, 2026-10-10).** Supersedes D48 (Day 3's cave was normal play). After Garric's night the
+  cave is stocked like Day 2's, plus aluminium: `FTUE.day3Cave` = nickel 9, iron 20, manganese 20, copper 17,
+  aluminium 15, one seam each on random spots, 2-3 a swing. Both tutorial nights go through one line in
+  `advanceDay` (part 6 takes day3Cave, the first night day2Cave); later nights roll normal seams. The unused
+  `ftueDay2Cave` is gone. Asserted by the FTUE test (308), written first. Checked in the browser: Day 3 9 / 20 / 20 /
+  17 / 15 on 5 spots, Day 2 unchanged, a later night normal seams, no console errors.
+- **Day 3's skill tree lesson goes through the cave (owner, 2026-10-10).** Was D89a, D90, D91 and the tree at the
+  forge. Now: at the forge D89a, D89b "Let's gather more ores for the day." and the exit to the cave blinks (stage
+  `d2-d3cave`); in the cave D89c "Ahh! So many ores to collect. This is going to take way too long!" (the owner's
+  "way to" corrected) and D89d "Why don't you upgrade your pickaxe skill from the skill tree?", which lights the
+  skill button. In the tree the Pickaxe Upgrade node glows with a steady orange ring; only a pickaxe point counts.
+  Closing the tree without one lights the button again with the toast "Put a point on the Pickaxe Upgrade" (unless
+  no talent is left); with one, D140 ends the FTUE as before. D90 and D91 are no longer said (kept in the map).
+  Found and fixed: the PART 4-6 jumps set `TUT_D2_SPENT` (from when the tree was on Day 2), which let the tree
+  close at once; the Day 3 morning now clears it. Asserted by the FTUE test (320), written first (the flag fix
+  retroactive RED). Checked in the browser: the exit blink, D89a-D89d, the tree's refusals (closed empty; a point on
+  trading), the pickaxe click by coordinate, then D140 and `FTUE_ST.done`; no console errors.
+- **A step already done moves on (owner, 2026-10-13).** "If the player already finishes the tasks before the
+  tutorial guide, mark it done and move on." Cause: each step waited for the EVENT that ends it, and the event can
+  happen before the step begins (all four ores in during D1/D2 left D3's arrow waiting forever). Fix: one table,
+  `TUT_SKIP` (stage -> a check on game state + the call that moves on), run every frame from `updateHintArrow`
+  (not while a line pauses the game); a stage is tried once, then again only after the stage changes. The chain
+  follows: ores, heat, gate and anvil all done early go from D2 straight to D7. Entries, from a read-only audit of
+  every action step: the first craft (ore, bellows, gate, anvil); TC2 (tc2-raw, regrind-grind/iron/mang,
+  regrind-heat - it waits for D38-D40 to be read); GC1-GC3 (p1-craft-heat, p1-craft-shape) and every shape step
+  (the hammer opened early); Day 2 (p3-dur-mine, p3-dur-grind, p4-weak-grind, d2-copper; fire-heat1, d2-hammer,
+  d2-gale-hammer, which were only checked while the hammer struck); Day 3 (a pickaxe point spent before the tree
+  lesson). "Go to X" while already on X (`TUT_SKIP_SCREEN`, 20 stages): goScreen returns early on the current
+  screen, so the arrival never ran; the entry waits for the line to close, then replays the arrival. The market: an
+  ordered blueprint already owned skips the trip (it looped buy -> close -> ask), for the dragon's buys too.
+  "Done" includes "done and further" (the bellows step counts the metal already out of the smelter; found in the
+  browser). Steps whose control is locked until asked (the bellows in the second craft, the sharpener, the desk,
+  the diary) need no entry. Asserted by the FTUE test (349), written first. Checked in the browser: the owner's
+  case (D3 -> D4); the whole first craft early (D2 -> D7, the hammer lit); the normal order unchanged (D3, D4, D5,
+  D6, D7); an owned fire Longsword at GC5 (no market, straight to the book guide, no gold spent); bedtime in the
+  bedroom (after D87, D88); the pickaxe point spent early (the tree closes to D140); Day 2 copper loaded early and
+  the route's end reached without striking (D96, then D97a); no console errors.
+- **The crafted sword flies into the bag like the coins (owner, 2026-10-13).** On CLOSE each sword flies from
+  the window to its OWN slot in the SWORDS tab (the tab opens if another is showing): an arc that leaves at the size
+  the window drew it, crosses the middle at 1.15 with a random lift (as `flyCoins`), and shrinks to the slot, 720 ms,
+  ease-in; Craft 5 sends them 110 ms apart. Until its sword lands a slot keeps its place but shows nothing and cannot
+  be dragged (`CRAFT_FLY`, ids, not saved; only while the window is up or the flight runs, so a window closed any
+  other way never hides a sword). Landing (on a timer, never onfinish): the slot shows, swells to 1.16 with a gold
+  glow, and 8 sparks fly off it. A new game or a load drops any flight. Found in the browser: the shelf was redrawn
+  before the window was up, so the slot still showed; it is now redrawn after. Asserted by the FTUE test (358),
+  written first. Checked in the browser: one sword (hidden while open, hidden in flight, shown with the pop and 8
+  sparks at ~0.7 s, all cleared by 1.7 s, CLOSE clicked by hit-test); Craft 5 (5 hidden, landing one by one, all
+  cleared); a frozen mid-flight frame; no console errors.
+- **The mug in front of the bucket, and glowing when it is the next step (owner, 2026-10-13).** The page sets the
+  mug at z 10 over the bucket's 9, but the end of every pour and every reset put it back at z 3, so from the second
+  use on it sat behind the bucket. One constant, `MUG_Z` = 10, now. While `canPourQuench()` holds (metal on the
+  anvil, the sword resting on a trait) the mug's picture pulses with a blue glow, every frame, in and out of the
+  tutorial (on the picture, so the tutorial's own mug glow on `#mug` still works). Asserted by the FTUE test (361),
+  written first. Checked in the browser: at load, after a pour pressed and released like a player, and after a
+  reset, a tap on the mug hits the mug at z 10; the glow is off with nothing on the anvil, on with the sword on a
+  trait, off again when it leaves; the glow seen in a screenshot; no console errors.
+- **OK on the dragon's lines (owner, 2026-10-13).** The continue button in all four dragon bubbles reads OK (Cinzel,
+  13 px; the button widens from 32 to 44 px) instead of the double arrow; the close X on a run's last line is
+  unchanged, and the glow on the lines that light it (`SAY_GO_GLOW`) is kept. Asserted by the FTUE test (364),
+  written first. Checked in the browser: D1 and D2 show OK (lit), D3 keeps the X; a screenshot of D1.
+- **The fire run's last ore is a choice (owner, 2026-10-13).** The first half is unchanged (2 iron + 1 manganese, full,
+  across speck (1028, 1016): the hazard lesson, D69a-c). After the reheat the dragon says D72 "If we use iron, we will cross
+  another hazard zone." (it draws the full iron path, dashed dark red, opens the fog over the choice and pulses the hazard
+  red) and D72a "But the manganese can avoid it." (the manganese path, dashed green); closing D72a clears them and lights
+  the grindstone. No buttons (owner): either ore is taken, fully ground (`fireOreWanted` 'iron/manganese'; the 70%
+  manganese cap is gone); a full grind says D73, the load D74. Both end Fine on fire: `FTUE.fireAt` (824, 1016), 17.2
+  (iron) and 17.1 (manganese) away; iron crosses the moved speck (`HAZ.move`, hazard record), manganese none. Fire and the
+  speck move after the map is built (`TRAIT_POS` and the seeded zones and books are untouched). Permanent: the map is one
+  for the whole game. The PART jumps' fire recipe is now the full route. Found in the browser and fixed: the iron path was
+  the route's red (now dashed, dark red / green); both paths ran into the fog (the fog opens over the choice); the speck
+  was faint (it pulses red while talked about). Noted: at D70 fire's disc is now 139 from the 3-ore end (was 134), so it
+  stays fully under the 120 sight circle - the pulsing ring still marks it. Asserted by the FTUE test (378) and the hazard
+  test (37), written first. Checked in the browser: the map (fire, the moved speck, the old spot empty, #53 on both first
+  halves); both lines with their paths, the red pulse, then all cleared and the grindstone lit; copper refused ("Iron or
+  Manganese"); iron and manganese each taken, half-ground refused, full -> D73 -> D74; both routes Fine; no console errors.
+- **The fire run's cave holds 3 iron (owner, 2026-10-13).** The scripted cave (`setTutorialCave`) stocked exactly
+  2 iron + 2 manganese for the old recipe; with the last ore a choice, a player who picks iron needs a third. Now iron 3,
+  manganese 2; the cave lines name no count. Asserted by the skills test's scripted-cave check (18), written first.
+  Checked in the browser: the seams read 3 and 2; mining walks iron to 0 (bag 3), then manganese (bag 2), then the
+  stow step; no console errors.
+- **The pickaxe stays in the cave (owner, 2026-10-13).** It no longer goes in the bag: no ITEMS & DECOR slot, no
+  drag out of the bag, no stowing on the rail (a drop there leaves it in the cave, at the panel's edge). It lies at
+  `PICK_HOME` (28, 78) of the cave plate - chosen against all ten seam spots, its head 1.9 x the strike reach from the
+  nearest (the old drop spot (40, 88) was 1.01 x, a hair from mining by itself); it can be dragged to a seam as before;
+  every arrival at the cave, a new game, a load (a saved position is ignored) and the PART jumps put it back.
+  `PICK_OUT` is never null. The fire run's `cave-stow` stage is gone: after the seams, D66 and D67 play and the exit
+  to the forge blinks.
+  **Lines affected:** D66 "Let's keep the pickaxe in the inventory..." - PROPOSED: "Let's leave the pickaxe here for
+  next time. We found it. We are not stealing. Not stealing at all." (owner approved 2026-10-14); D67 "2 iron and 2 manganese"
+  is now "3 iron and 2 manganese" (the cave gives 3 iron since the fire choice). D65 ("Pick it up and drag it to the
+  ores") still fits; no other line mentions the pickaxe in the bag. Asserted by the FTUE test (385), written first.
+  Checked in the browser: ITEMS & DECOR holds only BUILD; the pickaxe at (28, 78) on arrival, idle; dragged by pointer
+  next to a seam it mines; dropped on the rail it stays in the cave; back home after leaving and returning; the fire
+  run's cave: D65 with the arrow from the lit pickaxe, the bag 3 + 2, then D66, D67 and the forge exit; no console errors.
+- **OK on the customers' lines too (owner, 2026-10-14).** The customer bubble's small "tap to continue" (8 px text)
+  is now the dragon's OK button: the same brown gradient, border, Cinzel 13 px, 44 x 26 px, at the bubble's bottom-right
+  edge; shown, as before, only while the speech has more (`.more`). The whole bubble still takes the tap. Asserted by
+  the FTUE test (387), written first. Checked in the browser: Garric's speech shows OK; a tap on it, by hit-test, moves
+  the speech on; no console errors.
+- **The grindstone is not seen before it is given (owner, 2026-10-14).** Locked (`FTUE_ST.grind` false) it was
+  dimmed (grey, 45% opacity) and still showed; now `#stMortar.ftue-lock` is hidden and takes no taps. An ore dropped
+  where it sits does nothing, silently (the old "The grindstone is not ready yet" toast spoke of a stone nobody can
+  see). Given, it shows at full strength as before. Asserted by the FTUE test (389), written first. Checked in the
+  browser: locked - the stone, its wheel handle and the hotspot hidden, a tap at its centre misses it, no toast; given -
+  visible, opacity 1, no filter, the tap hits it; no console errors.
+
+- **The basement background without the polishing desk (owner, 2026-10-14).** The owner updated
+  `assets/backgrounds/basement_background.png`: the same plate, minus the desk in the FINISHING bay (the desk is now its
+  own file, `assets/Game-elements/polishing_desk.png`, deliberately NOT shown yet). The game loads the .webp, so it was
+  re-encoded from the new PNG with the asset-diet settings for this file (1920 x 1066, WebP 0.82; 147 KB) through the dev
+  server's /__save. No code change. Compared old and new: only the FINISHING bay differs; the work table, the ASSEMBLY and
+  SHARPENING bays and the prop areas are unchanged. The game loads the new file (1920 x 1066).
+
+- **The craft book: headings and the page's own sword (owner, 2026-10-14).** Each box is headed: "Ores used", "Crafting
+  process", "Shapes unlocked" (`cbHead`). The picture was always the balanced longsword; it now wears the page's trait -
+  its longsword blade (`bladeFor`; every skin has one) and the default design in that trait's parts (`ddCoerce(DD_SEL, skin)`):
+  fire, swift and gale show their own swords. Fixed with the heading: the shapes box listed a fixed three
+  (Shortsword, Longsword, Broadsword) whatever the trait; it now lists what the shape picker allows for the page's
+  trait (`marketShapes` + `ftueShapeOpen`), so "unlocked" is true. Found in the browser and fixed: the shapes heading
+  took the shape pills' border and shading. Asserted by the FTUE test (394), written first. Checked in the browser
+  (PART 6 pages): balanced, fire, swift and gale each show their blade and parts, all loaded; the three headings;
+  shapes - balanced and fire Shortsword, Longsword, Broadsword, Katana; swift Shortsword, Dagger; gale Shortsword,
+  Longsword; no console errors.
+
+- **The craft book's middle column (owner, 2026-10-14; Composition_book_wireframe.png, updated).** The five tier boxes are
+  one: a "Trait Tier" label and one box with every trait's pips (tier-coloured, the panel's rule; 13 px past four pips),
+  then a description box. Positions measured off the wireframe in the book's own frame (book 72..1024 x 66..692): label
+  top 13.40%, tier box 25.10 / 17.90 / 18.20 x 10.20%, description 25.10 / 31.30 / 18.20 x 31.30% (the other boxes
+  already matched). The right boxes keep the owner's headings from the same day ("Crafting process", "Shapes unlocked")
+  rather than the wireframe's labels ("Recipe", "Shapes discovered"). Descriptions are `SWORD_DESC`, one per trait (25);
+  balanced is the owner's wireframe text, the other 24 are PLACEHOLDERS (owner: "make something up for now"). A page of
+  several traits reads "A blend of Fire and Swift. " and the first trait's words. Asserted by the FTUE test (399), written
+  first. Checked in the browser: balanced, fire, swift, gale and a two-trait page (5 pips) - every description and tier
+  row fits its box, the longest description with the blend prefix too; no console errors.
+
+  | trait | description |
+  | --- | --- |
+  | balanced | A basic balanced sword. Good choice for those who don't like the fancy elements and rely on pure skills. |
+  | swift | A light, quick blade. It strikes before the enemy can blink, made for fighters who rely on speed. |
+  | durable | A tough blade that refuses to break. Made for long battles and owners who hate repairs. |
+  | flexible | A springy blade that bends instead of snapping. Hard to block, harder to break. |
+  | heavy | A weighty blade that hits like a hammer. Slow to swing, but few stand up after one blow. |
+  | celestial | Forged under the stars, it glows faintly at night. Said to guide its owner home. |
+  | cloud | So light it almost floats. Every swing feels like moving through air. |
+  | rainbow | Its edge shimmers in every colour. More admired at feasts than feared in battle. |
+  | luck | Nobody knows why, but its owners keep winning. Every coin toss, every close call. |
+  | lightning | Crackles with a restless charge. Each strike lands with a flash and a jolt. |
+  | noble | An elegant blade fit for a lord. It opens doors before it ever leaves the sheath. |
+  | grace | Perfectly weighted for the dancing duellist. Every move flows into the next. |
+  | gale | Wrapped in a constant breeze. Each swing sends a gust strong enough to push foes back. |
+  | floral | Blossoms are etched along its edge, and it smells faintly of spring. |
+  | fury | A blade that runs hotter with anger. It rewards those who never step back. |
+  | ice | Cold to the touch and colder to its foes. Its strikes leave a trail of frost. |
+  | fire | A blade with a flame inside. Its strikes leave scorch marks and frightened foes. |
+  | water | Flows like a river in the hand. Its strikes are smooth, steady and hard to stop. |
+  | magma | Molten at its core, it never quite cools. Heavy, hot and hard to stop. |
+  | mist | Hard to see and harder to follow. Its edge seems to vanish mid-swing. |
+  | poison | A cruel edge that lingers in every wound. Favoured by those who fight dirty. |
+  | savage | A jagged, brutal blade. It wins no beauty contests, only fights. |
+  | blood | It thirsts for battle and grows stronger with every hit. |
+  | cursed | Powerful, but it whispers at night. Few owners keep it for long. |
+  | dark | A blade that drinks the light around it. Feared in every tavern story. |
+
+- **The crafting process starts with "Ores" (owner, 2026-10-14).** It listed every ore by name ("Copper + Copper + Copper +
+  Copper + Copper -> heat -> ...", two lines); now "Ores -> heat -> hammer -> quench -> hammer" - the ores are in "Ores
+  used". Asserted by the FTUE test (400), written first. Checked in the browser: the gale page on one line, fits.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1235,3 +1575,32 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-08: part 4 built (TC4 Epic Durable and the pull lesson, TC5 with the reminder, GC8 Weak stop, tiered orders).
 - 2026-10-08: part 5 built (Bram's Dagger bought by the dragon, the sharpening wheel as a reward, GC9).
 - 2026-10-08: part 6 built (Garric's design desk and lesson, the banner and its lesson, the second night, Day 3 and the skill tree, D140). FTUE v3 complete.
+- 2026-10-08: GC1-GC3 guided through the whole craft (owner request).
+- 2026-10-08: fix - the guide now notices the route end (mug arrow, TC4 pull lesson).
+- 2026-10-08: the requested shape highlighted in the shape window (whole game); the trait ring goes once the order is crafted.
+- 2026-10-09: play-test fixes (exits, the dragon on every screen, GC5/GC6 book guides, the Day 2 cave for all of Day 2 + 5).
+- 2026-10-09: the trait ring made bright, glowing and rippling.
+- 2026-10-09: rising blueprint prices, 25 traits in a sliding market.
+- 2026-10-09: the customer waiting system (COME LATER, the ledger list, the waiting customer at the end of part 4).
+- 2026-10-09: the quest list (two pages of seven, 20g + 20 xp each).
+- 2026-10-09: the new Sword crafted window; the hammering saved in the recipe.
+- 2026-10-09: the QUEST button glows green when there is something to claim.
+- 2026-10-09: the crafted window enlarged to the wireframe.
+- 2026-10-10: the first crafted window's lesson (D17a-D17c, then CLOSE).
+- 2026-10-10: the hurt fire sword's window (new D69d, the Health row and its gold lost).
+- 2026-10-10: the Day 2 cave holds 7 more iron and 7 more manganese for Garric.
+- 2026-10-10: the Day 3 cave holds the same, + 15 aluminium (supersedes D48).
+- 2026-10-10: Day 3's skill tree lesson goes through the cave and the pickaxe (D89b-D89d).
+- 2026-10-13: a step the player already finished moves on (`TUT_SKIP`, every frame).
+- 2026-10-13: the crafted sword flies into its own slot like the coins; the slot shows when it lands, with a pop and sparks.
+- 2026-10-13: the mug stays in front of the bucket and glows while the sword rests on a trait.
+- 2026-10-13: the dragon's continue button reads OK.
+- 2026-10-13: the fire run's last ore is a choice: full iron (crosses a moved speck) or full manganese (goes round it).
+- 2026-10-13: the fire run's cave holds 3 iron (was 2), so the iron choice has its ore.
+- 2026-10-13: the pickaxe stays in the cave at one spot (no bag, no stowing); D66 rewrite proposed, D67 counts 3 iron.
+- 2026-10-14: the customers' "tap to continue" is the OK button.
+- 2026-10-14: the grindstone is fully hidden until it is given.
+- 2026-10-14: the basement background without the polishing desk (re-encoded .webp; the desk art kept, unused).
+- 2026-10-14: the craft book: box headings, the page's own sword, and the shapes actually unlocked.
+- 2026-10-14: the craft book's middle column: one Trait Tier box and a sword description (24 placeholders).
+- 2026-10-14: the crafting process starts with "Ores".

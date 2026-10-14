@@ -28,6 +28,7 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
 | `free` | 2 | zones a run may cross with no tier loss |
 | `steps` | [3, 5] | 3 or more zones: every trait drops 1 tier; 5 or more: 2 tiers (Weak is the floor) |
 | `clear` | [{ x:1154, y:748, kind:'island' }] | tutorial clearing: the zone the part 4 gale route crossed |
+| `move` | [{ kind:'speck', x:917.83, y:1003.27, to:{ x:866, y:1001 }, scale:0.75 }] | 2026-10-13 (owner): the fire run's choice - see below |
 
 - **A zone counts once per run**, by its index, however often the sword re-enters it. Moving
   through it is what counts (`checkHazard` only runs while the sword moves).
@@ -44,6 +45,12 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
   by gale, so no other zone moves. Measured 2026-10-01 on the seeded map: the gale route (5 ground
   copper) crossed only this island; the swift route crosses none; the part 3 fire route crosses one
   speck at (1028, 1016), which stays (it is D69's zone). No tutorial route reaches 3 zones.
+- **The fire choice (owner, 2026-10-13):** the fire run's last ore is full iron OR full manganese (the
+  FTUE tracker, specs/2026-10-07-ftue-v3-rework.md). Both full paths crossed the speck at (917.83, 1003.27);
+  `move` puts that speck, its own shape at 75% (radius ~16), at (866, 1001), the stretch only the iron
+  path takes: measured, iron 27 of 201 samples inside, manganese 14 units clear. Applied after the map is
+  built, like `clear`, so no other zone moves. The speck at (1028, 1016) stays: every fire run crosses it
+  (D69's lesson); with iron the run crosses 2 zones, still inside `free`, so no tier is lost.
 
 ## Tutorial lines (owner approved the text)
 

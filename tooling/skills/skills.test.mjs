@@ -40,7 +40,8 @@ eq('bounty extra', [0, 1, 10].map(M.bountyExtra), [0, 1, 10]);
 /* wiring in the build */
 eq('price uses trading', /function swordBase\(w\)\{[^}]*tradeMul\(rank\('trade'\)\)/.test(src), true);
 eq('normal seams start with the bounty', src.includes("left:NODE_YIELD+bountyExtra(rank('bounty'))"), true);
-eq('tutorial caves are scripted', src.includes("{ metal:'iron', spot:2, left:2, script:true }") && src.includes('per:FTUE.day2Swing.slice(), script:true'), true);
+/* owner, 2026-10-13: the fire run's last ore may be iron, so its cave holds 3 iron (2 + the choice) and 2 manganese */
+eq('tutorial caves are scripted', src.includes("{ metal:'iron', spot:2, left:3, script:true }") && src.includes('per:FTUE.day2Swing.slice(), script:true'), true);
 eq('extraction rolls once per seam, never on scripted seams', src.includes('if(!n.script && !n.rolled){ n.rolled=true;'), true);
 eq('swing interval follows the pickaxe rank', src.includes("setInterval(()=>{ const cur=pickSeam();") && src.includes("}, pickSwingMs(rank('pick')));"), true);
 

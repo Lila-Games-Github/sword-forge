@@ -14,15 +14,18 @@ const src = readFileSync(HTML, 'utf8');
 const pick = (tag) => { const m = src.match(new RegExp('/\\* ' + tag + '-BEGIN \\*/([\\s\\S]*?)/\\* ' + tag + '-END \\*/'));
   assert.ok(m, tag + ' markers not found in ' + HTML); return m[1]; };
 const M = new Function(pick('FTUE-CONFIG') + pick('MARKET-CONFIG') + pick('MARKET-PURE') +
-  '; return { FTUE, MARKET, marketShapes, marketRow, orderMatches, orderLabel, ftueTraitKey };')();
+  '; return { FTUE, MARKET, marketShapes, marketRow, orderMatches, orderLabel, ftueTraitKey, marketSteps, marketPrice };')();
 const { FTUE, MARKET } = M;
 
 let n = 0;
 function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; console.log('  ok   ' + label); }
 
 /* D2, D5: the record */
-eq('price (D2)', MARKET.price, 50);
-eq('traits, chart order (D5)', MARKET.traits, ['balanced', 'fire', 'swift', 'gale', 'durable']);
+/* owner, 2026-10-09: rising prices - 50 x (the trait's place + the shape's step) - and all 25 traits in the market */
+eq('price step', MARKET.priceStep, 50);
+eq('traits: the chart\'s five, then the map\'s other twenty in its own order', MARKET.traits, ['balanced', 'fire', 'swift', 'gale', 'durable',
+  'flexible', 'heavy', 'celestial', 'cloud', 'rainbow', 'luck', 'lightning', 'noble', 'grace', 'floral', 'fury', 'ice',
+  'water', 'magma', 'mist', 'poison', 'savage', 'blood', 'cursed', 'dark']);
 eq('shapes, chart order (D5)', MARKET.order, ['Shortsword', 'Longsword', 'Broadsword', 'Rapier', 'Dagger',
   'Katana', 'Cutlass', 'Machete', 'Saber', 'Scimitar', 'Claymore']);
 eq('Durable base shapes (purple, D5)', FTUE.shapes.durable, ['Shortsword', 'Longsword', 'Broadsword']);
@@ -34,7 +37,19 @@ eq('balanced column', M.marketShapes('balanced'), ['Shortsword', 'Longsword', 'B
 eq('swift column', M.marketShapes('swift'), ['Shortsword', 'Longsword', 'Rapier', 'Dagger', ...NEW7]);
 eq('gale column', M.marketShapes('gale'), ['Shortsword', 'Longsword', 'Rapier', 'Dagger', ...NEW7]);
 eq('durable column', M.marketShapes('durable'), ['Shortsword', 'Longsword', 'Broadsword', 'Dagger', ...NEW7]);
-eq('10 shapes per trait, 50 in all', MARKET.traits.map(t => M.marketShapes(t).length), [10, 10, 10, 10, 10]);
+eq('10 shapes per trait, 250 in all', MARKET.traits.map(t => M.marketShapes(t).length), MARKET.traits.map(() => 10));
+eq('the other traits have Balanced\'s shapes', M.marketShapes('ice'), M.marketShapes('balanced'));
+/* the price order: the trait's own base shapes, then the six new ones, then its last extra (owner, 2026-10-09) */
+eq('balanced steps', M.marketSteps('balanced'), ['Longsword', 'Broadsword', ...NEW7, 'Dagger']);
+eq('swift steps', M.marketSteps('swift'), ['Longsword', 'Dagger', ...NEW7, 'Rapier']);
+eq('gale steps', M.marketSteps('gale'), ['Longsword', 'Rapier', ...NEW7, 'Dagger']);
+const P = (t, s) => M.marketPrice(t, s);
+eq('balanced: 50, 100, 150 ... Dagger 450', [P('balanced','Longsword'), P('balanced','Broadsword'), P('balanced','Katana'), P('balanced','Dagger')], [50, 100, 150, 450]);
+eq('fire: 100, 150, 200', [P('fire','Longsword'), P('fire','Broadsword'), P('fire','Katana')], [100, 150, 200]);
+eq('swift: Longsword 150, Dagger 200, Rapier 550', [P('swift','Longsword'), P('swift','Dagger'), P('swift','Rapier')], [150, 200, 550]);
+eq('gale Rapier 250; durable Longsword 250', [P('gale','Rapier'), P('durable','Longsword')], [250, 250]);
+eq('flexible Longsword 300; dark Claymore 1600', [P('flexible','Longsword'), P('dark','Claymore')], [300, 1600]);
+eq('Shortsword is free', P('ice','Shortsword'), 0);
 
 /* a row's state, in order of precedence */
 const ctx = (o) => Object.assign({ open: true, known: true, owned: false, gold: 80 }, o);
@@ -42,8 +57,8 @@ eq('Shortsword is free', M.marketRow('fire', 'Shortsword', ctx({ open: false, kn
 eq('owned', M.marketRow('fire', 'Katana', ctx({ owned: true, open: false })), 'owned');
 eq('market not open yet (D6)', M.marketRow('fire', 'Katana', ctx({ open: false })), 'closed');
 eq('undiscovered trait is locked (D16)', M.marketRow('fire', 'Katana', ctx({ known: false })), 'unknown');
-eq('not enough gold', M.marketRow('fire', 'Katana', ctx({ gold: 49 })), 'poor');
-eq('exactly the price buys', M.marketRow('fire', 'Katana', ctx({ gold: 50 })), 'buy');
+eq('not enough gold (fire Katana 200)', M.marketRow('fire', 'Katana', ctx({ gold: 199 })), 'poor');
+eq('exactly the price buys', M.marketRow('fire', 'Katana', ctx({ gold: 200 })), 'buy');
 
 /* D7: an order names a shape; an order with none takes any shape (TC2, TC4, Garric) */
 const w = (tid, shape) => ({ shape, traits: [{ tid, tier: 'Fine' }] });
@@ -64,8 +79,11 @@ eq('label without one', M.orderLabel('Balanced', null), 'Balanced sword');
 eq('durable key', M.ftueTraitKey(['durable']), 'durable');
 eq('fire wins over durable', M.ftueTraitKey(['durable', 'fire']), 'fire');
 eq('plain balanced', M.ftueTraitKey(['balanced']), 'balanced');
+eq('any market trait is a key (an ice blade offers ice shapes)', M.ftueTraitKey(['balanced', 'ice']), 'ice');
+eq('fire still wins over another elemental', M.ftueTraitKey(['ice', 'fire']), 'fire');
 
 /* wiring in the build */
+eq('the market slides: a fixed shape column and a scrolling strip of trait columns', src.includes('<div class="mk-scroll" id="mkScroll">') && src.includes("onclick=\"marketSlide(-1)\"") && src.includes("onclick=\"marketSlide(1)\""), true);
 eq('MARKET button beside SKILL TREE', /id="skillBtn"[\s\S]{0,400}<\/button>\s*<button id="marketBtn"/.test(src), true);
 eq('SKILL TREE shows a tree icon (D9)', src.includes('<span class="sk-t sk-ic">\u{1F333}</span>'), true);
 eq('closed market toast (D6)', src.includes("toast('Play more to unlock')"), true);
