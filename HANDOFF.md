@@ -125,8 +125,9 @@ continuation prompt printed at close time.
 **Next session's focus (owner, 2026-10-14): keep fixing and polishing.** The owner drives the work beat
 by beat from play-testing; expect fresh reports. For each: reproduce, write the test first, fix, check in
 the browser, add the change's record (a bullet just above "## Cross-part issues") and its one-line entry
-(the end of "## Log") to the tracker, update the test counts in CLAUDE.md and here, then **commit that one
-feature**.
+(the end of "## Log") to the tracker, update the counts in CLAUDE.md and here (test checks; and the
+dialogue-key count / last key when a line is added), then **commit that one feature**. Mechanics are recorded
+in the dated specs, not `specs/game-design.md` (see "Documentation drift").
 
 1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end.
 2. **Owner items still open (ask, do not decide):**
@@ -162,7 +163,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 196 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 421 checks; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 421 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
