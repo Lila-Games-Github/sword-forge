@@ -1626,6 +1626,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (1280x720): a real pointer drag moved him from (112, 86) to (412, 386); counter and back: (112, 86); a moved dragon
   through `homeDragon()`: (112, 86); no console errors.
 
+- **r237: the whole sharpening wheel can be tapped (owner, 2026-10-14).** With a sword on the basement table, only the
+  wheel's top quarter opened sharpening; a tap lower took the sword back to the bag. The table sword's art box
+  (`.cs-sword`, a mostly transparent square, 266-779 x 335-848 at 1280x720) sat over the wheel (294-544) and caught the
+  tap. `.cs-sword` now has `pointer-events: none`; the strip it lies in (`.cs-swordbox`, 337-743 x 571-613) still grabs
+  the sword (tap or drag). Same box on the counter. Asserted by the FTUE test (435), written first. Checked in the
+  browser (1280x720): the wheel hit-tests as the wheel from 10% to 95% of its height (was only to 25%); a real tap at
+  80% opens the sharpening window with the sword still on the table; a tap on the sword takes it back to the bag; the
+  counter sword's strip still hit-tests along its length; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1706,3 +1715,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r234 the customer's dialogue text is 25% smaller (25.5px -> 19.125px).
 - 2026-10-14: r235 the crafted card shows the health % and forging % under the heart and the hammer.
 - 2026-10-14: r236 the dragon returns to his top-left spot on every return to the forge screen (and homeDragon is fixed).
+- 2026-10-14: r237 the whole sharpening wheel can be tapped (the table sword's art box no longer covers it).

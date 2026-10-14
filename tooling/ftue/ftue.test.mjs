@@ -628,6 +628,9 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r237 (owner, 2026-10-14): the sword on a table is grabbed only by its strip (.cs-swordbox). Its art box (.cs-sword, a
+   large mostly transparent square) covered the lower sharpening wheel, so a tap there took the sword back */
+eq('the table sword art takes no taps', /\.cs-sword \{[^}]*pointer-events: none;/.test(src), true);
 /* r236 (owner, 2026-10-14): back on the forge screen, the dragon is back at his LAYOUT spot (top left). homeDragon()
    cleared his inline left/top, which dropped him to the bench's bottom left, not where applyLayout() puts him */
 eq('applyLayout can place one prop', src.includes('function applyLayout(orient, only){') && src.includes('for(const name in L){ if(only && name!==only) continue;'), true);
