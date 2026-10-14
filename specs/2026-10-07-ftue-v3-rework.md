@@ -1609,6 +1609,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   its box from 66px to 254px, the replies under it at 264-347px; D107a ends at 209px with SELL at 219-253px; no console
   errors.
 
+- **r235: the crafted card shows the health and forging percentages (owner, 2026-10-14).** On the main "Sword crafted!"
+  card, under the heart and the hammer (each now a `.cw-stat` column), `#cwHpPct` shows the health % and `#cwHmPct`
+  the hammer minigame's accuracy %, the same values as the details paper (`w.hp`, `w.forge`). A sword with no
+  accuracy (SKIP HAMMER, old saves) shows "-" under the hammer, as the paper shows only the band. 17px Georgia bold.
+  Asserted by the FTUE test (431), written first. Checked in the browser (1280x720): a sword at 82 health and 0.734
+  accuracy shows 82% and 73% inside the 86px box (paper: "Health 82%", "Good 73%"); a skipped hammer shows 100% and "-";
+  no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1687,3 +1695,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r232 the inventory tabs are icons (ore, ingot, sword, banner); "Items & Decor" is "Decor".
 - 2026-10-14: r233 the Ingots tab icon is the shelf's metal orb, not the ingot bar.
 - 2026-10-14: r234 the customer's dialogue text is 25% smaller (25.5px -> 19.125px).
+- 2026-10-14: r235 the crafted card shows the health % and forging % under the heart and the hammer.

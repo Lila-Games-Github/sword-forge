@@ -628,6 +628,12 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r235 (owner, 2026-10-14): the main crafted card shows the health and forging percentages under the heart and the hammer */
+eq('a percentage under the heart and under the hammer', src.includes('<span class="cw-stat"><span class="cw-fill cw-hp" title="Health">')
+  && src.includes('<span class="cw-pct" id="cwHpPct"></span></span>') && src.includes('<span class="cw-stat"><span class="cw-fill cw-hm" title="Forging">')
+  && src.includes('<span class="cw-pct" id="cwHmPct"></span></span>'), true);
+eq('they read the same values as the paper (no forging % when the hammer was skipped: "-")',
+  src.includes("document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';"), true);
 /* r232 (owner, 2026-10-14): the inventory tabs are icons, and the fourth tab is "Decor" (no more "Items & Decor") */
 { const tabs = (src.match(/<div id="matTabs">([\s\S]*?)<\/div>\s*<div id="oreShelf">/) || [])[1] || '';
   const btn = [...tabs.matchAll(/<button class="matTab[^"]*"[^>]*>[\s\S]*?<\/button>/g)].map(x => x[0]);

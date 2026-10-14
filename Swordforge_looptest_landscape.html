@@ -881,6 +881,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cw-box { flex: 1; display: flex; align-items: center; justify-content: center; gap: 24px; height: 86px; border: 3px solid #e0b545; border-radius: 10px; background: rgba(255,250,232,.6); }
 .cw-fill { position: relative; display: inline-block; font-size: 46px; line-height: 1; }
 .cw-fill .bg { filter: grayscale(1); opacity: .3; }
+.cw-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }   /* r235: the icon, its percentage under it */
+.cw-pct { font: 700 17px/1 Georgia, serif; color: #2e2010; }
 .cw-fill .fg { position: absolute; left: 0; top: 0; clip-path: inset(calc((1 - var(--f, 1)) * 100%) 0 0 0); }
 .cw-ore { width: 56px; height: 56px; object-fit: contain; }
 .cw-n { font: 700 26px/1 Georgia, serif; color: #2e2010; }
@@ -2439,8 +2441,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div id="sfCraftArt" class="cr-art"></div>
                 <div class="cw-name" id="cwName"></div>
                 <div class="cw-stats">
-                    <div class="cw-box"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span>
-                        <span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span></div>
+                    <div class="cw-box"><span class="cw-stat"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span><span class="cw-pct" id="cwHpPct"></span></span>
+                        <span class="cw-stat"><span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span><span class="cw-pct" id="cwHmPct"></span></span></div>
                     <div class="cw-box"><img class="cw-ore" id="cwOre" src="" alt=""><span class="cw-n" id="cwOreN"></span></div>
                 </div>
                 <div class="cw-gold"><span class="cw-coin">🪙</span><b id="cwGold"></b></div>
@@ -6196,6 +6198,7 @@ function showCraft(w, n, after){
     const hp=(w.hp!=null ? w.hp : 100)/100, fq=w.quality || HM_HITS.unforged, acc=(w.forge!=null ? w.forge : null);
     cwFill(document.querySelector('#sfCraftModal .cw-hp'), hp);
     cwFill(document.querySelector('#sfCraftModal .cw-hm'), acc!=null ? acc : 0);
+    document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';   /* r235 */
     const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]), total=ids.reduce((n2,k)=>n2+tally[k],0);
     const oi=document.getElementById('cwOre'); if(oi){ oi.src=ids.length && ORE_BY[ids[0]] ? ORE_BY[ids[0]].img : ''; oi.style.visibility=ids.length ? '' : 'hidden'; }
     document.getElementById('cwOreN').textContent='x'+total;
