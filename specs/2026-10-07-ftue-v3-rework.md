@@ -1581,6 +1581,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the request lit inside; closing: D107g; one sword - still craft; both - D107h and the ledger lit; the request, then YES
   lit; called back - lights off; served - done; no console errors.
 
+- **r231: the customer's dialogue text is 50% bigger (owner, 2026-10-14).** Both customer boxes, `.cs-dlg p` (every
+  customer) and `.cs-bram-dlg p` (the scripted customers' own box), go from 17px to 25.5px. The name tag, the player's
+  reply buttons and the dragon's lines keep their sizes. The boxes already grow with their text and `counterLayout()` puts
+  the buttons under them, so nothing else moved. Asserted by the FTUE test (423), written first. Checked in the browser
+  (1080x600 frame): the longest customer speech, D111 + D111a (195 characters), fills the box from 126px to 395px with
+  the two replies under it at 405-488px; D107a with SELL under it ends at 280px; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1655,3 +1662,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: no arrow out of a closed inventory tab (the tab glow is enough).
 - 2026-10-14: the Durable and Weak crafts stop pointing at the mug once the pour is done.
 - 2026-10-14: the waiting customer's guide (D107f-D107h: the ledger, craft both, call them back).
+- 2026-10-14: r231 the customer's dialogue text is 50% bigger (17px -> 25.5px).
