@@ -634,9 +634,11 @@ eq('customer line 25.5px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:25
   eq('tab names (title + aria-label)', btn.map(b => [(b.match(/title="([^"]*)"/) || [])[1], (b.match(/aria-label="([^"]*)"/) || [])[1]]),
     [['Ingredients', 'Ingredients'], ['Ingots', 'Ingots'], ['Swords', 'Swords'], ['Decor', 'Decor']]);
   eq('tab icons', btn.map(b => [...b.matchAll(/src="([^"]*)"/g)].map(x => x[1])), [
-    ['assets/forge/iron_ore.webp'], ['assets/hammer/ingot.webp'],
+    ['assets/forge/iron_ore.webp'], [],
     ['assets/sword-parts/blades/balanced_longsword_blade.webp', 'assets/sword-parts/guards/guard1.webp', 'assets/sword-parts/grips/grip1.webp', 'assets/sword-parts/pommels/pommel1.webp'],
     ['assets/Decor/Banner.webp']]);
+  /* r233 (owner): the Ingots tab shows the shelf's own metal orb, since that is what the tab holds */
+  eq('Ingots tab icon is the shelf orb', btn[1].includes('<span class="mt-ic mt-orb"><span class="inv-orb"></span></span>'), true);
   eq('no text label left on a tab', btn.every(b => b.replace(/<[^>]*>/g, '').trim() === ''), true);
   eq('no "Items" left in the decor reward line', !src.includes('BUILD in ITEMS & DECOR') && src.includes("return 'Decor. Place it with BUILD in the Decor tab.';"), true); }
 

@@ -1598,6 +1598,11 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   by the FTUE test (428), written first. Checked in the browser (1280x720): all seven images load, each tab hit-tests at
   its centre and switches `INV_TAB`, the Decor tab shows BUILD; no console errors.
 
+- **r233: the Ingots tab shows an orb (owner, 2026-10-14).** The tab holds metal orbs (`.inv-orb`), so its icon is that
+  same orb, the cold grey one, 30px (`.mt-orb`), in place of `assets/hammer/ingot.webp` (r232), which is unused again.
+  Asserted by the FTUE test (429), written first. Checked in the browser (1280x720): the orb is 30x30 in its 47x50 tab,
+  the tab hit-tests at its centre and switches to INGOTS; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1674,3 +1679,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the waiting customer's guide (D107f-D107h: the ledger, craft both, call them back).
 - 2026-10-14: r231 the customer's dialogue text is 50% bigger (17px -> 25.5px).
 - 2026-10-14: r232 the inventory tabs are icons (ore, ingot, sword, banner); "Items & Decor" is "Decor".
+- 2026-10-14: r233 the Ingots tab icon is the shelf's metal orb, not the ingot bar.
