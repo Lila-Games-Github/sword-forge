@@ -1544,6 +1544,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   browser: DONE at 40 refused (panel open, toast, edge not saved), at 85 accepted (D54, edge 85 saved); the sale with
   a 7g bonus says D57, with 0 goes straight to Bram; no console errors.
 
+- **The mug no longer glows after the trait is in (owner, 2026-10-14).** A pour clears the trait reach, but the sword stays on
+  the trait, and the next position check (the dragon's pull runs it every frame) set the reach again, so the mug glowed
+  for a trait the sword already had. The glow now asks `mugWanted()`: a pour that ADDS something - a trait the sword
+  lacks, or a better tier of one it has (`TIER_RANK`). Pouring is still allowed either way (it can only raise the tier).
+  Asserted by the FTUE test (403), written first. Checked in the browser: on balanced (Fine) - glow; after the pour - off;
+  the same spot re-checked (reach set again) - still off; closer, Epic - glow; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1614,3 +1621,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the craft book's middle column: one Trait Tier box and a sword description (24 placeholders).
 - 2026-10-14: the crafting process starts with "Ores".
 - 2026-10-14: no "0g bonus": the lesson's DONE waits for the green band; D57 only with a bonus.
+- 2026-10-14: the mug glows only for a pour that adds a trait or a better tier.

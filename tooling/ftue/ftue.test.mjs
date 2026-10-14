@@ -529,7 +529,11 @@ eq('the button widens for the word', src.includes("go.classList.toggle('ok', kin
 eq('one mug layer, above the bucket', src.includes('const MUG_Z=10;') && src.includes('<div id="mug" style="z-index:10;">') && src.includes('id="bucketBack" class="bucket-layer" src="assets/forge/anchor_bucket.webp" alt="Water bucket" style="z-index:9;"'), true);
 eq('no mug sent below the bucket', !/mug\w*\.style\.zIndex=3\b/.test(src) && (src.match(/\.style\.zIndex=MUG_Z/g) || []).length >= 2, true);
 /* owner, 2026-10-13: the sword rests on a trait -> the mug glows (the next step), in and out of the tutorial */
-eq('the mug glows while a pour would quench', src.includes("if(mugEl) mugEl.classList.toggle('mug-ready', canPourQuench());")
+/* owner, 2026-10-14: it glowed again after the trait was acquired - the sword stays on the trait and the reach is set
+   again - so it glows only when a pour would ADD something: a new trait, or a better tier of one the sword has */
+eq('the glow wants a pour that adds something', src.includes("function mugWanted(){ if(!canPourQuench()) return false; const rt=melt.reachedTrait, had=melt.traits.find(a=>a.t && a.t.id===rt.trait.id);")
+  && src.includes("return !had || TIER_RANK.indexOf(tierFromDist(melt.alignDist!=null ? melt.alignDist : ALIGN_MAX)) > TIER_RANK.indexOf(had.tier); }"), true);
+eq('the mug glows while a pour would quench', src.includes("if(mugEl) mugEl.classList.toggle('mug-ready', mugWanted());")
   && /function updateHintArrow\(\)\{[\s\S]{0,900}mugEl\.classList\.toggle\('mug-ready'/.test(src) && src.includes('#mug.mug-ready img {'), true);
 /* owner, 2026-10-13: the crafted sword flies into its inventory slot like the coins; the slot shows only when it lands */
 eq('the swords in flight (not saved)', src.includes('let CRAFT_FLY=[], CRAFT_FLYING=false;'), true);

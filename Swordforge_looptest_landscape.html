@@ -6913,7 +6913,7 @@ function placeHintArrow(){
     a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
     a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
 function updateHintArrow(){
-    if(mugEl) mugEl.classList.toggle('mug-ready', canPourQuench());   /* owner, 2026-10-13: the next step glows */
+    if(mugEl) mugEl.classList.toggle('mug-ready', mugWanted());   /* owner, 2026-10-13: the next step glows */
     /* r155: the second run points at its next step IMMEDIATELY. r100 waited HINT_IDLE_MS of
        inactivity first, which meant four silent seconds at every step of the craft. tutNudge()
        is a no-op unless the thing it would point at has actually changed, so running it on every
@@ -7271,7 +7271,12 @@ function wireOrbDrag(){ let drag=false,dx,dy,sx,sy,moved;
 
 // --- water bucket: the mug is a movable sibling; drag it over the anvil to POUR (quench + acquire the reached trait) ---
 function mugOverAnvil(){ const a=stAnvil.getBoundingClientRect(), r=mugEl.getBoundingClientRect(); const cx=r.left+r.width*0.5, cy=r.top+r.height*0.62; return cx>a.left-14 && cx<a.right+14 && cy>a.top-34 && cy<a.top+a.height*0.72; }
-function canPourQuench(){ return !!(melt && melt.stage==='onAnvil' && melt.reachedTrait); }   // pours ONLY when an ore is on the anvil AND the sword rests on a trait
+function canPourQuench(){ return !!(melt && melt.stage==='onAnvil' && melt.reachedTrait); }
+/* owner, 2026-10-14: the glow is for a pour that ADDS something - a new trait, or a better tier of one the sword has. A pour is
+   still allowed after that (it can only re-roll the tier up), but the sword resting on a trait it already has does not glow. */
+const TIER_RANK=['Weak','Fine','Epic'];
+function mugWanted(){ if(!canPourQuench()) return false; const rt=melt.reachedTrait, had=melt.traits.find(a=>a.t && a.t.id===rt.trait.id);
+    return !had || TIER_RANK.indexOf(tierFromDist(melt.alignDist!=null ? melt.alignDist : ALIGN_MAX)) > TIER_RANK.indexOf(had.tier); }   // pours ONLY when an ore is on the anvil AND the sword rests on a trait
 function positionWater(){ const b=benchEl().getBoundingClientRect(), mr=mugEl.getBoundingClientRect(), ar=stAnvil.getBoundingClientRect();
     const sx=mr.left+mr.width*0.40-b.left, sy=mr.top+mr.height*0.60-b.top, topY=ar.top+ar.height*0.26-b.top;
     const w=document.getElementById('waterPour'); w.style.left=(sx-4.5)+'px'; w.style.top=sy+'px'; w.style.height=Math.max(18,topY-sy)+'px';
