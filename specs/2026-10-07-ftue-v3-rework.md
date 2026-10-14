@@ -1566,6 +1566,21 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (407), written first. Checked in the browser: GC4 - mug lit before the pour; after it, and after the guide re-ran, the
   mug off and the metal lit; TC4 the same; no console errors.
 
+- **The waiting customer's guide (owner, 2026-10-14).** The part 4 customer who waits for a gale Katana and a fire Claymore
+  (300g + 450g blueprints). Own saved state `FTUE_ST.wq` ('' -> see -> craft -> call -> done), so the tutorial's stages are
+  untouched; it speaks only at a free moment (`wqFree`: no line, no window, and the FTUE done, or no stage, or a
+  `p<n>-gpc/bell` stage, or the part's bell stage). see: the gold covers the blueprints still to buy - D107f "You can now
+  buy both the blueprints that other guy requested. See the request in the ledger."; the exit to the counter blinks if
+  needed; the LEDGER button lights, and inside, the waiting request. Closing the ledger: D107g "Craft both the swords."
+  call: both swords in the bag - D107h "Now tap on the waiting list in the ledger to call them back."; the LEDGER, the
+  request, then YES light. Served: done. Both blueprints already owned: straight to craft. The ledger has no tabs; its
+  "Waiting list" section and the request button are what the owner called the waiting list tab. Wording: "both the
+  blueprints", "call them back" (owner's typos fixed). Timing: in the PART 5 jump (820g) it starts at once, at the bell
+  that brings Bram; in real play it starts when the gold reaches 750 (less any blueprint already bought). Asserted by the
+  FTUE test (421), written first. Checked in the browser from PART 5: D107f with the ledger lit (a hit test lands on it);
+  the request lit inside; closing: D107g; one sword - still craft; both - D107h and the ledger lit; the request, then YES
+  lit; called back - lights off; served - done; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1639,3 +1654,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the mug glows only for a pour that adds a trait or a better tier.
 - 2026-10-14: no arrow out of a closed inventory tab (the tab glow is enough).
 - 2026-10-14: the Durable and Weak crafts stop pointing at the mug once the pour is done.
+- 2026-10-14: the waiting customer's guide (D107f-D107h: the ledger, craft both, call them back).

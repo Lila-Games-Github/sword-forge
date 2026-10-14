@@ -2613,7 +2613,7 @@ function ftueTraitKey(ids){ ids=ids||[];
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
@@ -4931,6 +4931,37 @@ function comeLater(){
     if(lesson) ftueGpcSold();   /* the part goes on: the bell brings Bram */
 }
 let WAIT_I=-1;
+/* ---- owner, 2026-10-14: the waiting customer's guide. Once the gold covers the blueprints still to buy: D107f and the
+   ledger (then the request) light; closing the ledger says D107g; with both swords in the bag: D107h and the ledger,
+   the request and YES light. FTUE_ST.wq (saved): '' -> see -> craft -> call -> done. Its own state, so the tutorial's
+   stages are untouched; it speaks only at a free moment (no line, no window, the tutorial waiting on play). ---- */
+let WQ_EXIT=false;
+function wqOrder(){ const o=(FTUE.parts[4] && FTUE.parts[4].gpc || []).find(x=>x.lesson==='later'); return (o && o.items) || []; }
+function wqIsOrder(items){ const want=wqOrder(); return !!(items && want.length && want.every(w=>items.some(it=>it.trait===w.trait && it.shape===w.shape))); }
+function wqEntry(){ return (FTUE_ST.waiting||[]).find(e=>wqIsOrder(e.items)) || null; }
+function wqAtCounter(){ return !!(CUSTOMER && CUSTOMER.waiting && wqIsOrder(CUSTOMER.items)); }
+function wqNeed(){ return wqOrder().filter(it=>!FTUE_ST.shapes[it.trait+':'+it.shape]).reduce((n,it)=>n+marketPrice(it.trait, it.shape), 0); }
+function wqHave(){ const pool=INV.swords.slice(); return wqOrder().every(it=>{ const j=pool.findIndex(w=>orderMatches(it, w)); if(j<0) return false; pool.splice(j,1); return true; }); }
+function wqFree(){ if(SAY_ON || document.querySelector('.sf-modal.show')) return false; const P=FTUE.parts[FTUE_ST.part];
+    return !!(FTUE_ST.done || TUT_STAGE==null || /^p\d-(gpc|bell)$/.test(TUT_STAGE) || (P && TUT_STAGE===P.after)); }
+function wqStep(step, id){ FTUE_ST.wq=step; sayQueue(id); if(SF_SCREEN!=='customer'){ tutExitTo('customer'); WQ_EXIT=true; } wqLit(); }
+/* what is lit: the LEDGER button while the ledger is shut, the request while it is open, YES (call only) when asked */
+function wqLit(){
+    const on=(FTUE_ST.wq==='see' || FTUE_ST.wq==='call') && !!wqEntry();
+    const lg=document.getElementById('sfLedgerModal').classList.contains('show'), wt=document.getElementById('sfWaitModal').classList.contains('show');
+    const set=(sel, v)=>document.querySelectorAll(sel).forEach(el=>el.classList.toggle('tut-lit-ctl', !!v));
+    set('#screenUi .sc-btn[title="Ledger"]', on && !lg);
+    set('#lbWait .lb-wreq', on && lg && !wt);
+    set('#sfWaitModal .wt-yes', on && FTUE_ST.wq==='call' && wt);
+}
+function wqTick(){
+    if(WQ_EXIT && SF_SCREEN==='customer'){ tutExit(null); WQ_EXIT=false; }
+    const e=wqEntry();
+    if(!e){ if(FTUE_ST.wq && FTUE_ST.wq!=='done' && !wqAtCounter()) FTUE_ST.wq='done'; wqLit(); return; }
+    wqLit();
+    if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(GOLD>=need && wqFree()) wqStep('see', 'D107f'); return; }
+    if(FTUE_ST.wq==='craft'){ if(wqHave() && wqFree()) wqStep('call', 'D107h'); return; }
+}
 function buildWaitList(){
     const box=document.getElementById('lbWait'); if(!box) return; box.innerHTML='';
     const list=FTUE_ST.waiting||[];
@@ -4960,7 +4991,8 @@ function openLedger(){
     buildLedger();
     document.getElementById('sfLedgerModal').classList.add('show');
 }
-function closeLedger(){ document.getElementById('sfLedgerModal').classList.remove('show'); }
+function closeLedger(){ document.getElementById('sfLedgerModal').classList.remove('show');
+    if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); sayQueue('D107g'); } }   /* 2026-10-14: the waiting customer's guide */
 
 // ---- r48: Racks window ----------------------------------------------------------------------------
 // Placeholder stock. Parts come from the Design Desk set; the names and prices are made up for now.
@@ -6916,6 +6948,7 @@ function placeHintArrow(){
     a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
     a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
 function updateHintArrow(){
+    wqTick();   /* owner, 2026-10-14: the waiting customer's guide */
     if(mugEl) mugEl.classList.toggle('mug-ready', mugWanted());   /* owner, 2026-10-13: the next step glows */
     /* r155: the second run points at its next step IMMEDIATELY. r100 waited HINT_IDLE_MS of
        inactivity first, which meant four silent seconds at every step of the craft. tutNudge()
@@ -7471,6 +7504,9 @@ const DIALOGUE = {
     D107c: "Do you know gale makes fire stronger? I want a gale katana so I can make my partner's flame grow more fierce. I would also want a fire claymore for my partner.",   /* owner, 2026-10-09: the waiting customer */
     D107d: "I am not buying the blueprint for those! Ask the customer to come back later when you are richer. Humph!",
     D107e: "Why are you asking them to come later when you can craft for them? Don't be lazy! I need my meat!",   /* COME LATER in the tutorial, after the lesson */
+    D107f: "You can now buy both the blueprints that other guy requested. See the request in the ledger.",   /* owner, 2026-10-14: the waiting customer's guide */
+    D107g: "Craft both the swords.",
+    D107h: "Now tap on the waiting list in the ledger to call them back.",
     D108: "Thanks, this will do.",
     D109: "Great work!",
     D110: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way.",

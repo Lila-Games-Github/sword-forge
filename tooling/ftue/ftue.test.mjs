@@ -498,6 +498,21 @@ eq('the picture wears the page\'s trait', src.includes("const skin=r ? skinOf({ 
   && src.includes("[bladeFor(skin, 'Longsword'), ddSrc('guard', dz.guard), ddSrc('grip', dz.grip), ddSrc('pommel', dz.pommel)]"), true);
 eq('"Shapes unlocked" lists what the shape picker allows for the trait', src.includes("if(r){ const k=ftueTraitKey(list.map(a=>a.tid)); marketShapes(k).filter(sh=>ftueShapeOpen(k, sh)).forEach(sh=>{")
   && !src.includes('CB_SHAPES'), true);
+/* owner, 2026-10-14: the waiting customer's guide - can afford both blueprints -> see the request in the ledger -> craft
+   both -> call them back. Its own saved state (FTUE_ST.wq), so the tutorial's stages are untouched; it speaks only at a free moment */
+eq('D107f text', line('D107f'), 'You can now buy both the blueprints that other guy requested. See the request in the ledger.');
+eq('D107g text', line('D107g'), 'Craft both the swords.');
+eq('D107h text', line('D107h'), 'Now tap on the waiting list in the ledger to call them back.');
+for (const [k, prev] of [['D107f', 'D107e'], ['D107g', 'D107f'], ['D107h', 'D107g']]) eq(k + ' follows ' + prev, (() => { const ks = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return ks[ks.indexOf(k) - 1]; })(), prev);
+eq('its state is saved with the FTUE', /function ftueFresh\(\)\{ return \{[^\n]{0,400}wq:''/.test(src), true);
+eq('a free moment: no line, no window, the tutorial waiting on play', src.includes("function wqFree(){ if(SAY_ON || document.querySelector('.sf-modal.show')) return false; const P=FTUE.parts[FTUE_ST.part];")
+  && src.includes("return !!(FTUE_ST.done || TUT_STAGE==null || /^p\\d-(gpc|bell)$/.test(TUT_STAGE) || (P && TUT_STAGE===P.after)); }"), true);
+eq('see: gold covers the blueprints still to buy', src.includes("if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(GOLD>=need && wqFree()) wqStep('see', 'D107f'); return; }"), true);
+eq('craft: closing the ledger', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); sayQueue('D107g'); }"), true);
+eq('call: both swords in the bag', src.includes("if(FTUE_ST.wq==='craft'){ if(wqHave() && wqFree()) wqStep('call', 'D107h'); return; }"), true);
+eq('the lights: ledger, then the request, then YES (call only)', src.includes("function wqLit(){") && src.includes("'#sfWaitModal .wt-yes'") && src.includes("'#lbWait .lb-wreq'"), true);
+eq('served: the guide ends (only once it has started - before part 4 nobody waits)', src.includes("if(!e){ if(FTUE_ST.wq && FTUE_ST.wq!=='done' && !wqAtCounter()) FTUE_ST.wq='done'; wqLit(); return; }"), true);
+eq('it runs every frame', /function updateHintArrow\(\)\{[\s\S]{0,1200}wqTick\(\);/.test(src), true);
 /* owner, 2026-10-14: the Durable craft's mug pointer stayed after the trait was in (also TC4's, GC8's) */
 eq('after the pour, the guide moves to the metal', src.includes("function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }")
   && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();"), true);
