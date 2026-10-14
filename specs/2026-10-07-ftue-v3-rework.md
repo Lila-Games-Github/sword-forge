@@ -1635,6 +1635,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   80% opens the sharpening window with the sword still on the table; a tap on the sword takes it back to the bag; the
   counter sword's strip still hit-tests along its length; no console errors.
 
+- **r238: a counter sword goes back to the inventory again (owner, 2026-10-14).** After Bram's opener a sword on the
+  counter could not be taken back, by tap or by drag to the inventory. `TUT_BRAM_STATE` is set to 'done' when Bram
+  leaves and keeps that value all game; `takeCounter()` (r184) refused on any value, which was meant to hold the sword
+  only during Bram's scene. It now refuses only while that scene runs (`TUT_BRAM_STATE && TUT_BRAM_STATE!=='done'`, the
+  test the rest of the file already uses). Not caused by r237: the counter strip hit-tests the same before and after.
+  Asserted by the FTUE test (436), written first. Checked in the browser (1280x720): with the state at 'done' (forced, then
+  a PART 2 jump), a real tap and a real drag to the inventory both return the sword (before the fix the tap left it on
+  the counter); with the state 'counter-ready' (Bram's scene) the sword stays; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1716,3 +1725,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r235 the crafted card shows the health % and forging % under the heart and the hammer.
 - 2026-10-14: r236 the dragon returns to his top-left spot on every return to the forge screen (and homeDragon is fixed).
 - 2026-10-14: r237 the whole sharpening wheel can be tapped (the table sword's art box no longer covers it).
+- 2026-10-14: r238 a counter sword goes back to the inventory after Bram's opener (takeCounter ignored 'done').

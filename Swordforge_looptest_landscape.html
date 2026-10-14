@@ -3634,7 +3634,7 @@ function tutSellLit(on){
         if(el) el.classList.toggle('tut-lit-ctl', !!on && !el.disabled);
     });
 }
-function takeCounter(){ if(!COUNTER || TUT_BRAM_STATE) return; tutSellLit(false);   /* r184 */ INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
+function takeCounter(){ if(!COUNTER || (TUT_BRAM_STATE && TUT_BRAM_STATE!=='done')) return; tutSellLit(false);   /* r184. r238: 'done' lasts all game, so only Bram's live scene holds the sword */ INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
     toast('Back in your inventory'); }
 function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); sellLabel(); }   /* r103 */
 

@@ -628,6 +628,9 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r238 (owner, 2026-10-14): a counter sword goes back to the bag after Bram's opener. TUT_BRAM_STATE stays 'done' for
+   the rest of the game, and takeCounter() refused on any value; only Bram's live scene may hold the sword */
+eq('takeCounter refuses only during Bram\'s scene', src.includes("function takeCounter(){ if(!COUNTER || (TUT_BRAM_STATE && TUT_BRAM_STATE!=='done')) return;"), true);
 /* r237 (owner, 2026-10-14): the sword on a table is grabbed only by its strip (.cs-swordbox). Its art box (.cs-sword, a
    large mostly transparent square) covered the lower sharpening wheel, so a tap there took the sword back */
 eq('the table sword art takes no taps', /\.cs-sword \{[^}]*pointer-events: none;/.test(src), true);
