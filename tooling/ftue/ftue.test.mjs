@@ -498,6 +498,10 @@ eq('the picture wears the page\'s trait', src.includes("const skin=r ? skinOf({ 
   && src.includes("[bladeFor(skin, 'Longsword'), ddSrc('guard', dz.guard), ddSrc('grip', dz.grip), ddSrc('pommel', dz.pommel)]"), true);
 eq('"Shapes unlocked" lists what the shape picker allows for the trait', src.includes("if(r){ const k=ftueTraitKey(list.map(a=>a.tid)); marketShapes(k).filter(sh=>ftueShapeOpen(k, sh)).forEach(sh=>{")
   && !src.includes('CB_SHAPES'), true);
+/* owner, 2026-10-14: an arrow from the rail while the ore's tab is closed - not needed, the tab's glow is enough */
+eq('no arrow while its inventory tab is closed', src.includes("if(o.tab!=null){ const need=(typeof o.tab==='function') ? o.tab() : o.tab; if(need!=null && INV_TAB!==need){ svg.classList.remove('on'); return; } }")
+  && /function tutDrawArrow\(\)\{[\s\S]{0,900}if\(o\.tab!=null\)/.test(src), true);
+eq('a tab switch redraws it', /function invTab\(i\)\{[\s\S]{0,200}setTimeout\(tutDrawArrow, 0\);/.test(src), true);
 /* owner, 2026-10-14: "why 0g bonus from sharpening?" - DONE took any edge, and D57 quoted the 0 */
 eq('in the lesson, DONE waits for the green band', src.includes("if(!revert && TUT_STAGE==='base-sharp' && SH_VAL < SH_ZONE_LO){ toast('Sharpen it into the <b>green zone</b> first'); return; }")
   && /function closeSharpen\(revert\)\{\s*if\(!revert && TUT_STAGE==='base-sharp'/.test(src), true);

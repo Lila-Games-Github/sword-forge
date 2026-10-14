@@ -1551,6 +1551,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Asserted by the FTUE test (403), written first. Checked in the browser: on balanced (Fine) - glow; after the pour - off;
   the same spot re-checked (reach set again) - still off; closer, Epic - glow; no console errors.
 
+- **No arrow out of a closed inventory tab (owner, 2026-10-14).** An arrow that starts at an ore (e.g. the first craft's
+  smelter arrow) fell back to the whole shelf when another tab was open, and drew a line out of the rail. r155 had fixed
+  that for the grindstone arrow alone, at setup. Now `tutDrawArrow` draws nothing while the arrow's own tab (`opt.tab`) is
+  not open - the tab's glow asks for it - and `invTab` redraws, so the arrow comes back from the ore once INGREDIENTS is
+  open. Asserted by the FTUE test (405), written first. Checked in the browser on D3: INGREDIENTS - arrow; INGOTS - no
+  arrow, INGREDIENTS glows; INGREDIENTS again - arrow; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1622,3 +1629,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the crafting process starts with "Ores".
 - 2026-10-14: no "0g bonus": the lesson's DONE waits for the green band; D57 only with a bonus.
 - 2026-10-14: the mug glows only for a pour that adds a trait or a better tier.
+- 2026-10-14: no arrow out of a closed inventory tab (the tab glow is enough).

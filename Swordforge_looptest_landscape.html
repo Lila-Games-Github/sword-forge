@@ -7071,6 +7071,7 @@ function restoreIngot(id){
 function invTab(i){
     INV_TAB=i;
     setTimeout(tutTabUi, 0);   /* r153: landing on the right tab puts its halo out */
+    setTimeout(tutDrawArrow, 0);   /* 2026-10-14: and the arrow out of it appears (or goes) */
     [...document.querySelectorAll('#matTabs .matTab')].forEach((t,k)=>t.classList.toggle('is-on', k===i));
     buildShelf();
 }
@@ -7572,6 +7573,9 @@ function tutDrawArrow(){
     if(!svg||!path) return;
     if(!TUT_ARROW){ svg.classList.remove('on'); return; }
     const o=TUT_ARROW.opt, to=tutRect(TUT_ARROW.to);
+    /* owner, 2026-10-14: an arrow FROM an inventory tab that is not open has nothing to start at (it fell back to the whole
+       shelf). Nothing is drawn; that tab's glow (tutTabUi) asks for it, and opening it brings the arrow back (invTab). */
+    if(o.tab!=null){ const need=(typeof o.tab==='function') ? o.tab() : o.tab; if(need!=null && INV_TAB!==need){ svg.classList.remove('on'); return; } }
     if(!to){ svg.classList.remove('on'); return; }
     const tx=to.x+to.w*(o.tfx!=null?o.tfx:0.5), ty=to.y+to.h*(o.tfy!=null?o.tfy:0.5);
     let sx, sy;
