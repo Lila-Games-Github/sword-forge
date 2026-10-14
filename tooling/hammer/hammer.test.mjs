@@ -15,7 +15,7 @@ const cfg = src.match(/\/\* HAMMER-HITS-BEGIN \*\/([\s\S]*?)\/\* HAMMER-HITS-END
 assert.ok(cfg, 'HAMMER-HITS markers not found in ' + HTML);
 const pure = src.match(/\/\* HAMMER-PURE-BEGIN \*\/([\s\S]*?)\/\* HAMMER-PURE-END \*\//);
 assert.ok(pure, 'HAMMER-PURE markers not found in ' + HTML);
-const M = new Function(cfg[1] + pure[1] + '; return { HM_HITS, hmGrade, hmBand, hmPlacePoints };')();
+const M = new Function(cfg[1] + pure[1] + '; return { HM_HITS, hmGrade, hmBand, hmPlacePoints, hmHeatColor };')();
 const { HM_HITS } = M;
 
 let n = 0;
@@ -34,6 +34,16 @@ eq('unforged quality', HM_HITS.unforged, 'Good');
 eq('inset (fraction of the radius that must be on metal)', HM_HITS.inset, 0.6);
 eq('gap (min spacing, in diameters)', HM_HITS.gap, 1.6);
 eq('ring at rest (% of stage)', HM_HITS.ring, { x: 55, y: 46.5 });   /* owner, 2026-10-01: further from the head */
+/* r219 (owner, 2026-10-06): the marks show the heat as a smooth gradient - yellow hot, orange, red, grey cold */
+eq('heat colour stops', HM_HITS.heat, [
+  { h: 1.00, c: [255, 224, 58] },    /* yellow */
+  { h: 0.70, c: [255, 140, 26] },    /* orange */
+  { h: 0.45, c: [232, 50, 30] },     /* red */
+  { h: 0.35, c: [200, 205, 212] } ]);   /* grey: HM_FORGE.workMin, below it a strike does not count */
+eq('colour at each stop', [1, 0.7, 0.45, 0.35].map(M.hmHeatColor), [[255, 224, 58], [255, 140, 26], [232, 50, 30], [200, 205, 212]]);
+eq('colour blends between stops', M.hmHeatColor(0.85), [255, 182, 42]);
+eq('colour clamps: above hot, below cold', [M.hmHeatColor(1.4), M.hmHeatColor(0.1)], [[255, 224, 58], [200, 205, 212]]);
+eq('marks recolour as the heat changes', src.includes('function hmPtsHeat(){') && src.includes('hmRender(); hmHeatWatch(); hmPtsHeat(); }'), true);
 
 /* accuracy: 1 at the centre, 0 where the circles only touch, never below 0 */
 eq('grade centre', M.hmGrade(0, 50), 1);
@@ -80,4 +90,7 @@ eq('price uses the forging band', /function swordBase\(w\)\{[^}]*hmForgeMul\(w\)
 eq('ring colour follows the band', /function hmRingPaint\(\)\{[\s\S]{0,700}hmBand\(hmGrade\(/.test(src), true);
 eq('skip gives the skip quality', /function hmSkip\(\)\{[\s\S]{0,400}HM_HITS\.skip/.test(src), true);
 
+/* r226 (owner, 2026-10-06): the accuracy popup is bigger, lasts twice as long, and rises almost to the top before it fades */
+eq('popup size and time', src.includes('font: bold 26px/1 Georgia, serif;') && src.includes('animation: hmAcc 1.6s'), true);
+eq('popup rises to near the top of the scene', src.includes("t.style.setProperty('--rise', Math.max(0, (at.y-4-HM_ACC_TOP)/100*sc.height).toFixed(0)+'px');") && src.includes('const HM_ACC_TOP=10;'), true);
 console.log('[hammer] GREEN / ' + n + ' checks');

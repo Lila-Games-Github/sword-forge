@@ -558,3 +558,80 @@ choice, over "every sale"; owner approved the words):
 - **No, keep it:** the window closes; the sword stays on the counter.
 - A grade 3 sword sells with no window; no other customer ever sees it.
 - Asserted by `tooling/ftue/ftue.test.mjs` (95 checks).
+
+## The customer's trait on the map (owner, 2026-10-06), r221
+
+During the tutorial (until `tutOver()`), the trait the waiting customer asked for is ringed on the map
+(`#custSpot`: pale gold, dashed, a slow pulse, so it never reads as the orange scripted `#tutSpot`), **only
+if that trait is already discovered** (an unfound trait is never given away). The trait is `CUSTOMER.tid`; two
+tutorial customers ask only in words and carry `want` for the ring alone: **TC2** ("a good one") =
+balanced, **Bram's return** (D111) = swift. Bram's first visit asks for "any sword": no ring. `custSpotSync()`
+runs from `tick()` and touches the DOM only when the answer changes. Asserted by `tooling/ftue/ftue.test.mjs` (99).
+
+## Path preview before the grinder (owner, 2026-10-06), r222
+
+The path preview has a solid part (where the raw ore goes) and a dotted tail (what grinding would add).
+Until the grinder can be used (`FTUE_ST.grindUse`, from TC2 on), **only the solid part is drawn**; the
+tail appears from TC2 on, and always after the FTUE (`ftueGrindHidden()` in `drawSegmentPreview()`).
+Part 1 therefore never shows a longer route the player cannot reach yet, including after GPC2 hands
+over the (still locked) grindstone. Asserted by `tooling/ftue/ftue.test.mjs` (100).
+
+## Ore arrows follow the metal (owner, 2026-10-06), r223
+
+The tutorial arrow starts at the metal the line is about, and moves on once enough of it is in:
+
+- **Part 1, first sword (D3, stage `ore`):** from the Iron slot until 2 iron are in the smelter, then from
+  Manganese (`tutFirstOreSlot()`); the arrow is re-read each time an ore lands. It used to stay on Iron.
+- **Part 3, the fire sword's first half (D68, stage `fire-grind`):** there was no ore arrow, only the
+  INGREDIENTS blink. Now it points like TC2's grind: the ore still needed to the grinding wheel, the turn,
+  the ground ore to the smelter; Iron until 2 are in, then Manganese. It goes up with D68 (not over D67a's
+  map-parts window) and is revised every frame (`fire-grind` in `TUT_TICK_STAGES`; ore count in the signature).
+- Already right, unchanged: TC2's grind (iron then manganese, `regrind-iron` / `regrind-mang`), the fire
+  sword's manganese step, the Day 2 copper (one metal).
+
+## The first book's +xp, held (owner, 2026-10-06), r224
+
+The first tutorial book pauses the game for D9 (r156). Its "+N" used to fade within 1.2 s under the pause's
+dark layer (`#tutDim`, z 45). Now a copy is held on screen **above the dim** (`.xp-hold`, z 47, HTML at the
+book's screen spot), larger, glowing and gently pulsing, until the pause lifts (D9 dismissed), then it
+fades out. Later books are unchanged. Asserted by `tooling/ftue/ftue.test.mjs` (105).
+
+## Tier colours (owner, 2026-10-06), r225
+
+Yellow Epic text did not read on the beige windows. The trait tier colours are now **purple Epic
+(#8e44d9), blue Fine (#2b7fd8), dark grey Weak (#4d4d4d)**: `tierColor()` (craft window, acquire window,
+bench trait slots, the map's alignment ring) and the tier legend window's `.tier-*` labels. Every one of
+those sits on a beige or cream background (checked 2026-10-06). The HUD's gold stars are not a tier and stay.
+Asserted by `tooling/ftue/ftue.test.mjs` (107).
+
+## Bram's reply, and a smaller counter dragon (owner, 2026-10-06), r227
+
+- After D22, a reply button "I can give you a sword." gates D23 (record: the r227 section of the tutorial
+  script). Bram's two first replies are rebuilt at his intro (`BRAM_REPLIES`), since the new reply replaces them.
+- The dragon on the **counter** screen is 25% smaller: 17.25% of the screen width (was 23%); the
+  basement, cave and other screens are unchanged. Asserted by `tooling/ftue/ftue.test.mjs` (110).
+
+## No DENY during the FTUE (owner, 2026-10-06), r228
+
+- The counter's DENY button (a placeholder with no action) is hidden while the FTUE runs: it starts
+  with the class `ftue-off`, and `counterBoxes()` keeps that class on until `FTUE_ST.done`. The CSS rule is
+  `!important`, so it wins over the inline `display` that the scripted customers set. Asserted by
+  `tooling/ftue/ftue.test.mjs` (112).
+
+## The turn arrow follows the ore (owner, 2026-10-06), r229
+
+- The rotating turn arrow (`#tutSpin`) shows whenever ore is on the grinder and can still be ground
+  (`prep.grind < grindCap()`), on the forge screen, in every stage and after the FTUE. Before r229 only
+  three tutorial stages (regrind-grind, regrind-mang, fire-grind) turned it on. `tick()` refreshes it every
+  frame, and `tutSpinOn(null)` cannot hide it while ore waits on the wheel. A raw-only ore (cap 0) and a
+  fully ground ore do not show it. Asserted by `tooling/ftue/ftue.test.mjs` (113).
+
+## A soft fog edge (owner, 2026-10-06), r230
+
+- The fog of war fades into the visible zone over a gradient instead of a hard edge. `#fogHoles` (the
+  black circles in `#fogMask`) is blurred by `#fogSoft`, a `feGaussianBlur` of stdDeviation **24 world units**
+  (the fade is about 100 units wide, against a travel hole of r 120 and the opening reveal of r 430).
+  The blur acts on the union of the holes, so overlapping holes do not stack into darker seams, and the
+  edge stays centred on each hole's r: `inFog()`, the save format and the fog cheat are unchanged.
+- Measured on desktop with 302 holes: 60 fps with the blur and without it. Not yet measured on a phone.
+  Asserted by `tooling/ftue/ftue.test.mjs` (114).

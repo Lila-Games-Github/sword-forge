@@ -19,7 +19,7 @@ continuation prompt printed at close time.
   checked byte-identical to `main`. **154 dialogue keys** (D15a in r209; D28b, D58a, D92a, D93a, D140 in r213; D69d in r215), `lastLine()` `D140`.
 - **The tutorial is the FTUE in six parts** (r199-r206, r212). Design record and build records per
   part: `specs/2026-09-29-tutorial-parts-plan.md`. Every recorded value is in one `FTUE` object at the
-  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (95 checks).
+  top of the main script; `tooling/ftue/ftue.test.mjs` asserts it against the record (110 checks).
 - **The hammer minigame is on hit points** (r209). Design record `specs/2026-10-01-hammer-hit-points.md`;
   every value is in `HM_HITS`; `tooling/hammer/hammer.test.mjs` asserts it (27 checks).
 - **Owner play-testing:** parts 1-4 "all good" (before r207). **Not yet play-tested by the owner:**
@@ -105,6 +105,38 @@ continuation prompt printed at close time.
   Recipes keep their route's health and zones, so bulk craft cannot dodge it. Craft window: Integrity
   row. Tutorial: D69b names the cost; new D69d over the fire sword's craft window (the bubble lifts
   above the window, `.say-over-modal`); the island the part 4 gale route crossed is removed (`HAZ.clear`).
+- **r216:** D69a-D69c play the first time the sword crosses a hazard **during the fire sword build**
+  (`TUT_FIRE_BUILD` stages), not on the first crossing ever; earlier crossings no longer spend them,
+  and the PART 2-3 jumps no longer mark them said.
+- **r217:** "Integrity" is "Health" to the player; the craft window's Health row shows the gold lost, in
+  red. D69d: "See its health? ...".
+- **r218: four new skills** (design record `specs/2026-10-06-skill-tree-trade-ore.md`, test
+  `tooling/skills/skills.test.mjs`): Improved Trading Skills (yellow node 0, 20 ranks, +5% base price a
+  rank, x2 at 20); Ore Extraction Upgrade (green 4, 5 ranks, 5-25% chance a seam holds 3-4 more, rolled
+  once per seam); Pickaxe Upgrade (green 5, 5 ranks, 10% faster swings a rank); Ore Bountifulness
+  (green 6, 10 ranks, +1 ore a seam a rank). 1 point a rank. The ore skills skip the tutorial's
+  scripted caves (`script:true` seams). Yellow nodes 1-3 and green node 7 are still empty.
+- **r219:** the hammer's hit marks show the heat as a smooth gradient: yellow (1.0) → orange (0.7) →
+  red (0.45) → grey (0.35, too cold to strike) (`HM_HITS.heat`, `hmHeatColor()`).
+- **r220:** a trait icon on the map opens the craft book on that trait's newest page (record
+  `specs/2026-10-06-map-trait-links.md`, test `tooling/map/map.test.mjs`). A still tap on the map, not a
+  drag; undiscovered: "Discover this trait first"; no page: "No saved page for <Trait> yet"; fogged: nothing.
+- **r221:** during the tutorial the waiting customer's trait is ringed on the map (`#custSpot`), only if
+  discovered; TC2 and Bram's return carry `want` (balanced, swift) for it.
+- **r222:** until the grinder can be used (TC2), the path preview shows only its solid part, not the
+  dotted grinding tail (`ftueGrindHidden()`).
+- **r223:** tutorial ore arrows follow the metal: part 1 moves from Iron to Manganese after 2 iron; the
+  fire sword's first half (D68) gets ore arrows (Iron, then Manganese; wheel, turn, smelter).
+- **r224:** the first book's "+50" stays on screen, lit above the pause's dim layer, until D9 is closed.
+- **r225:** tier colours: purple Epic, blue Fine, dark grey Weak (`tierColor()` and the tier legend); yellow
+  Epic did not read on the beige windows.
+- **r226:** the hammer's accuracy popup is 26 px, lasts 1.6 s and rises almost to the top before fading.
+- **r227:** after D22 the player clicks "I can give you a sword." before D23 appears; the counter-screen
+  dragon is 25% smaller (17.25% wide).
+- **r228:** the counter's DENY button (a placeholder) is hidden during the FTUE (class `ftue-off` until `FTUE_ST.done`).
+- **r229:** the rotating turn arrow shows whenever ore is on the grinder and can still be ground, on the forge screen, in every stage (`grindSpinWanted()`, refreshed every frame in `tick()`).
+- **r230:** the fog edge is a soft gradient: `#fogHoles` is blurred by `#fogSoft` (feGaussianBlur 24 world units) inside the mask. Not yet checked for frame rate on a phone.
+- **FTUE v3 (planning complete, `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
 
 ## Next steps
 
@@ -136,7 +168,7 @@ The owner drives the work beat by beat from play-testing; expect fresh reports r
      link (which did not have the fix then) or locally. The fix is live now; ask for a re-test.
 5. Older, still open: D67a wording ("a trait could be from this image"); the Alignment for Tiers window
    is once per game (a re-open under settings is planned); whether a re-quench may upgrade a trait
-   tier; talent points buy nothing on the 8 yellow/green skill nodes.
+   tier; 4 skill nodes are still empty (yellow 1-3, green 7; r218 filled the other four).
 
 **Closed since the last handoff:** "no rewards in part 6" (r212: the owner called it a mistake);
 `DD_BONUS.balanced` shipping empty (r211); the fire and gale placeholder parts (r211); the
@@ -150,6 +182,8 @@ node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html'
 node tooling/ftue/ftue.test.mjs
 node tooling/hammer/hammer.test.mjs
 node tooling/hazard/hazard.test.mjs
+node tooling/skills/skills.test.mjs
+node tooling/map/map.test.mjs
 node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
@@ -157,7 +191,7 @@ Then `preview_start` (name `sword-forge`, port **5679**) and navigate explicitly
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 154 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell.
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 95 checks; the hammer test GREEN at 27; the hazard test GREEN at 28;
+**Baselines, not regressions:** the FTUE test prints GREEN at 421 checks; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -165,7 +199,7 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard` and `tooling/mobile-fit`.
+- **Tests that run here:** `tooling/ftue`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.

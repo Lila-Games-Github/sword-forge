@@ -49,3 +49,41 @@ and the pure functions (between the `HAMMER-PURE` markers) against this record.
 - The old strike rule: a strike whenever the dragged hammer head **entered** a 16%-wide zone around
   the anvil, about 7 hot strikes a stage, adding `HM_FORGE.strikeGain` (0.14) each.
 - The r181 swing hint (`hmSwingOn`) now points from the aim ring to the next hit point.
+
+## Heat on the marks (owner, 2026-10-06), r219
+
+The hit points show the metal's heat. Owner chose the colours; Claude set the thresholds (`HM_HITS.heat`):
+
+| Mark | Heat |
+| --- | --- |
+| white (hot) | 0.75 and up |
+| yellow (medium) | 0.55 to 0.75 |
+| orange (low; owner changed it from red, 2026-10-06) | `HM_FORGE.workMin` (0.35) to 0.55 |
+| grey (cold) | below 0.35: a strike does not count (unchanged) |
+
+The marks recolour every time the heat crosses a line (`hmPtsHeat()` from the heat tick). Note: the
+aim ring keeps its own colours for the accuracy band (yellow / blue / red); with low heat in orange, red
+only ever means a Crude strike.
+
+### Revised (owner, 2026-10-06): a gradient, yellow to grey
+
+Supersedes the bands above (white / yellow / orange / grey). The marks' colour is **blended smoothly**
+from the exact heat, every heat change, between four stops (`HM_HITS.heat`, `hmHeatColor()`):
+
+| Heat | Colour |
+| --- | --- |
+| 1.00 | yellow (255, 224, 58) |
+| 0.70 | orange (255, 140, 26) |
+| 0.45 | red (232, 50, 30) |
+| 0.35 and below | grey (200, 205, 212): `HM_FORGE.workMin`, a strike does not count |
+
+Grey sits at 0.35 so "grey" still means "too cold to strike" (Claude's choice; the owner gave the colour
+order). The colour is one CSS variable (`--pt`) on `#hmPoints`. Red on a mark now means "almost too cold";
+the aim ring's red still means a Crude strike.
+
+## The accuracy popup (owner, 2026-10-06), r226
+
+The "92%" shown on a counted strike is **bigger** (26 px, was 15), lasts **twice as long** (1.6 s, was 0.8)
+and **rises almost to the top of the scene** before it fades: it ends with its foot at `HM_ACC_TOP` (10%)
+from the top (the rise is set per strike, `--rise`), fully visible for the first 75% of the time. Measured:
+45% → 11.5% (0.8 s) → 6.7% (1.2 s, still opaque) → gone at 1.6 s.
