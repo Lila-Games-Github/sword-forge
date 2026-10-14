@@ -4245,6 +4245,7 @@ function openSharpen(){
     tutSharpOpen();   /* r103 */
 }
 function closeSharpen(revert){
+    if(!revert && TUT_STAGE==='base-sharp' && SH_VAL < SH_ZONE_LO){ toast('Sharpen it into the <b>green zone</b> first'); return; }   /* owner, 2026-10-14: DONE took any edge, so the lesson could end with no bonus */
     if(revert) SH_VAL=SH_WAS;
     else if(WORK){ WORK.sharp=SH_VAL; refreshWork(); }      // r61: Done saves the edge onto the sword
     SH_DRAG=null;
@@ -8228,7 +8229,7 @@ function tutBram2Sold(){
     if(TUT_STAGE!=='bram2-sell2') return;
     tutArrow(null,null); sayHide();
     /* r213 (owner): D57, the sharpening bonus, comes right after the sale and before Bram's D114 */
-    if(FTUE_ST.part===5){ (()=>{ const p=document.getElementById('bramLine'); if(p) p.textContent=''; })();
+    if(FTUE_ST.part===5 && SAY_VARS.b>0){ (()=>{ const p=document.getElementById('bramLine'); if(p) p.textContent=''; })();   /* 2026-10-14: no bonus earned, no "0g bonus" line */
         TUT_STAGE='bram2-bonus'; sayQueue('D57'); return; }
     tutBram2Thanks();
 }

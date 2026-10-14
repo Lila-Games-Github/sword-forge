@@ -498,6 +498,10 @@ eq('the picture wears the page\'s trait', src.includes("const skin=r ? skinOf({ 
   && src.includes("[bladeFor(skin, 'Longsword'), ddSrc('guard', dz.guard), ddSrc('grip', dz.grip), ddSrc('pommel', dz.pommel)]"), true);
 eq('"Shapes unlocked" lists what the shape picker allows for the trait', src.includes("if(r){ const k=ftueTraitKey(list.map(a=>a.tid)); marketShapes(k).filter(sh=>ftueShapeOpen(k, sh)).forEach(sh=>{")
   && !src.includes('CB_SHAPES'), true);
+/* owner, 2026-10-14: "why 0g bonus from sharpening?" - DONE took any edge, and D57 quoted the 0 */
+eq('in the lesson, DONE waits for the green band', src.includes("if(!revert && TUT_STAGE==='base-sharp' && SH_VAL < SH_ZONE_LO){ toast('Sharpen it into the <b>green zone</b> first'); return; }")
+  && /function closeSharpen\(revert\)\{\s*if\(!revert && TUT_STAGE==='base-sharp'/.test(src), true);
+eq('no sharpening bonus at the sale, no D57', src.includes("if(FTUE_ST.part===5 && SAY_VARS.b>0){"), true);
 /* owner, 2026-10-14: the crafting process starts with just "Ores" - the ores themselves are in "Ores used" */
 eq('process: Ores, heat, hammer, quench, hammer', src.includes("const steps=['Ores','heat','hammer','quench','hammer'];") && !src.includes("const steps=[names.join(' + '),"), true);
 /* owner, 2026-10-14: the book's middle column (Composition_book_wireframe.png, updated): one Trait Tier box, then a description */

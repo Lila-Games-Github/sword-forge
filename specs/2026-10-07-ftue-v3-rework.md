@@ -1535,6 +1535,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Copper + Copper -> heat -> ...", two lines); now "Ores -> heat -> hammer -> quench -> hammer" - the ores are in "Ores
   used". Asserted by the FTUE test (400), written first. Checked in the browser: the gale page on one line, fits.
 
+- **No "0g bonus" from sharpening (owner, 2026-10-14: "why 0g bonus from sharpening?").** The bonus (7g) is paid only
+  when the sold sword's edge is in the green band (`SH_ZONE_LO` 80+); the wheel's DONE took any edge, so the lesson could
+  end unsharpened, and D57 then said "We got a 0g bonus". Now, in the lesson (`base-sharp`), DONE below the band keeps
+  the wheel open with the toast "Sharpen it into the green zone first"; and at Bram's sale D57 plays only when a
+  sharpening bonus was earned (another, unsharpened Dagger could still be sold - then it is skipped and Bram thanks
+  straight away). Outside the lesson DONE is unchanged. Asserted by the FTUE test (402), written first. Checked in the
+  browser: DONE at 40 refused (panel open, toast, edge not saved), at 85 accepted (D54, edge 85 saved); the sale with
+  a 7g bonus says D57, with 0 goes straight to Bram; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1604,3 +1613,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: the craft book: box headings, the page's own sword, and the shapes actually unlocked.
 - 2026-10-14: the craft book's middle column: one Trait Tier box and a sword description (24 placeholders).
 - 2026-10-14: the crafting process starts with "Ores".
+- 2026-10-14: no "0g bonus": the lesson's DONE waits for the green band; D57 only with a bonus.
