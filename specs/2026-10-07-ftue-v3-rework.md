@@ -1603,6 +1603,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Asserted by the FTUE test (429), written first. Checked in the browser (1280x720): the orb is 30x30 in its 47x50 tab,
   the tab hit-tests at its centre and switches to INGOTS; no console errors.
 
+- **r234: the customer's dialogue text is 25% smaller than r231 (owner, 2026-10-14).** 25.5px x 0.75 = **19.125px**, in
+  `.cs-dlg p` and `.cs-bram-dlg p` (supersedes r231's 25.5px; still 12.5% above the old 17px). Asserted by the FTUE test
+  (429, the r231 checks now read 19.125px), written first. Checked in the browser (1080x600 frame): D111 + D111a fills
+  its box from 66px to 254px, the replies under it at 264-347px; D107a ends at 209px with SELL at 219-253px; no console
+  errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1680,3 +1686,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r231 the customer's dialogue text is 50% bigger (17px -> 25.5px).
 - 2026-10-14: r232 the inventory tabs are icons (ore, ingot, sword, banner); "Items & Decor" is "Decor".
 - 2026-10-14: r233 the Ingots tab icon is the shelf's metal orb, not the ingot bar.
+- 2026-10-14: r234 the customer's dialogue text is 25% smaller (25.5px -> 19.125px).

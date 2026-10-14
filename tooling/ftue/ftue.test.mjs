@@ -624,9 +624,10 @@ eq('D111a follows D111', keys[keys.indexOf('D111a') - 1], 'D111');
 eq('last key is D140 (r213: the closing line is the final line)', keys[keys.length - 1], 'D140');
 for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['D28b', 'D28a'], ['D58a', 'D58'], ['D92a', 'D92'], ['D93a', 'D93']]) eq(k + ' follows ' + prev, keys[keys.indexOf(k) - 1], prev);
 
-/* r231 (owner, 2026-10-14): the customer's dialogue text is 50% bigger, 17px -> 25.5px, in both customer boxes */
-eq('customer line 25.5px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 25\.5px;/.test(src), true);
-eq('customer line 25.5px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:25\.5px;/.test(src), true);
+/* r231 (owner, 2026-10-14): the customer's dialogue text is 50% bigger, 17px -> 25.5px, in both customer boxes.
+   r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
+eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
+eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
 /* r232 (owner, 2026-10-14): the inventory tabs are icons, and the fourth tab is "Decor" (no more "Items & Decor") */
 { const tabs = (src.match(/<div id="matTabs">([\s\S]*?)<\/div>\s*<div id="oreShelf">/) || [])[1] || '';
   const btn = [...tabs.matchAll(/<button class="matTab[^"]*"[^>]*>[\s\S]*?<\/button>/g)].map(x => x[0]);
