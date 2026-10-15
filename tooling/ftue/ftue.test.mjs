@@ -628,6 +628,11 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r243 (owner, 2026-10-15): the sword's health is a ring around its map marker, not a bar at the top right */
+eq('the ring lives in the sword marker', src.includes('<g id="swordHpRing" style="display:none;"><circle r="24.5" fill="none" stroke="rgba(20,15,8,.55)" stroke-width="4.5"/><circle id="swordHp" r="24.5" fill="none" stroke="#5fd35f" stroke-width="4.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)"/></g>')
+  && src.indexOf('<g id="swordHpRing"') > src.indexOf('<g id="sword">'), true);
+eq('the arc is the health percentage', src.includes("a.setAttribute('stroke-dasharray', pct.toFixed(1)+' 100');") && src.includes("a.style.display = pct>0 ? '' : 'none';"), true);
+eq('no top-right bar left', !src.includes('id="sfHp"') && !src.includes('#sfHp'), true);
 /* r242 (owner, 2026-10-15): every pointer glow is one the owner can see - the OK button's (tutLitCtl) for buttons and
    hotspots, the inventory tabs' face swap (tutBlinkTab) for every rail button, the skill tree's included */
 eq('.tut-blink is the OK glow', src.includes('.tut-blink { animation: tutLitCtl 1.15s ease-in-out infinite; }') && !src.includes('.tut-blink { animation: tutBlinkHalo'), true);

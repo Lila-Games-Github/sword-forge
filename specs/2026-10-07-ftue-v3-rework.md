@@ -1688,6 +1688,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   skill tree and MARKET turn orange like the Swords tab; craft book and ledger glow like the OK button; a closed market
   stays grey (`mk-closed`); no console errors.
 
+- **r243: the sword's health is a ring around its map marker (owner, 2026-10-15).** The top-right bar (`#sfHp`, its CSS
+  and its clean-mode entry) is gone. Inside `#sword`, `#swordHpRing` holds a dark track and the arc `#swordHp` (r 24.5,
+  width 4.5, just outside the marker's disc; `pathLength` 100, rotated -90deg): the arc starts at 12 o'clock and
+  shortens clockwise as the blade takes damage (`stroke-dasharray` = health %), hidden at 0. `updateHpPill()` keeps its
+  name (10 call sites) and drives the ring, with the old bar's rule (shown while a run exists and the sword is out) and
+  colours (green above 60%, amber above 30%, red below; the owner asked for green, the warning colours are kept for
+  the owner to confirm). Asserted by the FTUE test (451), written first. Checked in the browser (1280x720,
+  `ensureMelt()` and `sword.frac` 0.5 forced for the display check): health 100/72/45/18 gives arcs 100/72/45/18 in
+  green/green/amber/red, 0 hides the arc; at 65% (map zoomed in) the arc runs from 12 o'clock to about 8 o'clock over
+  the dark track; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1774,3 +1785,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r240 the cave pickaxe glows on every arrival until the player touches it.
 - 2026-10-15: r241 the cancel-craft X asks "Are you sure you want to cancel the crafting? Ores will not be refunded."
 - 2026-10-15: r242 every pointer glow is the OK glow (buttons) or the tab glow (rail buttons); the clipped halo is gone.
+- 2026-10-15: r243 the sword's health is a ring around its map marker; the top-right bar is gone.
