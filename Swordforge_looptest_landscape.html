@@ -8526,6 +8526,7 @@ const SAY_AFTER={ D97:function(){ openTiers(); },
                   D72a:function(){ if(TUT_STAGE==='fire-mang') tutForkDone(); },   /* 2026-10-13 */
                   D69d:function(){ if(CW_LESSON==='hp-row'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D17c:function(){ if(CW_LESSON==='rows'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
+                  D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
                   D130b:function(){ if(TUT_STAGE==='g-desk') ftueReward([ { kind:'unlock', id:'designDesk' } ], tutGarricHandsOff); },   /* v3 part 6 */
                   D133:function(){ ftueGarricBanner(); }, D136:function(){ ftueGarricBanner(); }, D139:function(){ ftueGarricBanner(); },
                   D48:function(){ if(TUT_STAGE!=='bram2-wheel') return;   /* v3 part 5 */
@@ -9647,10 +9648,10 @@ function sayChoose(list, optional){
    button shows an X there because each is the last line of its own run. */
 const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
-                    D67a:1, D17b:1, D17c:1, D69d:1 };   /* r196. 2026-10-10 */
+                    D67a:1, D17b:1, D17c:1, D69d:1, D130:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
    follows the tap even though no line does. */
-const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
+const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -9699,7 +9700,6 @@ function say(id){
     if(id==='D89d') setTimeout(tutDay2Skill, 0);   /* 2026-10-10 */   /* r122: the button lights with the line that asks */
     if(id==='D118') setTimeout(tutQuestStep, 0);   /* r129 */
     if(id==='D119') setTimeout(tutGarricBell, 0);   /* r130: the bell lights with the last quest line */
-    if(id==='D130') setTimeout(()=>sayChoose([{ label:'Let me try to do it on my own.', fn:tutGarricDesk }]), 0);   /* v3: the desk first */   /* r130 */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */

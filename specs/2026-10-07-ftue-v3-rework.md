@@ -1733,6 +1733,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   with "click". Asserted by the FTUE test (461), written first. Checked in the browser: the bubble reads the new line; 198
   keys; no console errors.
 
+- **r247: no "Let me try to do it on my own." answer in Garric's scene (owner, 2026-10-15).** D130 offered one blocking
+  answer that ran `tutGarricDesk()` (D130b, the design desk). The answer is gone; closing D130 runs the same step
+  (`SAY_AFTER.D130`, stage `g-talk` only), and D130's button is a lit OK (`SAY_GO_MORE`, `SAY_GO_GLOW`), not a closing X.
+  The r130 check on the answer now checks the new path. Asserted by the FTUE test (463), written first. Checked in the
+  browser (1280x720, PART 6 jump, stage `g-forge`, real taps on the bubble's button): D129, then D130 with no answer
+  button and a lit OK; its tap gives D130b and stage `g-desk`; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1823,3 +1830,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r244 the customer's line is left-aligned, so it types left to right.
 - 2026-10-15: r245 GC5: D92m "Let's go to the forge.", then the forge goes dark but the fire trait (D92n).
 - 2026-10-15: r246 "tap", not "click": D92n reworded; a test bars "click" in dialogue.
+- 2026-10-15: r247 D130 has no "on my own" answer; its OK goes on to the design desk.
