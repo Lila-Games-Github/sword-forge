@@ -332,6 +332,15 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r251 (owner, 2026-10-15): a very long route (5+ fully ground irons of drawn length) runs the sword twice as fast;
+   the hazard damage is scaled with it, so a zone costs the same per distance */
+{ const m = src.match(/const ROUTE_FAST=(\{[^}]*\});/); eq('ROUTE_FAST is the recorded threshold and multiplier', m && new Function('return ' + m[1])(), { irons: 5, mul: 2 }); }
+eq('the route length is what is drawn (len x ground fraction), the yardstick a fully ground iron',
+  src.includes('function routeLen(){ return segs.reduce((n,s)=>n+(s.len||0)*(s.tPct==null?1:s.tPct), 0); }')
+  && src.includes("function ironLen(){ if(!IRON_LEN){ measure.setAttribute('d', ORE_BY.iron.d); IRON_LEN=measure.getTotalLength(); } return IRON_LEN; }")
+  && src.includes('function routeSpeedMul(){ return routeLen() >= ROUTE_FAST.irons*ironLen() ? ROUTE_FAST.mul : 1; }'), true);
+eq('advanceSword uses it, and so does the hazard damage', src.includes('const mul=routeSpeedMul(); let step=SWORD_SPEED*mul*Math.max(CRAWL_MIN, melt.heat/100)*dt')
+  && src.includes('checkHazard(p,dt*mul);'), true);
 /* r249 (owner, 2026-10-15): no sword is left lying in the basement - leaving it (or loading a save made elsewhere) puts the
    table sword back in the bag; the take-it-back tutorial steps move on to their way-back stage */
 eq('leaving the basement returns the table sword', src.includes("if(SF_SCREEN==='basement' && name!=='basement' && WORK) workAutoReturn();   /* r249 */"), true);

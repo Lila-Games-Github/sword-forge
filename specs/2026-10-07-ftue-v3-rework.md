@@ -1769,6 +1769,21 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   also asserts the text is gone), written first. Checked in the browser (1280x720): a real tap on the up exit with a
   sword on the table - forge, sword in the bag, no new toast; no console errors.
 
+- **r251: a very long route runs the sword twice as fast (owner, 2026-10-15).** Design record (values in `ROUTE_FAST`,
+  asserted by the FTUE test):
+  | Value | Recorded | Why |
+  | --- | --- | --- |
+  | `ROUTE_FAST.irons` | 5 | owner: "around 5-6 fully ground iron, or more"; the low end, so 5 is already fast |
+  | `ROUTE_FAST.mul` | 2 | owner: "twice as fast" |
+  Route length = what is drawn: each segment's path length x its ground fraction (`tPct` = 0.5 + 0.5 x grind, so raw ore
+  counts half). Yardstick: one fully ground iron = 200 world units, so the threshold is 1000. It is a step, not a ramp:
+  the speed doubles the moment the route reaches 1000. Hazard damage is time-based (`HAZARD_DPS` x dt), so the hazard
+  check gets dt x the same factor: a zone costs the same health per distance at either speed (without it, long routes
+  would take half the damage). Pull speed (`PULL_SPEED`) is unchanged. Cross-check: no locked constraint names the
+  travel speed; the tutorial's stops (`tutGaleEpicStop`, `tutWeakStop`) clamp by position, so speed does not move them.
+  Checked in the browser: 4 / 5 / 6 fully ground irons (800 / 1000 / 1200) give x1 / x2 / x2 (the sword's step in 0.1s
+  at full heat 0.05 / 0.10 / 0.10); 9 / 10 raw irons (900 / 1000) give x1 / x2; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1863,3 +1878,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r248 the customer's trait stops glowing once a sword with that trait is crafted.
 - 2026-10-15: r249 leaving the basement puts the table sword back in the bag (and loading a save made elsewhere).
 - 2026-10-15: r250 no toast when the basement sword goes back to the bag.
+- 2026-10-15: r251 a route of 5+ fully ground irons (drawn length) runs the sword x2; hazard damage per distance kept.
