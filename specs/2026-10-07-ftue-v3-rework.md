@@ -1675,6 +1675,19 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the run intact; No closes it, still 2 segments; X then Yes closes it and the run is reset (0 segments); no console
   errors.
 
+- **r242: every pointer glow is the owner's two (owner, 2026-10-15).** The owner could not see the glow on some buttons
+  and likes two: the dialogue OK button's (`tutLitCtl`: a brighter face, an outer halo and an inset glow) and the
+  inventory tabs' (`tutBlinkTab`: the face turns orange). The plain `.tut-blink` was an outer halo only
+  (`tutBlinkHalo`), which `overflow:hidden` panels cut off. Now `.tut-blink` is `tutLitCtl` (every button and hotspot:
+  craft book, ledger, counter buttons, book buttons, window buttons); the rail buttons (settings, skill tree, MARKET,
+  diary, quests) use `tutBlinkTab` like the tabs (the skill tree's own hold-blink `tutBlinkSkill` is gone; its `.sk-lv`
+  text pass follows the new curve; its rule stays before `.levelled`, so the level-up flash still wins). Unchanged:
+  the exits (already an orange face), `.tut-glow` on props drawn as art (a box glow would light their transparent
+  rectangle), `.tut-lit-ctl` itself. `tutBlinkHalo` is removed. Asserted by the FTUE test (448), written first. Checked
+  in the browser (1280x720, counter screen; each animation paused at its bright frame for the screenshot): settings,
+  skill tree and MARKET turn orange like the Swords tab; craft book and ledger glow like the OK button; a closed market
+  stays grey (`mk-closed`); no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1760,3 +1773,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r239 CRAFT 1 stops glowing after the craft; in the FTUE it is locked while the order is already made.
 - 2026-10-15: r240 the cave pickaxe glows on every arrival until the player touches it.
 - 2026-10-15: r241 the cancel-craft X asks "Are you sure you want to cancel the crafting? Ores will not be refunded."
+- 2026-10-15: r242 every pointer glow is the OK glow (buttons) or the tab glow (rail buttons); the clipped halo is gone.
