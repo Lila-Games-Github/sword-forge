@@ -1707,6 +1707,26 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (two words), typed out and a one-word line, the first word starts at the box's left content edge (476px) and the line
   spans the full 417px; a short line stays centred vertically; the scripted customer box the same; no console errors.
 
+- **r245: GC5's map route - "Let's go to the forge.", then everything dark but the fire trait (owner, 2026-10-15).**
+  Two new lines (owner's words), after D92l at the end of the D92 group (the pinned D92a -> D92b order is kept):
+  | Id | Line |
+  | --- | --- |
+  | D92m | "Let's go to the forge." |
+  | D92n | "Click on the trait to open the craft book directly." |
+  In `ftueBookStep()` (stage `p3-book`, `guide:'map'`, book closed): off the forge, D92m once (`FTUE_BOOK.saidGo`) and the
+  exit to the forge lights. On the forge, once: the map scrolls the trait into view if it sits outside the middle 70% of
+  the view (`tutMapShow`; at a PART 4 jump fire was off screen); then the ring (`tutSpotOn`), the dim with a hole
+  (`tutHole`) and D92n (`FTUE_BOOK.saidTap`). The dim is `#tutHole` (not `#tutDim`: `tutPause()` holds the frame loop),
+  z-index 60 over the rail (z45) and the exits (z50), the bubble lifted to 61 (`.hole-say`); the hole is a clip-path cut
+  sized to the ring plus 8px, so a tap inside reaches the map and any other tap lands on the dim. The frame loop keeps the
+  hole on the ring and drops it once the stage is left; it also lifts when the book opens or the order is made. Closing
+  D92n with its X leaves the dim. GC6 (`guide:'book'`) is unchanged. Asserted by the FTUE test (460), written first.
+  Checked in the browser (1280x720, PART 4 jump, a fire Longsword order, `ftueBookGo` with `guide:'map'`): counter - D92m,
+  the right exit lit, no dim; a real tap on it - forge, fire centred (527, 299), D92n, dim on; hit tests: the hole reaches
+  the map, the anvil, the left exit and MARKET hit the dim, the bubble is on top; the X leaves the dim; a tap on the dim
+  opens nothing; a real tap in the hole opens the book on the fire page, the dim lifts and CRAFT 1 lights; book closed -
+  dim back; counter - dim gone; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1795,3 +1815,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r242 every pointer glow is the OK glow (buttons) or the tab glow (rail buttons); the clipped halo is gone.
 - 2026-10-15: r243 the sword's health is a ring around its map marker; the top-right bar is gone.
 - 2026-10-15: r244 the customer's line is left-aligned, so it types left to right.
+- 2026-10-15: r245 GC5: D92m "Let's go to the forge.", then the forge goes dark but the fire trait (D92n).

@@ -405,6 +405,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    clear it there. It must NOT do that on the board: D8 and D9 are spoken with no modal open and
    the bench bubble sits at z-46, which a deep dim would bury. Hence the class, not a new value. */
 #tutDim.deep { z-index: 1050; }
+/* r245 (owner): GC5's map route darkens the frame except the trait. Its own layer, not #tutDim: tutPause() holds the
+   frame loop, and this dim waits on a tap. The hole is a clip-path cut, so a tap inside it reaches the map and every
+   other tap lands on the dim. */
+#tutHole { position: absolute; inset: 0; z-index: 60; background: rgba(6,4,2,.74); display: none; }
+#tutHole.on { display: block; }
+#dragonSay.hole-say { z-index: 61; }   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
 .xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;
@@ -2091,6 +2097,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <button id="rwClose" type="button" onclick="closeRacks()">Close</button>
     </div>
     <div id="tutDim"></div>
+    <div id="tutHole"></div>
     <svg id="tutSpin" viewBox="0 0 100 100" aria-hidden="true">
         <!-- r151: its OWN marker. The shared #tutHead sits in #tutArrow, which is display:none
              while only the spin is showing, and a marker in a hidden SVG does not paint. -->
@@ -2817,7 +2824,7 @@ function ftueBookStep(){
     if(ftueBookModal()) return;
     const bk=document.getElementById('sfBookModal'), open=bk && bk.classList.contains('show');
     if(custOrderReady()){   /* made: shut the book, then the counter */
-        tutSpotOn(null);
+        tutSpotOn(null); tutHole(null);
         if(open){ tutArrow(null,null); tutExit('#sfBookModal .cb-close'); return; }
         if(SF_SCREEN!=='customer'){ tutArrow(null,null); tutExitTo('customer'); return; }
         if(COUNTER){ tutArrow(null,null); tutExit(null); FTUE_BOOK=null; TUT_STAGE='p3-gpc'; return; }
@@ -2826,17 +2833,32 @@ function ftueBookStep(){
     if(!open){
         tutArrow(null,null);
         if(g.mode==='map'){
-            if(SF_SCREEN!=='forge'){ tutSpotOn(null); tutExitTo('forge'); return; }
-            tutExit(null); tutSpotOn(traits.find(t=>t.trait && t.trait.id===g.trait)); return; }   /* tap the fire icon */
+            if(SF_SCREEN!=='forge'){ tutHole(null); tutSpotOn(null); if(!g.saidGo){ g.saidGo=true; sayQueue('D92m'); } tutExitTo('forge'); return; }
+            const f=traits.find(t=>t.trait && t.trait.id===g.trait); tutExit(null); if(!g.saidTap) tutMapShow(f); tutSpotOn(f); tutHole(f); if(!g.saidTap){ g.saidTap=true; sayQueue('D92n'); } return; }   /* r245: tap the fire icon, everything else dark */
         tutSpotOn(null);
         if(SF_SCREEN==='customer') tutExit("#screenUi .sc-btn[title='Craft book']");
         else if(SF_SCREEN==='forge') tutExit('#recipeBtn');
         else tutExitTo('forge');
         return; }
-    tutSpotOn(null); tutArrow(null,null);
+    tutSpotOn(null); tutHole(null); tutArrow(null,null);
     if(CB_SEL!==key){ tutExit(".cb-mark.rec[data-key='"+key+"']"); return; }   /* the fire page */
     tutExit('#cbCraft1');
 }
+/* r245: the dim and its hole. The hole sits over #tutSpot (the ring tutSpotOn puts on the trait), sized to it, and the
+   frame loop keeps it there if the map moves. Coordinates are the layer's own pixels, so a scaled frame is allowed for. */
+let TUT_HOLE=null;
+/* r245: the map scrolls the trait into view once (it can sit off screen); a trait already well inside the view stays put */
+function tutMapShow(t){ if(!t) return; const h=view.w*aspect, m=0.15;
+    if(t.x<view.x+view.w*m || t.x>view.x+view.w*(1-m) || t.y<view.y+h*m || t.y>view.y+h*(1-m)){ view.x=t.x-view.w/2; view.y=t.y-h/2; setView(); } }
+function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'); if(!d) return;
+    d.classList.toggle('on', !!TUT_HOLE); if(TUT_HOLE) tutHoleLayout(); else { d.style.clipPath=''; d._cp=''; }
+    const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE); }
+function tutHoleLayout(){ const d=document.getElementById('tutHole'), sp=document.getElementById('tutSpot'); if(!d || !sp) return;
+    const a=d.getBoundingClientRect(), r=sp.getBoundingClientRect(); if(!(a.width>0) || !(r.width>0)) return;
+    const k=d.offsetWidth/a.width, W=d.offsetWidth, H=d.offsetHeight;
+    const cx=(r.left+r.width/2-a.left)*k, cy=(r.top+r.height/2-a.top)*k, R=(Math.max(r.width, r.height)/2+8)*k;
+    const cp="path(evenodd, 'M0 0H"+W+"V"+H+"H0Z M"+(cx-R).toFixed(1)+" "+cy.toFixed(1)+"a"+R.toFixed(1)+" "+R.toFixed(1)+" 0 1 0 "+(2*R).toFixed(1)+" 0a"+R.toFixed(1)+" "+R.toFixed(1)+" 0 1 0 "+(-2*R).toFixed(1)+" 0Z')";
+    if(d._cp!==cp){ d.style.clipPath=cp; d._cp=cp; } }
 function ftuePreQuests(){ FTUE.preQuests.forEach(q=>bumpQuest(q.id)); }
 /* the bell brings a gameplay customer with the order the part lists next */
 function ftueGpcArrive(){
@@ -7005,6 +7027,7 @@ function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
     custSpotSync();   /* r221 */
+    if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
     tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
@@ -7508,6 +7531,8 @@ const DIALOGUE = {
     D92j: "Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!",
     D92k: "I want a durable sword. Make sure it is EPIC! I only want the best.",   /* v3 part 4: TC4 (owner) */
     D92l: "Okay, time to learn how to craft the best tier sword!",
+    D92m: "Let's go to the forge.",   /* r245 (owner): GC5's map route, off the forge */
+    D92n: "Click on the trait to open the craft book directly.",   /* r245: on the forge, everything dark but the trait */
     D93: "Do you have a sword with the Gale trait?",
     D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",   /* r213 */
     D94: "We should go and gather ores. Go back to the cave.",
