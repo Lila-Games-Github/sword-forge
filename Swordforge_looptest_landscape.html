@@ -1405,6 +1405,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cv-pick { position: absolute; z-index: 1; pointer-events: auto; cursor: grab; transform: translate(-50%,-50%);
     transform-origin: 50% 82%; filter: drop-shadow(0 7px 11px rgba(0,0,0,.6)); }
 .cv-pick img { width: 100%; display: block; -webkit-user-drag: none; }
+.cv-pick.cv-hint img { animation: tutGlow 1.15s ease-in-out infinite; }   /* r240: on the art, so .striking (on the box) cannot override it */
 /* r69: the same idea as #hammerTool.striking — hold the head against a seam and it keeps swinging */
 .cv-pick.striking { animation: cvStrike .34s ease-in-out infinite; }
 @keyframes cvStrike { 0%,100% { transform: translate(-50%,-54%) rotate(-10deg); }
@@ -3826,6 +3827,7 @@ let CAVE_NODES=[];        // [{metal, spot, left}]
 const PICK_HOME={ x:28, y:78 };
 let PICK_OUT={ x:PICK_HOME.x, y:PICK_HOME.y };   // {x,y} in plate-%: where the pickaxe lies in the cave (never null since 2026-10-13)
 function pickHome(){ PICK_OUT={ x:PICK_HOME.x, y:PICK_HOME.y }; }
+let PICK_HINT=false;   /* r240 (owner): lit on every arrival in the cave, until the player touches the pickaxe */
 function gainOre(id,n){ ORE_COUNT[id]=(ORE_COUNT[id]||0)+(n||1); }
 /* r104: the scripted cave - two seams, instead of the usual five seams of seven. owner, 2026-10-13: the fire
    craft is 2 iron + 1 manganese, then full iron OR full manganese - so 3 iron and 2 manganese. */
@@ -3866,6 +3868,7 @@ function buildCave(){
     if(PICK_OUT){ const p=document.createElement('div'); p.className='cv-pick'; p._pick=1;
         p.title='Pickaxe — rest it against an ore seam to mine it';
         p.innerHTML='<img src="'+PICK_SRC+'" alt="">';
+        if(PICK_HINT) p.classList.add('cv-hint');   /* r240: buildCave runs after every strike, so the hint lives in state */
         wirePickDrag(p); box.appendChild(p); box.classList.add('armed');
         const sp=document.createElement('div'); sp.id='cvSpark'; box.appendChild(sp); }
     layoutCave();                                          // which re-checks: a rebuild loses the striking class
@@ -3999,7 +4002,7 @@ function wirePickDrag(el){
         ghost.innerHTML='<img src="'+PICK_SRC+'" alt="">';
         frame.appendChild(ghost); el.style.visibility='hidden'; };
     const land=()=>{ ghost=null; pickGhostClear(); el.style.visibility=''; };   /* r168 */
-    el.addEventListener('pointerdown', e=>{ e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY;
+    el.addEventListener('pointerdown', e=>{ PICK_HINT=false; el.classList.remove('cv-hint'); e.preventDefault(); drag=true; moved=false; sx=e.clientX; sy=e.clientY;
         try{ el.setPointerCapture(e.pointerId); }catch(err){} });
     el.addEventListener('pointermove', e=>{ if(!drag) return;
         if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<=6) return;
@@ -5152,7 +5155,7 @@ function goScreen(name){
     screenDragonPlace();   /* r160 */
     buildScreenProps(name);
     renderDecor();   /* r199 */
-    if(name==='cave') pickHome();   /* owner, 2026-10-13: back at its spot on every arrival */
+    if(name==='cave'){ pickHome(); PICK_HINT=true; }   /* owner, 2026-10-13: back at its spot on every arrival. r240: and lit */
     buildCave();
     buildRackSwords();
     buildShopLocks();

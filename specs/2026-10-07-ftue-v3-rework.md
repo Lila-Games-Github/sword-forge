@@ -1657,6 +1657,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   `cbCraft(1)` makes nothing and opens no shape window; with the customer gone CRAFT 1 is enabled; the same run with
   the pre-r239 signature leaves CRAFT 1 blinking; no console errors.
 
+- **r240: the cave pickaxe is lit on every arrival, until the player touches it (owner, 2026-10-15).** `PICK_HINT` turns
+  on with every `goScreen('cave')` (beside `pickHome()`) and off at the first pointerdown on the pickaxe; `buildCave()`
+  (which runs after every strike) gives the rebuilt pickaxe `.cv-hint` while it is on. The glow is the tutorial's
+  `tutGlow` on the pickaxe's image, so the swinging box's `.striking` animation cannot override it. Every visit, not only
+  in the FTUE. The 2026-10-13 cave-reset check now reads the new arrival line. Asserted by the FTUE test (442), written
+  first. Checked in the browser (1280x720): arrival - lit (`tutGlow` running on the image); after a rebuild - still lit;
+  a real pointerdown on the pickaxe (hit-tested) - off, and still off after a rebuild; forge and back - lit again; no
+  console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1740,3 +1749,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r237 the whole sharpening wheel can be tapped (the table sword's art box no longer covers it).
 - 2026-10-14: r238 a counter sword goes back to the inventory after Bram's opener (takeCounter ignored 'done').
 - 2026-10-15: r239 CRAFT 1 stops glowing after the craft; in the FTUE it is locked while the order is already made.
+- 2026-10-15: r240 the cave pickaxe glows on every arrival until the player touches it.
