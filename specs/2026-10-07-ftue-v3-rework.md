@@ -1740,6 +1740,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   browser (1280x720, PART 6 jump, stage `g-forge`, real taps on the bubble's button): D129, then D130 with no answer
   button and a lit OK; its tap gives D130b and stage `g-desk`; no console errors.
 
+- **r248: the customer's trait glows only until it is crafted (owner, 2026-10-15).** The r221 ring (`#custSpot`) stayed
+  until a sword met the whole order (`custOrderReady`: trait, shape and tier), so a sword with the right trait but the
+  wrong shape or tier (e.g. a swift Shortsword for Bram's swift Dagger) left the trait glowing after the craft. Now
+  `custSpotSync()` drops the ring as soon as a sword with that trait is in the bag or on the counter
+  (`custTraitMade`). Side effect: a leftover sword with the trait hides the ring for a later order of that trait. The
+  scripted `#tutSpot` rings were checked and each already ends on its own beat. The r221 check now reads the new rule.
+  Asserted by the FTUE test (464), written first. Checked in the browser (1280x720, PART 5 jump): Bram's swift Dagger
+  order rings swift; a swift Shortsword in the bag (order not met) - ring off; a fire order with no fire sword - ring on;
+  on Garric's order the balanced ring goes at the first iron ore and the customer ring once the sword is made; no
+  console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1831,3 +1842,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r245 GC5: D92m "Let's go to the forge.", then the forge goes dark but the fire trait (D92n).
 - 2026-10-15: r246 "tap", not "click": D92n reworded; a test bars "click" in dialogue.
 - 2026-10-15: r247 D130 has no "on my own" answer; its OK goes on to the design desk.
+- 2026-10-15: r248 the customer's trait stops glowing once a sword with that trait is crafted.

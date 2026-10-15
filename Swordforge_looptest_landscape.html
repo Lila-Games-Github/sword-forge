@@ -8795,9 +8795,11 @@ function custOrderReady(){
     const o={ trait:tid, shape:CUSTOMER.shape||null, tier:CUSTOMER.tier||null };
     return (COUNTER && orderMatches(o, COUNTER)) || INV.swords.some(w=>orderMatches(o, w));
 }
+/* r248 (owner): the trait glows only until a sword with it is crafted - a wrong shape or tier still ends the glow */
+function custTraitMade(tid){ return INV.swords.concat(COUNTER ? [COUNTER] : []).some(w=>(w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===tid)); }
 function custSpotSync(){
     const g=document.getElementById('custSpot'); if(!g) return;
-    const tid = (!tutOver() && CUSTOMER && !custOrderReady()) ? (CUSTOMER.tid || CUSTOMER.want || null) : null;
+    const tid0 = (!tutOver() && CUSTOMER) ? (CUSTOMER.tid || CUSTOMER.want || null) : null, tid = (tid0 && !custTraitMade(tid0)) ? tid0 : null;
     const t = tid ? traits.find(x=>x.trait && x.trait.id===tid && x.discovered) : null;
     const key = t ? tid+'@'+t.x+','+t.y : '';
     if(key===CUST_SPOT_KEY) return; CUST_SPOT_KEY=key;

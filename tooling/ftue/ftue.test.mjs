@@ -332,6 +332,10 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r248 (owner, 2026-10-15): the customer's trait glows on the map only until a sword with that trait is crafted
+   (bag or counter), whatever its shape or tier - not until the order itself is met */
+eq('custSpot stops once the trait is crafted', src.includes("const tid0 = (!tutOver() && CUSTOMER) ? (CUSTOMER.tid || CUSTOMER.want || null) : null, tid = (tid0 && !custTraitMade(tid0)) ? tid0 : null;")
+  && src.includes("function custTraitMade(tid){ return INV.swords.concat(COUNTER ? [COUNTER] : []).some(w=>(w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===tid)); }"), true);
 /* r247 (owner, 2026-10-15): no "Let me try to do it on my own." answer - closing D130 (a lit OK) goes on to D130b */
 eq('D130 has no answer button any more', !src.includes('Let me try to do it on my own.') && !src.includes("fn:tutGarricDesk }]"), true);
 eq('closing D130 goes on (lit OK, not a closing X)', src.includes("D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },") && /const SAY_GO_MORE=\{[^}]*D130:1/.test(src) && /const SAY_GO_GLOW=\{[\s\S]*?D130:1[\s\S]*?\};/.test(src), true);
@@ -369,7 +373,7 @@ eq('custShapeFor: the waiting customer\'s shape, for their trait', src.includes(
 eq('the scripted customers name their shape', src.includes("tid:'fire', shape:'Shortsword', name:null") && src.includes("tid:'gale', shape:'Shortsword', name:'Gale'") && src.includes("name:'Bram', want:'swift', shape:'Dagger'"), true);
 eq('the requested-shape style', src.includes('.sf-shape.sf-req {'), true);
 /* owner, 2026-10-08 (part 1): the customer's trait ring goes once their sword is made */
-eq('the ring goes once a sword fills the order', /function custSpotSync\(\)\{[\s\S]{0,300}custOrderReady\(\)/.test(src)
+eq('the ring goes once a sword with the trait is crafted (r248; it was: once a sword fills the order)', /function custSpotSync\(\)\{[\s\S]{0,300}custTraitMade\(tid0\)/.test(src)
   && src.includes('function custOrderReady(){'), true);
 eq('the minigame takes over', src.includes("if(TUT_STAGE==='p1-craft-shape'){ TUT_STAGE='p1-craft-hammer'; tutUnglow(); tutExit(null); return; }"), true);
 /* owner play-test, 2026-10-08: the mug arrow never came - the guide redraws only when its signature changes, and
