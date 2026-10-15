@@ -3625,12 +3625,14 @@ function sellCounter(){
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:pay });   /* r132 */
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
+    const byeC = (!scriptedBye && !bram && CUSTOMER && !(ftueC && ftueC.tc4) && !refused) ? CUSTOMER : null;   /* r252: who thanks you */
     COUNTER=null; if(!scriptedBye) CUSTOMER=null;
     tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else if(ftueOrderSold(ftueC)) setTimeout(ftueBulkStep, 0); else ftueGpcSold(); }   /* v3: TC4 is scripted */   /* r199. r201: an order of several stays */
+    if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252: after the order hooks, which keep a customer with swords still to come */
     gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
     if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
     else toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
@@ -3772,6 +3774,7 @@ function buildScreenProps(name){
     if(name==='customer' && TUT_BRAM2_STATE) list.unshift({ src:'assets/customer/BramD2.webp', l:7.97, w:20.99, b:86.16 });   /* r127 */
     else if(name==='customer' && TUT_BRAM_STATE && TUT_BRAM_STATE!=='done') list.unshift({ src:'assets/customer/Bram.webp', l:7.97, w:20.99, b:86.16 });
     else if(name==='customer' && CUSTOMER) list.unshift({ src:CUSTOMER.portrait, l:7.97, w:20.99, b:86.16 });
+    else if(name==='customer' && CUST_BYE) list.unshift({ src:CUST_BYE.portrait, l:7.97, w:20.99, b:86.16 });   /* r252 */
     /* r96: the bell sits on the right corner of the counter, from D27 onward. The rail covers the plate
        from 79% across, so 72% is the right-hand end of the table the player can actually see. */
     if(name==='customer' && BELL_ON) list.push({ src:'assets/forge/bell.webp', l:72.0, w:5.2, b:96.5,
@@ -9045,6 +9048,29 @@ let BELL_ON=false, CUSTOMER=null;
 const CUST_POOL=['man1','man2','man3','man4','woman1','woman2','woman3'];
 const CUST_DISCOVERED=0.80;            /* 4 in 5 ask for a trait the player has already found */
 /* v3: n is the whole order now - "Balanced sword", or "Balanced Katana" when it names a shape */
+/* r252 (owner, 2026-10-15): a gameplay customer thanks you after the sale, by the sword's best tier - Epic generous, Fine
+   normal or curt, Weak doubtful (a Weak sword they asked for gets a Fine line). Record: specs/2026-10-07-ftue-v3-rework.md. */
+const CUST_THANKS={
+    Epic:[ "Thank you so much, this is the best sword I have ever seen. You are too good!",
+           "Incredible work! I will tell everyone in town about your shop.",
+           "This blade is a masterpiece. Worth every coin, and more!",
+           "I can't believe how good this is. Thank you, thank you!",
+           "Look at that edge! You have made my whole year." ],
+    Fine:[ "Wow! Looks good. Good job.", "Good enough.", "Not too bad, usable. Thanks.",
+           "Nice work. This will serve me well.", "Fair price, fair sword. Thanks." ],
+    Weak:[ "Are you sure this sword is strong enough? I hope it is.", "Looks...okay...I guess?",
+           "I have seen better. Humph, what was I even expecting?", "Hmm. I hope this holds together long enough.",
+           "Well, it is a sword. Mostly." ] };
+function custThanksLine(tier, asked){ const k = (tier==='Weak' && asked==='Weak') ? 'Fine' : (CUST_THANKS[tier] ? tier : 'Fine'); const a=CUST_THANKS[k]; return a[Math.floor(Math.random()*a.length)]; }
+/* the customer who has just paid stays in the picture, saying it, for CUST_BYE_MS - drawn only: CUSTOMER is already
+   null, so the bell, the guides and the next customer never see them. A new customer ends it at once. */
+const CUST_BYE_MS=3200;
+let CUST_BYE=null, CUST_BYE_T=null;
+function custBye(portrait, text){ clearTimeout(CUST_BYE_T); CUST_BYE={ portrait:portrait };
+    if(SF_SCREEN==='customer') buildScreenProps('customer'); counterBoxes(); custLine(null, text);
+    CUST_BYE_T=setTimeout(custByeEnd, CUST_BYE_MS); }
+function custByeEnd(){ clearTimeout(CUST_BYE_T); CUST_BYE_T=null; if(!CUST_BYE) return; CUST_BYE=null;
+    if(SF_SCREEN==='customer') buildScreenProps('customer'); if(!CUSTOMER) counterBoxes(); }
 const CUST_ASKS=[ n=>'Do you have a '+n+'?',
                   n=>'I want a '+n+'.',
                   n=>'Give me a '+n+', if you have one.',
@@ -9099,12 +9125,12 @@ function counterLayout(){
 function counterBoxes(){
     const intro=document.getElementById('bramIntro');
     const introOn = !!(intro && intro.classList.contains('show'));
-    const here=!!CUSTOMER;
+    const here=!!CUSTOMER, bye=!here && !!CUST_BYE;   /* r252: the leaving customer still speaks */
     const dlg=document.querySelector('#csPanel .cs-dlg');
-    if(dlg) dlg.style.display = (here && !introOn) ? '' : 'none';
+    if(dlg) dlg.style.display = ((here || bye) && !introOn) ? '' : 'none';
     const resp=document.querySelector('#csPanel > .cs-resp');
     if(resp) resp.style.display = resp.onclick ? 'flex' : 'none';   /* r106 */
-    if(!here || introOn){ const p=document.querySelector('#csPanel .cs-dlg p'); if(p && !here) p.textContent=''; }
+    if(!here || introOn){ const p=document.querySelector('#csPanel .cs-dlg p'); if(p && !here && !bye) p.textContent=''; }
     /* nothing to sell while a scripted customer is still saying what they want */
     const quiet = introOn && ((TUT_FIRE_STATE && TUT_FIRE_STATE!=='asked')
                           || (TUT_GARRIC_STATE && TUT_GARRIC_STATE!=='asked'));   /* r130 */
@@ -9135,6 +9161,7 @@ function custLine(el, text){
 }
 function nextCustomer(){
     if(CUSTOMER) { toast('Someone is already at the counter'); return false; }
+    custByeEnd();
     const tr=askedTrait(); if(!tr) return false;
     const who=CUST_POOL[Math.floor(Math.random()*CUST_POOL.length)];
     CUSTOMER={ portrait:'assets/customer/'+who+'.webp', tid:tr.id, name:tr.name };

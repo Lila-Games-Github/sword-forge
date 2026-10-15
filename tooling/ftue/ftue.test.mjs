@@ -332,6 +332,26 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r252 (owner, 2026-10-15): gameplay customers thank you after a sale - a random line by the sword's best tier */
+{ const m = src.match(/const CUST_THANKS=(\{[\s\S]*?\});/);
+  eq('CUST_THANKS is the recorded set (5 a tier)', m && new Function('return ' + m[1])(), {
+    Epic: [ 'Thank you so much, this is the best sword I have ever seen. You are too good!',
+            'Incredible work! I will tell everyone in town about your shop.',
+            'This blade is a masterpiece. Worth every coin, and more!',
+            "I can't believe how good this is. Thank you, thank you!",
+            'Look at that edge! You have made my whole year.' ],
+    Fine: [ 'Wow! Looks good. Good job.', 'Good enough.', 'Not too bad, usable. Thanks.',
+            'Nice work. This will serve me well.', 'Fair price, fair sword. Thanks.' ],
+    Weak: [ 'Are you sure this sword is strong enough? I hope it is.', 'Looks...okay...I guess?',
+            'I have seen better. Humph, what was I even expecting?', 'Hmm. I hope this holds together long enough.',
+            'Well, it is a sword. Mostly.' ] }); }
+eq('a Weak sword the customer asked for gets a Fine line; any other tier its own', src.includes("function custThanksLine(tier, asked){ const k = (tier==='Weak' && asked==='Weak') ? 'Fine' : (CUST_THANKS[tier] ? tier : 'Fine'); const a=CUST_THANKS[k]; return a[Math.floor(Math.random()*a.length)]; }"), true);
+eq('only gameplay customers (no scripted one, no TC4, not mid-order, not refused)', src.includes("const byeC = (!scriptedBye && !bram && CUSTOMER && !(ftueC && ftueC.tc4) && !refused) ? CUSTOMER : null;")
+  && /if\(byeC && !CUSTOMER\) custBye\(byeC\.portrait, custThanksLine\(tier, byeC\.tier\)\);[^\n]*\r?\n    gainExp\(XP_SELL,'sell'\);/.test(src), true);
+eq('the leaving customer is drawn, never counted as present', src.includes("else if(name==='customer' && CUST_BYE) list.unshift({ src:CUST_BYE.portrait, l:7.97, w:20.99, b:86.16 });   /* r252 */")
+  && src.includes("const here=!!CUSTOMER, bye=!here && !!CUST_BYE;") && src.includes("if(dlg) dlg.style.display = ((here || bye) && !introOn) ? '' : 'none';"), true);
+eq('the goodbye ends after CUST_BYE_MS or when the next customer comes', src.includes('const CUST_BYE_MS=3200;')
+  && /if\(CUSTOMER\) \{ toast\('Someone is already at the counter'\); return false; \}\r?\n    custByeEnd\(\);/.test(src), true);
 /* r251 (owner, 2026-10-15): a very long route (5+ fully ground irons of drawn length) runs the sword twice as fast;
    the hazard damage is scaled with it, so a zone costs the same per distance */
 { const m = src.match(/const ROUTE_FAST=(\{[^}]*\});/); eq('ROUTE_FAST is the recorded threshold and multiplier', m && new Function('return ' + m[1])(), { irons: 5, mul: 2 }); }

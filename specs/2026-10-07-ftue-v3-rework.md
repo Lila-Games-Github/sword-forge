@@ -1784,6 +1784,24 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Checked in the browser: 4 / 5 / 6 fully ground irons (800 / 1000 / 1200) give x1 / x2 / x2 (the sword's step in 0.1s
   at full heat 0.05 / 0.10 / 0.10); 9 / 10 raw irons (900 / 1000) give x1 / x2; no console errors.
 
+- **r252: gameplay customers thank you after a sale (owner, 2026-10-15).** Before this, only the scripted customers
+  (Bram, TC2, TC3, TC5, Bram on Day 2, Garric) spoke after a sale; every other customer left at once. Now a gameplay
+  customer (FTUE GCs, the called-back waiting customer, every customer after the FTUE) says one random line by the sold
+  sword's best tier, `CUST_THANKS` (5 a tier; the owner's examples kept word for word, "Wow! looks good" capitalised):
+  | Tier | Lines |
+  | --- | --- |
+  | Epic (generous) | "Thank you so much, this is the best sword I have ever seen. You are too good!" / "Incredible work! I will tell everyone in town about your shop." / "This blade is a masterpiece. Worth every coin, and more!" / "I can't believe how good this is. Thank you, thank you!" / "Look at that edge! You have made my whole year." |
+  | Fine (normal or curt) | "Wow! Looks good. Good job." / "Good enough." / "Not too bad, usable. Thanks." / "Nice work. This will serve me well." / "Fair price, fair sword. Thanks." |
+  | Weak (doubtful) | "Are you sure this sword is strong enough? I hope it is." / "Looks...okay...I guess?" / "I have seen better. Humph, what was I even expecting?" / "Hmm. I hope this holds together long enough." / "Well, it is a sword. Mostly." |
+  A Weak sword the customer asked for (GC8) gets a Fine line ("unless they ask for it"). Not for: the scripted customers
+  (they keep their lines), TC4, a refused sale, or a several-sword order before its last sword ("Good. N more, please."
+  stays). How: `CUSTOMER` is cleared on the sale as before; `CUST_BYE` (display only) keeps the portrait drawn and the
+  line box up for `CUST_BYE_MS` = 3200 ms with no buttons, so the bell, the guides and the next customer never see it;
+  a new customer ends it at once. Asserted by the FTUE test (475), written first. Checked in the browser (1280x720, after
+  the FTUE): a real tap on SELL with an Epic sword - the customer stays, an Epic line, SELL hidden, `CUSTOMER` null;
+  3.2 s later both gone; Weak sword - a Weak line; a new customer during the goodbye - it ends, one portrait; Weak asked
+  - a Fine line; a two-sword order - "Good. 1 more, please." then a Fine line on the last; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1879,3 +1897,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r249 leaving the basement puts the table sword back in the bag (and loading a save made elsewhere).
 - 2026-10-15: r250 no toast when the basement sword goes back to the bag.
 - 2026-10-15: r251 a route of 5+ fully ground irons (drawn length) runs the sword x2; hazard damage per distance kept.
+- 2026-10-15: r252 gameplay customers say a random thank-you by tier (CUST_THANKS, 5 Epic / 5 Fine / 5 Weak).
