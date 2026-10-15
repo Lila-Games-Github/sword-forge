@@ -3703,6 +3703,10 @@ function toast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) retur
     clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>{ t.classList.remove('show');
         if(typeof sayLayout==='function') sayLayout();   /* r154: and let it come back */
     }, ms||1900); }
+/* r249 (owner): no sword lies in the basement. Leaving it puts the table sword back in the bag; a take-it-back tutorial
+   step goes straight to its way-back stage (the arrival handlers carry on), without the line that says to go up. */
+function workAutoReturn(){ INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2); toast('The sword went back to your inventory');
+    if(TUT_STAGE==='dec-take' || TUT_STAGE==='base-take'){ TUT_STAGE = TUT_STAGE==='dec-take' ? 'dec-back' : 'base-back'; tutArrow(null,null); if(SAY_ON==='D54') sayHide(); } }
 function refreshWork(){ if(SF_SCREEN==='basement') buildScreenProps('basement'); if(INV_TAB===2) buildShelf(); }
 function placeWork(sw){
     if(WORK) INV.swords.push(WORK);                     // owner's call: a second sword SWAPS
@@ -4624,7 +4628,7 @@ function applyState(o){
     PARTS_GARRIC = !!(o.parts && o.parts.garric);   /* r131 */
     INV.ingots=(o.inv&&o.inv.ingots||[]).map(g=>Object.assign({},g,{at:performance.now()}));
     INV.swords=(o.inv&&o.inv.swords)||[]; INV_SEQ=(o.inv&&o.inv.seq)||1;
-    WORK=o.work||null;
+    WORK=o.work||null; if(WORK && o.screen && o.screen!=='basement'){ INV.swords.push(WORK); WORK=null; }   /* r249 */
     if(o.sel) DD_SEL=Object.assign({},o.sel); if(o.blade) DD_BLADE=o.blade;
     SH_VAL=o.sharp||0; SH_WAS=SH_VAL;
     benchClear();
@@ -5156,6 +5160,7 @@ function popHearts(e, into){
 }
 function goScreen(name){
     if(!SCREENS[name] || name===SF_SCREEN) return;
+    if(SF_SCREEN==='basement' && name!=='basement' && WORK) workAutoReturn();   /* r249 */
     if(name==='forge' && TUT_STAGE==='to-forge'){ tutDone(); setTimeout(tutForgeAgain, 450); }   /* r96/r99 */
     if(name==='customer') setTimeout(counterUi, 0);                  /* r98 */
     if(SF_SCREEN==='customer' && name!=='customer' && TUT_STAGE==='counter'){ TUT_STAGE=null; TUT_COUNTER_VISITED=false; }
