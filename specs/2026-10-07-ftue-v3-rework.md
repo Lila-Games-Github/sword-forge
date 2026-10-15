@@ -1699,6 +1699,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   green/green/amber/red, 0 hides the arc; at 65% (map zoomed in) the arc runs from 12 o'clock to about 8 o'clock over
   the dark track; no console errors.
 
+- **r244: the customer's line types left to right (owner, 2026-10-15).** The line was centred, and its paragraph shrank
+  to its text inside a centring flexbox, so each typed word grew the line out from the middle. Both customer boxes are
+  now left-aligned across their full width: `.cs-dlg p` (a row flexbox) `text-align: left; width: 100%`, so it stays
+  centred vertically; `.cs-bram-dlg p` (a column flexbox) `text-align:left; align-self:stretch; width:100%`. The dragon's
+  lines are unchanged. Asserted by the FTUE test (453), written first. Checked in the browser (1280x720): mid-typing
+  (two words), typed out and a one-word line, the first word starts at the box's left content edge (476px) and the line
+  spans the full 417px; a short line stays centred vertically; the scripted customer box the same; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1786,3 +1794,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r241 the cancel-craft X asks "Are you sure you want to cancel the crafting? Ores will not be refunded."
 - 2026-10-15: r242 every pointer glow is the OK glow (buttons) or the tab glow (rail buttons); the clipped halo is gone.
 - 2026-10-15: r243 the sword's health is a ring around its map marker; the top-right bar is gone.
+- 2026-10-15: r244 the customer's line is left-aligned, so it types left to right.

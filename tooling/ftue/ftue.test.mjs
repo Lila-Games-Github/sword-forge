@@ -628,6 +628,9 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r244 (owner, 2026-10-15): the customer's line types left to right: left-aligned, across the box's full width */
+eq('.cs-dlg p types from the left (a row flexbox: full width, still centred vertically)', /\.cs-dlg p \{[^}]*text-align: left; width: 100%; \}/.test(src), true);
+eq('.cs-bram-dlg p types from the left', /\.cs-bram-dlg p \{[^}]*text-align:left;[^}]*align-self:stretch; width:100%;/.test(src), true);
 /* r243 (owner, 2026-10-15): the sword's health is a ring around its map marker, not a bar at the top right */
 eq('the ring lives in the sword marker', src.includes('<g id="swordHpRing" style="display:none;"><circle r="24.5" fill="none" stroke="rgba(20,15,8,.55)" stroke-width="4.5"/><circle id="swordHp" r="24.5" fill="none" stroke="#5fd35f" stroke-width="4.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)"/></g>')
   && src.indexOf('<g id="swordHpRing"') > src.indexOf('<g id="sword">'), true);
