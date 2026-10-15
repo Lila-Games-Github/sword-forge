@@ -1727,6 +1727,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   opens nothing; a real tap in the hole opens the book on the fire page, the dim lifts and CRAFT 1 lights; book closed -
   dim back; counter - dim gone; no console errors.
 
+- **r246: "tap", not "click" (owner, 2026-10-15).** The game is for mobile; the owner works on a PC and writes "click"
+  from habit, and wants "tap" in what the player reads (standing rule). D92n is now "Tap on the trait to open the craft
+  book directly." No other dialogue line, toast, hint or button text said "click". A test now fails on any dialogue line
+  with "click". Asserted by the FTUE test (461), written first. Checked in the browser: the bubble reads the new line; 198
+  keys; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1816,3 +1822,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r243 the sword's health is a ring around its map marker; the top-right bar is gone.
 - 2026-10-15: r244 the customer's line is left-aligned, so it types left to right.
 - 2026-10-15: r245 GC5: D92m "Let's go to the forge.", then the forge goes dark but the fire trait (D92n).
+- 2026-10-15: r246 "tap", not "click": D92n reworded; a test bars "click" in dialogue.

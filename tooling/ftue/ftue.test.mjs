@@ -630,7 +630,8 @@ eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
 /* r245 (owner, 2026-10-15): GC5's map route - "Let's go to the forge.", then on the forge the frame darkens except the
    fire trait, and the dragon says "Click on the trait to open the craft book directly." */
-eq('D92m and D92n, the owner\'s words', src.includes(`D92m: "Let's go to the forge.",`) && src.includes('D92n: "Click on the trait to open the craft book directly.",'), true);
+/* r246 (owner): the game is for mobile - the owner's "click" is written "tap" */
+eq('D92m and D92n, the owner\'s words (click -> tap)', src.includes(`D92m: "Let's go to the forge.",`) && src.includes('D92n: "Tap on the trait to open the craft book directly.",'), true);
 eq('D92m follows D92l (the end of the D92 group), D92n follows D92m', keys[keys.indexOf('D92m') - 1] === 'D92l' && keys[keys.indexOf('D92n') - 1] === 'D92m', true);
 eq('off the forge: D92m once, the exit lit, no dim', src.includes("if(SF_SCREEN!=='forge'){ tutHole(null); tutSpotOn(null); if(!g.saidGo){ g.saidGo=true; sayQueue('D92m'); } tutExitTo('forge'); return; }"), true);
 eq('on the forge: the map brings the trait into view, D92n once, the dim with a hole over it', src.includes("const f=traits.find(t=>t.trait && t.trait.id===g.trait); tutExit(null); if(!g.saidTap) tutMapShow(f); tutSpotOn(f); tutHole(f); if(!g.saidTap){ g.saidTap=true; sayQueue('D92n'); } return; }")
@@ -641,6 +642,7 @@ eq('the dim lifts when the book opens or the order is made', (src.match(/tutHole
 eq('the hole is a separate dim over everything (rail z45, exits z50), the bubble lifted over it', src.includes('<div id="tutHole"></div>') && src.includes('#tutHole { position: absolute; inset: 0; z-index: 60; background: rgba(6,4,2,.74); display: none; }')
   && src.includes('#dragonSay.hole-say { z-index: 61; }') && src.includes("const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE);"), true);
 eq('the frame loop keeps the hole on the icon and drops it off the stage', src.includes("if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }"), true);
+eq('no player-facing line says click', !/D\d+[a-z]?: "[^"]*\b[Cc]lick/.test(src), true);
 /* r244 (owner, 2026-10-15): the customer's line types left to right: left-aligned, across the box's full width */
 eq('.cs-dlg p types from the left (a row flexbox: full width, still centred vertically)', /\.cs-dlg p \{[^}]*text-align: left; width: 100%; \}/.test(src), true);
 eq('.cs-bram-dlg p types from the left', /\.cs-bram-dlg p \{[^}]*text-align:left;[^}]*align-self:stretch; width:100%;/.test(src), true);
