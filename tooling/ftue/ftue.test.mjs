@@ -335,7 +335,8 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r249 (owner, 2026-10-15): no sword is left lying in the basement - leaving it (or loading a save made elsewhere) puts the
    table sword back in the bag; the take-it-back tutorial steps move on to their way-back stage */
 eq('leaving the basement returns the table sword', src.includes("if(SF_SCREEN==='basement' && name!=='basement' && WORK) workAutoReturn();   /* r249 */"), true);
-eq('workAutoReturn: bag, toast, and the take steps move on quietly', src.includes("function workAutoReturn(){ INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2); toast('The sword went back to your inventory');")
+/* r250 (owner, 2026-10-15): no message when the sword goes back - it is simply in the bag */
+eq('workAutoReturn: bag, no toast, and the take steps move on quietly', /function workAutoReturn\(\)\{ INV\.swords\.push\(WORK\); WORK=null; refreshWork\(\); invTab\(2\);\r?\n/.test(src) && !src.includes('The sword went back to your inventory')
   && src.includes("if(TUT_STAGE==='dec-take' || TUT_STAGE==='base-take'){ TUT_STAGE = TUT_STAGE==='dec-take' ? 'dec-back' : 'base-back'; tutArrow(null,null); if(SAY_ON==='D54') sayHide(); } }"), true);
 eq('a save made off the basement loads with the sword in the bag', src.includes("WORK=o.work||null; if(WORK && o.screen && o.screen!=='basement'){ INV.swords.push(WORK); WORK=null; }   /* r249 */"), true);
 /* r248 (owner, 2026-10-15): the customer's trait glows on the map only until a sword with that trait is crafted

@@ -3705,7 +3705,7 @@ function toast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) retur
     }, ms||1900); }
 /* r249 (owner): no sword lies in the basement. Leaving it puts the table sword back in the bag; a take-it-back tutorial
    step goes straight to its way-back stage (the arrival handlers carry on), without the line that says to go up. */
-function workAutoReturn(){ INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2); toast('The sword went back to your inventory');
+function workAutoReturn(){ INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2);
     if(TUT_STAGE==='dec-take' || TUT_STAGE==='base-take'){ TUT_STAGE = TUT_STAGE==='dec-take' ? 'dec-back' : 'base-back'; tutArrow(null,null); if(SAY_ON==='D54') sayHide(); } }
 function refreshWork(){ if(SF_SCREEN==='basement') buildScreenProps('basement'); if(INV_TAB===2) buildShelf(); }
 function placeWork(sw){

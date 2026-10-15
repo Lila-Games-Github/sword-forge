@@ -1764,6 +1764,11 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   lit; `applyState` with a table sword saved on the forge - in the bag; saved in the basement - on the table; no
   console errors.
 
+- **r250: no message when the table sword goes back (owner, 2026-10-15).** r249's toast "The sword went back to your
+  inventory" is removed; the sword is simply in the bag (SWORDS tab). Asserted by the FTUE test (467; the r249 check now
+  also asserts the text is gone), written first. Checked in the browser (1280x720): a real tap on the up exit with a
+  sword on the table - forge, sword in the bag, no new toast; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1857,3 +1862,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r247 D130 has no "on my own" answer; its OK goes on to the design desk.
 - 2026-10-15: r248 the customer's trait stops glowing once a sword with that trait is crafted.
 - 2026-10-15: r249 leaving the basement puts the table sword back in the bag (and loading a save made elsewhere).
+- 2026-10-15: r250 no toast when the basement sword goes back to the bag.
