@@ -1644,6 +1644,19 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   a PART 2 jump), a real tap and a real drag to the inventory both return the sword (before the fix the tap left it on
   the counter); with the state 'counter-ready' (Bram's scene) the sword stays; no console errors.
 
+- **r239: CRAFT 1 stops glowing once the order is made, and cannot be spammed in the FTUE (owner, 2026-10-15).**
+  Glow: the craft-book guide (`ftueBookStep`, GC5/GC6, stage `p3-book`) runs only when `ftueBookSig()` changes. The order
+  became ready while the "Sword crafted!" window was open, so the step skipped that turn; closing the window changed
+  nothing in the signature, so the step never ran again and CRAFT 1 kept blinking. The signature now carries the open
+  windows (`ftueBookModal()`, shared with the step's skip). Spam: `ftueCraftLocked()` is true in the FTUE while the
+  customer's order is already made (on the counter or in the bag; a several-sword order needs all of them; `qty` less
+  `got`); then CRAFT 1 is disabled (`renderRecipe`) and `cbCraft` refuses with "This order is already made. Serve the
+  customer first.". No customer, or the FTUE done: never locked. Asserted by the FTUE test (438), written first. Checked
+  in the browser (PART 4 jump, a fire Broadsword order in `p3-book`): CRAFT 1 blinks; real taps on CRAFT 1, Broadsword
+  and CLOSE; after the close CRAFT 1 no longer blinks, the book's close button does, CRAFT 1 is disabled; a second
+  `cbCraft(1)` makes nothing and opens no shape window; with the customer gone CRAFT 1 is enabled; the same run with
+  the pre-r239 signature leaves CRAFT 1 blinking; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1726,3 +1739,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r236 the dragon returns to his top-left spot on every return to the forge screen (and homeDragon is fixed).
 - 2026-10-14: r237 the whole sharpening wheel can be tapped (the table sword's art box no longer covers it).
 - 2026-10-14: r238 a counter sword goes back to the inventory after Bram's opener (takeCounter ignored 'done').
+- 2026-10-15: r239 CRAFT 1 stops glowing after the craft; in the FTUE it is locked while the order is already made.

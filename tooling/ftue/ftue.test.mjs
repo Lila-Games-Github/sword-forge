@@ -628,6 +628,14 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r239 (owner, 2026-10-15): CRAFT 1 stops glowing once the order is made, and cannot be spammed in the FTUE.
+   The book guide skipped its step while the crafted window was open and its signature did not change on close */
+eq('the book guide re-runs when a window closes', src.includes("return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0].join(','); }")
+  && src.includes("function ftueBookModal(){ return ['sfShapeModal','sfCraftModal','sfMarketModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); }); }")
+  && src.includes('if(ftueBookModal()) return;'), true);
+eq('FTUE: CRAFT 1 is locked while the customer\'s order is already made', src.includes('function ftueCraftLocked(){ if(FTUE_ST.done || !CUSTOMER) return false;')
+  && src.includes("if(ftueCraftLocked()){ toast('This order is already made. Serve the customer first.'); return; }")
+  && src.includes("if(b) b.disabled=!r || (id==='cbCraft1' && ftueCraftLocked());"), true);
 /* r238 (owner, 2026-10-14): a counter sword goes back to the bag after Bram's opener. TUT_BRAM_STATE stays 'done' for
    the rest of the game, and takeCounter() refused on any value; only Bram's live scene may hold the sword */
 eq('takeCounter refuses only during Bram\'s scene', src.includes("function takeCounter(){ if(!COUNTER || (TUT_BRAM_STATE && TUT_BRAM_STATE!=='done')) return;"), true);

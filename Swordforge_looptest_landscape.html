@@ -2811,10 +2811,12 @@ let FTUE_BOOK=null;
 function ftueBookGo(o){ FTUE_BOOK={ mode:o.guide, trait:o.trait }; TUT_STAGE='p3-book'; tutNudge(true); }
 function ftueBookSig(){ if(TUT_STAGE!=='p3-book') return '';
     const bk=document.getElementById('sfBookModal');
-    return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0].join(','); }
+    return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0].join(','); }
+/* r239: a window open skips the step, so its closing must change the signature or the step never runs again (CRAFT 1 kept blinking) */
+function ftueBookModal(){ return ['sfShapeModal','sfCraftModal','sfMarketModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); }); }
 function ftueBookStep(){
     const g=FTUE_BOOK; if(!g) return;
-    if(['sfShapeModal','sfCraftModal','sfMarketModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); })) return;
+    if(ftueBookModal()) return;
     const bk=document.getElementById('sfBookModal'), open=bk && bk.classList.contains('show');
     if(custOrderReady()){   /* made: shut the book, then the counter */
         tutSpotOn(null);
@@ -5844,7 +5846,7 @@ function renderRecipe(){
     buildBookMarks();   /* after CB_SEL is resolved, or the first open highlights nothing */
     const r=CB_SEL?RECIPES[CB_SEL]:null, list=recipeTraits(r);
     document.getElementById('cbEmpty').hidden=!!r;
-    ['cbErase','cbCraft1','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r; });
+    ['cbErase','cbCraft1','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r || (id==='cbCraft1' && ftueCraftLocked()); });   /* r239 */
     document.querySelector('.cb-title-l').textContent = r ? recipeName(CB_SEL)+' Sword' : 'No Recipe';
     // one box (owner, 2026-10-14): every trait's tier as pips, the same rule as the top-left panel; then the description
     const pips=[]; list.forEach(a=>{ const n=TIER_PIPS[a.tier]||1; for(let j=0;j<n;j++) pips.push(a); });
@@ -5882,8 +5884,15 @@ function cbErase(){ if(!CB_SEL) return; const n=recipeName(CB_SEL);
 function cbDesign(){ closeBook(); DD_FORCE_DEFAULT=true; openDesign(); }   // the gear edits the DEFAULT look, not the table's sword
 // CRAFT 1 / 5 — ask for a shape, spend the recipe's ore per sword, drop finished blades in the inventory
 let SHAPE_CB=null;
+/* r239 (owner): in the FTUE, CRAFT 1 makes nothing while the customer's order is already made (on the counter or in the bag) */
+function ftueCraftLocked(){ if(FTUE_ST.done || !CUSTOMER) return false;
+    const c=CUSTOMER, pool=INV.swords.concat(COUNTER ? [COUNTER] : []);
+    if(c.items && c.items.length>1) return c.items.every(it=>{ const j=pool.findIndex(w=>orderMatches(it, w)); if(j<0) return false; pool.splice(j,1); return true; });
+    const tid=c.tid || c.want; if(!tid) return false; const o={ trait:tid, shape:c.shape||null, tier:c.tier||null };
+    return pool.filter(w=>orderMatches(o, w)).length >= Math.max(1, (c.qty||1)-(c.got||0)); }
 function cbCraft(n){
     const r=CB_SEL?RECIPES[CB_SEL]:null; if(!r) return;
+    if(ftueCraftLocked()){ toast('This order is already made. Serve the customer first.'); return; }
     n=Math.max(1, Math.floor(Number(n)||1));
     const ores=Array.isArray(r.ores)?r.ores.slice():[];
     const grinds=Array.isArray(r.grinds)?r.grinds.slice():ores.map(()=>0.5);
