@@ -1666,6 +1666,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   a real pointerdown on the pickaxe (hit-tested) - off, and still off after a rebuild; forge and back - lit again; no
   console errors.
 
+- **r241: cancelling a craft asks first (owner, 2026-10-15).** The X on the blade panel (`#cancelCraft`) opens
+  `#sfCancelAsk` (the r214 window's look, `.gsa-box`): "Cancel crafting?" / "Are you sure you want to cancel the crafting?
+  Ores will not be refunded." (owner's words) / "Yes, cancel" and "No, keep crafting". Only Yes runs what the X ran before
+  (`refundOre()`, `resetRun()`, the hint; the hint's dash is now a colon). Open: with Restore Ore ranks, `refundOre()` can
+  still return some ore, which the line does not say. Asserted by the FTUE test (445), written first. Checked in the
+  browser (1280x720, HUD opened by its toggle, 2 segments laid): real taps; the X opens the window (330x129, centred) with
+  the run intact; No closes it, still 2 segments; X then Yes closes it and the run is reset (0 segments); no console
+  errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1750,3 +1759,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-14: r238 a counter sword goes back to the inventory after Bram's opener (takeCounter ignored 'done').
 - 2026-10-15: r239 CRAFT 1 stops glowing after the craft; in the FTUE it is locked while the order is already made.
 - 2026-10-15: r240 the cave pickaxe glows on every arrival until the player touches it.
+- 2026-10-15: r241 the cancel-craft X asks "Are you sure you want to cancel the crafting? Ores will not be refunded."

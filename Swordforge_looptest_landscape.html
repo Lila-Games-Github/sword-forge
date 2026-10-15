@@ -2060,6 +2060,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="gsa-btns"><button class="paperBtn wide" type="button" onclick="garricSellAnswer(true)">Yes, sell it</button><button class="paperBtn wide" type="button" onclick="garricSellAnswer(false)">No, keep it</button></div>
         </div>
     </div>
+    <!-- r241: the cancel-craft confirmation (owner's words) -->
+    <div id="sfCancelAsk" class="sf-modal">
+        <div class="sf-modal-box gsa-box">
+            <h3 class="sf-modal-h">Cancel crafting?</h3>
+            <p class="sf-modal-sub">Are you sure you want to cancel the crafting? Ores will not be refunded.</p>
+            <div class="gsa-btns"><button class="paperBtn wide" type="button" onclick="cancelCraftAnswer(true)">Yes, cancel</button><button class="paperBtn wide" type="button" onclick="cancelCraftAnswer(false)">No, keep crafting</button></div>
+        </div>
+    </div>
     <!-- ===== Ledger (r50) - the sold list is built by buildLedger() ===== -->
     <div id="sfLedgerModal" class="sf-modal">
         <div class="lb-book">
@@ -5799,9 +5807,13 @@ function toggleHud(){ const h=document.getElementById('hud'), b=document.getElem
     b.setAttribute('aria-expanded', String(!nowCollapsed));
     b.title = nowCollapsed ? 'Expand the blade panel' : 'Collapse the blade panel';
     if(nowCollapsed && typeof tutHudClosed==='function') tutHudClosed(); }   /* r177 */
+/* r241 (owner): the X on the blade panel throws the craft away, so it asks first; only Yes cancels */
+function cancelCraftAsk(){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.add('show'); }
+function cancelCraftAnswer(yes){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.remove('show'); if(!yes) return;
+    refundOre(); resetRun(); hint('Crafting cancelled: the blade and its traits are gone. Grind an ore to start again.'); }
 function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=document.getElementById('saveBlade');
     const tg=document.getElementById('hudToggle'); if(tg) tg.addEventListener('click', toggleHud);
-    if(c) c.addEventListener('click', ()=>{ refundOre(); resetRun(); hint('Crafting cancelled — the blade and its traits are gone. Grind an ore to start again.'); });
+    if(c) c.addEventListener('click', cancelCraftAsk);   /* r241: it asks first */
     if(sv) sv.addEventListener('click', openComp);
     const rb=document.getElementById('recipeBtn'); if(rb) rb.addEventListener('click', openBook);
     const db=document.getElementById('diaryBtn'); if(db) db.addEventListener('click', openDiary);

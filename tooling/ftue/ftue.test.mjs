@@ -628,6 +628,14 @@ for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['
    r234 (owner, same day): 25% smaller than that, 25.5px x 0.75 = 19.125px */
 eq('customer line 19.125px (.cs-dlg p)', /\.cs-dlg p \{[^}]*font-size: 19\.125px;/.test(src), true);
 eq('customer line 19.125px (.cs-bram-dlg p)', /\.cs-bram-dlg p \{[^}]*font-size:19\.125px;/.test(src), true);
+/* r241 (owner, 2026-10-15): the cancel-craft button asks first */
+eq('the cancel confirmation window, in the owner\'s words', src.includes('<div id="sfCancelAsk" class="sf-modal">')
+  && src.includes('<p class="sf-modal-sub">Are you sure you want to cancel the crafting? Ores will not be refunded.</p>')
+  && src.includes('onclick="cancelCraftAnswer(true)">Yes, cancel</button>') && src.includes('onclick="cancelCraftAnswer(false)">No, keep crafting</button>'), true);
+eq('the X opens it instead of cancelling', src.includes("if(c) c.addEventListener('click', cancelCraftAsk);")
+  && !src.includes("if(c) c.addEventListener('click', ()=>{ refundOre(); resetRun();"), true);
+eq('only Yes cancels', src.includes("function cancelCraftAnswer(yes){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.remove('show'); if(!yes) return;\n    refundOre(); resetRun();")
+  || src.includes("function cancelCraftAnswer(yes){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.remove('show'); if(!yes) return;\r\n    refundOre(); resetRun();"), true);
 /* r240 (owner, 2026-10-15): every arrival in the cave lights the pickaxe until the player touches it */
 eq('the cave arrival sets the pickaxe hint', src.includes("if(name==='cave'){ pickHome(); PICK_HINT=true; }") && src.includes('let PICK_HINT=false;'), true);
 eq('the rebuilt pickaxe keeps the hint', src.includes("if(PICK_HINT) p.classList.add('cv-hint');"), true);
