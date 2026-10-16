@@ -1919,6 +1919,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the guide's dashed arrow metal -> furnace, steady, 0 white arrow images; a tap clears it; a guide arrow kept through idle
   and activity; a trait banked - the metal glows; a tap clears it; screenshot of the dashed arrow; no console errors.
 
+- **r264: the metal's glow is as strong as the dragon's (owner, 2026-10-16).** The metal (`#orb`, the tap nudge and the
+  guide's "tap the metal") used the plain `tutGlow`. The dragon's `tutGlowBig` was tried first: computed right, but a gold
+  drop-shadow vanishes on the gold parchment behind the anvil (checked with a static filter and a red test fill - the
+  capture was live, the halo had no contrast). So the metal gets `tutGlowOrb`: drawn round it (border-radius 50%), a crisp
+  white ring (3 px) with a gold halo (20 px), the body brightened, pulsing on the same 1.15 s. Asserted by the FTUE test
+  (502), written first. Checked in the browser (the tap nudge on the anvil, paused at the bright frame): the ring and the
+  halo clearly visible on the parchment and the anvil; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2026,3 +2034,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r261 quenched metal on the anvil is grey (cold) until it is heated again.
 - 2026-10-16: r262 the hammer minigame mug plays the same steam and mist before the blade is finished.
 - 2026-10-16: r263 the white idle arrows are gone: the drag nudge is the guide's dashed arrow, the tap nudge the metal's glow.
+- 2026-10-16: r264 the metal's glow is a strong white ring and gold halo (tutGlowOrb).

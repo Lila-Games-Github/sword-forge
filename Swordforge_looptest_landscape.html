@@ -453,6 +453,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .tut-glow { animation: tutGlow 1.15s ease-in-out infinite; }
 /* r255: the dragon's own glow (tap me) - stronger, or it is lost on the counter's wood */
 .crop.dragoncrop.tut-glow { animation: tutGlowBig 1.15s ease-in-out infinite; }
+/* r264 (owner): the metal's glow as strong as the dragon's. A gold drop-shadow alone vanished on the gold parchment behind
+   the anvil, so the metal gets a crisp white ring with the gold halo, drawn round it - it reads on any background */
+#orb.tut-glow { border-radius: 50%; animation: tutGlowOrb 1.15s ease-in-out infinite; }
+@keyframes tutGlowOrb {
+    0%,100% { box-shadow: 0 0 0 2px rgba(255,255,255,.45), 0 0 6px 2px rgba(255,190,80,.4); filter: none; }
+    50%     { box-shadow: 0 0 0 3px rgba(255,255,255,1), 0 0 20px 9px rgba(255,190,80,.95); filter: brightness(1.2); } }
 @keyframes tutGlowBig {
     0%,100% { filter: drop-shadow(0 0 4px rgba(255,210,122,.6)); }
     50%     { filter: drop-shadow(0 0 14px rgba(255,225,140,1)) drop-shadow(0 0 30px rgba(255,170,40,.9)) brightness(1.18); } }
