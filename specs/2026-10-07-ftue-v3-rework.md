@@ -1933,6 +1933,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   byte for byte; 40 lines removed). Asserted by the FTUE test (503), written first. Checked in the browser: a fresh load
   requests no arrow image; no console errors.
 
+- **r266: the owner's new map base is in the game (owner, 2026-10-16).** The owner replaced `assets/map/map_base.png`
+  (2948x2948, 17.6 MB). It went into git inside r260 by mistake: that commit staged with `git add -A` while the new PNG sat
+  in the working tree (since r264 commits name their files). The game loads `map_base.webp`, which was still the old art.
+  Now the WebP is regenerated from the new PNG with the asset-diet recipe (2048 wide, quality 0.82, halving resize; 690 KB,
+  was 421 KB) through `/__save`, and the manifest entry records the new source (bytes 17,630,222). Asserted by the FTUE test
+  (505: the manifest matches the PNG on disk, the WebP is 2048 wide), written first. Checked in the browser: the page loads
+  the 690,138-byte WebP; the new map art shows; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2042,3 +2050,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r263 the white idle arrows are gone: the drag nudge is the guide's dashed arrow, the tap nudge the metal's glow.
 - 2026-10-16: r264 the metal's glow is a strong white ring and gold halo (tutGlowOrb).
 - 2026-10-16: r265 the white arrow images (arrow, arrow_point_down) are deleted.
+- 2026-10-16: r266 the owner's new map_base is in the game (WebP regenerated, manifest updated).

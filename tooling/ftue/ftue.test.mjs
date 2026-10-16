@@ -335,6 +335,14 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r266 (owner, 2026-10-16): the owner's new map_base.png is what the game shows - its WebP regenerated (2048 wide, q 0.82)
+   and the manifest entry describes the PNG on disk */
+{ const png = readFileSync('assets/map/map_base.png'), webp = readFileSync('assets/map/map_base.webp');
+  const man = JSON.parse(readFileSync('tooling/asset-diet/manifest.json', 'utf8')).find(e => e.src === 'assets/map/map_base.png');
+  const i = webp.indexOf('VP8'), kind = webp.toString('ascii', i, i + 4);
+  const ww = kind === 'VP8X' ? 1 + webp.readUIntLE(i + 12, 3) : kind === 'VP8L' ? (webp.readUInt32LE(i + 9) & 0x3fff) + 1 : webp.readUInt16LE(i + 14) & 0x3fff;
+  eq('map_base: the manifest matches the PNG on disk', !!man && man.bytes === png.length && man.nat[0] === png.readUInt32BE(16) && man.nat[1] === png.readUInt32BE(20) && man.w === 2048 && man.q === 0.82, true);
+  eq('map_base.webp is the 2048-wide copy', ww, 2048); }
 /* r265 (owner, 2026-10-16): the white arrow images are deleted, and the asset tooling no longer lists them */
 eq('the arrow images are gone', ['assets/ui/arrow.png', 'assets/ui/arrow.webp', 'assets/ui/arrow_point_down.png', 'assets/ui/arrow_point_down.webp'].every(f => !existsSync(f))
   && !/assets\/ui\/arrow(_point_down)?\.png/.test(readFileSync('tooling/asset-diet/manifest.json', 'utf8') + readFileSync('tooling/asset-diet/display.json', 'utf8')), true);
