@@ -1941,6 +1941,18 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (505: the manifest matches the PNG on disk, the WebP is 2048 wide), written first. Checked in the browser: the page loads
   the 690,138-byte WebP; the new map art shows; no console errors.
 
+- **r267: an order of several swords is sold one sword at a time (owner, 2026-10-16).** Before, the two-sword request
+  (GC9's gale Katana and fire Claymore) took both swords in one sale, or none ("My request was for two swords. You only
+  have one?"), and a qty order paid each sword as it went. Now the player puts one sword on the counter and taps SELL,
+  then the next. Every sword but the last is handed over unpaid (`orderHandOver`: it waits in `CUSTOMER.held`; the
+  customer says "Thank you. Now the Gale Katana, please." or "Good. N more, please."; a toast says the pay comes with
+  the whole order). The last sale pays every sword: gold, REP, popularity and one XP_SELL each, as before, in one toast
+  ("Sold 2 swords for 109g"). The SELL button reads "Hand over (1 of 2)", then "Sell all for 109g". A wrong sword is
+  refused with the swords still owed. COME LATER gives the held swords back to the inventory; CRAFT 1's lock counts only
+  the swords still owed. Asserted by the FTUE test (515: the helpers run on real swords, the sell path, the label, COME
+  LATER), written first. Checked in the browser: first sword 0g and the customer stays; second sword pays 109g (both
+  prices) with 2 SALES rows; a wrong Claymore is refused; COME LATER mid-order returns the held Claymore.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2051,3 +2063,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r264 the metal's glow is a strong white ring and gold halo (tutGlowOrb).
 - 2026-10-16: r265 the white arrow images (arrow, arrow_point_down) are deleted.
 - 2026-10-16: r266 the owner's new map_base is in the game (WebP regenerated, manifest updated).
+- 2026-10-16: r267 an order of several swords is sold one at a time and paid once, after the last.

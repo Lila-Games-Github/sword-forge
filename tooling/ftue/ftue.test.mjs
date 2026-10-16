@@ -335,6 +335,28 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r267 (owner, 2026-10-16): an order of several swords is sold one sword at a time; the gold comes once, for all of
+   them, after the last. orderSlot / orderLeft / orderHandOver run here on real swords */
+{ const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return '';
+    let d = 0, j = src.indexOf('{', i); for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; }
+    return src.slice(i, j + 1); };
+  const lib = new Function(['orderMatches', 'orderSlot', 'orderLeft', 'orderHandOver'].map(fn).join('\n') + '; return { orderSlot, orderLeft, orderHandOver };')();
+  const sw = (t, shape) => ({ shape, traits: [{ tid: t, tier: 'Fine' }] });
+  const kat = sw('gale', 'Katana'), clay = sw('fire', 'Claymore');
+  const two = { ftue: true, qty: 1, got: 0, items: [{ trait: 'gale', shape: 'Katana' }, { trait: 'fire', shape: 'Claymore' }] };
+  eq('two swords: the first is handed over, unpaid', lib.orderLeft(two) === 2 && lib.orderHandOver(two, clay) === true && two.held.length === 1 && lib.orderLeft(two) === 1, true);
+  eq('the same sword again fills nothing', lib.orderSlot(two, sw('fire', 'Claymore')), -1);
+  eq('the last one is the sale (no hand-over)', lib.orderSlot(two, kat) === 0 && lib.orderHandOver(two, kat) === false, true);
+  const five = { ftue: true, tid: 'balanced', qty: 5, got: 0 }, bal = () => sw('balanced', 'Longsword');
+  let handed = 0; while (lib.orderHandOver(five, bal())) handed++;
+  eq('five swords: four are handed over, the fifth is the sale', handed === 4 && five.got === 4 && five.held.length === 4 && lib.orderLeft(five) === 1, true);
+  eq('a single order is a plain sale', lib.orderHandOver({ ftue: true, tid: 'fire', qty: 1, got: 0 }, sw('fire', 'Longsword')), false); }
+eq('sellCounter hands over before any gold moves', /function sellCounter\(\)\{[\s\S]*?if\(ftueC && orderHandOver\(ftueC, COUNTER\)\)\{ orderHandedOver\(ftueC\); return; \}[\s\S]*?GOLD \+= pay;/.test(src), true);
+eq('the last sale pays the held swords too', /function sellCounter\(\)\{[\s\S]*?const held=\(ftueC && ftueC\.held\) \|\| \[\][\s\S]*?held\.forEach\(h=>\{ const hg=swordPrice\(h\)[\s\S]*?GOLD\+=hg;/.test(src), true);
+eq('the old all-or-none rule is gone', src.includes('My request was for two swords. You only have one?'), false);
+eq('SELL reads "Hand over (n of m)", then "Sell all for"', src.includes("'Hand over ('") && src.includes("'Sell all for '"), true);
+eq('COME LATER gives the held swords back', /function comeLater\(\)\{[\s\S]{0,400}INV\.swords\.push\(\.\.\.c\.held\)/.test(src), true);
+eq('CRAFT 1 counts only the swords still owed', /function ftueCraftLocked\(\)\{[\s\S]{0,300}orderOwed\(c\)\.every/.test(src), true);
 /* r266 (owner, 2026-10-16): the owner's new map_base.png is what the game shows - its WebP regenerated (2048 wide, q 0.82)
    and the manifest entry describes the PNG on disk */
 { const png = readFileSync('assets/map/map_base.png'), webp = readFileSync('assets/map/map_base.webp');
@@ -408,7 +430,7 @@ eq('COME LATER first ends the guide', src.includes("const lesson = (c.lesson==='
             'Well, it is a sword. Mostly.' ] }); }
 eq('a Weak sword the customer asked for gets a Fine line; any other tier its own', src.includes("function custThanksLine(tier, asked){ const k = (tier==='Weak' && asked==='Weak') ? 'Fine' : (CUST_THANKS[tier] ? tier : 'Fine'); const a=CUST_THANKS[k]; return a[Math.floor(Math.random()*a.length)]; }"), true);
 eq('only gameplay customers (no scripted one, no TC4, not mid-order, not refused)', src.includes("const byeC = (!scriptedBye && !bram && CUSTOMER && !(ftueC && ftueC.tc4) && !refused) ? CUSTOMER : null;")
-  && /if\(byeC && !CUSTOMER\) custBye\(byeC\.portrait, custThanksLine\(tier, byeC\.tier\)\);[^\n]*\r?\n    gainExp\(XP_SELL,'sell'\);/.test(src), true);
+  && /if\(byeC && !CUSTOMER\) custBye\(byeC\.portrait, custThanksLine\(tier, byeC\.tier\)\);[^\n]*\r?\n    gainExp\(XP_SELL\*\(held\.length\+1\),'sell'\);/.test(src), true);
 eq('the leaving customer is drawn, never counted as present', src.includes("else if(name==='customer' && CUST_BYE) list.unshift({ src:CUST_BYE.portrait, l:7.97, w:20.99, b:86.16 });   /* r252 */")
   && src.includes("const here=!!CUSTOMER, bye=!here && !!CUST_BYE;") && src.includes("if(dlg) dlg.style.display = ((here || bye) && !introOn) ? '' : 'none';"), true);
 eq('the goodbye ends after CUST_BYE_MS or when the next customer comes', src.includes('const CUST_BYE_MS=3200;')
@@ -520,7 +542,6 @@ eq('the ledger\'s right page: details on top, the waiting list below', src.inclu
 eq('a request reads "1X Fire Claymore"', src.includes("function waitLabel(it){ return '1X '+TRAIT_BY[it.trait].name+' '+it.shape; }"), true);
 eq('the call-back question', src.includes('Call this customer back?') && src.includes('>WAIT LONGER<'), true);
 eq('someone already at the counter', src.includes('There is already a customer at the counter.'), true);
-eq('two swords or none', src.includes('My request was for two swords. You only have one?'), true);
 /* owner, 2026-10-09: the crafted window at the wireframe's size - the card fills ~88% of the height (470 px wide in the 1080x600 frame) */
 eq('the crafted card is wireframe-sized', src.includes('.cw-stage { position: relative; width: 470px;') && src.includes('.cw-main .cr-art { height: 200px;'), true);
 /* owner, 2026-10-09: the QUEST button glows green while a finished quest waits to be claimed */

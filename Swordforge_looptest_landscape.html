@@ -2881,13 +2881,23 @@ function ftueGpcArrive(){
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
 }
-/* r201: a sale to an order of several. Returns true while the customer still wants more. */
-function ftueOrderSold(c){
-    c.got=(c.got||0)+1;
-    if(c.got>=c.qty) return false;
-    CUSTOMER=c; buildScreenProps('customer'); counterUi();
-    const left=c.qty-c.got; custLine(null, 'Good. '+left+' more, please.');
-    return true;
+/* r267 (owner, 2026-10-16): an order of several swords (GPC3's five, the two-sword request) is sold one sword at a time.
+   Every sword but the last is handed over unpaid and waits in c.held; the last sale pays for all of them.
+   orderSlot: the part of the order sword w fills (an item index, 0 for a qty order), or -1. orderLeft: swords still to
+   come, the counter's included. orderHandOver: hands w over and returns true while the order still wants more. */
+function orderOwed(c){ return c.items.filter((it,i)=>!(c.doneIdx||[]).includes(i)); }
+function orderSlot(c, w){ if(c.items && c.items.length>1) return c.items.findIndex((it,i)=>!(c.doneIdx||[]).includes(i) && orderMatches(it, w));
+    return orderMatches(c, w) ? 0 : -1; }
+function orderLeft(c){ return (c.items && c.items.length>1) ? c.items.length-(c.doneIdx||[]).length : Math.max(1, (c.qty||1)-(c.got||0)); }
+function orderHandOver(c, w){ const i=orderSlot(c, w); if(i<0 || orderLeft(c)<=1) return false;
+    if(c.items && c.items.length>1) (c.doneIdx=c.doneIdx||[]).push(i); else c.got=(c.got||0)+1;
+    (c.held=c.held||[]).push(w); return true; }
+function orderHandedOver(c){
+    COUNTER=null; tutSellLit(false); refreshCounter(); counterUi();
+    const next=(c.items && c.items.length>1) ? orderOwed(c)[0] : null;
+    custLine(null, next ? 'Thank you. Now the '+orderLabel(TRAIT_BY[next.trait].name, next.shape)+', please.' : 'Good. '+orderLeft(c)+' more, please.');
+    toast('Handed over. You are paid when the whole order is sold.');
+    if(c.qty>1) setTimeout(ftueBulkStep, 0);
 }
 /* r201: TC2's sword is done. Sharpening moved to part 5, so straight to the counter to sell it.
    'base-back' + TUT_SHARP_RUN is the old basement run's own return path (D55, then D23 at the
@@ -3576,6 +3586,10 @@ function priceLabel(w){
 function sellLabel(){
     const b=document.querySelector('#csPanel .cs-sell'); if(!b) return;
     b.textContent = COUNTER ? priceLabel(COUNTER) : 'SELL';
+    const c=CUSTOMER, many=c && c.ftue && ((c.items && c.items.length>1) || c.qty>1);   /* r267: an order of several */
+    if(COUNTER && many && orderSlot(c, COUNTER)>=0){ const all=(c.items && c.items.length>1) ? c.items.length : c.qty, left=orderLeft(c);
+        if(left>1) b.textContent='Hand over ('+(all-left+1)+' of '+all+')';
+        else if(c.held && c.held.length) b.textContent='Sell all for '+(c.held.reduce((s,h)=>s+swordPrice(h), 0)+swordPrice(COUNTER))+'g'; }
     b.disabled = !COUNTER;   /* r146: nothing on the counter, nothing to sell. sellLabel() is the LAST thing counterUi() does, so it wins over the blanket if(here) b.disabled=false above it, and it also runs from refreshCounter() on every counter change. */
 }
 function updateHud(){
@@ -3594,17 +3608,10 @@ function sellCounter(){
     if(!COUNTER){ toast('Put a sword on the counter first'); return; }
     if(TUT_STAGE==='bram2-sell2' && COUNTER && COUNTER.shape!=='Dagger'){ toast('Bram asked for a <b>Swift Dagger</b>'); return; }   /* v3 part 5 */
     const ftueC = (CUSTOMER && CUSTOMER.ftue) ? CUSTOMER : null;   /* r199: a gameplay customer with a real order */
-    if(ftueC && ftueC.items && ftueC.items.length>1){   /* 2026-10-09: one customer, several swords - all of them, or none */
-        const mine=ftueC.items.findIndex(it=>orderMatches(it, COUNTER));
-        if(mine<0){ toast('They asked for <b>'+waitLines(ftueC).join(' and ')+'</b>'); return; }
-        const pool=INV.swords.slice(), extra=[];
-        for(const it of ftueC.items.filter((it,i)=>i!==mine)){ const j=pool.findIndex(w=>orderMatches(it, w));
-            if(j<0){ custLine(null, 'My request was for two swords. You only have one?'); return; }
-            extra.push(pool.splice(j,1)[0]); }
-        extra.forEach(w=>{ INV.swords.splice(INV.swords.indexOf(w),1); const g2=swordPrice(w); GOLD+=g2;
-            SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({}, w.design||{}), traits:w.traits, gold:g2 }); });
-        if(INV_TAB===2) buildShelf(); }
+    if(ftueC && ftueC.items && ftueC.items.length>1){   /* 2026-10-09: one customer, several swords. r267: one at a time */
+        if(orderSlot(ftueC, COUNTER)<0){ toast('They asked for <b>'+orderOwed(ftueC).map(waitLabel).join(' and ')+'</b>'); return; } }
     else if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }   /* v3 D7: the shape too; part 4: the tier */
+    if(ftueC && orderHandOver(ftueC, COUNTER)){ orderHandedOver(ftueC); return; }   /* r267: not the last sword - no gold yet */
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
@@ -3616,6 +3623,12 @@ function sellCounter(){
     GOLD += pay; REP += 1;   /* r132 */
     POP += (POP_GAIN[tier]||0);
     if(tier==='Weak' && pay>0) bumpQuest('sellWeak');   /* 2026-10-09 */
+    const held=(ftueC && ftueC.held) || [];   /* r267: the order's earlier swords are paid now, with the last */
+    let heldG=0, heldPop=0;
+    held.forEach(h=>{ const hg=swordPrice(h), ht=swordBestTier(h); GOLD+=hg; REP+=1; POP+=(POP_GAIN[ht]||0); heldG+=hg; heldPop+=(POP_GAIN[ht]||0);
+        if(ht==='Weak') bumpQuest('sellWeak');
+        SALES.push({ shape:h.shape, blade:h.blade, design:Object.assign({}, h.design||{}), traits:h.traits, gold:hg }); });
+    if(ftueC) ftueC.held=[];
     let levelled=false;
     while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:pay });   /* r132 */
@@ -3627,11 +3640,12 @@ function sellCounter(){
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
-    if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else if(ftueOrderSold(ftueC)) setTimeout(ftueBulkStep, 0); else ftueGpcSold(); }   /* v3: TC4 is scripted */   /* r199. r201: an order of several stays */
-    if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252: after the order hooks, which keep a customer with swords still to come */
-    gainExp(XP_SELL,'sell');                              // r73: counter sales only - the racks pay gold alone
+    if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else { ftueC.got=(ftueC.got||0)+1; ftueGpcSold(); } }   /* v3: TC4 is scripted */   /* r199. r267: an order of several only gets here with its last sword */
+    if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
+    gainExp(XP_SELL*(held.length+1),'sell');              // r73: counter sales only - the racks pay gold alone. r267: one XP_SELL a sword
+    const popAll=(POP_GAIN[tier]||0)+heldPop;
     if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
-    else toast('Sold for <b>'+g+'g</b>' + (POP_GAIN[tier] ? ' &middot; +'+POP_GAIN[tier]+' popularity' : ''));
+    else toast((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
 }
 function placeCounter(sw){
@@ -4959,6 +4973,7 @@ function waitLines(e){ return (e.items && e.items.length) ? e.items.map(it=>it.s
 function comeLater(){
     const c=CUSTOMER; if(!c) return;
     if(!FTUE_ST.done && !c.waiting && c.lesson!=='later'){ sayQueue('D107e'); return; }
+    if(c.held && c.held.length){ INV.swords.push(...c.held); c.held=[]; c.doneIdx=[]; if(INV_TAB===2) buildShelf(); }   /* r267: swords handed over, unpaid, come back */
     FTUE_ST.waiting.push({ portrait:c.portrait, tid:c.tid||null, shape:c.shape||null, tier:c.tier||null, name:c.name||null, ftue:!!c.ftue,
         items: c.items ? c.items.map(it=>Object.assign({}, it)) : (c.tid ? [ { trait:c.tid, shape:c.shape||null } ] : []) });
     const lesson = (c.lesson==='later' && !c.waiting); FTUE_LATER=null; ftueLaterCells(false);   /* r253 */
@@ -5922,7 +5937,7 @@ let SHAPE_CB=null;
 /* r239 (owner): in the FTUE, CRAFT 1 makes nothing while the customer's order is already made (on the counter or in the bag) */
 function ftueCraftLocked(){ if(FTUE_ST.done || !CUSTOMER) return false;
     const c=CUSTOMER, pool=INV.swords.concat(COUNTER ? [COUNTER] : []);
-    if(c.items && c.items.length>1) return c.items.every(it=>{ const j=pool.findIndex(w=>orderMatches(it, w)); if(j<0) return false; pool.splice(j,1); return true; });
+    if(c.items && c.items.length>1) return orderOwed(c).every(it=>{ const j=pool.findIndex(w=>orderMatches(it, w)); if(j<0) return false; pool.splice(j,1); return true; });
     const tid=c.tid || c.want; if(!tid) return false; const o={ trait:tid, shape:c.shape||null, tier:c.tier||null };
     return pool.filter(w=>orderMatches(o, w)).length >= Math.max(1, (c.qty||1)-(c.got||0)); }
 function cbCraft(n){
