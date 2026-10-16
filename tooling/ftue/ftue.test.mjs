@@ -335,6 +335,9 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r260 (owner, 2026-10-16): the mist is a soft plain white - no smoke art in it */
+eq('the mist is a soft plain white gradient', src.includes('#quenchFog { position: absolute; inset: 0; z-index: 58; display: none; pointer-events: none; opacity: 0; transition: opacity .6s ease-out;\n    background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.97) 0%, rgba(250,250,248,.9) 45%, rgba(242,242,240,.72) 100%); }')
+  || src.includes('#quenchFog { position: absolute; inset: 0; z-index: 58; display: none; pointer-events: none; opacity: 0; transition: opacity .6s ease-out;\r\n    background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.97) 0%, rgba(250,250,248,.9) 45%, rgba(242,242,240,.72) 100%); }'), true);
 eq('the mist layer covers the frame and catches taps while it plays', src.includes('<div id="quenchFog"></div>') && src.includes('#quenchFog.catch { display: block; pointer-events: auto; }'), true);
 eq('timers, not animation events, end it (a hidden pane freezes animations)', src.includes('setTimeout(()=>{ if(fog) fog.classList.remove(\'catch\'); if(done) done(); }, F.steamLead+F.fogIn+F.hold+F.fogOut);'), true);
 /* r258 (owner, 2026-10-16): the map books and the EXP lesson (D9) move from the first sword (Bram's) to the second (GC1) */

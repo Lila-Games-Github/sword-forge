@@ -1882,6 +1882,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   trait discovered" open; a tap during it lands on the mist; screenshots of the steam and the full mist; no console
   errors.
 
+- **r260: the quench mist is a soft plain white (owner, 2026-10-16).** r259's mist tiled the smoke art (cartoon clouds
+  with purple edges). Now `#quenchFog` is a plain radial gradient: white (0.97) at the centre to off-white (0.72) at the
+  edges, under the layer's 0.94 opacity, so the scene shows faintly through. Timing (`QUENCH_FX`) and the steam puffs are
+  unchanged. Asserted by the FTUE test (494), written first. Checked in the browser: the mist at full - computed
+  background the gradient, no smoke image; screenshot; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1985,3 +1991,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r257 the health fill shows at the start point too (full with no run).
 - 2026-10-16: r258 the tutorial books and D9 (EXP) move from the first sword to GC1, the second.
 - 2026-10-16: r259 the mug quench plays steam puffs and a full-screen mist (QUENCH_FX) before the trait window.
+- 2026-10-16: r260 the quench mist is a soft plain white gradient (no smoke texture).
