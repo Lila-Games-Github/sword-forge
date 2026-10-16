@@ -1802,6 +1802,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   3.2 s later both gone; Weak sword - a Weak line; a new customer during the goodbye - it ends, one portrait; Weak asked
   - a Fine line; a two-sword order - "Good. 1 more, please." then a Fine line on the last; no console errors.
 
+- **r253: the come-later customer goes through the market first (owner, 2026-10-16).** Part 4's waiting customer (gale
+  Katana + fire Claymore, `lesson:'later'`): after their request (D107c) MARKET lights; opening it scrolls both blueprints
+  into view and lights them (gale Katana 300g, fire Claymore 450g; the gold shows at the foot) and lights Close; closing
+  it gives D107d ("I am not buying the blueprint for those! Ask the customer to come back later when you are richer.
+  Humph!") and lights COME LATER, as before. No new line. State: `FTUE_LATER` ('mk' -> 'close' -> null), its own flag,
+  so the orders' market lesson (`FTUE_MK`) is untouched; COME LATER tapped at any point ends it. Asserted by the FTUE
+  test (479), written first. Checked in the browser (1280x720, PART 4 jump, `ftueGpcArrive` with the later order, real
+  taps): MARKET lit, D107d not yet; the market open on both cells (both in view, lit), Close lit; Close - D107d and COME
+  LATER lit, no cell left lit; COME LATER - the customer waits (1 on the list), the part goes on; no console errors.
+  The PART 4 jump starts before TC5, so the gale column shows "?" there; in play gale is found first.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1898,3 +1909,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r250 no toast when the basement sword goes back to the bag.
 - 2026-10-15: r251 a route of 5+ fully ground irons (drawn length) runs the sword x2; hazard damage per distance kept.
 - 2026-10-15: r252 gameplay customers say a random thank-you by tier (CUST_THANKS, 5 Epic / 5 Fine / 5 Weak).
+- 2026-10-16: r253 the come-later customer: MARKET, both blueprints lit, Close, then D107d and COME LATER.

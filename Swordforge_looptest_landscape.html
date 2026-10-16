@@ -2878,8 +2878,8 @@ function ftueGpcArrive(){
                 : null;
     if(o.lesson==='durable') typeAfter(ftueDurableStart);   /* v3 part 3 */
     if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
-    if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes();   /* 2026-10-09: COME LATER appears with them */
-        typeAfter(()=>{ sayQueue('D107d'); setTimeout(()=>tutExit('#csPanel .cs-later'), 0); }); }
+    if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */
+        typeAfter(()=>tutExit('#marketBtn')); }   /* 2026-10-09: COME LATER appears with them */
     if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ ftueMarketDone(FTUE_MK); return; } sayQueue(nudge); if(o.market) setTimeout(()=>tutExit('#marketBtn'), 0); });   /* v3: and MARKET blinks */
     custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.lesson==='later' ? DIALOGUE.D107c : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
@@ -4965,7 +4965,7 @@ function comeLater(){
     if(!FTUE_ST.done && !c.waiting && c.lesson!=='later'){ sayQueue('D107e'); return; }
     FTUE_ST.waiting.push({ portrait:c.portrait, tid:c.tid||null, shape:c.shape||null, tier:c.tier||null, name:c.name||null, ftue:!!c.ftue,
         items: c.items ? c.items.map(it=>Object.assign({}, it)) : (c.tid ? [ { trait:c.tid, shape:c.shape||null } ] : []) });
-    const lesson = (c.lesson==='later' && !c.waiting);
+    const lesson = (c.lesson==='later' && !c.waiting); FTUE_LATER=null; ftueLaterCells(false);   /* r253 */
     CUSTOMER=null; tutExit(null); sayHide(); tutArrow(null,null);
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi(); buildScreenProps('customer');
@@ -6010,6 +6010,7 @@ function closeMarket(){
     mkSayOff();
     if(m && m.step==='done') ftueMarketDone(m);   /* v3 (owner): GC1-GC3 are guided through the craft */   /* v3 part 5: Bram's run goes on */
     else if(m && m.step==='buy'){ m.step='ask'; tutExit('#marketBtn'); }   /* closed before buying: back to MARKET */
+    if(FTUE_LATER==='close'){ FTUE_LATER=null; ftueLaterCells(false); tutExit(null); sayQueue('D107d'); setTimeout(()=>tutExit('#csPanel .cs-later'), 0); }   /* r253 */
 }
 function renderMarket(){
     const L=document.getElementById('mkLabels'), S=document.getElementById('mkScroll'); if(!L || !S) return;
@@ -6055,7 +6056,18 @@ function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide
     if(m.o && m.o.guide) ftueBookGo(m.o); }   /* v3 (owner): GC1-GC3 are guided through the craft. v3 part 5: Bram's run goes on */
 /* owner, 2026-10-13: the player already owns the ordered blueprint - no trip to the market (it looped: buy, close, ask) */
 function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='ask' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }
+/* r253 (owner): the come-later customer's guide. MARKET lights after the request; in the market both blueprints are
+   scrolled into view and lit, with Close lit; closing it gives D107d and lights COME LATER. FTUE_LATER: 'mk' -> 'close'
+   -> null. Its own flag, so FTUE_MK (the orders' market lesson) is untouched; COME LATER at any point ends it. */
+let FTUE_LATER=null;
+const FTUE_LATER_KEYS=['gale:Katana','fire:Claymore'];
+function ftueLaterCells(on){
+    const cells=FTUE_LATER_KEYS.map(k=>document.querySelector(".mk-cell[data-k='"+k+"']")).filter(Boolean);
+    cells.forEach(c=>c.classList.toggle('tut-glow', !!on));
+    const S=document.getElementById('mkScroll');
+    if(on && S && cells.length) S.scrollLeft=Math.max(0, Math.min(...cells.map(c=>c.parentNode.offsetLeft))-S.offsetLeft); }
 function ftueMarketOpened(){
+    if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterCells(true); setTimeout(()=>tutExit('#sfMarketModal .mk-foot .paperBtn'), 0); return; }
     const m=FTUE_MK; if(!m || m.step!=='ask') return;
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
