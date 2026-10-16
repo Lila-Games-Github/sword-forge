@@ -311,6 +311,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.97) 0%, rgba(250,250,248,.9) 45%, rgba(242,242,240,.72) 100%); }   /* r260 (owner): a soft plain white mist */
 #quenchFog.catch { display: block; pointer-events: auto; }
 #quenchFog.on { opacity: .94; }
+#quenchFog.above { z-index: 1065; }   /* r262: over the hammer minigame's window */
 .quench-puff { position: absolute; width: 130px; margin: -65px 0 0 -65px; z-index: 24; pointer-events: none; opacity: 0;
     -webkit-user-drag: none; animation: quenchPuff 1.25s ease-out forwards; }
 @keyframes quenchPuff { 0% { opacity: 0; transform: translateY(10px) scale(.55); } 25% { opacity: .9; } 100% { opacity: 0; transform: translateY(-150px) scale(2.3); } }
@@ -6678,8 +6679,8 @@ function hmQuench(){
     const m=document.getElementById('hmMug'); if(m) m.classList.add('pouring');
     tutHm2Clear();   /* r102 */
     hmHeat=0; hmRender(); hmQuenchFx(); hmSay();
-    setTimeout(()=>{ hmQuenching=false;
-        if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, 780);
+    quenchFx(()=>{ hmQuenching=false;
+        if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, { host:document.getElementById('hmFx'), x:HM_RIG.anvil.x, y:HM_RIG.anvil.y-2, unit:'%', step:2.2, above:true });   /* r262 (owner): the forge mug's steam and mist, then the blade is done */
 }
 /* r165: the cheat. Striking decides nothing about the result - the shape was picked before the
    minigame opened and the traits belong to the melt - so skipping is just the end of it:
@@ -7419,12 +7420,14 @@ function positionWater(){ const b=benchEl().getBoundingClientRect(), mr=mugEl.ge
    then does the trait window open. QUENCH_FX (ms; record: specs/2026-10-07-ftue-v3-rework.md r259). Timers, not animation
    events, run it: a hidden pane freezes animations. The mist catches taps while it plays. */
 const QUENCH_FX={ puffs:4, steamLead:250, fogIn:350, hold:350, fogOut:600 };
-function quenchFx(done){ const F=QUENCH_FX, b=benchEl(), fog=document.getElementById('quenchFog');
-    const o=(orbEl.style.display!=='none')?orbCenter():stationCenter(stAnvil,0.5,0.2);
+/* r262: spot = where the puffs go - { host, x, y, unit, step, above }. Without one: the forge, at the metal. The hammer
+   minigame passes its own scene layer (% units) and above:true, which lifts the mist over its window. */
+function quenchFx(done, spot){ const F=QUENCH_FX, fog=document.getElementById('quenchFog');
+    const s=spot || (()=>{ const o=(orbEl.style.display!=='none')?orbCenter():stationCenter(stAnvil,0.5,0.2); return { host:benchEl(), x:o.x, y:o.y, unit:'px', step:22 }; })();
     for(let i=0;i<F.puffs;i++){ const im=document.createElement('img'); im.src='assets/forge/smoke.webp'; im.alt=''; im.className='quench-puff';
-        im.style.left=(o.x+(i-(F.puffs-1)/2)*22)+'px'; im.style.top=o.y+'px'; im.style.animationDelay=(i*90)+'ms'; b.appendChild(im);
+        im.style.left=(s.x+(i-(F.puffs-1)/2)*s.step)+s.unit; im.style.top=s.y+s.unit; im.style.animationDelay=(i*90)+'ms'; s.host.appendChild(im);
         setTimeout(()=>im.remove(), F.steamLead+F.fogIn+F.hold+F.fogOut); }
-    if(fog){ fog.classList.add('catch');
+    if(fog){ fog.classList.toggle('above', !!s.above); fog.classList.add('catch');
         setTimeout(()=>{ fog.style.transitionDuration=F.fogIn+'ms'; fog.classList.add('on'); }, F.steamLead);
         setTimeout(()=>{ fog.style.transitionDuration=F.fogOut+'ms'; fog.classList.remove('on'); }, F.steamLead+F.fogIn+F.hold); }
     setTimeout(()=>{ if(fog) fog.classList.remove('catch'); if(done) done(); }, F.steamLead+F.fogIn+F.hold+F.fogOut); }

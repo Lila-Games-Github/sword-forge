@@ -1896,6 +1896,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   quench and frames later - grey; heat back - orange; cooled to 0 - grey; in the furnace - orange; a zoom on the anvil
   after the quench shows the grey metal; no console errors.
 
+- **r262: the hammer minigame's mug plays the same steam and mist (owner, 2026-10-16).** `hmQuench` kept its own small
+  effect (`hmQuenchFx`: flash, ring, 7 wisps) and finished the blade 780 ms later. Now it also runs `quenchFx` - the same
+  4 smoke puffs and the white mist, same `QUENCH_FX` timing - and `finishBlade()` (the minigame closes, the "Sword
+  crafted!" window opens) runs when the mist has gone (1550 ms). `quenchFx(done, spot)` takes where the puffs go:
+  `{ host, x, y, unit, step, above }`; the forge mug passes nothing (the bench, at the metal), the minigame passes its
+  scene layer `#hmFx` at `HM_RIG.anvil` in % and `above:true`, which lifts the mist to z-index 1065 over its window
+  (`#quenchFog.above`). Asserted by the FTUE test (498), written first; the hammer test still GREEN (34). Checked in the
+  browser (`openHammer`, `hmProg` 2, `hmQuench`): 0 ms - 4 puffs in the scene, the mist above the minigame (z 1065, it
+  takes the centre tap); 400/900 ms - mist full, minigame still open; 1700 ms - mist and puffs gone, minigame closed,
+  "Sword crafted!" open; a screenshot of the steam over the anvil; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2001,3 +2012,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r259 the mug quench plays steam puffs and a full-screen mist (QUENCH_FX) before the trait window.
 - 2026-10-16: r260 the quench mist is a soft plain white gradient (no smoke texture).
 - 2026-10-16: r261 quenched metal on the anvil is grey (cold) until it is heated again.
+- 2026-10-16: r262 the hammer minigame mug plays the same steam and mist before the blade is finished.

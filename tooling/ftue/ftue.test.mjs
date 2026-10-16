@@ -335,6 +335,11 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r262 (owner, 2026-10-16): the hammer minigame's mug plays the same steam and mist, then finishes the blade */
+eq('quenchFx takes a spot (host layer, position, above)', src.includes('function quenchFx(done, spot){')
+  && src.includes("fog.classList.toggle('above', !!s.above);") && src.includes("#quenchFog.above { z-index: 1065; }"), true);
+eq('the minigame quench: its own steam, then quenchFx in its scene, then finishBlade', src.includes("hmHeat=0; hmRender(); hmQuenchFx(); hmSay();\n    quenchFx(()=>{ hmQuenching=false;\n        if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, { host:document.getElementById('hmFx'), x:HM_RIG.anvil.x, y:HM_RIG.anvil.y-2, unit:'%', step:2.2, above:true });")
+  || src.includes("hmHeat=0; hmRender(); hmQuenchFx(); hmSay();\r\n    quenchFx(()=>{ hmQuenching=false;\r\n        if(document.getElementById('sfHammerModal').classList.contains('show')) finishBlade(); }, { host:document.getElementById('hmFx'), x:HM_RIG.anvil.x, y:HM_RIG.anvil.y-2, unit:'%', step:2.2, above:true });"), true);
 /* r261 (owner, 2026-10-16): quenched metal is cool - grey, not orange. On the anvil it is hot only while it has heat */
 eq('hot in the furnace, or on the anvil with heat', src.includes("else if(melt&&(melt.stage==='hot'||(melt.stage==='onAnvil' && melt.heat>0))){ orbEl.classList.add('hot');")
   && src.includes("else if(melt&&melt.stage==='onAnvil'){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; }"), true);
