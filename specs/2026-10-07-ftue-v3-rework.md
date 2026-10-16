@@ -1847,6 +1847,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   with an Epic `#alignRing` drawn on the sword's spot (map zoomed in) the purple ring is fully visible around the disc and
   the fill covers its lower 65%; no console errors.
 
+- **r257: the health fill shows at the start point too (owner, 2026-10-16).** It appeared only once the sword left the
+  start (the old bar's `swordOut()` rule). Now `#swordHpFill` always shows on the sword marker: the run's health while
+  there is one, a full disc while there is none (an unforged blade is whole); the markup starts visible. Asserted by the
+  FTUE test (486), written first. Checked in the browser: fresh load (no run) - full, green; a run started, the sword
+  unmoved - full; damaged to 55% at the start - 55%, amber; after a reset - full; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1947,3 +1953,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r254 the GC4 map window (basic vs elemental) shows the owner's MAP_parts2.
 - 2026-10-16: r255 after the quest list: D119a "tap me for help", the dragon glows, a tap gives D119b, then the bell.
 - 2026-10-16: r256 the health is a fill inside the sword disc (top 100% to bottom 0%); the ring covered the tier ring.
+- 2026-10-16: r257 the health fill shows at the start point too (full with no run).

@@ -2190,7 +2190,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <g id="sword">
                 <circle r="19" fill="#3f7bd6" stroke="#dbe9ff" stroke-width="3.5"/>
                 <text text-anchor="middle" dominant-baseline="central" font-size="21">⚔️</text>
-                <g id="swordHpFill" style="display:none;"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>
+                <g id="swordHpFill"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>
             </g>
         </svg>
         <div class="zoom">
@@ -5705,8 +5705,8 @@ function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if
    level - full disc at 100%, gone at 0% - clipped to the disc so the tier alignment ring around it stays clear.
    Semi-transparent, so the icon shows through. Same rule and colours as the old top-right bar. */
 function updateHpPill(){ const g=document.getElementById('swordHpFill'), a=document.getElementById('swordHp'); if(!g || !a) return;
-    if(!melt || !swordOut()){ g.style.display='none'; return; }
-    const pct=Math.max(0, Math.min(100, (melt.hp/BLADE_HP_MAX)*100));
+    /* r257 (owner): shown from the start point too - always; with no run the blade is whole, so the disc is full */
+    const pct=Math.max(0, Math.min(100, ((melt ? melt.hp : BLADE_HP_MAX)/BLADE_HP_MAX)*100));
     g.style.display=''; a.style.display = pct>0 ? '' : 'none';
     const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));
     a.setAttribute('fill', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }

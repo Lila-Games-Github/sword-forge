@@ -712,8 +712,11 @@ eq('.cs-bram-dlg p types from the left', /\.cs-bram-dlg p \{[^}]*text-align:left
 /* r243 (owner, 2026-10-15): the sword's health is a ring around its map marker, not a bar at the top right */
 /* r256 (owner, 2026-10-16): the ring covered the tier alignment ring, so the health is now a fill INSIDE the sword disc -
    a level from the top (100%) down to the bottom (0%), clipped to the disc, semi-transparent over the icon */
-eq('the fill lives in the sword marker, over the icon, clipped to the disc', src.includes('<g id="swordHpFill" style="display:none;"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>')
+eq('the fill lives in the sword marker, over the icon, clipped to the disc', src.includes('<g id="swordHpFill"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>')
   && src.indexOf('<g id="swordHpFill"') > src.indexOf('<text text-anchor="middle" dominant-baseline="central" font-size="21">') && !src.includes('swordHpRing'), true);
+/* r257 (owner, 2026-10-16): the fill shows at the start point too - always, full while there is no run */
+eq('no swordOut gate; full health without a run', src.includes("const pct=Math.max(0, Math.min(100, ((melt ? melt.hp : BLADE_HP_MAX)/BLADE_HP_MAX)*100));")
+  && !/function updateHpPill\(\)\{[^}]*swordOut\(\)/.test(src), true);
 eq('the level is the health percentage, top down', src.includes("const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));")
   && src.includes("a.style.display = pct>0 ? '' : 'none';"), true);
 eq('no top-right bar left', !src.includes('id="sfHp"') && !src.includes('#sfHp'), true);
