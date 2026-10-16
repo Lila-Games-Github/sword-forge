@@ -1961,6 +1961,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   no coins on the hand-over; on the last sale five coins start at SELL's centre and end on the gold count's centre, the
   count reads 520 in flight and 629 after, and "+109g" pops; no console errors.
 
+- **r269: the owner's map base, updated again (owner, 2026-10-16).** The owner replaced `assets/map/map_base.png` a
+  second time (2948x2948, 16,807,549 bytes). `map_base.webp` is regenerated with the same recipe as r266 (2048 wide,
+  quality 0.82, halving resize; 583 KB) and the manifest entry records the new source. The FTUE test's r266 check (the
+  manifest matches the PNG on disk) failed on the new PNG first, then passed. Checked in the browser: the page loads the
+  582,914-byte WebP and the forge map shows the new art.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2073,3 +2079,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r266 the owner's new map_base is in the game (WebP regenerated, manifest updated).
 - 2026-10-16: r267 an order of several swords is sold one at a time and paid once, after the last.
 - 2026-10-16: r268 a paid sale flies coins from SELL to the gold panel, like a quest claim.
+- 2026-10-16: r269 the owner's map_base updated again (WebP regenerated, manifest updated).
