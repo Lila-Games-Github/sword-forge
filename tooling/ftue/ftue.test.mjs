@@ -335,6 +335,13 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r273 (owner, 2026-10-16): the ore step also shows the path, the active sword and the map's highlight. The map gets a
+   window in the main dim and its own dim (#tutHoleMap, over the map's box only) with a soft hole for each fog circle,
+   fading over the fog's own blur */
+eq('the map dim exists beside the main one', src.includes('<div id="tutHole"></div>\n    <div id="tutHoleMap"></div>') || src.includes('<div id="tutHole"></div>\r\n    <div id="tutHoleMap"></div>'), true);
+eq('it is the same dim, over the map only', src.includes('#tutHoleMap { position: absolute; z-index: 60; background: rgba(6,4,2,.74); display: none; pointer-events: none; }'), true);
+eq('a fog window takes a soft hole per fog circle, intersected', /function tutDarkLayout\(\)\{[\s\S]{0,1200}if\(c\.fog\) tutFogDim\(r, a, k, x, y, w, h\);[\s\S]{0,400}function tutFogDim\([^)]*\)\{[\s\S]{0,600}getScreenCTM\(\)[\s\S]{0,200}#fogHoles circle[\s\S]{0,600}radial-gradient\(circle [\s\S]{0,900}maskComposite='intersect'/.test(src), true);
+eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/) || [])[1], '40');
 /* r272 (owner, 2026-10-16): the first sword's steps stay dark until the hammering starts. One table, stage -> what is
    lifted over the dim (and any window cut in it): ore = the smelter and the inventory (r271); bellows and gate = the
    smelter, bellows included; anvil = the anvil and the metal; hammer = the anvil, the metal and the hammer; strike (D8,
@@ -342,7 +349,7 @@ eq('the trait is gained at once; the hooks, the window and the toast wait for th
    held but drops its own #tutDim for this. The dragon, his line and the arrow (z70) are always over */
 { const m = src.match(/const STAGE_DARK=(\{.*\});/);
   eq('STAGE_DARK is the recorded table', m && new Function('return ' + m[1])(), {
-    ore:     { cut: [{ sel: '#matPanel' }], lift: ['#stSmelt'] },
+    ore:     { cut: [{ sel: '#matPanel' }, { sel: '#map-wrap', fog: true }], lift: ['#stSmelt'] },
     bellows: { lift: ['#stSmelt'] },
     gate:    { lift: ['#stSmelt'] },
     anvil:   { lift: ['#stAnvil', '#orb'] },

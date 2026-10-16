@@ -395,6 +395,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    other tap lands on the dim. */
 #tutHole { position: absolute; inset: 0; z-index: 60; background: rgba(6,4,2,.74); display: none; }
 #tutHole.on { display: block; }
+/* r273: the ore step's map - the same dim over the map's box only, with a soft hole per fog circle (tutDarkLayout) */
+#tutHoleMap { position: absolute; z-index: 60; background: rgba(6,4,2,.74); display: none; pointer-events: none; }
+#tutHoleMap.on { display: block; }
 #dragonSay.hole-say { z-index: 61; }   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
 /* r270: D1 and D2 - the dim with no hole, and the dragon over it with his line. r271: the ore step lifts the smelter too
    (#frame.landscape, to beat its own z-index 3 rule). r272: the anvil, the hammer and the metal, in their own order */
@@ -2100,6 +2103,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </div>
     <div id="tutDim"></div>
     <div id="tutHole"></div>
+    <div id="tutHoleMap"></div>
     <div id="quenchFog"></div>
     <svg id="tutSpin" viewBox="0 0 100 100" aria-hidden="true">
         <!-- r151: its OWN marker. The shared #tutHead sits in #tutArrow, which is display:none
@@ -2862,14 +2866,20 @@ const SAY_DARK=['D1','D2'];
    r272 (owner): every step of the first sword up to the hammering, one table: stage -> what is lifted (and any window).
    strike (D8, the first strike) cuts a window over the map, so the moving sword icon is what shows; tutPause leaves
    its own #tutDim off in a dark stage. */
-const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] } };
+const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] } };
 let TUT_DARK_CUT=null, TUT_DARK_ST=null;
+/* r273 (owner): the ore step shows the path, the active sword and the map's highlight too. A fog window (fog:true) is a
+   window in the main dim with a second dim (#tutHoleMap) over it, holed softly where the fog is: one radial gradient per
+   #fogHoles circle, intersected. FOG_EDGE (world units) is the fade either side of a circle's edge, about the fog's own
+   blur (#fogSoft, stdDeviation 24). */
+const FOG_EDGE=40;
 function tutDarkSync(){ const st=STAGE_DARK[TUT_STAGE] ? TUT_STAGE : null;
     if(st!==TUT_DARK_ST){ TUT_DARK_ST=st; if(st) tutDark(true, STAGE_DARK[st].cut, STAGE_DARK[st].lift); else tutDark(false); }
     else if(TUT_DARK_CUT) tutDarkLayout(); }
 function tutDark(on, cut, lift){ if(TUT_HOLE) return; TUT_DARK_CUT=(on && cut) ? cut : null;
     document.querySelectorAll('.dark-lit').forEach(e=>e.classList.remove('dark-lit'));
     if(on) (lift||[]).forEach(sel=>{ const e=document.querySelector(sel); if(e) e.classList.add('dark-lit'); });
+    const hm=document.getElementById('tutHoleMap'); if(hm) hm.classList.remove('on');   /* r273: tutDarkLayout puts it back */
     const d=document.getElementById('tutHole'); if(d){ d.classList.toggle('on', !!on); d.style.clipPath=''; d._cp=''; if(TUT_DARK_CUT) tutDarkLayout(); }
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!on);
     const dr=document.getElementById('dragon'); if(dr) dr.classList.toggle('dark-lit', !!on); }
@@ -2877,9 +2887,22 @@ function tutDarkLayout(){ const d=document.getElementById('tutHole'); if(!d || !
     const a=d.getBoundingClientRect(); if(!(a.width>0)) return;
     const k=d.offsetWidth/a.width; let p='M0 0H'+d.offsetWidth+'V'+d.offsetHeight+'H0Z';
     TUT_DARK_CUT.forEach(c=>{ const e=document.querySelector(c.sel); if(!e) return; const r=e.getBoundingClientRect(); if(!(r.width>0)) return;
-        const x=(r.left-a.left)*k-4, y=(r.top-a.top+r.height*(c.top||0))*k-4, w=r.width*k+8, h=r.height*(1-(c.top||0))*k+8;
-        p+=' M'+x.toFixed(1)+' '+y.toFixed(1)+'h'+w.toFixed(1)+'v'+h.toFixed(1)+'h'+(-w).toFixed(1)+'Z'; });
+        const pad=c.fog ? 0 : 4;   /* r273: a fog window meets its own dim edge to edge */
+        const x=(r.left-a.left)*k-pad, y=(r.top-a.top+r.height*(c.top||0))*k-pad, w=r.width*k+2*pad, h=r.height*(1-(c.top||0))*k+2*pad;
+        p+=' M'+x.toFixed(1)+' '+y.toFixed(1)+'h'+w.toFixed(1)+'v'+h.toFixed(1)+'h'+(-w).toFixed(1)+'Z';
+        if(c.fog) tutFogDim(r, a, k, x, y, w, h); });
     const cp="path(evenodd, '"+p+"')"; if(d._cp!==cp){ d.style.clipPath=cp; d._cp=cp; } }
+function tutFogDim(r, a, k, x, y, w, h){ const m=document.getElementById('tutHoleMap'); if(!m) return;
+    /* a mask's circles are never drawn, so they have no screen box: map their centres through the fog rect's own transform */
+    const fr=document.getElementById('fog'), M=fr && fr.getScreenCTM(); if(!M) return;
+    const g=[]; document.querySelectorAll('#fogHoles circle').forEach(ci=>{ const R=+ci.getAttribute('r'), X=+ci.getAttribute('cx'), Y=+ci.getAttribute('cy'); if(!(R>0)) return;
+        const s=Math.hypot(M.a, M.b)*k, cx=(M.a*X+M.c*Y+M.e-r.left)*k, cy=(M.b*X+M.d*Y+M.f-r.top)*k;
+        g.push('radial-gradient(circle at '+cx.toFixed(1)+'px '+cy.toFixed(1)+'px, transparent '+(Math.max(0, R-FOG_EDGE)*s).toFixed(1)+'px, #000 '+((R+FOG_EDGE)*s).toFixed(1)+'px)'); });
+    const key=[x,y,w,h].map(v=>v.toFixed(1)).join(',')+'|'+g.join(',');
+    if(m._key!==key){ m._key=key; m.style.left=x.toFixed(1)+'px'; m.style.top=y.toFixed(1)+'px'; m.style.width=w.toFixed(1)+'px'; m.style.height=h.toFixed(1)+'px';
+        const img=g.length ? g.join(', ') : 'none'; m.style.maskImage=img; m.style.webkitMaskImage=img;
+        m.style.maskComposite='intersect'; m.style.webkitMaskComposite='source-in'; }
+    m.classList.add('on'); }
 function tutHoleLayout(){ const d=document.getElementById('tutHole'), sp=document.getElementById('tutSpot'); if(!d || !sp) return;
     const a=d.getBoundingClientRect(), r=sp.getBoundingClientRect(); if(!(a.width>0) || !(r.width>0)) return;
     const k=d.offsetWidth/a.width, W=d.offsetWidth, H=d.offsetHeight;

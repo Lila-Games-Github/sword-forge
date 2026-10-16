@@ -2004,6 +2004,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   each step lifts exactly its entry (the smelter, the gate, the metal, the anvil and the hammer hit themselves; the rest
   hits the dim); at D8 the map's centre is lit and the anvil is dark, the pause holds; after D8 nothing is dark.
 
+- **r273: the ore step shows the path, the active sword and the map's highlight (owner, 2026-10-16).** The ore entry of
+  `STAGE_DARK` gains a fog window, `{ sel:'#map-wrap', fog:true }`: the main dim gets a window over the map's box, and a
+  second dim, `#tutHoleMap` (same colour, z60, no pointer events), covers exactly that box with a soft hole for each
+  `#fogHoles` circle (one radial gradient each, intersected). A mask's circles are never drawn, so they have no screen
+  box; their centres and radii go through the fog rect's `getScreenCTM()`. Each hole fades over `FOG_EDGE = 40` world
+  units either side of the circle's edge, about the fog's own blur (`#fogSoft`, stdDeviation 24). So the lit area is the
+  fog's highlight, with the path and the sword in it; the map outside it, the bench (but the smelter) and the rail (but
+  the inventory) stay dark. Asserted by the FTUE test (535), written first. Checked in the browser on a new game: at D3
+  with two ores in, the map dim has three holes (the opening reveal and two sword reveals); the highlight, the path and
+  the sword show; with the fourth ore in, D4 shows and the map dim is off.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2120,3 +2131,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r270 D1 and D2 are read on a dark screen; only the dragon and his line show.
 - 2026-10-16: r271 the ore step (D3) is read on a dark screen; the smelter and the inventory show.
 - 2026-10-16: r272 the first sword's steps (D3-D7) stay dark around what each step uses; D8 lights the map.
+- 2026-10-16: r273 the ore step also shows the path, the active sword and the map's highlight.
