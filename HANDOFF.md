@@ -13,7 +13,7 @@ continuation prompt printed at close time.
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
 - **Status: FTUE v3 is merged and live.** PR #24 (2026-10-14) carried r216-r230, the FTUE v3 rework
   (parts 1-6), its play-test round and the fixes after it; the Pages deploy succeeded and the live page
-  serves the merged build. **198 dialogue keys** (D92m, D92n added 2026-10-15), `lastLine()` `D140`.
+  serves the merged build. **200 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16), `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
@@ -141,6 +141,7 @@ continuation prompt printed at close time.
 - **r252:** gameplay customers thank you after a sale: a random `CUST_THANKS` line by the sword's best tier (5 each; a Weak sword they asked for gets a Fine line), shown for 3.2 s by the display-only `CUST_BYE`.
 - **r253:** the part 4 come-later customer is guided to MARKET first (both blueprints shown and lit, then Close), then D107d and COME LATER (`FTUE_LATER`).
 - **r254:** the GC4 map window (basic vs elemental) shows `assets/ui/MAP_parts2.webp`; the five-parts window keeps `MAP_parts.webp`.
+- **r255:** after the part 1 quest list, D119a teaches "tap me for help": close it, tap the glowing dragon (`tutGlowBig`), D119b, then the bell (D27, D28) as before.
 - **FTUE v3 (history; now built, merged and live, see "Current state"; `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
 
 ## Next steps
@@ -183,10 +184,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 198 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 480 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 485 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

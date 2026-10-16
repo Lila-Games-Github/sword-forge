@@ -1821,6 +1821,21 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   by the FTUE test (480), written first. Checked in the browser (stage `p3-dur-ask`): the window shows MAP_parts2.webp,
   loaded, 400x400; no console errors.
 
+- **r255: "tap me for help", after the quest list (owner, 2026-10-16).** Part 1, after Bram's sale and the quest list
+  (both quests claimed, the list closed): two new lines (owner's words) beside D119:
+  | Id | Line |
+  | --- | --- |
+  | D119a | "If you are not sure what to do, at any point, you can tap on me. I'll help you." |
+  | D119b | "Good. Now let's continue." |
+  Closing the list now gives D119, D119a (stage `p1-dragon`); D119a's button is a lit close (`SAY_GO_GLOW`). Closing it
+  (`SAY_AFTER.D119a`) sets `p1-dragon-tap` and lights both dragons (counter screen and forge) with a stronger glow
+  (`tutGlowBig` on `.crop.dragoncrop`; the plain `tutGlow` was faint on the counter's wood). Any tap on the dragon
+  (`dragonTap`) then removes the glow and says D119b, D27, D28: D27 brings the bell, as before (stage `p1-bell0` ->
+  `p1-bell`). A tap before D119a is closed repeats the line, as taps always do. Asserted by the FTUE test (485), written
+  first. Checked in the browser (1280x720, counter, real taps): close the list - D119 (OK); OK - D119a (lit X, no bell
+  yet); X - both dragons glow; tap the dragon - D119b, glow gone; OK - D27, the bell out, stage `p1-bell`; no console
+  errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1919,3 +1934,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r252 gameplay customers say a random thank-you by tier (CUST_THANKS, 5 Epic / 5 Fine / 5 Weak).
 - 2026-10-16: r253 the come-later customer: MARKET, both blueprints lit, Close, then D107d and COME LATER.
 - 2026-10-16: r254 the GC4 map window (basic vs elemental) shows the owner's MAP_parts2.
+- 2026-10-16: r255 after the quest list: D119a "tap me for help", the dragon glows, a tap gives D119b, then the bell.

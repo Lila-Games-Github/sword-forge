@@ -466,6 +466,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     animation: tutFlow .7s linear infinite; }
 @keyframes tutFlow { to { stroke-dashoffset: -23; } }
 .tut-glow { animation: tutGlow 1.15s ease-in-out infinite; }
+/* r255: the dragon's own glow (tap me) - stronger, or it is lost on the counter's wood */
+.crop.dragoncrop.tut-glow { animation: tutGlowBig 1.15s ease-in-out infinite; }
+@keyframes tutGlowBig {
+    0%,100% { filter: drop-shadow(0 0 4px rgba(255,210,122,.6)); }
+    50%     { filter: drop-shadow(0 0 14px rgba(255,225,140,1)) drop-shadow(0 0 30px rgba(255,170,40,.9)) brightness(1.18); } }
 @keyframes tutGlow {
     0%,100% { filter: drop-shadow(0 0 2px rgba(255,210,122,.35)); }
     50%     { filter: drop-shadow(0 0 13px rgba(255,210,122,.95)) drop-shadow(0 0 26px rgba(255,170,40,.6)); } }
@@ -4827,7 +4832,7 @@ function closeQuests(){
     if(TUT_STAGE==='p1-quest2' && ftueQuestsUnclaimed()) return;   /* r200: claim both first; the CLAIM buttons are blinking */
     document.getElementById('sfQuestModal').classList.remove('show');
     if(TUT_STAGE==='gift-quest2'){ TUT_STAGE=null; sayQueue('D119'); }   /* r129 */
-    if(TUT_STAGE==='p1-quest2'){ tutExit(null); TUT_STAGE='p1-bell0'; sayQueue('D119','D27','D28'); } }   /* r199: then the bell */
+    if(TUT_STAGE==='p1-quest2'){ tutExit(null); TUT_STAGE='p1-dragon'; sayQueue('D119','D119a'); } }   /* r199: then the bell. r255: first "tap me for help" */
 
 // ---- r56: Diary -----------------------------------------------------------------------------------
 // Seven slots, laid out exactly as the wireframe draws them: four across the top (two per page) and
@@ -7603,6 +7608,8 @@ const DIALOGUE = {
     D117: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!",
     D118: "I made something for you. To keep you motivated, I put together a small quest list.",
     D119: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from.",
+    D119a: "If you are not sure what to do, at any point, you can tap on me. I'll help you.",   /* r255 (owner): close it, then tap him */
+    D119b: "Good. Now let's continue.",   /* r255: the tap that proves it; the bell follows (D27) */
     D120: "*cough* *cough* ... You new here?",
     D121: "Then why is your shop still so dirty? You came here yesterday! Bah, kids these days. If you can't clean, hire someone to do it for you!",
     D122: "Then make some! Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
@@ -8554,6 +8561,7 @@ const SAY_AFTER={ D97:function(){ openTiers(); },
                   D72a:function(){ if(TUT_STAGE==='fire-mang') tutForkDone(); },   /* 2026-10-13 */
                   D69d:function(){ if(CW_LESSON==='hp-row'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D17c:function(){ if(CW_LESSON==='rows'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
+                  D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },   /* r255: now tap him */
                   D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
                   D130b:function(){ if(TUT_STAGE==='g-desk') ftueReward([ { kind:'unlock', id:'designDesk' } ], tutGarricHandsOff); },   /* v3 part 6 */
                   D133:function(){ ftueGarricBanner(); }, D136:function(){ ftueGarricBanner(); }, D139:function(){ ftueGarricBanner(); },
@@ -9702,7 +9710,7 @@ function sayChoose(list, optional){
    button shows an X there because each is the last line of its own run. */
 const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
-                    D67a:1, D17b:1, D17c:1, D69d:1, D130:1 };   /* r196. 2026-10-10. r247: D130 */
+                    D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
    follows the tap even though no line does. */
 const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
@@ -9789,7 +9797,8 @@ function sayFill(s){ return s.replace(/\{(\w+)\}/g, (m,k)=> (SAY_VARS[k]!=null? 
 function lastLine(){ const k=Object.keys(DIALOGUE); return k[k.length-1]; }
 let TUT_SEEN_END=false;
 function tutOver(){ return TUT_SEEN_END; }
-function dragonTap(e, layer){ if(tutOver()){ popHearts(e, layer); return true; } return sayAgain(); }
+function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27','D28'); return true; }   /* r255 */
+    if(tutOver()){ popHearts(e, layer); return true; } return sayAgain(); }
 /* r160: where the player last dragged him, remembered for the COUNTER screen alone. He is only
    draggable there, but the inline left/top it wrote used to travel with the element to every other
    screen and beat their CSS - which would silently undo the basement position above. */

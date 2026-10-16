@@ -332,6 +332,15 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r255 (owner, 2026-10-16): after the quest list, the dragon teaches "tap me for help": D119a (close it), then tap the
+   glowing dragon, D119b, then the bell (D27, D28) as before */
+eq('D119a and D119b, the owner\'s words, beside D119', src.includes(`D119a: "If you are not sure what to do, at any point, you can tap on me. I'll help you.",`)
+  && src.includes('D119b: "Good. Now let\'s continue.",') && (k => k[k.indexOf('D119a') - 1] === 'D119' && k[k.indexOf('D119b') - 1] === 'D119a')([...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1])), true);
+eq('closing the quests: D119, D119a (the bell waits)', src.includes("if(TUT_STAGE==='p1-quest2'){ tutExit(null); TUT_STAGE='p1-dragon'; sayQueue('D119','D119a'); } }"), true);
+eq('D119a: a lit close, and closing it lights both dragons', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src)
+  && src.includes("D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },"), true);
+eq('the dragon\'s glow is the strong one (the plain tutGlow was faint on the counter wood)', src.includes('.crop.dragoncrop.tut-glow { animation: tutGlowBig 1.15s ease-in-out infinite; }') && src.includes('@keyframes tutGlowBig {'), true);
+eq('the tap: unglow, D119b, then D27/D28 (D27 starts the bell)', src.includes("function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27','D28'); return true; }"), true);
 /* r254 (owner, 2026-10-16): the second map window (GC4, basic vs elemental) shows MAP_parts2; the first (D67a, five parts) keeps MAP_parts */
 eq('second map window art', src.includes("openIllus('assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part'")
   && src.includes("openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts'") && existsSync('assets/ui/MAP_parts2.webp'), true);
