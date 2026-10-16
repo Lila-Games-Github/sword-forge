@@ -2032,6 +2032,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the metal and the anvil hit themselves, the hammer and the smelter are dark; the mug is z64 mid-drag; during the
   effect the dim is off; after it the stage is 'acquired' and nothing is dark.
 
+- **r276: hammering to the '?' is read on a dark screen (owner, 2026-10-16).** `STAGE_DARK.travel` (the stage between
+  D8 and D10, first sword only): a window over the map, and the anvil and the metal lifted; with the dragon and his line,
+  that is all that shows. Two effects of the owner's list, reported to the owner: the hammer is not in it, so while it
+  is held on the anvil it sits under the dim and behind the lifted anvil; and the map window is the map's box, so the
+  top of the smelter, which reaches up into it, shows lit (as at D8). Asserted by the FTUE test (541), written first.
+  Checked in the browser, playing a new game past D8 with the hammer held on the anvil: the stage is 'travel', the
+  map, the anvil and the metal are lit, the mug and the bench are dark.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2151,3 +2159,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r273 the ore step also shows the path, the active sword and the map's highlight.
 - 2026-10-16: r274 the metal and the hammer stay over the dark layer while they are dragged.
 - 2026-10-16: r275 the quench (D10, D11) is dark around the bucket, the mug, the anvil and the metal.
+- 2026-10-16: r276 hammering to the '?' (stage travel) shows only the map, the anvil and the metal.

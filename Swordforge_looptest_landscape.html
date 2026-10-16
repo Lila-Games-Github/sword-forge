@@ -2869,14 +2869,15 @@ const SAY_DARK=['D1','D2'];
    r272 (owner): every step of the first sword up to the hammering, one table: stage -> what is lifted (and any window).
    strike (D8, the first strike) cuts a window over the map, so the moving sword icon is what shows; tutPause leaves
    its own #tutDim off in a dark stage. */
-const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] }, quench:{ lift:['#stAnvil','#orb','#bucketBack','#mug'] } };
+const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] }, quench:{ lift:['#stAnvil','#orb','#bucketBack','#mug'] }, travel:{ cut:[ { sel:'#map-wrap' } ], lift:['#stAnvil','#orb'] } };
 let TUT_DARK_CUT=null, TUT_DARK_ST=null;
 /* r273 (owner): the ore step shows the path, the active sword and the map's highlight too. A fog window (fog:true) is a
    window in the main dim with a second dim (#tutHoleMap) over it, holed softly where the fog is: one radial gradient per
    #fogHoles circle, intersected. FOG_EDGE (world units) is the fade either side of a circle's edge, about the fog's own
    blur (#fogSoft, stdDeviation 24). */
 const FOG_EDGE=40;
-/* r275: quench (D10, D11) = the anvil, the metal, the bucket and the mug. The pour's steam and mist (#quenchFog z58, .catch while it
+/* r276: travel (hammering to the '?', after D8) = the map, the anvil and the metal.
+   r275: quench (D10, D11) = the anvil, the metal, the bucket and the mug. The pour's steam and mist (#quenchFog z58, .catch while it
    plays) would sit under the dim, so it lifts while they play */
 function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;
     if(st!==TUT_DARK_ST){ TUT_DARK_ST=st; if(st) tutDark(true, STAGE_DARK[st].cut, STAGE_DARK[st].lift); else tutDark(false); }

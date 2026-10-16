@@ -335,6 +335,10 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r276 (owner, 2026-10-16): while hammering to the '?' (stage 'travel', after D8) only the map, the anvil, the metal and the
+   dialogue show */
+{ const m = src.match(/const STAGE_DARK=({.*});/), T = m && new Function('return ' + m[1])();
+  eq('STAGE_DARK.travel: a map window, the anvil and the metal', T && T.travel, { cut: [{ sel: '#map-wrap' }], lift: ['#stAnvil', '#orb'] }); }
 /* r275 (owner, 2026-10-16): the quench (D10, D11) is dark too: the dialogue, the bucket, the mug, the arrow, the anvil and
    the metal show. The pour's steam and mist (#quenchFog, z58) would be under the dim, so the dim lifts while they play */
 { const m = src.match(/const STAGE_DARK=(\{.*\});/), T = m && new Function('return ' + m[1])();
@@ -365,7 +369,8 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
     anvil:   { lift: ['#stAnvil', '#orb'] },
     hammer:  { lift: ['#stAnvil', '#orb', '#hammerTool'] },
     strike:  { cut: [{ sel: '#map-wrap' }] },
-    quench:  { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] } }); }
+    quench:  { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] },
+    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stAnvil', '#orb'] } }); }
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
 eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
