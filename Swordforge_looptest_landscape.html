@@ -404,6 +404,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }
 #frame.landscape #hammerTool.dark-lit { z-index: 62; }
 #frame.landscape #orb.dark-lit { z-index: 63; }
+.dark-lit.dragging { z-index: 64 !important; }   /* r274: mid-drag it stays over the dim - .dragging alone (35 !important) put it under */
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
 .xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;

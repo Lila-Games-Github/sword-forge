@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r274:** `.dark-lit.dragging` (z64 !important) keeps a lifted prop over the dim mid-drag; `.dragging` alone (35 !important) put it under.
 - **r273:** the ore step also shows the map's highlight, path and sword: a fog window (`#tutHoleMap`, a soft hole per `#fogHoles` circle via the fog rect's screen CTM, `FOG_EDGE` 40).
 - **r272:** `STAGE_DARK` (stage -> lifted elements / cut windows, replaces r271's ORE_DARK_*): D3-D7 stay dark around what each step uses; D8 cuts a window over the map, and `tutPause` leaves `#tutDim` off in a dark stage.
 - **r271:** the ore step (D3 until 2+2 ores are in) is dark too: `#stSmelt` lifted over the dim, a window cut for `#matPanel` (`ORE_DARK_CUT`/`ORE_DARK_LIFT`, `tutDarkLayout`).
@@ -205,7 +206,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 535 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 537 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

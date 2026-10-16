@@ -2015,6 +2015,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   with two ores in, the map dim has three holes (the opening reveal and two sword reveals); the highlight, the path and
   the sword show; with the fourth ore in, D4 shows and the map dim is off.
 
+- **r274: a lifted prop stays over the dim while it is dragged (owner, 2026-10-16).** The metal and the hammer went
+  under the dark layer mid-drag: a dragged prop gets `.dragging` (`z-index: 35 !important`, r22), which beat the r272
+  lift (z62/z63) and put it under the dim (z60). `.dark-lit.dragging { z-index: 64 !important; }`, after the r22 rule,
+  keeps a lifted prop (the metal, the hammer, the dragon) over the dim and over the other lifted props while it moves.
+  Asserted by the FTUE test (537), written first. Checked in the browser on a new game: mid-drag at D6 the metal is
+  z64 and is what is under the pointer; the same for the hammer at D7.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2132,3 +2139,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r271 the ore step (D3) is read on a dark screen; the smelter and the inventory show.
 - 2026-10-16: r272 the first sword's steps (D3-D7) stay dark around what each step uses; D8 lights the map.
 - 2026-10-16: r273 the ore step also shows the path, the active sword and the map's highlight.
+- 2026-10-16: r274 the metal and the hammer stay over the dark layer while they are dragged.

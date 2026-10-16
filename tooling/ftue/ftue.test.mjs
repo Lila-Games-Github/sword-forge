@@ -335,6 +335,10 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r274 (owner, 2026-10-16): a lifted prop being dragged (the metal, the hammer, the dragon) stays over the dim. .dragging
+   is 'z-index: 35 !important', which beat the lift and dropped it under the dim (z60) mid-drag */
+eq('a lifted prop being dragged rises over the dim and the other lifted props', src.includes('.dark-lit.dragging { z-index: 64 !important; }'), true);
+eq('it comes after .dragging, which it must beat', src.indexOf('.dark-lit.dragging { z-index: 64 !important; }') > src.indexOf('.dragging { z-index: 35 !important; }'), true);
 /* r273 (owner, 2026-10-16): the ore step also shows the path, the active sword and the map's highlight. The map gets a
    window in the main dim and its own dim (#tutHoleMap, over the map's box only) with a soft hole for each fog circle,
    fading over the fog's own blur */
