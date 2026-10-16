@@ -335,6 +335,11 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r268 (owner, 2026-10-16): a paid sale flies coins from SELL to the gold panel, as a quest claim does; the gold count
+   shows the new total when they land */
+eq('SELL\'s box is read before the counter changes', /function sellCounter\(\)\{[\s\S]*?const sellR=\(document\.querySelector\('#csPanel \.cs-sell'\)\|\|\{ getBoundingClientRect:\(\)=>null \}\)\.getBoundingClientRect\(\), goldWas=GOLD;[\s\S]*?COUNTER=null;/.test(src), true);
+eq('a paid sale flies the coins and holds the count until they land', /function sellCounter\(\)\{[\s\S]*?if\(paidAll>0\)\{ setGoldShown\(goldWas\); flyCoins\(sellR, document\.getElementById\('goldVal'\), \(\)=>\{ updateHud\(\); goldPop\('\+'\+paidAll\+'g'\); \}\); \}/.test(src), true);
+eq('a hand-over pays nothing, so it flies nothing', /function orderHandedOver\(c\)\{(?:(?!flyCoins)[\s\S])*?\n\}/.test(src), true);
 /* r267 (owner, 2026-10-16): an order of several swords is sold one sword at a time; the gold comes once, for all of
    them, after the last. orderSlot / orderLeft / orderHandOver run here on real swords */
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return '';

@@ -1953,6 +1953,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   LATER), written first. Checked in the browser: first sword 0g and the customer stays; second sword pays 109g (both
   prices) with 2 SALES rows; a wrong Claymore is refused; COME LATER mid-order returns the held Claymore.
 
+- **r268: a sale flies coins to the gold panel (owner, 2026-10-16).** A paid counter sale now plays the quest claim's
+  coins (`flyCoins`: five coins arc from the SELL button to the gold count). The gold is added at once, as before, so
+  every hook sees it, but the HUD keeps showing the old total (`setGoldShown`) until the coins land; then it updates and
+  `goldPop` shows "+Ng". The last sale of a several-sword order flies the whole order's gold; a hand-over (r267) and
+  Garric's refusal pay nothing and fly nothing. Asserted by the FTUE test (518), written first. Checked in the browser:
+  no coins on the hand-over; on the last sale five coins start at SELL's centre and end on the gold count's centre, the
+  count reads 520 in flight and 629 after, and "+109g" pops; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2064,3 +2072,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r265 the white arrow images (arrow, arrow_point_down) are deleted.
 - 2026-10-16: r266 the owner's new map_base is in the game (WebP regenerated, manifest updated).
 - 2026-10-16: r267 an order of several swords is sold one at a time and paid once, after the last.
+- 2026-10-16: r268 a paid sale flies coins from SELL to the gold panel, like a quest claim.

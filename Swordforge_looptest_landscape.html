@@ -3615,6 +3615,7 @@ function sellCounter(){
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
+    const sellR=(document.querySelector('#csPanel .cs-sell')||{ getBoundingClientRect:()=>null }).getBoundingClientRect(), goldWas=GOLD;   /* r268: where the coins start, and the count they leave from */
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
@@ -3646,6 +3647,8 @@ function sellCounter(){
     const popAll=(POP_GAIN[tier]||0)+heldPop;
     if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
     else toast((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
+    const paidAll=pay+heldG;   /* r268: the coins fly from SELL to the gold panel, as a quest claim's do; the count catches up when they land */
+    if(paidAll>0){ setGoldShown(goldWas); flyCoins(sellR, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+paidAll+'g'); }); }
     if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
 }
 function placeCounter(sw){
@@ -4767,6 +4770,7 @@ function flyCoins(fromRect, toEl, done){
         setTimeout(()=>c.remove(), COIN_MS+i*COIN_GAP+40); }
     setTimeout(()=>{ if(done) done(); }, COIN_MS+(COIN_N-1)*COIN_GAP);
 }
+function setGoldShown(v){ const g=document.getElementById('goldVal'); if(g) g.textContent=v; }   /* r268: the HUD shows v until the coins land */
 function goldPop(text){
     const g=document.getElementById('goldVal'); if(!g) return; const r=g.getBoundingClientRect();
     const p=document.createElement('div'); p.className='gold-pop'; p.textContent=text;
