@@ -1967,6 +1967,16 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   manifest matches the PNG on disk) failed on the new PNG first, then passed. Checked in the browser: the page loads the
   582,914-byte WebP and the forge map shows the new art.
 
+- **r270: D1 and D2 are read on a dark screen (owner, 2026-10-16).** The game's two opening lines now darken the whole
+  frame (the map, the props, the rail and the inventory); only the dragon and his line, with its glowing OK, show above
+  the dim. It is the r245 trait dim (`#tutHole`, z60) with no hole: `tutDark(on)` turns it on, lifts `#dragonSay`
+  (`hole-say`, z61) and `#dragon` (`dark-lit`, z61). `say()` sets it for the ids in `SAY_DARK = ['D1','D2']` on the forge
+  bubble and clears it for any other line, so D3 (the ore step) is lit; `sayHide()` clears it too. It never touches a
+  live trait hole (`TUT_HOLE`). Not `tutPause`'s `#tutDim` (z45): that sits under the rail and the exits, and holds the
+  frame loop. Asserted by the FTUE test (523), written first. Checked in the browser on a new game: during D1 and D2 the
+  centre of the furnace and of the ore shelf hit the dim, the dragon and the line hit themselves; at D3 the dim is off
+  and the furnace is live again.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2080,3 +2090,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r267 an order of several swords is sold one at a time and paid once, after the last.
 - 2026-10-16: r268 a paid sale flies coins from SELL to the gold panel, like a quest claim.
 - 2026-10-16: r269 the owner's map_base updated again (WebP regenerated, manifest updated).
+- 2026-10-16: r270 D1 and D2 are read on a dark screen; only the dragon and his line show.

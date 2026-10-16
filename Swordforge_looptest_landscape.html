@@ -395,7 +395,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    other tap lands on the dim. */
 #tutHole { position: absolute; inset: 0; z-index: 60; background: rgba(6,4,2,.74); display: none; }
 #tutHole.on { display: block; }
-#dragonSay.hole-say { z-index: 61; }   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
+#dragonSay.hole-say { z-index: 61; }
+#dragon.dark-lit { z-index: 61; }   /* r270: D1 and D2 - the dim with no hole, and the dragon over it with his line */   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
 .xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;
@@ -2849,6 +2850,11 @@ function tutMapShow(t){ if(!t) return; const h=view.w*aspect, m=0.15;
 function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'); if(!d) return;
     d.classList.toggle('on', !!TUT_HOLE); if(TUT_HOLE) tutHoleLayout(); else { d.style.clipPath=''; d._cp=''; }
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE); }
+/* r270 (owner): D1 and D2 are read on a dark screen. The r245 dim with no hole; only the dragon and his line show */
+const SAY_DARK=['D1','D2'];
+function tutDark(on){ if(TUT_HOLE) return; const d=document.getElementById('tutHole'); if(d){ d.classList.toggle('on', !!on); d.style.clipPath=''; d._cp=''; }
+    const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!on);
+    const dr=document.getElementById('dragon'); if(dr) dr.classList.toggle('dark-lit', !!on); }
 function tutHoleLayout(){ const d=document.getElementById('tutHole'), sp=document.getElementById('tutSpot'); if(!d || !sp) return;
     const a=d.getBoundingClientRect(), r=sp.getBoundingClientRect(); if(!(a.width>0) || !(r.width>0)) return;
     const k=d.offsetWidth/a.width, W=d.offsetWidth, H=d.offsetHeight;
@@ -9735,6 +9741,7 @@ function say(id){
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
+    tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270 */
     /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
        the end, so the next tap closes instead of walking the run from wherever it had been left. */
     { const i=SAY_SEQ.indexOf(id); SAY_I = (i>=0) ? i : SAY_SEQ.length; }
@@ -9783,6 +9790,7 @@ function sayHide(){
     const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
     if(after) setTimeout(after, 0);
     SAY_ON=null; sayChoose(null);   /* r115 */
+    tutDark(false);   /* r270 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
