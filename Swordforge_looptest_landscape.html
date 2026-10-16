@@ -5623,7 +5623,7 @@ function drawPrepPreview(){ if(!prep){ hidePreviewPaths(); if(segs.length) moveX
 
 // --- orb visuals + placement (the #orb element shows the prep ore OR the extracted hot melt) ---
 function updateGauges(){ updateHpPill(); const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; const fg=document.getElementById('furnaceGlow'); if(fg) fg.style.opacity=(h/100*0.9).toFixed(2); }   // furnace mouth glows brighter as it heats (bellows feedback)
-function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||melt.stage==='onAnvil')){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }
+function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||(melt.stage==='onAnvil' && melt.heat>0))){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } else if(melt&&melt.stage==='onAnvil'){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }   /* r261 (owner): quenched (no heat) on the anvil = the grey cold sphere */
 function placeOrb(cx,cy){ orbEl.style.left=(cx-orbEl.offsetWidth/2)+'px'; orbEl.style.top=(cy-orbEl.offsetHeight/2)+'px'; }
 function orbCenter(){ const r=orbEl.getBoundingClientRect(), b=benchEl().getBoundingClientRect(); return {x:r.left+r.width/2-b.left, y:r.top+r.height/2-b.top}; }
 function placeOrbInMortar(){ const c=stationCenter(stMortar,0.5,0.42); placeOrb(c.x,c.y); }
@@ -7072,6 +7072,7 @@ function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
     custSpotSync();   /* r221 */
+    if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
     tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */

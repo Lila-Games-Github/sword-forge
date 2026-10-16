@@ -1888,6 +1888,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   unchanged. Asserted by the FTUE test (494), written first. Checked in the browser: the mist at full - computed
   background the gradient, no smoke image; screenshot; no console errors.
 
+- **r261: quenched metal is cool - grey, not orange (owner, 2026-10-16).** `updateOrbLook()` drew the metal hot (orange,
+  pulsing) whenever it was in the furnace (`hot`) or on the anvil (`onAnvil`), whatever its heat, so the quench (heat 0)
+  left it orange. Now on the anvil it is hot only while `melt.heat > 0`; at 0 it is the grey cold sphere (the shelf's
+  orb look). The furnace keeps it orange. The frame loop flips it when the anvil metal's heat crosses 0 either way.
+  Asserted by the FTUE test (496), written first. Checked in the browser: heated on the anvil - orange; right after the
+  quench and frames later - grey; heat back - orange; cooled to 0 - grey; in the furnace - orange; a zoom on the anvil
+  after the quench shows the grey metal; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1992,3 +2000,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r258 the tutorial books and D9 (EXP) move from the first sword to GC1, the second.
 - 2026-10-16: r259 the mug quench plays steam puffs and a full-screen mist (QUENCH_FX) before the trait window.
 - 2026-10-16: r260 the quench mist is a soft plain white gradient (no smoke texture).
+- 2026-10-16: r261 quenched metal on the anvil is grey (cold) until it is heated again.

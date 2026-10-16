@@ -335,6 +335,10 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r261 (owner, 2026-10-16): quenched metal is cool - grey, not orange. On the anvil it is hot only while it has heat */
+eq('hot in the furnace, or on the anvil with heat', src.includes("else if(melt&&(melt.stage==='hot'||(melt.stage==='onAnvil' && melt.heat>0))){ orbEl.classList.add('hot');")
+  && src.includes("else if(melt&&melt.stage==='onAnvil'){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; }"), true);
+eq('the frame loop flips it when the anvil metal cools to 0 (or is heated)', src.includes("if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */"), true);
 /* r260 (owner, 2026-10-16): the mist is a soft plain white - no smoke art in it */
 eq('the mist is a soft plain white gradient', src.includes('#quenchFog { position: absolute; inset: 0; z-index: 58; display: none; pointer-events: none; opacity: 0; transition: opacity .6s ease-out;\n    background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.97) 0%, rgba(250,250,248,.9) 45%, rgba(242,242,240,.72) 100%); }')
   || src.includes('#quenchFog { position: absolute; inset: 0; z-index: 58; display: none; pointer-events: none; opacity: 0; transition: opacity .6s ease-out;\r\n    background: radial-gradient(ellipse at 50% 50%, rgba(255,255,255,.97) 0%, rgba(250,250,248,.9) 45%, rgba(242,242,240,.72) 100%); }'), true);
