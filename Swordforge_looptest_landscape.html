@@ -720,8 +720,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 @keyframes bookXp { 0% { opacity: 0; transform: translateY(2px) scale(.7); } 16% { opacity: 1; transform: translateY(-10px) scale(1.12); } 100% { opacity: 0; transform: translateY(-52px) scale(1); } }
 
 /* blade integrity (r16) — hazard zones damage the active sword */
-/* r243 (owner): the blade's health is a ring around the sword marker (#swordHpRing), not a bar at the top right */
-#swordHp { transition: stroke-dasharray .12s linear, stroke .2s linear; }
+/* r243 (owner): the blade's health shows on the sword marker, not a bar at the top right. r256: a fill inside the disc
+   (#swordHpFill), not a ring around it - the ring covered the tier alignment ring */
+#swordHp { transition: fill .2s linear; }
 #sword.hurt { animation: swordHurt .5s ease-in-out infinite; }
 @keyframes swordHurt { 0%,100% { filter: drop-shadow(0 0 3px #ff3b30); } 50% { filter: drop-shadow(0 0 12px #ff3b30); } }
 
@@ -2187,9 +2188,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             </g>
             <circle id="alignRing" r="25" fill="none" stroke-width="4" opacity="0.9" style="display:none;"/>
             <g id="sword">
-                <g id="swordHpRing" style="display:none;"><circle r="24.5" fill="none" stroke="rgba(20,15,8,.55)" stroke-width="4.5"/><circle id="swordHp" r="24.5" fill="none" stroke="#5fd35f" stroke-width="4.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)"/></g>
                 <circle r="19" fill="#3f7bd6" stroke="#dbe9ff" stroke-width="3.5"/>
                 <text text-anchor="middle" dominant-baseline="central" font-size="21">⚔️</text>
+                <g id="swordHpFill" style="display:none;"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>
             </g>
         </svg>
         <div class="zoom">
@@ -5700,13 +5701,15 @@ function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Wea
 function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }   /* r225 (owner): purple Epic, blue Fine, dark grey Weak - yellow did not read on the beige windows */
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
 function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if(r) r.style.display='none'; }
-/* r243 (owner): the health ring around the sword marker. The arc starts at 12 o'clock and shortens clockwise as the blade
-   takes damage; the dark track shows what is lost. Same rule and colours as the old top-right bar. */
-function updateHpPill(){ const g=document.getElementById('swordHpRing'), a=document.getElementById('swordHp'); if(!g || !a) return;
+/* r243 (owner): the blade's health on the sword marker. r256 (owner): a fill inside the disc, its top edge at the health
+   level - full disc at 100%, gone at 0% - clipped to the disc so the tier alignment ring around it stays clear.
+   Semi-transparent, so the icon shows through. Same rule and colours as the old top-right bar. */
+function updateHpPill(){ const g=document.getElementById('swordHpFill'), a=document.getElementById('swordHp'); if(!g || !a) return;
     if(!melt || !swordOut()){ g.style.display='none'; return; }
     const pct=Math.max(0, Math.min(100, (melt.hp/BLADE_HP_MAX)*100));
     g.style.display=''; a.style.display = pct>0 ? '' : 'none';
-    a.setAttribute('stroke-dasharray', pct.toFixed(1)+' 100'); a.setAttribute('stroke', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }
+    const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));
+    a.setAttribute('fill', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }
 function clearHazardFx(){ hazards.forEach(h=>{ if(h.el) h.el.classList.remove('hot'); }); if(swordEl) swordEl.classList.remove('hurt'); }
 // r16: hazards are real. Travelling through one drains blade integrity; at 0 the blade shatters and the run (with its
 // acquired traits) is lost. Damage is applied only while the sword MOVES through a hazard — parking is safe, so furnace

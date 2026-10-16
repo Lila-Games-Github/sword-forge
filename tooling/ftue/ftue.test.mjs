@@ -710,9 +710,12 @@ eq('no player-facing line says click', !/D\d+[a-z]?: "[^"]*\b[Cc]lick/.test(src)
 eq('.cs-dlg p types from the left (a row flexbox: full width, still centred vertically)', /\.cs-dlg p \{[^}]*text-align: left; width: 100%; \}/.test(src), true);
 eq('.cs-bram-dlg p types from the left', /\.cs-bram-dlg p \{[^}]*text-align:left;[^}]*align-self:stretch; width:100%;/.test(src), true);
 /* r243 (owner, 2026-10-15): the sword's health is a ring around its map marker, not a bar at the top right */
-eq('the ring lives in the sword marker', src.includes('<g id="swordHpRing" style="display:none;"><circle r="24.5" fill="none" stroke="rgba(20,15,8,.55)" stroke-width="4.5"/><circle id="swordHp" r="24.5" fill="none" stroke="#5fd35f" stroke-width="4.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" transform="rotate(-90)"/></g>')
-  && src.indexOf('<g id="swordHpRing"') > src.indexOf('<g id="sword">'), true);
-eq('the arc is the health percentage', src.includes("a.setAttribute('stroke-dasharray', pct.toFixed(1)+' 100');") && src.includes("a.style.display = pct>0 ? '' : 'none';"), true);
+/* r256 (owner, 2026-10-16): the ring covered the tier alignment ring, so the health is now a fill INSIDE the sword disc -
+   a level from the top (100%) down to the bottom (0%), clipped to the disc, semi-transparent over the icon */
+eq('the fill lives in the sword marker, over the icon, clipped to the disc', src.includes('<g id="swordHpFill" style="display:none;"><clipPath id="swordHpClip"><circle r="17.25"/></clipPath><rect id="swordHp" x="-17.25" y="-17.25" width="34.5" height="34.5" clip-path="url(#swordHpClip)" fill="#5fd35f" fill-opacity="0.6"/></g>')
+  && src.indexOf('<g id="swordHpFill"') > src.indexOf('<text text-anchor="middle" dominant-baseline="central" font-size="21">') && !src.includes('swordHpRing'), true);
+eq('the level is the health percentage, top down', src.includes("const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));")
+  && src.includes("a.style.display = pct>0 ? '' : 'none';"), true);
 eq('no top-right bar left', !src.includes('id="sfHp"') && !src.includes('#sfHp'), true);
 /* r242 (owner, 2026-10-15): every pointer glow is one the owner can see - the OK button's (tutLitCtl) for buttons and
    hotspots, the inventory tabs' face swap (tutBlinkTab) for every rail button, the skill tree's included */

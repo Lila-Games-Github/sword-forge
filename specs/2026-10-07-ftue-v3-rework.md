@@ -1836,6 +1836,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   yet); X - both dragons glow; tap the dragon - D119b, glow gone; OK - D27, the bell out, stage `p1-bell`; no console
   errors.
 
+- **r256: the health is a fill inside the sword disc, not a ring (owner, 2026-10-16).** r243's ring (r 24.5, width 4.5)
+  covered the tier alignment ring (`#alignRing`, r 25) whenever the sword sat on a trait. Now `#swordHpFill` is drawn over
+  the icon inside the disc: a rect clipped to the disc's inner edge (r 17.25, so the white border and everything outside
+  stay clear), its top edge at the health level - the whole disc at 100%, gone at 0% (y = 17.25 - 34.5 x health,
+  height = 34.5 x health). 60% opaque so the icon shows through (the owner's sketch is solid; a solid fill would hide the
+  icon at full health). Same rule (shown while a run exists and the sword is out) and colours (green, amber below 60%,
+  red below 30%) as r243. The r243 checks now read the fill. Asserted by the FTUE test (485), written first. Checked in
+  the browser: health 100/70/40/15 gives fill heights 34.5/24.15/13.8/5.17 in green/green/amber/red, 0 hides it; at 65%
+  with an Epic `#alignRing` drawn on the sword's spot (map zoomed in) the purple ring is fully visible around the disc and
+  the fill covers its lower 65%; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1935,3 +1946,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r253 the come-later customer: MARKET, both blueprints lit, Close, then D107d and COME LATER.
 - 2026-10-16: r254 the GC4 map window (basic vs elemental) shows the owner's MAP_parts2.
 - 2026-10-16: r255 after the quest list: D119a "tap me for help", the dragon glows, a tap gives D119b, then the bell.
+- 2026-10-16: r256 the health is a fill inside the sword disc (top 100% to bottom 0%); the ring covered the tier ring.
