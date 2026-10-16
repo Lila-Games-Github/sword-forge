@@ -1927,6 +1927,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (502), written first. Checked in the browser (the tap nudge on the anvil, paused at the bright frame): the ring and the
   halo clearly visible on the parchment and the anvil; no console errors.
 
+- **r265: the white arrow images are deleted (owner, 2026-10-16).** `assets/ui/arrow.png/.webp` and
+  `arrow_point_down.png/.webp` (the idle nudges until r263) are removed from the repo, and their entries from
+  `tooling/asset-diet/manifest.json` and `display.json` (both files re-serialised only after a check that they round-trip
+  byte for byte; 40 lines removed). Asserted by the FTUE test (503), written first. Checked in the browser: a fresh load
+  requests no arrow image; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2035,3 +2041,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r262 the hammer minigame mug plays the same steam and mist before the blade is finished.
 - 2026-10-16: r263 the white idle arrows are gone: the drag nudge is the guide's dashed arrow, the tap nudge the metal's glow.
 - 2026-10-16: r264 the metal's glow is a strong white ring and gold halo (tutGlowOrb).
+- 2026-10-16: r265 the white arrow images (arrow, arrow_point_down) are deleted.

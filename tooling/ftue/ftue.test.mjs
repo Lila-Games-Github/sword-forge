@@ -335,6 +335,9 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r265 (owner, 2026-10-16): the white arrow images are deleted, and the asset tooling no longer lists them */
+eq('the arrow images are gone', ['assets/ui/arrow.png', 'assets/ui/arrow.webp', 'assets/ui/arrow_point_down.png', 'assets/ui/arrow_point_down.webp'].every(f => !existsSync(f))
+  && !/assets\/ui\/arrow(_point_down)?\.png/.test(readFileSync('tooling/asset-diet/manifest.json', 'utf8') + readFileSync('tooling/asset-diet/display.json', 'utf8')), true);
 /* r264 (owner, 2026-10-16): the metal's glow is the strong one, like the dragon's */
 eq('#orb glows strongly: a white ring and a gold halo (a gold drop-shadow alone vanished on the gold parchment)', src.includes('#orb.tut-glow { border-radius: 50%; animation: tutGlowOrb 1.15s ease-in-out infinite; }') && src.includes('@keyframes tutGlowOrb {'), true);
 /* r263 (owner, 2026-10-16): no white arrows - the idle nudges use the guide's own pointers: the dashed arrow for the drag
