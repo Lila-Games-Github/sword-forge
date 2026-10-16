@@ -404,6 +404,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }
 #frame.landscape #hammerTool.dark-lit { z-index: 62; }
 #frame.landscape #orb.dark-lit { z-index: 63; }
+#frame.landscape #bucketBack.dark-lit { z-index: 61 !important; }   /* r275: the bucket and the mug carry an inline z-index */
+#frame.landscape #mug.dark-lit { z-index: 64 !important; }
 .dark-lit.dragging { z-index: 64 !important; }   /* r274: mid-drag it stays over the dim - .dragging alone (35 !important) put it under */
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
@@ -2867,14 +2869,16 @@ const SAY_DARK=['D1','D2'];
    r272 (owner): every step of the first sword up to the hammering, one table: stage -> what is lifted (and any window).
    strike (D8, the first strike) cuts a window over the map, so the moving sword icon is what shows; tutPause leaves
    its own #tutDim off in a dark stage. */
-const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] } };
+const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] }, quench:{ lift:['#stAnvil','#orb','#bucketBack','#mug'] } };
 let TUT_DARK_CUT=null, TUT_DARK_ST=null;
 /* r273 (owner): the ore step shows the path, the active sword and the map's highlight too. A fog window (fog:true) is a
    window in the main dim with a second dim (#tutHoleMap) over it, holed softly where the fog is: one radial gradient per
    #fogHoles circle, intersected. FOG_EDGE (world units) is the fade either side of a circle's edge, about the fog's own
    blur (#fogSoft, stdDeviation 24). */
 const FOG_EDGE=40;
-function tutDarkSync(){ const st=STAGE_DARK[TUT_STAGE] ? TUT_STAGE : null;
+/* r275: quench (D10, D11) = the anvil, the metal, the bucket and the mug. The pour's steam and mist (#quenchFog z58, .catch while it
+   plays) would sit under the dim, so it lifts while they play */
+function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;
     if(st!==TUT_DARK_ST){ TUT_DARK_ST=st; if(st) tutDark(true, STAGE_DARK[st].cut, STAGE_DARK[st].lift); else tutDark(false); }
     else if(TUT_DARK_CUT) tutDarkLayout(); }
 function tutDark(on, cut, lift){ if(TUT_HOLE) return; TUT_DARK_CUT=(on && cut) ? cut : null;

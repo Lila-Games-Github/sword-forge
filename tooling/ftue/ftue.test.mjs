@@ -335,6 +335,12 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r275 (owner, 2026-10-16): the quench (D10, D11) is dark too: the dialogue, the bucket, the mug, the arrow, the anvil and
+   the metal show. The pour's steam and mist (#quenchFog, z58) would be under the dim, so the dim lifts while they play */
+{ const m = src.match(/const STAGE_DARK=(\{.*\});/), T = m && new Function('return ' + m[1])();
+  eq('STAGE_DARK.quench lifts the anvil, the metal, the bucket and the mug', T && T.quench, { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] }); }
+eq('the bucket and the mug beat their inline z-index', src.includes('#frame.landscape #bucketBack.dark-lit { z-index: 61 !important; }') && src.includes('#frame.landscape #mug.dark-lit { z-index: 64 !important; }'), true);
+eq('the dim lifts while the quench steam and mist play', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
 /* r274 (owner, 2026-10-16): a lifted prop being dragged (the metal, the hammer, the dragon) stays over the dim. .dragging
    is 'z-index: 35 !important', which beat the lift and dropped it under the dim (z60) mid-drag */
 eq('a lifted prop being dragged rises over the dim and the other lifted props', src.includes('.dark-lit.dragging { z-index: 64 !important; }'), true);
@@ -358,10 +364,11 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
     gate:    { lift: ['#stSmelt'] },
     anvil:   { lift: ['#stAnvil', '#orb'] },
     hammer:  { lift: ['#stAnvil', '#orb', '#hammerTool'] },
-    strike:  { cut: [{ sel: '#map-wrap' }] } }); }
+    strike:  { cut: [{ sel: '#map-wrap' }] },
+    quench:  { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] } }); }
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
-eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const st=STAGE_DARK[TUT_STAGE] ? TUT_STAGE : null;"), true);
+eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
 eq('say() syncs after its hooks, and leaves a stage dim alone', src.includes("if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');") && /function say\(id\)\{[\s\S]*?tutDarkSync\(\);[^\n]*\n\s*sayLayout\(\);/.test(src), true);
 eq('closing a line keeps a stage dim', /function sayHide\(\)\{[\s\S]{0,1400}if\(!STAGE_DARK\[TUT_STAGE\]\) tutDark\(false\);/.test(src), true);
 eq('the frame loop syncs it', src.includes("    tutDarkSync();   /* r271/r272 */"), true);

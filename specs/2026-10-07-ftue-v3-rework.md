@@ -2022,6 +2022,16 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Asserted by the FTUE test (537), written first. Checked in the browser on a new game: mid-drag at D6 the metal is
   z64 and is what is under the pointer; the same for the hammer at D7.
 
+- **r275: the quench (D10, D11) is read on a dark screen (owner, 2026-10-16).** `STAGE_DARK.quench` lifts the anvil,
+  the metal, the bucket (`#bucketBack`) and the mug; with the dragon, his line and the arrow, that is all that shows.
+  The bucket and the mug carry an inline z-index (9 and `MUG_Z` 10), so their lift rules are `!important` (bucket 61,
+  mug 64, over the metal as before). The pour's steam and mist (`#quenchFog`, z58) would play under the dim, so
+  `tutDarkSync` treats the stage as not dark while the fog has `.catch` (the whole effect); when it ends the trait is
+  gained and the stage is 'acquired', which is not in the table. Asserted by the FTUE test (540), written first. Checked
+  in the browser, playing a new game to the '?' (ores, bellows, gate, metal, hammer held on the anvil): at D10 the mug,
+  the metal and the anvil hit themselves, the hammer and the smelter are dark; the mug is z64 mid-drag; during the
+  effect the dim is off; after it the stage is 'acquired' and nothing is dark.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2140,3 +2150,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r272 the first sword's steps (D3-D7) stay dark around what each step uses; D8 lights the map.
 - 2026-10-16: r273 the ore step also shows the path, the active sword and the map's highlight.
 - 2026-10-16: r274 the metal and the hammer stay over the dark layer while they are dragged.
+- 2026-10-16: r275 the quench (D10, D11) is dark around the bucket, the mug, the anvil and the metal.
