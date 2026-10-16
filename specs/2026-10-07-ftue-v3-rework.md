@@ -1864,6 +1864,24 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   tutorial books; GC1 with its 4 ores - 2 books on its route; the sword travelling it - the first book taken, D9, dim,
   pause, "+50" held; no console errors.
 
+- **r259: the mug quench - steam, a mist, then the trait window (owner, 2026-10-16).** On a quench that acquires a trait
+  (`tryAcquire`, after the existing flash and steam particles of `showWaterBurst`), `quenchFx` plays, then the window.
+  Design record (`QUENCH_FX`, ms, asserted by the FTUE test):
+  | Value | Recorded | What |
+  | --- | --- | --- |
+  | puffs | 4 | `assets/forge/smoke.webp` puffs rising off the metal (staggered 90 ms, 150 px up, scale 0.55 -> 2.3, 1.25 s) |
+  | steamLead | 250 | the steam alone, before the mist |
+  | fogIn | 350 | the mist (`#quenchFog`: the smoke art tiled over a pale gradient, the whole frame, z 58) fades in to 0.94 |
+  | hold | 350 | the mist holds |
+  | fogOut | 600 | the mist fades out |
+  The trait is gained at once (traits, heat, the metal back on the anvil); the tutorial hooks, `showAcquire`, the
+  "recorded" toast and the hint run when the mist has gone (1550 ms). The mist catches taps while it plays. Timers, not
+  animation events (a hidden pane freezes animations). Asserted by the FTUE test (493), written first. Checked in the
+  browser (a run on the balanced trait, `showWaterBurst` + `tryAcquire` as the mug's drop does): 0 ms - trait gained,
+  mist catching taps, 4 puffs, no window; 400/900 ms - mist full; 1300 ms - fading; 1700 ms - mist and puffs gone, "New
+  trait discovered" open; a tap during it lands on the mist; screenshots of the steam and the full mist; no console
+  errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1966,3 +1984,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r256 the health is a fill inside the sword disc (top 100% to bottom 0%); the ring covered the tier ring.
 - 2026-10-16: r257 the health fill shows at the start point too (full with no run).
 - 2026-10-16: r258 the tutorial books and D9 (EXP) move from the first sword to GC1, the second.
+- 2026-10-16: r259 the mug quench plays steam puffs and a full-screen mist (QUENCH_FX) before the trait window.

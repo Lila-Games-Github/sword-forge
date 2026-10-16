@@ -306,6 +306,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: radial-gradient(circle at 50% 62%, rgba(255,180,70,.85), rgba(255,120,30,.4) 45%, rgba(255,90,20,0) 72%); mix-blend-mode: screen; }
 .anvil.recoil { animation: anvilRecoil .12s ease-out; }   /* the anvil takes the blow */
 @keyframes anvilRecoil { 0% { transform: translateY(0); } 40% { transform: translateY(3px) scaleY(.985); } 100% { transform: translateY(0); } }
+/* r259: the quench mist and its steam puffs */
+#quenchFog { position: absolute; inset: 0; z-index: 58; display: none; pointer-events: none; opacity: 0; transition: opacity .6s ease-out;
+    background-image: url('assets/forge/smoke.webp'), radial-gradient(ellipse at 50% 55%, rgba(244,242,236,.96), rgba(226,223,216,.9) 55%, rgba(198,194,186,.82));
+    background-size: 65% auto, cover; background-repeat: repeat, no-repeat; background-position: center, center; }
+#quenchFog.catch { display: block; pointer-events: auto; }
+#quenchFog.on { opacity: .94; }
+.quench-puff { position: absolute; width: 130px; margin: -65px 0 0 -65px; z-index: 24; pointer-events: none; opacity: 0;
+    -webkit-user-drag: none; animation: quenchPuff 1.25s ease-out forwards; }
+@keyframes quenchPuff { 0% { opacity: 0; transform: translateY(10px) scale(.55); } 25% { opacity: .9; } 100% { opacity: 0; transform: translateY(-150px) scale(2.3); } }
 #quenchFlash { position: absolute; z-index: 24; width: 90px; height: 60px; margin: -30px 0 0 -45px; border-radius: 50%; display: none; pointer-events: none;
     background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.95), rgba(210,235,255,.5) 50%, rgba(190,220,255,0) 78%); }
 #quenchFlash.on { display: block; animation: quenchPop .5s ease-out forwards; }   /* r145: without 'forwards' the element snapped back to its base opacity:1 the moment the animation ended and sat on the anvil as a white cloud, because .on is never removed either */
@@ -2104,6 +2113,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </div>
     <div id="tutDim"></div>
     <div id="tutHole"></div>
+    <div id="quenchFog"></div>
     <svg id="tutSpin" viewBox="0 0 100 100" aria-hidden="true">
         <!-- r151: its OWN marker. The shared #tutHead sits in #tutArrow, which is display:none
              while only the spin is showing, and a marker in a hidden SVG does not paint. -->
@@ -5757,14 +5767,14 @@ function tryAcquire(){
         if(tier==='Epic' && (Math.abs(pull.x)>0.5 || Math.abs(pull.y)>0.5)) bumpQuest('epicHelp');   /* 2026-10-09 */
         const isNew=recordRecipe(bt.id, tier);        // r65: written down automatically
         if(firstFind) bumpQuest('discover3');
-        updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
-        if(bt.id==='swift') tutSwiftGot();   /* r124 */
-        if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();   /* v3: GC1-GC3 */
-        if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
-        if(bt.id==='gale') tutGaleGot();   /* r126 */
-        showAcquire(bt,tier,melt.traits.length,firstFind);
-        if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
-        hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.');
+        quenchFx(()=>{ updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
+            if(bt.id==='swift') tutSwiftGot();   /* r124 */
+            if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();   /* v3: GC1-GC3 */
+            if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
+            if(bt.id==='gale') tutGaleGot();   /* r126 */
+            showAcquire(bt,tier,melt.traits.length,firstFind);
+            if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
+            hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.'); });   /* r259: the steam and the mist first */
     } else { hint('The sword isn\'t sitting on a trait — hammer or pull it onto one first.'); placeOnAnvil(); }
 }
 // ---- r65: recipes -----------------------------------------------------------------------------
@@ -7405,6 +7415,19 @@ function positionWater(){ const b=benchEl().getBoundingClientRect(), mr=mugEl.ge
     const sx=mr.left+mr.width*0.40-b.left, sy=mr.top+mr.height*0.60-b.top, topY=ar.top+ar.height*0.26-b.top;
     const w=document.getElementById('waterPour'); w.style.left=(sx-4.5)+'px'; w.style.top=sy+'px'; w.style.height=Math.max(18,topY-sy)+'px';
     const s=document.getElementById('waterSplash'); const o=(orbEl.style.display!=='none')?orbCenter():{x:sx,y:topY}; s.style.left=o.x+'px'; s.style.top=o.y+'px'; }
+/* r259 (owner, 2026-10-16): the mug quench - steam puffs rise off the metal, a mist covers the frame and fades, and only
+   then does the trait window open. QUENCH_FX (ms; record: specs/2026-10-07-ftue-v3-rework.md r259). Timers, not animation
+   events, run it: a hidden pane freezes animations. The mist catches taps while it plays. */
+const QUENCH_FX={ puffs:4, steamLead:250, fogIn:350, hold:350, fogOut:600 };
+function quenchFx(done){ const F=QUENCH_FX, b=benchEl(), fog=document.getElementById('quenchFog');
+    const o=(orbEl.style.display!=='none')?orbCenter():stationCenter(stAnvil,0.5,0.2);
+    for(let i=0;i<F.puffs;i++){ const im=document.createElement('img'); im.src='assets/forge/smoke.webp'; im.alt=''; im.className='quench-puff';
+        im.style.left=(o.x+(i-(F.puffs-1)/2)*22)+'px'; im.style.top=o.y+'px'; im.style.animationDelay=(i*90)+'ms'; b.appendChild(im);
+        setTimeout(()=>im.remove(), F.steamLead+F.fogIn+F.hold+F.fogOut); }
+    if(fog){ fog.classList.add('catch');
+        setTimeout(()=>{ fog.style.transitionDuration=F.fogIn+'ms'; fog.classList.add('on'); }, F.steamLead);
+        setTimeout(()=>{ fog.style.transitionDuration=F.fogOut+'ms'; fog.classList.remove('on'); }, F.steamLead+F.fogIn+F.hold); }
+    setTimeout(()=>{ if(fog) fog.classList.remove('catch'); if(done) done(); }, F.steamLead+F.fogIn+F.hold+F.fogOut); }
 function showWaterBurst(){ positionWater(); document.getElementById('waterPour').classList.add('on'); document.getElementById('waterSplash').classList.add('on');
     const o=(orbEl.style.display!=='none')?orbCenter():stationCenter(stAnvil,0.5,0.2);   // quench feedback: white flash + rising steam at the blade
     const qf=document.getElementById('quenchFlash'); if(qf){ qf.style.left=o.x+'px'; qf.style.top=o.y+'px'; qf.classList.remove('on'); void qf.offsetWidth; qf.classList.add('on'); }

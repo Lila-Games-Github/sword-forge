@@ -332,6 +332,11 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
+{ const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
+eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+eq('the mist layer covers the frame and catches taps while it plays', src.includes('<div id="quenchFog"></div>') && src.includes('#quenchFog.catch { display: block; pointer-events: auto; }'), true);
+eq('timers, not animation events, end it (a hidden pane freezes animations)', src.includes('setTimeout(()=>{ if(fog) fog.classList.remove(\'catch\'); if(done) done(); }, F.steamLead+F.fogIn+F.hold+F.fogOut);'), true);
 /* r258 (owner, 2026-10-16): the map books and the EXP lesson (D9) move from the first sword (Bram's) to the second (GC1) */
 eq('the first craft places no books', (b => !!b && !b[0].includes('tutPlaceBooks()'))(src.replace(/\r\n/g, '\n').match(/function tutBellowsStep\(\)\{[\s\S]*?\n\}/)), true);
 eq('GC1: the books go on its route once its ores are in', src.includes("if(n('iron')>=FTUE.gpcCraft.iron && n('manganese')>=FTUE.gpcCraft.manganese){ TUT_STAGE='p1-craft-heat'; tutPlaceBooks(); }"), true);
