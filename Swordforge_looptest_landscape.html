@@ -2743,7 +2743,7 @@ function ftueDecorStep(){
 function nickelIn(){ return segs.filter(g=>g.ore==='nickel').length; }
 function ftueDurableStart(){ TUT_STAGE='p3-dur-ask'; sayQueue('D92b','D92c'); }
 function ftueDurableMap(){ if(TUT_STAGE!=='p3-dur-ask') return;
-    openIllus('assets/ui/MAP_parts.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part', ()=>sayQueue('D92d','D92e')); }
+    openIllus('assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part', ()=>sayQueue('D92d','D92e')); }
 function ftueDurableToCave(){ if(TUT_STAGE!=='p3-dur-ask') return;
     TUT_STAGE='p3-dur-cave'; tutExitTo('cave'); }
 function ftueDurableToForge(){ if(TUT_STAGE==='p3-dur-back') tutExitTo('forge'); }

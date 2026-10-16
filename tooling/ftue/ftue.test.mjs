@@ -278,7 +278,7 @@ for (const [k, prev] of [['D92b','D92a'],['D92c','D92b'],['D92d','D92c'],['D92e'
 eq('Durable moved (D25, measured: Fine to the end, Epic only with the pull)', /durable:\{x:1136,y:421\.667\}/.test(src), true);
 eq('Day 2 morning: no skill tree (it moved to part 6)', src.includes("sayQueue('D89','D92');"), true);
 eq('the Durable lesson: map window after D92c', src.includes('D92c:function(){ ftueDurableMap(); }')
-  && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts\.webp'/.test(src), true);
+  && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts2\.webp'/.test(src), true);   /* r254: its own art */
 eq('the Durable craft takes ground nickel only', src.includes("if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;"), true);
 eq('the Durable and Weak walks reach their screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0 || String(TUT_STAGE).indexOf('p4-weak-')===0){ tutDay2Screen(name); return; }"), true);
 eq('a market step without a done line says nothing', src.includes('if(o.market.done) sayOver(o.market.done);'), true);
@@ -332,6 +332,9 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r254 (owner, 2026-10-16): the second map window (GC4, basic vs elemental) shows MAP_parts2; the first (D67a, five parts) keeps MAP_parts */
+eq('second map window art', src.includes("openIllus('assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part'")
+  && src.includes("openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts'") && existsSync('assets/ui/MAP_parts2.webp'), true);
 /* r253 (owner, 2026-10-16): the come-later customer - MARKET first, see both blueprints and their prices, CLOSE, then D107d
    and COME LATER */
 eq('the request lights MARKET (D107d waits)', src.includes("if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */\n        typeAfter(()=>tutExit('#marketBtn')); }")

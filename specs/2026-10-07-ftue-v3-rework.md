@@ -1813,6 +1813,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   LATER lit, no cell left lit; COME LATER - the customer waits (1 on the list), the part goes on; no console errors.
   The PART 4 jump starts before TC5, so the gale column shows "?" there; in play gale is found first.
 
+- **r254: the second map window has its own art (owner, 2026-10-16).** The GC4 Durable lesson's window (after D92c: basic
+  traits in the visible part, elemental ones in the hidden part, `ftueDurableMap`) shows the owner's
+  `assets/ui/MAP_parts2.png` (929x929, "BASIC" in the lit centre, "ELEMENTAL" in the dark), loaded as
+  `assets/ui/MAP_parts2.webp` (converted in the preview page, quality 0.86, saved through `/__save`, 21 KB). The first
+  window (D67a, the five parts) keeps `MAP_parts.webp`. The older check on this window now names the new file. Asserted
+  by the FTUE test (480), written first. Checked in the browser (stage `p3-dur-ask`): the window shows MAP_parts2.webp,
+  loaded, 400x400; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1910,3 +1918,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-15: r251 a route of 5+ fully ground irons (drawn length) runs the sword x2; hazard damage per distance kept.
 - 2026-10-15: r252 gameplay customers say a random thank-you by tier (CUST_THANKS, 5 Epic / 5 Fine / 5 Weak).
 - 2026-10-16: r253 the come-later customer: MARKET, both blueprints lit, Close, then D107d and COME LATER.
+- 2026-10-16: r254 the GC4 map window (basic vs elemental) shows the owner's MAP_parts2.
