@@ -395,8 +395,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    other tap lands on the dim. */
 #tutHole { position: absolute; inset: 0; z-index: 60; background: rgba(6,4,2,.74); display: none; }
 #tutHole.on { display: block; }
-#dragonSay.hole-say { z-index: 61; }
-#dragon.dark-lit { z-index: 61; }   /* r270: D1 and D2 - the dim with no hole, and the dragon over it with his line */   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
+#dragonSay.hole-say { z-index: 61; }   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
+/* r270: D1 and D2 - the dim with no hole, and the dragon over it with his line. r271: the ore step lifts the smelter too
+   (#frame.landscape, to beat its own z-index 3 rule) */
+#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
 .xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;
@@ -2852,9 +2854,24 @@ function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE); }
 /* r270 (owner): D1 and D2 are read on a dark screen. The r245 dim with no hole; only the dragon and his line show */
 const SAY_DARK=['D1','D2'];
-function tutDark(on){ if(TUT_HOLE) return; const d=document.getElementById('tutHole'); if(d){ d.classList.toggle('on', !!on); d.style.clipPath=''; d._cp=''; }
+/* r271 (owner): D3's ore step stays dark. The smelter is lifted over the dim like the dragon (its art, not a box); the
+   inventory panel sits in the rail (z45, its own stacking context), so a window is cut for it instead. The arrow (z70)
+   is over the dim anyway. */
+const ORE_DARK_CUT=[ { sel:'#matPanel' } ], ORE_DARK_LIFT=['#stSmelt'];
+let TUT_DARK_CUT=null;
+function tutDark(on, cut, lift){ if(TUT_HOLE) return; TUT_DARK_CUT=(on && cut) ? cut : null;
+    document.querySelectorAll('.dark-lit').forEach(e=>e.classList.remove('dark-lit'));
+    if(on) (lift||[]).forEach(sel=>{ const e=document.querySelector(sel); if(e) e.classList.add('dark-lit'); });
+    const d=document.getElementById('tutHole'); if(d){ d.classList.toggle('on', !!on); d.style.clipPath=''; d._cp=''; if(TUT_DARK_CUT) tutDarkLayout(); }
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!on);
     const dr=document.getElementById('dragon'); if(dr) dr.classList.toggle('dark-lit', !!on); }
+function tutDarkLayout(){ const d=document.getElementById('tutHole'); if(!d || !TUT_DARK_CUT) return;
+    const a=d.getBoundingClientRect(); if(!(a.width>0)) return;
+    const k=d.offsetWidth/a.width; let p='M0 0H'+d.offsetWidth+'V'+d.offsetHeight+'H0Z';
+    TUT_DARK_CUT.forEach(c=>{ const e=document.querySelector(c.sel); if(!e) return; const r=e.getBoundingClientRect(); if(!(r.width>0)) return;
+        const x=(r.left-a.left)*k-4, y=(r.top-a.top+r.height*(c.top||0))*k-4, w=r.width*k+8, h=r.height*(1-(c.top||0))*k+8;
+        p+=' M'+x.toFixed(1)+' '+y.toFixed(1)+'h'+w.toFixed(1)+'v'+h.toFixed(1)+'h'+(-w).toFixed(1)+'Z'; });
+    const cp="path(evenodd, '"+p+"')"; if(d._cp!==cp){ d.style.clipPath=cp; d._cp=cp; } }
 function tutHoleLayout(){ const d=document.getElementById('tutHole'), sp=document.getElementById('tutSpot'); if(!d || !sp) return;
     const a=d.getBoundingClientRect(), r=sp.getBoundingClientRect(); if(!(a.width>0) || !(r.width>0)) return;
     const k=d.offsetWidth/a.width, W=d.offsetWidth, H=d.offsetHeight;
@@ -7055,6 +7072,7 @@ function tick(now){
     custSpotSync();   /* r221 */
     if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
+    if(TUT_DARK_CUT){ if(TUT_STAGE!=='ore') tutDark(false); else tutDarkLayout(); }   /* r271 */
     tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
@@ -7765,6 +7783,7 @@ function tutIronSlot(){
 function tutFirstOreSlot(){ return (segs.filter(g=>g.ore==='iron').length<2 ? tutIronSlot : tutOreSlot('Manganese'))(); }
 function tutOreStep(){
     TUT_STAGE='ore';
+    tutDark(true, ORE_DARK_CUT, ORE_DARK_LIFT);   /* r271 (owner): only the line, the arrow, the smelter and the inventory show */
     tutGlow('#bellowtop', false);
     tutArrow(tutFirstOreSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
 }
@@ -9741,7 +9760,7 @@ function say(id){
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
-    tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270 */
+    if(TUT_STAGE!=='ore') tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270. r271: the ore step keeps its own */
     /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
        the end, so the next tap closes instead of walking the run from wherever it had been left. */
     { const i=SAY_SEQ.indexOf(id); SAY_I = (i>=0) ? i : SAY_SEQ.length; }
@@ -9790,7 +9809,7 @@ function sayHide(){
     const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
     if(after) setTimeout(after, 0);
     SAY_ON=null; sayChoose(null);   /* r115 */
-    tutDark(false);   /* r270 */
+    if(TUT_STAGE!=='ore') tutDark(false);   /* r270. r271: closing D3 leaves the ore step dark */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top

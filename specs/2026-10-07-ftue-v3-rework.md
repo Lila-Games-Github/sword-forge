@@ -1977,6 +1977,19 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   centre of the furnace and of the ore shelf hit the dim, the dragon and the line hit themselves; at D3 the dim is off
   and the furnace is live again.
 
+- **r271: D3's ore step is read on a dark screen too (owner, 2026-10-16).** From D3 until the fourth ore is in, the
+  r270 dim stays on, and only the dragon and his line, the arrow, the smelter and the inventory panel show. The smelter
+  (`#stSmelt`, with its bellows) is lifted over the dim (`dark-lit`, z61; `#frame.landscape` in the rule beats its own
+  z-index 3), so its art shows with no box around it. The inventory panel sits in the rail, which is its own stacking
+  context (z45), so a window is cut for it in the dim instead (`tutDarkLayout`: an even-odd path of rectangles, re-cut
+  every frame). `ORE_DARK_CUT = [ { sel:'#matPanel' } ]`, `ORE_DARK_LIFT = ['#stSmelt']`. `tutOreStep` turns it on;
+  closing D3 leaves it on while TUT_STAGE is 'ore'; the frame loop drops it once the stage moves on (D4, the bellows,
+  is lit). The ore drop is decided by rectangles, not by what is under the pointer, so the dim does not block it.
+  Asserted by the FTUE test (530), written first. Checked in the browser on a new game: at D3 the pot and an ore slot
+  hit themselves, the anvil, the mug and the map hit the dim; after D3 is closed it stays dark; with 2 Iron and 2
+  Manganese in, D4 shows and the dim is gone. Also restored the r245 comment that r270's edit had moved off the
+  `#dragonSay.hole-say` line.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2091,3 +2104,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r268 a paid sale flies coins from SELL to the gold panel, like a quest claim.
 - 2026-10-16: r269 the owner's map_base updated again (WebP regenerated, manifest updated).
 - 2026-10-16: r270 D1 and D2 are read on a dark screen; only the dragon and his line show.
+- 2026-10-16: r271 the ore step (D3) is read on a dark screen; the smelter and the inventory show.

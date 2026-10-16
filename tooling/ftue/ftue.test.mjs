@@ -335,13 +335,22 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r271 (owner, 2026-10-16): D3's ore step stays dark too. The smelter is lifted over the dim (like the dragon); the
+   inventory panel gets a window cut in it. The dragon, his line and the arrow (z70) stay above; it lasts while TUT_STAGE is 'ore' */
+eq('the ore step cuts a window for the inventory and lifts the smelter', (src.match(/const ORE_DARK_CUT=(\[[^\]]*\]), ORE_DARK_LIFT=(\[[^\]]*\]);/) || []).slice(1), ["[ { sel:'#matPanel' } ]", "['#stSmelt']"]);
+eq('a lifted element rises over the dim', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }'), true);
+eq('tutOreStep turns it on', /function tutOreStep\(\)\{[\s\S]{0,200}tutDark\(true, ORE_DARK_CUT, ORE_DARK_LIFT\);/.test(src), true);
+eq('closing D3 keeps it during the ore step', /function sayHide\(\)\{[\s\S]{0,1400}if\(TUT_STAGE!=='ore'\) tutDark\(false\);/.test(src), true);
+eq('say() leaves the ore dim alone', src.includes("if(TUT_STAGE!=='ore') tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
+eq('the frame loop re-cuts the windows, and drops the dim once the stage moves on', src.includes("if(TUT_DARK_CUT){ if(TUT_STAGE!=='ore') tutDark(false); else tutDarkLayout(); }"), true);
+eq('the cut is an even-odd path of rectangles', /function tutDarkLayout\(\)\{[\s\S]{0,900}path\(evenodd, '/.test(src), true);
 /* r270 (owner, 2026-10-16): D1 and D2 are read on a dark screen - the r245 dim with no hole; only the dragon and his
    line (with its glowing OK) show above it */
 eq('SAY_DARK is D1 and D2', (src.match(/const SAY_DARK=(\[[^\]]*\]);/) || [])[1], "['D1','D2']");
 eq('say() darkens for those lines on the forge bubble, and clears for any other', src.includes("tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
 eq('sayHide() lifts it', /function sayHide\(\)\{[\s\S]{0,1400}tutDark\(false\);/.test(src), true);
-eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit { z-index: 61; }'), true);
-eq('tutDark leaves a live trait hole alone', src.includes("function tutDark(on){ if(TUT_HOLE) return;"), true);
+eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }'), true);
+eq('tutDark leaves a live trait hole alone', src.includes("function tutDark(on, cut, lift){ if(TUT_HOLE) return;"), true);
 /* r268 (owner, 2026-10-16): a paid sale flies coins from SELL to the gold panel, as a quest claim does; the gold count
    shows the new total when they land */
 eq('SELL\'s box is read before the counter changes', /function sellCounter\(\)\{[\s\S]*?const sellR=\(document\.querySelector\('#csPanel \.cs-sell'\)\|\|\{ getBoundingClientRect:\(\)=>null \}\)\.getBoundingClientRect\(\), goldWas=GOLD;[\s\S]*?COUNTER=null;/.test(src), true);
