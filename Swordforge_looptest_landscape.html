@@ -173,31 +173,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     filter: none; }   /* .station img casts a drop-shadow; smoke must not */
 #furnaceSmoke.on { animation: smokeRise 2.2s ease-in-out infinite; }
 @keyframes smokeRise { 0% { opacity: 0; transform: translateY(14px) scale(.8); } 35% { opacity: .6; } 100% { opacity: 0; transform: translateY(-26px) scale(1.25); } }
-/* r39 — idle nudge arrow. arrow.png is pure white on transparent, so it needs a shadow to read against
-   the parchment. The sheen is a band mask 3x the element's width swept across it: at mask-position 100%
-   the band sits just off the left edge, at 0% just off the right, so 100% -> 0% travels LEFT TO RIGHT. */
-#hintArrow { position: absolute; z-index: 15; display: none; opacity: 0; pointer-events: none;
-    -webkit-user-drag: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,.7));
-    -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 42%, #000 58%, transparent 70%);
-            mask-image: linear-gradient(90deg, transparent 30%, #000 42%, #000 58%, transparent 70%);
-    -webkit-mask-size: 320% 100%;   mask-size: 320% 100%;
-    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
-#hintArrow.on { display: block; animation: arrowSheen 2.1s ease-in-out infinite; }
-@keyframes arrowSheen {
-    0%   { opacity: 0;   -webkit-mask-position: 100% 0; mask-position: 100% 0; }
-    28%  { opacity: .95; }
-    72%  { opacity: .95; }
-    100% { opacity: 0;   -webkit-mask-position: 0% 0;   mask-position: 0% 0; }
-}
-/* r40 — the "tap the ore" nudge. visibility+opacity rather than display, so it can fade in; the bob
-   owns transform outright (unlike #hintArrow, this one needs no rotation to aim). */
-#hintDown { position: absolute; z-index: 15; display: none; opacity: 0; pointer-events: none;
-    -webkit-user-drag: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,.7)); }
-/* the fade is a KEYFRAME, not a transition: a transition off visibility:hidden never fired here, so the
-   arrow stayed at opacity 0 forever. Two animations, one per property - same trick #hintArrow uses. */
-#hintDown.on { display: block; animation: hintBob 1.1s ease-in-out infinite, hintFade .35s ease-out forwards; }
-@keyframes hintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
-@keyframes hintFade { from { opacity: 0; } to { opacity: .95; } }
+/* r263 (owner): the two white idle-nudge arrow images are gone - the nudges use the guide's own pointers */
 /* heat gauge — relocated out of the HUD into a small bench overlay near the furnace */
 #heatMini { position: absolute; left: 41%; top: 10%; transform: translateX(-50%); z-index: 12; display: flex; align-items: center; gap: 4px; background: rgba(20,15,8,0.7); border: 1px solid #6a5636; border-radius: 8px; padding: 3px 6px; }   /* centered over the furnace, lowered 10% */
 .gauge { display: flex; align-items: center; gap: 4px; }
@@ -2278,8 +2254,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div id="waterPour"></div>
         <div id="waterSplash"></div>
         <div id="quenchFlash"></div>
-        <img id="hintArrow" src="assets/ui/arrow.webp" alt=""><!-- r39: idle nudge, ore -> smelter -->
-        <img id="hintDown" src="assets/ui/arrow_point_down.webp" alt=""><!-- r40: idle nudge, tap the ore -->
         <div id="forgeResult"></div>
 
     </div>
@@ -6979,12 +6953,9 @@ function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-
     tutWeakStop();   /* v3 part 4: GC8 */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); ensureSwordVisible(); checkTraitReach(p); checkHazard(p,dt*mul); checkBooks(p); }   // drawRoute() erases the part behind the sword. r251: dt*mul keeps hazard damage per distance
 
-// ---- r39: the idle nudge arrow ----
-// Tip fractions measured off arrow.png (409x158): the tail is bottom-left, the head upper-right, and the
-// tail->head axis already sits at -4.4deg inside the image, so that bias is subtracted from the rotation.
-const ARROW = { tail:[0.031,0.981], head:[0.954,0.797], axis:0.9257, axisDeg:-4.404, ratio:158/409 };
+// ---- r39: the idle nudge (r263: drawn with the guide's own pointers) ----
 const HINT_IDLE_MS = 4000;
-let lastActAt = performance.now(), hintArrowOn = false, hintDownOn = false;
+let lastActAt = performance.now(), HINT_ARROW_REF = null, HINT_GLOW = false;   /* r263: the nudges' own pointer (the guide's arrow object it set) and glow */
 function noteAction(){ lastActAt = performance.now();
     /* r157: only the minigame still hides its hint on activity. The bench pointer is recomputed
        from state every frame now, so wiping it here just made it blink out on every tap - which
@@ -6996,7 +6967,7 @@ function swordAtRouteEnd(){ if(!segs.length) return false;
 // stuck: the ore is out on the anvil, the route is spent, nothing is under the sword, and the player has
 // gone quiet. Re-heating at the furnace is the only way forward, so point at it.
 function hintArrowWanted(){
-    /* r186: NOT the tutorial's own arrow - this is #hintArrow, the white idle nudge from arrow.webp,
+    /* r186: NOT the tutorial's own arrow - this was the white idle nudge (r263: now drawn as the guide's arrow),
        and r184 cleared the wrong one. At fire-spot the metal is on the anvil at the route end with
        no trait banked, which is exactly this arrow's condition, so it faded in over D70 four seconds
        in. D70 is a look-at-this line; the only thing to do is read on, and its go button says so.
@@ -7005,15 +6976,13 @@ function hintArrowWanted(){
     /* r187: and never alongside the tutorial's own arrow. Two arrows pointing the same way read as
        two instructions; the scripted one is the one that knows what step this is. The fire-spot line
        above still earns its place - there TUT_ARROW is empty and this one would be the only arrow. */
-    if(TUT_ARROW) return false;
+    if(TUT_ARROW && TUT_ARROW!==HINT_ARROW_REF) return false;   /* r263: the guide's arrow wins; our own does not count */
     if(SF_SCREEN!=='forge') return false;
     if(!melt || melt.stage!=='onAnvil' || melt.reachedTrait) return false;
     if(melt.traits && melt.traits.length) return false;   // r40: a trait is banked - the down-arrow owns this state
     if(anyModalOpen()) return false;
     if(!swordAtRouteEnd()) return false;
     return performance.now() - lastActAt >= HINT_IDLE_MS; }
-// tip of arrow_point_down.png (234x396), as a fraction of the image
-const DOWN = { tip:[0.4487,0.952], ratio:396/234 };
 function anyModalOpen(){ return !!document.querySelector('.sf-modal.show'); }
 // the trait is in the bag: the only move left on the anvil is to tap the ore and pick a shape
 function hintDownWanted(){
@@ -7023,26 +6992,6 @@ function hintDownWanted(){
     if(!(melt.traits && melt.traits.length)) return false;
     if(anyModalOpen()) return false;
     return performance.now() - lastActAt >= HINT_IDLE_MS; }
-function placeHintDown(){
-    const a=document.getElementById('hintDown'); if(!a||!orbEl) return;
-    const b=benchEl().getBoundingClientRect(), o=orbEl.getBoundingClientRect();
-    const H=o.height*2.0, W=H/DOWN.ratio;                       // twice the orb tall, so it reads at a glance
-    const tipX=o.left+o.width/2-b.left, tipY=o.top-o.height*0.25-b.top;   // just clear of the orb's crown
-    a.style.width=W.toFixed(1)+'px';
-    a.style.left=(tipX-DOWN.tip[0]*W).toFixed(1)+'px';
-    a.style.top =(tipY-DOWN.tip[1]*H).toFixed(1)+'px'; }
-function placeHintArrow(){
-    const a=document.getElementById('hintArrow'); if(!a||!orbEl||!stSmelt) return;
-    const b=benchEl().getBoundingClientRect(), o=orbEl.getBoundingClientRect(), f=stSmelt.getBoundingClientRect();
-    const tail={ x:o.left+o.width/2-b.left, y:o.top+o.height/2-b.top };
-    const head={ x:f.left+f.width*0.51-b.left, y:f.top+f.height*0.25-b.top };   // crucible mouth (51% across, 25% down anchor_furnace.png)
-    const dx=head.x-tail.x, dy=head.y-tail.y, D=Math.hypot(dx,dy); if(D<8) return;
-    const W=D/ARROW.axis, H=W*ARROW.ratio;
-    a.style.width=W.toFixed(1)+'px';
-    a.style.left=(tail.x-ARROW.tail[0]*W).toFixed(1)+'px';
-    a.style.top =(tail.y-ARROW.tail[1]*H).toFixed(1)+'px';
-    a.style.transformOrigin=(ARROW.tail[0]*100).toFixed(1)+'% '+(ARROW.tail[1]*100).toFixed(1)+'%';
-    a.style.transform='rotate('+(Math.atan2(dy,dx)*180/Math.PI - ARROW.axisDeg).toFixed(2)+'deg)'; }
 function updateHintArrow(){
     wqTick();   /* owner, 2026-10-14: the waiting customer's guide */
     if(mugEl) mugEl.classList.toggle('mug-ready', mugWanted());   /* owner, 2026-10-13: the next step glows */
@@ -7053,14 +7002,14 @@ function updateHintArrow(){
     if(TUT_SKIP_TRIED && TUT_SKIP_TRIED!==TUT_STAGE) TUT_SKIP_TRIED=null;
     tutSkipDone();   /* owner, 2026-10-13: a step already done moves on */
     if(tutTicks()) tutNudge();   /* r185 */
+    /* r263 (owner): one guide look everywhere. Stuck on the anvil with the route spent: the guide's dashed arrow, metal to
+       the furnace (written straight to TUT_ARROW - tutArrow() would also clear the guide's exit blink and tap glow). A trait
+       banked: the metal glows, the guide's "tap the metal". Each clears only what it set. */
     const want=hintArrowWanted();
-    if(want) placeHintArrow();                       // re-place every frame: the orb and the furnace both move
-    if(want!==hintArrowOn){ hintArrowOn=want;
-        const a=document.getElementById('hintArrow'); if(a) a.classList.toggle('on', want); }
+    if(want && (!TUT_ARROW || TUT_ARROW!==HINT_ARROW_REF)){ TUT_ARROW={ from:'#orb', to:'#stSmelt .furnace', opt:{ tfx:0.51, tfy:0.25, bow:0.18, back:24 } }; HINT_ARROW_REF=TUT_ARROW; tutDrawArrow(); }
+    else if(!want && TUT_ARROW && TUT_ARROW===HINT_ARROW_REF){ TUT_ARROW=null; HINT_ARROW_REF=null; tutDrawArrow(); }
     const wantD=hintDownWanted();
-    if(wantD) placeHintDown();
-    if(wantD!==hintDownOn){ hintDownOn=wantD;
-        const d=document.getElementById('hintDown'); if(d) d.classList.toggle('on', wantD); } }
+    if(wantD && !HINT_GLOW){ tutGlow('#orb', true); HINT_GLOW=true; } else if(!wantD && HINT_GLOW){ tutGlow('#orb', false); HINT_GLOW=false; } }
 function wireIdleNudge(){
     const f=document.getElementById('frame'); if(!f) return;
     ['pointerdown','pointerup','wheel','keydown'].forEach(t=>f.addEventListener(t, noteAction, true));

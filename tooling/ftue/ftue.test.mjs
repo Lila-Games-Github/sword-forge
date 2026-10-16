@@ -335,6 +335,12 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r263 (owner, 2026-10-16): no white arrows - the idle nudges use the guide's own pointers: the dashed arrow for the drag
+   (metal to the furnace), the metal's glow for the tap (pick a shape) */
+eq('the white arrow art is gone', !src.includes('id="hintArrow"') && !src.includes('id="hintDown"') && !src.includes('arrow.webp') && !src.includes('arrow_point_down') && !src.includes('#hintArrow') && !src.includes('#hintDown'), true);
+eq('the drag nudge is the guide arrow, owned and cleared by the nudge only', src.includes("TUT_ARROW={ from:'#orb', to:'#stSmelt .furnace', opt:{ tfx:0.51, tfy:0.25, bow:0.18, back:24 } }; HINT_ARROW_REF=TUT_ARROW; tutDrawArrow();")
+  && src.includes('if(TUT_ARROW && TUT_ARROW!==HINT_ARROW_REF) return false;') && src.includes('else if(!want && TUT_ARROW && TUT_ARROW===HINT_ARROW_REF){ TUT_ARROW=null; HINT_ARROW_REF=null; tutDrawArrow(); }'), true);
+eq('the tap nudge is the metal\'s glow', src.includes("if(wantD && !HINT_GLOW){ tutGlow('#orb', true); HINT_GLOW=true; } else if(!wantD && HINT_GLOW){ tutGlow('#orb', false); HINT_GLOW=false; }"), true);
 /* r262 (owner, 2026-10-16): the hammer minigame's mug plays the same steam and mist, then finishes the blade */
 eq('quenchFx takes a spot (host layer, position, above)', src.includes('function quenchFx(done, spot){')
   && src.includes("fog.classList.toggle('above', !!s.above);") && src.includes("#quenchFog.above { z-index: 1065; }"), true);

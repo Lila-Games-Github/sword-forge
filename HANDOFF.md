@@ -149,6 +149,7 @@ continuation prompt printed at close time.
 - **r260:** the quench mist is a soft plain white gradient, not the tiled smoke art.
 - **r261:** metal on the anvil is drawn hot only while it has heat; a quench leaves it grey.
 - **r262:** the hammer minigame's mug plays the same steam and mist (`quenchFx` with a spot in `#hmFx`, the mist lifted over the minigame) before `finishBlade()`.
+- **r263:** the white idle-nudge arrows are gone: the drag nudge is the guide's dashed arrow (metal -> furnace), the tap nudge the metal's glow.
 - **FTUE v3 (history; now built, merged and live, see "Current state"; `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
 
 ## Next steps
@@ -194,7 +195,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 498 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 501 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -242,8 +243,9 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   settles after a delay. It is a test aid for jumping to a part, not a save.
 - **Verify through the path a player takes.** Drive real `tick()` frames and real `PointerEvent`s, and
   click through `elementFromPoint`. See LEARNINGS.
-- **There are two arrows.** `#tutArrow` is the scripted dashed pointer; `#hintArrow` is the white idle
-  nudge. Since r187 the white one stands down whenever `TUT_ARROW` is set.
+- **There is one arrow.** `#tutArrow` is the dashed pointer. Since r263 the idle nudges use it too (written to `TUT_ARROW`
+  as `HINT_ARROW_REF`, cleared only by the nudge) or the metal's glow; the white arrow images are gone. A guide arrow
+  still makes the nudge stand down.
 - **A halo near a clipped edge does not read.** `#rail` and `#frame` are `overflow: hidden`; since r242 `.tut-blink`
   is `tutLitCtl` (its inset glow survives clipping) and every rail button uses the tabs' face swap (`tutBlinkTab`).
 - **A pointer or line is retired only if something retires it.** Setting the next stage is not enough

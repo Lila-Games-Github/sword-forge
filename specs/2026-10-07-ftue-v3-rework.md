@@ -1907,6 +1907,18 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   takes the centre tap); 400/900 ms - mist full, minigame still open; 1700 ms - mist and puffs gone, minigame closed,
   "Sword crafted!" open; a screenshot of the steam over the anvil; no console errors.
 
+- **r263: no white arrows - the idle nudges use the guide's pointers (owner, 2026-10-16).** The two idle nudges (4 s
+  without input) were white images: `#hintArrow` (`assets/ui/arrow.webp`, metal -> furnace, "reheat it") and `#hintDown`
+  (`arrow_point_down.webp`, over the metal, "tap it to pick a shape"). Both are gone with their CSS and geometry. Now the
+  drag nudge draws the guide's dashed arrow (`#tutArrow`, metal -> furnace), and the tap nudge glows the metal - what the
+  guide itself does for "tap the metal" (since r152 a tap is a glow, never an arrow). The nudge writes `TUT_ARROW`
+  directly (`tutArrow()` would also clear the guide's exit blink and tap glow), remembers the object it set
+  (`HINT_ARROW_REF`) and clears only that; a guide arrow is never replaced or cleared, and still makes the nudge stand down.
+  The glow is removed only if the nudge added it (`HINT_GLOW`). The two image files stay in `assets/ui/`, unused. Asserted
+  by the FTUE test (501), written first. Checked in the browser (after the FTUE, metal on the anvil, route spent, 5 s idle):
+  the guide's dashed arrow metal -> furnace, steady, 0 white arrow images; a tap clears it; a guide arrow kept through idle
+  and activity; a trait banked - the metal glows; a tap clears it; screenshot of the dashed arrow; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2013,3 +2025,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r260 the quench mist is a soft plain white gradient (no smoke texture).
 - 2026-10-16: r261 quenched metal on the anvil is grey (cold) until it is heated again.
 - 2026-10-16: r262 the hammer minigame mug plays the same steam and mist before the blade is finished.
+- 2026-10-16: r263 the white idle arrows are gone: the drag nudge is the guide's dashed arrow, the tap nudge the metal's glow.
