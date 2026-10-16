@@ -1990,6 +1990,20 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Manganese in, D4 shows and the dim is gone. Also restored the r245 comment that r270's edit had moved off the
   `#dragonSay.hole-say` line.
 
+- **r272: the first sword's steps stay dark until the hammering starts (owner, 2026-10-16).** One table,
+  `STAGE_DARK`, maps a tutorial stage to what is lifted over the r270 dim (and any window cut in it); it replaces r271's
+  `ORE_DARK_CUT`/`ORE_DARK_LIFT`. ore (D3): the smelter, a window for the inventory; bellows (D4) and gate (D5): the
+  smelter with its bellows; anvil (D6): the anvil and the metal; hammer (D7): the anvil, the metal and the hammer;
+  strike (D8, the first strike): a window over the map (`#map-wrap`, the whole top of the frame), so the moving sword
+  icon the line points at shows. Before this, D8's pause dimmed the map too. D8 still holds the frame loop, but
+  `tutPause` leaves its own `#tutDim` off in a dark stage. Lifted order: smelter and anvil z61, hammer z62, metal z63 (the
+  metal over the anvil and the hammer, as at z8/z9). `tutDarkSync()` applies the stage's entry from `say()` (after its
+  hooks set the stage) and every frame; closing a line keeps a dark stage dark; 'travel' (after D8) is not in the table,
+  so it all lifts. The dragon, his line and the arrow (z70) are always over. Asserted by the FTUE test (531), written
+  first. Checked in the browser, playing a new game through D8 (ores dropped, bellows held, gate tapped, metal dragged):
+  each step lifts exactly its entry (the smelter, the gate, the metal, the anvil and the hammer hit themselves; the rest
+  hits the dim); at D8 the map's centre is lit and the anvil is dark, the pause holds; after D8 nothing is dark.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2105,3 +2119,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r269 the owner's map_base updated again (WebP regenerated, manifest updated).
 - 2026-10-16: r270 D1 and D2 are read on a dark screen; only the dragon and his line show.
 - 2026-10-16: r271 the ore step (D3) is read on a dark screen; the smelter and the inventory show.
+- 2026-10-16: r272 the first sword's steps (D3-D7) stay dark around what each step uses; D8 lights the map.

@@ -397,8 +397,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutHole.on { display: block; }
 #dragonSay.hole-say { z-index: 61; }   /* over the rail (z45) and the exits (z50) too: only the line and the trait show */
 /* r270: D1 and D2 - the dim with no hole, and the dragon over it with his line. r271: the ore step lifts the smelter too
-   (#frame.landscape, to beat its own z-index 3 rule) */
-#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }
+   (#frame.landscape, to beat its own z-index 3 rule). r272: the anvil, the hammer and the metal, in their own order */
+#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }
+#frame.landscape #hammerTool.dark-lit { z-index: 62; }
+#frame.landscape #orb.dark-lit { z-index: 63; }
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
 .xp-hold { position: absolute; z-index: 47; transform: translate(-50%,-100%); pointer-events: none;
@@ -2856,9 +2858,15 @@ function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'
 const SAY_DARK=['D1','D2'];
 /* r271 (owner): D3's ore step stays dark. The smelter is lifted over the dim like the dragon (its art, not a box); the
    inventory panel sits in the rail (z45, its own stacking context), so a window is cut for it instead. The arrow (z70)
-   is over the dim anyway. */
-const ORE_DARK_CUT=[ { sel:'#matPanel' } ], ORE_DARK_LIFT=['#stSmelt'];
-let TUT_DARK_CUT=null;
+   is over the dim anyway.
+   r272 (owner): every step of the first sword up to the hammering, one table: stage -> what is lifted (and any window).
+   strike (D8, the first strike) cuts a window over the map, so the moving sword icon is what shows; tutPause leaves
+   its own #tutDim off in a dark stage. */
+const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, gate:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, hammer:{ lift:['#stAnvil','#orb','#hammerTool'] }, strike:{ cut:[ { sel:'#map-wrap' } ] } };
+let TUT_DARK_CUT=null, TUT_DARK_ST=null;
+function tutDarkSync(){ const st=STAGE_DARK[TUT_STAGE] ? TUT_STAGE : null;
+    if(st!==TUT_DARK_ST){ TUT_DARK_ST=st; if(st) tutDark(true, STAGE_DARK[st].cut, STAGE_DARK[st].lift); else tutDark(false); }
+    else if(TUT_DARK_CUT) tutDarkLayout(); }
 function tutDark(on, cut, lift){ if(TUT_HOLE) return; TUT_DARK_CUT=(on && cut) ? cut : null;
     document.querySelectorAll('.dark-lit').forEach(e=>e.classList.remove('dark-lit'));
     if(on) (lift||[]).forEach(sel=>{ const e=document.querySelector(sel); if(e) e.classList.add('dark-lit'); });
@@ -7072,7 +7080,7 @@ function tick(now){
     custSpotSync();   /* r221 */
     if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
-    if(TUT_DARK_CUT){ if(TUT_STAGE!=='ore') tutDark(false); else tutDarkLayout(); }   /* r271 */
+    tutDarkSync();   /* r271/r272 */
     tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
@@ -7783,7 +7791,7 @@ function tutIronSlot(){
 function tutFirstOreSlot(){ return (segs.filter(g=>g.ore==='iron').length<2 ? tutIronSlot : tutOreSlot('Manganese'))(); }
 function tutOreStep(){
     TUT_STAGE='ore';
-    tutDark(true, ORE_DARK_CUT, ORE_DARK_LIFT);   /* r271 (owner): only the line, the arrow, the smelter and the inventory show */
+    tutDarkSync();   /* r271 (owner): only the line, the arrow, the smelter and the inventory show */
     tutGlow('#bellowtop', false);
     tutArrow(tutFirstOreSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 });   /* r142: the pot on top, not the mouth. anchor_furnace has 115px of transparent padding over the art, so tfy 0.25 is the molten surface, measured - anything smaller points at empty canvas. Same value r125 uses to aim at this prop. */
 }
@@ -7855,7 +7863,7 @@ function tutPause(on){ TUT_PAUSE=!!on;
     const d=document.getElementById('tutDim');
     const hm=document.getElementById('sfHammerModal');
     const inHm=!!(hm && hm.classList.contains('show'));   /* r173 */
-    if(d){ d.classList.toggle('on', !!on); d.classList.toggle('deep', !!on && inHm); }
+    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead */
     tutLit(!!on);
 }
 /* r173: whichever bubble is currently speaking gets the ring and rises over the dim. Four boxes
@@ -9760,7 +9768,7 @@ function say(id){
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
-    if(TUT_STAGE!=='ore') tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270. r271: the ore step keeps its own */
+    if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270. r271/r272: a dark stage keeps its own */
     /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
        the end, so the next tap closes instead of walking the run from wherever it had been left. */
     { const i=SAY_SEQ.indexOf(id); SAY_I = (i>=0) ? i : SAY_SEQ.length; }
@@ -9794,6 +9802,7 @@ function say(id){
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */
+    tutDarkSync();   /* r272: a step's stage is set by now */
     sayLayout(); requestAnimationFrame(sayLayout);        // again once the text has wrapped and set the height
 }
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
@@ -9809,7 +9818,7 @@ function sayHide(){
     const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
     if(after) setTimeout(after, 0);
     SAY_ON=null; sayChoose(null);   /* r115 */
-    if(TUT_STAGE!=='ore') tutDark(false);   /* r270. r271: closing D3 leaves the ore step dark */
+    if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top

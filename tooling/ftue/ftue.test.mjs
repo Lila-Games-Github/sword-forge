@@ -335,21 +335,33 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
-/* r271 (owner, 2026-10-16): D3's ore step stays dark too. The smelter is lifted over the dim (like the dragon); the
-   inventory panel gets a window cut in it. The dragon, his line and the arrow (z70) stay above; it lasts while TUT_STAGE is 'ore' */
-eq('the ore step cuts a window for the inventory and lifts the smelter', (src.match(/const ORE_DARK_CUT=(\[[^\]]*\]), ORE_DARK_LIFT=(\[[^\]]*\]);/) || []).slice(1), ["[ { sel:'#matPanel' } ]", "['#stSmelt']"]);
-eq('a lifted element rises over the dim', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }'), true);
-eq('tutOreStep turns it on', /function tutOreStep\(\)\{[\s\S]{0,200}tutDark\(true, ORE_DARK_CUT, ORE_DARK_LIFT\);/.test(src), true);
-eq('closing D3 keeps it during the ore step', /function sayHide\(\)\{[\s\S]{0,1400}if\(TUT_STAGE!=='ore'\) tutDark\(false\);/.test(src), true);
-eq('say() leaves the ore dim alone', src.includes("if(TUT_STAGE!=='ore') tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
-eq('the frame loop re-cuts the windows, and drops the dim once the stage moves on', src.includes("if(TUT_DARK_CUT){ if(TUT_STAGE!=='ore') tutDark(false); else tutDarkLayout(); }"), true);
+/* r272 (owner, 2026-10-16): the first sword's steps stay dark until the hammering starts. One table, stage -> what is
+   lifted over the dim (and any window cut in it): ore = the smelter and the inventory (r271); bellows and gate = the
+   smelter, bellows included; anvil = the anvil and the metal; hammer = the anvil, the metal and the hammer; strike (D8,
+   the first strike) = a window over the map, so the sword icon moving is what shows. D8's pause keeps the frame loop
+   held but drops its own #tutDim for this. The dragon, his line and the arrow (z70) are always over */
+{ const m = src.match(/const STAGE_DARK=(\{.*\});/);
+  eq('STAGE_DARK is the recorded table', m && new Function('return ' + m[1])(), {
+    ore:     { cut: [{ sel: '#matPanel' }], lift: ['#stSmelt'] },
+    bellows: { lift: ['#stSmelt'] },
+    gate:    { lift: ['#stSmelt'] },
+    anvil:   { lift: ['#stAnvil', '#orb'] },
+    hammer:  { lift: ['#stAnvil', '#orb', '#hammerTool'] },
+    strike:  { cut: [{ sel: '#map-wrap' }] } }); }
+eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
+  && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
+eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const st=STAGE_DARK[TUT_STAGE] ? TUT_STAGE : null;"), true);
+eq('say() syncs after its hooks, and leaves a stage dim alone', src.includes("if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');") && /function say\(id\)\{[\s\S]*?tutDarkSync\(\);[^\n]*\n\s*sayLayout\(\);/.test(src), true);
+eq('closing a line keeps a stage dim', /function sayHide\(\)\{[\s\S]{0,1400}if\(!STAGE_DARK\[TUT_STAGE\]\) tutDark\(false\);/.test(src), true);
+eq('the frame loop syncs it', src.includes("    tutDarkSync();   /* r271/r272 */"), true);
 eq('the cut is an even-odd path of rectangles', /function tutDarkLayout\(\)\{[\s\S]{0,900}path\(evenodd, '/.test(src), true);
+eq('a pause in a dark stage uses the stage\'s dim, not #tutDim', src.includes("if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE]);"), true);
 /* r270 (owner, 2026-10-16): D1 and D2 are read on a dark screen - the r245 dim with no hole; only the dragon and his
    line (with its glowing OK) show above it */
 eq('SAY_DARK is D1 and D2', (src.match(/const SAY_DARK=(\[[^\]]*\]);/) || [])[1], "['D1','D2']");
 eq('say() darkens for those lines on the forge bubble, and clears for any other', src.includes("tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
 eq('sayHide() lifts it', /function sayHide\(\)\{[\s\S]{0,1400}tutDark\(false\);/.test(src), true);
-eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit { z-index: 61; }'), true);
+eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }'), true);
 eq('tutDark leaves a live trait hole alone', src.includes("function tutDark(on, cut, lift){ if(TUT_HOLE) return;"), true);
 /* r268 (owner, 2026-10-16): a paid sale flies coins from SELL to the gold panel, as a quest claim does; the gold count
    shows the new total when they land */
