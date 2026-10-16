@@ -3406,7 +3406,7 @@ function addBook(K,x,y,xpOverride){
 }
 function takeBook(b){
     b.taken=true; gainExp(b.xp,'book');
-    if(b.tut && FIRST_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);   /* r73/r112. r224: the book, for its +xp */
+    if(b.tut && BOOK_LESSON_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);   /* r73/r112. r224: the book, for its +xp */
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
     const t=document.createElementNS(NS,'text'); t.setAttribute('class','bookXp'); t.setAttribute('text-anchor','middle');
@@ -7775,8 +7775,7 @@ function tutBellowsStep(){
     SAY_I=SAY_SEQ.indexOf('D4');
     say('D4');
     tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 });
-    tutGlow('#bellowtop', true);
-    tutPlaceBooks();          /* the route is final once the fourth ore is in */
+    tutGlow('#bellowtop', true);   /* r258 (owner): no books on the first sword's route - they moved to the second (GC1) */
 }
 /* owner, 2026-10-13: "if the player already finished a task before the guide asks, mark it done and move on".
    A step that waits for an action is listed here with a check on GAME STATE (not on the event, which may
@@ -7862,8 +7861,9 @@ function tutStrikeStep(){
 }
 /* ---- r85: two books sitting ON the route, so the first run cannot miss them ---- */
 const TUT_BOOK_AT=[0.38, 0.72];
-/* r112: the stages that ARE the first craft, so its lines cannot leak into a later one */
-const FIRST_CRAFT_STAGES=['ore','bellows','gate','anvil','hammer','strike','travel','quench','acquired','shape','forge'];
+/* r112: the stages a tutorial book may speak in, so D9 cannot leak into a later craft. r258 (owner): the second sword's
+   (GC1's) craft, not the first's - the books moved there */
+const BOOK_LESSON_STAGES=['p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer'];
 let TUT_BOOKS=false, TUT_SAIDBOOK=false, TUT_SAIDHAZ=false;   /* r179 */
 function tutRoutePoint(f){
     let total=0; segs.forEach(g=>{ total+=g.len*g.tPct; });
@@ -9382,7 +9382,7 @@ function tutNudgeApply(){
     /* v3: GC1-GC3's craft - raw ores to the smelter, then the heat run to the trait and the mug */
     if(TUT_STAGE==='p1-craft-ore'){
         const n=id=>segs.filter(g=>g.ore===id).length;
-        if(n('iron')>=FTUE.gpcCraft.iron && n('manganese')>=FTUE.gpcCraft.manganese) TUT_STAGE='p1-craft-heat';
+        if(n('iron')>=FTUE.gpcCraft.iron && n('manganese')>=FTUE.gpcCraft.manganese){ TUT_STAGE='p1-craft-heat'; tutPlaceBooks(); }   /* r258: GC1's route is final - its books (once: TUT_BOOKS) */
         else { tutArrow(tutFirstOreSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 }); return; } }
     if(TUT_STAGE==='p1-craft-heat'){
         if(!melt) return;

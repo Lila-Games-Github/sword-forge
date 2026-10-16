@@ -1853,6 +1853,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   FTUE test (486), written first. Checked in the browser: fresh load (no run) - full, green; a run started, the sword
   unmoved - full; damaged to 55% at the start - 55%, amber; after a reset - full; no console errors.
 
+- **r258: the map books and the EXP lesson move to the second sword (owner, 2026-10-16).** The two tutorial books (small,
+  at 38% and 72% of the route, `tutPlaceBooks`) and D9 ("Hammering also allows you to collect experience points...",
+  with the dim, the pause and the held "+50", r224) belonged to the first sword (Bram's): the books were placed at its
+  bellows step. Now the first craft places none, and they go on the second sword's route - GC1's, once its 2 iron and 2
+  manganese are in (`p1-craft-ore` -> `p1-craft-heat`); `TUT_BOOKS` keeps it to once, so GC2/GC3 get none. D9 fires on a
+  tutorial book during the GC craft stages (`BOOK_LESSON_STAGES` = `p1-craft-ore/heat/shape/hammer`, replacing
+  `FIRST_CRAFT_STAGES`, which only this used). The map's ordinary books are unchanged. Asserted by the FTUE test (489),
+  written first; the new checks fail on the r257 build. Checked in the browser: the first craft at its bellows step - 0
+  tutorial books; GC1 with its 4 ores - 2 books on its route; the sword travelling it - the first book taken, D9, dim,
+  pause, "+50" held; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -1954,3 +1965,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r255 after the quest list: D119a "tap me for help", the dragon glows, a tap gives D119b, then the bell.
 - 2026-10-16: r256 the health is a fill inside the sword disc (top 100% to bottom 0%); the ring covered the tier ring.
 - 2026-10-16: r257 the health fill shows at the start point too (full with no run).
+- 2026-10-16: r258 the tutorial books and D9 (EXP) move from the first sword to GC1, the second.

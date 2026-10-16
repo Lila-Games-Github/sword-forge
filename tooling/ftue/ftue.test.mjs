@@ -332,6 +332,11 @@ const V3P6 = {
   D130b: 'He wants a custom designed sword. Let me get a design desk for you.' };
 for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
+/* r258 (owner, 2026-10-16): the map books and the EXP lesson (D9) move from the first sword (Bram's) to the second (GC1) */
+eq('the first craft places no books', (b => !!b && !b[0].includes('tutPlaceBooks()'))(src.replace(/\r\n/g, '\n').match(/function tutBellowsStep\(\)\{[\s\S]*?\n\}/)), true);
+eq('GC1: the books go on its route once its ores are in', src.includes("if(n('iron')>=FTUE.gpcCraft.iron && n('manganese')>=FTUE.gpcCraft.manganese){ TUT_STAGE='p1-craft-heat'; tutPlaceBooks(); }"), true);
+eq('D9 fires on a tutorial book during the GC craft stages', src.includes("const BOOK_LESSON_STAGES=['p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer'];")
+  && src.includes('if(b.tut && BOOK_LESSON_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);') && !src.includes('FIRST_CRAFT_STAGES'), true);
 /* r255 (owner, 2026-10-16): after the quest list, the dragon teaches "tap me for help": D119a (close it), then tap the
    glowing dragon, D119b, then the bell (D27, D28) as before */
 eq('D119a and D119b, the owner\'s words, beside D119', src.includes(`D119a: "If you are not sure what to do, at any point, you can tap on me. I'll help you.",`)
