@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r277:** the hammer minigame takes a press on what is under the finger: the hammer's own pixels first, then the metal's or blade's, else nothing (`wireHmTouch`, `hmOnHammer`, `hmOnWork`, `HM_HITS.touch` slack 6/8 px, Claude's proposal). The box pads (`#hmGrip`, `#hmAimPad`, `#hmStrikePad`) no longer take presses; the metal's box used to turn a tap on the hammer's handle into dragon fire.
 - **r276:** `STAGE_DARK.travel` (hammering to the '?'): map window, anvil and metal lifted. Open: the hammer is not lifted (owner's list), so it hides behind the anvil while held there.
 - **r275:** `STAGE_DARK.quench` (D10, D11): anvil, metal, bucket, mug lifted (bucket/mug rules `!important` over their inline z); the dim lifts while `#quenchFog` has `.catch`.
 - **r274:** `.dark-lit.dragging` (z64 !important) keeps a lifted prop over the dim mid-drag; `.dragging` alone (35 !important) put it under.
@@ -208,7 +209,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 541 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 541 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

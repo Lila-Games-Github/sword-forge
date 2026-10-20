@@ -981,7 +981,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmHead { position: absolute; left: 41%; top: 46%; width: 19%; height: 42%; pointer-events: auto; cursor: pointer; touch-action: none; }
 /* r87: hold this - the work on the anvil - and the head turns to it. Above #hmGrip in the DOM so that
    where the hammer's big grip pad overlaps the anvil, aiming wins; the grip keeps the rest. */
-#hmAimPad { position: absolute; z-index: 5; pointer-events: auto; cursor: pointer; touch-action: none; }
+#hmAimPad { position: absolute; z-index: 5; pointer-events: none; touch-action: none; }   /* r277: presses go through wireHmTouch */
 #hmDragon.grabbing #hmHead { cursor: grabbing; }
 #hmFire { position: absolute; opacity: 0; pointer-events: none; -webkit-user-drag: none; transition: opacity .18s; }
 #hmFire.on { opacity: 1; animation: hmFlicker .42s ease-in-out infinite alternate; }
@@ -1001,7 +1001,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     52%  { transform: translate(var(--hx,0px), calc(var(--hy,0px) - 5px)) rotate(7deg); }
     100% { transform: translate(var(--hx,0px), var(--hy,0px)) rotate(0deg); }
 }
-#hmGrip { position: absolute; z-index: 5; left: 53%; top: 3%; width: 44%; height: 66%; pointer-events: auto; cursor: grab; touch-action: none; }
+#hmGrip { position: absolute; z-index: 5; left: 53%; top: 3%; width: 44%; height: 66%; pointer-events: none; touch-action: none; }   /* r277: only the fallback box now */
 #hmGrip.dragging { cursor: grabbing; }
 /* r209: hit points on the metal, the hammer's aim ring, and a strike pad on the hammer head. The pad
    sits above #hmAimPad, so a tap on the head over the metal strikes instead of calling the fire. */
@@ -1026,8 +1026,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmRing.on.q-good  { border-color: #5aa8ff; box-shadow: 0 0 0 2px rgba(22,13,4,.85), 0 0 14px rgba(80,160,255,.95); }
 #hmRing.on.q-crude { border-color: #ff4a3a; box-shadow: 0 0 0 2px rgba(22,13,4,.85), 0 0 14px rgba(255,70,50,.95); }
 #hmRing.off { display: none; }
-#hmStrikePad { position: absolute; z-index: 7; left: 54%; top: 5%; width: 17%; height: 27%; pointer-events: auto; cursor: grab; touch-action: none; }
+#hmStrikePad { position: absolute; z-index: 7; left: 54%; top: 5%; width: 17%; height: 27%; pointer-events: none; touch-action: none; }   /* r277 */
 #hmStrikePad.dragging { cursor: grabbing; }
+#hmScene.hm-grabbing { cursor: grabbing !important; }   /* r277 */
 /* r226 (owner): bigger, twice as long, and it rises almost to the top of the scene (--rise, set per strike) before it fades */
 .hm-acc { transform: translate(-50%,-100%); font: bold 26px/1 Georgia, serif; color: #fff3c8; white-space: nowrap;
     text-shadow: 0 0 3px #2a1606, 0 0 6px #2a1606, 0 2px 5px #000; animation: hmAcc 1.6s cubic-bezier(.2,.7,.4,1) forwards; }
@@ -6491,6 +6492,7 @@ const HM_HITS = {
     heat: [ { h:1.00, c:[255,224,58] }, { h:0.70, c:[255,140,26] }, { h:0.45, c:[232,50,30] }, { h:0.35, c:[200,205,212] } ],
     ring:       { x:55, y:46.5 },   /* the aim ring with the hammer at rest, % of the stage (owner: clear of the head) */
     bands: [ { name:'Masterwork', min:0.85, mul:1.3 }, { name:'Good', min:0.60, mul:1.0 }, { name:'Crude', min:0, mul:0.8 } ],
+    touch:    { hammer:6, metal:8 },   /* r277: slack around the art (screen px) that still counts as a press on it */
     skip:     'Good',   /* SKIP HAMMER */
     unforged: 'Good'    /* swords that never saw the minigame: recipe crafts, old saves */
 };
@@ -6520,6 +6522,13 @@ function hmPlacePoints(n, isMetal, r, inset, gap, rnd){
     let best=[];
     for(let k=0;k<20;k++){ const p=pick(true, []); if(p.length===n) return p; if(p.length>best.length) best=p; }
     return pick(false, best); }
+/* r277: is there solid art within r mask pixels of (u,v)? m = { w, h, a } with a[i] 1 where solid */
+function hmMaskHit(m, u, v, r){ const X=u*m.w, Y=v*m.h, s=Math.max(1, r/3);
+    for(let dy=-r; dy<=r; dy+=s) for(let dx=-r; dx<=r; dx+=s){ if(dx*dx+dy*dy>r*r) continue;
+        const x=Math.floor(X+dx), y=Math.floor(Y+dy); if(x>=0 && y>=0 && x<m.w && y<m.h && m.a[y*m.w+x]===1) return true; }
+    return false; }
+/* r277: the hammer is drawn over the metal, so it wins a press that is on both */
+function hmPickTarget(onHammer, onWork){ return onHammer ? 'hammer' : onWork ? 'work' : null; }
 /* HAMMER-PURE-END */
 /* the mid-blade's alpha, read once per image, so points land on metal and not on transparent canvas */
 const HM_MASKS={};
@@ -6659,12 +6668,13 @@ function hmLayout(){
     rough.style.left=R.anvil.x+'%'; rough.style.top=R.anvil.y+'%'; rough.style.width=R.roughW+'%';
     rough.src='assets/hammer/balanced_'+(HM_MID_ALIAS[hmShape]||hmShape).toLowerCase()+'_midblade.webp';   /* r204 */
     hmMask(rough.src);   /* r209: read now, so the mid-blade's points are ready when the orb is done */
+    hmMask(document.getElementById('hmHammer').src);   /* r277: the hammer's own pixels take its presses */
     /* r207: the finished blade is the one this trait + shape will actually be (fire Longsword =
        flame_longsword_blade, and so on), drawn in the mid-blade's box: both files are 512x512 on the
        same diagonal, so the mid-blade grows into it in place. bladeFor() falls back to the balanced
        blade where a trait has no art for that shape. */
     const fin=document.getElementById('hmFinal');
-    fin.src='assets/sword-parts/blades/'+hmBladeFile()+'.webp';
+    fin.src='assets/sword-parts/blades/'+hmBladeFile()+'.webp'; hmMask(fin.src);   /* r277 */
     [fin, document.getElementById('hmRoughHeat'), document.getElementById('hmFinalHeat')].forEach(el=>{
         el.style.left=R.anvil.x+'%'; el.style.top=R.anvil.y+'%'; el.style.width=R.roughW+'%'; });
     [['hmRoughHeat', rough.src], ['hmFinalHeat', fin.src]].forEach(([id, src])=>{
@@ -6924,20 +6934,50 @@ function hmStrike(){
 // ---- input ----
 // Drag the head: track the CHANGE in pointer angle about the pivot rather than the absolute angle, so
 // the head never jumps to meet the cursor wherever you grab it. Holding = breathing.
-function wireHmMugAndDragon(){ wireHmMug(); wireHmDragon(); }
+function wireHmMugAndDragon(){ wireHmMug(); wireHmDragon(); wireHmTouch(); }
+/* r277 (owner, 2026-10-20): a press goes to what is under the finger - the hammer's own pixels first (it is drawn over
+   the metal), then the metal's or the blade's, else it is not taken (the dragon's head, the mug, the buttons). The old
+   pads were boxes: the hammer's caught mostly empty space, and the metal's (30% x 28% of the stage, over the hammer's
+   at the same z) turned a tap on the hammer's handle into dragon fire. Design record: specs/2026-10-01-hammer-hit-points.md */
+const HM_DOWN={ hammer:null, work:null };
+/* a screen point in an element's own box (0..1), through its live transform (the hammer's bob and swing, the blade's
+   rotate and scale); px is the box's width on screen */
+function hmLocalUV(el, x, y){ const sc=document.getElementById('hmScene'), S=sc.getBoundingClientRect(), k=S.width/(sc.offsetWidth||1);
+    let L=0, T=0; for(let p=el; p && p!==sc; p=p.offsetParent){ L+=p.offsetLeft; T+=p.offsetTop; }
+    const cs=getComputedStyle(el), M=(cs.transform && cs.transform!=='none') ? new DOMMatrix(cs.transform) : new DOMMatrix(), o=cs.transformOrigin.split(' ').map(parseFloat);
+    const F=new DOMMatrix().translate(o[0]||0, o[1]||0).multiply(M).translate(-(o[0]||0), -(o[1]||0));
+    const p=F.inverse().transformPoint(new DOMPoint((x-S.left)/k-L, (y-S.top)/k-T));
+    return { u:p.x/(el.offsetWidth||1), v:p.y/(el.offsetHeight||1), px:(el.offsetWidth||1)*k }; }
+function hmOnHammer(x,y){ const h=document.getElementById('hmHammer'); if(!h) return false;
+    const m=hmMask(h.src);
+    if(!m){ const g=document.getElementById('hmGrip'), r=g && g.getBoundingClientRect(); return !!r && x>=r.left && x<=r.right && y>=r.top && y<=r.bottom; }   /* not read yet: the old box */
+    const q=hmLocalUV(h,x,y); return hmMaskHit(m, q.u, q.v, HM_HITS.touch.hammer*m.w/q.px); }
+function hmOnWork(x,y){ const T=HM_HITS.touch.metal, vis=el=>!!el && parseFloat(el.style.opacity===''?1:el.style.opacity)>0.34;
+    const orb=document.getElementById('hmOrb');
+    if(vis(orb)){ const q=hmLocalUV(orb,x,y); if(Math.hypot(q.u-0.5, q.v-0.5) <= 0.5+T/q.px) return true; }
+    for(const id of ['hmRough','hmFinal']){ const el=document.getElementById(id); if(!vis(el)) continue;
+        const m=hmMask(el.src), q=hmLocalUV(el,x,y);
+        if(m ? hmMaskHit(m, q.u, q.v, T*m.w/q.px) : (q.u>=0 && q.v>=0 && q.u<=1 && q.v<=1)) return true; }
+    return false; }
+function wireHmTouch(){ const sc=document.getElementById('hmScene'); if(!sc) return;
+    sc.addEventListener('pointerdown', e=>{ if(e.target.closest && e.target.closest('#hmMug, button')) return;
+        const who=hmPickTarget(hmOnHammer(e.clientX,e.clientY), hmOnWork(e.clientX,e.clientY)); if(!who || !HM_DOWN[who]) return;
+        e.stopPropagation(); e.preventDefault(); HM_DOWN[who](e); }, true);
+    /* a mouse gets the cursor the art asks for (a finger has none) */
+    sc.addEventListener('pointermove', e=>{ if(e.buttons || e.pointerType!=='mouse') return;
+        sc.style.cursor = hmOnHammer(e.clientX,e.clientY) ? 'grab' : hmOnWork(e.clientX,e.clientY) ? 'pointer' : ''; }); }
 function wireHmDragon(){
     const wrap=document.getElementById('hmDragon'), head=document.getElementById('hmHead'),
           aim=document.getElementById('hmAimPad'), sc=document.getElementById('hmScene');
     if(!sc) return;
-    if(aim){
-        let live=false;
-        aim.addEventListener('pointerdown', e=>{ live=true; hmAimAt(e.clientX,e.clientY);
-            if(wrap) wrap.classList.add('grabbing'); hmBreath(true);
-            try{ aim.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault(); });
-        aim.addEventListener('pointermove', e=>{ if(live) hmAimAt(e.clientX,e.clientY); });
-        const end=()=>{ if(!live) return; live=false; if(wrap) wrap.classList.remove('grabbing'); hmBreath(false); };
-        aim.addEventListener('pointerup', end); aim.addEventListener('pointercancel', end);
-    }
+    /* r277: a press on the metal's own pixels (wireHmTouch decides) aims the dragon and holds his breath */
+    let live=null;
+    HM_DOWN.work=e=>{ live=e.pointerId; hmAimAt(e.clientX,e.clientY);
+        if(wrap) wrap.classList.add('grabbing'); hmBreath(true);
+        try{ sc.setPointerCapture(e.pointerId); }catch(err){} };
+    sc.addEventListener('pointermove', e=>{ if(live===e.pointerId) hmAimAt(e.clientX,e.clientY); });
+    const end=e=>{ if(live!==e.pointerId) return; live=null; if(wrap) wrap.classList.remove('grabbing'); hmBreath(false); };
+    sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
     if(head) head.addEventListener('click', e=>{ e.preventDefault(); dragonTap(e, sc); });
 }
 // Drag the hammer. The sprite is a full-canvas layer, so transparent pads carry the pointer events
@@ -6951,17 +6991,17 @@ function wireHmHammer(){
     const paint=()=>{ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px');
         const tr='translate('+hmHx+'px,'+hmHy+'px)'; grip.style.transform=tr; if(pad) pad.style.transform=tr;
         hmRingPaint(); };
-    [grip, pad].forEach(el=>{ if(!el) return;
-        el.addEventListener('pointerdown', e=>{ live=el; moved=false; sx=e.clientX; sy=e.clientY; px=e.clientX-hmHx; py=e.clientY-hmHy;
-            h.classList.add('dragging'); el.classList.add('dragging'); try{ el.setPointerCapture(e.pointerId); }catch(err){} e.preventDefault(); });
-        el.addEventListener('pointermove', e=>{ if(live!==el) return;
-            if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<HM_TAP_PX) return; moved=true;
-            const r=sc.getBoundingClientRect();
-            hmHx=Math.max(-r.width*0.55, Math.min(r.width*0.25, e.clientX-px));
-            hmHy=Math.max(-r.height*0.24, Math.min(r.height*0.45, e.clientY-py)); paint(); });   /* the ring sits lower now: reach the blade's top end */
-        const end=e=>{ if(live!==el) return; live=null; h.classList.remove('dragging'); el.classList.remove('dragging');
-            if(!moved && e.type==='pointerup') hmStrike(); paint(); };
-        el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); });
+    /* r277: a press on the hammer's own pixels (wireHmTouch decides). The pads are no longer the targets */
+    HM_DOWN.hammer=e=>{ live=e.pointerId; moved=false; sx=e.clientX; sy=e.clientY; px=e.clientX-hmHx; py=e.clientY-hmHy;
+        h.classList.add('dragging'); sc.classList.add('hm-grabbing'); try{ sc.setPointerCapture(e.pointerId); }catch(err){} };
+    sc.addEventListener('pointermove', e=>{ if(live!==e.pointerId) return;
+        if(!moved && Math.hypot(e.clientX-sx, e.clientY-sy)<HM_TAP_PX) return; moved=true;
+        const r=sc.getBoundingClientRect();
+        hmHx=Math.max(-r.width*0.55, Math.min(r.width*0.25, e.clientX-px));
+        hmHy=Math.max(-r.height*0.24, Math.min(r.height*0.45, e.clientY-py)); paint(); });   /* the ring sits lower now: reach the blade's top end */
+    const end=e=>{ if(live!==e.pointerId) return; live=null; h.classList.remove('dragging'); sc.classList.remove('hm-grabbing');
+        if(!moved && e.type==='pointerup') hmStrike(); paint(); };
+    sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
     HM_PAINT=paint; paint();
 }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
