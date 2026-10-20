@@ -2053,6 +2053,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (part 5 save), starting each walk on another tab: counter 2, shop 2, forge 0, basement 2, cave and bedroom unchanged;
   the highlighted tab matches; no console errors.
 
+- **r280: the route is dark brown; the held ore's preview is a fainter red (owner, 2026-10-20).** Owner: once the metal
+  is in the smelter, the path is dark brown; the path shown while an ore is held stays red, with a lower opacity.
+  `#pathline` (the route the metal follows) is `#4a2c17` (was red `#e0392b`). `#pathpreviewsolid` and `#pathpreview`
+  stay red, at opacity 0.45 and 0.3 (were 0.78 and 0.5). The values are Claude's proposal (owner to confirm). Not
+  changed: the tutorial's blinking what-if route (`#fakepath`, r99) and the red end mark. Asserted by the FTUE test
+  (549), written first. Checked in the browser (part 5 save): with two ores in and a third held over the smelter, the
+  route is rgb(74,44,23) at full opacity and the preview red at 0.45 / 0.3; releasing hides the preview; no console
+  errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2175,3 +2184,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r276 hammering to the '?' (stage travel) shows only the map, the anvil and the metal.
 - 2026-10-20: r278 a map trait icon opens a trait card (CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK), not the book.
 - 2026-10-20: r279 the forge opens on the ingredients tab; the basement, the counter and the shop on the swords tab.
+- 2026-10-20: r280 the route is dark brown; the held ore's preview stays red, fainter.

@@ -335,6 +335,12 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r280 (owner, 2026-10-20): the route the metal follows (ore in the smelter) is dark brown; the preview while an ore is
+   held stays red, fainter (values: Claude's proposal) */
+{ const tag = id => (src.match(new RegExp('<path id="' + id + '"[^>]*>')) || [''])[0], at = (t, a) => (t.match(new RegExp(' ' + a + '="([^"]*)"')) || [])[1];
+  eq('the placed route is dark brown', at(tag('pathline'), 'stroke'), '#4a2c17');
+  eq('the preview stays red', [at(tag('pathpreviewsolid'), 'stroke'), at(tag('pathpreview'), 'stroke')], ['#e0392b', '#e0392b']);
+  eq('the preview is fainter: solid 0.45, dotted tail 0.3', [at(tag('pathpreviewsolid'), 'opacity'), at(tag('pathpreview'), 'opacity')], ['0.45', '0.3']); }
 /* r279 (owner, 2026-10-20): arriving on a screen picks its inventory tab - the forge the ingredients, the basement, the
    counter and the shop the swords; the bedroom and the cave keep the tab that was open */
 eq('SCREEN_TAB is the recorded table', (() => { const m = src.match(/const SCREEN_TAB=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(), { forge: 0, basement: 2, customer: 2, shop: 2 });

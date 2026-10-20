@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r280:** the route (`#pathline`) is dark brown `#4a2c17`; the held ore's preview stays red at opacity 0.45 / 0.3 (values Claude's proposal).
 - **r279:** `SCREEN_TAB`: the forge opens on the ingredients tab, the basement, the counter and the shop on the swords tab (`goScreen`); the bedroom and the cave keep theirs.
 - **r278:** a trait icon on the map opens a small trait card (icon, name, description; CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK, and a close the owner did not ask for), not the book. GC5's map route points at the card's CRAFT 1. Open: D92n still says "open the craft book".
 - **r277:** the hammer minigame takes a press on what is under the finger: the hammer's own pixels first, then the metal's or blade's, else nothing (`wireHmTouch`, `hmOnHammer`, `hmOnWork`, `HM_HITS.touch` slack 6/8 px, Claude's proposal). The box pads (`#hmGrip`, `#hmAimPad`, `#hmStrikePad`) no longer take presses; the metal's box used to turn a tap on the hammer's handle into dragon fire.
@@ -211,7 +212,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 546 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 549 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
