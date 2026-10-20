@@ -335,6 +335,10 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r279 (owner, 2026-10-20): arriving on a screen picks its inventory tab - the forge the ingredients, the basement, the
+   counter and the shop the swords; the bedroom and the cave keep the tab that was open */
+eq('SCREEN_TAB is the recorded table', (() => { const m = src.match(/const SCREEN_TAB=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(), { forge: 0, basement: 2, customer: 2, shop: 2 });
+eq('goScreen switches the tab on arrival, before the tutorial\'s own arrival step', /function goScreen\(name\)\{[\s\S]*?SF_SCREEN = name;[\s\S]{0,200}if\(SCREEN_TAB\[name\]!=null && INV_TAB!==SCREEN_TAB\[name\]\) invTab\(SCREEN_TAB\[name\]\);[\s\S]*?tutScreenArrived\(name\)/.test(src), true);
 /* r278 (owner, 2026-10-20): the map's trait icon opens a trait card; GC5's map route points at the card's CRAFT 1 */
 eq('the book step knows the card is open (signature)', /function ftueBookSig\(\)\{[\s\S]{0,400}traitCardOpen\(\)\?1:0/.test(src), true);
 eq('card open on the order\'s page: its CRAFT 1; on another page: its close', src.includes("if(traitCardOpen()){ tutSpotOn(null); tutHole(null); tutArrow(null,null); tutExit(CB_SEL===key ? '#tcCraft1' : '#sfTraitModal .tc-x'); return; }"), true);

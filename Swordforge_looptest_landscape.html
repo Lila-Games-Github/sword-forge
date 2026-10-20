@@ -5271,6 +5271,10 @@ function popHearts(e, into){
         h.style.animationDelay=Math.round(Math.random()*260)+'ms';
         layer.appendChild(h); setTimeout(()=>h.remove(), 1600); }
 }
+/* r279 (owner, 2026-10-20): the inventory tab a screen opens on - the forge the ingredients (0), the basement, the counter
+   and the shop the swords (2). The bedroom and the cave keep the tab that was open. A tutorial step that wants another
+   tab sets it after the arrival (tutScreenArrived runs later), so it still wins. */
+const SCREEN_TAB={ forge:0, basement:2, customer:2, shop:2 };
 function goScreen(name){
     if(!SCREENS[name] || name===SF_SCREEN) return;
     if(SF_SCREEN==='basement' && name!=='basement' && WORK) workAutoReturn();   /* r249 */
@@ -5278,6 +5282,7 @@ function goScreen(name){
     if(name==='customer') setTimeout(counterUi, 0);                  /* r98 */
     if(SF_SCREEN==='customer' && name!=='customer' && TUT_STAGE==='counter'){ TUT_STAGE=null; TUT_COUNTER_VISITED=false; }
     SF_SCREEN = name;
+    if(SCREEN_TAB[name]!=null && INV_TAB!==SCREEN_TAB[name]) invTab(SCREEN_TAB[name]);   /* r279 (owner): each screen opens on the tab it uses */
     const layer=document.getElementById('screenLayer');
     if(name==='forge'){ layer.classList.remove('on'); homeDragon(); }   /* r236 (owner): back at his top-left spot on every return */
     else { const [src,tag]=SCREEN_ART[name];

@@ -2045,6 +2045,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   CRAFT 1 when it is open on the order's page, at its close on another page, and at its close once the order is made;
   `ftueBookSig` includes the card. D92n still says "open the craft book"; the owner decides whether it changes.
 
+- **r279: each screen opens on the inventory tab it uses (owner, 2026-10-20).** Owner: switch to the ingredients tab
+  on the forge, and to the swords tab in the basement, at the counter and in the shop. `SCREEN_TAB = { forge:0,
+  basement:2, customer:2, shop:2 }`; `goScreen` calls `invTab` on arrival when the tab differs. The bedroom and the
+  cave keep the tab that was open (not in the owner's list). A tutorial step that wants another tab still gets it: its
+  arrival step (`tutScreenArrived`) runs after. Asserted by the FTUE test (546), written first. Checked in the browser
+  (part 5 save), starting each walk on another tab: counter 2, shop 2, forge 0, basement 2, cave and bedroom unchanged;
+  the highlighted tab matches; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2166,3 +2174,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r275 the quench (D10, D11) is dark around the bucket, the mug, the anvil and the metal.
 - 2026-10-16: r276 hammering to the '?' (stage travel) shows only the map, the anvil and the metal.
 - 2026-10-20: r278 a map trait icon opens a trait card (CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK), not the book.
+- 2026-10-20: r279 the forge opens on the ingredients tab; the basement, the counter and the shop on the swords tab.
