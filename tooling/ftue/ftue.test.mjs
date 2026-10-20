@@ -335,6 +335,10 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r278 (owner, 2026-10-20): the map's trait icon opens a trait card; GC5's map route points at the card's CRAFT 1 */
+eq('the book step knows the card is open (signature)', /function ftueBookSig\(\)\{[\s\S]{0,400}traitCardOpen\(\)\?1:0/.test(src), true);
+eq('card open on the order\'s page: its CRAFT 1; on another page: its close', src.includes("if(traitCardOpen()){ tutSpotOn(null); tutHole(null); tutArrow(null,null); tutExit(CB_SEL===key ? '#tcCraft1' : '#sfTraitModal .tc-x'); return; }"), true);
+eq('order made with the card open: shut the card', /if\(custOrderReady\(\)\)\{[\s\S]{0,200}if\(traitCardOpen\(\)\)\{ tutArrow\(null,null\); tutExit\('#sfTraitModal \.tc-x'\); return; \}/.test(src), true);
 /* r276 (owner, 2026-10-16): while hammering to the '?' (stage 'travel', after D8) only the map, the anvil, the metal and the
    dialogue show */
 { const m = src.match(/const STAGE_DARK=({.*});/), T = m && new Function('return ' + m[1])();
@@ -860,7 +864,7 @@ eq('a touch on the pickaxe ends it', src.includes("el.addEventListener('pointerd
 eq('the hint glows the art (not the swinging box)', src.includes('.cv-pick.cv-hint img { animation: tutGlow 1.15s ease-in-out infinite; }'), true);
 /* r239 (owner, 2026-10-15): CRAFT 1 stops glowing once the order is made, and cannot be spammed in the FTUE.
    The book guide skipped its step while the crafted window was open and its signature did not change on close */
-eq('the book guide re-runs when a window closes', src.includes("return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0].join(','); }")
+eq('the book guide re-runs when a window closes', src.includes("return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0, traitCardOpen()?1:0].join(','); }")
   && src.includes("function ftueBookModal(){ return ['sfShapeModal','sfCraftModal','sfMarketModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); }); }")
   && src.includes('if(ftueBookModal()) return;'), true);
 eq('FTUE: CRAFT 1 is locked while the customer\'s order is already made', src.includes('function ftueCraftLocked(){ if(FTUE_ST.done || !CUSTOMER) return false;')

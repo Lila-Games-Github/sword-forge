@@ -31,4 +31,15 @@ eq('the map reads the tap on pointerup', src.includes('if(tap) mapTraitTap(ev);'
 eq('fogged traits do nothing', /function mapTraitTap\(ev\)\{[\s\S]{0,600}inFog\(t\.x, ?t\.y\)/.test(src), true);
 eq('toasts', src.includes("'Discover this trait first'") && src.includes("'No saved page for <b>'"), true);
 
+/* r278 (owner, 2026-10-20): a tap opens a small trait card, not the book */
+eq('a tap on a trait with a page opens the trait card on it', /function mapTraitTap\(ev\)\{[\s\S]{0,600}CB_SEL=k; openTraitCard\(\); \}/.test(src), true);
+{ const i = src.indexOf('<div id="sfTraitModal"'), card = i >= 0 ? src.slice(i, src.indexOf('<!-- /sfTraitModal -->', i)) : '';
+  eq('the card: icon, name, description', ['id="tcIcon"', 'id="tcName"', 'id="tcDesc"'].every(s => card.includes(s)), true);
+  eq('the card: CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK and a close',
+    [/id="tcCraft1"[^>]*onclick="tcCraft1\(\)">CRAFT 1</, /id="tcCont"[^>]*onclick="tcContinue\(\)">CONTINUE FROM HERE</, /id="tcBook"[^>]*onclick="tcBook\(\)">CRAFT BOOK</, /class="tc-x"[^>]*onclick="closeTraitCard\(\)"/].every(r => r.test(card)), true);
+  eq('no other buttons on the card', (card.match(/<button/g) || []).length, 4); }
+eq('the card fills from the page: symbol, name, description', /function openTraitCard\(\)\{[\s\S]{0,900}\.symbol[\s\S]{0,300}recipeName\(CB_SEL\)\+' Sword'[\s\S]{0,300}swordDesc\(list\)/.test(src), true);
+eq('CRAFT 1 is the book\'s, and locks like it', /function tcCraft1\(\)\{ closeTraitCard\(\); cbCraft\(1\); \}/.test(src) && /function openTraitCard\(\)\{[\s\S]{0,900}c1\.disabled=ftueCraftLocked\(\);/.test(src), true);
+eq('CONTINUE FROM HERE is the book\'s', /function tcContinue\(\)\{ closeTraitCard\(\); cbContinue\(\); \}/.test(src), true);
+eq('CRAFT BOOK opens the book on that page', /function tcBook\(\)\{ closeTraitCard\(\); openBook\(\); \}/.test(src), true);
 console.log('[map] GREEN / ' + n + ' checks');

@@ -2040,6 +2040,11 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Checked in the browser, playing a new game past D8 with the hammer held on the anvil: the stage is 'travel', the
   map, the anvil and the metal are lit, the mug and the bench are dark.
 
+- **r278: GC5's map route opens the trait card (owner, 2026-10-20).** A trait icon on the map now opens a small trait
+  card instead of the craft book (record: `specs/2026-10-06-map-trait-links.md`). `ftueBookStep` points at the card's
+  CRAFT 1 when it is open on the order's page, at its close on another page, and at its close once the order is made;
+  `ftueBookSig` includes the card. D92n still says "open the craft book"; the owner decides whether it changes.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2160,3 +2165,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-16: r274 the metal and the hammer stay over the dark layer while they are dragged.
 - 2026-10-16: r275 the quench (D10, D11) is dark around the bucket, the mug, the anvil and the metal.
 - 2026-10-16: r276 hammering to the '?' (stage travel) shows only the map, the anvil and the metal.
+- 2026-10-20: r278 a map trait icon opens a trait card (CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK), not the book.

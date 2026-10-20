@@ -658,6 +658,22 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-cont   { left: 54.78%; top: 87.04%; width: 16.05%; font-size: 8.5px; }
 .cb-craft1 { left: 77.54%; top: 87.04%; width: 16.05%; }
 .cb-close  { left: -6.77%; top: 95.34%; width: 14.13%; }
+/* r278: the trait card - the map's trait icon opens it */
+.tc-card { position: relative; width: 300px; max-width: 86%; padding: 18px 18px 16px; box-sizing: border-box; text-align: center;
+    background: #f3e7c6; border: 2px solid #7a6034; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.55); color: #4a3623; }
+.tc-x { position: absolute; top: 6px; right: 8px; width: 30px; height: 30px; border: 0; padding: 0; background: none;
+    font-size: 24px; line-height: 1; color: #7a6034; cursor: pointer; }
+.tc-icon { font-size: 44px; line-height: 1.1; }
+.tc-name { margin: 4px 0 6px; font: 700 18px/1.2 'Cinzel', serif; }
+.tc-desc { margin: 0 0 14px; font-size: 13px; line-height: 1.4; }
+.tc-btns { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.tc-btn { flex: 1 1 0; min-height: 42px; padding: 4px 8px; border: 0; cursor: pointer;
+    background: url('assets/ui/Paper_button_wide.webp') center / 100% 100% no-repeat;
+    font: 700 11px/1.15 'Cinzel', serif; letter-spacing: .3px; color: #4a3623; }
+.tc-btn:hover { filter: brightness(1.06); }
+.tc-btn:active { transform: translateY(1px) scale(.99); }
+.tc-btn:disabled { opacity: .42; cursor: default; }
+.tc-book { width: 60%; }
 
 /* ============================================================
    r33 — UPDATE COMPOSITION popup. Assembled from the owner's torn-paper UI set:
@@ -2426,6 +2442,21 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         </div>
     </div>
 
+    <!-- ===== r278 (owner, 2026-10-20): the trait card. A trait icon on the map opens this on its newest page, not the book ===== -->
+    <div id="sfTraitModal" class="sf-modal" onclick="if(event.target===this) closeTraitCard()">
+        <div class="tc-card">
+            <button class="tc-x" type="button" title="Close" onclick="closeTraitCard()">&times;</button>
+            <div class="tc-icon" id="tcIcon"></div>
+            <h3 class="tc-name" id="tcName"></h3>
+            <p class="tc-desc" id="tcDesc"></p>
+            <div class="tc-btns">
+                <button class="tc-btn" id="tcCraft1" type="button" onclick="tcCraft1()">CRAFT 1</button>
+                <button class="tc-btn" id="tcCont" type="button" onclick="tcContinue()">CONTINUE FROM HERE</button>
+            </div>
+            <button class="tc-btn tc-book" id="tcBook" type="button" onclick="tcBook()">CRAFT BOOK</button>
+        </div>
+    </div><!-- /sfTraitModal -->
+
     <!-- ===== Update Composition (r33) — placeholder contents ===== -->
     <div id="sfCompModal" class="sf-modal">
         <div class="comp-box">
@@ -2825,7 +2856,7 @@ let FTUE_BOOK=null;
 function ftueBookGo(o){ FTUE_BOOK={ mode:o.guide, trait:o.trait }; TUT_STAGE='p3-book'; tutNudge(true); }
 function ftueBookSig(){ if(TUT_STAGE!=='p3-book') return '';
     const bk=document.getElementById('sfBookModal');
-    return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0].join(','); }
+    return [SF_SCREEN, bk && bk.classList.contains('show') ? 1:0, CB_SEL, custOrderReady()?1:0, COUNTER?1:0, ftueBookModal()?1:0, traitCardOpen()?1:0].join(','); }   /* r278: the card */
 /* r239: a window open skips the step, so its closing must change the signature or the step never runs again (CRAFT 1 kept blinking) */
 function ftueBookModal(){ return ['sfShapeModal','sfCraftModal','sfMarketModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); }); }
 function ftueBookStep(){
@@ -2834,11 +2865,14 @@ function ftueBookStep(){
     const bk=document.getElementById('sfBookModal'), open=bk && bk.classList.contains('show');
     if(custOrderReady()){   /* made: shut the book, then the counter */
         tutSpotOn(null); tutHole(null);
+        if(traitCardOpen()){ tutArrow(null,null); tutExit('#sfTraitModal .tc-x'); return; }   /* r278 */
         if(open){ tutArrow(null,null); tutExit('#sfBookModal .cb-close'); return; }
         if(SF_SCREEN!=='customer'){ tutArrow(null,null); tutExitTo('customer'); return; }
         if(COUNTER){ tutArrow(null,null); tutExit(null); FTUE_BOOK=null; TUT_STAGE='p3-gpc'; return; }
         tutExit(null); tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }); return; }
     const key=recipeKey([g.trait]);
+    /* r278: the map's trait icon opens the trait card - on the order's page its CRAFT 1, on another its close */
+    if(traitCardOpen()){ tutSpotOn(null); tutHole(null); tutArrow(null,null); tutExit(CB_SEL===key ? '#tcCraft1' : '#sfTraitModal .tc-x'); return; }
     if(!open){
         tutArrow(null,null);
         if(g.mode==='map'){
@@ -5307,7 +5341,7 @@ function mapTraitTap(ev){
     if(!t.discovered){ toast('Discover this trait first'); return; }
     const k=latestPageFor(RECIPES, t.trait.id);
     if(!k){ toast('No saved page for <b>'+t.trait.name+'</b> yet'); return; }
-    CB_SEL=k; openBook(); }
+    CB_SEL=k; openTraitCard(); }   /* r278 (owner): the trait card, not the book */
 function clientToWorld(cx,cy){ const r=board.getBoundingClientRect(); const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height; return { x:view.x+fx*view.w, y:view.y+fy*(view.w*aspect) }; }
 function wireZoomPan(){
     board.addEventListener('wheel', ev=>{ ev.preventDefault(); const wp=clientToWorld(ev.clientX,ev.clientY); zoomAt(ev.deltaY<0?0.85:1.18, wp.x, wp.y); }, {passive:false});
@@ -6217,6 +6251,19 @@ function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal'
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
 function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); }   /* r201 */
 function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueBulkStep(); }   /* r201 */
+/* r278 (owner, 2026-10-20): a map trait icon opens this small card on its newest page (CB_SEL), not the book: the icon,
+   the page's name and description, CRAFT 1 and CONTINUE FROM HERE (the book's own, for that page), and CRAFT BOOK */
+function traitCardOpen(){ const m=document.getElementById('sfTraitModal'); return !!(m && m.classList.contains('show')); }
+function openTraitCard(){ const r=CB_SEL?RECIPES[CB_SEL]:null; if(!r) return; const list=recipeTraits(r);
+    document.getElementById('tcIcon').textContent=list.map(a=>TRAIT_BY[a.tid] ? TRAIT_BY[a.tid].symbol : '?').join(' ');
+    document.getElementById('tcName').textContent=recipeName(CB_SEL)+' Sword';
+    document.getElementById('tcDesc').textContent=swordDesc(list);
+    const c1=document.getElementById('tcCraft1'); c1.disabled=ftueCraftLocked();   /* as the book's (r239) */
+    document.getElementById('sfTraitModal').classList.add('show'); }
+function closeTraitCard(){ document.getElementById('sfTraitModal').classList.remove('show'); }
+function tcCraft1(){ closeTraitCard(); cbCraft(1); }
+function tcContinue(){ closeTraitCard(); cbContinue(); }
+function tcBook(){ closeTraitCard(); openBook(); }
 // ---- r67: Update Composition ------------------------------------------------------------------
 // The blade panel's disk compares what the book has RECORDED for this blade's trait(s) against the ore
 // route that actually made it. One trait -> UPDATE, replacing that trait's page. Several traits ->
