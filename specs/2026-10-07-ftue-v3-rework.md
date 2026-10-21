@@ -2215,6 +2215,20 @@ of the chain gave, or the cave lesson's need.
   Longsword crafts; a pour on Balanced is refused; from the counter's book the crafted window then the reward window
   show D18a on top.
 
+- **r293: the ore chain, step 3: the refill (owner, 2026-10-21).** Built to "The refill" above. `ftueRefillTick` runs each
+  frame: with an open customer order not yet made (`ftueCraftLocked`), nothing on the bench, no window open, no pause and
+  no stored ingot that could finish the order, it gives the round's shortfall (`ftueShortfall`) in the reward window
+  with D28l "Careful! Here, try again." over it (202 dialogue keys). The round (`FTUE_ST.oreRound`) is set by each
+  reward, cleared by a sword with no reward row (TC2, TC3, GC8, Garric), and set by the caves (TC3: 3 Iron + 2
+  Manganese; GC4: 2 Nickel); the first sword counts as an order until it exists, with the starting bag as its round;
+  the PART jumps set it too. After the refill the guided craft goes back to its first step (`CRAFT_REWIND`: the first
+  sword to D3 and the ore step; GC1-GC3 to 'p1-craft-ore'; GC4/TC4 to the nickel grind; GC8 to its grind). Not covered:
+  GC9's waiting order (its round can be overwritten while it waits), and the rewind for TC2's regrind, TC3's fire run,
+  TC5's gale run and Bram's Dagger (their ores are refilled, their pointers may run ahead). Asserted by the FTUE test
+  (602), written first. Checked in the browser: TC4 open with its 2 Nickel gone, the window gives 2 Nickel with D28l and
+  does not come back once the bag is whole or the order made; a new game's first sword cancelled mid-craft gives back 2
+  Iron + 2 Manganese with D28l, the tutorial returns to D3 (arrow on, the dark ore step) and the ores in again lead to D4.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2350,3 +2364,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r290 the hammer minigame's D13 run plays only in the first sword (no more replay in later crafts).
 - 2026-10-21: r291 the ore chain: the bag starts with 2 + 2 and the dragon gives each next sword's ores.
 - 2026-10-21: r292 the craft lock: only the ordered sword (D28k); lines over a window at the counter are no longer hidden.
+- 2026-10-21: r293 the refill: a round the bag can no longer make is given again (D28l), and the guided craft restarts.

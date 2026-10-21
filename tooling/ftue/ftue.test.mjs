@@ -334,6 +334,26 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r293 (owner, 2026-10-21): the refill - when the bag can no longer make the open order (nothing on the bench, no ingot,
+   the order not made), the dragon gives what is missing with D28l over the reward window */
+eq('D28l text, beside D28k', line('D28l') === 'Careful! Here, try again.' && keyList[keyList.indexOf('D28l') - 1] === 'D28k', true);
+{ const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
+    for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
+  const L = new Function(fn('ftueShortfall') + '; return { ftueShortfall };')();
+  eq('shortfall: what the bag lacks of the round', L.ftueShortfall({ iron: 2, manganese: 2 }, { iron: 1, manganese: 2, copper: 9 }), { iron: 1 });
+  eq('shortfall: nothing when the bag covers it', L.ftueShortfall({ nickel: 2 }, { nickel: 3 }), {});
+  eq('shortfall: no round, nothing', L.ftueShortfall(null, {}), {}); }
+eq('the refill runs every frame', /if\(tutTicks\(\)\) tutNudge\(\);[^\n]*\n\s*ftueRefillTick\(\);/.test(src), true);
+eq('only for an open order not yet made, the bench empty, no window, no pause, no stored ingot that can finish it; GC9 waiting is not covered', /function ftueRefillTick\(\)\{[\s\S]{0,900}benchBusy\(\)[\s\S]{0,300}\.sf-modal\.show[\s\S]{0,500}INV\.ingots\.some[\s\S]{0,300}ftueCraftLocked\(\)/.test(src), true);
+eq('the first sword counts as an order until it exists, with the starting bag as its round', /function ftueRefillTick\(\)\{[\s\S]{0,900}FTUE_ST\.part===1 && !TUT_BRAM_SOLD && !INV\.swords\.length\) \? FTUE\.oreStart/.test(src), true);
+eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
+  { bellows: 'first', gate: 'first', anvil: 'first', hammer: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
+    'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
+    'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
+eq('the first sword starts again at D3 (its ore step)', /function ftueCraftRewind\(\)\{[\s\S]{0,300}if\(to==='first'\)\{ TUT_STAGE=null; tutPause\(false\); tutArrow\(null,null\); tutUnglow\(\); sayQueue\('D3'\); return; \}/.test(src)
+  && src.includes("ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind);"), true);
+eq('a sword with no reward row ends the round (TC2, TC3, GC8, Garric)', /function ftueOreReward\(key, then\)\{ const e=key && FTUE\.oreChain\[key\]; if\(!e\)\{ if\(key\) FTUE_ST\.oreRound=null;/.test(src), true);
+eq('the caves set their rounds (TC3: 3 Iron + 2 Manganese; GC4: 2 Nickel)', /function tutMined\(\)\{[\s\S]{0,900}FTUE_ST\.oreRound=\{ iron:3, manganese:2 \};/.test(src) && /function tutDay2Mined\(\)\{[\s\S]{0,300}FTUE_ST\.oreRound=\{ nickel:2 \};/.test(src), true);
 /* r292 (owner, 2026-10-21): the craft lock - while an order is open, only that sword: CRAFT 1 / CONTINUE FROM HERE on another
    trait's page, another shape, or a pour on another trait are refused with D28k */
 eq('D28k text, beside D28j', line('D28k') === "The customer asked for a {o}. Let's focus on that." && keyList[keyList.indexOf('D28k') - 1] === 'D28j', true);
@@ -390,8 +410,8 @@ eq('TC5: 5 Copper once the swift ingot is stored', /function tutGaleStart\(\)\{[
 eq('GC9: the ores come with D107g', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); ftueOreReward('gc9'); }"), true);
 eq('TC3: the unused spare goes when the fourth ore is in', /function tutFireSmelted2\(\)\{[\s\S]{0,300}ORE_COUNT\.iron=0; ORE_COUNT\.manganese=0;/.test(src), true);
 eq('the line sits over the reward window, and goes with it', /function ftueOreReward\(key, then\)\{[\s\S]{0,1400}say-over-modal/.test(src) && /function closeReward\(\)\{[\s\S]{0,300}say-over-modal/.test(src), true);
-eq('PART seeds follow the chain (part 4: 2 Nickel; part 5: empty; part 6: 2 + 2)', src.includes("ORE_COUNT.nickel=2; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; GOLD=520;")
-  && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; GOLD=820;") && src.includes("ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; GOLD=1100;"), true);
+eq('PART seeds follow the chain (part 4: 2 Nickel; part 5: empty; part 6: 2 + 2)', src.includes("ORE_COUNT.nickel=2; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound={ nickel:2 }; GOLD=520;")
+  && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820;") && src.includes("ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; FTUE_ST.oreRound={ iron:2, manganese:2 }; GOLD=1100;"), true);
 /* r290 (owner, 2026-10-21): the minigame's D13 run is the first sword's alone. The first sword's shape pick (stage 'shape')
    marks it, since tutDone() then clears the stage; any other craft (GC4, TC4, GC8, the part 5 gale Longsword, Garric's
    solo run) no longer falls through to D13, nor has its stage changed to 'forge' (which cost GC4/TC4/GC8 the counter pointer) */
@@ -414,7 +434,7 @@ eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE=
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D28b', 'D28e', 'D28g', 'D92h', 'D92i', 'D92j', 'D111b', 'D113a', 'D18a', 'D28j']);   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D28b', 'D28e', 'D28g', 'D92h', 'D92i', 'D92j', 'D111b', 'D113a', 'D18a', 'D28j', 'D28l']);   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */

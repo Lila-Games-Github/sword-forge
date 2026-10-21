@@ -13,7 +13,7 @@ continuation prompt printed at close time.
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
 - **Status: FTUE v3 is merged and live.** PR #24 (2026-10-14) carried r216-r230, the FTUE v3 rework
   (parts 1-6), its play-test round and the fixes after it; the Pages deploy succeeded and the live page
-  serves the merged build. **201 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 and D28 removed, D18a, D28j and D28k added 2026-10-21), `lastLine()` `D140`.
+  serves the merged build. **202 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 and D28 removed, D18a, D28j, D28k and D28l added 2026-10-21), `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
@@ -153,8 +153,9 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r293:** the refill: when the bag can no longer make the open order the dragon gives the shortfall (D28l, `ftueRefillTick`, `FTUE_ST.oreRound`) and the guided craft restarts (`CRAFT_REWIND`). Open: no refill for GC9 while it waits; no rewind for TC2's regrind, TC3's fire run, TC5's gale run, Bram's Dagger.
 - **r292:** the craft lock: while an order is open, CRAFT 1 / CONTINUE on another trait's page, another shape, or a pour on another trait is refused with D28k (`ftueOrderOpen`, `ftuePageOk`, `ftuePourOk`). Over a frame window the dragon speaks from the frame bubble (`sayWhere`), since the counter's bubble is under them.
-- **r291:** the ore chain, step 1: the bag starts with 2 Iron + 2 Manganese and after each tutorial sword the dragon gives the next sword's ores (`FTUE.oreChain`, reward kind 'ore', D18a / D28j over the window); the Day 2 cave holds 2 Nickel. Next: the craft lock (D28k) and the refill (D28l).
+- **r291:** the ore chain, step 1: the bag starts with 2 Iron + 2 Manganese and after each tutorial sword the dragon gives the next sword's ores (`FTUE.oreChain`, reward kind 'ore', D18a / D28j over the window); the Day 2 cave holds 2 Nickel. The craft lock is r292, the refill r293.
 - **r290:** fixed the minigame's D13 replay: `tutHmStep` says D13 only after the first sword's shape pick (`TUT_HM_FIRST`); GC4/TC4/GC8 keep their stage, so their counter pointer works again.
 - **r289:** every market ask (D28b, D28e, D28g, D92h-D92j, D111b, D113a) has no close button.
 - **r288:** D15 pauses the game under the dark screen until its OK (`SAY_PAUSE_ONE`); D28b has no close; a `SAY_NO_X` line has no button anywhere in a run (D23 had become an OK behind a stale run).
@@ -221,10 +222,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 201 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 202 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 591 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 602 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
