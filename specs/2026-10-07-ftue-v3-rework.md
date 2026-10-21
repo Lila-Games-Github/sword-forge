@@ -2097,6 +2097,12 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   "continue". Asserted by the FTUE test (557), written first. Checked in the browser, playing a new game to the pour:
   before it D10 is up; with the window open no line is open and the bubble is hidden; "continue" shows D12.
 
+- **r287: D118 and D27 have no close; D28 is removed (owner, 2026-10-21).** D28 ("Go ahead, try it!") is gone from
+  `DIALOGUE` (198 keys) and from the run after the dragon tap, which is now D119b, D27. D27 ends that run and D118
+  stands alone; both join `SAY_NO_X` (ringing the bell and the quest list move them on). Asserted by the FTUE test
+  (558), written first. Checked in the browser: D118 shows no button; the dragon tap gives D119b (OK), then D27 (no
+  button) with the bell out, and nothing after it.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2226,3 +2232,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r284 D24 has no close button.
 - 2026-10-21: r285 the tutorial script doc reordered into play order; found the hammer minigame D13 replay (not fixed).
 - 2026-10-21: r286 the trait window closes the dragon's line behind it.
+- 2026-10-21: r287 D118 and D27 have no close button; D28 removed.

@@ -4,7 +4,7 @@ Date: 2026-09-15. Reordered 2026-10-21 (r285): the script reads in play order.
 Build: `Swordforge_looptest_landscape.html`
 
 **How to read this file.** "The script in play order" below is every line of the tutorial in the order a player
-meets it, traced from the build as of r284. The text is copied from the build's `DIALOGUE` map, so it is the text
+meets it, traced from the build as of r284 and kept current with each change since. The text is copied from the build's `DIALOGUE` map, so it is the text
 the game shows. Each line keeps its permanent id (D1, D28b, D119a, ...): the ids are keys in the code, so they keep
 their numbers and read out of order. Player replies and customer lines that are not in `DIALOGUE` appear where they
 happen. After the script: the lines in the game that the current flow does not speak, the issues found while
@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r284)
+## The script in play order (r287)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -165,62 +165,59 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the player taps the dragon.*
 
 36. **D27** Dragon: "I found a bell for you. You can ring it to signal to the next customer that you are available."
-   *When: after D119b; the bell appears.*
-
-37. **D28** Dragon: "Go ahead, try it!"
-   *When: after D27.*
+   *When: after D119b; the bell appears (ringing it moves on).*
 
 #### GC1, GC2, GC3: the market
 
-38. **Customer (GC1):** "Do you have a Balanced Longsword?"
+37. **Customer (GC1):** "Do you have a Balanced Longsword?"
    *When: the bell; one of the random customer requests, naming the order.*
 
-39. **D28b** Dragon: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you."
+38. **D28b** Dragon: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you."
    *When: after GC1's request; MARKET blinks.*
 
-40. **D28c** Dragon: "Here it is. Watch this!"
+39. **D28c** Dragon: "Here it is. Watch this!"
    *When: the market opens (in the market window, as the dragon pays).*
 
-41. **D28d** Dragon: "There, my treat! Now make a balanced sword and pick the Longsword shape."
+40. **D28d** Dragon: "There, my treat! Now make a balanced sword and pick the Longsword shape."
    *When: the dragon's coins land on the lock.*
 
-42. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
+41. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
    *When: only if a GC1-GC3 craft uses too much or too little of an ore; with a "Retry" button.*
 
-43. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
+42. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
 
-44. **Customer (GC1):** "Wow! Looks good. Good job."
+43. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
 
-45. **Customer (GC2):** "Do you have a Balanced Broadsword?"
+44. **Customer (GC2):** "Do you have a Balanced Broadsword?"
    *When: the bell; a random request.*
 
-46. **D28e** Dragon: "A Broadsword this time. To the market! I'll pay again."
+45. **D28e** Dragon: "A Broadsword this time. To the market! I'll pay again."
    *When: after GC2's request.*
 
-47. **D28c** Dragon: "Here it is. Watch this!"
+46. **D28c** Dragon: "Here it is. Watch this!"
    *When: the market opens.*
 
-48. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
+47. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
    *When: the coins land.*
 
-49. **Customer (GC2):** a random thank-you
+48. **Customer (GC2):** a random thank-you
    *When: after the sale.*
 
-50. **Customer (GC3):** "Do you have a Balanced Katana?"
+49. **Customer (GC3):** "Do you have a Balanced Katana?"
    *When: the bell; a random request.*
 
-51. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
+50. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
    *When: after GC3's request.*
 
-52. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
+51. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: only if the gold is below the Katana's price; then the dragon tops it up.*
 
-53. **D28i** Dragon: "Your first blueprint! Now make the Katana."
+52. **D28i** Dragon: "Your first blueprint! Now make the Katana."
    *When: the player buys the Katana blueprint.*
 
-54. **Customer (GC3):** a random thank-you
+53. **Customer (GC3):** a random thank-you
    *When: after the sale; the bell glows for TC2.*
 
 ### Part 2: grinding, the recipe, and the fire sword
@@ -847,7 +844,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 | D91 | "Open the skill tree and use your points. You will feel more... powerful!" | nothing queues it (the Day 3 morning is D89a-D89d) |
 | D94 | "We should go and gather ores. Go back to the cave." | spoken only on a Day 3 path the current flow does not take; the Day 2 cave plays D94b |
 
-D11 was removed in r282 (it joined D10). D30 and D34 were removed earlier.
+D11 was removed in r282 (it joined D10), D28 in r287. D30 and D34 were removed earlier.
 
 ## Issues found while tracing (2026-10-21, not fixed here)
 

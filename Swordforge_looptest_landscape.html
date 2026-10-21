@@ -7620,7 +7620,6 @@ const DIALOGUE = {
     D25: "Thanks! If I survive the night I will come back to thank you properly.",
     D26: "Phew! That was a lot of hard work.",
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
-    D28: "Go ahead, try it!",
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
     D28b: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you.",   /* r213; v3 part 1 */
     D28c: "Here it is. Watch this!",   /* v3: the dragon pays (FTUE.marketWatch) */
@@ -9873,7 +9872,7 @@ const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D
 const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
    D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
-const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1 };   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
+const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1 };   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -9960,7 +9959,7 @@ function sayFill(s){ return s.replace(/\{(\w+)\}/g, (m,k)=> (SAY_VARS[k]!=null? 
 function lastLine(){ const k=Object.keys(DIALOGUE); return k[k.length-1]; }
 let TUT_SEEN_END=false;
 function tutOver(){ return TUT_SEEN_END; }
-function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27','D28'); return true; }   /* r255 */
+function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27'); return true; }   /* r255. r287 (owner): D28 removed */
     if(tutOver()){ popHearts(e, layer); return true; } return sayAgain(); }
 /* r160: where the player last dragged him, remembered for the COUNTER screen alone. He is only
    draggable there, but the inline left/top it wrote used to travel with the element to every other

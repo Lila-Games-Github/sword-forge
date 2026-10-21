@@ -336,6 +336,8 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r287 (owner, 2026-10-21): D28 ("Go ahead, try it!") is removed */
+eq('D28 is gone', /\n\s*D28: "/.test(src) || /'D28'/.test(src), false);
 /* r286 (owner, 2026-10-21): the trait window opens on its own - the dragon's line behind it (D10) is closed */
 eq('showAcquire closes the dragon\'s line', /function showAcquire\(bt,tier,total,fresh\)\{[\s\S]{0,600}sayHide\(\);[\s\S]{0,160}document\.getElementById\('sfAcquireModal'\)\.classList\.add\('show'\);/.test(src), true);
 /* r282 (owner, 2026-10-21): D10 and D11 are one line (D10), with no close; the mug pointer goes up with it */
@@ -345,7 +347,7 @@ eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE=
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24']);   /* r282: D10 (with D11 in it). r283: D23. r284: D24 */
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118']);   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118 */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 eq('a run\'s last line shows no close when listed (an OK mid-run stays)', src.includes("((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);"), true);
@@ -487,7 +489,7 @@ eq('closing the quests: D119, D119a (the bell waits)', src.includes("if(TUT_STAG
 eq('D119a: a lit close, and closing it lights both dragons', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src)
   && src.includes("D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },"), true);
 eq('the dragon\'s glow is the strong one (the plain tutGlow was faint on the counter wood)', src.includes('.crop.dragoncrop.tut-glow { animation: tutGlowBig 1.15s ease-in-out infinite; }') && src.includes('@keyframes tutGlowBig {'), true);
-eq('the tap: unglow, D119b, then D27/D28 (D27 starts the bell)', src.includes("function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27','D28'); return true; }"), true);
+eq('the tap: unglow, D119b, then D27 (D27 starts the bell; r287: D28 is gone)', src.includes("function dragonTap(e, layer){ if(TUT_STAGE==='p1-dragon-tap'){ tutUnglow(); TUT_STAGE='p1-bell0'; sayQueue('D119b','D27'); return true; }"), true);
 /* r254 (owner, 2026-10-16): the second map window (GC4, basic vs elemental) shows MAP_parts2; the first (D67a, five parts) keeps MAP_parts */
 eq('second map window art', src.includes("openIllus('assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part'")
   && src.includes("openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts'") && existsSync('assets/ui/MAP_parts2.webp'), true);
@@ -828,7 +830,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
 }
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
 const keys = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
-eq('D28a follows D28', keys[keys.indexOf('D28a') - 1], 'D28');
+eq('D28a follows D27 (r287: D28 removed)', keys[keys.indexOf('D28a') - 1], 'D27');
 eq('D111a follows D111', keys[keys.indexOf('D111a') - 1], 'D111');
 eq('last key is D140 (r213: the closing line is the final line)', keys[keys.length - 1], 'D140');
 for (const [k, prev] of [['D17a', 'D17'], ['D17b', 'D17a'], ['D17c', 'D17b'], ['D28b', 'D28a'], ['D58a', 'D58'], ['D92a', 'D92'], ['D93a', 'D93']]) eq(k + ' follows ' + prev, keys[keys.indexOf(k) - 1], prev);
