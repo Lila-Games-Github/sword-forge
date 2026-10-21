@@ -2989,7 +2989,7 @@ function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'
     d.classList.toggle('on', !!TUT_HOLE); if(TUT_HOLE) tutHoleLayout(); else { d.style.clipPath=''; d._cp=''; }
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE); }
 /* r270 (owner): D1 and D2 are read on a dark screen. The r245 dim with no hole; only the dragon and his line show */
-const SAY_DARK=['D1','D2'];
+const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */
 /* r271 (owner): D3's ore step stays dark. The smelter is lifted over the dim like the dragon (its art, not a box); the
    inventory panel sits in the rail (z45, its own stacking context), so a window is cut for it instead. The arrow (z70)
    is over the dim anyway.
@@ -9974,7 +9974,7 @@ function sayChoose(list, optional){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
+const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
                     D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something

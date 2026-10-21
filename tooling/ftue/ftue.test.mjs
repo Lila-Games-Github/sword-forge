@@ -512,7 +512,8 @@ eq('the cut is an even-odd path of rectangles', /function tutDarkLayout\(\)\{[\s
 eq('a pause in a dark stage uses the stage\'s dim, not #tutDim', src.includes("if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE]);"), true);
 /* r270 (owner, 2026-10-16): D1 and D2 are read on a dark screen - the r245 dim with no hole; only the dragon and his
    line (with its glowing OK) show above it */
-eq('SAY_DARK is D1 and D2', (src.match(/const SAY_DARK=(\[[^\]]*\]);/) || [])[1], "['D1','D2']");
+eq('SAY_DARK is D1, D2 and D32c (r296)', (src.match(/const SAY_DARK=(\[[^\]]*\]);/) || [])[1], "['D1','D2','D32c']");
+eq('D32c\'s OK is lit (r296)', /const SAY_GO_GLOW=\{[^}]*D32c:1/.test(src), true);
 eq('say() darkens for those lines on the forge bubble, and clears for any other', src.includes("tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
 eq('sayHide() lifts it', /function sayHide\(\)\{[\s\S]{0,1400}tutDark\(false\);/.test(src), true);
 eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }'), true);

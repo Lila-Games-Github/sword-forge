@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r294)
+## The script in play order (r296)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -258,7 +258,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after D32a; closing it opens the grindstone reward.*
 
 6. **D32c** Dragon: "I put your ores back. Let's try again."
-   *When: the reward window is closed.*
+   *When: the reward window is closed; the screen is dark except the dragon, and its OK is lit.*
 
 7. **D33** Dragon: "We can travel further on the map if we grind the ores before we put them in the smelter."
    *When: after D32c; the what-if route blinks on the map.*

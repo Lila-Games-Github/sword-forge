@@ -2250,6 +2250,12 @@ of the chain gave, or the cave lesson's need.
   Checked in the browser: a new game played to Bram's counter with the sword on it, 120 frames run - no window, D24 up;
   a gameplay sale with the goodbye showing - no reward at 1.2 s, the 2 + 2 with D18a at 3.8 s, the goodbye over.
 
+- **r296: D32c on a dark screen with its OK lit (owner, 2026-10-21).** D32c ("I put your ores back. Let's try again.")
+  joins `SAY_DARK` (the r270 dim: only the dragon and his line) and `SAY_GO_GLOW` (its OK lit). It opens the run D32c,
+  D33, D35, so the dark lifts with D33. Asserted by the FTUE test (610), written first. Checked in the browser (part 2,
+  the grindstone reward closed): D32c up, the dim on, the furnace under it, the dragon over it, OK lit; OK gives D33 and
+  the dim is off.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2388,3 +2394,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r293 the refill: a round the bag can no longer make is given again (D28l), and the guided craft restarts.
 - 2026-10-21: r294 the ore rewards come after each sale, not at the craft.
 - 2026-10-21: r295 no refill while a sword is on the counter; the ore reward waits until the customer has gone.
+- 2026-10-21: r296 D32c is read on a dark screen with its OK lit.
