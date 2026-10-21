@@ -74,7 +74,7 @@ eq('startParts (per trait, per kind)', FTUE.startParts, 3);
 /* v3 part 3 (D25-D32): GC4 Durable (the lesson), GC5-GC6 fire bought by the dragon, GC7 fire Katana bought by the player */
 eq('part 3 gpc', FTUE.parts[3].gpc, [
   { trait: 'durable', shape: 'Shortsword', qty: 1, lesson: 'durable' },
-  { trait: 'fire', shape: 'Longsword',  qty: 1, market: { by: 'dragon', ask: 'D92h', done: 'D92a' }, guide: 'map' },
+  { trait: 'fire', shape: 'Longsword',  qty: 1, market: { by: 'dragon', ask: 'D92h', more: 'D92a', done: null }, guide: 'map' },   /* r300: D92a follows the order line */
   { trait: 'fire', shape: 'Broadsword', qty: 1, market: { by: 'dragon', ask: 'D92i', done: 'D28f' }, guide: 'book' },
   { trait: 'fire', shape: 'Katana',     qty: 1, market: { by: 'player', ask: 'D92j', done: null } } ]);
 eq('part 3 after (v3: the bell brings TC4)', FTUE.parts[3].after, 'p4-tc4');
@@ -225,14 +225,14 @@ eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, ma
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
-  D28b: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you.",
+  D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
   D28c: 'Here it is. Watch this!',
-  D28d: 'There, my treat! Now make a balanced sword and pick the Longsword shape.',
-  D28e: "A Broadsword this time. To the market! I'll pay again.",
-  D28f: 'Done! Pick the Broadsword when you shape the blade.',
+  D28d: 'There, my treat! Now pick the Longsword.',   /* r300 */
+  D28e: "A Broadsword this time. I'll pay for the shape again.",   /* r300 */
+  D28f: 'Done! Pick the Broadsword.',   /* r300 */
   D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",
   D28h: "Oh, you don't have enough. Don't worry, I'll help.",
-  D28i: 'Your first blueprint! Now make the Katana.' };
+  D28i: 'Your first blueprint! Now pick the Katana.' };   /* r300 */
 for (const [k, v] of Object.entries(V3P1)) eq(k + ' text', line(k), v);
 /* every script block must parse: a text check cannot see a broken quote (v3 part 2 shipped one, caught here) */
 [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m, i) => { let ok = true; try { new Function(m[1]); } catch (e) { ok = e.message; } eq('script block ' + i + ' parses', ok, true); });
@@ -241,7 +241,7 @@ for (const [k, prev] of [['D28c','D28b'],['D28d','D28c'],['D28e','D28d'],['D28f'
   eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('Bram: no reward window, straight to the quest list',
   /function ftueAfterBram\(\)\{[\s\S]{0,300}TUT_STAGE='p1-quest'/.test(src) && !/function ftueAfterBram\(\)\{[^}]*ftueReward\(/.test(src), true);
-eq('a market order opens the market', src.includes("if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }"), true);
+eq('a market order waits for the shape window (r300), MARKET still appears', src.includes("if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'shape' }; }"), true);
 eq('the dragon speaks inside the market window (his counter bubble cannot rise above a modal)', src.includes("box.querySelector('p').textContent=DIALOGUE[id]; box.hidden=false;") && src.includes('id="mkSay"'), true);
 eq('short of the price: topped up to it (the order\'s own price)', /function ftueMarketTopUp\(\)\{[\s\S]{0,500}GOLD=Math\.max\(GOLD, marketPrice\(m\.o\.trait, m\.o\.shape\)\)/.test(src), true);
 /* v3 part 2 (D13, D18-D24, D31) */
@@ -270,7 +270,7 @@ const V3P3 = {
   D92g: 'If you explore further in the same direction, you will find elemental traits associated with light.',
   D92h: "A fire Longsword! I'll buy this blueprint for you too.",
   D92i: 'And a fire Broadsword. My treat, one more time!',
-  D92j: 'Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!' };
+  D92j: 'Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!' };   /* r300 */
 for (const [k, v] of Object.entries(V3P3)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D92b','D92a'],['D92c','D92b'],['D92d','D92c'],['D92e','D92d'],['D92f','D92e'],['D92g','D92f'],['D92h','D92g'],['D92i','D92h'],['D92j','D92i']])
   eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
@@ -334,6 +334,18 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r300 (owner, 2026-10-21): the tutorial buys at the shape window - no market trip */
+eq('an order line has a lit OK again, and closing the order\'s last line starts the craft guide', ['D28b','D28e','D28g','D92a','D92i','D92j','D111b','D113a'].every(k => new RegExp('const SAY_GO_MORE=\\{[^}]*\\b' + k + ':1').test(src) && new RegExp('const SAY_GO_GLOW=\\{[^}]*\\b' + k + ':1').test(src))
+  && src.includes("if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };") && /function sayHide\(\)\{[\s\S]{0,1600}if\(SAY_THEN && SAY_ON===SAY_THEN\.id\)\{ const f=SAY_THEN\.fn; SAY_THEN=null; setTimeout\(f, 0\); \}/.test(src), true);
+eq('the craft guide is the old market ending without the market', src.includes("function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }"), true);
+eq('the shape window runs the purchase for the order\'s trait', /function openShapeSelect\(\)\{[\s\S]{0,900}ftueShapeOpened\(\);/.test(src) && /function ftueShapeOpened\(\)\{[\s\S]{0,300}if\(k!==o\.trait\) return;/.test(src), true);
+eq('the dragon pays: D28c, coins to the shape, unlocked, then the done line and the shape', /function ftueShapeOpened\(\)\{[\s\S]{0,900}ftueSaySh\(FTUE\.marketWatch\);[\s\S]{0,400}coinFly\(dragonEl\(\), [\s\S]{0,200}FTUE_ST\.shapes\[key\]=true; shapeGrid\(\);[\s\S]{0,200}ftueShapeDone\(m\);/.test(src), true);
+eq('the player buys: BUY pointed at; short of gold, D28h and the top-up first', /function ftueShapeOpened\(\)\{[\s\S]{0,2000}m\.step='buy';[\s\S]{0,300}ftueSaySh\(FTUE\.marketShort\);/.test(src) && /function shapeBuy\(k, sh\)\{[\s\S]{0,900}ftueShapeBought\(k, sh\);/.test(src), true);
+eq('a purchase ends the lesson and points at the shape', /function ftueShapeDone\(m\)\{ FTUE_MK=null;[\s\S]{0,400}tutExit\(/.test(src), true);
+eq('a market purchase of the ordered blueprint also ends it, with no second craft guide', /function ftueMarketBought\(k, sh\)\{[\s\S]{0,200}FTUE_MK=null;/.test(src), true);
+eq('the shape window\'s lines go when the shape is picked', src.includes("function ftueFocusDone(){ if(SAY_ON==='D28k' || (FTUE_SHAPE_LINE && SAY_ON===FTUE_SHAPE_LINE)) sayHide(); }"), true);
+eq('Bram\'s Dagger: D111b runs into D48, no market', /function tutBram2Illus\(\)\{[\s\S]{0,600}FTUE_MK=\{ o:b, step:'shape' \};[\s\S]{0,200}sayQueue\(b\.market\.ask, 'D48'\);/.test(src), true);
+eq('a line over a window clears the shape window too (z 1010)', src.includes('.say-over-modal { z-index: 1011 !important; }'), true);
 /* r298 (owner, 2026-10-21): the first sword goes on the counter only once the tutorial asks (D23) */
 eq('D23 opens the counter for the first sword', /function bramGiveStep\(\)\{ TUT_BRAM_GIVE_OK=true; say\('D23'\);/.test(src), true);
 eq('until then a drop on the counter is refused and the sword stays in the bag', src.includes("function counterShut(){ return SF_SCREEN==='customer' && !FTUE_ST.done && FTUE_ST.part===1 && !TUT_BRAM_SOLD && !TUT_BRAM_GIVE_OK; }")
@@ -384,7 +396,7 @@ eq('CRAFT 1 refuses another trait\'s page', /function cbCraft\(n\)\{[\s\S]{0,300
 eq('so does CONTINUE FROM HERE', /function cbContinue\(\)\{[\s\S]{0,200}if\(!ftuePageOk\(r\)\) return;/.test(src), true);
 eq('the shape picker refuses another shape, and stays open', /function selectShape\(shape\)\{ const fo=ftueOrderOpen\(\); if\(fo && !ftueOrderShapeOk\(fo, shape\)\)\{ ftueFocus\(fo\); return; \}/.test(src), true);
 eq('over a frame window the dragon speaks from the frame bubble (the counter\'s sits in the screen layer, under it)', /function sayWhere\(\)\{[\s\S]{0,400}if\(\['sfBookModal','sfShapeModal','sfTraitModal','sfCraftModal','sfRewardModal'\]\.some\(id=>\{ const m=document\.getElementById\(id\); return m && m\.classList\.contains\('show'\); \}\)\) return 'bench';/.test(src), true);
-eq('D28k goes with its window; a kept line (D107g) moves back to the screen bubble', src.includes("function ftueFocusDone(){ if(SAY_ON==='D28k') sayHide(); }")
+eq('D28k goes with its window; a kept line (D107g) moves back to the screen bubble', src.includes("function ftueFocusDone(){ if(SAY_ON==='D28k' || (FTUE_SHAPE_LINE && SAY_ON===FTUE_SHAPE_LINE)) sayHide(); }")
   && /function closeBook\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function closeTraitCard\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function cancelShape\(\)\{[\s\S]{0,200}ftueFocusDone\(\)/.test(src)
   && src.includes("ftueReward(list, ()=>{ if(line && SAY_ON===line){ if(e.keep) say(line); else sayHide(); } if(then) then(); });"), true);
 eq('the mug refuses another trait (TC5\'s swift pour is the lesson)', src.includes("if(mugOverAnvil() && canPourQuench() && ftuePourOk()){") && /function ftuePourOk\(\)\{[\s\S]{0,400}TUT_STAGE==='d2-quench'/.test(src), true);
@@ -456,7 +468,7 @@ eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE=
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D28b', 'D28e', 'D28g', 'D92h', 'D92i', 'D92j', 'D111b', 'D113a', 'D18a', 'D28j', 'D28l']);   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -935,8 +947,8 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
     && src.includes("Object.keys(TUT_SKIP_SCREEN).forEach(k=>{ TUT_SKIP[k]={ quiet:true, done:()=>SF_SCREEN===TUT_SKIP_SCREEN[k], next:tutArriveHere }; });"), true);
   eq('a quiet entry waits while a line is up', src.includes("if(!e || TUT_SKIP_TRIED===st || (e.quiet && SAY_ON)) return;"), true);
   /* the market: a blueprint the player already owns is not bought again (it looped: buy -> close -> ask) */
-  eq('owned blueprint: the market trip is skipped', src.includes("function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='ask' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }")
-    && src.includes("if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ ftueMarketDone(FTUE_MK); return; }"), true);
+  eq('owned blueprint: no purchase, straight to the craft (r300)', src.includes("function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='shape' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }")
+    && src.includes("if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; ftueOrderGo(o); return; }"), true);
   eq('closeMarket and the skip share one ending', /function closeMarket\(\)\{[\s\S]{0,300}if\(m && m\.step==='done'\) ftueMarketDone\(m\);/.test(src), true);
 }
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */

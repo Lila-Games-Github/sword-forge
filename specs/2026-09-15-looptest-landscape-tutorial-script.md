@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r297)
+## The script in play order (r300)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -170,31 +170,31 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 37. **D27** Dragon: "I found a bell for you. You can ring it to signal to the next customer that you are available."
    *When: after D119b; the bell appears (ringing it moves on).*
 
-#### GC1, GC2, GC3: the market
+#### GC1, GC2, GC3: blueprints at the shape window
 
 38. **Customer (GC1):** "Do you have a Balanced Longsword?"
    *When: the bell; one of the random customer requests, naming the order.*
 
-39. **D28b** Dragon: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you."
-   *When: after GC1's request; MARKET blinks.*
+39. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it."
+   *When: after GC1's request; its lit OK starts the craft guide (no market trip).*
 
-40. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens (in the market window, as the dragon pays).*
-
-41. **D28d** Dragon: "There, my treat! Now make a balanced sword and pick the Longsword shape."
-   *When: the dragon's coins land on the lock.*
-
-42. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
+40. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
    *When: only if a GC1-GC3 craft uses too much or too little of an ore; with a "Retry" button.*
 
-43. **D28k** Dragon: "The customer asked for a {o}. Let's focus on that."
+41. **D28k** Dragon: "The customer asked for a {o}. Let's focus on that."
    *When: only if, while any order is open, the player tries another trait's page, another shape, or a pour on another trait ({o} = the order).*
 
-44. **D28l** Dragon: "Careful! Here, try again."
+42. **D28l** Dragon: "Careful! Here, try again."
    *When: only if the bag can no longer make the open order (e.g. a cancelled craft): over a reward window with the missing ores; the guided craft starts again.*
 
-45. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
+43. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
+
+44. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+
+45. **D28d** Dragon: "There, my treat! Now pick the Longsword."
+   *When: the Longsword is unlocked; then it blinks to be picked.*
 
 46. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
@@ -205,14 +205,14 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 48. **Customer (GC2):** "Do you have a Balanced Broadsword?"
    *When: the bell; a random request.*
 
-49. **D28e** Dragon: "A Broadsword this time. To the market! I'll pay again."
-   *When: after GC2's request.*
+49. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
+   *When: after GC2's request; its lit OK starts the craft guide.*
 
 50. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens.*
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
 
-51. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
-   *When: the coins land.*
+51. **D28f** Dragon: "Done! Pick the Broadsword."
+   *When: the Broadsword is unlocked; then it blinks to be picked.*
 
 52. **Customer (GC2):** a random thank-you
    *When: after the sale.*
@@ -224,13 +224,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 55. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
-   *When: after GC3's request.*
+   *When: after GC3's request; its lit OK starts the craft guide.*
 
 56. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
-   *When: only if the gold is below the Katana's price; then the dragon tops it up.*
+   *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
 
-57. **D28i** Dragon: "Your first blueprint! Now make the Katana."
-   *When: the player buys the Katana blueprint.*
+57. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
+   *When: the player buys the Katana in the shape window; then it blinks to be picked.*
 
 58. **Customer (GC3):** a random thank-you
    *When: after the sale.*
@@ -468,19 +468,19 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 16. **D92h** Dragon: "A fire Longsword! I'll buy this blueprint for you too."
-   *When: after GC5's request; MARKET blinks.*
+   *When: after GC5's request.*
 
-17. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens, as the dragon pays.*
+17. **D92a** Dragon: "Remember the fire route? The craft book can help."
+   *When: after D92h; its lit OK starts the map route.*
 
-18. **D92a** Dragon: "Remember the fire route? The craft book can help."
-   *When: the coins land.*
-
-19. **D92m** Dragon: "Let's go to the forge."
+18. **D92m** Dragon: "Let's go to the forge."
    *When: only if the player is not on the forge.*
 
-20. **D92n** Dragon: "Tap on the trait to open the craft book directly."
+19. **D92n** Dragon: "Tap on the trait to open the craft book directly."
    *When: on the forge, dark except the fire trait; the trait opens its card, then CRAFT 1.*
+
+20. **D28c** Dragon: "Here it is. Watch this!"
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Longsword's lock (then it blinks).*
 
 21. **Customer (GC5):** a random thank-you
    *When: after the sale.*
@@ -494,13 +494,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 24. **D92i** Dragon: "And a fire Broadsword. My treat, one more time!"
-   *When: after GC6's request.*
+   *When: after GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
 
 25. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens.*
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Broadsword's lock.*
 
-26. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
-   *When: the coins land; then pointers only (craft book, fire page, CRAFT 1).*
+26. **D28f** Dragon: "Done! Pick the Broadsword."
+   *When: the Broadsword is unlocked; then it blinks to be picked.*
 
 27. **Customer (GC6):** a random thank-you
    *When: after the sale.*
@@ -513,11 +513,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 29. **Customer (GC7):** "Do you have a Fire Katana?"
    *When: the bell; a random request.*
 
-30. **D92j** Dragon: "Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!"
+30. **D92j** Dragon: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!"
    *When: after GC7's request.*
 
 31. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
-   *When: only if the gold is below the Katana's price; then the top-up.*
+   *When: the shape window opens, only if the gold is below the fire Katana's price; the top-up, then its BUY blinks.*
 
 32. **Customer (GC7):** a random thank-you
    *When: after the sale.*
@@ -669,22 +669,22 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: continues D111.*
 
 5. **D111b** Dragon: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend."
-   *When: after Bram's line; MARKET lights.*
+   *When: after Bram's line.*
 
-6. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens, as the dragon pays.*
+6. **D48** Dragon: "I found this sharpening wheel. I'll show you how to use it."
+   *When: after D111b; closing it opens the sharpening wheel reward.*
 
-7. **D48** Dragon: "I found this sharpening wheel. I'll show you how to use it."
-   *When: the market is closed; closing D48 opens the sharpening wheel reward.*
-
-8. **D112** Dragon: "We can use the metal infused with the swift trait we crafted earlier. Let's go."
+7. **D112** Dragon: "We can use the metal infused with the swift trait we crafted earlier. Let's go."
    *When: the reward window is closed.*
 
-9. **D113** Dragon: "Find it in your inventory and drag it to the anvil."
+8. **D113** Dragon: "Find it in your inventory and drag it to the anvil."
    *When: the player arrives at the forge.*
 
-10. **D44** Dragon: "Tap on the metal to select a shape."
+9. **D44** Dragon: "Tap on the metal to select a shape."
    *When: the swift ingot is on the anvil.*
+
+10. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
 
 #### The basement
 
@@ -739,10 +739,10 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 27. **D113a** Dragon: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!"
-   *When: after the request; MARKET lights.*
+   *When: after the request.*
 
 28. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the market opens, as the dragon pays.*
+   *When: the shape window opens; over it, as the dragon's coins fly to the Longsword's lock.*
 
 29. **Customer:** a random thank-you
    *When: after the sale.*

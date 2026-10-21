@@ -153,7 +153,8 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
-- **r299:** a locked shape in the shape window shows "BUY <price>g" and buys there (`shapeBuy`, the market's rules). Next: the tutorial buys there instead of the market.
+- **r300:** the tutorial buys blueprints at the shape window: no market trip; the order lines end on a lit OK that starts the craft guide (`SAY_THEN`, `ftueOrderGo`); `ftueShapeOpened` / `ftueShapeDone` run the dragon's or the player's purchase there. `say-over-modal` is z 1011 (the shape window is 1010). GC9 keeps its market lesson.
+- **r299:** a locked shape in the shape window shows "BUY <price>g" and buys there (`shapeBuy`, the market's rules).
 - **r298:** the first sword goes on the counter only after D23 (`TUT_BRAM_GIVE_OK`, `counterShut`); earlier drops stay in the bag with a toast.
 - **r297:** Day 2 morning: D89's OK is lit first; the arrow to the counter blinks only with D92.
 - **r296:** D32c joins `SAY_DARK` and `SAY_GO_GLOW`: a dark screen, OK lit.
@@ -231,7 +232,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 202 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 616 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 626 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

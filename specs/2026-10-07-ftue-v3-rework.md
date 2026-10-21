@@ -2295,6 +2295,24 @@ market - yes; the MARKET button still appears with GC1's order, with nothing poi
   blade, 820g): the window lists the owned shapes and six locked ones with BUY 250g-500g in gold; tapping Dagger (500g)
   buys it, the gold goes to 320, the toast names it, the window stays open with Dagger unlocked.
 
+- **r300: blueprints from the shape window, step 2: the tutorial buys there (owner, 2026-10-21).** Built to "Blueprints
+  from the shape window" above. An order with a blueprint sets `FTUE_MK` to 'shape' (MARKET still appears, nothing points
+  at it); its line(s) - GC5's are D92h then D92a (`market.more`) - end on a lit OK (`SAY_GO_MORE`, `SAY_GO_GLOW`), and
+  closing them starts the craft guide (`SAY_THEN` in `sayHide` -> `ftueOrderGo`, the old market ending without the
+  market). Bram's D111b runs straight into D48. When the shape window opens for the order's trait, `ftueShapeOpened`: the
+  dragon's orders - D28c over the window, coins to the shape's lock, unlocked, then the done line; the player's orders -
+  short of gold D28h and the top-up, then the shape's BUY is pointed at (`ftueShapeBought` from `shapeBuy`); then
+  `ftueShapeDone` clears the lesson and points at the shape. The window's lines (D28c, D28d, D28f, D28h, D28i) have no
+  button and go when the shape is picked; the order lines are out of `SAY_NO_X` again (r289's reason, MARKET, is gone).
+  Buying the ordered blueprint in the market anyway ends the lesson without a second craft guide. Found on the way: the
+  shape window is z 1010, over `say-over-modal` (1001), so lines over it were hidden (D28k's refusal too); the class is
+  1011 now. Lines reworded as recorded. Asserted by the FTUE test (626), written first. Checked in the browser: GC1 - D28b
+  with a lit OK, nothing blinking at MARKET (it shows); OK starts the craft guide (the way to the forge); the shape window
+  for its balanced metal - D28c on top, coins, "The dragon bought the Balanced Longsword blueprint", D28d on top, the
+  Longsword unlocked and blinking; picking it opens the minigame and the line goes. GC3 at 40g - D28h on top, the gold
+  topped up to 150, the Katana's BUY blinking; buying it - D28i on top, the gold 0, the Katana unlocked and blinking.
+  GC5 - D92h (OK), D92a (lit OK); closing it starts the map route (D92m), the purchase waiting for CRAFT 1's window.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2437,3 +2455,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r297 Day 2 morning: D89's OK first, then the arrow to the counter with D92.
 - 2026-10-21: r298 the first sword goes on the counter only after D23 asks for it.
 - 2026-10-21: r299 a locked shape in the shape window can be bought there (BUY).
+- 2026-10-21: r300 the tutorial buys blueprints at the shape window (the dragon pays there; the Katanas are bought there).

@@ -1715,7 +1715,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .gift-box { max-width: 300px; text-align: center; }
 /* r214: "Sell this sword?" - Garric only, before a sword short of his best grade is sold */
 /* r215: a dragon line that talks ABOUT an open window (D69d) sits above it; modals are z 1000 */
-.say-over-modal { z-index: 1001 !important; }
+.say-over-modal { z-index: 1011 !important; }   /* r300: over the shape window (z 1010) too, not only the z-1000 windows */
 .cr-lost { color: #c0392b; }   /* r217: gold lost to hazard damage */
 .gsa-box { max-width: 330px; text-align: center; }
 .gsa-box .sf-modal-sub { margin-bottom: 6px; font-size: 12px; }
@@ -2560,7 +2560,7 @@ const FTUE = {
         /* v3 part 3: GC4 Durable (lesson: the map window, the cave, 2 ground nickel), then three fire orders - the
            dragon buys the Longsword and Broadsword, the player the Katana. done:null says nothing. No rewards (D32). */
         3: { gpc:[ { trait:'durable', shape:'Shortsword', qty:1, lesson:'durable' },
-                   { trait:'fire', shape:'Longsword',  qty:1, market:{ by:'dragon', ask:'D92h', done:'D92a' }, guide:'map' },    /* owner, 2026-10-09: the fire icon on the map opens the page, then CRAFT 1 */
+                   { trait:'fire', shape:'Longsword',  qty:1, market:{ by:'dragon', ask:'D92h', more:'D92a', done:null }, guide:'map' },   /* r300: D92a after the order line */    /* owner, 2026-10-09: the fire icon on the map opens the page, then CRAFT 1 */
                    { trait:'fire', shape:'Broadsword', qty:1, market:{ by:'dragon', ask:'D92i', done:'D28f' }, guide:'book' },   /* the craft book, the fire page, CRAFT 1 */
                    { trait:'fire', shape:'Katana',     qty:1, market:{ by:'player', ask:'D92j', done:null } } ], after:'p4-tc4',   /* v3: the bell brings TC4 */
              rewards:{ tc:[], gpc1:[], gpc2:[], gpc3:[], gpc4:[] } },
@@ -2834,7 +2834,7 @@ function ftueOrderShapeOk(o, shape){ return o.items ? o.items.some(it=>!it.shape
 let FOCUS_OVER=null, FTUE_POUR_SAID=false;
 function ftueFocus(o){ SAY_VARS.o=ftueOrderName(o); sayQueue('D28k');
     const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }   /* over the book or the picker */
-function ftueFocusDone(){ if(SAY_ON==='D28k') sayHide(); }   /* the window it was said over has closed */
+function ftueFocusDone(){ if(SAY_ON==='D28k' || (FTUE_SHAPE_LINE && SAY_ON===FTUE_SHAPE_LINE)) sayHide(); }   /* r300: and the shape window's lines */   /* the window it was said over has closed */
 function ftuePageOk(r){ const o=ftueOrderOpen(); if(!o || recipeTraits(r).some(a=>ftueOrderTraitOk(o, a.tid))) return true; ftueFocus(o); return false; }
 function ftuePourOk(){ const o=ftueOrderOpen(); if(!o || !melt || !melt.reachedTrait) return true;
     if(TUT_STAGE==='d2-quench' || ftueOrderTraitOk(o, melt.reachedTrait.trait.id)) return true;   /* TC5's swift pour is the lesson */
@@ -3052,7 +3052,7 @@ function ftueGpcArrive(){
     CUSTOMER={ portrait:'assets/customer/'+pool[Math.floor(Math.random()*pool.length)]+'.webp',
                tid:o.trait, shape:o.shape||null, tier:o.tier||null, name:tr.name, ftue:true, qty:o.qty, got:0, items:o.items||null, lesson:o.lesson||null };   /* v3 D7; part 4: a tier */
     TUT_STAGE='p'+FTUE_ST.part+'-gpc'; tutUnglow(); sayHide();
-    if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'ask' }; }   /* v3 D6/D10 */
+    if(o.market){ FTUE_ST.market=true; marketBtnUi(); FTUE_MK={ o:o, step:'shape' }; }   /* v3 D6/D10. r300: bought at the shape window */
     /* r201: an order the bulk craft is meant for must be affordable, whatever went before */
     if(P.ensureOre) Object.keys(P.ensureOre).forEach(id=>{ ORE_COUNT[id]=Math.max(ORE_COUNT[id]||0, P.ensureOre[id]); });
     if(INV_TAB===0) buildShelf();
@@ -3064,7 +3064,10 @@ function ftueGpcArrive(){
     if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
     if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */
         typeAfter(()=>tutExit('#marketBtn')); }   /* 2026-10-09: COME LATER appears with them */
-    if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ ftueMarketDone(FTUE_MK); return; } sayQueue(nudge); if(o.market) setTimeout(()=>tutExit('#marketBtn'), 0); });   /* v3: and MARKET blinks */
+    if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; ftueOrderGo(o); return; }
+        const lines=[nudge].concat(o.market && o.market.more ? [o.market.more] : []);
+        if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };   /* r300: closing the order's lines starts the craft guide */
+        sayQueue.apply(null, lines); });
     custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.lesson==='later' ? DIALOGUE.D107c : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
@@ -6272,7 +6275,7 @@ function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide
     if(FTUE_ST.part===1 && m.o && !m.then) ftueGcCraftGo();
     if(m.o && m.o.guide) ftueBookGo(m.o); }   /* v3 (owner): GC1-GC3 are guided through the craft. v3 part 5: Bram's run goes on */
 /* owner, 2026-10-13: the player already owns the ordered blueprint - no trip to the market (it looped: buy, close, ask) */
-function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='ask' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }
+function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='shape' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }   /* r300: 'shape' */
 /* r253 (owner): the come-later customer's guide. MARKET lights after the request; in the market both blueprints are
    scrolled into view and lit, with Close lit; closing it gives D107d and lights COME LATER. FTUE_LATER: 'mk' -> 'close'
    -> null. Its own flag, so FTUE_MK (the orders' market lesson) is untouched; COME LATER at any point ends it. */
@@ -6302,8 +6305,8 @@ function ftueMarketTopUp(){
         if(m && m.step==='buy') tutExit(mkCellOf(m.o)); };
     if(g) coinFly(dragonEl(), g, go); else go(); }
 function ftueMarketBought(k, sh){
-    const m=FTUE_MK; if(!m || m.step!=='buy' || k!==m.o.trait || sh!==m.o.shape) return;
-    m.step='done'; if(m.o.market.done) sayOver(m.o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }
+    const m=FTUE_MK; if(!m || (m.step!=='buy' && m.step!=='shape') || k!==m.o.trait || sh!==m.o.shape) return;
+    FTUE_MK=null; if(m.o.market.done) sayOver(m.o.market.done); }   /* r300: bought in the market anyway - the lesson ends (no second craft guide) */
 /* the player buys */
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
@@ -6572,7 +6575,8 @@ function openShapeSelect(){
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
-    document.getElementById('shapeCancel').classList.add('on'); }   /* r144: always offered */
+    document.getElementById('shapeCancel').classList.add('on');   /* r144: always offered */
+    ftueShapeOpened(); }   /* r300: the tutorial's blueprint is bought here */
 /* r199: the shapes on offer depend on the blade's trait (FTUE.shapes); Shortsword is always open and
    the other two need their blueprint. A recipe craft (SHAPE_CB) reads the recipe's traits, a forged
    blade reads the ones on the bench. */
@@ -6593,6 +6597,30 @@ function shapeGrid(){
         if(req) b.classList.add('sf-req');
         b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ shapeBuy(k, sh); return; } selectShape(sh); });   /* r299: a locked shape is bought from here */
         g.appendChild(b); }); }
+/* r300 (owner, 2026-10-21): the tutorial buys at the shape window. FTUE_MK.step: 'shape' (waiting for the window), 'gift' (the dragon
+   is paying), 'buy' (the player buys). The order's lines are said first; closing them starts the craft guide (ftueOrderGo). */
+let SAY_THEN=null, FTUE_SHAPE_LINE=null;
+function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }
+function ftueSaySh(id){ sayQueue(id); FTUE_SHAPE_LINE=id; const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }   /* over the window */
+function ftueShapeBtn(o){ return ()=>document.querySelector("#sfShapeModal .sf-shape[data-shape='"+o.shape+"']"); }
+function ftueShapeOpened(){ const m=FTUE_MK; if(!m || (m.step!=='shape' && m.step!=='buy')) return;
+    const o=m.o, k=shapeTraitKey(); if(k!==o.trait) return;
+    const key=o.trait+':'+o.shape, btn=ftueShapeBtn(o);
+    if(FTUE_ST.shapes[key]){ FTUE_MK=null; return; }
+    if(m.step==='buy'){ tutExit(btn); return; }   /* reopened after a cancel */
+    if(o.market.by==='dragon'){ m.step='gift'; ftueSaySh(FTUE.marketWatch);
+        setTimeout(()=>{ const b=btn();
+            coinFly(dragonEl(), b || document.getElementById('sfShapeModal'), ()=>{ FTUE_ST.shapes[key]=true; shapeGrid();
+                toast('The dragon bought the <b>'+TRAIT_BY[o.trait].name+' '+o.shape+'</b> blueprint'); ftueShapeDone(m); }); }, 900);
+        return; }
+    m.step='buy';
+    if(GOLD<marketPrice(o.trait, o.shape)){ ftueSaySh(FTUE.marketShort);
+        setTimeout(()=>coinFly(dragonEl(), document.getElementById('goldVal'), ()=>{ GOLD=Math.max(GOLD, marketPrice(o.trait, o.shape)); updateHud(); shapeGrid(); tutExit(btn); }), 900); }
+    else tutExit(btn); }
+function ftueShapeBought(k, sh){ const m=FTUE_MK; if(m && m.step==='buy' && k===m.o.trait && sh===m.o.shape) ftueShapeDone(m); }
+function ftueShapeDone(m){ FTUE_MK=null; const o=m.o;
+    if(o.market.done) ftueSaySh(o.market.done); else if(SAY_ON===FTUE_SHAPE_LINE) sayHide();
+    setTimeout(()=>tutExit(ftueShapeBtn(o)), 0); }
 /* r299 (owner, 2026-10-21): buy a blueprint from the shape window - the market's price, checks, gold and quests */
 function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
     if(st==='closed'){ toast('Play more to unlock'); return; }
@@ -6602,7 +6630,7 @@ function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_
     GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud();
     toast('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');
-    shapeGrid(); }
+    shapeGrid(); ftueShapeBought(k, sh); }   /* r300 */
 /* Opening the picker consumes the tutorial's shape beat - 'shape' runs tutDone(), 'shape2' drops its
    arrow and glow - so a cancel there would leave the player with no pointer at the metal they still
    have to tap. The glow goes back on for exactly those two cases and nowhere else. */
@@ -7736,14 +7764,14 @@ const DIALOGUE = {
     D26: "Phew! That was a lot of hard work.",
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
-    D28b: "A balanced Longsword? We need its blueprint first. Open the market, I'll buy it for you.",   /* r213; v3 part 1 */
+    D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 (owner): bought at the shape window */   /* r213; v3 part 1 */
     D28c: "Here it is. Watch this!",   /* v3: the dragon pays (FTUE.marketWatch) */
-    D28d: "There, my treat! Now make a balanced sword and pick the Longsword shape.",
-    D28e: "A Broadsword this time. To the market! I'll pay again.",
-    D28f: "Done! Pick the Broadsword when you shape the blade.",
+    D28d: "There, my treat! Now pick the Longsword.",   /* r300 */
+    D28e: "A Broadsword this time. I'll pay for the shape again.",   /* r300 */
+    D28f: "Done! Pick the Broadsword.",   /* r300 */
     D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",   /* owner's words */
     D28h: "Oh, you don't have enough. Don't worry, I'll help.",   /* owner's words; FTUE.marketShort */
-    D28i: "Your first blueprint! Now make the Katana.",
+    D28i: "Your first blueprint! Now pick the Katana.",   /* r300 */
     D28j: "I am running out of my reward stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3 */
     D28k: "The customer asked for a {o}. Let's focus on that.",   /* r292 (owner): the craft lock; {o} = the order */
     D28l: "Careful! Here, try again.",   /* r293 (owner): the refill, over the reward window */
@@ -7834,7 +7862,7 @@ const DIALOGUE = {
     D92g: "If you explore further in the same direction, you will find elemental traits associated with light.",
     D92h: "A fire Longsword! I'll buy this blueprint for you too.",
     D92i: "And a fire Broadsword. My treat, one more time!",
-    D92j: "Remember how to buy the blueprint? Go to the market and buy a fire katana blueprint!",
+    D92j: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!",   /* r300 */
     D92k: "I want a durable sword. Make sure it is EPIC! I only want the best.",   /* v3 part 4: TC4 (owner) */
     D92l: "Okay, time to learn how to craft the best tier sword!",
     D92m: "Let's go to the forge.",   /* r245 (owner): GC5's map route, off the forge */
@@ -8607,8 +8635,8 @@ function tutBram2Illus(){
        wheel's window, then the forge as before */
     const toForge=()=>{ const b=FTUE.bramBlueprint;
         TUT_STAGE='bram2-blueprint';
-        FTUE_MK={ o:b, step:'ask', then:()=>{ TUT_STAGE='bram2-wheel'; sayQueue('D48'); } };
-        sayQueue(b.market.ask); setTimeout(()=>tutExit('#marketBtn'), 0); };
+        FTUE_MK={ o:b, step:'shape' };   /* r300: the dragon buys it at the shape window */
+        TUT_STAGE='bram2-wheel'; sayQueue(b.market.ask, 'D48'); };
     /* r205: he also wants it sharper (D111a), which is what brings the basement back into the run.
        One speech, typed together: chained, D111a replaced D111 the instant it finished, unread. */
     typeAfter(toForge);
@@ -9987,18 +10015,18 @@ function sayChoose(list, optional){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
+const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
                     D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
    follows the tap even though no line does. */
-const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
+const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1 };   /* r300: the order lines end on an OK */   /* 2026-10-10: D17c - CLOSE lights after it */
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
    D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
 /* r288 (owner): lines that pause the game for themselves alone - their OK lifts the pause before the next line
    (D15: the minigame holds while it is read; D15a, the strike, needs the live game) */
 const SAY_PAUSE_ONE={ D15:1 };
-const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D28b:1, D28e:1, D28g:1, D92h:1, D92i:1, D92j:1, D111b:1, D113a:1, D18a:1, D28j:1, D28l:1 };   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
+const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28d:1, D28f:1, D28h:1, D28i:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -10069,6 +10097,7 @@ function sayHide(){
     if(after) setTimeout(after, 0);
     if(TUT_PAUSE && SAY_PAUSE_ONE[SAY_ON]) tutPause(false);   /* r288: a hidden D15 does not leave the game held */
     if(FOCUS_OVER){ FOCUS_OVER.classList.remove('say-over-modal'); FOCUS_OVER=null; }   /* r292: D28k came down over a window */
+    if(SAY_THEN && SAY_ON===SAY_THEN.id){ const f=SAY_THEN.fn; SAY_THEN=null; setTimeout(f, 0); }   /* r300: an order's lines closed - the craft guide */
     SAY_ON=null; sayChoose(null);   /* r115 */
     if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
