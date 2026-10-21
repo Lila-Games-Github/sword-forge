@@ -2241,6 +2241,15 @@ of the chain gave, or the cave lesson's need.
   Bram's sale - no window yet; D26 closed - "2 Iron, 2 Manganese" with D18a, the bag 0 to 2 + 2, OK goes on to D118;
   GC1's sale (`ftueGpcSold`) - its 2 + 2 with D18a, the next round set.
 
+- **r295: no refill on Bram's counter; the ore reward once the customer has gone (owner, 2026-10-21).** Owner's play-test:
+  "Careful! Here, try again." came up as the first sword went on Bram's counter. The refill counted the first sword as
+  unmade while the bag had no sword, and on the counter the bag is empty. Now a sword on the counter or the work table
+  stops the refill, and the first sword is an open order only on its own craft steps (`FIRST_SWORD_STAGES`: ore to the
+  minigame). And `ftueOreSold` waits for the paying customer's goodbye (`CUST_BYE`, 3.2 s) to end, so the reward comes
+  once they are gone (Bram, TC4 and TC5 are already gone at their call). Asserted by the FTUE test (609), written first.
+  Checked in the browser: a new game played to Bram's counter with the sword on it, 120 frames run - no window, D24 up;
+  a gameplay sale with the goodbye showing - no reward at 1.2 s, the 2 + 2 with D18a at 3.8 s, the goodbye over.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2378,3 +2387,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r292 the craft lock: only the ordered sword (D28k); lines over a window at the counter are no longer hidden.
 - 2026-10-21: r293 the refill: a round the bag can no longer make is given again (D28l), and the guided craft restarts.
 - 2026-10-21: r294 the ore rewards come after each sale, not at the craft.
+- 2026-10-21: r295 no refill while a sword is on the counter; the ore reward waits until the customer has gone.

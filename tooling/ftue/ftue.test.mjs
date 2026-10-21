@@ -345,7 +345,12 @@ eq('D28l text, beside D28k', line('D28l') === 'Careful! Here, try again.' && key
   eq('shortfall: no round, nothing', L.ftueShortfall(null, {}), {}); }
 eq('the refill runs every frame', /if\(tutTicks\(\)\) tutNudge\(\);[^\n]*\n\s*ftueRefillTick\(\);/.test(src), true);
 eq('only for an open order not yet made, the bench empty, no window, no pause, no stored ingot that can finish it; GC9 waiting is not covered', /function ftueRefillTick\(\)\{[\s\S]{0,900}benchBusy\(\)[\s\S]{0,300}\.sf-modal\.show[\s\S]{0,500}INV\.ingots\.some[\s\S]{0,300}ftueCraftLocked\(\)/.test(src), true);
-eq('the first sword counts as an order until it exists, with the starting bag as its round', /function ftueRefillTick\(\)\{[\s\S]{0,900}FTUE_ST\.part===1 && !TUT_BRAM_SOLD && !INV\.swords\.length\) \? FTUE\.oreStart/.test(src), true);
+/* r295 (owner, 2026-10-21): "Careful! Here, try again." came up when the first sword was put on Bram's counter - the bag was
+   empty, so the first sword looked unmade. Now a sword on the counter or the table stops the refill, and the first sword is
+   an open order only on its own craft steps */
+eq('a sword on the counter or the table is a made sword', /function ftueRefillTick\(\)\{[\s\S]{0,300}if\(COUNTER \|\| WORK\) return;/.test(src), true);
+eq('the first sword is open only on its craft steps, with the starting bag as its round', src.includes("const FIRST_SWORD_STAGES={ ore:1, bellows:1, gate:1, anvil:1, hammer:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };")
+  && /function ftueRefillTick\(\)\{[\s\S]{0,900}const first=\(!CUSTOMER && FTUE_ST\.part===1 && !!FIRST_SWORD_STAGES\[TUT_STAGE\] && !INV\.swords\.length\)[\s\S]{0,500}const need=first \? FTUE\.oreStart : FTUE_ST\.oreRound;/.test(src), true);
 eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
   { bellows: 'first', gate: 'first', anvil: 'first', hammer: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
     'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
@@ -408,7 +413,7 @@ eq('and CRAFT 1\'s', /function cbCraft\(n\)\{[\s\S]*?CRAFT_ORE=\(n===1\) \? ftue
 /* r294 (owner, 2026-10-21): the ore reward comes after the SALE. The crafted window only notes which sword was made (a sword
    with no row still ends the round); each sale gives it at its natural pause */
 eq('the crafted window notes the sword; the flow goes straight on', /function closeCraft\(\)\{[\s\S]{0,1200}const ok=CRAFT_ORE; CRAFT_ORE=null;[^\n]*\n\s*if\(ok\)\{ if\(FTUE\.oreChain\[ok\]\) FTUE_ST\.orePending=ok; else FTUE_ST\.oreRound=null; \}\s*if\(typeof after==='function'\) after\(\);/.test(src), true);
-eq('ftueOreSold gives the noted sword\'s reward, once', src.includes("function ftueOreSold(then){ const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }"), true);
+eq('ftueOreSold gives the noted sword\'s reward, once, after the customer has gone (r295: their goodbye ends first)', src.includes("function ftueOreSold(then){ if(CUST_BYE){ setTimeout(()=>ftueOreSold(then), 250); return; }") && src.includes("    const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }"), true);
 eq('after Bram leaves (D26), before the quest list', src.includes("setTimeout(()=>ftueOreSold(()=>sayQueue('D118')), 0);"), true);
 eq('after a gameplay customer\'s sale, before the walk back', src.includes("setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);"), true);
 eq('after TC4\'s sale', src.includes("setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);"), true);

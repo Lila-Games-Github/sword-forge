@@ -2787,7 +2787,8 @@ function ftueOreReward(key, then){ const e=key && FTUE.oreChain[key]; if(!e){ if
     const give=ftueOreGive(e.give); FTUE_ST.oreRound=give;   /* r293: the refill reads the round */
     ftueOreWindow(give, e, then); }
 /* r294 (owner): the noted sword's reward, given after its sale - each sale calls this at its natural pause */
-function ftueOreSold(then){ const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }
+function ftueOreSold(then){ if(CUST_BYE){ setTimeout(()=>ftueOreSold(then), 250); return; }   /* r295 (owner): once the customer has gone */
+    const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }
 /* the reward window for some ores, with the dragon's line (e.say) over it; e.keep leaves the line up after OK */
 function ftueOreWindow(give, e, then){ const list=Object.keys(give).filter(k=>give[k]>0).map(k=>({ kind:'ore', id:k, n:give[k] }));
     if(!list.length){ if(then) then(); return; }
@@ -2799,13 +2800,16 @@ function ftueOreWindow(give, e, then){ const list=Object.keys(give).filter(k=>gi
    The round is the last reward (FTUE_ST.oreRound), a cave's need, or for the first sword the starting bag. GC9's waiting
    order is not covered: its round can be overwritten by the other orders' rewards while it waits. ---- */
 function ftueShortfall(need, bag){ const t={}; Object.keys(need || {}).forEach(k=>{ const m=need[k]-(bag[k]||0); if(m>0) t[k]=m; }); return t; }
+/* r295: the first sword's own craft steps - the only time it is an open order (on Bram's counter the bag is empty, but it is made) */
+const FIRST_SWORD_STAGES={ ore:1, bellows:1, gate:1, anvil:1, hammer:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };
 function ftueRefillTick(){
     if(FTUE_ST.done || benchBusy() || TUT_PAUSE) return;
+    if(COUNTER || WORK) return;   /* r295 (owner): a sword on the counter or the table is a made sword */
     if(document.querySelector('.sf-modal.show')) return;
-    const first=(!CUSTOMER && FTUE_ST.part===1 && !TUT_BRAM_SOLD && !INV.swords.length), o=ftueOrderOpen();
+    const first=(!CUSTOMER && FTUE_ST.part===1 && !!FIRST_SWORD_STAGES[TUT_STAGE] && !INV.swords.length), o=ftueOrderOpen();
     if(INV.ingots.some(g=>!o || (g.traits||[]).some(a=>ftueOrderTraitOk(o, a.tid)))) return;   /* a stored ingot can still finish it */
     if(!first && !(CUSTOMER && o && !ftueCraftLocked())) return;
-    const need=(FTUE_ST.part===1 && !TUT_BRAM_SOLD && !INV.swords.length) ? FTUE.oreStart : FTUE_ST.oreRound;
+    const need=first ? FTUE.oreStart : FTUE_ST.oreRound;
     const miss=ftueShortfall(need, ORE_COUNT); if(!Object.keys(miss).length) return;
     ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind); }
 /* after a refill the guided craft goes back to its first step, so its pointers fit the empty bench. Not covered: TC2's regrind,
