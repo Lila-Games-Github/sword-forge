@@ -92,4 +92,10 @@ eq('the dragon buys with coins (D10)', src.includes('function marketGift(trait, 
 eq('no CRAFT 5 (D50)', src.includes('id="cbCraft5"'), false);
 eq('the shape picker lists the market column', /function shapeGrid\(\)\{[\s\S]{0,300}marketShapes\(k\)/.test(src), true);
 
+/* r299 (owner, 2026-10-21): a locked shape in the shape window shows its price and a BUY that buys as the market does */
+eq('a locked shape shows BUY and its price', /function shapeGrid\(\)\{[\s\S]{0,1400}'<b class="sf-buy">BUY '\+marketPrice\(k, sh\)\+'g<\/b>'/.test(src), true);
+eq('tapping a locked shape buys it (not the old "buy it in the market" toast)', /function shapeGrid\(\)\{[\s\S]{0,1400}if\(!ftueShapeOpen\(k, sh\)\)\{ shapeBuy\(k, sh\); return; \}/.test(src) && !src.includes("blueprint in the market'); return; } selectShape(sh); });"), true);
+eq('shapeBuy: the market\'s checks, price, gold and quests', /function shapeBuy\(k, sh\)\{ const st=marketRow\(k, sh, marketCtx\(k, sh\)\)[\s\S]{0,700}GOLD-=marketPrice\(k, sh\); FTUE_ST\.shapes\[k\+':'\+sh\]=true;[\s\S]{0,300}bumpQuest\('buyBlueprint'\); if\(k==='fire'\) bumpQuest\('buyFire'\);/.test(src), true);
+eq('the BUY stays bright on a locked shape', src.includes('.sf-shape.locked > .ic, .sf-shape.locked > span { opacity: .55; filter: grayscale(1); }') && src.includes('.sf-shape.locked { cursor: pointer; }') && src.includes('.sf-shape .sf-buy {'), true);
+
 console.log('[market] GREEN / ' + n + ' checks');

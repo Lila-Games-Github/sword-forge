@@ -2268,6 +2268,33 @@ of the chain gave, or the cave lesson's need.
   by the FTUE test (616), written first. Checked in the browser with a real drag: at D19, in Bram's intro and after the
   first reply the sword stays in the bag; after the reply and D23 it goes on and D24 follows.
 
+## Blueprints from the shape window (owner, 2026-10-21)
+
+Owner: "make it possible to buy the blade shape blueprints directly from the shape selection window we get after we click
+on the metal. The dragon now buys the blueprint from here, instead of the market. The players are also guided to buy the
+'katana' from this window." Answers (owner, 2026-10-21): the reworded lines below - yes; GC9's come-later lesson keeps the
+market - yes; the MARKET button still appears with GC1's order, with nothing pointing at it until GC9 - yes.
+
+- **Everywhere:** a locked shape in the shape window shows its blueprint's price and a BUY; it buys as the market does
+  (the same price and checks, the gold, the "buy a blueprint" quests). The market still sells them.
+- **The tutorial:** no trip to the market. After the order's line the craft guide starts straight away; the purchase
+  happens when the shape window opens for that order. The dragon's orders (GC1, GC2, GC5, GC6, Bram's Dagger, the part 5
+  gale Longsword): his coins fly to the shape's lock, it opens (D28c "Here it is. Watch this!" over the window), then the
+  order's done line, and the shape is pointed at. The player's orders (GC3, GC7): the shape's BUY is pointed at; short of
+  gold, D28h and the top-up first; then the done line and the shape.
+- **Lines:** D28b "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you
+  pick it."; D28d "There, my treat! Now pick the Longsword."; D28e "A Broadsword this time. I'll pay for the shape
+  again."; D28f "Done! Pick the Broadsword."; D28i "Your first blueprint! Now pick the Katana."; D92j "Remember how to
+  buy the blueprint? Buy the fire Katana when you pick the shape!". GC5's D92a ("Remember the fire route? The craft book
+  can help.") follows its order line (D92h) instead of the purchase.
+
+- **r299: blueprints from the shape window, step 1: BUY (owner, 2026-10-21).** Built to "Blueprints from the shape
+  window" above. A locked shape shows "BUY <price>g" and a tap buys it (`shapeBuy`: `marketRow`'s checks, the price,
+  the gold, the blueprint quests); only its icon and name are greyed now (an older rule greyed the whole button). The
+  market is unchanged. Asserted by the market test (54), written first. Checked in the browser (part 5 jump, a fire
+  blade, 820g): the window lists the owned shapes and six locked ones with BUY 250g-500g in gold; tapping Dagger (500g)
+  buys it, the gold goes to 320, the toast names it, the window stays open with Dagger unlocked.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2409,3 +2436,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r296 D32c is read on a dark screen with its OK lit.
 - 2026-10-21: r297 Day 2 morning: D89's OK first, then the arrow to the counter with D92.
 - 2026-10-21: r298 the first sword goes on the counter only after D23 asks for it.
+- 2026-10-21: r299 a locked shape in the shape window can be bought there (BUY).
