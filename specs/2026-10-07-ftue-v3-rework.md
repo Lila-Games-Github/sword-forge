@@ -2103,6 +2103,15 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   (558), written first. Checked in the browser: D118 shows no button; the dragon tap gives D119b (OK), then D27 (no
   button) with the bell out, and nothing after it.
 
+- **r288: D15 pauses the game; D23 and D28b have no close (owner, 2026-10-21).** D15 ("It is hot enough.") now pauses
+  the game under the dark screen (`tutPause`, the deep dim over the minigame; the minigame's heat and clock hold), with
+  its OK lit (`SAY_GO_GLOW`). `SAY_PAUSE_ONE = { D15:1 }`: its OK, or its hiding, lifts the pause before D15a, which
+  needs the live game. D28b joins `SAY_NO_X`. D23 was already listed, but it repeats (Bram, TC2, TC3, Bram again), and
+  when an earlier run still sat behind it in `SAY_SEQ` its button became an OK that would walk into those old lines;
+  a listed line now has no button wherever it sits in a run. Asserted by the FTUE test (562), written first. Checked in
+  the browser: in the minigame, D15 holds the game (heat unchanged over 60 frames) under the deep dim with its OK lit;
+  OK shows D15a, the pause lifts and the heat moves again; D23 mid-run and D28b show no button.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2233,3 +2242,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r285 the tutorial script doc reordered into play order; found the hammer minigame D13 replay (not fixed).
 - 2026-10-21: r286 the trait window closes the dragon's line behind it.
 - 2026-10-21: r287 D118 and D27 have no close button; D28 removed.
+- 2026-10-21: r288 D15 pauses the game; D23 and D28b have no close button.

@@ -336,6 +336,11 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r288 (owner, 2026-10-21): D15 pauses the game (the minigame's heat and clock hold) under the dark screen, until its OK */
+eq('D15 pauses', /function tutHmHeat\(hot\)\{[\s\S]{0,400}say\('D15'\); tutPause\(true\); return; \}/.test(src), true);
+eq('its OK lifts the pause before D15a', src.includes('const SAY_PAUSE_ONE={ D15:1 };') && /function sayNext\(\)\{[\s\S]{0,600}if\(TUT_PAUSE && SAY_PAUSE_ONE\[SAY_ON\]\) tutPause\(false\);/.test(src), true);
+eq('a hidden D15 does not leave the game paused', /function sayHide\(\)\{[\s\S]{0,1400}if\(TUT_PAUSE && SAY_PAUSE_ONE\[SAY_ON\]\) tutPause\(false\);/.test(src), true);
+eq('its OK is lit, like the other pause lines', /const SAY_GO_GLOW=\{[^}]*D15:1/.test(src), true);
 /* r287 (owner, 2026-10-21): D28 ("Go ahead, try it!") is removed */
 eq('D28 is gone', /\n\s*D28: "/.test(src) || /'D28'/.test(src), false);
 /* r286 (owner, 2026-10-21): the trait window opens on its own - the dragon's line behind it (D10) is closed */
@@ -347,10 +352,11 @@ eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE=
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118']);   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118 */
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D28b']);   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
-eq('a run\'s last line shows no close when listed (an OK mid-run stays)', src.includes("((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);"), true);
+/* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
+eq('a listed line shows no button anywhere in a run', src.includes("sayGoIcon(go, (SAY_CHOICES || SAY_NO_X[id]) ? 'none' :") && src.includes("((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next'), id);"), true);
 /* r280 (owner, 2026-10-20): the route the metal follows (ore in the smelter) is dark brown; the preview while an ore is
    held stays red, fainter (values: Claude's proposal) */
 { const tag = id => (src.match(new RegExp('<path id="' + id + '"[^>]*>')) || [''])[0], at = (t, a) => (t.match(new RegExp(' ' + a + '="([^"]*)"')) || [])[1];

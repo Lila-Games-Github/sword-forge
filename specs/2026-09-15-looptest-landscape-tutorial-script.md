@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r287)
+## The script in play order (r288)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -92,7 +92,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after D13.*
 
 13. **D15** Dragon: "It is hot enough."
-   *When: the metal is hot enough to work.*
+   *When: the metal is hot enough to work; the game pauses under the dark screen until its OK.*
 
 14. **D15a** Dragon: "Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer."
    *When: after D15.*
