@@ -334,6 +334,26 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r292 (owner, 2026-10-21): the craft lock - while an order is open, only that sword: CRAFT 1 / CONTINUE FROM HERE on another
+   trait's page, another shape, or a pour on another trait are refused with D28k */
+eq('D28k text, beside D28j', line('D28k') === "The customer asked for a {o}. Let's focus on that." && keyList[keyList.indexOf('D28k') - 1] === 'D28j', true);
+{ const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
+    for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
+  const TB = { fire: { name: 'Fire' }, gale: { name: 'Gale' }, balanced: { name: 'Balanced' } };
+  const L = new Function('TRAIT_BY', 'orderLabel', fn('ftueOrderName') + fn('ftueOrderTraitOk') + fn('ftueOrderShapeOk') + '; return { ftueOrderName, ftueOrderTraitOk, ftueOrderShapeOk };')(TB, (n, sh) => sh ? n + ' ' + sh : n + ' sword');
+  const fireLong = { trait: 'fire', shape: 'Longsword' }, bal = { trait: 'balanced', shape: null }, two = { items: [{ trait: 'gale', shape: 'Katana' }, { trait: 'fire', shape: 'Claymore' }] };
+  eq('the order\'s name', [L.ftueOrderName(fireLong), L.ftueOrderName(bal), L.ftueOrderName(two)], ['Fire Longsword', 'Balanced sword', 'Gale Katana and a Fire Claymore']);
+  eq('trait: only the order\'s', [L.ftueOrderTraitOk(fireLong, 'fire'), L.ftueOrderTraitOk(fireLong, 'balanced'), L.ftueOrderTraitOk(two, 'gale'), L.ftueOrderTraitOk(two, 'swift')], [true, false, true, false]);
+  eq('shape: the order\'s, or any when it names none', [L.ftueOrderShapeOk(fireLong, 'Longsword'), L.ftueOrderShapeOk(fireLong, 'Katana'), L.ftueOrderShapeOk(bal, 'Katana'), L.ftueOrderShapeOk(two, 'Claymore'), L.ftueOrderShapeOk(two, 'Longsword')], [true, false, true, true, false]); }
+eq('the open order: the customer, or GC9 waiting once D107g is said; none after the tutorial', /function ftueOrderOpen\(\)\{ if\(FTUE_ST\.done\) return null;[\s\S]{0,600}FTUE_ST\.wq==='craft'/.test(src), true);
+eq('CRAFT 1 refuses another trait\'s page', /function cbCraft\(n\)\{[\s\S]{0,300}if\(!ftuePageOk\(r\)\) return;/.test(src), true);
+eq('so does CONTINUE FROM HERE', /function cbContinue\(\)\{[\s\S]{0,200}if\(!ftuePageOk\(r\)\) return;/.test(src), true);
+eq('the shape picker refuses another shape, and stays open', /function selectShape\(shape\)\{ const fo=ftueOrderOpen\(\); if\(fo && !ftueOrderShapeOk\(fo, shape\)\)\{ ftueFocus\(fo\); return; \}/.test(src), true);
+eq('over a frame window the dragon speaks from the frame bubble (the counter\'s sits in the screen layer, under it)', /function sayWhere\(\)\{[\s\S]{0,400}if\(\['sfBookModal','sfShapeModal','sfTraitModal','sfCraftModal','sfRewardModal'\]\.some\(id=>\{ const m=document\.getElementById\(id\); return m && m\.classList\.contains\('show'\); \}\)\) return 'bench';/.test(src), true);
+eq('D28k goes with its window; a kept line (D107g) moves back to the screen bubble', src.includes("function ftueFocusDone(){ if(SAY_ON==='D28k') sayHide(); }")
+  && /function closeBook\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function closeTraitCard\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function cancelShape\(\)\{[\s\S]{0,200}ftueFocusDone\(\)/.test(src)
+  && src.includes("ftueReward(list, ()=>{ if(line && SAY_ON===line){ if(e.keep) say(line); else sayHide(); } if(then) then(); });"), true);
+eq('the mug refuses another trait (TC5\'s swift pour is the lesson)', src.includes("if(mugOverAnvil() && canPourQuench() && ftuePourOk()){") && /function ftuePourOk\(\)\{[\s\S]{0,400}TUT_STAGE==='d2-quench'/.test(src), true);
 /* r291 (owner, 2026-10-21): the ore chain - after each tutorial sword the dragon gives exactly the next sword's ores,
    in the reward window with his line on top (record: "The ore chain" in specs/2026-10-07-ftue-v3-rework.md) */
 eq('oreChain is the recorded table', FTUE.oreChain, {

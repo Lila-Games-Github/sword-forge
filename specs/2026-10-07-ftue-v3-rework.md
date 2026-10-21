@@ -2200,6 +2200,21 @@ of the chain gave, or the cave lesson's need.
   line (GC3: 1 + 1 with D28j; GC4: the fire page's 2 + 2; GC7: 2 Nickel; TC4: 2 Copper; the swift ingot: 5 Copper; the
   Dagger: 5 Copper; the gale Longsword: 2 + 2; GC9: 5 Copper, 2 Iron, 2 Manganese with D107g).
 
+- **r292: the ore chain, step 2: the craft lock (owner, 2026-10-21).** Built to "The craft lock" above. `ftueOrderOpen`
+  is the open order (the customer's trait and shape; `want` for TC2 and Bram's Dagger; GC9's two items while it waits
+  with D107g said; none after the tutorial). CRAFT 1 and CONTINUE FROM HERE refuse a page without the order's trait
+  (`ftuePageOk`), the shape picker refuses another shape and stays open, and the mug refuses a trait the order did not
+  ask for (`ftuePourOk`, once per drag; TC5's swift pour, stage 'd2-quench', is the lesson). Each says D28k ("The customer
+  asked for a {o}. Let's focus on that.", 201 dialogue keys), which goes when the book, card or picker closes. Found on
+  the way: the counter's bubble sits in the screen layer (z40), under every frame window, so a line said over the book,
+  the picker, the card, the crafted window or the reward window at the counter was hidden; `sayWhere` now speaks from the
+  frame bubble while one of those is open, and a line kept after the reward window (D107g) is said again in the screen's
+  own bubble. Asserted by the FTUE test (591), written first. Checked in the browser with a Fire Longsword order: CRAFT 1
+  on the balanced page (forge and counter) says "The customer asked for a Fire Longsword. Let's focus on that." on top of
+  the book and crafts nothing; the line goes when the book closes; Katana in the picker is refused and the picker stays;
+  Longsword crafts; a pour on Balanced is refused; from the counter's book the crafted window then the reward window
+  show D18a on top.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2334,3 +2349,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r289 every market ask (D28b, D28e, D28g, D92h, D92i, D92j, D111b, D113a) has no close button.
 - 2026-10-21: r290 the hammer minigame's D13 run plays only in the first sword (no more replay in later crafts).
 - 2026-10-21: r291 the ore chain: the bag starts with 2 + 2 and the dragon gives each next sword's ores.
+- 2026-10-21: r292 the craft lock: only the ordered sword (D28k); lines over a window at the counter are no longer hidden.

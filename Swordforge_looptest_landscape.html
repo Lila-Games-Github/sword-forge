@@ -2788,8 +2788,26 @@ function ftueOreReward(key, then){ const e=key && FTUE.oreChain[key]; if(!e){ if
     if(!list.length){ if(then) then(); return; }
     FTUE_ST.oreRound=give;   /* r293's refill reads the round */
     const line=e.say;
-    ftueReward(list, ()=>{ if(line && !e.keep && SAY_ON===line) sayHide(); if(then) then(); });
+    ftueReward(list, ()=>{ if(line && SAY_ON===line){ if(e.keep) say(line); else sayHide(); } if(then) then(); });   /* r292: a kept line moves back to the screen's own bubble */
     if(line) setTimeout(()=>{ sayQueue(line); const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb) sb.classList.add('say-over-modal'); }, 0); }
+/* ---- r292 (owner, 2026-10-21): the craft lock. While a tutorial order is open, only that sword can be made: CRAFT 1 or
+   CONTINUE FROM HERE on another trait's page, another shape, and a pour on another trait are refused with D28k ---- */
+function ftueOrderOpen(){ if(FTUE_ST.done) return null;
+    const c=CUSTOMER;
+    if(c){ if(c.items && c.items.length>1) return { items:c.items }; const t=c.tid || c.want; return t ? { trait:t, shape:c.shape || null } : null; }
+    if(FTUE_ST.wq==='craft'){ const e=wqEntry(); if(e && e.items && e.items.length) return { items:e.items }; }   /* GC9, once D107g is said */
+    return null; }
+function ftueOrderName(o){ return o.items ? o.items.map(it=>orderLabel(TRAIT_BY[it.trait].name, it.shape)).join(' and a ') : orderLabel(TRAIT_BY[o.trait].name, o.shape); }
+function ftueOrderTraitOk(o, tid){ return o.items ? o.items.some(it=>it.trait===tid) : o.trait===tid; }
+function ftueOrderShapeOk(o, shape){ return o.items ? o.items.some(it=>!it.shape || it.shape===shape) : (!o.shape || o.shape===shape); }
+let FOCUS_OVER=null, FTUE_POUR_SAID=false;
+function ftueFocus(o){ SAY_VARS.o=ftueOrderName(o); sayQueue('D28k');
+    const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }   /* over the book or the picker */
+function ftueFocusDone(){ if(SAY_ON==='D28k') sayHide(); }   /* the window it was said over has closed */
+function ftuePageOk(r){ const o=ftueOrderOpen(); if(!o || recipeTraits(r).some(a=>ftueOrderTraitOk(o, a.tid))) return true; ftueFocus(o); return false; }
+function ftuePourOk(){ const o=ftueOrderOpen(); if(!o || !melt || !melt.reachedTrait) return true;
+    if(TUT_STAGE==='d2-quench' || ftueOrderTraitOk(o, melt.reachedTrait.trait.id)) return true;   /* TC5's swift pour is the lesson */
+    if(!FTUE_POUR_SAID){ FTUE_POUR_SAID=true; ftueFocus(o); } return false; }
 /* ---- part 1 beats ---- */
 /* D26 is off the screen: the banner, then the quest list */
 function ftueAfterBram(){
@@ -6091,6 +6109,7 @@ function ftueCraftLocked(){ if(FTUE_ST.done || !CUSTOMER) return false;
     return pool.filter(w=>orderMatches(o, w)).length >= Math.max(1, (c.qty||1)-(c.got||0)); }
 function cbCraft(n){
     const r=CB_SEL?RECIPES[CB_SEL]:null; if(!r) return;
+    if(!ftuePageOk(r)) return;   /* r292: the craft lock */
     if(ftueCraftLocked()){ toast('This order is already made. Serve the customer first.'); return; }
     n=Math.max(1, Math.floor(Number(n)||1));
     const ores=Array.isArray(r.ores)?r.ores.slice():[];
@@ -6116,6 +6135,7 @@ function cbCraft(n){
 }
 function cbContinue(){
     const r=CB_SEL?RECIPES[CB_SEL]:null; if(!r) return;
+    if(!ftuePageOk(r)) return;   /* r292: the craft lock */
     if(benchBusy()){ toast('Finish or store what is on the bench first'); return; }
     if(!canSpend(r.ores,1)){ toast('Not enough ore to start this one'); return; }
     spendList(r.ores,1);
@@ -6301,7 +6321,7 @@ function marketGift(trait, shape, done){
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
 function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); }   /* r201 */
-function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueBulkStep(); }   /* r201 */
+function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueFocusDone(); ftueBulkStep(); }   /* r201. r292: D28k goes with the window */
 /* r278 (owner, 2026-10-20): a map trait icon opens this small card on its newest page (CB_SEL), not the book: the icon,
    the page's name and description, CRAFT 1 and CONTINUE FROM HERE (the book's own, for that page), and CRAFT BOOK */
 function traitCardOpen(){ const m=document.getElementById('sfTraitModal'); return !!(m && m.classList.contains('show')); }
@@ -6311,7 +6331,7 @@ function openTraitCard(){ const r=CB_SEL?RECIPES[CB_SEL]:null; if(!r) return; co
     document.getElementById('tcDesc').textContent=swordDesc(list);
     const c1=document.getElementById('tcCraft1'); c1.disabled=ftueCraftLocked();   /* as the book's (r239) */
     document.getElementById('sfTraitModal').classList.add('show'); }
-function closeTraitCard(){ document.getElementById('sfTraitModal').classList.remove('show'); }
+function closeTraitCard(){ document.getElementById('sfTraitModal').classList.remove('show'); ftueFocusDone(); }   /* r292 */
 function tcCraft1(){ closeTraitCard(); cbCraft(1); }
 function tcContinue(){ closeTraitCard(); cbContinue(); }
 function tcBook(){ closeTraitCard(); openBook(); }
@@ -6542,7 +6562,7 @@ function shapeGrid(){
    arrow and glow - so a cancel there would leave the player with no pointer at the metal they still
    have to tap. The glow goes back on for exactly those two cases and nowhere else. */
 function cancelShape(){
-    SHAPE_CB=null; document.getElementById('sfShapeModal').classList.remove('show');
+    SHAPE_CB=null; document.getElementById('sfShapeModal').classList.remove('show'); ftueFocusDone();   /* r292 */
     if(SHAPE_FROM_TUT){ SHAPE_FROM_TUT=false; setTimeout(()=>tutGlow('#orb', true), 0); }
 }
 // ============================================================
@@ -6740,8 +6760,9 @@ function hmSwingOn(on){
     svg.classList.add('on');
 }
 function hmClear(){ hmBreath(false); hmStop(); hmSwingOn(false); tutGlow('#hmOrb', false); }   /* r181 */
-function selectShape(shape){ SHAPE_FROM_TUT=false;   /* r144 */
-    document.getElementById('sfShapeModal').classList.remove('show');
+function selectShape(shape){ const fo=ftueOrderOpen(); if(fo && !ftueOrderShapeOk(fo, shape)){ ftueFocus(fo); return; }   /* r292: the craft lock - the picker stays open */
+    SHAPE_FROM_TUT=false;   /* r144 */
+    document.getElementById('sfShapeModal').classList.remove('show'); ftueFocusDone();   /* r292 */
     if(SHAPE_CB){ const cb=SHAPE_CB; SHAPE_CB=null; cb(shape); return; }   // r65: the recipe book borrows the picker
     hmShape=shape; openHammer(); }
 /* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
@@ -7616,9 +7637,9 @@ function hideWater(){ const w=document.getElementById('waterPour'), s=document.g
    pour and every reset, so from the second use on it sat behind the bucket. */
 const MUG_Z=10;
 function wireMug(){ const m=mugEl, bench=benchEl(); let drag=false,dx,dy;
-    m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
+    m.addEventListener('pointerdown',e=>{ e.preventDefault(); drag=true; FTUE_POUR_SAID=false; const r=m.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top; m.style.zIndex=24; try{m.setPointerCapture(e.pointerId);}catch(err){} });
     m.addEventListener('pointermove',e=>{ if(!drag) return; const b=bench.getBoundingClientRect(); let x=e.clientX-b.left-dx, y=e.clientY-b.top-dy-dragLift(e); const q=dragBox(m,b,40); x=Math.max(q.x0,Math.min(q.x1,x)); y=Math.max(q.y0,Math.min(q.y1,y)); m.style.left=x+'px'; m.style.top=y+'px';
-        if(mugOverAnvil() && canPourQuench()){ m.classList.add('pouring'); showWaterBurst(); tryAcquire(); }   // pour → quench + acquire (fires once: tryAcquire clears reachedTrait)
+        if(mugOverAnvil() && canPourQuench() && ftuePourOk()){ m.classList.add('pouring'); showWaterBurst(); tryAcquire(); }   /* r292: not on a trait the order did not ask for */   // pour → quench + acquire (fires once: tryAcquire clears reachedTrait)
         else if(!mugOverAnvil()){ m.classList.remove('pouring'); } });
     const end=()=>{ if(!drag) return; drag=false; homeMug(); m.style.zIndex=MUG_Z; m.classList.remove('pouring'); };   // release → snap back into the bucket (water burst finishes on its own timer)
     m.addEventListener('pointerup',end); m.addEventListener('pointercancel',end); }
@@ -7678,6 +7699,7 @@ const DIALOGUE = {
     D28h: "Oh, you don't have enough. Don't worry, I'll help.",   /* owner's words; FTUE.marketShort */
     D28i: "Your first blueprint! Now make the Katana.",
     D28j: "I am running out of my reward stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3 */
+    D28k: "The customer asked for a {o}. Let's focus on that.",   /* r292 (owner): the craft lock; {o} = the order */
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",   /* v3 part 2 (owner) */
@@ -9822,6 +9844,8 @@ function sayWhere(){
     if(sh && sh.classList.contains('show')) return 'sharp';
     const dd=document.getElementById('sfDesignModal');
     if(dd && dd.classList.contains('show')) return 'design';   /* r116 */
+    /* r292: over a frame window the counter's bubble (inside the screen layer, z40) is hidden, so the frame bubble speaks */
+    if(['sfBookModal','sfShapeModal','sfTraitModal','sfCraftModal','sfRewardModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); })) return 'bench';
     return onScreenDragon() ? 'screen' : 'bench';
 }
 function sayLayout(){
@@ -9996,6 +10020,7 @@ function sayHide(){
     const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
     if(after) setTimeout(after, 0);
     if(TUT_PAUSE && SAY_PAUSE_ONE[SAY_ON]) tutPause(false);   /* r288: a hidden D15 does not leave the game held */
+    if(FOCUS_OVER){ FOCUS_OVER.classList.remove('say-over-modal'); FOCUS_OVER=null; }   /* r292: D28k came down over a window */
     SAY_ON=null; sayChoose(null);   /* r115 */
     if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
