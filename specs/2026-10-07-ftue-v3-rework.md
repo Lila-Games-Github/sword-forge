@@ -2129,6 +2129,77 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the stage; GC4 finished and its crafted window closed: `ftueDurableSell` runs and the arrow points the sword to the
   counter.
 
+## The ore chain: only the ordered sword (owner, 2026-10-21)
+
+Owner: "I want to make sure that players can only craft what is required. If customers ask for a fire balanced,
+players should only be able to craft 1 fire balanced sword. This eliminates mistakes. If they try to craft a balanced,
+the dragon should say 'The customer asked for a fire balanced sword. Let's focus on that.' Players should not have the
+ores to spam craft any sword if it is not required." The game starts with 2 Iron and 2 Manganese; after each sword is
+crafted the dragon gives, through the reward window and with his line on top, exactly the ores the NEXT sword needs.
+Exceptions: TC3's gathering lesson (the cave) and GC4's Nickel (the Day 2 cave).
+
+Answers (owner, 2026-10-21): the line names the order as the customer gave it ("Fire Longsword", or "Balanced sword"
+for an order with no shape); when the bag can no longer make the order the dragon refills the round; TC5 gets 2 Copper
+first (the swift ingot) and 5 more once it is stored; GC9's ores come with D107g ("Craft both the swords."); TC3's
+spare ore is removed once the last ore is chosen; a pour on a trait the order did not ask for is blocked with the same
+line; after the tutorial (D140) the game plays normally, with no cap and no rewards.
+
+### The chain (`FTUE.oreStart`, `FTUE.oreChain`)
+
+The bag starts with 2 Iron, 2 Manganese. Each row: the sword just crafted (its key), what the dragon gives, his line.
+"page:<trait>" is the ores of the craft book's page for that trait (the fire page can be 2 Iron + 2 Manganese, or
+3 + 1; the gale page is 5 Copper).
+
+| After | Key | Gives | Line | For |
+| --- | --- | --- | --- | --- |
+| Bram's first sword | first | 2 Iron, 2 Manganese | D18a "Here's a reward from me." | GC1 |
+| GC1 | p1g0 | 2 Iron, 2 Manganese | D18a | GC2 |
+| GC2 | p1g1 | 2 Iron, 2 Manganese | D18a | GC3 |
+| GC3 | p1g2 | 1 Iron, 1 Manganese | D28j "I am running out of my reward stock. I only have 1 iron and 1 manganese." | TC2 |
+| TC2 | tc2 | nothing | - | TC3: the cave lesson, 3 Iron + 2 Manganese |
+| TC3 | tc3 | nothing | - | GC4: the Day 2 cave, 2 Nickel |
+| GC4 | p3g0 | page:fire | D18a | GC5 |
+| GC5 | p3g1 | page:fire | D18a | GC6 |
+| GC6 | p3g2 | page:fire | D18a | GC7 |
+| GC7 | p3g3 | 2 Nickel | D18a | TC4 |
+| TC4 | tc4 | 2 Copper | D18a | TC5's swift ingot |
+| TC5's swift ingot stored | tc5swift | 5 Copper | D18a | TC5's gale sword |
+| TC5 | tc5 | 1 Iron, 1 Manganese | D18a | GC8 |
+| GC8 | p4g0 | nothing | - | Bram's Dagger: the stored swift ingot |
+| Bram's Dagger | bram2 | page:gale | D18a | the part 5 gale Longsword |
+| The gale Longsword | p5g0 | 2 Iron, 2 Manganese | D18a | Garric |
+| Garric | garric | nothing | - | (the end) |
+| D107g, GC9 called on | gc9 | page:gale + page:fire | (D107g itself) | GC9's two swords |
+
+The Day 2 cave holds 2 Nickel (`FTUE.day2Cave`); the Day 3 cave is unchanged. TC3's cave keeps 3 Iron + 2 Manganese
+(the last ore is a choice), and the unused one is removed when the fourth ore goes in.
+
+### The craft lock
+
+While an order is open (the customer at the counter, or GC9 waiting with D107g said): CRAFT 1 on a page without the
+order's trait, a shape the order did not ask for, and a pour on a trait the order did not ask for are refused, and the
+dragon says D28k "The customer asked for a {o}. Let's focus on that." ({o} = the order's name). TC5's swift pour is the
+lesson and is allowed. With no order open (the first sword), nothing is refused.
+
+### The refill
+
+When the bag can no longer make the open order (nothing on the bench, the order not yet made, and the bag short of the
+round's ores), the dragon gives the missing ores with D28l "Careful! Here, try again." The round is what the last row
+of the chain gave, or the cave lesson's need.
+
+- **r291: the ore chain, step 1: the starting bag and the dragon's rewards (owner, 2026-10-21).** Built to "The ore
+  chain" above. `FTUE.oreStart` is 2 Iron + 2 Manganese; `FTUE.oreChain` holds the table; `FTUE.day2Cave` is 2 Nickel.
+  A new reward kind, 'ore' (`{ kind:'ore', id, n }`, icon from `oreImg`, sub-line "For the next sword."). `finishBlade`
+  and CRAFT 1 work out the sword's key (`ftueSwordKey`: the scripted swords by their flags, the gameplay customers as
+  'p<part>g<order>'), and when the crafted window closes `ftueOreReward` opens the reward window with the dragon's line
+  over it (`say-over-modal`), then the flow goes on. The swift ingot's 5 Copper come in `tutGaleStart`; GC9's with D107g.
+  TC3's unused ore is removed when the fourth ore is in. New lines D18a and D28j (200 dialogue keys). The PART jumps carry
+  the new bags (part 4: 2 Nickel; part 5: empty; part 6: 2 Iron + 2 Manganese). Asserted by the FTUE test (580), written
+  first. Checked in the browser: a new game starts with 2 + 2; after the first sword the reward window shows "2 Iron,
+  2 Manganese" with D18a over it, the bag goes 0 to 2 + 2, and OK hands on to D18; every chain row gives its ores and
+  line (GC3: 1 + 1 with D28j; GC4: the fire page's 2 + 2; GC7: 2 Nickel; TC4: 2 Copper; the swift ingot: 5 Copper; the
+  Dagger: 5 Copper; the gale Longsword: 2 + 2; GC9: 5 Copper, 2 Iron, 2 Manganese with D107g).
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2262,3 +2333,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r288 D15 pauses the game; D23 and D28b have no close button.
 - 2026-10-21: r289 every market ask (D28b, D28e, D28g, D92h, D92i, D92j, D111b, D113a) has no close button.
 - 2026-10-21: r290 the hammer minigame's D13 run plays only in the first sword (no more replay in later crafts).
+- 2026-10-21: r291 the ore chain: the bag starts with 2 + 2 and the dragon gives each next sword's ores.
