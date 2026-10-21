@@ -85,7 +85,7 @@ eq('placement: crowded blade still gets 3 points', t3.length === 3 && t3.every(p
 
 /* wiring in the build */
 eq('D15a follows D15', (() => { const k = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return k[k.indexOf('D15a') - 1]; })(), 'D15');
-eq('D15a text', (src.match(/\n\s*D15a: "([^"]*)"/) || [])[1], 'Line up the ring on the hammer with the glowing mark, then tap the hammer.');
+eq('D15a text (r283, owner)', (src.match(/\n\s*D15a: "([^"]*)"/) || [])[1], 'Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer.');
 eq('price uses the forging band', /function swordBase\(w\)\{[^}]*hmForgeMul\(w\)/.test(src), true);
 eq('ring colour follows the band', /function hmRingPaint\(\)\{[\s\S]{0,700}hmBand\(hmGrade\(/.test(src), true);
 eq('skip gives the skip quality', /function hmSkip\(\)\{[\s\S]{0,400}HM_HITS\.skip/.test(src), true);

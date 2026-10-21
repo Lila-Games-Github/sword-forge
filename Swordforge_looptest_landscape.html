@@ -7602,8 +7602,8 @@ const DIALOGUE = {
     D12: "Tap on the metal to select the shape of the sword blade.",
     D13: "I'll help you heat up the metal again so you can start shaping it!",
     D14: "Press and hold the metal, and I will heat it for you to hammer.",
-    D15: "It is hot enough. Now strike the hot metal!",
-    D15a: "Line up the ring on the hammer with the glowing mark, then tap the hammer.",
+    D15: "It is hot enough.",   /* r283 (owner): the instruction is D15a */
+    D15a: "Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer.",   /* r283 (owner) */
     D16: "The metal cools down slowly. You will have to heat it again. Tell me where to FIRE!",
     D17: "Pick up the mug and splash water on the blade to finish.",
     D17a: "Tap the arrow to see more details.",   /* owner, 2026-10-10: the first "Sword crafted!" window */
@@ -9188,11 +9188,11 @@ function typeLine(el, text){
 /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
 function bramGiveStep(){ say('D23'); invTab(2);
     setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); }
-/* r227: the reply after D22, in Bram's own response row */
+/* r227: the reply after D22, in Bram's own response row. r283: after D21 as well */
 function bramGiveAsk(){
     const r=document.getElementById('bramResponses'); if(!r){ bramGiveStep(); return; }
     r.innerHTML=''; const b=document.createElement('button'); b.type='button'; b.className='tut-lit-ctl';
-    b.textContent='I can give you a sword.';
+    b.textContent='I just crafted a sword. You can have it.';   /* r283 (owner) */
     b.addEventListener('click', ()=>{ r.style.display='none'; bramGiveStep(); });
     r.appendChild(b); r.style.display='flex'; }
 const BRAM_REPLIES='<button type="button" onclick="chooseBram(\'blacksmith\')">I am a blacksmith.</button><button type="button" onclick="chooseBram(\'who\')">Who are you? What is wrong?</button>';
@@ -9201,9 +9201,9 @@ function chooseBram(choice){
     const l=document.getElementById('bramLine'), r=document.getElementById('bramResponses'); TUT_BRAM_STATE=choice;
     if(r) r.querySelectorAll('button').forEach(b=>b.classList.remove('tut-lit-ctl'));   /* r184 */
     typeDone();
-    /* r227 (owner): after D22 ('who are you?') the player answers first - "I can give you a sword." - and
-       only that click brings D23 and the sword pointer. After D21 the dragon answers straight away, as before. */
-    typeAfter(()=>{ if(choice==='who'){ bramGiveAsk(); return; } bramGiveStep(); });
+    /* r227 (owner): after D22 ('who are you?') the player answers first, and only that tap brings D23 and the sword
+       pointer. r283 (owner): after D21 too, and the answer is "I just crafted a sword. You can have it." */
+    typeAfter(()=>{ bramGiveAsk(); });
     if(l) custLine(l, DIALOGUE[choice==='blacksmith'?'D21':'D22']);
     if(r) r.style.display='none'; TUT_BRAM_STATE='give'; const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'); if(se){ se.disabled=true; se.style.display='flex'; } if(de){ de.disabled=true; de.style.display='flex'; } const d=document.getElementById('screenDragon'); if(d) d.style.display='block'; const ly=document.getElementById('screenLayer'); if(ly) ly.classList.remove('tut-counter');
 }
@@ -9872,7 +9872,7 @@ const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D
 const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
    D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
-const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1 };
+const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1 };   /* r283: D23 (the sword on the counter moves it on) */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){

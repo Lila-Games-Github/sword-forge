@@ -213,8 +213,13 @@ strike starts moving the metal, which is what the line claims.*
 
 *Note: the owner wrote "pick you hammer".*
 
+*Revised (owner, 2026-10-21), r283: D15 is "It is hot enough." The instruction moved to D15a.*
+
 **D15a** - Dragon (r209, 2026-10-01; owner approved the text)
 > "Line up the ring on the hammer with the glowing mark, then tap the hammer."
+
+*Revised (owner, 2026-10-21), r283: "Pick up your hammer, line up the ring on the hammer with the glowing mark,
+then tap the hammer."*
 
 *Trigger: spoken right after D15, as one queue. Since r209 a strike lands on a hit point under the
 hammer's aim ring (`specs/2026-10-01-hammer-hit-points.md`); D15's pointer (`hmSwingOn`) now runs
@@ -1911,3 +1916,7 @@ After Bram's **D22** (the "Who are you? What is wrong?" branch) the player answe
 **"I can give you a sword."**; only that click brings **D23** ("Find the sword in your inventory and place it on
 the counter.") with the inventory tab and the sword arrow. The "I am a blacksmith." branch (D21) goes on to
 D23 at once, as before. (The owner wrote "d33"; read as D23, the tutorial step that follows.)
+
+*Revised (owner, 2026-10-21), r283: the reply comes after D21 too, and it reads **"I just crafted a sword. You can
+have it."**; tapping it brings D23 in both branches. D23 shows no close button (the sword on the counter moves it
+on).*

@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r283:** D15 "It is hot enough.", D15a "Pick up your hammer, line up the ring..."; after D21 or D22 the player taps "I just crafted a sword. You can have it." before D23; D23 has no close.
 - **r282:** D10 and D11 are one line (D10), no close button; D11 removed (199 keys).
 - **r281:** `SAY_NO_X`: the first sword's instruction lines (D3-D7, D11, D12, D14, D15a, D17, D18) show no close button; D8, D9, D16, D19 keep it. `.say-go.none` now beats `#dragonSay .go`, so a hidden button no longer leaves an empty frame.
 - **r280:** the route (`#pathline`) is dark brown `#4a2c17`; the held ore's preview stays red at opacity 0.45 / 0.3 (values Claude's proposal).

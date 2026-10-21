@@ -2080,6 +2080,14 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   Checked in the browser, playing a new game to the '?': D10 shows the joined text, its button is hidden, the arrow is
   on and the mug glows; the run ends D7, D8, D10. (Two screenshots timed out; measured instead.)
 
+- **r283: D15/D15a reworded; the player answers Bram after D21 or D22; D23 has no close (owner, 2026-10-21).** D15 is
+  "It is hot enough."; D15a is "Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the
+  hammer." After Bram's D21 or D22, the reply "I just crafted a sword. You can have it." (`bramGiveAsk`, r227, now for
+  both branches; it was "I can give you a sword." after D22 only) must be tapped before D23. D23 joins `SAY_NO_X`.
+  Asserted by the FTUE test (556) and the hammer test (47, D15a's text), written first. Checked in the browser, both
+  branches: Bram's line, then the reply button with the new text; tapping it shows D23 with its button hidden and the
+  sword arrow on.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2205,3 +2213,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-20: r280 the route is dark brown; the held ore's preview stays red, fainter.
 - 2026-10-21: r281 the first sword's instruction lines show no close (x); D8, D9, D16, D19 keep it.
 - 2026-10-21: r282 D10 and D11 are one line (D10), with no close button.
+- 2026-10-21: r283 D15 and D15a reworded; the "I just crafted a sword" reply after D21/D22; D23 has no close.

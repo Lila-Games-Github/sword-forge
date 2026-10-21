@@ -152,7 +152,7 @@ const R213 = {
   D8:   "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
   D10:  "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal.",   /* r282: D11 joined it */
   D14:  'Press and hold the metal, and I will heat it for you to hammer.',
-  D15:  'It is hot enough. Now strike the hot metal!',
+  D15:  'It is hot enough.',   /* r283 (owner): the instruction moved to D15a */
   D22:  "You don't need to know who I am! Assassins are after me. I lost my sword too!",
   D26:  'Phew! That was a lot of hard work.',
   D58a: "Five swords! Let's use the craft book. It can make them all at once.",
@@ -209,8 +209,9 @@ eq('the first book holds its +xp over the dim', src.includes('tutBookStep(b);') 
 eq('tierColor', src.includes("function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }"), true);
 eq('tier legend matches', ['.tier-weak span { color: #4d4d4d; }', '.tier-fine span { color: #2b7fd8; }', '.tier-epic span { color: #8e44d9; }'].every(t => src.includes(t)), true);
 /* r227 (owner, 2026-10-06): after D22 the player answers "I can give you a sword." before D23; the counter dragon is 25% smaller */
-eq('D22 waits for the reply', src.includes("typeAfter(()=>{ if(choice==='who'){ bramGiveAsk(); return; } bramGiveStep(); });")
-  && src.includes("b.textContent='I can give you a sword.';"), true);
+/* r283 (owner, 2026-10-21): after D21 or D22 the player answers first, "I just crafted a sword. You can have it."; that tap brings D23 */
+eq('D21 and D22 both wait for the reply', src.includes("typeAfter(()=>{ bramGiveAsk(); });")
+  && src.includes("b.textContent='I just crafted a sword. You can have it.';") && !src.includes("I can give you a sword."), true);
 eq("Bram's two replies are rebuilt at his intro", src.includes('if(r){ r.innerHTML=BRAM_REPLIES; r.style.display=\'flex\';'), true);
 eq('counter dragon 25% smaller (23% -> 17.25%)', src.includes('#screenLayer.sc-customer > #screenDragon { width: 17.25%; }'), true);
 /* r228 (owner, 2026-10-06): no DENY button during the FTUE (it is a placeholder with no action) */
@@ -342,7 +343,7 @@ eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE=
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18']);   /* r282: D10 (with D11 in it) */
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23']);   /* r282: D10 (with D11 in it). r283: D23 */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 eq('a run\'s last line shows no close when listed (an OK mid-run stays)', src.includes("((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);"), true);
