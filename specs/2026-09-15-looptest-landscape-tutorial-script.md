@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r300)
+## The script in play order (r301)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -184,58 +184,61 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 41. **D28k** Dragon: "The customer asked for a {o}. Let's focus on that."
    *When: only if, while any order is open, the player tries another trait's page, another shape, or a pour on another trait ({o} = the order).*
 
-42. **D28l** Dragon: "Careful! Here, try again."
+42. **D28m** Dragon: "Let's buy those later. Focus on the customer's request."
+   *When: only if, in the tutorial, the player tries to buy a blueprint no order needs (shape window or market).*
+
+43. **D28l** Dragon: "Careful! Here, try again."
    *When: only if the bag can no longer make the open order (e.g. a cancelled craft): over a reward window with the missing ores; the guided craft starts again.*
 
-43. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
+44. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
 
-44. **D28c** Dragon: "Here it is. Watch this!"
+45. **D28c** Dragon: "Here it is. Watch this!"
    *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
 
-45. **D28d** Dragon: "There, my treat! Now pick the Longsword."
+46. **D28d** Dragon: "There, my treat! Now pick the Longsword."
    *When: the Longsword is unlocked; then it blinks to be picked.*
 
-46. **Customer (GC1):** "Wow! Looks good. Good job."
+47. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
 
-47. **D18a** Dragon: "Here's a reward from me."
+48. **D18a** Dragon: "Here's a reward from me."
    *When: after GC1's sale; over the reward window (2 Iron, 2 Manganese for GC2).*
 
-48. **Customer (GC2):** "Do you have a Balanced Broadsword?"
+49. **Customer (GC2):** "Do you have a Balanced Broadsword?"
    *When: the bell; a random request.*
 
-49. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
+50. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
    *When: after GC2's request; its lit OK starts the craft guide.*
 
-50. **D28c** Dragon: "Here it is. Watch this!"
+51. **D28c** Dragon: "Here it is. Watch this!"
    *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
 
-51. **D28f** Dragon: "Done! Pick the Broadsword."
+52. **D28f** Dragon: "Done! Pick the Broadsword."
    *When: the Broadsword is unlocked; then it blinks to be picked.*
 
-52. **Customer (GC2):** a random thank-you
+53. **Customer (GC2):** a random thank-you
    *When: after the sale.*
 
-53. **D18a** Dragon: "Here's a reward from me."
+54. **D18a** Dragon: "Here's a reward from me."
    *When: after GC2's sale; over the reward window (2 Iron, 2 Manganese for GC3).*
 
-54. **Customer (GC3):** "Do you have a Balanced Katana?"
+55. **Customer (GC3):** "Do you have a Balanced Katana?"
    *When: the bell; a random request.*
 
-55. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
+56. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
    *When: after GC3's request; its lit OK starts the craft guide.*
 
-56. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
+57. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
 
-57. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
+58. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
    *When: the player buys the Katana in the shape window; then it blinks to be picked.*
 
-58. **Customer (GC3):** a random thank-you
+59. **Customer (GC3):** a random thank-you
    *When: after the sale.*
 
-59. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
+60. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
    *When: after GC3's sale; over the reward window (1 Iron, 1 Manganese for TC2); then the bell glows.*
 
 ### Part 2: grinding, the recipe, and the fire sword

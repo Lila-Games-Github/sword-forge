@@ -2313,6 +2313,16 @@ market - yes; the MARKET button still appears with GC1's order, with nothing poi
   topped up to 150, the Katana's BUY blinking; buying it - D28i on top, the gold 0, the Katana unlocked and blinking.
   GC5 - D92h (OK), D92a (lit OK); closing it starts the map route (D92m), the purchase waiting for CRAFT 1's window.
 
+- **r301: the first sword's Shortsword lit; BUY greyed when unaffordable; only the ordered blueprint (owner, 2026-10-21).**
+  The first sword's shape window blinks the Shortsword (`TUT_HM_FIRST`). A BUY the gold cannot cover is greyed (`.poor`;
+  a tap still says the price). In the tutorial a blueprint can be bought only if an order needs it (`ftueBlueprintOk`: the
+  open order's, any shape of its trait when it names none, or a waiting customer's - GC9); anything else is refused with
+  D28m "Let's buy those later. Focus on the customer's request." (203 dialogue keys), over the shape window or in the
+  market's strip. After the tutorial anything goes. Asserted by the FTUE test (636) and the market test (54), written
+  first. Checked in the browser: the first sword's window - Shortsword lit, every BUY grey at 0g; GC3's Katana order at
+  800g - the Dagger refused with D28m on top, the gold kept; the Katana bought (650g left); in the market the Dagger
+  (buyable) refused with D28m in the strip, nothing spent.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2456,3 +2466,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r298 the first sword goes on the counter only after D23 asks for it.
 - 2026-10-21: r299 a locked shape in the shape window can be bought there (BUY).
 - 2026-10-21: r300 the tutorial buys blueprints at the shape window (the dragon pays there; the Katanas are bought there).
+- 2026-10-21: r301 Shortsword lit for the first sword; unaffordable BUY greyed; only the ordered blueprint can be bought (D28m).

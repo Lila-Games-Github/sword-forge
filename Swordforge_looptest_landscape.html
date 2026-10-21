@@ -753,6 +753,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape-grid { display: flex; flex-wrap: wrap; gap: 8px; }   /* v3: up to 10 shapes a trait - four to a row */
 .sf-shape-grid .sf-shape { flex: 0 0 calc(25% - 6px); min-width: 0; }
 .sf-shape.locked > .ic, .sf-shape.locked > span { opacity: .55; filter: grayscale(1); }   /* r299: the BUY stays bright */
+.sf-shape .sf-buy.poor { background: #d9d3c6; border-color: #9c9486; color: #7d7568; }   /* r301: the gold cannot cover it */
 .sf-shape .sf-buy { margin-top: 2px; padding: 2px 7px; border-radius: 6px; background: #f6d27a; border: 1px solid #b07a22; color: #5a3410; font: 700 10px/1.2 'Cinzel', serif; letter-spacing: .3px; }
 /* owner, 2026-10-08: the shape the waiting customer asked for - a gold ring, a pulse and a tag */
 .sf-shape.sf-req { position: relative; border-color: #e0a52c; background: #fff5d6; opacity: 1;
@@ -6311,6 +6312,7 @@ function ftueMarketBought(k, sh){
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
     if(FTUE_MK && FTUE_MK.step==='gift') return;   /* the dragon is paying */
+    if(st==='buy' && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }   /* r301 (owner): only the order's blueprint */
     if(FTUE_MK && FTUE_MK.step==='buy' && (k!==FTUE_MK.o.trait || sh!==FTUE_MK.o.shape) && st==='buy'){
         toast('Buy the <b>'+orderLabel(TRAIT_BY[FTUE_MK.o.trait].name, FTUE_MK.o.shape)+'</b> blueprint first'); return; }
     if(st==='closed'){ toast('Play more to unlock'); return; }
@@ -6576,7 +6578,8 @@ function openShapeSelect(){
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
     document.getElementById('shapeCancel').classList.add('on');   /* r144: always offered */
-    ftueShapeOpened(); }   /* r300: the tutorial's blueprint is bought here */
+    ftueShapeOpened();   /* r300: the tutorial's blueprint is bought here */
+    if(TUT_HM_FIRST) setTimeout(()=>tutExit("#sfShapeModal .sf-shape[data-shape='Shortsword']"), 0); }   /* r301 (owner): the first sword's shape */
 /* r199: the shapes on offer depend on the blade's trait (FTUE.shapes); Shortsword is always open and
    the other two need their blueprint. A recipe craft (SHAPE_CB) reads the recipe's traits, a forged
    blade reads the ones on the bench. */
@@ -6592,7 +6595,7 @@ function shapeGrid(){
     marketShapes(k).forEach(sh=>{   /* v3: every shape the trait has; locked ones say where to get them */
         const open=ftueShapeOpen(k, sh), b=document.createElement('button');
         b.type='button'; b.className='sf-shape'+(open?'':' locked'); b.dataset.shape=sh;
-        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open ? '' : '<b class="sf-buy">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here */
+        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open ? '' : '<b class="sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here. r301: greyed if the gold cannot cover it */
         const req=custShapeFor(k)===sh;   /* owner, 2026-10-08: the shape the customer asked for, in the whole game */
         if(req) b.classList.add('sf-req');
         b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ shapeBuy(k, sh); return; } selectShape(sh); });   /* r299: a locked shape is bought from here */
@@ -6621,8 +6624,15 @@ function ftueShapeBought(k, sh){ const m=FTUE_MK; if(m && m.step==='buy' && k===
 function ftueShapeDone(m){ FTUE_MK=null; const o=m.o;
     if(o.market.done) ftueSaySh(o.market.done); else if(SAY_ON===FTUE_SHAPE_LINE) sayHide();
     setTimeout(()=>tutExit(ftueShapeBtn(o)), 0); }
+/* r301 (owner, 2026-10-21): in the tutorial only the blueprint an order needs can be bought - the open order's (any shape of its
+   trait when it names none), or a waiting customer's (GC9) */
+function ftueBlueprintOk(k, sh){ if(FTUE_ST.done) return true;
+    const hit=it=>it.trait===k && (!it.shape || it.shape===sh), o=ftueOrderOpen();
+    if(o && (o.items ? o.items.some(hit) : hit(o))) return true;
+    return (FTUE_ST.waiting||[]).some(e=>(e.items||[]).some(hit)); }
 /* r299 (owner, 2026-10-21): buy a blueprint from the shape window - the market's price, checks, gold and quests */
 function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
+    if(!ftueBlueprintOk(k, sh)){ ftueSaySh('D28m'); return; }   /* r301 (owner): only the order's blueprint in the tutorial */
     if(st==='closed'){ toast('Play more to unlock'); return; }
     if(st==='unknown'){ toast('Discover this trait first'); return; }
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
@@ -7775,6 +7785,7 @@ const DIALOGUE = {
     D28j: "I am running out of my reward stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3 */
     D28k: "The customer asked for a {o}. Let's focus on that.",   /* r292 (owner): the craft lock; {o} = the order */
     D28l: "Careful! Here, try again.",   /* r293 (owner): the refill, over the reward window */
+    D28m: "Let's buy those later. Focus on the customer's request.",   /* r301 (owner): a blueprint the order did not ask for */
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",   /* v3 part 2 (owner) */

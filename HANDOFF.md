@@ -13,7 +13,7 @@ continuation prompt printed at close time.
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
 - **Status: FTUE v3 is merged and live.** PR #24 (2026-10-14) carried r216-r230, the FTUE v3 rework
   (parts 1-6), its play-test round and the fixes after it; the Pages deploy succeeded and the live page
-  serves the merged build. **202 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 and D28 removed, D18a, D28j, D28k and D28l added 2026-10-21), `lastLine()` `D140`.
+  serves the merged build. **203 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 and D28 removed, D18a, D28j, D28k, D28l and D28m added 2026-10-21), `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r301:** the first sword's Shortsword blinks; an unaffordable BUY is greyed; in the tutorial only an order's blueprint can be bought (`ftueBlueprintOk`, D28m in the shape window and the market).
 - **r300:** the tutorial buys blueprints at the shape window: no market trip; the order lines end on a lit OK that starts the craft guide (`SAY_THEN`, `ftueOrderGo`); `ftueShapeOpened` / `ftueShapeDone` run the dragon's or the player's purchase there. `say-over-modal` is z 1011 (the shape window is 1010). GC9 keeps its market lesson.
 - **r299:** a locked shape in the shape window shows "BUY <price>g" and buys there (`shapeBuy`, the market's rules).
 - **r298:** the first sword goes on the counter only after D23 (`TUT_BRAM_GIVE_OK`, `counterShut`); earlier drops stay in the bag with a toast.
@@ -229,10 +230,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 202 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 203 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 626 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 636 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
