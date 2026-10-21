@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r286:** the trait window (`showAcquire`) closes the dragon's open line (D10) first.
 - **r285:** the tutorial script doc reads in play order (all 199 lines, parts 1-6). Found while tracing, not fixed: `tutHmStep`'s fallback replays D13-D17 in the hammer minigame for GC4, TC4, GC8, the part 5 gale Longsword and Garric's solo craft (and drops GC4/TC4/GC8's counter pointer); the v3 record's Katana price (50g) differs from the build (150g / 200g).
 - **r284:** D24 has no close button (`SAY_NO_X`).
 - **r283:** D15 "It is hot enough.", D15a "Pick up your hammer, line up the ring..."; after D21 or D22 the player taps "I just crafted a sword. You can have it." before D23; D23 has no close.
@@ -217,7 +218,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 199 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 556 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 557 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

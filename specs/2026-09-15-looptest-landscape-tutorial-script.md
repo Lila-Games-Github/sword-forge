@@ -80,7 +80,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after a moment of hammering; the game pauses until it is closed.*
 
 9. **D10** Dragon: "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal."
-   *When: the sword reaches the '?'; the mug pointer goes up with it.*
+   *When: the sword reaches the '?'; the mug pointer goes up with it. It closes when the trait window opens.*
 
 10. **D12** Dragon: "Tap on the metal to select the shape of the sword blade."
    *When: the trait window is closed.*

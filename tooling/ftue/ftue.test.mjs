@@ -336,6 +336,8 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r286 (owner, 2026-10-21): the trait window opens on its own - the dragon's line behind it (D10) is closed */
+eq('showAcquire closes the dragon\'s line', /function showAcquire\(bt,tier,total,fresh\)\{[\s\S]{0,600}sayHide\(\);[\s\S]{0,160}document\.getElementById\('sfAcquireModal'\)\.classList\.add\('show'\);/.test(src), true);
 /* r282 (owner, 2026-10-21): D10 and D11 are one line (D10), with no close; the mug pointer goes up with it */
 eq('D11 is gone', /\n\s*D11: "/.test(src), false);
 eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SAY_SEQ\.indexOf\('D10'\)<0\) SAY_SEQ\.push\('D10'\);/.test(src) && !/'D11'/.test(src), true);

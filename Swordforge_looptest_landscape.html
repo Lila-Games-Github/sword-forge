@@ -5970,6 +5970,7 @@ function showAcquire(bt,tier,total,fresh){
     if(h) h.textContent=(fresh?'New trait discovered':'Trait locked in')+' — '+bt.name;
     const body=document.getElementById('sfAcquireBody');
     body.innerHTML='<span class="sym">'+bt.symbol+'</span><div class="tr" style="color:'+tierColor(tier)+'">'+tier+' tier</div>'+(total>1?'<div class="cnt">'+total+' traits on this blade</div>':'');
+    sayHide();   /* r286 (owner): the dragon's line (D10) does not stay behind the window */
     document.getElementById('sfAcquireModal').classList.add('show'); }
 // r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
 // element symbols of each recorded composition.

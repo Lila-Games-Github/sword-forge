@@ -2092,6 +2092,11 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   SELL moves it on. Asserted by the FTUE test (556), written first. Checked in the browser: Bram's scene to the sword on
   the counter; D24 shows with its button hidden and SELL lit.
 
+- **r286: the trait window opens without the dragon's line behind it (owner, 2026-10-21).** `showAcquire` closes the
+  open line (`sayHide`) before the window shows, so D10 is gone when "New trait discovered" opens; D12 still follows
+  "continue". Asserted by the FTUE test (557), written first. Checked in the browser, playing a new game to the pour:
+  before it D10 is up; with the window open no line is open and the bubble is hidden; "continue" shows D12.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2220,3 +2225,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r283 D15 and D15a reworded; the "I just crafted a sword" reply after D21/D22; D23 has no close.
 - 2026-10-21: r284 D24 has no close button.
 - 2026-10-21: r285 the tutorial script doc reordered into play order; found the hammer minigame D13 replay (not fixed).
+- 2026-10-21: r286 the trait window closes the dragon's line behind it.
