@@ -2062,6 +2062,17 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   route is rgb(74,44,23) at full opacity and the preview red at 0.45 / 0.3; releasing hides the preview; no console
   errors.
 
+- **r281: the first sword's instruction lines show no close (x) (owner, 2026-10-21).** Owner: remove the x from the
+  dragon's lines in the first sword craft, except where it is needed, like D8, where the game pauses until it is closed.
+  `SAY_NO_X` lists the lines the player's own action moves on: D3, D4, D5, D6, D7, D11, D12, D14, D15a, D17, D18.
+  When one of them ends a run its button is 'none' (an OK mid-run is unchanged: D1, D2, D10, D13, D15). Kept: D8, D9,
+  D16 (the game holds until closed) and D19 (closing it opens the tier window). The bubble itself can still be tapped
+  away. Found on the way: `.say-go.none` (display none) lost to `#dragonSay .go` (display flex) on specificity, so a
+  hidden button (these lines, and the dragon's questions since r115) still drew an empty frame; the rule now names the
+  same selectors. Asserted by the FTUE test (553), written first. Checked in the browser: a new game played through D11
+  gives D1 OK, D2 OK, D3-D7 none, D8 x, D10 OK, D11 none; through the game's own say runs, D12 none, D13 OK, D14 none,
+  D15 OK, D15a none, D16 x, D17 none, D18 none, D19 x, D9 x; at D3 the button is display none (no frame).
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2185,3 +2196,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-20: r278 a map trait icon opens a trait card (CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK), not the book.
 - 2026-10-20: r279 the forge opens on the ingredients tab; the basement, the counter and the shop on the swords tab.
 - 2026-10-20: r280 the route is dark brown; the held ore's preview stays red, fainter.
+- 2026-10-21: r281 the first sword's instruction lines show no close (x); D8, D9, D16, D19 keep it.

@@ -506,7 +506,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .say-go svg { width: 15px; height: 15px; display: block; }
 .say-go.ok, #dragonSay .go.ok, #screenDragonSay .go.ok, .tut-iconsay .go.ok { width: 44px; }   /* owner, 2026-10-13: the continue button says OK */
 .say-go .go-ok { font: 900 13px/1 'Cinzel', serif; letter-spacing: .5px; }
-.say-go.none { display: none; }   /* a question is pending: answer it, do not skip past it */
+.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }   /* a question is pending: answer it, do not skip past it. r281: as specific as the rule that shows it, or the empty frame stayed */
 /* r184: "click HERE". Deliberately additive - brightness and shadow only, no background of its
    own - so one class can light the go button, a paper SELL button, a response box and the two
    answer buttons, each of which has a different base. The inset half cannot be clipped by an
@@ -9871,6 +9871,9 @@ const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
    follows the tap even though no line does. */
 const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
+/* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
+   D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
+const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D11:1, D12:1, D14:1, D15a:1, D17:1, D18:1 };
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -9899,7 +9902,7 @@ function say(id){
     if(FTUE.endLines.indexOf(id)>=0 && !tutTail()){ TUT_SEEN_END=true; FTUE_ST.done=true; }   /* r206: any of Garric's endings */
     const go=document.getElementById(B[2]);
     sayGoIcon(go, SAY_CHOICES ? 'none' :
-        ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next'), id);   /* r115/r174/r184/r196 */
+        ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);   /* r115/r174/r184/r196 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');
