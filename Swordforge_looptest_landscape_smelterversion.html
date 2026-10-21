@@ -93,6 +93,11 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 #smBlade { position: absolute; z-index: 26; display: none; cursor: grab; touch-action: none; -webkit-user-drag: none;
     transform: translate(-50%,-50%) rotate(40deg); filter: drop-shadow(0 0 9px rgba(255,170,60,.8)); }
 #smBlade.dragging { cursor: grabbing; z-index: 40; }
+/* s4: the ladle, behind the furnace in the smelter's station; #ladleHot (over the furnace) takes the drag */
+#ladle { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+#ladle img { position: absolute; display: block; -webkit-user-drag: none; }
+#ladleHead.on { filter: drop-shadow(0 0 8px rgba(170,225,255,.9)); }
+#ladleHot { position: absolute; z-index: 6; cursor: grab; touch-action: none; aspect-ratio: 512 / 261; }
 #sfRotate { position: fixed; inset: 0; z-index: 99999; display: none; background: #2b2b2b; color: #e8dcc0;
     flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; padding: 24px; }
 #sfRotate.on { display: flex; }
@@ -2260,6 +2265,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <!-- 3 · Smelt — blast furnace (doubled) with the bellowtop paddle placed on its own bellow -->
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
+            <div id="ladle"><img id="ladleBase" src="assets/forge/ladle_base.webp" alt=""><img id="ladleHead" src="assets/forge/ladle_head.webp" alt="Ladle"></div><!-- s4: tier alignment -->
             <img class="furnace" src="assets/forge/anchor_furnace.webp" alt="Smelter">
             <img id="furnaceSmoke" src="assets/forge/smoke.webp" alt=""><!-- r38: vents from the crucible, only while bellowing -->
             <div class="furnaceGlow" id="furnaceGlow"></div>
@@ -2268,6 +2274,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
             <div id="bellowHot" title="Drag up and down to pump the bellows"></div>
             <div id="furnaceGate" title="Open the gate"></div>
+            <div id="ladleHot" title="Tilt the ladle"></div>
         </div>
 
         <!-- 2 · Grind — the grindstone (cut from the hori anchor), right side -->
@@ -2670,13 +2677,17 @@ const FTUE = {
    anvil opens the minigame, the bucket finishes the blade. Record: specs/2026-10-21-smelter-version-loop.md; test:
    tooling/smelter/smelter.test.mjs. */
 /* SMELT-PURE-BEGIN */
-const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500 };   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
+const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500,
+    ladleMax:45, ladleDead:4, ladlePull:24, ladleHead:{ x:-22.2, y:4.9, w:57.3 }, ladleBase:{ x:2.8, y:26.7, w:26.5 }, ladlePivot:{ x:66.7, y:90.6 } };   /* s4: the ladle (tier alignment) */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
 function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
 /* a handle movement as seconds of full-speed sword travel */
 function smTravelDt(moved){ return moved*SMELT.strokeSec; }
 /* s3: how much of the stored travel the sword glides out in a frame - an exponential ease, the last bit at once */
 function smEase(owed, dt){ if(owed<=0) return 0; if(owed<=SMELT.flush) return owed; return Math.min(owed, owed*(1-Math.exp(-dt/SMELT.easeSec))); }
+/* s4: the ladle - the tilt plus a turn, held to 0..ladleMax; the pull speed (map px/s), 0 inside the dead zone, ladlePull at full tilt */
+function smLadleTilt(tilt, dDeg){ return Math.max(0, Math.min(SMELT.ladleMax, tilt+dDeg)); }
+function smLadleSpeed(tilt){ if(tilt<=SMELT.ladleDead) return 0; return SMELT.ladlePull*Math.min(1, (tilt-SMELT.ladleDead)/(SMELT.ladleMax-SMELT.ladleDead)); }
 /* SMELT-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -7445,7 +7456,7 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
-    smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
+    smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
     if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
@@ -10296,8 +10307,28 @@ function wireIntro(){ const el=document.getElementById('sfIntro'); if(!el) retur
     introBuild(); el.addEventListener('click', e=>{ if(!e.target.closest('#introSkip')) introNext(); });
     document.getElementById('introSkip').addEventListener('click', introEnd); }
 /* smelter version: free play - the tutorial done, every station and the market open, SMELT.freeOres of every ore */
-let SM_POS=0, SM_BLADE_FILE=null, SM_OWED=0;   /* s3: SM_OWED = bellows travel not yet glided out (full-speed s) */
+let SM_POS=0, SM_BLADE_FILE=null, SM_OWED=0, SM_TILT=0;   /* s4: SM_TILT = the ladle's tilt (deg) */   /* s3: SM_OWED = bellows travel not yet glided out (full-speed s) */
 /* s3 (owner): the bellows store travel and the sword glides it out every frame, so it moves smoothly, not per pointer event */
+/* s4 (owner): the ladle - tilted, it pulls the sword, its route and the X toward the centre, faster the more it tilts */
+function smLadleTick(dt){ const v=smLadleSpeed(SM_TILT), head=document.getElementById('ladleHead');
+    const on=v>0 && !!melt && melt.stage==='smelting' && segs.length>0; if(head) head.classList.toggle('on', on);
+    if(!on || melt.stage!=='smelting') return;
+    const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy); if(dist<=0.5) return;   /* at the centre */
+    const step=Math.min(dist, v*dt); pull.x+=dx/dist*step; pull.y+=dy/dist*step;
+    const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); ensureSwordVisible(); }
+function wireLadle(){ const head=document.getElementById('ladleHead'), base=document.getElementById('ladleBase'), hot=document.getElementById('ladleHot'); if(!head || !base || !hot) return;
+    const put=(el, p)=>{ el.style.left=p.x+'%'; el.style.top=p.y+'%'; el.style.width=p.w+'%'; };
+    put(head, SMELT.ladleHead); put(base, SMELT.ladleBase); put(hot, SMELT.ladleHead);   /* the hot box is the head's upright box */
+    head.style.transformOrigin=SMELT.ladlePivot.x+'% '+SMELT.ladlePivot.y+'%';   /* its foot, on the tripod */
+    const paint=ms=>{ head.style.transition=ms ? 'transform '+ms+'ms ease-out' : 'none'; head.style.transform='rotate('+SM_TILT.toFixed(2)+'deg)'; };
+    const pivot=()=>{ const r=hot.getBoundingClientRect(); return { x:r.left+r.width*SMELT.ladlePivot.x/100, y:r.top+r.height*SMELT.ladlePivot.y/100 }; };
+    const ang=e=>{ const p=pivot(); return Math.atan2(e.clientY-p.y, e.clientX-p.x)*180/Math.PI; };   /* screen y is down: clockwise is + */
+    let live=null, last=0;
+    hot.addEventListener('pointerdown', e=>{ e.preventDefault(); live=e.pointerId; last=ang(e); try{ hot.setPointerCapture(e.pointerId); }catch(err){} });
+    hot.addEventListener('pointermove', e=>{ if(live!==e.pointerId) return; const a=ang(e); let d=a-last; while(d>180) d-=360; while(d<-180) d+=360; last=a;
+        SM_TILT=smLadleTilt(SM_TILT, d); paint(0); });
+    const end=e=>{ if(live!==e.pointerId) return; live=null; SM_TILT=0; paint(SMELT.springMs); };   /* tips back; the pull stops */
+    hot.addEventListener('pointerup', end); hot.addEventListener('pointercancel', end); }
 function smGlide(dt){ if(SM_OWED<=0) return; if(!melt || melt.stage!=='smelting' || swordAtRouteEnd()){ SM_OWED=0; return; }
     const d=smEase(SM_OWED, dt); SM_OWED=Math.max(0, SM_OWED-d); advanceSword(d); }
 function smFreePlay(){ sayHide(); tutDone(); SAY_SEQ.length=0; SAY_I=-1; TUT_SEEN_END=true;
@@ -10311,7 +10342,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); ftueGrin
     (()=>{ const f=document.getElementById('frame'), c=document.getElementById('sayChoices');
         if(f && c && c.parentElement!==f) f.appendChild(c); })();   /* r115 */
     railUi();   /* r129 */
-    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireSmBlade(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
+    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireSmBlade(); wireLadle(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
     wireIntro(); if(!introOpen()) smFreePlay();   /* smelter version: free play, no tutorial (r302: after the intro) */
     setTimeout(dragonCap, 60);
     if(!CAVE_NODES.length) rollCaveNodes();               // r68: the cave has seams from the first day

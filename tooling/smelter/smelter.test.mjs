@@ -13,14 +13,15 @@ const src = readFileSync(HTML, 'utf8');
 const main = readFileSync('Swordforge_looptest_landscape.html', 'utf8');
 const m = src.match(/\/\* SMELT-PURE-BEGIN \*\/([\s\S]*?)\/\* SMELT-PURE-END \*\//);
 assert.ok(m, 'SMELT-PURE markers not found in ' + HTML);
-const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase };')();
+const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed };')();
 
 let n = 0;
 function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; console.log('  ok   ' + label); }
 const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.moved * 1000) / 1000 });
 
 /* the record */
-eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500 });
+eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500,
+  ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 } });
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
@@ -34,6 +35,20 @@ eq('the last bit goes at once', S.smEase(0.002, 1/60), 0.002);
 eq('nothing stored, nothing released', S.smEase(0, 1/60), 0);
 eq('a full stroke has glided out within 0.8 s, never more than was stored', (() => { let o = 0.2, out = 0, f = 0;
   while (o > 0 && f < 48) { const d = S.smEase(o, 1/60); o -= d; out += d; f++; } return [o <= 1e-12, Math.abs(out - 0.2) < 1e-12]; })(), [true, true]);
+
+/* s4: the ladle */
+eq('the tilt adds the turn', S.smLadleTilt(0, 10), 10);
+eq('the tilt stops at ladleMax', S.smLadleTilt(40, 10), 45);
+eq('the tilt stops upright', S.smLadleTilt(5, -10), 0);
+eq('no pull upright or inside the dead zone', [S.smLadleSpeed(0), S.smLadleSpeed(4)], [0, 0]);
+eq('full tilt pulls at ladlePull; half way at half', [S.smLadleSpeed(45), S.smLadleSpeed(24.5)], [24, 12]);
+eq('the ladle sits in the smelter station, behind the furnace', /<div class="station" id="stSmelt">[\s\S]{0,200}<div id="ladle"><img id="ladleBase" src="assets\/forge\/ladle_base\.webp" alt=""><img id="ladleHead" src="assets\/forge\/ladle_head\.webp" alt="Ladle"><\/div>(<!--[^>]*-->)?\s*<img class="furnace"/.test(src)
+  && src.includes('#ladle { position: absolute; inset: 0; z-index: -1; pointer-events: none; }') && src.includes('<div id="ladleHot" title="Tilt the ladle"></div>'), true);
+eq('placed from SMELT, turned about its foot', /function wireLadle\(\)\{[\s\S]{0,900}SMELT\.ladleHead[\s\S]{0,300}SMELT\.ladleBase[\s\S]{0,400}SMELT\.ladlePivot/.test(src), true);
+eq('a drag tilts it by the turn of the pointer; a release tips it back', /function wireLadle\(\)\{[\s\S]{0,2400}SM_TILT=smLadleTilt\(SM_TILT, /.test(src) && /function wireLadle\(\)\{[\s\S]{0,3000}SM_TILT=0; paint\(SMELT\.springMs\);/.test(src), true);
+eq('every frame a tilted ladle pulls the route toward the centre, only while the metal is in the smelter', /function tick\(now\)\{[\s\S]{0,4000}smLadleTick\(dt\);/.test(src)
+  && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,400}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
+eq('wired at start', /wireBellowGate\(\); wireSmBlade\(\); wireLadle\(\);/.test(src), true);
 
 /* 1. free play */
 eq('free play instead of D1: on load, after the intro, on a new game', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) smFreePlay\(\);/.test(src)

@@ -40,10 +40,34 @@ this later)"
    closes and the finished blade lies on the anvil. Drag it into the bucket: the quench steam and mist play, then the
    "Sword crafted!" window, as the minigame's mug did before.
 
+## The ladle: tier alignment (owner, 2026-10-21, s4)
+
+Owner: "I have added two new images, ladle_base and ladle_head. refer to ladle_placement.png for placement. it stays
+behind the smelter. This ladle will be used for tier alignment. It can be tilted. Tilting it activated it, and it slowly
+drags the active sword to the centre. The speed of the active sword towards the centre depends on the degree of the
+tilt." Answer (owner, 2026-10-21): on release it tips back upright, like the bellows (recommended).
+
+- **Art:** `assets/forge/ladle_base.webp` and `ladle_head.webp` (512 wide, quality 0.86, from the owner's PNGs). Both sit
+  in the smelter's station behind the furnace (`#ladle`, z -1 in the station), placed to
+  `assets/Anchor-images/ladle_placement.png`: matched by drawing the two images over the reference at full size. Positions
+  are % of the station box (`SMELT.ladleHead`, `SMELT.ladleBase`); in frame terms the head is x 34.9%, y 56.8%, 11.0%
+  wide, the base x 39.7%, y 65.9%, 5.1% wide.
+- **Tilt:** drag on the ladle's bowl (`#ladleHot`, the head's upright box, over the furnace's top): the head turns about
+  its foot (`SMELT.ladlePivot`, % of the head image) by the change in the pointer's angle around that point, clockwise
+  (toward the smelter), from 0 to `ladleMax` degrees. On release it tips back to 0 in `springMs` and the pull stops.
+- **Pull:** while the metal is in the smelter (stage smelting) and tilted past `ladleDead`, every frame the sword, its
+  remaining route and the X move straight toward the map's centre (START), as the main game's dragon fire did (the same
+  `pull`, so books, hazards and trait spots are checked on the way). Speed: `ladlePull` map px/s at full tilt, falling
+  linearly to 0 at `ladleDead` (`smLadleSpeed`). It stops at the centre. The bowl glows while it pulls.
+- **Values:** `ladleMax` 45 deg, `ladleDead` 4 deg, `ladlePull` 24 px/s (the dragon's fire pulled at 20), `ladleHead`
+  { x -22.2, y 4.9, w 57.3 }, `ladleBase` { x 2.8, y 26.7, w 26.5 }, `ladlePivot` { x 66.7, y 90.6 }.
+- **Pure rules:** `smLadleTilt(tilt, dDeg)` = the tilt plus the turn, clamped to 0..`ladleMax`; `smLadleSpeed(tilt)` as above.
+
 ## The loop
 
 1. Ore to the smelter, or to the grindstone and then the smelter (unchanged). The route draws on the map.
-2. Drag the bellows handle up and down: the sword travels the route (books, hazards and trait spots as before).
+2. Drag the bellows handle up and down: the sword travels the route (books, hazards and trait spots as before). Tilt the
+   ladle to pull the sword toward the centre and line it up on a trait's centre (the tier).
 3. On a trait the gate glows; tap it: the trait is acquired (the trait window opens), the hot metal comes out at the gate.
 4. Drag the metal to the anvil: the shape window opens (cancel it and tap the metal to reopen it). Pick a shape.
 5. The hammering minigame: the dragon heats, the hammer strikes the hit points (unchanged), no mug.
@@ -102,3 +126,4 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
   - no console errors.
 - 2026-10-21: s2 the handle springs back when released (`springMs` 250, no travel); the sword 2.5x slower (`strokeSec` 0.2).
 - 2026-10-21: s3 the bellows' travel glides out frame by frame (`smEase`, `easeSec` 0.15); the blade on the anvil is 2x the anvil's width (was 1.25).
+- 2026-10-21: s4 the ladle: tilt it to pull the sword toward the centre (tier alignment); speed by the tilt; tips back on release.
