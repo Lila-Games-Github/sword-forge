@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r289:** every market ask (D28b, D28e, D28g, D92h-D92j, D111b, D113a) has no close button.
 - **r288:** D15 pauses the game under the dark screen until its OK (`SAY_PAUSE_ONE`); D28b has no close; a `SAY_NO_X` line has no button anywhere in a run (D23 had become an OK behind a stale run).
 - **r287:** D118 and D27 have no close button; D28 ("Go ahead, try it!") removed (198 keys). The script doc's play-order section is updated with each line change (edit it by hand: add, remove or renumber the entry).
 - **r286:** the trait window (`showAcquire`) closes the dragon's open line (D10) first.

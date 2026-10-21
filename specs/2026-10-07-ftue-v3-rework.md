@@ -2112,6 +2112,10 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   the browser: in the minigame, D15 holds the game (heat unchanged over 60 frames) under the deep dim with its OK lit;
   OK shows D15a, the pause lifts and the heat moves again; D23 mid-run and D28b show no button.
 
+- **r289: every market ask has no close (owner, 2026-10-21).** D28e, D28g, D92h, D92i, D92j, D111b and D113a join D28b
+  in `SAY_NO_X`: opening MARKET moves each on. Asserted by the FTUE test (562), written first. Checked in the browser:
+  all eight show no button, on the counter and on the forge.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2243,3 +2247,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r286 the trait window closes the dragon's line behind it.
 - 2026-10-21: r287 D118 and D27 have no close button; D28 removed.
 - 2026-10-21: r288 D15 pauses the game; D23 and D28b have no close button.
+- 2026-10-21: r289 every market ask (D28b, D28e, D28g, D92h, D92i, D92j, D111b, D113a) has no close button.
