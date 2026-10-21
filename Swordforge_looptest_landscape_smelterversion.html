@@ -2670,11 +2670,13 @@ const FTUE = {
    anvil opens the minigame, the bucket finishes the blade. Record: specs/2026-10-21-smelter-version-loop.md; test:
    tooling/smelter/smelter.test.mjs. */
 /* SMELT-PURE-BEGIN */
-const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, shapedHold:700, freeOres:20, freeGold:500 };   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back */
+const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500 };   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
 function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
 /* a handle movement as seconds of full-speed sword travel */
 function smTravelDt(moved){ return moved*SMELT.strokeSec; }
+/* s3: how much of the stored travel the sword glides out in a frame - an exponential ease, the last bit at once */
+function smEase(owed, dt){ if(owed<=0) return 0; if(owed<=SMELT.flush) return owed; return Math.min(owed, owed*(1-Math.exp(-dt/SMELT.easeSec))); }
 /* SMELT-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -5956,7 +5958,7 @@ function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reach
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!melt.reachedTrait){ toast('Move the sword onto a <b>trait</b> first: drag the <b>bellows</b> up and down'); return; }
-    bellowing=false; tryAcquire(); }
+    bellowing=false; SM_OWED=0; tryAcquire(); }   /* s3: the rest of the glide stops here */
 function smGateFx(){ const g=document.getElementById('furnaceGate'); if(!g) return; const r=benchRect(g);
     fxBurst(r.L+(r.R-r.L)*0.6, r.T+(r.B-r.T)*0.6, { n:16, kind:'ember', ang:-Math.PI/2, spread:1.6, dist:46, size:5, dur:700 }); }
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the smelter. Add more ore if you like, drag the <b>bellows</b> to move the sword, then tap the gate on a trait.'); }
@@ -7268,7 +7270,7 @@ function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || 
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
     smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.'); }
 function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
-    b.style.width=Math.round(stAnvil.getBoundingClientRect().width*1.25)+'px'; b.style.left=a.x+'px'; b.style.top=a.y+'px'; }
+    b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px'; }
 function smBladeShow(){ const b=document.getElementById('smBlade'); if(!b || !SM_BLADE_FILE) return;
     b.src='assets/sword-parts/blades/'+SM_BLADE_FILE+'.webp'; b.style.display='block'; smBladeHome(); }
 function smBladeHide(){ const b=document.getElementById('smBlade'); if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
@@ -7324,7 +7326,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>cwHurtStart(), 350);   /* r215. owner, 2026-10-10: D69d opens the paper on the Health row */
 }
-function resetRun(){ smBladeHide();   /* smelter version */ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
+function resetRun(){ smBladeHide(); SM_OWED=0;   /* smelter version */ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ document.getElementById('sfIllusModal').classList.remove('show');   /* r193 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=MUG_Z; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
@@ -7443,7 +7445,7 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
-    smGateSync();   /* smelter version: the gate glows while the sword is on a trait */
+    smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
     if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
@@ -7717,7 +7719,7 @@ function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=d
         if(h.moved<=0) return; SM_POS=h.pos; paint();
         if(!melt || melt.stage!=='smelting') return;
         bellowing=true; if(smoke) smoke.classList.add('on');
-        advanceSword(smTravelDt(h.moved));
+        SM_OWED+=smTravelDt(h.moved);   /* s3: stored; smGlide moves the sword in the frame loop */
         if(idle) clearTimeout(idle); idle=setTimeout(quiet, 160); });   /* the smoke stops when the hand does */
     const end=e=>{ if(live!==e.pointerId) return; live=null; quiet(); SM_POS=0; paint(SMELT.springMs); };   /* s2: springs back closed; the spring moves nothing */
     bh.addEventListener('pointerup', end); bh.addEventListener('pointercancel', end);
@@ -10294,7 +10296,10 @@ function wireIntro(){ const el=document.getElementById('sfIntro'); if(!el) retur
     introBuild(); el.addEventListener('click', e=>{ if(!e.target.closest('#introSkip')) introNext(); });
     document.getElementById('introSkip').addEventListener('click', introEnd); }
 /* smelter version: free play - the tutorial done, every station and the market open, SMELT.freeOres of every ore */
-let SM_POS=0, SM_BLADE_FILE=null;
+let SM_POS=0, SM_BLADE_FILE=null, SM_OWED=0;   /* s3: SM_OWED = bellows travel not yet glided out (full-speed s) */
+/* s3 (owner): the bellows store travel and the sword glides it out every frame, so it moves smoothly, not per pointer event */
+function smGlide(dt){ if(SM_OWED<=0) return; if(!melt || melt.stage!=='smelting' || swordAtRouteEnd()){ SM_OWED=0; return; }
+    const d=smEase(SM_OWED, dt); SM_OWED=Math.max(0, SM_OWED-d); advanceSword(d); }
 function smFreePlay(){ sayHide(); tutDone(); SAY_SEQ.length=0; SAY_I=-1; TUT_SEEN_END=true;
     FTUE_ST=ftueFresh(); FTUE_ST.part=7; TUT_BRAM_SOLD=true;   /* past the six parts: part 1 caps the first sword's ores */
     FTUE_ST.done=true; FTUE_ST.grind=true; FTUE_ST.grindUse=true; FTUE_ST.market=true; FTUE_ST.sharp=true; FTUE_ST.cwSeen=true;

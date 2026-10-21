@@ -30,6 +30,12 @@ this later)"
    s2 (owner, 2026-10-21): "make the bellows handle spring back when released. also, make the movement much slower,
    maybe 0.2". Released, the handle springs back to closed in `SMELT.springMs`; the spring moves nothing. `strokeSec`
    0.5 -> 0.2.
+   s3 (owner, 2026-10-21): "the movement of the sword on the path, controlled by the bellow is very jittery, smoothen it so
+   it feels nice." The handle no longer moves the sword itself: each movement adds its travel to a store (`SM_OWED`, in
+   full-speed seconds), and every frame the sword glides out part of it (`smEase`: an exponential ease with time constant
+   `easeSec`, the last `flush` s at once). The total travel is unchanged; it arrives over about half a second, one step a
+   frame, instead of one jump per pointer event. Opening the gate, the metal leaving the smelter or the route ending
+   drops what is left.
 4. **The minigame closes when the blade is shaped.** After the last hit point, `SMELT.shapedHold` ms later the minigame
    closes and the finished blade lies on the anvil. Drag it into the bucket: the quench steam and mist play, then the
    "Sword crafted!" window, as the minigame's mug did before.
@@ -59,6 +65,9 @@ this later)"
 | `lift` | 12 | the handle's tilt in degrees when fully raised (the old pump animation went to 10) |
 | `strokeSec` | 0.2 | one full stroke (0 to 1) moves the sword as far as 0.2 s of full-speed travel; a down-and-up pump is 0.4 s (s2; was 0.5) |
 | `springMs` | 250 | released, the handle springs back to closed in this time; the spring does not move the sword (s2) |
+| `easeSec` | 0.15 | the glide's time constant: each frame releases 1 - e^(-dt/easeSec) of the stored travel (s3) |
+| `flush` | 0.002 | stored travel at or below this (s) is released at once, so the glide ends (s3) |
+| `bladeW` | 2 | the shaped blade on the anvil, as a multiple of the anvil's width (s3; was 1.25) |
 | `shapedHold` | 700 | ms between the last strike and the minigame closing, so the finished blade is seen |
 | `freeOres` | 20 | of every ore at the start of free play |
 | `freeGold` | 500 | gold at the start of free play |
@@ -71,6 +80,7 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
 - `smHandle(pos, dyPx)`: the handle at `pos` (0..1) dragged `dyPx` (screen down is positive, so up raises it) returns
   `{ pos, moved }`: the new position clamped to 0..1, and how far it actually moved (0..1).
 - `smTravelDt(moved)`: the equivalent full-speed seconds for a handle movement, `moved x strokeSec`.
+- `smEase(owed, dt)`: how much of the stored travel `owed` the sword glides out in a frame of `dt` s (s3).
 
 ## Build log
 
@@ -91,3 +101,4 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
   - the hot metal dragged back into the smelter keeps its trait and takes more ore;
   - no console errors.
 - 2026-10-21: s2 the handle springs back when released (`springMs` 250, no travel); the sword 2.5x slower (`strokeSec` 0.2).
+- 2026-10-21: s3 the bellows' travel glides out frame by frame (`smEase`, `easeSec` 0.15); the blade on the anvil is 2x the anvil's width (was 1.25).
