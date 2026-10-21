@@ -91,6 +91,24 @@ the pivot point on the handle."
   acceleration a), `smBladeEnds(rgba, w, h)`, `smRot(th, artDeg)` = the picture's rotation in degrees for a swing angle
   th (rad), the art's own tang-to-tip angle being artDeg: (90 - th in degrees) - artDeg.
 
+## Hot blade, quenched in the bucket (owner, 2026-10-21, s6)
+
+Owner: "the blade should get quenched near the bucket. Keep it glowing hot on the anvil, then when it is quenched, it is
+finalized. We should be able to hold it, and dip it in the bucket as well. Dropping the blade in the bucket is also fine
+(what we have now)"
+
+- **Hot:** the shaped blade glows hot (`#smBlade.hot`: the metal tinted orange, with an orange glow) on the anvil and while it is held.
+- **Dip:** held, the moment its tip touches the bucket's water (`smInWater`: the tip inside the water's part of the bucket
+  picture, x `waterX0`..`waterX1` of its width, from `waterY0` of its height down to its bottom) it is quenched where it
+  is. It must enter from above (`smDipped`: in the water now, above the surface the frame before): hanging from the
+  anvil's height the tip is as low as the water, and carried left it swung in through the bucket's side (found in the
+  browser check). Then: the hold ends, it goes behind the bucket's rim (the tip reads as under the water), the glow fades out (0.7 s), the
+  steam and mist rise at the tip, then the "Sword crafted!" window: the blade is finalized.
+- **Drop:** released with the tip over the bucket but not in the water, it drops straight down into it, as in s5, cooling
+  the same way.
+- **Values:** `waterX0` 0.23, `waterX1` 0.80, `waterY0` 0.30 (read off `assets/forge/anchor_bucket.webp`: the water's
+  surface spans about 23%-80% across, from 30% down).
+
 ## The loop
 
 1. Ore to the smelter, or to the grindstone and then the smelter (unchanged). The route draws on the map.
@@ -156,3 +174,4 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
 - 2026-10-21: s3 the bellows' travel glides out frame by frame (`smEase`, `easeSec` 0.15); the blade on the anvil is 2x the anvil's width (was 1.25).
 - 2026-10-21: s4 the ladle: tilt it to pull the sword toward the centre (tier alignment); speed by the tilt; tips back on release.
 - 2026-10-21: s5 the blade hangs from its handle: picked up, it swings down and swings like a pendulum when moved; dropped straight down into the bucket.
+- 2026-10-21: s6 the blade glows hot until quenched; held, dipping its tip in the bucket's water quenches and finalizes it; dropping it in still works.

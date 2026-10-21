@@ -13,7 +13,7 @@ const src = readFileSync(HTML, 'utf8');
 const main = readFileSync('Swordforge_looptest_landscape.html', 'utf8');
 const m = src.match(/\/\* SMELT-PURE-BEGIN \*\/([\s\S]*?)\/\* SMELT-PURE-END \*\//);
 assert.ok(m, 'SMELT-PURE markers not found in ' + HTML);
-const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed, smPendStep, smFollow, smBladeEnds, smRot };')();
+const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed, smPendStep, smFollow, smBladeEnds, smRot, smInWater, smDipped };')();
 
 let n = 0;
 function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; console.log('  ok   ' + label); }
@@ -22,7 +22,7 @@ const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.mov
 /* the record */
 eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500,
   ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 },
-  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320 });
+  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320, waterX0: 0.23, waterX1: 0.8, waterY0: 0.3 });
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
@@ -73,6 +73,21 @@ eq('every frame the held blade swings', /function tick\(now\)\{[\s\S]{0,4000}smB
 eq('the bucket test reads the tip; over it the blade drops straight down', /function smOverBucket\(\)\{[\s\S]{0,200}smBladeTip\(\)/.test(src)
   && /function smBladeDrop\(\)\{[\s\S]{0,700}SMELT\.bladeDropPx[\s\S]{0,400}SMELT\.bladeDropMs/.test(src), true);
 
+/* s6: hot, then quenched in the water */
+const BK = { L: 0, R: 100, T: 0, B: 200 };
+eq('the tip in the water quenches', S.smInWater({ x: 50, y: 70 }, BK), true);
+eq('above the water, no', S.smInWater({ x: 50, y: 59 }, BK), false);
+eq('beside the water (the rim), no', [S.smInWater({ x: 22, y: 100 }, BK), S.smInWater({ x: 81, y: 100 }, BK)], [false, false]);
+eq('below the bucket, no', S.smInWater({ x: 50, y: 201 }, BK), false);
+eq('a dip comes from above: over the surface, then in the water', S.smDipped({ x: 50, y: 55 }, { x: 50, y: 65 }, BK), true);
+eq('in through the side wall is no dip', S.smDipped({ x: 10, y: 100 }, { x: 30, y: 100 }, BK), false);
+eq('already under the surface is no new dip', S.smDipped({ x: 50, y: 90 }, { x: 52, y: 95 }, BK), false);
+eq('the blade glows hot until quenched; the glow fades out', /#smBlade \{[^}]*transition: filter \.7s ease-out;/.test(src) && src.includes('#smBlade.hot {')
+  && /function smBladeShow\(\)\{[\s\S]{0,300}b\.classList\.add\('hot'\);/.test(src), true);
+eq('held, the tip in the water quenches it where it is', /function smBladeTick\(dt\)\{[\s\S]{0,1400}const tip=smBladeTip\(\), was=SM_BL\.tip\|\|tip; SM_BL\.tip=tip;[\s\S]{0,200}if\(smDipped\(was, tip, benchRect\(document\.getElementById\('bucketBack'\)\)\)\) smBladeQuench\(\);/.test(src)
+  && /function smBladeQuench\(\)\{[\s\S]{0,500}b\.classList\.remove\('hot'\);[\s\S]{0,400}quenchFx\(\(\)=>\{[\s\S]{0,200}finishBlade\(\);/.test(src), true);
+eq('dropped in, it cools too', /function smBladeDrop\(\)\{[\s\S]{0,400}b\.classList\.remove\('hot'\);/.test(src), true);
+
 /* 1. free play */
 eq('free play instead of D1: on load, after the intro, on a new game', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) smFreePlay\(\);/.test(src)
   && /function introEnd\(\)\{[\s\S]{0,200}smFreePlay\(\);/.test(src) && /function newGame\(\)\{[\s\S]{0,700}setTimeout\(smFreePlay, 500\);/.test(src) && !/setTimeout\(sayStart/.test(src), true);
@@ -100,7 +115,7 @@ eq('the metal on the anvil opens the shape window', /function placeOnAnvil\(\)\{
 eq('the last strike closes the minigame onto the anvil', /function hmStrike\(\)\{[\s\S]{0,1600}if\(hmProg>=2\)\{ hmMugState\(\); setTimeout\(smShaped, SMELT\.shapedHold\); \}/.test(src), true);
 eq('SKIP HAMMER does the same', /function hmSkip\(\)\{[\s\S]{0,300}smShaped\(\);/.test(src), true);
 eq('the shaped blade lies on the anvil, and the bucket finishes it', /function smShaped\(\)\{[\s\S]{0,600}melt\.stage='shaped';[\s\S]{0,300}smBladeShow\(\);/.test(src)
-  && /function smBladeDrop\(\)\{[\s\S]{0,400}smOverBucket\(\)[\s\S]{0,400}quenchFx\(\(\)=>\{ finishBlade\(\); \}/.test(src), true);
+  && /function smBladeDrop\(\)\{[\s\S]{0,400}smOverBucket\(\)[\s\S]{0,600}quenchFx\(\(\)=>\{ finishBlade\(\); \}/.test(src), true);
 eq('the blade on the anvil is SMELT.bladeW anvils wide (s3)', /function smBladeHome\(\)\{[\s\S]{0,200}getBoundingClientRect\(\)\.width\*SMELT\.bladeW\)/.test(src), true);
 eq('a reset clears the blade', /function resetRun\(\)\{[\s\S]{0,300}smBladeHide\(\);/.test(src), true);
 eq('the minigame line no longer asks for the mug', !src.includes("'Blade shaped: <b>splash it with the mug</b> to finish'"), true);
