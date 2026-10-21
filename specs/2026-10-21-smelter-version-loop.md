@@ -27,6 +27,9 @@ this later)"
    metal at the gate. For another trait, drag the metal back into the smelter, pump on, open the gate again.
 3. **The bellows handle moves the sword.** Drag the handle up and down; the sword moves only while the handle moves, as
    far as the handle travels, either direction. Stop and the sword stops. Heat no longer sets the sword's speed.
+   s2 (owner, 2026-10-21): "make the bellows handle spring back when released. also, make the movement much slower,
+   maybe 0.2". Released, the handle springs back to closed in `SMELT.springMs`; the spring moves nothing. `strokeSec`
+   0.5 -> 0.2.
 4. **The minigame closes when the blade is shaped.** After the last hit point, `SMELT.shapedHold` ms later the minigame
    closes and the finished blade lies on the anvil. Drag it into the bucket: the quench steam and mist play, then the
    "Sword crafted!" window, as the minigame's mug did before.
@@ -54,7 +57,8 @@ this later)"
 |---|---|---|
 | `rangePx` | 40 | handle travel, in frame px, from closed (0) to fully raised (1) |
 | `lift` | 12 | the handle's tilt in degrees when fully raised (the old pump animation went to 10) |
-| `strokeSec` | 0.5 | one full stroke (0 to 1) moves the sword as far as 0.5 s of full-speed travel; a down-and-up pump is 1 s |
+| `strokeSec` | 0.2 | one full stroke (0 to 1) moves the sword as far as 0.2 s of full-speed travel; a down-and-up pump is 0.4 s (s2; was 0.5) |
+| `springMs` | 250 | released, the handle springs back to closed in this time; the spring does not move the sword (s2) |
 | `shapedHold` | 700 | ms between the last strike and the minigame closing, so the finished blade is seen |
 | `freeOres` | 20 | of every ore at the start of free play |
 | `freeGold` | 500 | gold at the start of free play |
@@ -86,3 +90,4 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
     the Swords tab (Shortsword, Balanced Epic, Masterwork);
   - the hot metal dragged back into the smelter keeps its trait and takes more ore;
   - no console errors.
+- 2026-10-21: s2 the handle springs back when released (`springMs` 250, no travel); the sword 2.5x slower (`strokeSec` 0.2).

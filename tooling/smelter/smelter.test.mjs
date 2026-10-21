@@ -20,13 +20,13 @@ function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; c
 const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.moved * 1000) / 1000 });
 
 /* the record */
-eq('SMELT', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.5, shapedHold: 700, freeOres: 20, freeGold: 500 });
+eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, shapedHold: 700, freeOres: 20, freeGold: 500 });
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
 eq('down a full stroke', r2(S.smHandle(1, 40)), { pos: 0, moved: 1 });
 eq('down past closed: nothing more', r2(S.smHandle(0, 25)), { pos: 0, moved: 0 });
-eq('a full stroke = 0.5 s of full-speed travel; a down-and-up pump = 1 s', [S.smTravelDt(1), S.smTravelDt(1) + S.smTravelDt(1)], [0.5, 1]);
+eq('a full stroke = 0.2 s of full-speed travel; a down-and-up pump = 0.4 s', [S.smTravelDt(1), S.smTravelDt(1) + S.smTravelDt(1)], [0.2, 0.4]);
 eq('no movement, no travel', S.smTravelDt(0), 0);
 
 /* 1. free play */
@@ -41,6 +41,8 @@ eq('the gate opens only on a trait, and acquires it', /function openGate\(\)\{ i
 eq('acquiring releases the hot metal at the gate, with no water', /function tryAcquire\(\)\{[\s\S]{0,2200}melt\.stage='hot'; melt\.heat=100;[\s\S]{0,200}snapToGate\(\);/.test(src) && !/function tryAcquire\(\)\{[\s\S]{0,2600}quenchFx\(/.test(src), true);
 /* 3. the bellows */
 eq('the bellows handle moves the sword as far as it travels', /function wireBellowGate\(\)\{[\s\S]{0,1600}smHandle\(SM_POS, [\s\S]{0,400}advanceSword\(smTravelDt\(/.test(src), true);
+eq('released, the handle springs back to closed, and the spring moves nothing (s2)', /const end=e=>\{ if\(live!==e\.pointerId\) return; live=null; quiet\(\); SM_POS=0; paint\(SMELT\.springMs\); \};/.test(src)
+  && /const paint=ms=>\{[^}]*top\.style\.transition=ms \? 'transform '\+ms\+'ms ease-out' : 'none';/.test(src), true);
 eq('heat no longer sets the speed', /function advanceSword\(dt\)\{[\s\S]{0,400}let step=SWORD_SPEED\*mul\*dt,/.test(src), true);
 eq('the forge hammer no longer moves the sword', !/hammerStriking\(\)\)\{ advanceSword\(dt\);/.test(src), true);
 eq('no dragon fire on the forge', /function wireDragon\(\)\{[\s\S]{0,700}mode = 'say';/.test(src) && !/mode = dragonAtAnvil\(\) \? 'breath' : 'say';/.test(src), true);

@@ -2670,7 +2670,7 @@ const FTUE = {
    anvil opens the minigame, the bucket finishes the blade. Record: specs/2026-10-21-smelter-version-loop.md; test:
    tooling/smelter/smelter.test.mjs. */
 /* SMELT-PURE-BEGIN */
-const SMELT={ rangePx:40, lift:12, strokeSec:0.5, shapedHold:700, freeOres:20, freeGold:500 };
+const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, shapedHold:700, freeOres:20, freeGold:500 };   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
 function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
 /* a handle movement as seconds of full-speed sword travel */
@@ -7706,7 +7706,7 @@ function wireDragon(){
 /* smelter version: drag the handle up and down; the sword travels only while it moves, as far as it moves (SMELT, smHandle) */
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const smoke=document.getElementById('furnaceSmoke');
     let live=null, lastY=0, idle=null;
-    const paint=()=>{ top.style.transformOrigin='20% 74%'; top.style.transform='rotate('+(-SMELT.lift*SM_POS).toFixed(2)+'deg)'; };
+    const paint=ms=>{ top.style.transformOrigin='20% 74%'; top.style.transition=ms ? 'transform '+ms+'ms ease-out' : 'none'; top.style.transform='rotate('+(-SMELT.lift*SM_POS).toFixed(2)+'deg)'; };   /* ms: the spring back */
     const quiet=()=>{ bellowing=false; if(smoke) smoke.classList.remove('on'); };
     const scale=()=>{ const f=document.getElementById('frame'); return f ? (f.getBoundingClientRect().width/(f.offsetWidth||1)) || 1 : 1; };
     bh.addEventListener('pointerdown', e=>{ e.preventDefault();
@@ -7719,7 +7719,7 @@ function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=d
         bellowing=true; if(smoke) smoke.classList.add('on');
         advanceSword(smTravelDt(h.moved));
         if(idle) clearTimeout(idle); idle=setTimeout(quiet, 160); });   /* the smoke stops when the hand does */
-    const end=e=>{ if(live!==e.pointerId) return; live=null; quiet(); };
+    const end=e=>{ if(live!==e.pointerId) return; live=null; quiet(); SM_POS=0; paint(SMELT.springMs); };   /* s2: springs back closed; the spring moves nothing */
     bh.addEventListener('pointerup', end); bh.addEventListener('pointercancel', end);
     gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
