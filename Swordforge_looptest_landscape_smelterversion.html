@@ -86,6 +86,13 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 .intro-ember { position: absolute; bottom: -10px; border-radius: 50%; background: #ff5500; box-shadow: 0 0 8px #ff2200; opacity: 0;
     animation: introRise var(--dur) linear infinite; }
 @keyframes introRise { 0% { transform: translate(0,0); opacity: .8; } 50% { opacity: .6; } 100% { transform: translate(var(--drift),-620px); opacity: 0; } }
+/* smelter version: the forge hammer, the forge mug and the minigame mug are gone; the PART jumps build tutorial states */
+#hammerTool, #mug, #hmMug { display: none !important; }
+.cheatPart { display: none !important; }
+#bellowHot { touch-action: none; cursor: ns-resize; }
+#smBlade { position: absolute; z-index: 26; display: none; cursor: grab; touch-action: none; -webkit-user-drag: none;
+    transform: translate(-50%,-50%) rotate(40deg); filter: drop-shadow(0 0 9px rgba(255,170,60,.8)); }
+#smBlade.dragging { cursor: grabbing; z-index: 40; }
 #sfRotate { position: fixed; inset: 0; z-index: 99999; display: none; background: #2b2b2b; color: #e8dcc0;
     flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; padding: 24px; }
 #sfRotate.on { display: flex; }
@@ -2259,7 +2266,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.webp" alt="Bellows">
             <span class="bellow-tag">Bellows</span>
             <span class="cap" style="bottom:2px;">Smelt <small>· furnace</small></span>
-            <div id="bellowHot" title="Hold to pump the bellows"></div>
+            <div id="bellowHot" title="Drag up and down to pump the bellows"></div>
             <div id="furnaceGate" title="Open the gate"></div>
         </div>
 
@@ -2290,7 +2297,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
         <!-- 5 · Quench — water bucket (Bucket3_back / _mug / _front share one canvas); the mug interleaves so it sits IN the bucket -->
         <img id="bucketBack" class="bucket-layer" src="assets/forge/anchor_bucket.webp" alt="Water bucket" style="z-index:9;"><!-- above the enlarged dragon -->
-        <div id="mug" style="z-index:10;"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div><!-- r11b: mug in FRONT of the bucket, resting on the water (owner feedback) -->
+        <div id="mug" style="z-index:10;"><img src="assets/forge/anchor_mug.webp" alt="Mug"></div>
+        <img id="smBlade" alt="Blade" draggable="false"><!-- smelter version: the shaped blade on the anvil, dipped in the bucket --><!-- r11b: mug in FRONT of the bucket, resting on the water (owner feedback) -->
 
         <img id="bucketFront" class="bucket-layer" src="assets/forge/anchor_bucket.webp" alt="" style="z-index:4; display:none;"><!-- anchor bucket is a single cut; front layer unused -->
         <span class="badge" style="left:368px; top:446px;">5</span>
@@ -2658,6 +2666,16 @@ const FTUE = {
           text:'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ] }
 };
 /* FTUE-CONFIG-END */
+/* Smelter version (owner, 2026-10-21): a separate crafting loop - the bellows move the sword, the gate takes the trait, the
+   anvil opens the minigame, the bucket finishes the blade. Record: specs/2026-10-21-smelter-version-loop.md; test:
+   tooling/smelter/smelter.test.mjs. */
+/* SMELT-PURE-BEGIN */
+const SMELT={ rangePx:40, lift:12, strokeSec:0.5, shapedHold:700, freeOres:20, freeGold:500 };
+/* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
+function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
+/* a handle movement as seconds of full-speed sword travel */
+function smTravelDt(moved){ return moved*SMELT.strokeSec; }
+/* SMELT-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
 //  Design record: specs/2026-10-07-ftue-v3-rework.md (D2, D5, D6, D7, D14, D16). The recorded values
@@ -4926,7 +4944,7 @@ function newGame(){
     DD_SEL={ grip:'grip1', guard:'guard1', pommel:'pommel1' }; DD_BLADE='balanced_shortsword_blade';
     SH_VAL=0; SH_WAS=0; QS_PAGE=1; exp=0; LEVEL=1; TALENT=0;
     FTUE_ST=ftueFresh(); BUILD_ON=false; (()=>{ const l=document.getElementById('screenLayer'); if(l) l.classList.remove('build-on'); })(); ftueGrindUi(); renderDecor();   /* r199 */
-    tutReset(); setTimeout(sayStart, 500);   /* r199: was sayNext, which does nothing while SAY_I is -1 (r106) - a new game from the menu never spoke D1 */
+    tutReset(); setTimeout(smFreePlay, 500);   /* smelter version: free play */   /* r199: was sayNext, which does nothing while SAY_I is -1 (r106) - a new game from the menu never spoke D1 */
     SKILL_RANK={ bulk:0, master:0, vision:0, restore:0 };
     QUESTS.forEach(q=>{ q.progress=0; q.done=false; q.claimed=false; }); questBtnUi();   /* r200 */
     (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='1'; })();   // r69: a new game is day 1
@@ -5924,7 +5942,7 @@ function addPrep(){ if(!prep) return;
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
     else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
     else if(String(_fireStage).indexOf('d2-gale')===0) tutGaleSmelted();   /* r125 */
-     hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+     hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
 function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     const _galeStage = TUT_STAGE;   /* r125 */
     if(fullGrindOnly()){ toast('Not straight in: this one goes to the <b>grindstone</b> first'); return; }
@@ -5932,11 +5950,18 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
     if(ftueFirstCap(oreId)) return;   /* r199 */
     ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
-    if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… <b>hold the bellows</b> to heat &amp; <b>tap the gate</b> when ready — or add more ore to stack the route.'); }
+    if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
 function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
-function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!gateReady){ hint('Still heating — keep pumping the bellows.'); return; } if(!ftueGateOk()) return;   /* r199 */ if(TUT_STAGE==='gate') tutAnvilStep(); melt.stage='hot'; document.getElementById('furnaceGate').classList.remove('ready'); orbEl.style.display='block'; updateOrbLook(); snapToGate(); hint('Drag the <b>hot metal</b> to the <b>anvil</b> to hammer — or back to the furnace to add more ore.'); }
-function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the furnace. Add more ore, re-heat with the bellows, then tap the gate again.'); }
-function placeOnAnvil(){ if(TUT_STAGE==='anvil') tutHammerStep(); melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Drag the hammer onto the anvil</b> to run the sword along the route. Reach a trait, then <b>pour the mug</b> over the anvil to lock it in.'); }
+function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
+    gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
+/* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
+function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!melt.reachedTrait){ toast('Move the sword onto a <b>trait</b> first: drag the <b>bellows</b> up and down'); return; }
+    bellowing=false; tryAcquire(); }
+function smGateFx(){ const g=document.getElementById('furnaceGate'); if(!g) return; const r=benchRect(g);
+    fxBurst(r.L+(r.R-r.L)*0.6, r.T+(r.B-r.T)*0.6, { n:16, kind:'ember', ang:-Math.PI/2, spread:1.6, dist:46, size:5, dur:700 }); }
+function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the smelter. Add more ore if you like, drag the <b>bellows</b> to move the sword, then tap the gate on a trait.'); }
+function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('Pick a <b>shape</b> to hammer. Closed it? <b>Tap the metal</b> to pick again.');
+    if(melt.traits && melt.traits.length) setTimeout(openShapeSelect, 0); }   /* smelter version: the anvil opens the shaping */
 function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
 function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }   /* r225 (owner): purple Epic, blue Fine, dark grey Weak - yellow did not read on the beige windows */
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
@@ -5977,7 +6002,7 @@ function checkTraitReach(p){ if(!melt) return;   // p = sword's rendered positio
         if(melt.reachedTrait!==best){ reveal(best.x,best.y,'tr'+best.trait.id); }   // clear fog over the spot (shows the '?') — but NOT its identity; that needs acquiring
         melt.reachedTrait=best; melt.alignDist=bestD; const tier=tierFromDist(bestD); highlightTrait(best,tier); tutQuenchStep();
         const idLabel = best.discovered ? ('<b>'+best.trait.name+' '+best.trait.symbol+'</b>') : 'an <b>undiscovered trait</b> (?)';
-        hint('On '+idLabel+' — alignment <b style="color:'+tierColor(tier)+'">'+tier+'</b>. Nudge with the dragon for a tighter fit, then <b>pour the mug</b> to '+(best.discovered?'lock it in':'acquire &amp; reveal it')+'.');
+        hint('On '+idLabel+' — alignment <b style="color:'+tierColor(tier)+'">'+tier+'</b>. Tap the <b>smelter gate</b> to '+(best.discovered?'take it':'acquire &amp; reveal it')+'.');   /* smelter version */
     } else if(melt.reachedTrait){ melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight(); } }
 function showResult(tr,tier){ const el=document.getElementById('forgeResult'); el.innerHTML='⚔️ Forged!<br><span style="font-size:28px;">'+tr.trait.symbol+'</span><br>'+tr.trait.name+'<br><span style="font-size:15px;color:'+tierColor(tier)+';">'+tier+' tier</span>'; el.classList.add('show'); }
 function tryAcquire(){
@@ -5991,21 +6016,20 @@ function tryAcquire(){
         const RANK=['Weak','Fine','Epic'];
         if(had){ if(RANK.indexOf(tier) > RANK.indexOf(had.tier)) had.tier=tier; }
         else melt.traits.push({t:bt, tier:tier, val:(rt&&rt.value!=null)?rt.value:null});   // r64: stamp the map value so the sword carries its own worth
-        melt.heat=0; updateGauges();                                             // the water quenches the orb — re-heat in the furnace to travel further
         melt.reachedTrait=null; melt.alignDist=null; clearTraitHighlight();
-        melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y);
+        melt.stage='hot'; melt.heat=100; updateGauges(); orbEl.style.display='block'; updateOrbLook(); snapToGate();   /* smelter version: out at the gate, hot */
         if(tier==='Epic' && (Math.abs(pull.x)>0.5 || Math.abs(pull.y)>0.5)) bumpQuest('epicHelp');   /* 2026-10-09 */
         const isNew=recordRecipe(bt.id, tier);        // r65: written down automatically
         if(firstFind) bumpQuest('discover3');
-        quenchFx(()=>{ updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
+        smGateFx(); setTimeout(()=>{ updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
             if(bt.id==='swift') tutSwiftGot();   /* r124 */
             if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();   /* v3: GC1-GC3 */
             if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
             if(bt.id==='gale') tutGaleGot();   /* r126 */
             showAcquire(bt,tier,melt.traits.length,firstFind);
             if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
-            hint('Quenched &amp; locked in <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>metal ingot</b> to the <b>furnace</b> to re-heat &amp; reach more traits, or <b>tap the ingot</b> on the anvil to choose a shape.'); });   /* r259: the steam and the mist first */
-    } else { hint('The sword isn\'t sitting on a trait — hammer or pull it onto one first.'); placeOnAnvil(); }
+            hint('Took <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>hot metal</b> to the <b>anvil</b> to shape it, or back into the <b>smelter</b> for another trait.'); }, 450);   /* smelter version: the gate's embers, then the trait window */
+    } else hint('The sword is not on a trait: drag the <b>bellows</b> up and down to move it onto one.');
 }
 // ---- r65: recipes -----------------------------------------------------------------------------
 // One per trait. Recorded at acquisition, because that is the only moment where the trait and the ore
@@ -6993,7 +7017,7 @@ function hmSkip(){
     if(!m || !m.classList.contains('show')) return false;
     hmProg=2; hmQuenching=false; tutHm2Clear();
     HM_QUAL={ name:HM_HITS.skip, acc:null };   /* r209: owner, 2026-10-01 */
-    finishBlade();
+    smShaped();   /* smelter version: onto the anvil, then the bucket */
     return true;
 }
 function cheatUi(){
@@ -7090,7 +7114,7 @@ function hmRender(){
 function hmSay(){
     const el=document.getElementById('hmSay'); if(!el) return;
     hmMugState();
-    el.innerHTML = hmProg>=2 ? 'Blade shaped: <b>splash it with the mug</b> to finish'
+    el.innerHTML = hmProg>=2 ? 'Blade shaped!'   /* smelter version */
         : hmHeat>=HM_FORGE.workMin ? 'It glows: put the <b>ring</b> on a <b>mark</b>, then <b>tap the hammer</b>'   /* r209 */
         : 'Hold the <b>metal</b>: the dragon turns its head and breathes on it';
 }
@@ -7163,7 +7187,7 @@ function hmStrike(){
         if(hmPts.every(p=>p.left<=0)){ hmProg=2; hmSetPoints(2); } else hmPointsDraw(); }
     hmAccPop(P, acc);
     hmJolt('jolt'); hmImpact(true, P); hmRender(); hmSay(); hmHeatWatch(); hmRingPaint();
-    if(hmProg>=2){ hmMugState(); tutMugStep(); }
+    if(hmProg>=2){ hmMugState(); setTimeout(smShaped, SMELT.shapedHold); }   /* smelter version: no mug - the blade goes to the anvil */
 }
 // ---- input ----
 // Drag the head: track the CHANGE in pointer angle about the pivot rather than the absolute angle, so
@@ -7238,6 +7262,31 @@ function wireHmHammer(){
     sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
     HM_PAINT=paint; paint();
 }
+/* smelter version: the shaped blade lies on the anvil; dragged into the bucket it is quenched and finished (finishBlade) */
+function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
+    m.classList.remove('show'); hmClear(); cheatUi();
+    SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
+    smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.'); }
+function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
+    b.style.width=Math.round(stAnvil.getBoundingClientRect().width*1.25)+'px'; b.style.left=a.x+'px'; b.style.top=a.y+'px'; }
+function smBladeShow(){ const b=document.getElementById('smBlade'); if(!b || !SM_BLADE_FILE) return;
+    b.src='assets/sword-parts/blades/'+SM_BLADE_FILE+'.webp'; b.style.display='block'; smBladeHome(); }
+function smBladeHide(){ const b=document.getElementById('smBlade'); if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
+function smOverBucket(){ const b=document.getElementById('smBlade'), k=document.getElementById('bucketBack'); if(!b || !k) return false;
+    const r=b.getBoundingClientRect(), q=k.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+    return cx>q.left-12 && cx<q.right+12 && cy>q.top-24 && cy<q.bottom; }
+function smBladeDrop(){ const b=document.getElementById('smBlade'); if(!b) return;
+    if(!smOverBucket()){ smBladeHome(); return; }
+    const k=document.getElementById('bucketBack'), r=benchRect(k);
+    b.style.display='none';
+    quenchFx(()=>{ finishBlade(); }, { host:benchEl(), x:(r.L+r.R)/2, y:r.T+(r.B-r.T)*0.3, unit:'px', step:22 }); }
+function wireSmBlade(){ const b=document.getElementById('smBlade'); if(!b) return; let live=null, dx=0, dy=0;
+    b.addEventListener('pointerdown', e=>{ e.preventDefault(); live=e.pointerId; const r=b.getBoundingClientRect(); dx=e.clientX-(r.left+r.width/2); dy=e.clientY-(r.top+r.height/2);
+        b.classList.add('dragging'); try{ b.setPointerCapture(e.pointerId); }catch(err){} });
+    b.addEventListener('pointermove', e=>{ if(live!==e.pointerId) return; const q=benchEl().getBoundingClientRect();
+        b.style.left=(e.clientX-q.left-dx)+'px'; b.style.top=(e.clientY-q.top-dy)+'px'; });
+    const end=e=>{ if(live!==e.pointerId) return; live=null; b.classList.remove('dragging'); smBladeDrop(); };
+    b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):'';
     // r60: the sword is kept. Default design = whatever the Design Desk currently has selected.
@@ -7275,7 +7324,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>cwHurtStart(), 350);   /* r215. owner, 2026-10-10: D69d opens the paper on the Health row */
 }
-function resetRun(){ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
+function resetRun(){ smBladeHide();   /* smelter version */ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ document.getElementById('sfIllusModal').classList.remove('show');   /* r193 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=MUG_Z; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }
@@ -7307,7 +7356,7 @@ let IRON_LEN=0;
 function routeLen(){ return segs.reduce((n,s)=>n+(s.len||0)*(s.tPct==null?1:s.tPct), 0); }
 function ironLen(){ if(!IRON_LEN){ measure.setAttribute('d', ORE_BY.iron.d); IRON_LEN=measure.getTotalLength(); } return IRON_LEN; }
 function routeSpeedMul(){ return routeLen() >= ROUTE_FAST.irons*ironLen() ? ROUTE_FAST.mul : 1; }
-function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-gale-quench' || TUT_STAGE==='p4-weak-quench') return;   /* r198: parked on Gale until it is splashed */ const mul=routeSpeedMul(); let step=SWORD_SPEED*mul*Math.max(CRAWL_MIN, melt.heat/100)*dt, guard=0;   // at heat 0 the sword still creeps at CRAWL_MIN× speed
+function advanceSword(dt){ if(!segs.length || !melt) return; if(TUT_STAGE==='d2-gale-quench' || TUT_STAGE==='p4-weak-quench') return;   /* r198: parked on Gale until it is splashed */ const mul=routeSpeedMul(); let step=SWORD_SPEED*mul*dt, guard=0;   /* smelter version: heat no longer sets the speed (dt comes from the bellows) */   // at heat 0 the sword still creeps at CRAWL_MIN× speed
     while(step>0 && sword.seg<segs.length && guard++<60){ const s=segs[sword.seg]; if(sword.frac<s.tPct){ const room=s.tPct-sword.frac; if(step<room){ sword.frac+=step; step=0; } else { step-=room; sword.frac=s.tPct; if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; } } else if(sword.seg<segs.length-1){ sword.seg++; sword.frac=0; } else break; }
     tutGaleEpicStop();   /* r198: clamps the sword back onto Gale's centre if this step passed it */
     tutWeakStop();   /* v3 part 4: GC8 */
@@ -7393,7 +7442,8 @@ function tick(now){
             fxAcc.bellow+=dt; if(fxAcc.bellow>0.13){ fxAcc.bellow=0; const m=fxPt(document.querySelector('#stSmelt .furnace'),0.5,0.60); fxBurst(m.x,m.y,{n:3,kind:'ember',ang:-Math.PI/2,spread:0.85,dist:42,size:5,dur:660}); } }
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
-        if(!gateReady && melt.heat>=HEAT_READY) markGateReady(); updateGauges(); }
+        updateGauges(); }
+    smGateSync();   /* smelter version: the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
     if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
@@ -7418,11 +7468,7 @@ function tick(now){
     } else {
         if(retreating) retreating=false;
         if(!swordAtRouteEnd()) HAMMER_HOMED=false;   /* r143: re-arm as soon as there is road left again */
-        if(melt && melt.stage==='onAnvil' && !melt.acquiredTrait && hammerStriking()){ advanceSword(dt);
-            if(swordAtRouteEnd() && !HAMMER_HOMED){ HAMMER_HOMED=true; homeHammer(); }   /* r143 */
-            tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd();   /* r111/r124/r125 */   // hammer never fights the fire
-            if(TUT_STAGE==='hammer'){ TUT_STRIKE+=dt; if(TUT_STRIKE>=TUT_STRIKE_BEAT) tutStrikeStep(); }
-            fxAcc.strike+=dt; if(fxAcc.strike>0.28){ fxAcc.strike=0; const a=fxPt(stAnvil,0.5,0.16); fxBurst(a.x,a.y,{n:5,spread:1.8,dist:32,size:4.5,dur:420}); const av=document.querySelector('#stAnvil .anvil'); if(av){ av.classList.remove('recoil'); void av.offsetWidth; av.classList.add('recoil'); } } }
+        /* smelter version: the forge hammer no longer moves the sword - the bellows do (wireBellowGate) */
     }
     updateHintArrow();
     requestAnimationFrame(tick);
@@ -7631,7 +7677,7 @@ function wireDragon(){
         active=true; sx=e.clientX; sy=e.clientY;
         const r=d.getBoundingClientRect(); dx=e.clientX-r.left; dy=e.clientY-r.top;
         try{ d.setPointerCapture(e.pointerId); }catch(err){}
-        mode = dragonAtAnvil() ? 'breath' : 'say';
+        mode = 'say';   /* smelter version: no fire on the forge (the tier alignment tool comes later) */
         if(mode==='breath') startBreath(); });
     d.addEventListener('pointermove', e=>{
         if(!active) return;
@@ -7657,9 +7703,25 @@ function wireDragon(){
         if(tapped) dragonTap(e, document.getElementById('screenLayer')); };
     d.addEventListener('pointerup',end); d.addEventListener('pointercancel',end); }
 
+/* smelter version: drag the handle up and down; the sword travels only while it moves, as far as it moves (SMELT, smHandle) */
 function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=document.getElementById('furnaceGate'), top=document.getElementById('bellowtop'); const smoke=document.getElementById('furnaceSmoke');
-    const startB=e=>{ e.preventDefault(); if(TUT_BELLOWS_LOCK) return;   /* r182 */
-        if(melt&&melt.stage==='smelting'){ bellowing=true; top.classList.add('pumping'); if(smoke) smoke.classList.add('on'); } }; const stopB=()=>{ bellowing=false; top.classList.remove('pumping'); if(smoke) smoke.classList.remove('on'); }; bh.addEventListener('pointerdown',startB); bh.addEventListener('pointerup',stopB); bh.addEventListener('pointercancel',stopB); bh.addEventListener('pointerleave',stopB); gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
+    let live=null, lastY=0, idle=null;
+    const paint=()=>{ top.style.transformOrigin='20% 74%'; top.style.transform='rotate('+(-SMELT.lift*SM_POS).toFixed(2)+'deg)'; };
+    const quiet=()=>{ bellowing=false; if(smoke) smoke.classList.remove('on'); };
+    const scale=()=>{ const f=document.getElementById('frame'); return f ? (f.getBoundingClientRect().width/(f.offsetWidth||1)) || 1 : 1; };
+    bh.addEventListener('pointerdown', e=>{ e.preventDefault();
+        if(!melt || melt.stage!=='smelting' || !segs.length){ toast('Put an <b>ore</b> in the <b>smelter</b> first'); return; }
+        live=e.pointerId; lastY=e.clientY; try{ bh.setPointerCapture(e.pointerId); }catch(err){} });
+    bh.addEventListener('pointermove', e=>{ if(live!==e.pointerId) return;
+        const h=smHandle(SM_POS, (e.clientY-lastY)/scale()); lastY=e.clientY;
+        if(h.moved<=0) return; SM_POS=h.pos; paint();
+        if(!melt || melt.stage!=='smelting') return;
+        bellowing=true; if(smoke) smoke.classList.add('on');
+        advanceSword(smTravelDt(h.moved));
+        if(idle) clearTimeout(idle); idle=setTimeout(quiet, 160); });   /* the smoke stops when the hand does */
+    const end=e=>{ if(live!==e.pointerId) return; live=null; quiet(); };
+    bh.addEventListener('pointerup', end); bh.addEventListener('pointercancel', end);
+    gate.addEventListener('pointerdown',e=>{ e.preventDefault(); openGate(); }); }
 
 // ---- JUICE: particle bursts + interactive grind wheel (Phase B station feel) ----
 let fxAcc={grind:0,bellow:0,fire:0,strike:0};
@@ -10226,18 +10288,26 @@ function introNext(){ if(INTRO_BUSY) return; const sl=document.querySelectorAll(
     INTRO_BUSY=true; sl[INTRO_I].classList.remove('on'); INTRO_I++; sl[INTRO_I].classList.add('on');
     setTimeout(()=>{ INTRO_BUSY=false; }, 700); }   /* the fade's length */
 function introClose(){ const el=document.getElementById('sfIntro'); if(el) el.classList.remove('show'); }
-function introEnd(){ if(!introOpen()) return; introClose(); setTimeout(sayStart, 600); }
+function introEnd(){ if(!introOpen()) return; introClose(); smFreePlay(); }   /* smelter version */
 function wireIntro(){ const el=document.getElementById('sfIntro'); if(!el) return;
     if(location.search.indexOf('nointro')>=0){ introClose(); return; }   /* a test aid */
     introBuild(); el.addEventListener('click', e=>{ if(!e.target.closest('#introSkip')) introNext(); });
     document.getElementById('introSkip').addEventListener('click', introEnd); }
+/* smelter version: free play - the tutorial done, every station and the market open, SMELT.freeOres of every ore */
+let SM_POS=0, SM_BLADE_FILE=null;
+function smFreePlay(){ sayHide(); tutDone(); SAY_SEQ.length=0; SAY_I=-1; TUT_SEEN_END=true;
+    FTUE_ST=ftueFresh(); FTUE_ST.part=7; TUT_BRAM_SOLD=true;   /* past the six parts: part 1 caps the first sword's ores */
+    FTUE_ST.done=true; FTUE_ST.grind=true; FTUE_ST.grindUse=true; FTUE_ST.market=true; FTUE_ST.sharp=true; FTUE_ST.cwSeen=true;
+    Object.keys(ORE_COUNT).forEach(k=>{ ORE_COUNT[k]=SMELT.freeOres; }); GOLD=SMELT.freeGold;
+    ftueGrindUi(); marketBtnUi(); updateHud(); buildShelf(); BELL_ON=true;
+    hint('Drag an <b>ore</b> to the <b>grindstone</b> or the <b>smelter</b>, then drag the <b>bellows</b> up and down.'); }
 function initMechanics(){ stMortar=document.getElementById('stMortar'); ftueGrindUi(); stMortar.addEventListener('click', ()=>{ if(!prep) ftueGrindBlock(); });   /* r199 */stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
     (()=>{ const f=document.getElementById('frame'), c=document.getElementById('sayChoices');
         if(f && c && c.parentElement!==f) f.appendChild(c); })();   /* r115 */
     railUi();   /* r129 */
-    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
-    wireIntro(); if(!introOpen()) setTimeout(sayStart, 600);   /* r75/r107: the opening line, not a 'next'. r302: after the intro */
+    wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireSmBlade(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
+    wireIntro(); if(!introOpen()) smFreePlay();   /* smelter version: free play, no tutorial (r302: after the intro) */
     setTimeout(dragonCap, 60);
     if(!CAVE_NODES.length) rollCaveNodes();               // r68: the cave has seams from the first day
     startShopLoop();                                      // r72: idles until the shopfront is open
