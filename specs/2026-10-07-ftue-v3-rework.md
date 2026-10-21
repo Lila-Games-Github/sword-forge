@@ -2116,6 +2116,19 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   in `SAY_NO_X`: opening MARKET moves each on. Asserted by the FTUE test (562), written first. Checked in the browser:
   all eight show no button, on the counter and on the forge.
 
+- **r290: the hammer minigame's D13 run is the first sword's alone (owner, 2026-10-21).** Found while tracing the script
+  (r285). `openHammer` always calls `tutHmStep`, whose last branch was a fallback for any stage it did not name: it set
+  the stage to 'forge' and said D13, and each OK walked D14, D15, D15a, D16, D17. So GC4 (part 3), TC4 and GC8 (part 4),
+  the part 5 gale Longsword and Garric's solo run (stage null) replayed the first sword's lines, and GC4/TC4/GC8 lost
+  their stage, so `finishBlade` did not see `durSword` and `ftueDurableSell` (the pointer to the counter) never ran. The
+  first sword's own minigame also reached that branch with stage null (its shape pick, stage 'shape', calls
+  `tutDone()`). Now that shape pick sets `TUT_HM_FIRST`; `tutHmStep` says D13 only while it is set, then clears it;
+  `tutReset` clears it too. Asserted by the FTUE test (565), written first. Checked in the browser: a new game played
+  to the first sword's shape pick (the mark set), Shortsword, the minigame says D13 with stage 'forge' (mark cleared);
+  openHammer in p3-dur-heat, p4-quench, p4-weak-quench, p5-gpc, p3-gpc and Garric's null stage says nothing and keeps
+  the stage; GC4 finished and its crafted window closed: `ftueDurableSell` runs and the arrow points the sword to the
+  counter.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2248,3 +2261,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r287 D118 and D27 have no close button; D28 removed.
 - 2026-10-21: r288 D15 pauses the game; D23 and D28b have no close button.
 - 2026-10-21: r289 every market ask (D28b, D28e, D28g, D92h, D92i, D92j, D111b, D113a) has no close button.
+- 2026-10-21: r290 the hammer minigame's D13 run plays only in the first sword (no more replay in later crafts).

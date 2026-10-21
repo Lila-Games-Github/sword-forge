@@ -846,12 +846,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 D11 was removed in r282 (it joined D10), D28 in r287. D30 and D34 were removed earlier.
 
-## Issues found while tracing (2026-10-21, not fixed here)
+## Issues found while tracing (2026-10-21)
 
 - **The hammer minigame replays the first sword's lines.** `tutHmStep` handles only some stages. For any other stage
   (GC4's Durable craft in part 3, TC4 and GC8 in part 4, the part 5 gale Longsword, Garric's solo craft in part 6, and
   GC7 if it is hammered by hand) it sets the stage to 'forge' and says D13, and each OK then walks D14, D15, D15a,
   D16, D17. For GC4, TC4 and GC8 the changed stage also drops the pointer to the counter. SKIP HAMMER hides it.
+  **Fixed in r290:** D13's run now plays only in the first sword's minigame.
 - **The Katana's price.** The part 1 and part 3 flows in `specs/2026-10-07-ftue-v3-rework.md` say the Katana costs
   50g; the build prices the balanced Katana at 150g and the fire Katana at 200g, so D28h plays below those.
 

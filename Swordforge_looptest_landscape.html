@@ -6467,7 +6467,7 @@ let SHAPE_FROM_TUT=false;
 function openShapeSelect(){
     if(TUT_STAGE==='record'){ toast('Record this craft first \u2014 tap <b>RECORD CRAFT</b>'); return; }   /* r100 */
     SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
-    if(TUT_STAGE==='shape') tutDone();
+    if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }   /* r290: the first sword's minigame is the one D13 is for */
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
@@ -8056,7 +8056,7 @@ function tutShapeStep(){
     tutGlow('#orb', true);
 }
 /* ---- r88: the hammering minigame's own lines ---- */
-let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false;
+let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false, TUT_HM_FIRST=false;   /* r290: TUT_HM_FIRST - the first sword's shape is picked, its minigame is next */
 /* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
    and it re-speaks on every further HINT_IDLE_MS of nothing. D46 covers fire+hammer, D47 the mug. */
 let TUT_HM2=false, TUT_HM2_AT=0, TUT_HM2_SAID=false;   /* r155 */
@@ -9118,8 +9118,10 @@ function tutHmStep(){
     if(TUT_HM2){ TUT_STAGE='forge2'; TUT_HM2_AT=0; TUT_HM2_SAID=false; tutExit(null);   /* r155: next tick speaks. r177: and the close-the-panel blink goes, if it was still up */
         if(SAY_SEQ.indexOf('D45')<0) SAY_SEQ.push('D45');
         SAY_I=SAY_SEQ.indexOf('D45'); say('D45'); return; }   /* r102 */
-    if(tutOver() || TUT_STAGE==='forge') return;
-    TUT_STAGE='forge';
+    /* r290 (owner): D13's run is the first sword's alone. This used to be the fallback for any stage, so GC4, TC4, GC8, the
+       part 5 gale Longsword and Garric's solo run replayed D13-D17, and lost their own stage (GC4/TC4/GC8 their counter pointer) */
+    if(tutOver() || TUT_STAGE==='forge' || !TUT_HM_FIRST) return;
+    TUT_HM_FIRST=false; TUT_STAGE='forge';
     ['D13','D14'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D13'); say('D13');
 }
@@ -9698,7 +9700,7 @@ function tutBookStep(b){
    without this the intro replays them, and a stale SAY_I leaves the ore step unarmed. */
 const SAY_OPENING = ['D1','D2','D3'];
 function tutReset(){
-    tutDone(); sayHide();
+    tutDone(); sayHide(); TUT_HM_FIRST=false;   /* r290 */
     TUT_COUNTER_VISITED=false; TUT_BRAM_STATE=null; TUT_BRAM_SOLD=false;
     SD_POS=null;   /* r160 */
     const d=document.getElementById('screenDragon'); if(d){ d.style.display=''; d.style.left=''; d.style.top=''; d.style.bottom=''; d.classList.remove('dragging'); }

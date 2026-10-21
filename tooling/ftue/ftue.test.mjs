@@ -336,6 +336,12 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r290 (owner, 2026-10-21): the minigame's D13 run is the first sword's alone. The first sword's shape pick (stage 'shape')
+   marks it, since tutDone() then clears the stage; any other craft (GC4, TC4, GC8, the part 5 gale Longsword, Garric's
+   solo run) no longer falls through to D13, nor has its stage changed to 'forge' (which cost GC4/TC4/GC8 the counter pointer) */
+eq('the first sword\'s shape pick marks its minigame', src.includes("if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }"), true);
+eq('tutHmStep says D13 only for it, once', /function tutHmStep\(\)\{[\s\S]{0,1200}if\(tutOver\(\) \|\| TUT_STAGE==='forge' \|\| !TUT_HM_FIRST\) return;\s*TUT_HM_FIRST=false; TUT_STAGE='forge';/.test(src), true);
+eq('a new game clears the mark', /function tutReset\(\)\{[\s\S]{0,1500}TUT_HM_FIRST=false;/.test(src), true);
 /* r288 (owner, 2026-10-21): D15 pauses the game (the minigame's heat and clock hold) under the dark screen, until its OK */
 eq('D15 pauses', /function tutHmHeat\(hot\)\{[\s\S]{0,400}say\('D15'\); tutPause\(true\); return; \}/.test(src), true);
 eq('its OK lifts the pause before D15a', src.includes('const SAY_PAUSE_ONE={ D15:1 };') && /function sayNext\(\)\{[\s\S]{0,600}if\(TUT_PAUSE && SAY_PAUSE_ONE\[SAY_ON\]\) tutPause\(false\);/.test(src), true);
