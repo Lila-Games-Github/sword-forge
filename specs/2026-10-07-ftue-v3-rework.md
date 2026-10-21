@@ -2219,3 +2219,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r282 D10 and D11 are one line (D10), with no close button.
 - 2026-10-21: r283 D15 and D15a reworded; the "I just crafted a sword" reply after D21/D22; D23 has no close.
 - 2026-10-21: r284 D24 has no close button.
+- 2026-10-21: r285 the tutorial script doc reordered into play order; found the hammer minigame D13 replay (not fixed).

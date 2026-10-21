@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r285:** the tutorial script doc reads in play order (all 199 lines, parts 1-6). Found while tracing, not fixed: `tutHmStep`'s fallback replays D13-D17 in the hammer minigame for GC4, TC4, GC8, the part 5 gale Longsword and Garric's solo craft (and drops GC4/TC4/GC8's counter pointer); the v3 record's Katana price (50g) differs from the build (150g / 200g).
 - **r284:** D24 has no close button (`SAY_NO_X`).
 - **r283:** D15 "It is hot enough.", D15a "Pick up your hammer, line up the ring..."; after D21 or D22 the player taps "I just crafted a sword. You can have it." before D23; D23 has no close.
 - **r282:** D10 and D11 are one line (D10), no close button; D11 removed (199 keys).
@@ -287,9 +288,10 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 - **The FTUE v3 record (`specs/2026-10-07-ftue-v3-rework.md`) wins over the tutorial script SSOT and the
   2026-09-29 parts plan on order, content and rewards.**
-  `specs/2026-09-15-looptest-landscape-tutorial-script.md` still holds the dialogue text and the beat
-  notes, but its order is the pre-FTUE one (sharpening in the TC2 run, the quest list with the diary,
-  the Day 2 cave after TC4's order); the 2026-09-29 parts plan is superseded too. Within the v3 record a
+  Since r285 `specs/2026-09-15-looptest-landscape-tutorial-script.md` opens with the whole script in play
+  order (as of r284, text copied from the build); its build history below that is the pre-FTUE order
+  (sharpening in the TC2 run, the quest list with the diary, the Day 2 cave after TC4's order). When a line
+  or step changes, update the play-order section too. The 2026-09-29 parts plan is superseded. Within the v3 record a
   later dated entry supersedes an earlier one (e.g. the Day 3 cave over D48).
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.
