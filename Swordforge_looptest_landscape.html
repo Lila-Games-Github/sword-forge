@@ -64,9 +64,28 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 </script>
 <title>Swordforge — Loop Test</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=MedievalSharp&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Lora:ital@0;1&family=MedievalSharp&display=swap');   /* r302: Lora for the intro */
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 /* r135: the portrait gate. Covers everything, including modals, and carries no new art. */
+/* r302: the intro - full-frame pictures before D1, over everything in the frame */
+#sfIntro { position: absolute; inset: 0; z-index: 9000; background: #000; display: none; cursor: pointer; overflow: hidden; }
+#sfIntro.show { display: block; }
+.intro-slide { position: absolute; inset: 0; background: #000 center / cover no-repeat; opacity: 0; transition: opacity .7s ease-in-out;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 54px; box-sizing: border-box; }
+.intro-slide.on { opacity: 1; }
+.intro-box { position: relative; z-index: 2; width: 62%; max-width: 640px; padding: 14px 22px; text-align: center; border-radius: 12px; box-sizing: border-box;
+    background: rgba(4,4,6,.82); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 10px 30px rgba(0,0,0,.7); }
+.intro-box h2 { margin: 0 0 6px; font: 700 21px/1.2 'Cinzel', serif; color: #dfb76c; letter-spacing: 3px; text-transform: uppercase; }
+.intro-box p { margin: 0; font: 15px/1.55 'Lora', serif; color: #d1d1d1; }
+.intro-tap { position: absolute; bottom: 18px; z-index: 2; font: 16px/1 'MedievalSharp', cursive; letter-spacing: 2px; color: rgba(255,255,255,.9);
+    text-shadow: 0 2px 4px rgba(0,0,0,.8); pointer-events: none; animation: introPulse 1.8s ease-in-out infinite; }
+@keyframes introPulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+#introSkip { position: absolute; top: 12px; right: 14px; z-index: 3; padding: 6px 14px; cursor: pointer; font: 700 12px/1 'Cinzel', serif; letter-spacing: 1.5px;
+    color: #f2e3c0; background: rgba(0,0,0,.55); border: 1px solid rgba(242,227,192,.45); border-radius: 6px; }
+.intro-embers { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.intro-ember { position: absolute; bottom: -10px; border-radius: 50%; background: #ff5500; box-shadow: 0 0 8px #ff2200; opacity: 0;
+    animation: introRise var(--dur) linear infinite; }
+@keyframes introRise { 0% { transform: translate(0,0); opacity: .8; } 50% { opacity: .6; } 100% { transform: translate(var(--drift),-620px); opacity: 0; } }
 #sfRotate { position: fixed; inset: 0; z-index: 99999; display: none; background: #2b2b2b; color: #e8dcc0;
     flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; padding: 24px; }
 #sfRotate.on { display: flex; }
@@ -1914,6 +1933,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 </head>
 <body>
 <div id="frame" class="landscape">
+    <div id="sfIntro" class="show"><button type="button" id="introSkip">SKIP</button><div id="introSlides"></div></div><!-- r302: the intro, before D1 -->
 
     <div id="hud" class="collapsed">
         <div id="bladePanel" class="railCard">
@@ -2625,7 +2645,17 @@ const FTUE = {
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
     retryLine: 'D28a',
     marketWatch: 'D28c',   /* v3: as the dragon pays */
-    marketShort: 'D28h'    /* v3 D12: short of the price, the dragon tops the gold up */
+    marketShort: 'D28h',   /* v3 D12: short of the price, the dragon tops the gold up */
+    /* r302 (owner, 2026-10-21): the intro before D1 - the old portrait intro's texts, word for word, in story order ("The intro") */
+    intro: { tap:'TAP TO CONTINUE', last:'TAP TO BEGIN', skip:'SKIP', slides:[
+        { img:'assets/Illustrations/intro_1_fall.webp', title:'The Fall',
+          text:'The monsters arrived without warning. By dawn, my ancestral home was nothing but ash and bone. Everything I ever loved was consumed by the horde.' },
+        { img:'assets/Illustrations/intro_2_exile.webp', title:'Exile',
+          text:"I wandered for weeks through cursed, twilight wilderness. Cold, starving, and hollowed by grief, with only my father's heavy iron anvil hammer remaining at my side." },
+        { img:'assets/Illustrations/intro_3_hearth.webp', title:'A New Hearth',
+          text:"At the remote edge of Oakhaven, I stumbled across it: an old, long-abandoned forge. The grand hearth was cold and choked with soot, waiting for a master's spark." },
+        { img:'assets/Illustrations/intro_4_anvil.webp', title:'The Anvil Awaits',
+          text:'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ] }
 };
 /* FTUE-CONFIG-END */
 // ============================================================
@@ -4890,6 +4920,7 @@ function menuNew(){
     newGame(); closeMenu(); toast('New game');
 }
 function newGame(){
+    introClose();   /* r302: a new game or a PART jump does not replay the intro */
     resetRun(); benchClear(); CRAFT_FLY=[]; CRAFT_FLYING=false;
     INV.ingots=[]; INV.swords=[]; INV_SEQ=1; WORK=null;
     DD_SEL={ grip:'grip1', guard:'guard1', pommel:'pommel1' }; DD_BLADE='balanced_shortsword_blade';
@@ -10178,13 +10209,35 @@ function sayNext(){
         return; }
     say(SAY_SEQ[SAY_I]);
 }
+/* r302 (owner, 2026-10-21): the intro - FTUE.intro's pictures before D1. A tap moves on (not during the fade), the last
+   tap or SKIP ends it and D1 starts. A new game or a PART jump closes it without D1 a second time (newGame speaks D1). */
+let INTRO_I=0, INTRO_BUSY=false;
+function introOpen(){ const el=document.getElementById('sfIntro'); return !!(el && el.classList.contains('show')); }
+function introBuild(){ const box=document.getElementById('introSlides'), sl=FTUE.intro.slides; if(!box) return;
+    box.innerHTML=sl.map((x, i)=>'<div class="intro-slide'+(i ? '' : ' on')+'" style="background-image:url(\''+x.img+'\')">'+(i ? '' : '<div class="intro-embers"></div>')
+        +'<div class="intro-box"><h2>'+x.title+'</h2><p>'+x.text+'</p></div><div class="intro-tap">'+(i===sl.length-1 ? FTUE.intro.last : FTUE.intro.tap)+'</div></div>').join('');
+    const em=box.querySelector('.intro-embers');
+    for(let i=0; i<25; i++){ const e=document.createElement('div'), sz=Math.random()*5+2; e.className='intro-ember';
+        e.style.cssText='left:'+(Math.random()*100)+'%;width:'+sz+'px;height:'+sz+'px;--dur:'+(Math.random()*3+2.5)+'s;--drift:'+(Math.random()*80-40)+'px;animation-delay:'+(Math.random()*3)+'s';
+        em.appendChild(e); }
+    document.getElementById('introSkip').textContent=FTUE.intro.skip; }
+function introNext(){ if(INTRO_BUSY) return; const sl=document.querySelectorAll('#introSlides .intro-slide');
+    if(INTRO_I>=sl.length-1){ introEnd(); return; }
+    INTRO_BUSY=true; sl[INTRO_I].classList.remove('on'); INTRO_I++; sl[INTRO_I].classList.add('on');
+    setTimeout(()=>{ INTRO_BUSY=false; }, 700); }   /* the fade's length */
+function introClose(){ const el=document.getElementById('sfIntro'); if(el) el.classList.remove('show'); }
+function introEnd(){ if(!introOpen()) return; introClose(); setTimeout(sayStart, 600); }
+function wireIntro(){ const el=document.getElementById('sfIntro'); if(!el) return;
+    if(location.search.indexOf('nointro')>=0){ introClose(); return; }   /* a test aid */
+    introBuild(); el.addEventListener('click', e=>{ if(!e.target.closest('#introSkip')) introNext(); });
+    document.getElementById('introSkip').addEventListener('click', introEnd); }
 function initMechanics(){ stMortar=document.getElementById('stMortar'); ftueGrindUi(); stMortar.addEventListener('click', ()=>{ if(!prep) ftueGrindBlock(); });   /* r199 */stSmelt=document.getElementById('stSmelt'); stAnvil=document.getElementById('stAnvil'); mugEl=document.getElementById('mug'); orbEl=document.getElementById('orb'); oreImgEl=document.getElementById('orb-ore'); sphereEl=document.getElementById('orb-sphere'); fireEl=document.getElementById('dragonFire'); hammerEl=document.getElementById('hammerTool');
     setOrientation('landscape');   // this file ships landscape; place all props from LAYOUT.landscape (data-driven; no hardcoded px)
     (()=>{ const f=document.getElementById('frame'), c=document.getElementById('sayChoices');
         if(f && c && c.parentElement!==f) f.appendChild(c); })();   /* r115 */
     railUi();   /* r129 */
     wireOreTray(); wirePestle(); wireGrindWheel(); wireDragon(); wireScreenDragon(); wireBellowGate(); wireOrbDrag(); wireMug(); wireBladePanel(); wireIdleNudge(); updateSfTraits();
-    setTimeout(sayStart, 600);                            /* r75/r107: the opening line, not a 'next' */
+    wireIntro(); if(!introOpen()) setTimeout(sayStart, 600);   /* r75/r107: the opening line, not a 'next'. r302: after the intro */
     setTimeout(dragonCap, 60);
     if(!CAVE_NODES.length) rollCaveNodes();               // r68: the cave has seams from the first day
     startShopLoop();                                      // r72: idles until the shopfront is open

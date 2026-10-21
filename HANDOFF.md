@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r302:** the intro: four pictures (`FTUE.intro`, `assets/Illustrations/intro_*.webp`) with the old portrait intro's texts show on load, before D1; tap to move on, SKIP ends it, `?nointro` skips it. The slides follow the story, not the owner's paste order (see "The intro" in the rework spec). The four Gemini source PNGs (`assets/backgrounds/Gemini_Generated_Image_*.png`, 10-11.6 MB each) are not committed
 - **r301:** the first sword's Shortsword blinks; an unaffordable BUY is greyed; in the tutorial only an order's blueprint can be bought (`ftueBlueprintOk`, D28m in the shape window and the market).
 - **r300:** the tutorial buys blueprints at the shape window: no market trip; the order lines end on a lit OK that starts the craft guide (`SAY_THEN`, `ftueOrderGo`); `ftueShapeOpened` / `ftueShapeDone` run the dragon's or the player's purchase there. `say-over-modal` is z 1011 (the shape window is 1010). GC9 keeps its market lesson.
 - **r299:** a locked shape in the shape window shows "BUY <price>g" and buys there (`shapeBuy`, the market's rules).
@@ -233,7 +234,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 203 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 636 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 644 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

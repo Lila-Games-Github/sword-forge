@@ -2323,6 +2323,40 @@ market - yes; the MARKET button still appears with GC1's order, with nothing poi
   800g - the Dagger refused with D28m on top, the gold kept; the Katana bought (650g left); in the market the Dagger
   (buyable) refused with D28m in the strip, nothing spent.
 
+## The intro (owner, 2026-10-21)
+
+Owner: "use these images for the intro of the game. these 4 images gets displayed first. See the intro of the old
+portrait game version, copy the text from those for now." The texts are copied word for word from the intro of
+`swordforgeV2.html` (the same in `v1.html`), its four scenes in their order.
+
+- **When:** on page load, before D1. The game waits behind it; D1 starts when the intro ends (the last tap, or SKIP).
+  A new game from the menu or a PART jump does not replay it (and closes it if it is up).
+- **How:** one full-frame slide at a time, the picture covering the frame, a story box (title, text) near the bottom and
+  "TAP TO CONTINUE" under it ("TAP TO BEGIN" on the last). A tap anywhere moves on (slides cross-fade; a tap during the
+  fade is ignored). SKIP (top right) ends it at once. Embers rise on the first slide, as in the old intro.
+- **The slides (`FTUE.intro`), in story order:**
+
+| # | Picture (`assets/Illustrations/`) | Source PNG (`assets/backgrounds/`) | Title | Text |
+|---|---|---|---|---|
+| 1 | `intro_1_fall.webp` | `Gemini_Generated_Image_xk5qafxk5qafxk5q.png` (the village burns) | The Fall | The monsters arrived without warning. By dawn, my ancestral home was nothing but ash and bone. Everything I ever loved was consumed by the horde. |
+| 2 | `intro_2_exile.webp` | `Gemini_Generated_Image_2nua8n2nua8n2nua.png` (the dark forest) | Exile | I wandered for weeks through cursed, twilight wilderness. Cold, starving, and hollowed by grief, with only my father's heavy iron anvil hammer remaining at my side. |
+| 3 | `intro_3_hearth.webp` | `Gemini_Generated_Image_qquhdqqquhdqqquh.png` (a town forge at night) | A New Hearth | At the remote edge of Oakhaven, I stumbled across it: an old, long-abandoned forge. The grand hearth was cold and choked with soot, waiting for a master's spark. |
+| 4 | `intro_4_anvil.webp` | `Gemini_Generated_Image_j8oadyj8oadyj8oa.png` (the abandoned forge inside) | The Anvil Awaits | My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now. |
+
+- **The order:** the owner pasted the pictures as qquh, 2nua, xk5q, j8oa. That order puts "The Fall" on a calm town
+  and "A New Hearth" on a burning one, so the slides follow the story (which is also the order the pictures were
+  made in, by file time). To change it, reorder `FTUE.intro.slides` and this table together.
+- **The pictures:** 1920 wide WebP, quality 0.82 (as the other backgrounds), made with the asset-diet recipe.
+- **Test aid:** `?nointro` in the URL skips it.
+
+- **r302: the intro (owner, 2026-10-21).** Built to "The intro" above. `#sfIntro` sits in the frame (z 9000) and shows on
+  load; `initMechanics` speaks D1 only when it is closed, and `introEnd` (the last tap, or SKIP) closes it and speaks D1.
+  `introNext` ignores a tap during the 0.7 s fade. `newGame` closes it (a PART jump or the menu's new game speaks D1
+  itself). Lora is loaded for the text. Pictures 1920x1072, 0.48-0.62 MB each. Asserted by the FTUE test (644), written
+  first. Checked in the browser: slide 1 with embers and the text box; a tap moves to slide 2, a second tap during the
+  fade does nothing; the last tap (slide 4, "TAP TO BEGIN") closes it and D1 is spoken; on a reload SKIP (hit-tested at
+  1280x720) closes it and D1 is spoken; PART 1 over the intro closes it and D1 is spoken once; no console errors.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2467,3 +2501,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r299 a locked shape in the shape window can be bought there (BUY).
 - 2026-10-21: r300 the tutorial buys blueprints at the shape window (the dragon pays there; the Katanas are bought there).
 - 2026-10-21: r301 Shortsword lit for the first sword; unaffordable BUY greyed; only the ordered blueprint can be bought (D28m).
+- 2026-10-21: r302 the intro: four pictures with the old portrait intro's texts before D1 (tap to move on, SKIP).

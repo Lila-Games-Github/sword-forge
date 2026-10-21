@@ -1066,4 +1066,24 @@ eq('they read the same values as the paper (no forging % when the hammer was ski
   eq('no text label left on a tab', btn.every(b => b.replace(/<[^>]*>/g, '').trim() === ''), true);
   eq('no "Items" left in the decor reward line', !src.includes('BUILD in ITEMS & DECOR') && src.includes("return 'Decor. Place it with BUILD in the Decor tab.';"), true); }
 
+/* r302 (owner, 2026-10-21): the intro - four pictures before D1, the old portrait intro's texts ("The intro") */
+eq('the intro slides, in story order', FTUE.intro.slides, [
+  { img: 'assets/Illustrations/intro_1_fall.webp', title: 'The Fall',
+    text: 'The monsters arrived without warning. By dawn, my ancestral home was nothing but ash and bone. Everything I ever loved was consumed by the horde.' },
+  { img: 'assets/Illustrations/intro_2_exile.webp', title: 'Exile',
+    text: "I wandered for weeks through cursed, twilight wilderness. Cold, starving, and hollowed by grief, with only my father's heavy iron anvil hammer remaining at my side." },
+  { img: 'assets/Illustrations/intro_3_hearth.webp', title: 'A New Hearth',
+    text: "At the remote edge of Oakhaven, I stumbled across it: an old, long-abandoned forge. The grand hearth was cold and choked with soot, waiting for a master's spark." },
+  { img: 'assets/Illustrations/intro_4_anvil.webp', title: 'The Anvil Awaits',
+    text: 'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ]);
+eq('the intro prompts', [FTUE.intro.tap, FTUE.intro.last, FTUE.intro.skip], ['TAP TO CONTINUE', 'TAP TO BEGIN', 'SKIP']);
+eq('the intro texts are the old intro\'s, word for word', (() => { const v2 = readFileSync('swordforgeV2.html', 'utf8');
+  return FTUE.intro.slides.every(sl => v2.includes('<h2>' + sl.title + '</h2>') && v2.includes('<p>' + sl.text + '</p>')); })(), true);
+eq('every intro picture is on disk', FTUE.intro.slides.every(sl => existsSync(sl.img)), true);
+eq('the intro overlay is in the frame, with SKIP', /<div id="frame" class="landscape">[\s\S]*<div id="sfIntro"[^>]*>[\s\S]{0,400}<button type="button" id="introSkip"/.test(src), true);
+eq('D1 waits for the intro: load opens it, its end speaks D1', /function initMechanics\(\)\{[\s\S]{0,1600}if\(!introOpen\(\)\) setTimeout\(sayStart, 600\);/.test(src)
+  && /function introEnd\(\)\{[\s\S]{0,300}setTimeout\(sayStart, 600\);/.test(src), true);
+eq('a new game or a PART jump closes the intro without replaying it', /function newGame\(\)\{[\s\S]{0,200}introClose\(\);/.test(src), true);
+eq('a tap moves on, a tap during the fade is ignored, the last tap ends it', /function introNext\(\)\{ if\(INTRO_BUSY\) return;[\s\S]{0,200}introEnd\(\)/.test(src), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');
