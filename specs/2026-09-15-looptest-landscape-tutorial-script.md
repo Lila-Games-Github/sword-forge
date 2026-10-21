@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r293)
+## The script in play order (r294)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -112,46 +112,46 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 19. **D17c** Dragon: "This shows how much ore you used for the sword."
    *When: after D17b; then CLOSE lights.*
 
-20. **D18a** Dragon: "Here's a reward from me."
-   *When: the crafted window is closed; over the reward window (2 Iron, 2 Manganese for GC1).*
-
-21. **D18** Dragon: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!"
-   *When: the reward window is closed.*
+20. **D18** Dragon: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!"
+   *When: the crafted window is closed.*
 
 #### Bram (TC1)
 
-22. **D19** Dragon: "Not too bad. We can use it. But you should really consider decorating it later!"
+21. **D19** Dragon: "Not too bad. We can use it. But you should really consider decorating it later!"
    *When: the player arrives at the counter.*
 
-23. **D20** Bram: "Oh, God, save me! I didn't think I would find anyone here. Who are you?"
+22. **D20** Bram: "Oh, God, save me! I didn't think I would find anyone here. Who are you?"
    *When: D19 is closed; Bram arrives.*
 
-24. **Player:** "I am a blacksmith." / "Who are you? What is wrong?"
+23. **Player:** "I am a blacksmith." / "Who are you? What is wrong?"
    *When: two reply buttons.*
 
-25. **D21** Bram: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me."
+24. **D21** Bram: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me."
    *When: branch: "I am a blacksmith.".*
 
-26. **D22** Bram: "You don't need to know who I am! Assassins are after me. I lost my sword too!"
+25. **D22** Bram: "You don't need to know who I am! Assassins are after me. I lost my sword too!"
    *When: branch: "Who are you? What is wrong?".*
 
-27. **Player:** "I just crafted a sword. You can have it."
+26. **Player:** "I just crafted a sword. You can have it."
    *When: reply button after D21 or D22.*
 
-28. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+27. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
    *When: the reply is tapped.*
 
-29. **D24** Dragon: "He looks pleased and he is offering gold! Tap the sell button to confirm the trade."
+28. **D24** Dragon: "He looks pleased and he is offering gold! Tap the sell button to confirm the trade."
    *When: the sword is on the counter.*
 
-30. **D25** Bram: "Thanks! If I survive the night I will come back to thank you properly."
+29. **D25** Bram: "Thanks! If I survive the night I will come back to thank you properly."
    *When: SELL is tapped.*
 
-31. **Player:** "Take care"
+30. **Player:** "Take care"
    *When: reply button.*
 
-32. **D26** Dragon: "Phew! That was a lot of hard work."
+31. **D26** Dragon: "Phew! That was a lot of hard work."
    *When: Bram leaves.*
+
+32. **D18a** Dragon: "Here's a reward from me."
+   *When: D26 is closed; over the reward window (2 Iron, 2 Manganese for GC1).*
 
 #### The quest list, the dragon, the bell
 
@@ -196,11 +196,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 45. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
 
-46. **D18a** Dragon: "Here's a reward from me."
-   *When: GC1's crafted window is closed; over the reward window (2 Iron, 2 Manganese for GC2).*
-
-47. **Customer (GC1):** "Wow! Looks good. Good job."
+46. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
+
+47. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC1's sale; over the reward window (2 Iron, 2 Manganese for GC2).*
 
 48. **Customer (GC2):** "Do you have a Balanced Broadsword?"
    *When: the bell; a random request.*
@@ -214,11 +214,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 51. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
    *When: the coins land.*
 
-52. **D18a** Dragon: "Here's a reward from me."
-   *When: GC2's crafted window is closed; over the reward window (2 Iron, 2 Manganese for GC3).*
-
-53. **Customer (GC2):** a random thank-you
+52. **Customer (GC2):** a random thank-you
    *When: after the sale.*
+
+53. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC2's sale; over the reward window (2 Iron, 2 Manganese for GC3).*
 
 54. **Customer (GC3):** "Do you have a Balanced Katana?"
    *When: the bell; a random request.*
@@ -232,11 +232,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 57. **D28i** Dragon: "Your first blueprint! Now make the Katana."
    *When: the player buys the Katana blueprint.*
 
-58. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
-   *When: GC3's crafted window is closed; over the reward window (1 Iron, 1 Manganese for TC2).*
+58. **Customer (GC3):** a random thank-you
+   *When: after the sale.*
 
-59. **Customer (GC3):** a random thank-you
-   *When: after the sale; the bell glows for TC2.*
+59. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
+   *When: after GC3's sale; over the reward window (1 Iron, 1 Manganese for TC2); then the bell glows.*
 
 ### Part 2: grinding, the recipe, and the fire sword
 
@@ -456,11 +456,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 12. **D92g** Dragon: "If you explore further in the same direction, you will find elemental traits associated with light."
    *When: after D92f; points to the forge.*
 
-13. **D18a** Dragon: "Here's a reward from me."
-   *When: GC4's crafted window is closed; over the reward window (the fire page's ores for GC5).*
-
-14. **Customer (GC4):** a random thank-you
+13. **Customer (GC4):** a random thank-you
    *When: after the sale.*
+
+14. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC4's sale; over the reward window (the fire page's ores for GC5).*
 
 #### GC5: fire Longsword, the map route
 
@@ -482,11 +482,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 20. **D92n** Dragon: "Tap on the trait to open the craft book directly."
    *When: on the forge, dark except the fire trait; the trait opens its card, then CRAFT 1.*
 
-21. **D18a** Dragon: "Here's a reward from me."
-   *When: GC5's crafted window is closed; over the reward window (the fire page's ores for GC6).*
-
-22. **Customer (GC5):** a random thank-you
+21. **Customer (GC5):** a random thank-you
    *When: after the sale.*
+
+22. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC5's sale; over the reward window (the fire page's ores for GC6).*
 
 #### GC6: fire Broadsword, the book route
 
@@ -502,11 +502,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 26. **D28f** Dragon: "Done! Pick the Broadsword when you shape the blade."
    *When: the coins land; then pointers only (craft book, fire page, CRAFT 1).*
 
-27. **D18a** Dragon: "Here's a reward from me."
-   *When: GC6's crafted window is closed; over the reward window (the fire page's ores for GC7).*
-
-28. **Customer (GC6):** a random thank-you
+27. **Customer (GC6):** a random thank-you
    *When: after the sale.*
+
+28. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC6's sale; over the reward window (the fire page's ores for GC7).*
 
 #### GC7: fire Katana, the player buys
 
@@ -519,11 +519,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 31. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: only if the gold is below the Katana's price; then the top-up.*
 
-32. **D18a** Dragon: "Here's a reward from me."
-   *When: GC7's crafted window is closed; over the reward window (2 Nickel for TC4).*
+32. **Customer (GC7):** a random thank-you
+   *When: after the sale.*
 
-33. **Customer (GC7):** a random thank-you
-   *When: after the sale; the next bell brings TC4.*
+33. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC7's sale; over the reward window (2 Nickel for TC4; the next bell brings TC4).*
 
 ### Part 4: Epic Durable, the gale sword, Weak, and "come back later"
 
@@ -542,7 +542,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the sword is held on Durable.*
 
 5. **D18a** Dragon: "Here's a reward from me."
-   *When: TC4's crafted window is closed; over the reward window (2 Copper for TC5's swift ingot).*
+   *When: after TC4's sale (and its reward); over the reward window (2 Copper for TC5's swift ingot).*
 
 #### TC5: the gale sword
 
@@ -600,17 +600,17 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 23. **D107** Dragon: "Go sell it!"
    *When: the gale sword is crafted.*
 
-24. **D18a** Dragon: "Here's a reward from me."
-   *When: TC5's crafted window is closed; over the reward window (1 Iron, 1 Manganese for GC8).*
-
-25. **D108** TC5: "Thanks, this will do."
+24. **D108** TC5: "Thanks, this will do."
    *When: after the sale.*
 
-26. **Player:** "You're welcome."
+25. **Player:** "You're welcome."
    *When: reply button.*
 
+26. **D18a** Dragon: "Here's a reward from me."
+   *When: after TC5's reply (and its reward); over the reward window (1 Iron, 1 Manganese for GC8).*
+
 27. **D109** Dragon: "Great work!"
-   *When: after the reply; the bell lights.*
+   *When: the reward window is closed; the bell lights.*
 
 #### GC8: a Weak sword
 
@@ -686,52 +686,52 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 10. **D44** Dragon: "Tap on the metal to select a shape."
    *When: the swift ingot is on the anvil.*
 
-11. **D18a** Dragon: "Here's a reward from me."
-   *When: Bram's Dagger's crafted window is closed; over the reward window (5 Copper for the gale Longsword).*
-
 #### The basement
 
-12. **D49** Dragon: "Drag and drop the sword from the inventory onto the table."
+11. **D49** Dragon: "Drag and drop the sword from the inventory onto the table."
    *When: the player arrives in the basement.*
 
-13. **D50** Dragon: "Tap on the sharpening wheel."
+12. **D50** Dragon: "Tap on the sharpening wheel."
    *When: the sword is on the table.*
 
-14. **D51** Dragon: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel."
+13. **D51** Dragon: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel."
    *When: the sharpening window opens.*
 
-15. **D52** Dragon: "Ooh, sharp!"
+14. **D52** Dragon: "Ooh, sharp!"
    *When: the green band.*
 
-16. **D53** Dragon: "Tap 'done' to finish."
+15. **D53** Dragon: "Tap 'done' to finish."
    *When: after D52.*
 
-17. **D54** Dragon: "Put the sword back in the inventory."
+16. **D54** Dragon: "Put the sword back in the inventory."
    *When: the sharpening is done.*
 
-18. **D55** Dragon: "Back to the counter now."
+17. **D55** Dragon: "Back to the counter now."
    *When: the sword is taken from the table.*
 
-19. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+18. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
    *When: the player arrives at the counter.*
 
-20. **D57** Dragon: "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!"
+19. **D57** Dragon: "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!"
    *When: after the sale, if the sharpening bonus is above 0.*
 
-21. **D114** Bram: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you."
+20. **D114** Bram: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you."
    *When: after the sale.*
 
-22. **Player:** "Thank you for the gift."
+21. **Player:** "Thank you for the gift."
    *When: reply button; the gift window.*
 
-23. **D115** Dragon: "Bram gave you a diary! Open it!"
+22. **D115** Dragon: "Bram gave you a diary! Open it!"
    *When: the gift is claimed.*
 
-24. **D116** Dragon: "It has a list of so many towns! I wonder if we can go on an adventure later."
+23. **D116** Dragon: "It has a list of so many towns! I wonder if we can go on an adventure later."
    *When: the diary is closed.*
 
-25. **D117** Dragon: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!"
-   *When: after D116; the bell lights.*
+24. **D117** Dragon: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!"
+   *When: after D116.*
+
+25. **D18a** Dragon: "Here's a reward from me."
+   *When: after Bram's scene (the Dagger sold, the gift, the diary); over the reward window (5 Copper for the gale Longsword; then the bell lights).*
 
 #### The gale Longsword
 
@@ -744,11 +744,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 28. **D28c** Dragon: "Here it is. Watch this!"
    *When: the market opens, as the dragon pays.*
 
-29. **D18a** Dragon: "Here's a reward from me."
-   *When: The gale Longsword's crafted window is closed; over the reward window (2 Iron, 2 Manganese for Garric).*
+29. **Customer:** a random thank-you
+   *When: after the sale.*
 
-30. **Customer:** a random thank-you
-   *When: after the sale; the bell for Garric.*
+30. **D18a** Dragon: "Here's a reward from me."
+   *When: after the gale Longsword's sale; over the reward window (2 Iron, 2 Manganese for Garric; then the bell for Garric).*
 
 ### Part 6: Garric, decorating, judgement, and Day 3
 

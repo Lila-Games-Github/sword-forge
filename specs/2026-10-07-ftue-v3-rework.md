@@ -2146,7 +2146,9 @@ line; after the tutorial (D140) the game plays normally, with no cap and no rewa
 
 ### The chain (`FTUE.oreStart`, `FTUE.oreChain`)
 
-The bag starts with 2 Iron, 2 Manganese. Each row: the sword just crafted (its key), what the dragon gives, his line.
+The bag starts with 2 Iron, 2 Manganese. Each row: the sword (its key), what the dragon gives, his line. **Revised r294
+(owner, 2026-10-21): the reward comes after that sword is SOLD**, not when it is crafted (the swift ingot's 5 Copper and
+GC9's ores keep their own moments).
 "page:<trait>" is the ores of the craft book's page for that trait (the fire page can be 2 Iron + 2 Manganese, or
 3 + 1; the gale page is 5 Copper).
 
@@ -2228,6 +2230,16 @@ of the chain gave, or the cave lesson's need.
   (602), written first. Checked in the browser: TC4 open with its 2 Nickel gone, the window gives 2 Nickel with D28l and
   does not come back once the bag is whole or the order made; a new game's first sword cancelled mid-craft gives back 2
   Iron + 2 Manganese with D28l, the tutorial returns to D3 (arrow on, the dark ore step) and the ores in again lead to D4.
+
+- **r294: the ore rewards come after the sale (owner, 2026-10-21).** The crafted window now only notes the sword
+  (`FTUE_ST.orePending`; a sword with no row still ends the round there), and `ftueOreSold` gives its reward at each
+  sale's natural pause: Bram, once he has left and D26 is closed (before D118); a gameplay customer, after the part's
+  own reward window (`ftueGpcSold`, before the walk back); TC4, after its reward (`ftueTc4Sold`); TC5, after its reply
+  and reward, before D109 (`tutGaleThanks`); Bram's Dagger, after his scene and the diary, before the bell
+  (`ftueAfterDiary`). Unchanged: TC5's 5 Copper when the swift ingot is stored, and GC9's with D107g. Asserted by the
+  FTUE test (608), written first. Checked in the browser: the first sword crafted - no window, D18, the sword noted;
+  Bram's sale - no window yet; D26 closed - "2 Iron, 2 Manganese" with D18a, the bag 0 to 2 + 2, OK goes on to D118;
+  GC1's sale (`ftueGpcSold`) - its 2 + 2 with D18a, the next round set.
 
 ## Cross-part issues
 
@@ -2365,3 +2377,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r291 the ore chain: the bag starts with 2 + 2 and the dragon gives each next sword's ores.
 - 2026-10-21: r292 the craft lock: only the ordered sword (D28k); lines over a window at the counter are no longer hidden.
 - 2026-10-21: r293 the refill: a round the bag can no longer make is given again (D28l), and the guided craft restarts.
+- 2026-10-21: r294 the ore rewards come after each sale, not at the craft.

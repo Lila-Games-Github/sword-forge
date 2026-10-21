@@ -405,7 +405,15 @@ eq('the ore reward kind: name, line, icon, apply', src.includes("if(r.kind==='or
   && src.includes("if(r.kind==='ore') return '<img class=\"rwd-ic\" src=\"'+oreImg(r.id)+'\" alt=\"\">';") && src.includes("if(r.kind==='ore'){ gainOre(r.id, r.n); if(INV_TAB===0) buildShelf(); return; }"), true);
 eq('which sword was made: the hammered one', /function finishBlade\(\)\{[\s\S]*?const oreKey=ftueSwordKey\(\{ first:TUT_STAGE==='forge' && !CUSTOMER, second:second, fire:fireSword, gale:galeSword, bram2:bram2Sword, garric:garricSword \}\);[\s\S]*?CRAFT_ORE=oreKey; showCraft\(/.test(src), true);
 eq('and CRAFT 1\'s', /function cbCraft\(n\)\{[\s\S]*?CRAFT_ORE=\(n===1\) \? ftueSwordKey\(\{\}\) : null;[^\n]*\n\s*showCraft\(/.test(src), true);
-eq('the reward comes when the crafted window closes, before the flow goes on', /function closeCraft\(\)\{[\s\S]{0,1200}const ok=CRAFT_ORE; CRAFT_ORE=null;[^\n]*\n\s*if\(ok\) ftueOreReward\(ok, \(\)=>\{ if\(typeof after==='function'\) after\(\); \}\); else if\(typeof after==='function'\) after\(\);/.test(src), true);
+/* r294 (owner, 2026-10-21): the ore reward comes after the SALE. The crafted window only notes which sword was made (a sword
+   with no row still ends the round); each sale gives it at its natural pause */
+eq('the crafted window notes the sword; the flow goes straight on', /function closeCraft\(\)\{[\s\S]{0,1200}const ok=CRAFT_ORE; CRAFT_ORE=null;[^\n]*\n\s*if\(ok\)\{ if\(FTUE\.oreChain\[ok\]\) FTUE_ST\.orePending=ok; else FTUE_ST\.oreRound=null; \}\s*if\(typeof after==='function'\) after\(\);/.test(src), true);
+eq('ftueOreSold gives the noted sword\'s reward, once', src.includes("function ftueOreSold(then){ const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }"), true);
+eq('after Bram leaves (D26), before the quest list', src.includes("setTimeout(()=>ftueOreSold(()=>sayQueue('D118')), 0);"), true);
+eq('after a gameplay customer\'s sale, before the walk back', src.includes("setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);"), true);
+eq('after TC4\'s sale', src.includes("setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);"), true);
+eq('after TC5\'s sale, before D109', src.includes("ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); }));"), true);
+eq('after Bram\'s Dagger (his gift and the diary), before the bell', /function ftueAfterDiary\(\)\{[\s\S]{0,200}TUT_STAGE='p5-bell'; ftueOreSold\(\(\)=>\{ bellShow\(true\); ftueToCounter\(\); \}\);/.test(src), true);
 eq('TC5: 5 Copper once the swift ingot is stored', /function tutGaleStart\(\)\{[\s\S]{0,200}ftueOreReward\('tc5swift', \(\)=>\{ sayQueue\('D100','D101'\);/.test(src), true);
 eq('GC9: the ores come with D107g', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); ftueOreReward('gc9'); }"), true);
 eq('TC3: the unused spare goes when the fourth ore is in', /function tutFireSmelted2\(\)\{[\s\S]{0,300}ORE_COUNT\.iron=0; ORE_COUNT\.manganese=0;/.test(src), true);

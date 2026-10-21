@@ -2786,6 +2786,8 @@ function ftueSwordKey(f){ if(FTUE_ST.done) return null; f=f||{};
 function ftueOreReward(key, then){ const e=key && FTUE.oreChain[key]; if(!e){ if(key) FTUE_ST.oreRound=null; if(then) then(); return; }   /* r293: no row, no round to refill */
     const give=ftueOreGive(e.give); FTUE_ST.oreRound=give;   /* r293: the refill reads the round */
     ftueOreWindow(give, e, then); }
+/* r294 (owner): the noted sword's reward, given after its sale - each sale calls this at its natural pause */
+function ftueOreSold(then){ const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }
 /* the reward window for some ores, with the dragon's line (e.say) over it; e.keep leaves the line up after OK */
 function ftueOreWindow(give, e, then){ const list=Object.keys(give).filter(k=>give[k]>0).map(k=>({ kind:'ore', id:k, n:give[k] }));
     if(!list.length){ if(then) then(); return; }
@@ -2838,7 +2840,7 @@ function ftueAfterBram(){
     if(FTUE_ST.part!==1 || TUT_STAGE==='p1-reward') return;
     /* v3: no reward window - the banner moved to Garric (D11), and its lesson with it. Straight to the quest list. */
     TUT_STAGE='p1-quest'; tutArrow(null,null); tutExit(null);
-    setTimeout(()=>sayQueue('D118'), 0);
+    setTimeout(()=>ftueOreSold(()=>sayQueue('D118')), 0);   /* r294: the first sword's ores, after Bram's sale */
 }
 /* r200: hang the banner on the counter screen - ITEMS & DECOR, BUILD on, drag, BUILD off - and only
    then D118. Pointers only (owner). The pointer is worked out from the state every time, because
@@ -2906,7 +2908,7 @@ function tutDurableAligned(){
 function ftueTc4Sold(){
     CUSTOMER=null; refreshCounter(); counterUi(); tutArrow(null,null); tutExit(null);
     TUT_STAGE='d2-bell';   /* TC5's gale order comes next */
-    setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>{ bellShow(true); ftueToCounter(); }), 700);
+    setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);   /* r294 */
 }
 /* GC8: 1 iron + 1 manganese, ground; the hammer parks the sword in the Weak band */
 function ftueWeakStart(){ TUT_STAGE='p4-weak-go'; tutExitTo('forge'); }
@@ -3116,7 +3118,7 @@ function ftueBulkStep(){
 /* r205: D117 is off the screen - the diary is done, and the bell brings part 5's customers */
 function ftueAfterDiary(){
     if(FTUE_ST.part!==5 || TUT_STAGE!=='gift-read') return;
-    TUT_STAGE='p5-bell'; bellShow(true); ftueToCounter();
+    TUT_STAGE='p5-bell'; ftueOreSold(()=>{ bellShow(true); ftueToCounter(); });   /* r294: the Dagger's ores, after Bram's scene */
 }
 function ftueBellGlow(){ setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0); }
 /* back to the counter from wherever the player went; then the bell glows */
@@ -3128,7 +3130,7 @@ function ftueGpcSold(){
     const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;
     TUT_STAGE = more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC */
     tutArrow(null,null); tutExit(null);
-    setTimeout(()=>ftueReward(list, ftueToCounter), 700);
+    setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);   /* r294: then the ore reward */
 }
 /* part 1 GPC swords: 3 of one ore is one too many; fewer than 2 of one is caught at the gate */
 function ftueRetryAsk(){
@@ -6502,8 +6504,9 @@ function closeCraft(){
     if(show && from && CRAFT_FLY.length) CRAFT_FLYING=true; else { CRAFT_FLY=[]; CRAFT_FLYING=false; }   /* set before the window goes: no frame shows them early */
     if(modal) modal.classList.remove('show');
     if(show && from) flyCraft(from, show.w, show.n);
-    const ok=CRAFT_ORE; CRAFT_ORE=null;   /* r291: the dragon's ores for the next sword, then the flow goes on */
-    if(ok) ftueOreReward(ok, ()=>{ if(typeof after==='function') after(); }); else if(typeof after==='function') after();
+    const ok=CRAFT_ORE; CRAFT_ORE=null;   /* r291. r294 (owner): note the sword - its ores come after the sale (ftueOreSold) */
+    if(ok){ if(FTUE.oreChain[ok]) FTUE_ST.orePending=ok; else FTUE_ST.oreRound=null; }
+    if(typeof after==='function') after();
     ftueBulkStep();   /* r201 */
 }
 /* The blades fly to the SWORDS tab on the rail - the place they can be found again.
@@ -8550,7 +8553,7 @@ function tutGaleThanks(){
     /* r204: part 4 - TC4's rewards, D109, then the bell brings GPC7 and GPC8; Bram (part 5) comes
        on the bell after them (FTUE.parts[4].after is this same 'd2-praise' stage) */
     if(FTUE_ST.part===4){
-        ftueReward(FTUE.parts[4].rewards.tc, ()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); });
+        ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); }));   /* r294 */
         return; }
     sayQueue('D109');
     setTimeout(tutBram2Arrive, 1200);   /* r127: Bram walks in behind the praise */
