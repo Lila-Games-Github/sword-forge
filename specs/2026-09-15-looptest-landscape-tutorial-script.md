@@ -140,11 +140,15 @@ exp books. The pickups are books, and D9 calls them experience points, which is 
 *Trigger: the sword landing on a trait (`checkTraitReach`). No pointer — D10 explains, D11 instructs,
 and the arrow goes up with the instruction.*
 
+*Revised (owner, 2026-10-21), r282: D10 and D11 are one line, D10: "Now that we have reached a '?' trait on the
+map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal." It
+shows no close button (the pour moves it on), and the mug pointer goes up with it. D11 is removed.*
+
 *Note: the owner wrote "a ‘?’ trait, on the map, we can…" — the comma split "a ‘?’ trait on the map",
 which is one phrase; and "trait" landed twice in one sentence, so the second became "it", which is how
 the game's own hint already phrases it.*
 
-**D11** — Dragon
+**D11** — Dragon *(removed in r282: joined D10)*
 > "Pick up the mug from the bucket and drag it to the metal."
 
 *Pointer: an arrow from the mug to the metal on the anvil, and the mug glows. Both clear the moment the

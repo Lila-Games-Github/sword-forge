@@ -2073,6 +2073,13 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   gives D1 OK, D2 OK, D3-D7 none, D8 x, D10 OK, D11 none; through the game's own say runs, D12 none, D13 OK, D14 none,
   D15 OK, D15a none, D16 x, D17 none, D18 none, D19 x, D9 x; at D3 the button is display none (no frame).
 
+- **r282: D10 and D11 are one line, with no close (owner, 2026-10-21).** D10 now reads "Now that we have reached a '?'
+  trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the
+  metal." D11 is removed (199 dialogue keys). `tutQuenchStep` says D10 alone, the mug pointer and glow go up with it,
+  and D10 takes D11's place in `SAY_NO_X` (the pour moves it on). Asserted by the FTUE test (556), written first.
+  Checked in the browser, playing a new game to the '?': D10 shows the joined text, its button is hidden, the arrow is
+  on and the mug glows; the run ends D7, D8, D10. (Two screenshots timed out; measured instead.)
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2197,3 +2204,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-20: r279 the forge opens on the ingredients tab; the basement, the counter and the shop on the swords tab.
 - 2026-10-20: r280 the route is dark brown; the held ore's preview stays red, fainter.
 - 2026-10-21: r281 the first sword's instruction lines show no close (x); D8, D9, D16, D19 keep it.
+- 2026-10-21: r282 D10 and D11 are one line (D10), with no close button.

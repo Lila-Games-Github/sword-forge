@@ -13,7 +13,7 @@ continuation prompt printed at close time.
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
 - **Status: FTUE v3 is merged and live.** PR #24 (2026-10-14) carried r216-r230, the FTUE v3 rework
   (parts 1-6), its play-test round and the fixes after it; the Pages deploy succeeded and the live page
-  serves the merged build. **200 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16), `lastLine()` `D140`.
+  serves the merged build. **199 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 removed 2026-10-21), `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r282:** D10 and D11 are one line (D10), no close button; D11 removed (199 keys).
 - **r281:** `SAY_NO_X`: the first sword's instruction lines (D3-D7, D11, D12, D14, D15a, D17, D18) show no close button; D8, D9, D16, D19 keep it. `.say-go.none` now beats `#dragonSay .go`, so a hidden button no longer leaves an empty frame.
 - **r280:** the route (`#pathline`) is dark brown `#4a2c17`; the held ore's preview stays red at opacity 0.45 / 0.3 (values Claude's proposal).
 - **r279:** `SCREEN_TAB`: the forge opens on the ingredients tab, the basement, the counter and the shop on the swords tab (`goScreen`); the bedroom and the cave keep theirs.
@@ -210,10 +211,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 199 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 553 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 556 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

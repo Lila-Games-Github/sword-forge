@@ -7598,8 +7598,7 @@ const DIALOGUE = {
     D7: "Pick up the hammer and strike the hot metal on the anvil.",
     D8: "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
     D9: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up.",
-    D10: "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in.",
-    D11: "Pick up the mug from the bucket and drag it to the metal.",
+    D10: "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal.",   /* r282 (owner): D11 joined it */
     D12: "Tap on the metal to select the shape of the sword blade.",
     D13: "I'll help you heat up the metal again so you can start shaping it!",
     D14: "Press and hold the metal, and I will heat it for you to hammer.",
@@ -8037,10 +8036,10 @@ function tutPlaceBooks(){
 function tutQuenchStep(){
     if(TUT_STAGE!=='travel') return;
     TUT_STAGE='quench'; tutUnglow();
-    ['D10','D11'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+    if(SAY_SEQ.indexOf('D10')<0) SAY_SEQ.push('D10');   /* r282: one line now */
     SAY_I=SAY_SEQ.indexOf('D10'); say('D10');
 }
-/* D10 explains, D11 instructs - so the pointer goes up with D11, not before it. */
+/* r282: D10 explains and instructs (D11 joined it), so the pointer goes up with it */
 function tutMugPointer(){
     tutArrow('#mug', '#orb', { tfx:0.5, tfy:0.42, bow:0.18, back:24 });
     tutGlow('#mug', true);
@@ -9873,7 +9872,7 @@ const SAY_GO_GLOW={ D1:1, D2:1, D8:1, D9:1, D13:1, D19:1, D32:1, D33:1, D38:1, D
 const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1 };   /* 2026-10-10: D17c - CLOSE lights after it */
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
    D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
-const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D11:1, D12:1, D14:1, D15a:1, D17:1, D18:1 };
+const SAY_NO_X={ D3:1, D4:1, D5:1, D6:1, D7:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1 };
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -9904,7 +9903,7 @@ function say(id){
     sayGoIcon(go, SAY_CHOICES ? 'none' :
         ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);   /* r115/r174/r184/r196 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
-    if((id==='D10'||id==='D11') && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained */
+    if(id==='D10' && TUT_STAGE==='quench') tutMugPointer();   /* r106: point at the mug as soon as the quench is explained. r282: D11 joined D10 */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');
     if(id==='D69d' && CW_LESSON==='hp-arrow') sayGoIcon(go,'none');
     if(id==='D69d' && CW_LESSON==='hp-row') cwLit('#cwHpRow');   /* 2026-10-10: the arrow is the way on */

@@ -150,7 +150,7 @@ eq('{b} is the sharpening bonus only', src.includes('SAY_VARS.b=P.sharp;'), true
 /* r213 (owner, 2026-10-01): the dialogue review - fixes A1-A8, B10, C11-C19, new lines D20-D24 */
 const R213 = {
   D8:   "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
-  D10:  "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in.",
+  D10:  "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal.",   /* r282: D11 joined it */
   D14:  'Press and hold the metal, and I will heat it for you to hammer.',
   D15:  'It is hot enough. Now strike the hot metal!',
   D22:  "You don't need to know who I am! Assassins are after me. I lost my sword too!",
@@ -335,10 +335,14 @@ for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
 eq('the trait is gained at once; the hooks, the window and the toast wait for the effect', /melt\.traits\.push[\s\S]{0,1500}quenchFx\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+/* r282 (owner, 2026-10-21): D10 and D11 are one line (D10), with no close; the mug pointer goes up with it */
+eq('D11 is gone', /\n\s*D11: "/.test(src), false);
+eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SAY_SEQ\.indexOf\('D10'\)<0\) SAY_SEQ\.push\('D10'\);/.test(src) && !/'D11'/.test(src), true);
+eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE==='quench') tutMugPointer();"), true);
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D11', 'D12', 'D14', 'D15a', 'D17', 'D18']);
+  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18']);   /* r282: D10 (with D11 in it) */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 eq('a run\'s last line shows no close when listed (an OK mid-run stays)', src.includes("((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? (SAY_NO_X[id] ? 'none' : 'close') : 'next'), id);"), true);
