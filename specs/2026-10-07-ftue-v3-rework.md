@@ -2261,6 +2261,13 @@ of the chain gave, or the cave lesson's need.
   counter.") shows after it (a `say()` hook, stage 'd2-counter'). Asserted by the FTUE test (613), written first. Checked
   in the browser: Day 2 at the forge - D89 up, OK lit, nothing blinking; OK - D92 and the left arrow blinks.
 
+- **r298: the first sword goes on the counter only when the tutorial asks (owner, 2026-10-21).** Before, the counter took
+  it any time (Bram's state turns 'give' as soon as the first reply is picked, before D23). Now `bramGiveStep` (D23) sets
+  `TUT_BRAM_GIVE_OK`; until then, in part 1 before Bram's sale, a drop on the counter is refused (`counterShut`), the
+  sword stays in the bag, and a toast says "Not yet. The dragon will tell you when." `tutReset` shuts it again. Asserted
+  by the FTUE test (616), written first. Checked in the browser with a real drag: at D19, in Bram's intro and after the
+  first reply the sword stays in the bag; after the reply and D23 it goes on and D24 follows.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2401,3 +2408,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r295 no refill while a sword is on the counter; the ore reward waits until the customer has gone.
 - 2026-10-21: r296 D32c is read on a dark screen with its OK lit.
 - 2026-10-21: r297 Day 2 morning: D89's OK first, then the arrow to the counter with D92.
+- 2026-10-21: r298 the first sword goes on the counter only after D23 asks for it.

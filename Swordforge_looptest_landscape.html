@@ -3889,6 +3889,9 @@ function counterRect(){ const b=plateBox(); if(!b) return null;
              right:b.ax+(COUNTER_ZONE.l+COUNTER_ZONE.w)/100*b.aw, bottom:b.ay+(COUNTER_ZONE.t+COUNTER_ZONE.h)/100*b.ah }; }
 // r64: two screens now take a sword, so the zone is chosen by which one is showing
 function zoneRect(){ return SF_SCREEN==='basement' ? workTableRect() : SF_SCREEN==='customer' ? counterRect() : null; }
+/* r298 (owner, 2026-10-21): the first sword goes on the counter only once the tutorial asks for it (D23, bramGiveStep) */
+let TUT_BRAM_GIVE_OK=false;
+function counterShut(){ return SF_SCREEN==='customer' && !FTUE_ST.done && FTUE_ST.part===1 && !TUT_BRAM_SOLD && !TUT_BRAM_GIVE_OK; }
 function zonePlace(sw){ if(SF_SCREEN==='basement') placeWork(sw); else if(SF_SCREEN==='customer') placeCounter(sw); }
 function overTable(e){ const r=zoneRect(); return !!r && e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom; }
 function showZone(on,hot){ const z=document.getElementById('workZone'); if(!z) return;
@@ -3960,7 +3963,7 @@ function startSwordDrag(w,e){
         ghost.remove(); if(onShop) rackHot(-1); else showZone(false);
         const take=()=>{ const i=INV.swords.indexOf(w); if(i>=0) INV.swords.splice(i,1); };
         if(onShop){ const ri=rackAt(ev); if(ri>=0){ take(); placeOnRack(ri,w); } }
-        else if(overTable(ev)){ take(); zonePlace(w); } };
+        else if(overTable(ev)){ if(counterShut()){ toast('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
@@ -9293,7 +9296,7 @@ function typeLine(el, text){
     }, TYPE_MS);
 }
 /* r98: the dragon answers once Bram has finished. r148: and points at the sword */
-function bramGiveStep(){ say('D23'); invTab(2);
+function bramGiveStep(){ TUT_BRAM_GIVE_OK=true; say('D23'); invTab(2);   /* r298: now the counter takes the first sword */
     setTimeout(()=>tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }), 0); }
 /* r227: the reply after D22, in Bram's own response row. r283: after D21 as well */
 function bramGiveAsk(){
@@ -9805,7 +9808,7 @@ function tutBookStep(b){
    without this the intro replays them, and a stale SAY_I leaves the ore step unarmed. */
 const SAY_OPENING = ['D1','D2','D3'];
 function tutReset(){
-    tutDone(); sayHide(); TUT_HM_FIRST=false;   /* r290 */
+    tutDone(); sayHide(); TUT_HM_FIRST=false;   /* r290 */ TUT_BRAM_GIVE_OK=false;   /* r298 */
     TUT_COUNTER_VISITED=false; TUT_BRAM_STATE=null; TUT_BRAM_SOLD=false;
     SD_POS=null;   /* r160 */
     const d=document.getElementById('screenDragon'); if(d){ d.style.display=''; d.style.left=''; d.style.top=''; d.style.bottom=''; d.classList.remove('dragging'); }
