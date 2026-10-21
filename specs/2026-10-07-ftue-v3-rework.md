@@ -2088,6 +2088,10 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   branches: Bram's line, then the reply button with the new text; tapping it shows D23 with its button hidden and the
   sword arrow on.
 
+- **r284: D24 has no close (owner, 2026-10-21).** D24 ("Tap the sell button to confirm the trade") joins `SAY_NO_X`:
+  SELL moves it on. Asserted by the FTUE test (556), written first. Checked in the browser: Bram's scene to the sword on
+  the counter; D24 shows with its button hidden and SELL lit.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2214,3 +2218,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r281 the first sword's instruction lines show no close (x); D8, D9, D16, D19 keep it.
 - 2026-10-21: r282 D10 and D11 are one line (D10), with no close button.
 - 2026-10-21: r283 D15 and D15a reworded; the "I just crafted a sword" reply after D21/D22; D23 has no close.
+- 2026-10-21: r284 D24 has no close button.
