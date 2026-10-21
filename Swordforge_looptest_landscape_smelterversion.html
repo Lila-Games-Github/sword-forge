@@ -90,7 +90,7 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 #hammerTool, #mug, #hmMug { display: none !important; }
 .cheatPart { display: none !important; }
 #bellowHot { touch-action: none; cursor: ns-resize; }
-#smBlade { position: absolute; z-index: 26; display: none; cursor: grab; touch-action: none; -webkit-user-drag: none;
+#smBlade { position: absolute; z-index: 26; display: none; pointer-events: none; -webkit-user-drag: none;   /* s5: smBladeGrab takes a press near its line */
     transform: translate(-50%,-50%) rotate(40deg); filter: drop-shadow(0 0 9px rgba(255,170,60,.8)); }
 #smBlade.dragging { cursor: grabbing; z-index: 40; }
 /* s4: the ladle, behind the furnace in the smelter's station; #ladleHot (over the furnace) takes the drag */
@@ -2678,7 +2678,8 @@ const FTUE = {
    tooling/smelter/smelter.test.mjs. */
 /* SMELT-PURE-BEGIN */
 const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500,
-    ladleMax:45, ladleDead:4, ladlePull:24, ladleHead:{ x:-22.2, y:4.9, w:57.3 }, ladleBase:{ x:2.8, y:26.7, w:26.5 }, ladlePivot:{ x:66.7, y:90.6 } };   /* s4: the ladle (tier alignment) */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
+    ladleMax:45, ladleDead:4, ladlePull:24, ladleHead:{ x:-22.2, y:4.9, w:57.3 }, ladleBase:{ x:2.8, y:26.7, w:26.5 }, ladlePivot:{ x:66.7, y:90.6 },   /* s4: the ladle (tier alignment) */
+    bladeG:2600, bladeCom:0.5, bladeDamp:1.2, bladeFollow:700, bladeGrab:24, bladeDropPx:70, bladeDropMs:320 };   /* s5: the blade's pendulum */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
 function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
 /* a handle movement as seconds of full-speed sword travel */
@@ -2688,6 +2689,22 @@ function smEase(owed, dt){ if(owed<=0) return 0; if(owed<=SMELT.flush) return ow
 /* s4: the ladle - the tilt plus a turn, held to 0..ladleMax; the pull speed (map px/s), 0 inside the dead zone, ladlePull at full tilt */
 function smLadleTilt(tilt, dDeg){ return Math.max(0, Math.min(SMELT.ladleMax, tilt+dDeg)); }
 function smLadleSpeed(tilt){ if(tilt<=SMELT.ladleDead) return 0; return SMELT.ladlePull*Math.min(1, (tilt-SMELT.ladleDead)/(SMELT.ladleMax-SMELT.ladleDead)); }
+/* s5: the blade hangs from its handle. A rigid pendulum on a moving pivot (screen px, y down; th from straight down, + = tip
+   to the right): th'' = ((-ax) cos th - (g - ay) sin th) / L - damp th'. Semi-implicit Euler. */
+function smPendStep(th, om, ax, ay, L, dt){ const a=((-ax)*Math.cos(th) - (SMELT.bladeG-ay)*Math.sin(th))/L - SMELT.bladeDamp*om; om+=a*dt; th+=om*dt; return { th:th, om:om }; }
+/* the pivot follows the finger: a critically damped spring, solved exactly for the step (never overshoots); a = its acceleration */
+function smFollow(p, v, target, dt){ const w=Math.sqrt(SMELT.bladeFollow), e=p-target, c=(v+w*e)*dt, x=Math.exp(-w*dt), nv=(v-w*c)*x;
+    return { p:target+(e+c)*x, v:nv, a:(nv-v)/dt }; }
+/* a blade picture's two ends (px): the opaque pixels furthest along its diagonal (x - y), averaged over a thin band; low = tang */
+function smBladeEnds(d, w, h){ let qmin=Infinity, qmax=-Infinity;
+    for(let y=0; y<h; y++) for(let x=0; x<w; x++) if(d[(y*w+x)*4+3]>128){ const q=x-y; if(q<qmin) qmin=q; if(q>qmax) qmax=q; }
+    if(qmin===Infinity) return null;
+    const band=Math.max(3, (qmax-qmin)*0.01), A={ x:0, y:0, n:0 }, B={ x:0, y:0, n:0 };
+    for(let y=0; y<h; y++) for(let x=0; x<w; x++) if(d[(y*w+x)*4+3]>128){ const q=x-y;
+        if(q<=qmin+band){ A.x+=x; A.y+=y; A.n++; } if(q>=qmax-band){ B.x+=x; B.y+=y; B.n++; } }
+    return { tang:{ x:A.x/A.n, y:A.y/A.n }, tip:{ x:B.x/B.n, y:B.y/B.n } }; }
+/* the picture's rotation (deg) for a swing angle th (rad), the art's own tang-to-tip angle being artDeg */
+function smRot(th, artDeg){ return (90 - th*180/Math.PI) - artDeg; }
 /* SMELT-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -7281,25 +7298,63 @@ function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || 
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
     smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.'); }
 function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
-    b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px'; }
+    b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px';
+    b.style.transform=''; b.style.transformOrigin=''; b.style.transition=''; b.style.opacity=''; b.style.zIndex=''; SM_BL=null; }   /* s5: back to the resting pose */
 function smBladeShow(){ const b=document.getElementById('smBlade'); if(!b || !SM_BLADE_FILE) return;
-    b.src='assets/sword-parts/blades/'+SM_BLADE_FILE+'.webp'; b.style.display='block'; smBladeHome(); }
-function smBladeHide(){ const b=document.getElementById('smBlade'); if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
-function smOverBucket(){ const b=document.getElementById('smBlade'), k=document.getElementById('bucketBack'); if(!b || !k) return false;
-    const r=b.getBoundingClientRect(), q=k.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
-    return cx>q.left-12 && cx<q.right+12 && cy>q.top-24 && cy<q.bottom; }
+    b.src='assets/sword-parts/blades/'+SM_BLADE_FILE+'.webp'; b.style.display='block'; smBladeHome(); smBladeEndsOf(SM_BLADE_FILE); }
+function smBladeHide(){ const b=document.getElementById('smBlade'); SM_BL=null; if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
+/* s5 (owner): the blade hangs from its handle and swings like a pendulum. SM_BL = the held blade: pivot (the tang) p, its
+   velocity v, the finger t, the swing th/om, L. The ends of each blade picture are read from its pixels (smBladeEnds). */
+let SM_BL=null, SM_DIPPING=false;
+const SM_ENDS={}, SM_ENDS_DEFAULT={ tang:{ x:0.30, y:0.70 }, tip:{ x:0.65, y:0.35 }, art:-45 }, SM_REST_DEG=40;   /* SM_REST_DEG: #smBlade's CSS rotate */
+function smBladeEndsOf(file){ if(!file || SM_ENDS[file]) return; const im=new Image();
+    im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const x=c.getContext('2d'); x.drawImage(im,0,0);
+        const e=smBladeEnds(x.getImageData(0,0,c.width,c.height).data, c.width, c.height);
+        if(e) SM_ENDS[file]={ tang:{ x:e.tang.x/c.width, y:e.tang.y/c.height }, tip:{ x:e.tip.x/c.width, y:e.tip.y/c.height }, art:Math.atan2(e.tip.y-e.tang.y, e.tip.x-e.tang.x)*180/Math.PI };
+    }catch(err){} };
+    im.src='assets/sword-parts/blades/'+file+'.webp'; }
+function smEnds(){ return SM_ENDS[SM_BLADE_FILE] || SM_ENDS_DEFAULT; }
+/* a point of the picture (0..1) in bench px, resting on the anvil or held */
+function smBladePt(u, v){ const b=document.getElementById('smBlade'), W=b.offsetWidth, H=b.offsetHeight||W, E=smEnds();
+    if(SM_BL){ const r=smRot(SM_BL.th, E.art)*Math.PI/180, dx=(u-E.tang.x)*W, dy=(v-E.tang.y)*H;
+        return { x:SM_BL.px+dx*Math.cos(r)-dy*Math.sin(r), y:SM_BL.py+dx*Math.sin(r)+dy*Math.cos(r) }; }
+    const r=SM_REST_DEG*Math.PI/180, dx=(u-0.5)*W, dy=(v-0.5)*H;
+    return { x:parseFloat(b.style.left)+dx*Math.cos(r)-dy*Math.sin(r), y:parseFloat(b.style.top)+dx*Math.sin(r)+dy*Math.cos(r) }; }
+function smBladeTip(){ const E=smEnds(); return smBladePt(E.tip.x, E.tip.y); }
+function smSegDist(x, y, A, B){ const vx=B.x-A.x, vy=B.y-A.y, L2=vx*vx+vy*vy||1, t=Math.max(0, Math.min(1, ((x-A.x)*vx+(y-A.y)*vy)/L2));
+    return Math.hypot(x-(A.x+t*vx), y-(A.y+t*vy)); }
+function smBladePaint(){ const b=document.getElementById('smBlade'), E=smEnds(), W=b.offsetWidth, H=b.offsetHeight||W; if(!SM_BL) return;
+    b.style.transformOrigin=(E.tang.x*100).toFixed(2)+'% '+(E.tang.y*100).toFixed(2)+'%';
+    b.style.left=(SM_BL.px-E.tang.x*W)+'px'; b.style.top=(SM_BL.py-E.tang.y*H)+'px';
+    b.style.transform='rotate('+smRot(SM_BL.th, E.art).toFixed(2)+'deg)'; }
+/* a press within bladeGrab px of the blade's line picks it up by the handle; it swings from the angle it lay at */
+function smBladeGrab(e){ const b=document.getElementById('smBlade'); if(!b || b.style.display!=='block' || SM_BL || SM_DIPPING) return;
+    const q=benchEl().getBoundingClientRect(), x=e.clientX-q.left, y=e.clientY-q.top, E=smEnds(), A=smBladePt(E.tang.x, E.tang.y), B=smBladePt(E.tip.x, E.tip.y);
+    if(!(smSegDist(x, y, A, B)<=SMELT.bladeGrab)) return;
+    e.preventDefault(); e.stopPropagation();
+    SM_BL={ id:e.pointerId, live:true, px:A.x, py:A.y, vx:0, vy:0, tx:x, ty:y, th:(90-(E.art+SM_REST_DEG))*Math.PI/180, om:0,
+        L:SMELT.bladeCom*Math.hypot(B.x-A.x, B.y-A.y) };
+    b.classList.add('dragging'); smBladePaint(); }
+function smBladeMove(e){ if(!SM_BL || !SM_BL.live || e.pointerId!==SM_BL.id) return; const q=benchEl().getBoundingClientRect(); SM_BL.tx=e.clientX-q.left; SM_BL.ty=e.clientY-q.top; }
+function smBladeUp(e){ if(!SM_BL || !SM_BL.live || e.pointerId!==SM_BL.id) return; SM_BL.live=false; document.getElementById('smBlade').classList.remove('dragging'); smBladeDrop(); }
+/* every frame: the handle follows the finger, the blade swings about it (4 substeps) */
+function smBladeTick(dt){ if(!SM_BL || !SM_BL.live || !(dt>0)) return; const n=4, h=dt/n;
+    for(let k=0; k<n; k++){ const fx=smFollow(SM_BL.px, SM_BL.vx, SM_BL.tx, h), fy=smFollow(SM_BL.py, SM_BL.vy, SM_BL.ty, h);
+        SM_BL.px=fx.p; SM_BL.vx=fx.v; SM_BL.py=fy.p; SM_BL.vy=fy.v;
+        const st=smPendStep(SM_BL.th, SM_BL.om, fx.a, fy.a, SM_BL.L, h); SM_BL.th=st.th; SM_BL.om=st.om; }
+    smBladePaint(); }
+function smOverBucket(){ const k=document.getElementById('bucketBack'); if(!k) return false; const t=smBladeTip(), r=benchRect(k), g=SMELT.bladeGrab;
+    return t.x>r.L-g && t.x<r.R+g && t.y>r.T-60 && t.y<r.B; }
+/* released: over the bucket it drops straight down into it (behind the bucket's rim), then the quench; else back on the anvil */
 function smBladeDrop(){ const b=document.getElementById('smBlade'); if(!b) return;
     if(!smOverBucket()){ smBladeHome(); return; }
-    const k=document.getElementById('bucketBack'), r=benchRect(k);
-    b.style.display='none';
-    quenchFx(()=>{ finishBlade(); }, { host:benchEl(), x:(r.L+r.R)/2, y:r.T+(r.B-r.T)*0.3, unit:'px', step:22 }); }
-function wireSmBlade(){ const b=document.getElementById('smBlade'); if(!b) return; let live=null, dx=0, dy=0;
-    b.addEventListener('pointerdown', e=>{ e.preventDefault(); live=e.pointerId; const r=b.getBoundingClientRect(); dx=e.clientX-(r.left+r.width/2); dy=e.clientY-(r.top+r.height/2);
-        b.classList.add('dragging'); try{ b.setPointerCapture(e.pointerId); }catch(err){} });
-    b.addEventListener('pointermove', e=>{ if(live!==e.pointerId) return; const q=benchEl().getBoundingClientRect();
-        b.style.left=(e.clientX-q.left-dx)+'px'; b.style.top=(e.clientY-q.top-dy)+'px'; });
-    const end=e=>{ if(live!==e.pointerId) return; live=null; b.classList.remove('dragging'); smBladeDrop(); };
-    b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); }
+    SM_DIPPING=true; b.style.zIndex='8';
+    b.style.transition='top '+SMELT.bladeDropMs+'ms ease-in, opacity '+SMELT.bladeDropMs+'ms ease-in';
+    b.style.top=(parseFloat(b.style.top)+SMELT.bladeDropPx)+'px'; b.style.opacity='0';
+    setTimeout(()=>{ b.style.display='none'; SM_DIPPING=false; SM_BL=null; const r=benchRect(document.getElementById('bucketBack'));
+        quenchFx(()=>{ finishBlade(); }, { host:benchEl(), x:(r.L+r.R)/2, y:r.T+(r.B-r.T)*0.3, unit:'px', step:22 }); }, SMELT.bladeDropMs); }
+function wireSmBlade(){ document.addEventListener('pointerdown', smBladeGrab, true);
+    window.addEventListener('pointermove', smBladeMove, true); window.addEventListener('pointerup', smBladeUp, true); window.addEventListener('pointercancel', smBladeUp, true); }
 function finishBlade(){ document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     const syms=(melt&&melt.traits)?melt.traits.map(a=>a.t.symbol).join(' '):'';
     // r60: the sword is kept. Default design = whatever the Design Desk currently has selected.
@@ -7456,7 +7511,7 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
-    smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
+    smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
     if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */

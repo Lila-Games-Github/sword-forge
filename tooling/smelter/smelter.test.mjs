@@ -13,7 +13,7 @@ const src = readFileSync(HTML, 'utf8');
 const main = readFileSync('Swordforge_looptest_landscape.html', 'utf8');
 const m = src.match(/\/\* SMELT-PURE-BEGIN \*\/([\s\S]*?)\/\* SMELT-PURE-END \*\//);
 assert.ok(m, 'SMELT-PURE markers not found in ' + HTML);
-const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed };')();
+const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed, smPendStep, smFollow, smBladeEnds, smRot };')();
 
 let n = 0;
 function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; console.log('  ok   ' + label); }
@@ -21,7 +21,8 @@ const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.mov
 
 /* the record */
 eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500,
-  ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 } });
+  ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 },
+  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320 });
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
@@ -49,6 +50,28 @@ eq('a drag tilts it by the turn of the pointer; a release tips it back', /functi
 eq('every frame a tilted ladle pulls the route toward the centre, only while the metal is in the smelter', /function tick\(now\)\{[\s\S]{0,4000}smLadleTick\(dt\);/.test(src)
   && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,400}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
 eq('wired at start', /wireBellowGate\(\); wireSmBlade\(\); wireLadle\(\);/.test(src), true);
+
+/* s5: the pendulum */
+eq('hanging still stays still', S.smPendStep(0, 0, 0, 0, 80, 1/60), { th: 0, om: 0 });
+eq('swung out, gravity pulls it back', S.smPendStep(0.5, 0, 0, 0, 80, 1/60).om < 0, true);
+eq('the pivot pulled right, the tip lags left', S.smPendStep(0, 0, 2000, 0, 80, 1/60).om < 0, true);
+eq('the swing dies down: from 1 rad, under 0.15 rad after 6 s', (() => { let st = { th: 1, om: 0 }, mx = 0;
+  for (let i = 0; i < 720; i++) { st = S.smPendStep(st.th, st.om, 0, 0, 80, 1/120); if (i >= 600) mx = Math.max(mx, Math.abs(st.th)); } return mx < 0.15; })(), true);
+eq('a swing takes about 1.1 s (L 80)', (() => { let st = { th: 0.2, om: 0 }, prev = 0.2, cross = []; for (let i = 0; i < 1800; i++) { st = S.smPendStep(st.th, st.om, 0, 0, 80, 1/600);
+  if (prev > 0 && st.th <= 0) cross.push(i / 600); prev = st.th; } return Math.round((cross[1] - cross[0]) * 10) / 10; })(), 1.1);
+eq('the handle follows the finger: within 1 px of 100 px in 0.4 s, without overshooting', (() => { let p = 0, v = 0, over = false;
+  for (let i = 0; i < 24; i++) { const r = S.smFollow(p, v, 100, 1/60); p = r.p; v = r.v; if (p > 100.5) over = true; } return [Math.abs(100 - p) < 1, over]; })(), [true, false]);
+eq('the ends of a diagonal blade: the tang bottom left, the tip top right', (() => { const w = 512, h = 512, d = new Uint8ClampedArray(w * h * 4);
+  for (let t = 0; t <= 300; t++) for (let k = -2; k <= 2; k++) { const x = 100 + t + k, y = 400 - t + k; d[(y * w + x) * 4 + 3] = 255; }
+  const e = S.smBladeEnds(d, w, h); return [Math.abs(e.tang.x - 100) <= 3 && Math.abs(e.tang.y - 400) <= 3, Math.abs(e.tip.x - 400) <= 3 && Math.abs(e.tip.y - 100) <= 3]; })(), [true, true]);
+eq('no pixels, no ends', S.smBladeEnds(new Uint8ClampedArray(16), 2, 2), null);
+eq('hanging straight down, a -45 deg art turns 135 deg', S.smRot(0, -45), 135);
+eq('the picture takes no taps; a press near the blade\'s line takes it', src.includes('#smBlade { position: absolute; z-index: 26; display: none; pointer-events: none;')
+  && /document\.addEventListener\('pointerdown', smBladeGrab, true\);/.test(src) && /function smBladeGrab\(e\)\{[\s\S]{0,600}<=SMELT\.bladeGrab/.test(src), true);
+eq('every frame the held blade swings', /function tick\(now\)\{[\s\S]{0,4000}smBladeTick\(dt\);/.test(src)
+  && /function smBladeTick\(dt\)\{[\s\S]{0,900}smFollow\([\s\S]{0,600}smPendStep\(/.test(src), true);
+eq('the bucket test reads the tip; over it the blade drops straight down', /function smOverBucket\(\)\{[\s\S]{0,200}smBladeTip\(\)/.test(src)
+  && /function smBladeDrop\(\)\{[\s\S]{0,700}SMELT\.bladeDropPx[\s\S]{0,400}SMELT\.bladeDropMs/.test(src), true);
 
 /* 1. free play */
 eq('free play instead of D1: on load, after the intro, on a new game', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) smFreePlay\(\);/.test(src)

@@ -63,6 +63,34 @@ tilt." Answer (owner, 2026-10-21): on release it tips back upright, like the bel
   { x -22.2, y 4.9, w 57.3 }, `ladleBase` { x 2.8, y 26.7, w 26.5 }, `ladlePivot` { x 66.7, y 90.6 }.
 - **Pure rules:** `smLadleTilt(tilt, dDeg)` = the tilt plus the turn, clamped to 0..`ladleMax`; `smLadleSpeed(tilt)` as above.
 
+## The blade on a string: pendulum physics (owner, 2026-10-21, s5)
+
+Owner: "can we give some physics to the blade? i want it to rotate and drop when we pick it by the handle on the anvil. so
+it can also go straight down in the bucket. Moving it left and right should make it swing around like a pendulum. keep
+the pivot point on the handle."
+
+- **The handle:** the blade art is the bare blade on a diagonal, its tang (the handle end) at the bottom left. Each blade
+  picture's two ends are found from its pixels (`smBladeEnds`: the opaque pixels furthest along the art's diagonal, x - y,
+  averaged over a thin band at each end; the low end is the tang, the high end the tip), so curved blades work too.
+- **Picking it up:** a press within `bladeGrab` px of the blade's line (tang to tip, on screen) takes it, anywhere along
+  it. The blade's picture no longer takes taps itself (its transparent box covered the map). The tang is the pivot: it
+  follows the finger through a critically damped spring (`smFollow`, stiffness `bladeFollow`), so the handle comes under
+  the finger and the spring gives a smooth pivot acceleration. The blade swings from the angle it lay at, so it turns and
+  drops to hang tip down.
+- **The swing:** a rigid pendulum on a moving pivot (`smPendStep`, screen px, y down, angle from straight down, + = tip to
+  the right): angle'' = ((-ax) cos angle - (g - ay) sin angle) / L - damp x angle'. g = `bladeG`, L = `bladeCom` x the
+  blade's on-screen length (pivot to the centre of mass), damp = `bladeDamp`. Four substeps a frame. Moving left and right
+  swings it; it settles hanging down.
+- **The bucket:** released with the tip over the bucket (its box, `bladeGrab` wider each side, from 60 px above it), the
+  blade drops straight down `bladeDropPx` in `bladeDropMs`, fading, then the steam and mist, then the "Sword crafted!"
+  window. Released anywhere else, it goes back onto the anvil.
+- **Values:** `bladeG` 2600 px/s2, `bladeCom` 0.5, `bladeDamp` 1.2 /s, `bladeFollow` 700 /s2, `bladeGrab` 24 px,
+  `bladeDropPx` 70, `bladeDropMs` 320. With a 160 px blade (2 anvils wide box) L is about 80 px: a swing of about 1.1 s,
+  its size halving in about 1.2 s.
+- **Pure rules:** `smPendStep(th, om, ax, ay, L, dt)`, `smFollow(p, v, target, dt)` (one axis; returns p, v and the
+  acceleration a), `smBladeEnds(rgba, w, h)`, `smRot(th, artDeg)` = the picture's rotation in degrees for a swing angle
+  th (rad), the art's own tang-to-tip angle being artDeg: (90 - th in degrees) - artDeg.
+
 ## The loop
 
 1. Ore to the smelter, or to the grindstone and then the smelter (unchanged). The route draws on the map.
@@ -127,3 +155,4 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
 - 2026-10-21: s2 the handle springs back when released (`springMs` 250, no travel); the sword 2.5x slower (`strokeSec` 0.2).
 - 2026-10-21: s3 the bellows' travel glides out frame by frame (`smEase`, `easeSec` 0.15); the blade on the anvil is 2x the anvil's width (was 1.25).
 - 2026-10-21: s4 the ladle: tilt it to pull the sword toward the centre (tier alignment); speed by the tilt; tips back on release.
+- 2026-10-21: s5 the blade hangs from its handle: picked up, it swings down and swings like a pendulum when moved; dropped straight down into the bucket.
