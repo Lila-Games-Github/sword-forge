@@ -2256,6 +2256,11 @@ of the chain gave, or the cave lesson's need.
   the grindstone reward closed): D32c up, the dim on, the furnace under it, the dragon over it, OK lit; OK gives D33 and
   the dim is off.
 
+- **r297: Day 2 morning - D89's OK first, then the way to the counter (owner, 2026-10-21).** `tutDay2Morning` no longer
+  blinks the left exit with D89; D89's OK is lit (`SAY_GO_GLOW`), and the exit blinks when D92 ("Let's go check the
+  counter.") shows after it (a `say()` hook, stage 'd2-counter'). Asserted by the FTUE test (613), written first. Checked
+  in the browser: Day 2 at the forge - D89 up, OK lit, nothing blinking; OK - D92 and the left arrow blinks.
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2395,3 +2400,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r294 the ore rewards come after each sale, not at the craft.
 - 2026-10-21: r295 no refill while a sword is on the counter; the ore reward waits until the customer has gone.
 - 2026-10-21: r296 D32c is read on a dark screen with its OK lit.
+- 2026-10-21: r297 Day 2 morning: D89's OK first, then the arrow to the counter with D92.

@@ -8356,8 +8356,7 @@ function tutDay2Morning(){
     if(FTUE_ST.part===6){ TUT_STAGE='d2-d3cave'; TUT_D2_SPENT=false; tutExit(null); sayQueue('D89a','D89b'); setTimeout(()=>tutExitTo('cave'), 0); return; }   /* v3 part 6: Day 3. owner, 2026-10-10: the cave first, then the pickaxe */
     /* v3: the skill tree moved to part 6 (D21) - the morning sends the player to the counter, where the bell waits */
     TUT_STAGE='d2-counter'; tutExit(null);
-    sayQueue('D89','D92');
-    setTimeout(()=>tutExit('#panLeft'), 0);
+    sayQueue('D89','D92');   /* r297 (owner): D89's OK lights first; the arrow comes with D92 (the say() hook) */
 }
 /* D91 is the one that asks for the tree, so the button lights with it, not before */
 function tutDay2Skill(){ tutExit('#skillBtn'); }
@@ -10026,6 +10025,7 @@ function say(id){
     if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */
     if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
     if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
+    if(id==='D92' && TUT_STAGE==='d2-counter') setTimeout(()=>tutExit('#panLeft'), 0);   /* r297: after D89's OK, the way to the counter */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */

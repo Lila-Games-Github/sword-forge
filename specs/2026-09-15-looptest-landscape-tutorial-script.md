@@ -46,7 +46,7 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## The script in play order (r296)
+## The script in play order (r297)
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -425,10 +425,10 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 #### Day 2
 
 3. **D89** Dragon: "Good morning! Are you ready to craft perfect swords today? I'll show you how to."
-   *When: Day 2, the player arrives at the forge.*
+   *When: Day 2, the player arrives at the forge; its OK is lit.*
 
 4. **D92** Dragon: "Let's go check the counter."
-   *When: after D89; at the counter the bell glows.*
+   *When: after D89; the arrow to the counter blinks; at the counter the bell glows.*
 
 #### GC4: a Durable sword
 

@@ -153,6 +153,7 @@ continuation prompt printed at close time.
 - **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
 - **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
 - **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r297:** Day 2 morning: D89's OK is lit first; the arrow to the counter blinks only with D92.
 - **r296:** D32c joins `SAY_DARK` and `SAY_GO_GLOW`: a dark screen, OK lit.
 - **r295:** the refill skips a sword on the counter or the table and treats the first sword as open only on its craft steps (`FIRST_SWORD_STAGES`); the ore reward waits for the customer's goodbye to end.
 - **r294:** the ore rewards come after each sale (`FTUE_ST.orePending` at the craft, `ftueOreSold` in the sale flows: Bram after D26, `ftueGpcSold`, `ftueTc4Sold`, `tutGaleThanks`, `ftueAfterDiary`).
@@ -228,7 +229,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 202 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 610 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 613 checks; the market test GREEN at 50; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
