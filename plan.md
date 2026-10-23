@@ -1,6 +1,6 @@
 # Sword Forge — Project Plan
 
-A 2D grid-based blacksmith crafting game. Single-file build (`index.html`), auto-deployed to GitHub Pages on every push to `main`.
+A 2D blacksmith crafting game. Single-file build (`Swordforge_looptest_landscape.html`, the smelter loop since 2026-10-23), auto-deployed to GitHub Pages on every push to `main`. The sections below the smelter-loop one are history (V1/V2 and earlier landscape rounds).
 
 > Design SSOT is `specs/game-design.md`. The original GDD in `archive/` is historical only.
 
@@ -124,6 +124,17 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
   ⚠️ **Must be run over http** (local server or the live URL) — it reads the map's pixels via `getImageData`, which a `file://` open blocks (tainted canvas). Opening the file directly now degrades to a draw-only mode + a "run via a server" toast instead of a blank screen (`try/catch` in `init()`), but traits/hazards need http.
 - Full design notes + open questions: [`research/chalk-map-design.md`](research/chalk-map-design.md).
 - **Not ported to `index.html`.** Next: decide the ore→ingot material system + skill-tree nodes, then plan the port.
+
+## 🔥 The smelter loop: the main game (2026-10-21 to 10-23)
+- [x] **Smelter version built** (s1-s6, PR #26): bellows move the sword, the gate takes the trait, the ladle aligns the tier,
+      the anvil opens the shaping, the blade hangs from its handle and is quenched in the bucket. Record:
+      `specs/2026-10-21-smelter-version-loop.md`.
+- [x] **Made the main game** (owner, 2026-10-23); the old loop kept as `Swordforge_looptest_landscape_hammerloop.html`.
+- [x] **The FTUE reworked to it** (R0-R11, branch `sword-forge/ftue-smelter-rework`): `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- [ ] **Play Parts 2-6 continuously** (each part was checked on its own; Part 1 was played through).
+- [ ] **Play it on a phone**: the bellows, the ladle and the blade dip by finger.
+- [ ] Remove the unused forge hammer and forge mug (hidden by CSS) and their wiring.
+- [ ] `game-design.md` §6-§8 still describe the older build: rewrite to the landscape game's economy, customers and screens.
 
 ## 🐉 Landscape loop-test — guided tutorial (active, 2026-09-18)
 The live line of work is `Swordforge_looptest_landscape.html`. Script SSOT:

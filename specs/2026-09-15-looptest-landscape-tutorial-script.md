@@ -1,6 +1,8 @@
 # Tutorial script: Swordforge loop test (landscape)
 
-Date: 2026-09-15. Reordered 2026-10-21 (r285): the script reads in play order.
+Date: 2026-09-15. Reordered 2026-10-21 (r285): the script reads in play order. **Reworked 2026-10-23 to the smelter loop:** the play
+order below is current (R1-R11, `specs/2026-10-23-ftue-smelter-rework-plan.md`); the build history further down describes the
+old loop (hammer travel, the mug, the dragon's pull) as it was at the time.
 Build: `Swordforge_looptest_landscape.html`
 
 **How to read this file.** "The script in play order" below is every line of the tutorial in the order a player

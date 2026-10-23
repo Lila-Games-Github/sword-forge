@@ -188,3 +188,13 @@ Two smaller ones from the same rounds:
 - **2026-10-13 - check line endings with Node, not grep.** In this Git Bash, a `grep -c` for a trailing carriage return and `awk` both read through carriage returns, so a CRLF check reported every line fine while seven edited files had gone LF-only. Git (autocrlf) hid it from the diff. Count lone line feeds with `node -e` (a regex for a newline not preceded by a carriage return), and restore CRLF the same way.
 - **2026-10-14 - "clear the inline style" is not "back to the start" when the start is inline.** `homeDragon()` (r188) cleared the dragon's inline left/top on the belief that the CSS held his opening spot; `applyLayout()` writes every LAYOUT prop inline, so he dropped to the bench's bottom left. Before resetting an element, check what set its first position.
 - **2026-10-14 - a scene flag that ends on 'done' is still truthy.** `TUT_BRAM_STATE` ends at 'done' and keeps it; a bare `if(TUT_BRAM_STATE)` guard in `takeCounter()` locked every counter sword for the rest of the game. "Scene running" is `TUT_BRAM_STATE && TUT_BRAM_STATE!=='done'`; check the other scene flags (`TUT_BRAM2_STATE`, `TUT_GARRIC_STATE`, `TUT_FIRE_STATE`) the same way.
+- **2026-10-23 - when a code path is removed, check everything else it called.** The smelter version removed the hammer
+  branch in `tick()`; that branch also called the tutorial's route-end checks (`tutFireSpot`, `tutFireReached`, `tutDay2Pull`,
+  `tutGaleEnd`), so they silently stopped. They now run from the bellows' travel (`tutTravelHooks`). Grep a removed block's
+  calls, not only its purpose.
+- **2026-10-23 - a line said in the same beat as a window that clears lines is never seen.** Since r286 the trait window
+  closes the dragon's line as it opens; the lines the gate's hooks said in that beat (D42, D76, D99, D106) vanished for days
+  and every text check still passed. Check that a line is on screen, not only that it was queued.
+- **2026-10-23 - a glowing control invites the tap the guide did not plan.** The gate glows on any trait, so at TC5's swift
+  route end the player tapped it before the ladle and the craft lock refused with the order's line. The owner's rule is "only
+  what the tutorial demands", not "only what the customer asked": the lock follows the tutorial's step.

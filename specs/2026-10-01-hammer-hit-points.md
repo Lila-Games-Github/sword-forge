@@ -1,6 +1,10 @@
 # Hammer hit points (2026-10-01), r209
 
 Design record for the reworked hammering minigame in `Swordforge_looptest_landscape.html`.
+
+> **2026-10-23: the minigame's ending changed** (the smelter loop, `specs/2026-10-21-smelter-version-loop.md` s1). The hit points,
+> bands and touch rules below are unchanged; the **mug is gone**: 0.7 s after the last strike the minigame closes and the blade
+> lies on the anvil, to be dipped in the bucket. Where this record says "splash the mug to finish", read that.
 `tooling/hammer/hammer.test.mjs` asserts the `HM_HITS` object (between the `HAMMER-HITS` markers)
 and the pure functions (between the `HAMMER-PURE` markers) against this record.
 

@@ -1,40 +1,46 @@
 # Sword Forge
 
-> ⚠️ **2026-09-18 — canon moved.** The build under active development is
-> **`Swordforge_looptest_landscape.html`** (landscape loop-test + guided tutorial). The
-> "canonical build" lines below are stale. See **`HANDOFF.md`** for current state, and `CLAUDE.md`.
+A 2D blacksmith crafting game for mobile (landscape), built as a **single self-contained HTML file** (vanilla
+HTML/CSS/JS: no build step, bundler or dependencies). Smelt ores to move a sword across a fog-of-war trait map, take the
+traits it lands on, hammer the blade into shape and sell it to customers.
 
-A 2D grid-based blacksmith crafting game, built as a **single self-contained HTML file** (vanilla HTML/CSS/JS — no build step, bundler, or dependencies). Explore a fog-of-war grid to discover magical traits, heat and forge them into custom swords, and sell to customers at your counter.
+**The game: `Swordforge_looptest_landscape.html`.** `index.html` redirects to it.
 
-**Canonical build: `swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial). `index.html` is V1, kept for historical reference; it is still the deployed site root until V2 is promoted.
-
-**Play it:** auto-deployed to GitHub Pages on every push to `main` → https://lila-games-github.github.io/sword-forge/
+**Play it:** auto-deployed to GitHub Pages on every push to `main`: https://lila-games-github.github.io/sword-forge/
 
 ## Run locally
 
-Open `swordforgeV2.html` in any modern browser — no server or install required. (A zero-dependency static server config lives in `.claude/` for tooling that needs one.)
+Serve the folder (the preview config `.claude/launch.json` starts `.claude/serve.js` on port 5679) and open
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Add `?freeplay` to skip the tutorial, `?nointro` to skip the
+intro.
 
 ## Core loop
 
-Select metals → move across the **50×50** fog-of-war grid (each move spends one metal; hold a direction for the Purify-dash slider to move 1–3 blocks) to land on a hidden **trait** → play the **heating** minigame (each trait has its own variant) to fuse the trait onto your active blade → **forge** the sword through a multi-step pipeline (pick a blade shape → hammer it into form → quench it in water → design the fittings → sharpen it on the grindstone) → **sell** it to a customer at the counter (or list it in the passive shop). Each day brings **7 customers**; once you've served them, tap **End Day** to sleep and advance to the next day. Reinvest gold into the smelter, metal unlocks, the shop, and recorded compositions.
+Ores (optionally ground on the grindstone) go into the **smelter** and draw a route on the map. Dragging the **bellows**
+handle moves the sword along it; tilting the **ladle** beside the smelter pulls the sword toward the centre to line it up on a
+trait (its tier: Weak, Fine, Epic). On a trait the **smelter gate** glows: a tap takes the trait and releases the hot metal.
+The metal on the **anvil** opens the shape window (blueprints can be bought there), then the **hammering minigame**. The shaped
+blade lies hot on the anvil; picked up by its handle it swings, and dipped into the **bucket** it is quenched and the sword is
+made. Then sell it at the counter. A guided tutorial (the FTUE, six parts over three days) teaches all of it.
 
 ## Project layout
 
 | Path | What |
 |------|------|
-| `swordforgeV2.html` | The entire game, V2 (markup + CSS + JS). **Always edit this.** |
-| `index.html` | V1 — historical reference; still the deployed Pages entry point. |
-| `specs/game-design.md` | Single source of truth for mechanics, kept in sync with the code. |
-| `specs/README.md` | SSOT policy. |
-| `ONBOARDING.md` | Zero-context handoff — read this first if you're new to the project. |
+| `Swordforge_looptest_landscape.html` | The game (markup + CSS + JS). **Always edit this.** |
+| `Swordforge_looptest_landscape_hammerloop.html` | The previous main build (the hammer / mug / dragon-pull loop), reference only. |
+| `swordforgeV2.html`, `v1.html`, `Swordforge_new_looptest.html` | Older builds, historical. |
+| `index.html` | A redirect to the game. |
+| `specs/` | Design records, dated; `INDEX.md` lists which are canon. The loop: `specs/2026-10-21-smelter-version-loop.md` (the crafting loop) and `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it). |
+| `tooling/*/` | Test suites (`node tooling/<name>/<name>.test.mjs`) asserting the recorded values. |
+| `HANDOFF.md` | Current state and what is next. Read first. |
 | `CLAUDE.md` | Working conventions for contributors / agents. |
-| `plan.md` | Done / next-up tracker. |
-| `assets/` | Art: `backgrounds/`, `ui/`, `forge/`, `sword-parts/`, `map/`, `customer/`, `unused/`. |
-| `research/` | Experiments (not shipped): the **chalk-map redesign** prototype (`map_test.html` + `chalk-map-design.md`), potioncraft reference. |
-| `archive/Sword_Grid_Game_GDD.md` | Original design vision (historical; superseded by `specs/`). |
+| `INDEX.md`, `LEARNINGS.md`, `plan.md` | Doc catalogue, lessons, tracker. |
+| `assets/` | Art: `backgrounds/`, `ui/`, `forge/`, `sword-parts/`, `hammer/`, `map/`, `customer/`, `Illustrations/`, `Decor/`. |
+| `research/`, `archive/` | Experiments and the original design vision (historical). |
 | `.github/workflows/deploy.yml` | GitHub Pages deploy on push to `main`. |
-| `screenshots/` | Dev/marketing screenshots (not referenced by the game). |
 
 ## Contributing
 
-See `CLAUDE.md`. In short: keep it single-file, match the existing terse vanilla-JS idiom, and update `specs/game-design.md` in the **same change** as any mechanic change.
+See `CLAUDE.md`. In short: keep it single-file, match the terse vanilla-JS idiom, record a design change in its spec and
+test first, and commit one feature at a time.

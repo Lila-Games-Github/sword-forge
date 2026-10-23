@@ -1,5 +1,12 @@
 # FTUE v3 rework: tracker
 
+> **2026-10-23: the crafting loop changed.** The FTUE's parts, customers, rewards, market and ore chain below still hold, but
+> every craft step written here in the old loop (heat with the bellows, hammer the metal on the anvil to travel, pour the mug,
+> drag the dragon to the anvil to pull) now runs in the smelter loop (pump the bellows, take the trait at the gate, tilt the
+> ladle, the anvil opens the shaping, dip the blade in the bucket). The loop: `specs/2026-10-21-smelter-version-loop.md`; each
+> step's rework, the reworded lines and the owner's decisions: `specs/2026-10-23-ftue-smelter-rework-plan.md` (R0-R11). This
+> file's records below are kept as written.
+
 Status: **planning complete 2026-10-08; all six parts built 2026-10-08 (owner play-test pending).** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records

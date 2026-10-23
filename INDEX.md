@@ -1,7 +1,7 @@
 # INDEX
 
-> ⚠️ **2026-09-18:** see **`HANDOFF.md`** for the build under active development
-> (`Swordforge_looptest_landscape.html`). The "WHERE CANON LIVES NOW" table below predates it.
+> **2026-10-23:** the game is `Swordforge_looptest_landscape.html`, on the smelter crafting loop. `HANDOFF.md` has the current
+> state; the table below is current.
 
 Chronological catalog of every doc in this repo. `canon` = current source of truth;
 `superseded`/`deprecated` marked when it happens.
@@ -12,7 +12,9 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 |-------|---------------|
 | What this repo is | [README.md](README.md) |
 | Repo rules / conventions | [CLAUDE.md](CLAUDE.md) |
-| Game design / mechanics SSOT | [specs/game-design.md](specs/game-design.md) |
+| Game design overview | [specs/game-design.md](specs/game-design.md) (§2-§5 the current loop; §6-§8 an older build) |
+| The crafting loop | [specs/2026-10-21-smelter-version-loop.md](specs/2026-10-21-smelter-version-loop.md) |
+| The tutorial (FTUE) | [specs/2026-10-07-ftue-v3-rework.md](specs/2026-10-07-ftue-v3-rework.md), reworked to the loop in [specs/2026-10-23-ftue-smelter-rework-plan.md](specs/2026-10-23-ftue-smelter-rework-plan.md); every line in play order: [specs/2026-09-15-looptest-landscape-tutorial-script.md](specs/2026-09-15-looptest-landscape-tutorial-script.md) |
 | **Which build is canon** | **[Swordforge_looptest_landscape.html](Swordforge_looptest_landscape.html)** — the only build under development, and since 2026-09-22 what the Pages root serves. Historical: [swordforgeV2.html](swordforgeV2.html) (V2), [v1.html](v1.html) (V1, was `index.html`), [Swordforge_new_looptest.html](Swordforge_new_looptest.html) (portrait, deliberately never touched). The older per-section split below is superseded for this build. |
 | Zero-context handoff / onboarding | [ONBOARDING.md](ONBOARDING.md) |
 | Task tracker (done / next up) | [plan.md](plan.md) |
@@ -63,3 +65,6 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 - **2026-10-21** - [specs/2026-10-21-smelter-version-loop.md](specs/2026-10-21-smelter-version-loop.md) - **canon**: the main game's crafting loop since 2026-10-23 (`Swordforge_looptest_landscape.html`; it was the smelter version) (the bellows handle moves the sword, the gate takes the trait, the ladle aligns the tier, the anvil opens the minigame, the blade swings from its handle and is quenched in the bucket; free play). Test: `tooling/smelter/smelter.test.mjs`.
 - **2026-10-07** - [specs/2026-10-07-ftue-v3-rework.md](specs/2026-10-07-ftue-v3-rework.md) - **canon**: FTUE v3 design record, build record per part, and the dated log of every change since ("## Log", the last section; each record sits just above "## Cross-part issues"). Built and live (PR #24, 2026-10-14); supersedes [specs/2026-09-29-tutorial-parts-plan.md](specs/2026-09-29-tutorial-parts-plan.md) on the tutorial's order and content.
 - **2026-10-07** - [specs/2026-10-07-ftue-v3-art-list.md](specs/2026-10-07-ftue-v3-art-list.md) - **canon (planning)**: art needed for FTUE v3 (blades per trait and shape, hammer mid-blades, icons), with fallbacks; grows part by part.
+- **2026-10-23** - [Swordforge_looptest_landscape_hammerloop.html](Swordforge_looptest_landscape_hammerloop.html) - the previous main build (r302: hammer travel, the mug, the dragon's pull), `superseded` as the game by the smelter loop; kept for reference.
+- **2026-10-23** - [specs/game-design.md](specs/game-design.md) - §2-§5 rewritten to the smelter loop (values from the build); §6-§8 marked as the older build. The dated records win on any conflict.
+- **2026-10-23** - docs brought to the smelter loop: README.md (rewritten), ONBOARDING.md (current banner), specs/README.md, plan.md, HANDOFF.md; status lines on the FTUE v3 record, the tutorial script, the hammer hit-points record and the 2026-08-18 map record (their old-loop parts are history).

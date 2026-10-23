@@ -1,6 +1,8 @@
 # Loop-test landscape — map rework: flat board, starter traits, real hazards
 
-Status: canon (active build spec for `Swordforge_looptest_landscape.html`)
+Status: canon (active build spec for `Swordforge_looptest_landscape.html`) for the map, traits and hazards. **Its travel and
+alignment rounds (hammer travel, heat as speed, the dragon's pull, the mug) are history since 2026-10-23:** the loop is
+`specs/2026-10-21-smelter-version-loop.md` (bellows, ladle, gate).
 Date: 2026-08-18
 Branch: `sword-forge/anchor-match-tooling`
 Scope: **landscape only.** `Swordforge_new_looptest.html` (portrait) is deliberately untouched.
