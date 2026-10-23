@@ -291,3 +291,7 @@ yours and come on top.
   hammer and mug pointers gone in R5-R6, the quest label in R5, the tiers art kept by decision 5). The hidden forge hammer
   and mug (their props, CSS and wiring) are still in the file, unused; removing them is a separate cleanup. FTUE test
   705 -> 706. Checked in the browser: the intro, then D1; no console errors.
+- **R9 (2026-10-23): the tutorial script in play order.** `specs/2026-09-15-looptest-landscape-tutorial-script.md`'s play-order
+  section is regenerated from the build's DIALOGUE (199 keys) with the new triggers (the bellows, the gate, the ladle,
+  the dip); D5, D7, D39 and D40 leave it (the only entries removed; the rest is renumbering), and the removed-lines note
+  names them.
