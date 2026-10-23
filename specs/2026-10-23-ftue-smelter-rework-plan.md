@@ -286,3 +286,8 @@ yours and come on top.
   needed no change. FTUE test 703 -> 705 (written first). Checked in the browser (PART 5 jump): the stored swift ingot
   (stage onAnvil) -> D113 with the arrow from its slot -> taken out: hot at the gate -> D44, the arrow to the anvil; on
   the anvil the shape window, D44 and the arrow gone; no console errors.
+- **R8 (2026-10-23): tidying.** The refill tables (`FIRST_SWORD_STAGES`, `CRAFT_REWIND`) drop the gate and hammer steps R1 removed;
+  `markGateReady` (the gate on heat, unused since s1) and its old hint are gone. Most of C9-C12 was done on the way (the
+  hammer and mug pointers gone in R5-R6, the quest label in R5, the tiers art kept by decision 5). The hidden forge hammer
+  and mug (their props, CSS and wiring) are still in the file, unused; removing them is a separate cleanup. FTUE test
+  705 -> 706. Checked in the browser: the intro, then D1; no console errors.

@@ -313,6 +313,9 @@ eq('no hammer to send home, no mug pointer left', !/homeHammer\(\)/.test(src.rep
 eq('a stored ingot comes back hot at the gate (one stored on the anvil too), so the anvil opens the shaping', /function restoreIngot\(id\)\{[\s\S]{0,1200}if\(melt\.stage==='onAnvil'\) melt\.stage='hot';[\s\S]{0,400}orbEl\.style\.display='block'; updateOrbLook\(\); snapToGate\(\);/.test(src), true);
 eq('Bram\'s metal back: D44, the arrow from it to the anvil', /function tutBram2Restored\(\)\{[\s\S]{0,300}sayQueue\('D44'\);[^\n]*\n\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
 
+/* R8 (2026-10-23): no gate-on-heat left */
+eq('markGateReady (the gate on heat) is gone', src.includes('markGateReady'), false);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
@@ -475,10 +478,10 @@ eq('only for an open order not yet made, the bench empty, no window, no pause, n
    empty, so the first sword looked unmade. Now a sword on the counter or the table stops the refill, and the first sword is
    an open order only on its own craft steps */
 eq('a sword on the counter or the table is a made sword', /function ftueRefillTick\(\)\{[\s\S]{0,300}if\(COUNTER \|\| WORK\) return;/.test(src), true);
-eq('the first sword is open only on its craft steps, with the starting bag as its round', src.includes("const FIRST_SWORD_STAGES={ ore:1, bellows:1, gate:1, anvil:1, hammer:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };")
+eq('the first sword is open only on its craft steps, with the starting bag as its round', src.includes("const FIRST_SWORD_STAGES={ ore:1, bellows:1, anvil:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };   /* R8: no gate or hammer step since R1 */")
   && /function ftueRefillTick\(\)\{[\s\S]{0,900}const first=\(!CUSTOMER && FTUE_ST\.part===1 && !!FIRST_SWORD_STAGES\[TUT_STAGE\] && !INV\.swords\.length\)[\s\S]{0,500}const need=first \? FTUE\.oreStart : FTUE_ST\.oreRound;/.test(src), true);
 eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
-  { bellows: 'first', gate: 'first', anvil: 'first', hammer: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
+  { bellows: 'first', anvil: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
     'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
     'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
 eq('the first sword starts again at D3 (its ore step)', /function ftueCraftRewind\(\)\{[\s\S]{0,300}if\(to==='first'\)\{ TUT_STAGE=null; tutPause\(false\); tutArrow\(null,null\); tutUnglow\(\); sayQueue\('D3'\); return; \}/.test(src)

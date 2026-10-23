@@ -2887,7 +2887,7 @@ function ftueOreWindow(give, e, then){ const list=Object.keys(give).filter(k=>gi
    order is not covered: its round can be overwritten by the other orders' rewards while it waits. ---- */
 function ftueShortfall(need, bag){ const t={}; Object.keys(need || {}).forEach(k=>{ const m=need[k]-(bag[k]||0); if(m>0) t[k]=m; }); return t; }
 /* r295: the first sword's own craft steps - the only time it is an open order (on Bram's counter the bag is empty, but it is made) */
-const FIRST_SWORD_STAGES={ ore:1, bellows:1, gate:1, anvil:1, hammer:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };
+const FIRST_SWORD_STAGES={ ore:1, bellows:1, anvil:1, strike:1, travel:1, quench:1, acquired:1, shape:1, forge:1 };   /* R8: no gate or hammer step since R1 */
 function ftueRefillTick(){
     if(FTUE_ST.done || benchBusy() || TUT_PAUSE) return;
     if(COUNTER || WORK) return;   /* r295 (owner): a sword on the counter or the table is a made sword */
@@ -2900,7 +2900,7 @@ function ftueRefillTick(){
     ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind); }
 /* after a refill the guided craft goes back to its first step, so its pointers fit the empty bench. Not covered: TC2's regrind,
    TC3's fire run, TC5's gale run and Bram's Dagger keep their stage (the ores are refilled; the pointers may run ahead) */
-const CRAFT_REWIND={ bellows:'first', gate:'first', anvil:'first', hammer:'first', strike:'first', travel:'first', quench:'first', acquired:'first', shape:'first',
+const CRAFT_REWIND={ bellows:'first', anvil:'first', strike:'first', travel:'first', quench:'first', acquired:'first', shape:'first',
     'p1-craft-heat':'p1-craft-ore', 'p1-craft-shape':'p1-craft-ore', 'p3-dur-heat':'p3-dur-grind', 'p4-pull':'p3-dur-grind', 'p4-quench':'p3-dur-grind',
     'p4-weak-heat':'p4-weak-grind', 'p4-weak-quench':'p4-weak-grind' };
 function ftueCraftRewind(){ const to=CRAFT_REWIND[TUT_STAGE]; if(!to) return;
@@ -5986,7 +5986,6 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(ftueFirstCap(oreId)) return;   /* r199 */
     ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
-function markGateReady(){ gateReady=true; document.getElementById('furnaceGate').classList.add('ready'); hint('Heat ready — <b>tap the furnace gate</b> to release the <b>hot metal</b>.'); tutGateStep(); }
 function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
@@ -10377,7 +10376,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); ftueGrin
     requestAnimationFrame(tick);
     window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
         routeEnd, swordOut, startPrep, setGrind:g=>{ if(prep){prep.grind=g; updateOrbLook(); drawPrepPreview();} }, addPrep, addOreDirect,
-        ready:markGateReady, setHeat:h=>{ if(melt){melt.heat=h; updateGauges();} }, openGate, placeOnAnvil, reinsert,
+        setHeat:h=>{ if(melt){melt.heat=h; updateGauges();} }, openGate, placeOnAnvil, reinsert,
         strike:on=>hammerEl.classList.toggle('striking',!!on), breathe:on=>{ on?startBreath():stopBreath(); }, tryAcquire, reset:resetRun,
         pips:()=>bladePips().map(p=>p.t.id+':'+p.tier), grantTrait:(id,tier)=>{ const t=TRAIT_BY[id]; if(!melt||!t) return false; melt.traits.push({t:t,tier:tier}); updateSfTraits(); return true; },
         hp:()=>melt?melt.hp:null, hazards:()=>hazards.map(h=>({x:h.x,y:h.y,kind:h.kind,parts:h.parts.length,bb:h.bb})), books:()=>books.map(b=>({x:b.x,y:b.y,kind:b.kind,xp:b.xp,taken:b.taken})), exp:()=>exp, takeBook, fogCheat:()=>toggleFogCheat(), damage:(d)=>{ if(melt){ melt.hp=Math.max(0,melt.hp-d); updateHpPill(); if(melt.hp<=0) shatterBlade(); } }, mugState:()=>({over:mugOverAnvil(), canPour:canPourQuench(), pouring:mugEl.classList.contains('pouring')}), pour:()=>{ if(canPourQuench()){ mugEl.classList.add('pouring'); showWaterBurst(); tryAcquire(); return true; } return false; } };
