@@ -87,3 +87,36 @@ The "92%" shown on a counted strike is **bigger** (26 px, was 15), lasts **twice
 and **rises almost to the top of the scene** before it fades: it ends with its foot at `HM_ACC_TOP` (10%)
 from the top (the rise is set per strike, `--rise`), fully visible for the first 75% of the time. Measured:
 45% → 11.5% (0.8 s) → 6.7% (1.2 s, still opaque) → gone at 1.6 s.
+
+## Touch targets (owner, 2026-10-20), r277
+
+Owner: the controls were hard to use. A tap on the hammer could make the dragon breathe on the blade, because the
+touch areas were boxes, not the art. Measured on the build before the fix (Longsword, hammer over the metal):
+
+- the hammer's pad (`#hmGrip`, 44% x 66% of the stage) caught 1,895 sample points, 1,762 of them (93%) off the hammer;
+- the metal's pad (`#hmAimPad`, 30% x 28% around the anvil, over `#hmGrip` at the same z) caught 105 of 639 points on
+  the hammer's own art (16%), so those taps aimed the dragon instead of moving or striking the hammer;
+- at the orb stage, 939 of the metal pad's 1,512 sample points (62%) were off the metal.
+
+The rule now: **a press goes to what is under the finger.** One handler on the scene reads each press:
+
+1. on the hammer's own pixels (its art's alpha, through its live transform) -> the hammer (drag, or tap to strike);
+2. else on the metal's own pixels -> the dragon aims and breathes: the orb (a circle) while it shows, then the
+   mid-blade's and the finished blade's alpha, each while it is more than a third visible;
+3. else the press is not taken, so the dragon's head, the mug and the buttons work as before.
+
+The hammer wins a press on both, since it is drawn over the metal. The three pads no longer take presses.
+
+Values (Claude's proposal, owner to confirm): `HM_HITS.touch = { hammer: 6, metal: 8 }`, the slack in screen pixels
+around the art that still counts as a hit, so a thin handle or blade edge is not a pixel hunt.
+
+Build (r277): `wireHmTouch` (a capture-phase `pointerdown` on `#hmScene`) asks `hmOnHammer` and `hmOnWork`, and
+`hmPickTarget` (pure) chooses; the hammer's and the dragon's press handlers (`HM_DOWN`) then capture the pointer on the
+scene. `hmLocalUV` maps a screen point into an element's own box through its computed transform and origin;
+`hmMaskHit` (pure) looks for solid alpha within the slack, read with the existing `hmMask`. Until a mask has loaded,
+the old box stands in. A mouse also gets the cursor the art asks for. Asserted by `tooling/hammer/hammer.test.mjs`
+(47), written first. Checked in the browser (Longsword, hammer moved over the metal): all 639 sampled hammer pixels go
+to the hammer, 352 of them over the old metal pad; a real press there moves the hammer and does not breathe; a tap on
+the head strikes; a press on the orb breathes and releasing stops it; a press in the old pad's box but off the metal is
+not taken; at the mid-blade, 385 of 385 blade pixels are taken and 0 of 6,096 points beyond the slack; the dragon's
+head and the mug still take their own taps; no console errors.

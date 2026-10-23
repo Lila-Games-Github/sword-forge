@@ -1,23 +1,28 @@
-# Tutorial script — Swordforge loop test (landscape)
+# Tutorial script: Swordforge loop test (landscape)
 
-Date: 2026-09-15
+Date: 2026-09-15. Reordered 2026-10-21 (r285): the script reads in play order.
 Build: `Swordforge_looptest_landscape.html`
-Status: **script only.** This file is the source of truth for the tutorial's copy and ordering; the
-build follows it, not the other way round.
+
+**How to read this file.** "The script in play order" below is every line of the tutorial in the order a player
+meets it, traced from the build as of r284 and kept current with each change since. The text is copied from the build's `DIALOGUE` map, so it is the text
+the game shows. Each line keeps its permanent id (D1, D28b, D119a, ...): the ids are keys in the code, so they keep
+their numbers and read out of order. Player replies and customer lines that are not in `DIALOGUE` appear where they
+happen. After the script: the lines in the game that the current flow does not speak, the issues found while
+tracing, and the build history (r76 to r227) as it was written.
 
 ---
 
 ## Conventions
 
-Every line of spoken copy has a permanent id — **D1, D2, …** — and never changes id once written. If a
+Every line of spoken copy has a permanent id, **D1, D2, ...**, and never changes id once written. If a
 line is cut, its id is retired rather than reused, so a `tutorialFlow` entry referring to D14 always
 means the same sentence.
 
 ### Speakers
 
-- **Dragon** — the voice of the tutorial. Lives on the forge bench, left side. Speaks in a **tailed
+- **Dragon**: the voice of the tutorial. Lives on the forge bench, left side. Speaks in a **tailed
   bubble anchored to itself** (see below).
-- **Sign** — unvoiced instruction in the existing bottom hint bar, for things nobody needs to say out
+- **Sign**: unvoiced instruction in the existing bottom hint bar, for things nobody needs to say out
   loud. Written as `Sign:` and **not** given a D-number.
 
 ### The dragon's dialogue box
@@ -28,7 +33,7 @@ Placeholder art; the shape is what matters:
 - pale parchment body, rounded, dark-brown 2px border, drop shadow;
 - a **tail** on the bubble's lower-left corner pointing down and left, at the dragon's head;
 - anchored to the dragon element, so it follows the dragon when dragged and at any frame size;
-- body text dark (`#4a3623`) — the parchment is pale, the same trap r55 hit on the counter;
+- body text dark (`#4a3623`): the parchment is pale, the same trap r55 hit on the counter;
 - click anywhere on the bubble to advance.
 
 Pointer arrows come from `tutArrow(from, to, opt)` and the pulsing highlight from `tutGlow(sel, on)`;
@@ -39,7 +44,874 @@ the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears
 
 ---
 
-## Dialogue
+---
+
+## The script in play order (r301)
+
+Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
+"branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
+
+### Part 1: the first sword, Bram, and the first three customers
+
+#### The first sword
+
+1. **D1** Dragon: "Hm, this forge looks like it hasn't been used for a long time. Why don't we craft something simple to see if everything works?"
+   *When: the game opens; the screen is dark except the dragon.*
+
+2. **D2** Dragon: "Don't worry, I know you're exhausted. I'll guide you through it."
+   *When: after D1.*
+
+3. **D3** Dragon: "Add 2 Iron and 2 Manganese to the smelter. Note the path it creates on the trait map."
+   *When: after D2; the ore step (smelter and inventory lit).*
+
+4. **D4** Dragon: "Heat up the smelter with the bellows. Tap and hold."
+   *When: 2 Iron and 2 Manganese are in the smelter.*
+
+5. **D5** Dragon: "Tap on the smelter gate to open it."
+   *When: the smelter is hot enough.*
+
+6. **D6** Dragon: "Nice! Let's take this hot metal to the anvil."
+   *When: the gate is open.*
+
+7. **D7** Dragon: "Pick up the hammer and strike the hot metal on the anvil."
+   *When: the metal is on the anvil.*
+
+8. **D8** Dragon: "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'."
+   *When: after a moment of hammering; the game pauses until it is closed.*
+
+9. **D10** Dragon: "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal."
+   *When: the sword reaches the '?'; the mug pointer goes up with it. It closes when the trait window opens.*
+
+10. **D12** Dragon: "Tap on the metal to select the shape of the sword blade."
+   *When: the trait window is closed.*
+
+11. **D13** Dragon: "I'll help you heat up the metal again so you can start shaping it!"
+   *When: the hammer minigame opens.*
+
+12. **D14** Dragon: "Press and hold the metal, and I will heat it for you to hammer."
+   *When: after D13.*
+
+13. **D15** Dragon: "It is hot enough."
+   *When: the metal is hot enough to work; the game pauses under the dark screen until its OK.*
+
+14. **D15a** Dragon: "Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer."
+   *When: after D15.*
+
+15. **D16** Dragon: "The metal cools down slowly. You will have to heat it again. Tell me where to FIRE!"
+   *When: only if the metal cools below working heat (once in the game); the game pauses.*
+
+16. **D17** Dragon: "Pick up the mug and splash water on the blade to finish."
+   *When: the blade is fully shaped.*
+
+17. **D17a** Dragon: "Tap the arrow to see more details."
+   *When: the first "Sword crafted!" window.*
+
+18. **D17b** Dragon: "The hammer icon shows how well you hammered your blade. Higher percentage means more money."
+   *When: the details arrow is tapped.*
+
+19. **D17c** Dragon: "This shows how much ore you used for the sword."
+   *When: after D17b; then CLOSE lights.*
+
+20. **D18** Dragon: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!"
+   *When: the crafted window is closed.*
+
+#### Bram (TC1)
+
+21. **D19** Dragon: "Not too bad. We can use it. But you should really consider decorating it later!"
+   *When: the player arrives at the counter.*
+
+22. **D20** Bram: "Oh, God, save me! I didn't think I would find anyone here. Who are you?"
+   *When: D19 is closed; Bram arrives.*
+
+23. **Player:** "I am a blacksmith." / "Who are you? What is wrong?"
+   *When: two reply buttons.*
+
+24. **D21** Bram: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me."
+   *When: branch: "I am a blacksmith.".*
+
+25. **D22** Bram: "You don't need to know who I am! Assassins are after me. I lost my sword too!"
+   *When: branch: "Who are you? What is wrong?".*
+
+26. **Player:** "I just crafted a sword. You can have it."
+   *When: reply button after D21 or D22.*
+
+27. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+   *When: the reply is tapped.*
+
+28. **D24** Dragon: "He looks pleased and he is offering gold! Tap the sell button to confirm the trade."
+   *When: the sword is on the counter.*
+
+29. **D25** Bram: "Thanks! If I survive the night I will come back to thank you properly."
+   *When: SELL is tapped.*
+
+30. **Player:** "Take care"
+   *When: reply button.*
+
+31. **D26** Dragon: "Phew! That was a lot of hard work."
+   *When: Bram leaves.*
+
+32. **D18a** Dragon: "Here's a reward from me."
+   *When: D26 is closed; over the reward window (2 Iron, 2 Manganese for GC1).*
+
+#### The quest list, the dragon, the bell
+
+33. **D118** Dragon: "I made something for you. To keep you motivated, I put together a small quest list."
+   *When: D26 is closed; the QUEST button lights.*
+
+34. **D119** Dragon: "I will reward you with gold when you finish your quests, as long as you don't ask where the money is coming from."
+   *When: both quests are claimed and the list is closed.*
+
+35. **D119a** Dragon: "If you are not sure what to do, at any point, you can tap on me. I'll help you."
+   *When: after D119; the dragon glows.*
+
+36. **D119b** Dragon: "Good. Now let's continue."
+   *When: the player taps the dragon.*
+
+37. **D27** Dragon: "I found a bell for you. You can ring it to signal to the next customer that you are available."
+   *When: after D119b; the bell appears (ringing it moves on).*
+
+#### GC1, GC2, GC3: blueprints at the shape window
+
+38. **Customer (GC1):** "Do you have a Balanced Longsword?"
+   *When: the bell; one of the random customer requests, naming the order.*
+
+39. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it."
+   *When: after GC1's request; its lit OK starts the craft guide (no market trip).*
+
+40. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
+   *When: only if a GC1-GC3 craft uses too much or too little of an ore; with a "Retry" button.*
+
+41. **D28k** Dragon: "The customer asked for a {o}. Let's focus on that."
+   *When: only if, while any order is open, the player tries another trait's page, another shape, or a pour on another trait ({o} = the order).*
+
+42. **D28m** Dragon: "Let's buy those later. Focus on the customer's request."
+   *When: only if, in the tutorial, the player tries to buy a blueprint no order needs (shape window or market).*
+
+43. **D28l** Dragon: "Careful! Here, try again."
+   *When: only if the bag can no longer make the open order (e.g. a cancelled craft): over a reward window with the missing ores; the guided craft starts again.*
+
+44. **D9** Dragon: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up."
+   *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
+
+45. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+
+46. **D28d** Dragon: "There, my treat! Now pick the Longsword."
+   *When: the Longsword is unlocked; then it blinks to be picked.*
+
+47. **Customer (GC1):** "Wow! Looks good. Good job."
+   *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
+
+48. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC1's sale; over the reward window (2 Iron, 2 Manganese for GC2).*
+
+49. **Customer (GC2):** "Do you have a Balanced Broadsword?"
+   *When: the bell; a random request.*
+
+50. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
+   *When: after GC2's request; its lit OK starts the craft guide.*
+
+51. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+
+52. **D28f** Dragon: "Done! Pick the Broadsword."
+   *When: the Broadsword is unlocked; then it blinks to be picked.*
+
+53. **Customer (GC2):** a random thank-you
+   *When: after the sale.*
+
+54. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC2's sale; over the reward window (2 Iron, 2 Manganese for GC3).*
+
+55. **Customer (GC3):** "Do you have a Balanced Katana?"
+   *When: the bell; a random request.*
+
+56. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
+   *When: after GC3's request; its lit OK starts the craft guide.*
+
+57. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
+   *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
+
+58. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
+   *When: the player buys the Katana in the shape window; then it blinks to be picked.*
+
+59. **Customer (GC3):** a random thank-you
+   *When: after the sale.*
+
+60. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
+   *When: after GC3's sale; over the reward window (1 Iron, 1 Manganese for TC2); then the bell glows.*
+
+### Part 2: grinding, the recipe, and the fire sword
+
+#### TC2 and the grindstone
+
+1. **D29** TC2: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one."
+   *When: the bell.*
+
+2. **D31** Dragon: "So many customers. No tea break for us. Back to the forge we go."
+   *When: after TC2's line; points to the forge.*
+
+3. **D32** Dragon: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-"
+   *When: raw Iron and Manganese are in the smelter and the route misses Balanced.*
+
+4. **D32a** Dragon: "We grind them!"
+   *When: after D32.*
+
+5. **D32b** Dragon: "Here, I found this grindstone lying around. It should help."
+   *When: after D32a; closing it opens the grindstone reward.*
+
+6. **D32c** Dragon: "I put your ores back. Let's try again."
+   *When: the reward window is closed; the screen is dark except the dragon, and its OK is lit.*
+
+7. **D33** Dragon: "We can travel further on the map if we grind the ores before we put them in the smelter."
+   *When: after D32c; the what-if route blinks on the map.*
+
+8. **D35** Dragon: "Drag one iron to the grindstone. Hold the handle and turn the stone. Note how the path on the map is getting longer."
+   *When: after D33.*
+
+9. **D36** Dragon: "Drag the ground ore to the smelter."
+   *When: the Iron is fully ground.*
+
+10. **D37** Dragon: "Do the same with manganese ore."
+   *When: the ground Iron is in the smelter.*
+
+11. **D38** Dragon: "Great, the path is going all the way to the balanced trait we discovered last time."
+   *When: the ground Manganese is in the smelter.*
+
+12. **D39** Dragon: "Heat up the smelter. Oh, I almost forgot to tell you!"
+   *When: after D38.*
+
+13. **D40** Dragon: "The hotter the metal is, the faster the sword icon travels on the defined path when you hammer."
+   *When: after D39; the bellows unlock.*
+
+14. **D41** Dragon: "Hot enough! Move it to the anvil and start hammering."
+   *When: the gate is ready.*
+
+15. **D42** Dragon: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'."
+   *When: the quench on Balanced is done.*
+
+16. **D43** Dragon: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both."
+   *When: the compare window opens.*
+
+17. **D44** Dragon: "Tap on the metal to select a shape."
+   *When: the recipe is recorded and the blade panel closed.*
+
+18. **D45** Dragon: "You remember what to do, right? Go ahead, I'm ready!"
+   *When: the hammer minigame opens (D46 replaces it almost at once).*
+
+19. **D46** Dragon: "Tell me where to FIRE, and hammer the blade."
+   *When: the first stall in the minigame; repeats on each stall.*
+
+20. **D47** Dragon: "Splash water to cool the blade and finish crafting."
+   *When: only on a stall once the mug is ready.*
+
+21. **D55** Dragon: "Back to the counter now."
+   *When: the crafted window is closed.*
+
+22. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+   *When: the player arrives at the counter.*
+
+23. **D56** TC2: "Hmm. I see. Not bad. {g}g for your efforts."
+   *When: SELL is tapped.*
+
+24. **Player:** "Thank you."
+   *When: reply button; then the +5 recipe pages reward.*
+
+25. **D58** Dragon: "Ring the bell! I am ready for more!"
+   *When: the reward window is closed; the bell lights.*
+
+#### TC3, the cave, and the fire sword
+
+26. **D59** TC3: "Hello. Anyone here? I heard the sound of a hammer striking an anvil here. Are you a blacksmith? This forge has not been in use for so long. Are you new?"
+   *When: the bell.*
+
+27. **Player:** "I'm a blacksmith. Do you need a sword?" / "I am new. Do you know who used to live here before me?"
+   *When: two reply buttons.*
+
+28. **D60** TC3: "Oh, another blacksmith! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day."
+   *When: branch: "I'm a blacksmith...".*
+
+29. **D61** TC3: "Oh! An old blacksmith used to live here. His swords were good, as far as I know. But he just vanished one day. Sorry, I don't know much."
+   *When: branch: "I am new...".*
+
+30. **D62** TC3: "Do you have a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes."
+   *When: branch "blacksmith": the next tap on her line.*
+
+31. **D63** TC3: "Anyways, can you give me a fire sword? I am actually part of an adventurer group that is going on a hunt for ice drakes."
+   *When: branch "new": the next tap on her line.*
+
+32. **D64** Dragon: "Hmm, we are out of ores. But there is a cave just nearby. We should go there."
+   *When: after TC3's request; out of ore.*
+
+33. **D65** Dragon: "I see a pickaxe. How lucky! Pick it up and drag it to the ores."
+   *When: the player arrives in the cave.*
+
+34. **D66** Dragon: "Let's leave the pickaxe here for next time. We found it. We are not stealing. Not stealing at all."
+   *When: both seams are empty.*
+
+35. **D67** Dragon: "3 iron and 2 manganese. Not bad. Let's go back to the forge."
+   *When: after D66.*
+
+36. **D67a** Dragon: "The map is divided into 5 parts. This picture gives you a hint about where each trait might be."
+   *When: the player arrives at the forge; closing it opens the five-parts map window.*
+
+37. **D68** Dragon: "Grind two iron and one manganese fully, then add them to the smelter."
+   *When: the map window is closed.*
+
+38. **D69** Dragon: "Now heat it, take it to the anvil and hammer."
+   *When: the third ore is in.*
+
+39. **D69a** Dragon: "Oh! We are crossing over a hazard zone."
+   *When: only if the blade enters a hazard on this run (once); the game pauses.*
+
+40. **D69b** Dragon: "The sword will take damage if we force it through the hazards, and a damaged sword sells for less."
+   *When: after D69a.*
+
+41. **D69c** Dragon: "Good thing this is a small one. Just keep going."
+   *When: after D69b.*
+
+42. **D70** Dragon: "Do you see that? I think that is the fire trait!"
+   *When: the sword is at the end of the route.*
+
+43. **D71** Dragon: "Put the metal back in the smelter; we need to go further."
+   *When: after D70.*
+
+44. **D72** Dragon: "If we use iron, we will cross another hazard zone."
+   *When: the metal is back in the smelter.*
+
+45. **D72a** Dragon: "But the manganese can avoid it."
+   *When: after D72.*
+
+46. **D73** Dragon: "Enough! Now add this to the smelter."
+   *When: the chosen ore is fully ground.*
+
+47. **D74** Dragon: "Heat it, take it to the anvil and hammer."
+   *When: that ore is in the smelter.*
+
+48. **D75** Dragon: "Splash water on it! I hope this is the fire trait!"
+   *When: Fire is reached.*
+
+49. **D76** Dragon: "Yes! We got it! It is not perfect, but it is okay for now."
+   *When: the quench gives Fire.*
+
+50. **D77** Dragon: "Tap the metal and select a shape."
+   *When: after D76.*
+
+51. **D78** Dragon: "I'm ready!"
+   *When: the hammer minigame opens.*
+
+52. **D69d** Dragon: "The sword was damaged because of the Hazard zones. It will sell for a little less."
+   *When: only if the sword lost health: on the crafted window, and again when its details open.*
+
+53. **D85** Dragon: "Okay, back to the counter!"
+   *When: the crafted window is closed.*
+
+54. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+   *When: the player arrives at the counter.*
+
+55. **D86** TC3: "Oh wow! I didn't think you'd be this good. I was worried I had given you a complicated order on your first day. Here's your {g}g."
+   *When: SELL is tapped.*
+
+56. **Player:** "Thank you."
+   *When: reply button.*
+
+### Part 3: Day 1 ends, Day 2, Durable and the fire orders
+
+#### The end of Day 1
+
+1. **D87** Dragon: "*Yawn* - I'm sleepy. Can we go to bed now?"
+   *When: after the reply to TC3.*
+
+2. **D88** Dragon: "Goodnight. I'll protect - you - I'm strong - must - guard - all night - swords - meat."
+   *When: the player arrives in the bedroom.*
+
+#### Day 2
+
+3. **D89** Dragon: "Good morning! Are you ready to craft perfect swords today? I'll show you how to."
+   *When: Day 2, the player arrives at the forge; its OK is lit.*
+
+4. **D92** Dragon: "Let's go check the counter."
+   *When: after D89; the arrow to the counter blinks; at the counter the bell glows.*
+
+#### GC4: a Durable sword
+
+5. **Customer (GC4):** "Do you have a Durable Shortsword?"
+   *When: the bell; a random request.*
+
+6. **D92b** Dragon: "The Durable trait is one of the basic traits. It should be in the visible part of the map."
+   *When: after GC4's request.*
+
+7. **D92c** Dragon: "The traits you discover in the hidden part of the map are elemental."
+   *When: after D92b; closing it opens the map window.*
+
+8. **D92d** Dragon: "And I also remember we need nickel for the Durable trait."
+   *When: the map window is closed.*
+
+9. **D92e** Dragon: "Let's see if we can find some in the cave."
+   *When: after D92d; points to the cave.*
+
+10. **D94b** Dragon: "Gather everything."
+   *When: the player arrives in the cave.*
+
+11. **D92f** Dragon: "We got some nickel! We can craft a Durable sword now."
+   *When: all seams are empty.*
+
+12. **D92g** Dragon: "If you explore further in the same direction, you will find elemental traits associated with light."
+   *When: after D92f; points to the forge.*
+
+13. **Customer (GC4):** a random thank-you
+   *When: after the sale.*
+
+14. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC4's sale; over the reward window (the fire page's ores for GC5).*
+
+#### GC5: fire Longsword, the map route
+
+15. **Customer (GC5):** "Do you have a Fire Longsword?"
+   *When: the bell; a random request.*
+
+16. **D92h** Dragon: "A fire Longsword! I'll buy this blueprint for you too."
+   *When: after GC5's request.*
+
+17. **D92a** Dragon: "Remember the fire route? The craft book can help."
+   *When: after D92h; its lit OK starts the map route.*
+
+18. **D92m** Dragon: "Let's go to the forge."
+   *When: only if the player is not on the forge.*
+
+19. **D92n** Dragon: "Tap on the trait to open the craft book directly."
+   *When: on the forge, dark except the fire trait; the trait opens its card, then CRAFT 1.*
+
+20. **D28c** Dragon: "Here it is. Watch this!"
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Longsword's lock (then it blinks).*
+
+21. **Customer (GC5):** a random thank-you
+   *When: after the sale.*
+
+22. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC5's sale; over the reward window (the fire page's ores for GC6).*
+
+#### GC6: fire Broadsword, the book route
+
+23. **Customer (GC6):** "Do you have a Fire Broadsword?"
+   *When: the bell; a random request.*
+
+24. **D92i** Dragon: "And a fire Broadsword. My treat, one more time!"
+   *When: after GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
+
+25. **D28c** Dragon: "Here it is. Watch this!"
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Broadsword's lock.*
+
+26. **D28f** Dragon: "Done! Pick the Broadsword."
+   *When: the Broadsword is unlocked; then it blinks to be picked.*
+
+27. **Customer (GC6):** a random thank-you
+   *When: after the sale.*
+
+28. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC6's sale; over the reward window (the fire page's ores for GC7).*
+
+#### GC7: fire Katana, the player buys
+
+29. **Customer (GC7):** "Do you have a Fire Katana?"
+   *When: the bell; a random request.*
+
+30. **D92j** Dragon: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!"
+   *When: after GC7's request.*
+
+31. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
+   *When: the shape window opens, only if the gold is below the fire Katana's price; the top-up, then its BUY blinks.*
+
+32. **Customer (GC7):** a random thank-you
+   *When: after the sale.*
+
+33. **D18a** Dragon: "Here's a reward from me."
+   *When: after GC7's sale; over the reward window (2 Nickel for TC4; the next bell brings TC4).*
+
+### Part 4: Epic Durable, the gale sword, Weak, and "come back later"
+
+#### TC4: an Epic Durable sword
+
+1. **D92k** TC4: "I want a durable sword. Make sure it is EPIC! I only want the best."
+   *When: the bell.*
+
+2. **D92l** Dragon: "Okay, time to learn how to craft the best tier sword!"
+   *When: after TC4's line; points to the forge.*
+
+3. **D97** Dragon: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!"
+   *When: the sword is at the end of the route; closing it opens the tiers window.*
+
+4. **D98** Dragon: "Stop! This looks perfect."
+   *When: the sword is held on Durable.*
+
+5. **D18a** Dragon: "Here's a reward from me."
+   *When: after TC4's sale (and its reward); over the reward window (2 Copper for TC5's swift ingot).*
+
+#### TC5: the gale sword
+
+6. **D93** TC5: "Do you have a sword with the Gale trait?"
+   *When: the bell.*
+
+7. **D93a** Dragon: "Gale? We have never made that. Let's try copper and see where the path goes."
+   *When: after TC5's line.*
+
+8. **D95** Dragon: "Grind two copper and add it to the smelter."
+   *When: the player arrives at the forge.*
+
+9. **D96** Dragon: "Take it to the anvil and start hammering."
+   *When: 2 Copper are in.*
+
+10. **D97a** Dragon: "Remember? Drag me to the anvil and hold to pull the sword onto the trait."
+   *When: the sword is at the end of the route.*
+
+11. **D98** Dragon: "Stop! This looks perfect."
+   *When: the sword is held on Swift.*
+
+12. **D99** Dragon: "We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later."
+   *When: the quench gives Swift.*
+
+13. **D99a** Dragon: "Use it later. We don't need that now."
+   *When: only if the swift ingot is taken out of the bag early.*
+
+14. **D18a** Dragon: "Here's a reward from me."
+   *When: the swift ingot is stored; over the reward window (5 Copper for the gale sword).*
+
+15. **D100** Dragon: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further."
+   *When: the reward window is closed.*
+
+16. **D101** Dragon: "Grind 3 copper. Let's see how far we can go."
+   *When: after D100.*
+
+17. **D102** Dragon: "Use the hammer to travel along the path on the map."
+   *When: 3 Copper are in.*
+
+18. **D103** Dragon: "Put it back in the smelter and add one more ground copper."
+   *When: the sword is at the end of the route.*
+
+19. **D104** Dragon: "See the '?'! We are almost there. Add one more copper."
+   *When: more Copper is in.*
+
+20. **D105** Dragon: "Heat it up and hammer."
+   *When: more Copper is in.*
+
+21. **D98** Dragon: "Stop! This looks perfect."
+   *When: the sword is held on Gale at Epic.*
+
+22. **D106** Dragon: "Amazing, you got it! We got it! Tap on the metal to select the shape."
+   *When: the quench gives Gale.*
+
+23. **D107** Dragon: "Go sell it!"
+   *When: the gale sword is crafted.*
+
+24. **D108** TC5: "Thanks, this will do."
+   *When: after the sale.*
+
+25. **Player:** "You're welcome."
+   *When: reply button.*
+
+26. **D18a** Dragon: "Here's a reward from me."
+   *When: after TC5's reply (and its reward); over the reward window (1 Iron, 1 Manganese for GC8).*
+
+27. **D109** Dragon: "Great work!"
+   *When: the reward window is closed; the bell lights.*
+
+#### GC8: a Weak sword
+
+28. **D107a** GC8: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?"
+   *When: the bell.*
+
+29. **D107b** Dragon: "Stop now! This alignment will give us a weak trait tier."
+   *When: the sword parks in the Weak band; the game pauses.*
+
+30. **Customer (GC8):** a Fine thank-you: a Weak sword they asked for
+   *When: after the sale.*
+
+#### GC9: two swords, come back later
+
+31. **D107c** GC9: "Do you know gale makes fire stronger? I want a gale katana so I can make my partner's flame grow more fierce. I would also want a fire claymore for my partner."
+   *When: the bell; MARKET lights.*
+
+32. **D107d** Dragon: "I am not buying the blueprint for those! Ask the customer to come back later when you are richer. Humph!"
+   *When: the market is closed (not enough gold for both blueprints); COME LATER lights.*
+
+33. **D107e** Dragon: "Why are you asking them to come later when you can craft for them? Don't be lazy! I need my meat!"
+   *When: only if COME LATER is tapped on another tutorial customer.*
+
+34. **D107f** Dragon: "You can now buy both the blueprints that other guy requested. See the request in the ledger."
+   *When: later, at a free moment, once the gold covers both blueprints (may land in Part 5 or 6).*
+
+35. **D107g** Dragon: "Craft both the swords."
+   *When: the ledger is closed; over the reward window (5 Copper and the fire page's ores for GC9's two swords).*
+
+36. **D107h** Dragon: "Now tap on the waiting list in the ledger to call them back."
+   *When: both swords are in the bag, at a free moment.*
+
+37. **Customer (GC9):** "I'm back. I wanted a Gale Katana and a Fire Claymore."
+   *When: YES in the ledger.*
+
+38. **Customer (GC9):** "Thank you. Now the Fire Claymore, please."
+   *When: the first sword is handed over (names the other one).*
+
+39. **Customer (GC9):** a random thank-you
+   *When: the second sword is sold; paid for both.*
+
+### Part 5: Bram returns, sharpening, and Bram's gift
+
+#### Bram returns
+
+1. **D110** Bram: "Hello, how are you and your dragon? I came to thank you for helping me yesterday. I was able to defend myself against all the assassins. You make reliable swords! I'm Bram, by the way."
+   *When: the bell.*
+
+2. **Player:** "I am glad you survived."
+   *When: reply button; Bram's illustration opens.*
+
+3. **D111** Bram: "I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift dagger for me?"
+   *When: the illustration is closed (typed as one line with D111a).*
+
+4. **D111a** Bram: "The last one was good, but not very sharp. Can you make this one sharper?"
+   *When: continues D111.*
+
+5. **D111b** Dragon: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend."
+   *When: after Bram's line.*
+
+6. **D48** Dragon: "I found this sharpening wheel. I'll show you how to use it."
+   *When: after D111b; closing it opens the sharpening wheel reward.*
+
+7. **D112** Dragon: "We can use the metal infused with the swift trait we crafted earlier. Let's go."
+   *When: the reward window is closed.*
+
+8. **D113** Dragon: "Find it in your inventory and drag it to the anvil."
+   *When: the player arrives at the forge.*
+
+9. **D44** Dragon: "Tap on the metal to select a shape."
+   *When: the swift ingot is on the anvil.*
+
+10. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
+
+#### The basement
+
+11. **D49** Dragon: "Drag and drop the sword from the inventory onto the table."
+   *When: the player arrives in the basement.*
+
+12. **D50** Dragon: "Tap on the sharpening wheel."
+   *When: the sword is on the table.*
+
+13. **D51** Dragon: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel."
+   *When: the sharpening window opens.*
+
+14. **D52** Dragon: "Ooh, sharp!"
+   *When: the green band.*
+
+15. **D53** Dragon: "Tap 'done' to finish."
+   *When: after D52.*
+
+16. **D54** Dragon: "Put the sword back in the inventory."
+   *When: the sharpening is done.*
+
+17. **D55** Dragon: "Back to the counter now."
+   *When: the sword is taken from the table.*
+
+18. **D23** Dragon: "Find the sword in your inventory and place it on the counter."
+   *When: the player arrives at the counter.*
+
+19. **D57** Dragon: "We got a {b}g bonus this time from sharpening the sword! Let's make a lot of money, then we can buy whatever we want! Muwahaha!"
+   *When: after the sale, if the sharpening bonus is above 0.*
+
+20. **D114** Bram: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you."
+   *When: after the sale.*
+
+21. **Player:** "Thank you for the gift."
+   *When: reply button; the gift window.*
+
+22. **D115** Dragon: "Bram gave you a diary! Open it!"
+   *When: the gift is claimed.*
+
+23. **D116** Dragon: "It has a list of so many towns! I wonder if we can go on an adventure later."
+   *When: the diary is closed.*
+
+24. **D117** Dragon: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!"
+   *When: after D116.*
+
+25. **D18a** Dragon: "Here's a reward from me."
+   *When: after Bram's scene (the Dagger sold, the gift, the diary); over the reward window (5 Copper for the gale Longsword; then the bell lights).*
+
+#### The gale Longsword
+
+26. **Customer:** "Do you have a Gale Longsword?"
+   *When: the bell; a random request.*
+
+27. **D113a** Dragon: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!"
+   *When: after the request.*
+
+28. **D28c** Dragon: "Here it is. Watch this!"
+   *When: the shape window opens; over it, as the dragon's coins fly to the Longsword's lock.*
+
+29. **Customer:** a random thank-you
+   *When: after the sale.*
+
+30. **D18a** Dragon: "Here's a reward from me."
+   *When: after the gale Longsword's sale; over the reward window (2 Iron, 2 Manganese for Garric; then the bell for Garric).*
+
+### Part 6: Garric, decorating, judgement, and Day 3
+
+#### Garric (TC6)
+
+1. **D120** Garric: "*cough* *cough* ... You new here?"
+   *When: the bell.*
+
+2. **Player:** "Yes, I came yesterday."
+   *When: reply button.*
+
+3. **D121** Garric: "Then why is your shop still so dirty? You came here yesterday! Bah, kids these days. If you can't clean, hire someone to do it for you!"
+   *When: after the reply.*
+
+4. **Player:** "I don't have any money." / "I'll think about it."
+   *When: two reply buttons.*
+
+5. **D122** Garric: "Then make some! Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy."
+   *When: branch: "I don't have any money.".*
+
+6. **D123** Garric: "You should do as I say. Not everyone is lucky enough to have a wise mentor."
+   *When: after D122.*
+
+7. **D124** Garric: "You'll think? There is nothing to think about. Just do it. Humph, kids these days, no respect for their elders."
+   *When: branch: "I'll think about it.".*
+
+8. **D125** Garric: "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy."
+   *When: after D124.*
+
+9. **D126** Garric: "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today, so consider this a little free wisdom."
+   *When: the next tap; he names himself.*
+
+10. **D127** Garric: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool."
+   *When: the next tap.*
+
+11. **D128** Garric: "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!"
+   *When: the next tap.*
+
+12. **D129** Dragon: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!"
+   *When: the player arrives at the forge.*
+
+13. **D130** Dragon: "Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!"
+   *When: after D129.*
+
+14. **D130b** Dragon: "He wants a custom designed sword. Let me get a design desk for you."
+   *When: after D130; closing it opens the design desk reward.*
+
+15. **D130a** Dragon: "How is it going?"
+   *When: the first ore of the solo run; with an optional "Let me try again".*
+
+#### Decorating
+
+16. **D79** Dragon: "Now let's make it look special. Do you want to customize it?"
+   *When: the crafted window is closed; buttons "Yes" / "No, I don't have time.".*
+
+17. **D80** Dragon: "Wrong answer. Think again."
+   *When: only after "No"; buttons "Yes" / "Yes".*
+
+18. **D81** Dragon: "Yes! Let's go to the basement."
+   *When: after "Yes".*
+
+19. **D49** Dragon: "Drag and drop the sword from the inventory onto the table."
+   *When: the player arrives in the basement.*
+
+20. **D82** Dragon: "Tap the design desk and pick your favorite designs."
+   *When: the sword is on the table.*
+
+21. **D83** Dragon: "You can customize it freely. Pick whatever you like. Tap 'done' when you are satisfied."
+   *When: the design desk opens.*
+
+22. **D84** Dragon: "Wow, look at that. It looks so hot!"
+   *When: the design is done.*
+
+23. **D54** Dragon: "Put the sword back in the inventory."
+   *When: after D84.*
+
+24. **D85** Dragon: "Okay, back to the counter!"
+   *When: the sword is taken from the table.*
+
+#### The judgement
+
+25. **D131** Garric: "What is this? You didn't even put in any effort. I'm not paying for this junk."
+   *When: the sale, grade 1 (a confirmation window first, below grade 3).*
+
+26. **D134** Garric: "This is ... okay-ish. Don't expect to be rich if this is all you can do. Here is some extra money."
+   *When: the sale, grade 2.*
+
+27. **D137** Garric: "Hmm. You do have potential. Here is a gift. Use it well. Consider it a donation toward cleaning your shop."
+   *When: the sale, grade 3.*
+
+28. **D132** Dragon: "Huh... it wasn't good enough."
+   *When: grade 1, after the reward window.*
+
+29. **D133** Dragon: "But we will show him next time! Let's practice more. I know we can do it!"
+   *When: grade 1, after D132; then the banner lesson.*
+
+30. **D135** Dragon: "Hey! I know you did your best! Don't let that cranky old man get to you."
+   *When: grade 2, after the reward window.*
+
+31. **D136** Dragon: "We just need more practice."
+   *When: grade 2, after D135; then the banner lesson.*
+
+32. **D138** Dragon: "I knew it! You are the best blacksmith ever! He doesn't even DESERVE your amazing creations!"
+   *When: grade 3, after the reward window.*
+
+33. **D139** Dragon: "When you are famous, he will sell the same sword for a million gold. Humph, as if we need a donation for cleaning!"
+   *When: grade 3, after D138; then the banner lesson.*
+
+34. **D87a** Dragon: "What a day! Even that grumpy old man couldn't ruin it. Let's get some sleep."
+   *When: the banner is hung and BUILD is off.*
+
+#### Day 3
+
+35. **D88a** Dragon: "Goodnight. Tomorrow - we craft - the best swords - in town - and meat. Lots of meat."
+   *When: the player arrives in the bedroom.*
+
+36. **D89a** Dragon: "Good morning! You have grown so much in just two days. I think you are ready for this."
+   *When: Day 3, the player arrives at the forge.*
+
+37. **D89b** Dragon: "Let's gather more ores for the day."
+   *When: after D89a.*
+
+38. **D89c** Dragon: "Ahh! So many ores to collect. This is going to take way too long!"
+   *When: the player arrives in the cave.*
+
+39. **D89d** Dragon: "Why don't you upgrade your pickaxe skill from the skill tree?"
+   *When: after D89c; the skill button lights.*
+
+40. **D140** Dragon: "From now on, ring the bell when you are ready for customers. I'll be here if you need me."
+   *When: the skill tree is closed after a pickaxe point; the tutorial is over.*
+
+## Lines in the game that the current flow does not speak
+
+| Id | Line | Why |
+| --- | --- | --- |
+| D58a | "Five swords! Let's use the craft book. It can make them all at once." | part 2 has no gameplay customers now, and only part 2's first one spoke it |
+| D90 | "Oh, one more thing. Remember the experience points you collected on the map? Each level up gave you a skill point." | nothing queues it (the Day 3 morning is D89a-D89d) |
+| D91 | "Open the skill tree and use your points. You will feel more... powerful!" | nothing queues it (the Day 3 morning is D89a-D89d) |
+| D94 | "We should go and gather ores. Go back to the cave." | spoken only on a Day 3 path the current flow does not take; the Day 2 cave plays D94b |
+
+D11 was removed in r282 (it joined D10), D28 in r287. D30 and D34 were removed earlier.
+
+## Issues found while tracing (2026-10-21)
+
+- **The hammer minigame replays the first sword's lines.** `tutHmStep` handles only some stages. For any other stage
+  (GC4's Durable craft in part 3, TC4 and GC8 in part 4, the part 5 gale Longsword, Garric's solo craft in part 6, and
+  GC7 if it is hammered by hand) it sets the stage to 'forge' and says D13, and each OK then walks D14, D15, D15a,
+  D16, D17. For GC4, TC4 and GC8 the changed stage also drops the pointer to the counter. SKIP HAMMER hides it.
+  **Fixed in r290:** D13's run now plays only in the first sword's minigame.
+- **The Katana's price.** The part 1 and part 3 flows in `specs/2026-10-07-ftue-v3-rework.md` say the Katana costs
+  50g; the build prices the balanced Katana at 150g and the fire Katana at 200g, so D28h plays below those.
+
+---
+
+## Build history (as written, r76 to r227)
+
+The sections below are the script's history in the order it was built. They describe older flows (Day 1 and Day 2
+before FTUE v3) and keep the text each line had then; the play-order script above is current.
+
+### Dialogue
 
 **D1** — Dragon
 > "Hm, this forge looks like it hasn't been used for a long time. Why don't we craft something simple to
@@ -140,11 +1012,15 @@ exp books. The pickups are books, and D9 calls them experience points, which is 
 *Trigger: the sword landing on a trait (`checkTraitReach`). No pointer — D10 explains, D11 instructs,
 and the arrow goes up with the instruction.*
 
+*Revised (owner, 2026-10-21), r282: D10 and D11 are one line, D10: "Now that we have reached a '?' trait on the
+map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal." It
+shows no close button (the pour moves it on), and the mug pointer goes up with it. D11 is removed.*
+
 *Note: the owner wrote "a ‘?’ trait, on the map, we can…" — the comma split "a ‘?’ trait on the map",
 which is one phrase; and "trait" landed twice in one sentence, so the second became "it", which is how
 the game's own hint already phrases it.*
 
-**D11** — Dragon
+**D11** — Dragon *(removed in r282: joined D10)*
 > "Pick up the mug from the bucket and drag it to the metal."
 
 *Pointer: an arrow from the mug to the metal on the anvil, and the mug glows. Both clear the moment the
@@ -153,7 +1029,7 @@ pour lands, before the popup opens.*
 *Note: the owner wrote "Pick the mug in the bucket" — you pick something **up**, and it comes **from**
 the bucket.*
 
-### The acquire popup
+#### The acquire popup
 
 `#sfAcquireModal` already existed, with the trait's icon, name, tier and a `continue ›` button. r86
 moved the name into the heading and dropped it from the body, so it reads **"New trait discovered —
@@ -170,7 +1046,7 @@ which is where the tutorial currently ends.*
 
 ---
 
-## Tapping the dragon
+### Tapping the dragon
 
 The dragon is a **guide while the script still has something to say, and a pet afterwards** (r87). Both
 dragons behave the same — the one on the forge bench and the one in the hammering minigame.
@@ -209,8 +1085,13 @@ strike starts moving the metal, which is what the line claims.*
 
 *Note: the owner wrote "pick you hammer".*
 
+*Revised (owner, 2026-10-21), r283: D15 is "It is hot enough." The instruction moved to D15a.*
+
 **D15a** - Dragon (r209, 2026-10-01; owner approved the text)
 > "Line up the ring on the hammer with the glowing mark, then tap the hammer."
+
+*Revised (owner, 2026-10-21), r283: "Pick up your hammer, line up the ring on the hammer with the glowing mark,
+then tap the hammer."*
 
 *Trigger: spoken right after D15, as one queue. Since r209 a strike lands on a hit point under the
 hammer's aim ring (`specs/2026-10-01-hammer-hit-points.md`); D15's pointer (`hmSwingOn`) now runs
@@ -246,7 +1127,7 @@ a "you let it cool" line and nothing later depends on it.*
 
 *Trigger: arrival on the customer counter during this first tutorial visit. The counter is empty: no customer panel, response controls, or sword is shown. The dragon appears on the screen and speaks from its own anchored tutorial bubble. After this line, normal dragon pet behavior and later customer behavior resume.*
 
-### Bram intro branch after D19
+#### Bram intro branch after D19
 
 **D20** — Bram
 > “Oh, God, save me! I didn't think I would find anyone here. Who are you?”
@@ -259,7 +1140,7 @@ a "you let it cool" line and nothing later depends on it.*
 
 After D19 is dismissed, the counter dragon and its bubble leave the screen. Bram appears using assets/customer/Bram.png and is identified as **BRAM**. The player chooses either response above. The response buttons hide after selection and Bram remains at the counter for the later give/sell flow. The placeholder copy and SELL/DENY controls are hidden during this intro. The counter dragon can be dragged with pointer/touch inside the screen bounds; a tap retains its dialogue behavior and a drag does not advance it. Its bubble follows during dragging. New Game clears this branch and restores the dragon’s starting position.
 
-### Bram first sale after D21/D22
+#### Bram first sale after D21/D22
 
 **D23** — Dragon
 > “Find the sword you just made in your inventory and place it on the counter”
@@ -277,7 +1158,7 @@ After either D21 or D22, the tutorial converges. SELL is visible but disabled un
 
 ---
 
-## Where the script ends (r91)
+### Where the script ends (r91)
 
 The tutorial runs **D1–D26** and the dragon guides the whole way. `lastLine()` is the final key of
 `DIALOGUE`, so the guide-to-pet switch moves on its own as lines are added.
@@ -327,7 +1208,7 @@ the forge.*
 
 ---
 
-## Back at the forge — D32–D38
+### Back at the forge — D32–D38
 
 **D32** — Dragon
 > "I found 1 iron and 1 manganese. Last time we used 2 of each."
@@ -400,7 +1281,7 @@ something the player can read, and the shape picker refuses to open until the cr
 *Trigger: the composition window opening. It now has a third button, **Record new**, which keeps both
 pages instead of replacing.*
 
-### Idle guidance
+#### Idle guidance
 
 From D35 to the record, if the player does nothing for **4 seconds** (`HINT_IDLE_MS`, already the
 build's idle threshold) an arrow points at the next step: ore→wheel, wheel→smelter, the bellows, the
@@ -409,7 +1290,7 @@ clears it.
 
 ---
 
-## Shaping the second sword — D44–D47
+### Shaping the second sword — D44–D47
 
 **D44** — Dragon
 > "Tap on the metal to select a shape."
@@ -425,7 +1306,7 @@ that during the first craft and are all one-shot.*
 
 *Note: the owner wrote "You remember what to do right?"; a tag question takes a comma.*
 
-### D46 and D47 are idle prompts, not steps
+#### D46 and D47 are idle prompts, not steps
 
 From D45 until the blade is quenched, the dragon speaks **only if the player does nothing for 4
 seconds** (`HINT_IDLE_MS`), and **re-speaks on every further 4 seconds of inactivity**. Any interaction
@@ -453,7 +1334,7 @@ after **D10** ("lock it in") and **D17** ("to finish"). "Blade" over "metal" is 
 details. No new copy there. Because D47 is optional, the guide-to-pet switch is made explicitly when
 that sword is crafted rather than waiting on the script's last line being seen.*
 
-### Tap, not click
+#### Tap, not click
 
 The build is a mobile game, so no player-facing string says "click". Corrected with this beat: **D12**
 ("Click on the metal to select the shape of the sword blade.") and the dialogue bubble's own
@@ -461,7 +1342,7 @@ The build is a mobile game, so no player-facing string says "click". Corrected w
 
 ---
 
-## The basement and the sharpening wheel — D48–D55, then D23 again
+### The basement and the sharpening wheel — D48–D55, then D23 again
 
 **D48** — Dragon
 > "There is a sharpening wheel in the basement. Let's go see if we can use it."
@@ -520,7 +1401,7 @@ quenched and sharpened several steps earlier. The line still reads correctly in 
 *The sale that follows ends the guided script; that sale, not a line, is what turns the dragon into a
 pet, because **D55 is the last key in `DIALOGUE` yet D23 is spoken after it**.*
 
-### Three names for two objects, settled
+#### Three names for two objects, settled
 
 The owner's draft called the basement object a "grindstone" and then a "Sharpening wheel", while the
 forge station the player met in D35 was the "grinding wheel". Settled by the owner:
@@ -532,7 +1413,7 @@ forge station the player met in D35 was the "grinding wheel". Settled by the own
 
 D35 and the forge station's caption were changed to match.
 
-### Where the dragon speaks
+#### Where the dragon speaks
 
 There are now three surfaces. The bench bubble, the screen bubble (which follows him onto the
 **basement** as well as the counter), and, inside the sharpening panel where he cannot stand, his
@@ -541,7 +1422,7 @@ and show the same "tap to continue" / "tap to close".
 
 ---
 
-## The sale reaction, the adventurer, and the cave — D56–D65
+### The sale reaction, the adventurer, and the cave — D56–D65
 
 **D56** — Customer
 > "Hmm. I see. Not bad. {g}g for your efforts."
@@ -608,14 +1489,14 @@ game, so cave it is — confirmed by the owner.*
 *Trigger: arriving in the cave. For this stage the pickaxe lies **on the cave floor** rather than in
 ITEMS & DECOR, and the cave holds exactly one iron seam and one manganese seam of **2 ore each**.*
 
-### Numbers in the copy
+#### Numbers in the copy
 
 D56 and D57 are the first lines that quote a number the game computes. `{g}` and `{b}` are filled at
 speak time from the sale, because the price depends on the sword's traits, its tier, the popularity
 multiplier and the two bonuses. A literal "51g" would have been wrong for nearly every sword: the
 tutorial blade is Balanced (map value 24), so it sells for 31g or 41g depending on the tier it lands.
 
-### The fire request, and why the map moved
+#### The fire request, and why the map moved
 
 The adventurer asks for a **fire sword**, and the cave for this stage holds only iron and manganese. The
 owner's route is **2 fully ground iron + 2 manganese at roughly three quarters**, with the manganese
@@ -636,7 +1517,7 @@ grind it lands 5 units from its centre.
 
 ---
 
-## The fire sword — D66–D78
+### The fire sword — D66–D78
 
 **D66** — Dragon
 > "Let's keep the pickaxe in the inventory. We found it. We are not stealing. Not stealing at all."
@@ -712,7 +1593,7 @@ toward Fire as the ore is ground.*
 there are no idle prompts here, unlike the second craft's D46/D47. D78 is the script's last line, so
 this is where the dragon becomes a pet.*
 
-### The recipe, and why Fire moved again
+#### The recipe, and why Fire moved again
 
 The route the owner described here is **not** the one r104 assumed. r104 was told "2 fully ground iron
 + 2 manganese at 75%" and placed Fire on that. The run above is 2 iron and **one** manganese ground
@@ -737,7 +1618,7 @@ there reads as spotting something through the fog.
 
 ---
 
-## The dragon wants it decorated — D79–D81
+### The dragon wants it decorated — D79–D81
 
 **D79** — Dragon
 > "Wow. A fire sword! Do you want to customize it?"
@@ -759,7 +1640,7 @@ withdrawn, which is the joke.*
 
 *An arrow points down to the basement; arriving there clears it.*
 
-### The dragon can ask questions now
+#### The dragon can ask questions now
 
 Answer buttons had only ever belonged to the customer panel. `sayChoose()` hangs them under whichever
 bubble the dragon is speaking from, so they follow him between the bench and a screen. While an answer
@@ -768,7 +1649,7 @@ is the only way on.
 
 ---
 
-## Decorating the fire sword — D49 again, D82–D85
+### Decorating the fire sword — D49 again, D82–D85
 
 **D49 again** — Dragon
 > "Drag and drop the sword from the inventory onto the table."
@@ -814,7 +1695,7 @@ the workstation and the customer who asked for it could not be served.*
 
 ---
 
-## The fire sword is sold, and Day 1 ends — D23 again, D86–D88
+### The fire sword is sold, and Day 1 ends — D23 again, D86–D88
 
 **D23 again** — Dragon
 > "Find the sword in your inventory and place it on the counter."
@@ -849,7 +1730,7 @@ bedroom's own dragon hotspot. An arrow points at the bed, which opens the end-of
 
 ---
 
-## Day 2 opens — D89–D94
+### Day 2 opens — D89–D94
 
 **D89** — Dragon
 > "Good morning! Are you ready to craft perfect swords today? I'll show you how to."
@@ -895,7 +1776,7 @@ seams, and the walk home is only offered once every seam is empty.*
 is the map's final key and drives the guide-to-pet switch, so a new line at the end would move it.
 `lastLine()` is still `D139`, with 140 keys.*
 
-### Open: the cave is 35 swings
+#### Open: the cave is 35 swings
 
 "Gather everything" against a full cave is **five seams of seven** — measured, 35 swings before the exit
 home lights up. The five are iron, copper, manganese, aluminium and nickel; tin and zinc have no seam
@@ -904,7 +1785,7 @@ the seam yield or the "all of it" condition should come down.
 
 ---
 
-## The swift sword — D95, D96
+### The swift sword — D95, D96
 
 **D95** — Dragon
 > "Grind two copper and add it to the smelter."
@@ -920,7 +1801,7 @@ both ground full**; the wrong ore, a raw drop, a part-ground one and a third cop
 *The customer asked for **gale**; the sword being made is **swift**. That mismatch is the owner's, and
 nothing enforces a trait request at the counter anyway.*
 
-### The copper path was re-cut for this
+#### The copper path was re-cut for this
 
 Two fully ground copper already ran at **exactly** the angle from the spawn to Swift (−134° for both),
 so the shape was right and only the reach was wrong. Copper's `len` goes **225 → 144**, which puts the
@@ -960,7 +1841,7 @@ it there stores it as an ingot carrying its trait.*
 
 ---
 
-## The gale run — D100–D104
+### The gale run — D100–D104
 
 **D100** — Dragon
 > "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to
@@ -995,7 +1876,7 @@ The fifth copper must go in **unground** — the grindstone is dead for it and a
 
 *Note: the owner wrote "See the '?', we are almost there." — a comma splice.*
 
-### Open: the fifth copper overshoots by 37
+#### Open: the fifth copper overshoots by 37
 
 Measured along the copper line, which runs from the spawn straight through Swift (220) to Gale (526):
 
@@ -1027,7 +1908,7 @@ the player pulls before the hammer gets there.
 
 ---
 
-## The gale sword is sold, and Bram returns — D105–D114, D44 again
+### The gale sword is sold, and Bram returns — D105–D114, D44 again
 
 **D105** — Dragon
 > "Heat it up and hammer."
@@ -1088,14 +1969,14 @@ ingot to the anvil.*
 
 *Trigger: the sale. Response **"Thank you for the gift."** and he leaves.*
 
-### Open: two things this beat leaves unanswered
+#### Open: two things this beat leaves unanswered
 
 - **The gift does not exist.** D114 promises one and the response accepts it, but nothing is granted —
   no item, no gold, no recipe. The owner has not said what it is.
 - ~~D113 says "drag", the game wants a tap.~~ **Settled in r128:** the ingot slot is now a real drag
   onto the anvil, so the line describes what the game does.
 
-## r129 — the gift is a diary, and the quest list rides in behind it (D115–D119)
+### r129 — the gift is a diary, and the quest list rides in behind it (D115–D119)
 
 Bram's gift, left open since r127, is a **diary**. Claiming it puts the DIARY button in the rail;
 D118 puts the QUEST button there. Neither button existed before this beat (see the build-rounds doc).
@@ -1135,7 +2016,7 @@ that promises it.*
 *Trigger: closing the quest window. D119 is the last key in `DIALOGUE`, so `TUT_SEEN_END` flips on it
 and the dragon becomes a pet from here.*
 
-### Wording corrected against the owner's draft
+#### Wording corrected against the owner's draft
 
 | Draft | Shipped | Why |
 |---|---|---|
@@ -1145,14 +2026,14 @@ and the dragon becomes a pet from here.*
 | "To keep your motivation bar up, I made a small quest list." | "To keep you motivated, I put together a small quest list." | **there is no motivation bar in the game**, and "made" landed twice in two sentences |
 | "reward you will gold ... quests- as long as" | "reward you with gold ... quests, as long as" | typo; and the hyphen wanted a comma |
 
-### Owner's answers
+#### Owner's answers
 
 - Travel Log: **OakHaven** is the current town, the rest are "?".
 - Both rail buttons **hidden** until this beat.
 - The gift grants **only the diary** — no gold, no exp.
 - Quest progress is **not** reset, so the list can open part-done.
 
-## r130 — Garric, the great Forgemaster (D120–D130)
+### r130 — Garric, the great Forgemaster (D120–D130)
 
 *Trigger for the whole beat: the bell lights and glows with **D119**. Ringing it brings **man4**, whose
 nameplate reads **"???"** until he names himself.*
@@ -1215,7 +2096,7 @@ nameplate reads **"???"** until he names himself.*
 The player crafts whatever they like, at whatever quality, sharpened or not. D130 is the last key in
 `DIALOGUE`, so the dragon becomes a pet here.*
 
-### Wording corrected against the owner's draft
+#### Wording corrected against the owner's draft
 
 | Draft | Shipped | Why |
 |---|---|---|
@@ -1235,7 +2116,7 @@ The player crafts whatever they like, at whatever quality, sharpened or not. D13
 | "show him how hot we are" | "show him what we are made of" | read as modern slang rather than a forge pun |
 | "muwahaha" | "muahaha" | standard spelling; the draft looked like a typo |
 
-### Owner's answers
+#### Owner's answers
 
 - **"Make it sharp!"** — there is no Sharp trait, so this is the grindstone. Three outcomes are planned
   by quality; the player is free to craft any quality and to sharpen or not. **The outcomes are not
@@ -1245,12 +2126,12 @@ The player crafts whatever they like, at whatever quality, sharpened or not. D13
 - Nameplate "???" until D126, then GARRIC, and he gets a diary page.
 - **June's diary page is removed** — she arrives much later.
 
-### Open
+#### Open
 
 - The three sale outcomes by quality. Selling Garric a sword today falls through to the ordinary
   counter sale.
 
-## r131 — Garric judges the sword (D131–D139)
+### r131 — Garric judges the sword (D131–D139)
 
 Three outcomes, graded on the **Balanced** trait he asked for plus the two finishing steps.
 
@@ -1292,7 +2173,7 @@ Three outcomes, graded on the **Balanced** trait he asked for plus the two finis
 *Trigger: the sale. Garric stays at the counter and speaks; the next tap on his panel sends him off and
 the dragon's pair follows in the bench bubble.*
 
-### Wording corrected against the owner's draft
+#### Wording corrected against the owner's draft
 
 | Draft | Shipped | Why |
 |---|---|---|
@@ -1304,13 +2185,13 @@ the dragon's pair follows in the bench bubble.*
 | "DESERVE you amazing creations.." | "DESERVE your amazing creations!" | typo, and a doubled full stop |
 | "Humph - as if we need donation for cleaning?!" | "Humph, as if we need a donation for cleaning!" | hyphen, missing article, doubled mark |
 
-### Settled in r132
+#### Settled in r132
 
 **D131 says he is not paying, and now he does not.** Outcome 1 banks no gold and writes a 0g ledger
 row; he still takes the sword. The refusal is decided inside `sellCounter`, so the toast reads "He took
 it and paid nothing" rather than "Sold for 0g".
 
-### r163 — D91 gives the SKILL TREE button a glow that survives the rail
+#### r163 — D91 gives the SKILL TREE button a glow that survives the rail
 
 D91 (*"Open the skill tree and use your points. You will feel more... powerful!"*) has blinked
 `#skillBtn` since r122, via `tutDay2Skill()`. The class was there and the animation was running; it
@@ -1332,7 +2213,7 @@ button with `animation-name: none`; D91 turns on `tutBlinkSkill`. Opening the tr
 **Not done, because it would be inventing design:** nothing guides the player to a particular node
 once the tree is open. `tutDay2Spent()` accepts any spend.
 
-### r167 — four tab guides, and the skill button finally reads
+#### r167 — four tab guides, and the skill button finally reads
 
 **The pointer that was not.** r163 made `#skillBtn.tut-blink` pulse its border, an inset glow and
 `brightness(1.22)`. Driving the animation to its 50% frame showed all three computing exactly as
@@ -1371,7 +2252,7 @@ the pickaxe out clears it as well. Emptying every node hides the bubble, clears 
 `#panLeft`. D95: `goScreen('forge')` from `d2-back` reaches `d2-copper`, speaks D95 and haloes tab 0.
 At the 50% frame both the skill button and tab 3 compute to the amber face with dark text.
 
-### r169 — D107 stops following the player to the counter
+#### r169 — D107 stops following the player to the counter
 
 Reported: "Go sell it!" still up on the counter screen, over Gale's friend asking his question.
 
@@ -1393,7 +2274,7 @@ D107 and blinks `#panLeft`; walking to the counter reaches `d2-gale-sell2` with 
 the sword-to-counter arrow up and the SWORDS tab open. `bram2-sell` behaves the same. `sell2` is
 unchanged and still speaks D23 on arrival.
 
-### r173 — D16 stops the world, and the line it stops for is lit
+#### r173 — D16 stops the world, and the line it stops for is lit
 
 D16 ("The metal cools down slowly...") is spoken **inside the hammering minigame**, by `tutHmHeat()`
 when the metal first goes cold. It now pauses, the way D8 and D9 do.
@@ -1417,7 +2298,7 @@ Verified through the real path: a shape picked, the minigame open, `tutHmHeat(fa
 `TUT_PAUSE` true, the dim on and **deep** at z-1050, and the bubble lit at z-1101 above it. With
 `hmHeat` at 0.8, two `hmTick()` calls leave it at exactly 0.8; released, it cools. On the board D8
 keeps the dim at z-45 with the bubble lit above it. The tap clears pause, dim, deep and the ring.
-### r174 — the script edits, the bubble size, and a real button to advance
+#### r174 — the script edits, the bubble size, and a real button to advance
 
 - **D30 deleted.** `DIALOGUE` held 139 keys **at this round**; the bell beat speaks D31 directly.
   (Lines added after r174 have moved the total on — 144 as of r196. Only `lastLine()` is load-bearing,
@@ -1444,7 +2325,7 @@ and no D30 in the run; D42 reading "fewer ores"; the sharpening text computing 1
 below the bubble and inside the frame on both the bench and the sharpening screen; two paths and
 title "Continue" mid-run, one stroked path and "Close" on the last line.
 
-### r177 — a beat between D43 and D44: shut the blade panel
+#### r177 — a beat between D43 and D44: shut the blade panel
 
 The blade panel is expanded over the top-left of the board when the craft is recorded, and D44 ("Tap
 on the metal to select a shape") then asks for the metal underneath it. A new stage, **`record-close`**,
@@ -1478,7 +2359,7 @@ the orb glowing and no blink. Edge cases: shaping the metal without closing reac
 and **no stale blink**; recording with the panel already collapsed goes straight to `shape2`/D44. At
 the 50% frame the button computes to the amber face with dark text.
 
-### r179 — the first hazard crossing stops the world
+#### r179 — the first hazard crossing stops the world
 
 **D69a** — Dragon
 > "Oh! We are crossing over a hazard zone."
@@ -1511,7 +2392,7 @@ frames (640ms) while paused leave `hp` at exactly 99.6**, so no integrity drains
 read — only the single frame that triggered it costs anything. A second call to `tutHazardStep()`
 does nothing. D8 and D9 still lift on one tap.
 
-### r181 — the hammering minigame gets its own two pointers
+#### r181 — the hammering minigame gets its own two pointers
 
 **D14** ("Just hold on the metal...") glows `#hmOrb`, the metal itself. That is r152's vocabulary:
 a hold is a glow.
@@ -1544,7 +2425,7 @@ arrow — 3 paths, heads 47x48px against a 236px shaft, spanning 45.8..81.3% x a
 scene, with the heads landing on the metal (53.4, 49.8) and the hammer (72.2, 35). One strike clears
 it; cancelling the minigame leaves neither behind.
 
-### r182 — the second craft's bellows waits for D40
+#### r182 — the second craft's bellows waits for D40
 
 The heat step opens on three lines: D38 (the path reaches balanced), D39 ("Heat up the smelter. Oh, I
 almost forgot to tell you!") and D40, which is the one that actually explains **why** heat matters.
@@ -1573,7 +2454,7 @@ the press works, and 30 real `tick()` frames of pumping take heat 0 → 21.6. Re
 stage `regrind-work`, glow off, lock off. **The first craft is untouched**: D4 still glows the bellows
 with no lock, and pumping raises heat straight away (0 → 12.8 in 20 frames).
 
-### r183 — D92 closes on arrival, and the sweep that should have come with r169
+#### r183 — D92 closes on arrival, and the sweep that should have come with r169
 
 D92 ("Let's go check the counter.") stayed on screen after the walk it asked for. Same family as
 r158/r159/r164/r169: **the `d2-counter` → `d2-bell` branch re-points but says nothing, so nothing
@@ -1604,7 +2485,7 @@ Verified through the real beat: closing the skill tree after spending speaks D92
 `#panLeft` blinking; walking to the counter reaches `d2-bell` with **both** say boxes closed, the bell
 on the counter and blinking.
 
-### r184 — a batch of "click here" lights
+#### r184 — a batch of "click here" lights
 
 One class does all of it: `.tut-lit-ctl`, deliberately **additive** — `brightness` and `box-shadow`
 only, no background of its own — so the same rule can light the go button, a paper SELL button, a
@@ -1649,7 +2530,7 @@ glow, and a lit button.
 care". The class is applied and would light it the instant it showed, but nothing is visible at the
 moment asked for. Owner to say which element was meant.
 
-### r186 — D70: the WHITE arrow, which r184 did not touch
+#### r186 — D70: the WHITE arrow, which r184 did not touch
 
 **There are two arrows on the forge screen and r184 cleared the wrong one.** `#tutArrow` is the
 tutorial's dashed pointer; `#hintArrow` is `assets/ui/arrow.webp`, the plain white idle nudge that
@@ -1669,7 +2550,7 @@ go button lit; at D71 it returns, alongside the tutorial's own `#orb → furnace
 
 *Both arrows being up together at D71 is older behaviour, untouched here.*
 
-### r188 — five more lit buttons, a real blink, and four Day-2 pointers
+#### r188 — five more lit buttons, a real blink, and four Day-2 pointers
 
 - **D89, D90, D100, D116, D117** join `SAY_GO_GLOW`.
 - **The skill button now blinks rather than pulses.** r167's curve eased *through* its bright frame,
@@ -1692,7 +2573,7 @@ shows, then hides the instant `dragonAtAnvil()` turns true mid-drag; D98 leaves 
 inline position; D100/D101 halo tab 0 while standing on tab 2 and clear on the click; D104 draws with
 its source resolving to the Copper slot.
 
-### Open — "stop the sword on gale as soon as Epic is available"
+#### Open — "stop the sword on gale as soon as Epic is available"
 
 Asked for in the same round, **not implemented**, because the measurement says it cannot work as
 described.
@@ -1706,7 +2587,7 @@ Measured on a copper route: the closest approach to gale is **27.1 units**. `ALI
 pulling. Timing is not the lever. What would move it: gale's position, the route the copper draws,
 `ALIGN_EPIC`, or letting the pull steer rather than run straight at spawn. Owner to choose.
 
-### r189 — Garric's solo run: a marked target and a way back
+#### r189 — Garric's solo run: a marked target and a way back
 
 **D130a** — Dragon
 > "How is it going?"
@@ -1737,7 +2618,7 @@ restores **6 and 6**, clears the route to 0 segments, re-arms the solo run and p
 Walking past it instead closes the line and keeps the route. A real two-option question still blocks
 and still hides the go button.
 
-### r190 — the tier legend after D97
+#### r190 — the tier legend after D97
 
 `#sfTierModal`, headed **"Alignment for Tiers"** (r191; the owner's trailing full stop was their
 list numbering, and no other modal heading carries one): `assets/ui/weak.png`, `fine.png` and
@@ -1762,7 +2643,7 @@ they are displayed at: **314KB → 20KB** (68→7, 121→7, 125→6). The PNGs s
 other converted asset does, and the three entries are in `tooling/asset-diet/manifest.json` (140 → 143)
 so a re-run includes them.
 
-### r192 — D128 rewritten, and the tier art on a diet
+#### r192 — D128 rewritten, and the tier art on a diet
 
 **D128** — Garric
 > "Craft a Balanced sword and show me! Extra gold and rewards if it is Epic tier, customized and
@@ -1777,7 +2658,7 @@ the tier labels the game prints everywhere else. "customized" is the owner's spe
 
 The three tier images are WebP now — see the payload note above.
 
-### r193 — Bram's illustration, between his reply and D111
+#### r193 — Bram's illustration, between his reply and D111
 
 Answering D110 with "I am glad you survived." now opens a window showing
 `assets/Illustrations/Bram_illustration.webp`. **Closing it is what plays D111**, so the picture sits
@@ -1798,7 +2679,7 @@ Verified through the real beat: D110 up with the single response and no window; 
 window with the art loaded at its natural 844x471; closing gives **D111** in Bram's box, stage
 `bram2-forge`, D112 from the dragon and `#panRight` blinking. A second close changes nothing.
 
-### r194 — the tier window actually appears
+#### r194 — the tier window actually appears
 
 r190 built the window and hooked it to the player **dismissing** D97. r188 had already given D97 a
 second exit: it hides itself the moment the dragon reaches the anvil — which is **precisely what the
@@ -1819,7 +2700,7 @@ Verified both routes from a clean load: dragging him to the anvil opens the wind
 still open after the release) with the heading and all three images; tapping the line away opens it
 too; a later D97 does not reopen it; breath mode still engages with the dragon at the anvil.
 
-### r195 — the five parts of the map, between D67 and D68
+#### r195 — the five parts of the map, between D67 and D68
 
 **D67a** — Dragon
 > "The map is divided into 5 parts. You can guess where a trait could be from this image."
@@ -1850,7 +2731,7 @@ Verified through the real beat: leaving the cave and walking to the forge reache
 D67a and opens the window with the art at its natural 800x800 drawn at 400, inside the frame. Closing
 gives D68, and with the player on the wrong tab the INGREDIENTS halo comes up with it.
 
-## Dialogue review (owner, 2026-10-01), r213
+### Dialogue review (owner, 2026-10-01), r213
 
 The owner had every line read in FTUE order for flow and sense, then approved these changes. The new
 text below supersedes the text quoted for these ids earlier in this script; `tooling/ftue/ftue.test.mjs`
@@ -1891,7 +2772,7 @@ on the forge bench. We will use it soon." (was "The tutorial will show you how t
 Left as they were (owner): D59 ("This forge has not been in use for so long"), D2 ("exhausted": the
 intro explains it), and pointers only for the build-mode beat.
 
-## Hazard cost (owner, 2026-10-01), r215
+### Hazard cost (owner, 2026-10-01), r215
 
 Since r215 a hazard costs value (`specs/2026-10-01-hazard-integrity.md`). Supersedes the D69b text above.
 
@@ -1901,9 +2782,13 @@ Since r215 a hazard costs value (`specs/2026-10-01-hazard-integrity.md`). Supers
   above the window for this line, and the Integrity row blinks.*
 - The hazard zone the part 4 gale route crossed is gone, so that beat has no hazard line.
 
-## A reply after D22 (owner, 2026-10-06), r227
+### A reply after D22 (owner, 2026-10-06), r227
 
 After Bram's **D22** (the "Who are you? What is wrong?" branch) the player answers with a button,
 **"I can give you a sword."**; only that click brings **D23** ("Find the sword in your inventory and place it on
 the counter.") with the inventory tab and the sword arrow. The "I am a blacksmith." branch (D21) goes on to
 D23 at once, as before. (The owner wrote "d33"; read as D23, the tutorial step that follows.)
+
+*Revised (owner, 2026-10-21), r283: the reply comes after D21 too, and it reads **"I just crafted a sword. You can
+have it."**; tapping it brings D23 in both branches. D23 shows no close button (the sword on the counter moves it
+on).*

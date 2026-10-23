@@ -13,7 +13,7 @@ continuation prompt printed at close time.
   **Live:** https://lila-games-github.github.io/sword-forge/ (the root redirects to the landscape build)
 - **Status: FTUE v3 is merged and live.** PR #24 (2026-10-14) carried r216-r230, the FTUE v3 rework
   (parts 1-6), its play-test round and the fixes after it; the Pages deploy succeeded and the live page
-  serves the merged build. **196 dialogue keys**, `lastLine()` `D140`.
+  serves the merged build. **203 dialogue keys** (D92m, D92n added 2026-10-15; D119a, D119b 2026-10-16; D11 and D28 removed, D18a, D28j, D28k, D28l and D28m added 2026-10-21), `lastLine()` `D140`.
 - **The FTUE is v3, in six parts.** Design record, per-part build records and every owner decision:
   **`specs/2026-10-07-ftue-v3-rework.md`** (it supersedes `specs/2026-09-29-tutorial-parts-plan.md` on order
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
@@ -118,6 +118,77 @@ continuation prompt printed at close time.
 - **r228:** the counter's DENY button (a placeholder) is hidden during the FTUE (class `ftue-off` until `FTUE_ST.done`).
 - **r229:** the rotating turn arrow shows whenever ore is on the grinder and can still be ground, on the forge screen, in every stage (`grindSpinWanted()`, refreshed every frame in `tick()`).
 - **r230:** the fog edge is a soft gradient: `#fogHoles` is blurred by `#fogSoft` (feGaussianBlur 24 world units) inside the mask. Not yet checked for frame rate on a phone.
+- **r231:** the customer's dialogue text is 50% bigger: 17px -> 25.5px in `.cs-dlg p` and `.cs-bram-dlg p`.
+- **r232:** the inventory tabs are icons (iron ore, ingot, a balanced Longsword, the banner), named by `title`/`aria-label`; the fourth tab is "Decor", not "Items & Decor".
+- **r233:** the Ingots tab icon is the shelf's own metal orb (`.mt-orb .inv-orb`), not the ingot bar.
+- **r234:** the customer's dialogue text is 25% smaller than r231: 25.5px -> **19.125px** (the current size).
+- **r235:** the "Sword crafted!" card shows the health % and the forging % under the heart and the hammer (`#cwHpPct`, `#cwHmPct`; "-" when the hammer was skipped).
+- **r236:** every return to the forge screen puts the dragon back at his top-left LAYOUT spot; `homeDragon()` now reapplies `LAYOUT` (it used to drop him bottom left).
+- **r237:** the table sword's art box (`.cs-sword`) takes no taps, so it no longer covers the sharpening wheel; its strip (`.cs-swordbox`) grabs the sword.
+- **r238:** `takeCounter()` refused whenever `TUT_BRAM_STATE` was set, and it stays 'done' all game, so no counter sword could go back to the inventory after part 1; it now refuses only during Bram's scene.
+- **r239:** the craft-book guide re-runs when a window closes (`ftueBookModal()` in `ftueBookSig()`), so CRAFT 1 stops blinking after the craft; in the FTUE, `ftueCraftLocked()` disables CRAFT 1 while the customer's order is already made.
+- **r240:** every arrival in the cave lights the pickaxe (`PICK_HINT`, `.cv-hint` = `tutGlow` on its image) until the player touches it.
+- **r241:** the cancel-craft X opens a confirmation (`#sfCancelAsk`); only "Yes, cancel" resets the run. Open: Restore Ore can still return some ore, though the line says none comes back.
+- **r242:** `.tut-blink` is the dialogue OK glow (`tutLitCtl`); the rail buttons blink like the inventory tabs (`tutBlinkTab`); the clipped halo `tutBlinkHalo` is gone.
+- **r243:** the blade's health is a ring around the sword marker on the map (`#swordHpRing`, driven by `updateHpPill()`); the top-right bar `#sfHp` is gone. Owner to confirm the amber/red warning colours.
+- **r244:** the customer's line is left-aligned across its box, so it types left to right.
+- **r245:** GC5 (map route): D92m "Let's go to the forge."; on the forge the map scrolls fire into view and `#tutHole` darkens everything but the trait while D92n says "Tap on the trait to open the craft book directly."
+- **r246:** player-facing text says "tap", never "click" (owner: the game is for mobile; their "click" means tap). D92n reworded; a test bars "click" in dialogue.
+- **r247:** Garric's D130 has no "Let me try to do it on my own." answer; its lit OK goes on to D130b and the design desk (`SAY_AFTER.D130`).
+- **r248:** the customer's trait ring on the map (`#custSpot`) goes once a sword with that trait is crafted (`custTraitMade`), whatever its shape or tier.
+- **r249:** leaving the basement puts the table sword back in the bag (`workAutoReturn()`, no message since r250); the take steps move to their way-back stage. Open: `#sfToast` takes taps and covers the up exit while it shows.
+- **r251:** `ROUTE_FAST` { irons:5, mul:2 }: a route at least 5 fully ground irons long (1000 units, drawn length) runs the sword x2; hazard damage takes the same factor (same cost per distance).
+- **r252:** gameplay customers thank you after a sale: a random `CUST_THANKS` line by the sword's best tier (5 each; a Weak sword they asked for gets a Fine line), shown for 3.2 s by the display-only `CUST_BYE`.
+- **r253:** the part 4 come-later customer is guided to MARKET first (both blueprints shown and lit, then Close), then D107d and COME LATER (`FTUE_LATER`).
+- **r254:** the GC4 map window (basic vs elemental) shows `assets/ui/MAP_parts2.webp`; the five-parts window keeps `MAP_parts.webp`.
+- **r255:** after the part 1 quest list, D119a teaches "tap me for help": close it, tap the glowing dragon (`tutGlowBig`), D119b, then the bell (D27, D28) as before.
+- **r256:** the blade's health is now a fill inside the sword disc (`#swordHpFill`, top 100% down to 0%, clipped to the disc, 60% opaque); r243's ring covered the tier alignment ring.
+- **r257:** the health fill always shows on the sword marker, from the start point (full when there is no run).
+- **r258:** the two tutorial books and the EXP line D9 are on the second sword's route (GC1), not the first (Bram's); `BOOK_LESSON_STAGES` (the `p1-craft-*` stages) replaces `FIRST_CRAFT_STAGES`.
+- **r259:** the mug quench plays steam puffs and a full-screen mist (`quenchFx`, `QUENCH_FX`, 1.55 s) before the trait window; the trait itself is gained at once.
+- **r260:** the quench mist is a soft plain white gradient, not the tiled smoke art.
+- **r261:** metal on the anvil is drawn hot only while it has heat; a quench leaves it grey.
+- **r262:** the hammer minigame's mug plays the same steam and mist (`quenchFx` with a spot in `#hmFx`, the mist lifted over the minigame) before `finishBlade()`.
+- **r263:** the white idle-nudge arrows are gone: the drag nudge is the guide's dashed arrow (metal -> furnace), the tap nudge the metal's glow.
+- **r264:** the metal's glow is `tutGlowOrb`, a white ring with a gold halo (a gold drop-shadow alone vanished on the parchment).
+- **r265:** the white arrow images (`assets/ui/arrow.*`, `arrow_point_down.*`) are deleted, with their asset-diet entries.
+- **r266:** the owner's new `map_base.png` is in the game: `map_base.webp` regenerated (2048 wide, q 0.82) and its manifest entry updated. The PNG itself went in with r260 by mistake (`git add -A`); commits now name their files.
+- **r302:** the intro: four pictures (`FTUE.intro`, `assets/Illustrations/intro_*.webp`) with the old portrait intro's texts show on load, before D1; tap to move on, SKIP ends it, `?nointro` skips it. The slides follow the story, not the owner's paste order (see "The intro" in the rework spec). The four Gemini source PNGs (`assets/backgrounds/Gemini_Generated_Image_*.png`, 10-11.6 MB each) are not committed
+- **r301:** the first sword's Shortsword blinks; an unaffordable BUY is greyed; in the tutorial only an order's blueprint can be bought (`ftueBlueprintOk`, D28m in the shape window and the market).
+- **r300:** the tutorial buys blueprints at the shape window: no market trip; the order lines end on a lit OK that starts the craft guide (`SAY_THEN`, `ftueOrderGo`); `ftueShapeOpened` / `ftueShapeDone` run the dragon's or the player's purchase there. `say-over-modal` is z 1011 (the shape window is 1010). GC9 keeps its market lesson.
+- **r299:** a locked shape in the shape window shows "BUY <price>g" and buys there (`shapeBuy`, the market's rules).
+- **r298:** the first sword goes on the counter only after D23 (`TUT_BRAM_GIVE_OK`, `counterShut`); earlier drops stay in the bag with a toast.
+- **r297:** Day 2 morning: D89's OK is lit first; the arrow to the counter blinks only with D92.
+- **r296:** D32c joins `SAY_DARK` and `SAY_GO_GLOW`: a dark screen, OK lit.
+- **r295:** the refill skips a sword on the counter or the table and treats the first sword as open only on its craft steps (`FIRST_SWORD_STAGES`); the ore reward waits for the customer's goodbye to end.
+- **r294:** the ore rewards come after each sale (`FTUE_ST.orePending` at the craft, `ftueOreSold` in the sale flows: Bram after D26, `ftueGpcSold`, `ftueTc4Sold`, `tutGaleThanks`, `ftueAfterDiary`).
+- **r293:** the refill: when the bag can no longer make the open order the dragon gives the shortfall (D28l, `ftueRefillTick`, `FTUE_ST.oreRound`) and the guided craft restarts (`CRAFT_REWIND`). Open: no refill for GC9 while it waits; no rewind for TC2's regrind, TC3's fire run, TC5's gale run, Bram's Dagger.
+- **r292:** the craft lock: while an order is open, CRAFT 1 / CONTINUE on another trait's page, another shape, or a pour on another trait is refused with D28k (`ftueOrderOpen`, `ftuePageOk`, `ftuePourOk`). Over a frame window the dragon speaks from the frame bubble (`sayWhere`), since the counter's bubble is under them.
+- **r291:** the ore chain, step 1: the bag starts with 2 Iron + 2 Manganese and after each tutorial sword the dragon gives the next sword's ores (`FTUE.oreChain`, reward kind 'ore', D18a / D28j over the window); the Day 2 cave holds 2 Nickel. The craft lock is r292, the refill r293.
+- **r290:** fixed the minigame's D13 replay: `tutHmStep` says D13 only after the first sword's shape pick (`TUT_HM_FIRST`); GC4/TC4/GC8 keep their stage, so their counter pointer works again.
+- **r289:** every market ask (D28b, D28e, D28g, D92h-D92j, D111b, D113a) has no close button.
+- **r288:** D15 pauses the game under the dark screen until its OK (`SAY_PAUSE_ONE`); D28b has no close; a `SAY_NO_X` line has no button anywhere in a run (D23 had become an OK behind a stale run).
+- **r287:** D118 and D27 have no close button; D28 ("Go ahead, try it!") removed (198 keys). The script doc's play-order section is updated with each line change (edit it by hand: add, remove or renumber the entry).
+- **r286:** the trait window (`showAcquire`) closes the dragon's open line (D10) first.
+- **r285:** the tutorial script doc reads in play order (all 199 lines, parts 1-6). Found while tracing: the minigame's D13 replay (fixed in r290); the v3 record's Katana price (50g) differs from the build (150g / 200g).
+- **r284:** D24 has no close button (`SAY_NO_X`).
+- **r283:** D15 "It is hot enough.", D15a "Pick up your hammer, line up the ring..."; after D21 or D22 the player taps "I just crafted a sword. You can have it." before D23; D23 has no close.
+- **r282:** D10 and D11 are one line (D10), no close button; D11 removed (199 keys).
+- **r281:** `SAY_NO_X`: the first sword's instruction lines (D3-D7, D11, D12, D14, D15a, D17, D18) show no close button; D8, D9, D16, D19 keep it. `.say-go.none` now beats `#dragonSay .go`, so a hidden button no longer leaves an empty frame.
+- **r280:** the route (`#pathline`) is dark brown `#4a2c17`; the held ore's preview stays red at opacity 0.45 / 0.3 (values Claude's proposal).
+- **r279:** `SCREEN_TAB`: the forge opens on the ingredients tab, the basement, the counter and the shop on the swords tab (`goScreen`); the bedroom and the cave keep theirs.
+- **r278:** a trait icon on the map opens a small trait card (icon, name, description; CRAFT 1, CONTINUE FROM HERE, CRAFT BOOK, and a close the owner did not ask for), not the book. GC5's map route points at the card's CRAFT 1. Open: D92n still says "open the craft book".
+- **r277:** the hammer minigame takes a press on what is under the finger: the hammer's own pixels first, then the metal's or blade's, else nothing (`wireHmTouch`, `hmOnHammer`, `hmOnWork`, `HM_HITS.touch` slack 6/8 px, Claude's proposal). The box pads (`#hmGrip`, `#hmAimPad`, `#hmStrikePad`) no longer take presses; the metal's box used to turn a tap on the hammer's handle into dragon fire.
+- **r276:** `STAGE_DARK.travel` (hammering to the '?'): map window, anvil and metal lifted. Open: the hammer is not lifted (owner's list), so it hides behind the anvil while held there.
+- **r275:** `STAGE_DARK.quench` (D10, D11): anvil, metal, bucket, mug lifted (bucket/mug rules `!important` over their inline z); the dim lifts while `#quenchFog` has `.catch`.
+- **r274:** `.dark-lit.dragging` (z64 !important) keeps a lifted prop over the dim mid-drag; `.dragging` alone (35 !important) put it under.
+- **r273:** the ore step also shows the map's highlight, path and sword: a fog window (`#tutHoleMap`, a soft hole per `#fogHoles` circle via the fog rect's screen CTM, `FOG_EDGE` 40).
+- **r272:** `STAGE_DARK` (stage -> lifted elements / cut windows, replaces r271's ORE_DARK_*): D3-D7 stay dark around what each step uses; D8 cuts a window over the map, and `tutPause` leaves `#tutDim` off in a dark stage.
+- **r271:** the ore step (D3 until 2+2 ores are in) is dark too: `#stSmelt` lifted over the dim, a window cut for `#matPanel` (`ORE_DARK_CUT`/`ORE_DARK_LIFT`, `tutDarkLayout`).
+- **r270:** D1 and D2 are read on a dark screen (`tutDark`, `SAY_DARK`: the r245 `#tutHole` dim with no hole; the dragon and `#dragonSay` at z61).
+- **r269:** the owner's second `map_base.png` update: `map_base.webp` regenerated (2048 wide, q 0.82, 583 KB), manifest updated.
+- **r268:** a paid sale flies coins from SELL to the gold panel (`flyCoins`, as a quest claim); the HUD count waits for them (`setGoldShown`).
+- **r267:** an order of several swords is sold one sword at a time (`orderHandOver`, `CUSTOMER.held`); the gold, REP, popularity and XP for all of them come with the last sale. COME LATER returns held swords.
 - **FTUE v3 (history; now built, merged and live, see "Current state"; `specs/2026-10-07-ftue-v3-rework.md`):** shared systems built on `sword-forge/ftue-v3-rework`: the MARKET button and window (blueprints per trait and shape, 50g, closed until part 1 opens it), the dragon buying with flying coins (`marketGift`), shaped orders, Durable as a trait key, SKILL TREE as a tree icon, no CRAFT 5. Test: `tooling/market/market.test.mjs` (50). **Part 1 built:** three shaped GCs (Longsword, Broadsword bought by the dragon; Katana bought by the player, gold topped up to 50 if short), no part 1 rewards, 9 + 9 ore. **Part 2 built:** TC2 starts at 1 + 1 ore, the raw route misses Balanced, the dragon gives the grindstone and returns the ores; no bulk order; TC3 skips the design desk and gives no reward. **Part 3 built:** Day 2 without the skill tree; GC4 Durable (map window, cave with nickel, 2 ground nickel; Durable moved to (1577, 740): Fine without the pull, Epic with it); GC5-GC7 fire Longsword/Broadsword (dragon buys) and Katana (player buys). **Part 4 built:** TC4 Epic Durable (cave trip, the pull lesson parks the sword on Durable), TC5 gale with the reminder, GC8 Weak balanced Longsword (the hammer parks in the Weak band); orders can name a tier. **Part 5 built:** Bram's swift Dagger (the dragon buys the blueprint), the sharpening wheel locked until his reward window, the diary, GC9 gale Longsword (the dragon buys). **Part 6 built:** Garric gives the design desk (D130b) and its lesson, the banner in every outcome and its lesson, then the second night, Day 3 and the skill tree; D140 ends the FTUE. GC1-GC3 are guided through the whole craft by pointers (owner, 2026-10-08). **FTUE v3 is complete; owner play-test pending.** 2026-10-09: a new Sword crafted window (card + sliding details paper), and recipes keep their hammering; a new quest list (two pages of seven, 20g + 20 xp each); the customer waiting system (COME LATER, the waiting list on the ledger, a two-sword customer sent there at the end of part 4). Blueprint prices rise (50 x (trait place + shape step); balanced Katana 150, fire Katana 200), and the market slides across all 25 traits. 2026-10-09 play-test fixes: exits from the screen map, the dragon on every FTUE screen, GC5/GC6 craft-book guides, the Day 2 cave holds all of Day 2 + 5 (TC4 has no cave trip, Garric no refill).
 
 ## Next steps
@@ -160,10 +231,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 196 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 203 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 421 checks; the market test GREEN at 50; the hammer test GREEN at 34; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 9;
+**Baselines, not regressions:** the FTUE test prints GREEN at 644 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -211,10 +282,11 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   settles after a delay. It is a test aid for jumping to a part, not a save.
 - **Verify through the path a player takes.** Drive real `tick()` frames and real `PointerEvent`s, and
   click through `elementFromPoint`. See LEARNINGS.
-- **There are two arrows.** `#tutArrow` is the scripted dashed pointer; `#hintArrow` is the white idle
-  nudge. Since r187 the white one stands down whenever `TUT_ARROW` is set.
-- **A halo near a clipped edge does not read.** `#rail` and `#frame` are `overflow: hidden`; use a face
-  swap there (`tutBlinkTab` / `tutBlinkSkill`).
+- **There is one arrow.** `#tutArrow` is the dashed pointer. Since r263 the idle nudges use it too (written to `TUT_ARROW`
+  as `HINT_ARROW_REF`, cleared only by the nudge) or the metal's glow; the white arrow images are gone. A guide arrow
+  still makes the nudge stand down.
+- **A halo near a clipped edge does not read.** `#rail` and `#frame` are `overflow: hidden`; since r242 `.tut-blink`
+  is `tutLitCtl` (its inset glow survives clipping) and every rail button uses the tabs' face swap (`tutBlinkTab`).
 - **A pointer or line is retired only if something retires it.** Setting the next stage is not enough
   unless that stage speaks or points.
 - **`TUT_TICK_STAGES` gates the idle pointer.** A new branch in `tutNudgeApply()` is dead unless its
@@ -233,9 +305,10 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
 - **The FTUE v3 record (`specs/2026-10-07-ftue-v3-rework.md`) wins over the tutorial script SSOT and the
   2026-09-29 parts plan on order, content and rewards.**
-  `specs/2026-09-15-looptest-landscape-tutorial-script.md` still holds the dialogue text and the beat
-  notes, but its order is the pre-FTUE one (sharpening in the TC2 run, the quest list with the diary,
-  the Day 2 cave after TC4's order); the 2026-09-29 parts plan is superseded too. Within the v3 record a
+  Since r285 `specs/2026-09-15-looptest-landscape-tutorial-script.md` opens with the whole script in play
+  order (as of r284, text copied from the build); its build history below that is the pre-FTUE order
+  (sharpening in the TC2 run, the quest list with the diary, the Day 2 cave after TC4's order). When a line
+  or step changes, update the play-order section too. The 2026-09-29 parts plan is superseded. Within the v3 record a
   later dated entry supersedes an earlier one (e.g. the Day 3 cave over D48).
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.

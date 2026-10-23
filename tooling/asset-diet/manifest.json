@@ -4,7 +4,7 @@
   "out": "assets/map/map_base.webp",
   "w": 2048,
   "q": 0.82,
-  "bytes": 16130659,
+  "bytes": 16807549,
   "nat": [
    2948,
    2948
@@ -1952,22 +1952,6 @@
   "forced": false
  },
  {
-  "src": "assets/ui/arrow_point_down.png",
-  "out": "assets/ui/arrow_point_down.webp",
-  "w": 234,
-  "q": 0.86,
-  "bytes": 11094,
-  "nat": [
-   234,
-   396
-  ],
-  "display": [
-   234,
-   396
-  ],
-  "forced": false
- },
- {
   "src": "assets/sword-parts/guards/flame_guard5.png",
   "out": "assets/sword-parts/guards/flame_guard5.webp",
   "w": 512,
@@ -2220,22 +2204,6 @@
   "display": [
    945,
    945
-  ],
-  "forced": false
- },
- {
-  "src": "assets/ui/arrow.png",
-  "out": "assets/ui/arrow.webp",
-  "w": 409,
-  "q": 0.86,
-  "bytes": 5463,
-  "nat": [
-   409,
-   158
-  ],
-  "display": [
-   409,
-   158
   ],
   "forced": false
  },

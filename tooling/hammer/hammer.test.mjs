@@ -85,7 +85,7 @@ eq('placement: crowded blade still gets 3 points', t3.length === 3 && t3.every(p
 
 /* wiring in the build */
 eq('D15a follows D15', (() => { const k = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return k[k.indexOf('D15a') - 1]; })(), 'D15');
-eq('D15a text', (src.match(/\n\s*D15a: "([^"]*)"/) || [])[1], 'Line up the ring on the hammer with the glowing mark, then tap the hammer.');
+eq('D15a text (r283, owner)', (src.match(/\n\s*D15a: "([^"]*)"/) || [])[1], 'Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer.');
 eq('price uses the forging band', /function swordBase\(w\)\{[^}]*hmForgeMul\(w\)/.test(src), true);
 eq('ring colour follows the band', /function hmRingPaint\(\)\{[\s\S]{0,700}hmBand\(hmGrade\(/.test(src), true);
 eq('skip gives the skip quality', /function hmSkip\(\)\{[\s\S]{0,400}HM_HITS\.skip/.test(src), true);
@@ -93,4 +93,21 @@ eq('skip gives the skip quality', /function hmSkip\(\)\{[\s\S]{0,400}HM_HITS\.sk
 /* r226 (owner, 2026-10-06): the accuracy popup is bigger, lasts twice as long, and rises almost to the top before it fades */
 eq('popup size and time', src.includes('font: bold 26px/1 Georgia, serif;') && src.includes('animation: hmAcc 1.6s'), true);
 eq('popup rises to near the top of the scene', src.includes("t.style.setProperty('--rise', Math.max(0, (at.y-4-HM_ACC_TOP)/100*sc.height).toFixed(0)+'px');") && src.includes('const HM_ACC_TOP=10;'), true);
+/* r277 (owner, 2026-10-20): a press goes to what is under the finger - the hammer's pixels, else the metal's, else through */
+eq('touch slack (screen px, Claude\'s proposal)', HM_HITS.touch, { hammer: 6, metal: 8 });
+{ const P = new Function(cfg[1] + pure[1] + '; return { hmMaskHit, hmPickTarget };')();
+  const w = 20, h = 10, a = new Uint8Array(w * h); for (let x = 8; x < 12; x++) a[5 * w + x] = 1;   /* a 4-pixel bar on row 5 */
+  const m = { w, h, a };
+  eq('mask hit: on the art', P.hmMaskHit(m, 9.5 / w, 5.5 / h, 0), true);
+  eq('mask hit: off the art, no slack', P.hmMaskHit(m, 9.5 / w, 1.5 / h, 0), false);
+  eq('mask hit: off the art, inside the slack', P.hmMaskHit(m, 9.5 / w, 2.5 / h, 3), true);
+  eq('mask hit: off the art, beyond the slack', P.hmMaskHit(m, 9.5 / w, 1.5 / h, 3), false);
+  eq('mask hit: outside the image', P.hmMaskHit(m, 1.5, 0.5, 2), false);
+  eq('the hammer wins a press on both', P.hmPickTarget(true, true), 'hammer');
+  eq('the metal alone', P.hmPickTarget(false, true), 'work');
+  eq('neither: the press is not taken', P.hmPickTarget(false, false), null); }
+eq('one handler on the scene routes every press (capture)', /function wireHmTouch\(\)\{[\s\S]{0,700}hmPickTarget\(hmOnHammer\(e\.clientX,e\.clientY\), hmOnWork\(e\.clientX,e\.clientY\)\)[\s\S]{0,200}\}, true\);/.test(src), true);
+eq('the hammer is hit on its own alpha, through its live transform', /function hmOnHammer\(x,y\)\{[\s\S]{0,500}hmLocalUV\(h,x,y\)[\s\S]{0,200}hmMaskHit\(/.test(src) && /function hmLocalUV\(el, x, y\)\{[\s\S]{0,700}getComputedStyle\(el\)[\s\S]{0,300}\.inverse\(\)/.test(src), true);
+eq('the metal: the orb circle, then the blades\' alpha, each while it shows', /function hmOnWork\(x,y\)\{[\s\S]{0,300}hmOrb[\s\S]{0,500}\['hmRough','hmFinal'\][\s\S]{0,400}hmMaskHit\(/.test(src), true);
+eq('the old box pads take no presses', ['#hmAimPad {', '#hmGrip {', '#hmStrikePad {'].every(s => { const i = src.indexOf(s); return i >= 0 && /pointer-events: none;/.test(src.slice(i, src.indexOf('}', i))); }), true);
 console.log('[hammer] GREEN / ' + n + ' checks');
