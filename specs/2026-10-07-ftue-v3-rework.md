@@ -2183,6 +2183,13 @@ order's trait, a shape the order did not ask for, and a pour on a trait the orde
 dragon says D28k "The customer asked for a {o}. Let's focus on that." ({o} = the order's name). TC5's swift pour is the
 lesson and is allowed. With no order open (the first sword), nothing is refused.
 
+**Clarified (owner, 2026-10-23):** "When earlier I said I only want the players to craft what the customer ask for, I
+actually meant only let them craft what the tutorial demands." TC5 orders Gale, but the tutorial's step first asks for
+Swift ("I want them to learn they can craft swords the customer did not ask for"): through TC5's whole swift run
+(stages d2-copper, d2-hammer, d2-pull, d2-quench) the gate takes Swift, before or after the ladle has parked the sword on
+it, and the run goes on to D99 and storing the metal; then the gale run as before. Built in R11
+(`specs/2026-10-23-ftue-smelter-rework-plan.md`).
+
 ### The refill
 
 When the bag can no longer make the open order (nothing on the bench, the order not yet made, and the bag short of the

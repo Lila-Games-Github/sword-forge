@@ -316,6 +316,12 @@ eq('Bram\'s metal back: D44, the arrow from it to the anvil', /function tutBram2
 /* R8 (2026-10-23): no gate-on-heat left */
 eq('markGateReady (the gate on heat) is gone', src.includes('markGateReady'), false);
 
+/* R11 (owner, 2026-10-23): the craft lock follows what the tutorial asks for - TC5 orders Gale, its first step asks for Swift */
+eq('TC5\'s swift run: the tutorial\'s trait is Swift', src.includes("const TUT_SWIFT_STAGES=['d2-copper','d2-hammer','d2-pull','d2-quench'];")
+  && src.includes("function ftueTutTrait(){ return TUT_SWIFT_STAGES.indexOf(TUT_STAGE)>=0 ? 'swift' : null; }"), true);
+eq('the gate takes the tutorial\'s trait as well as the order\'s', /function ftuePourOk\(\)\{[^\n]*\n\s*if\(ftueTutTrait\(\)===melt\.reachedTrait\.trait\.id \|\| ftueOrderTraitOk\(o, melt\.reachedTrait\.trait\.id\)\) return true;/.test(src), true);
+eq('Swift taken before or after the ladle: D99 and the store', /function tutSwiftGot\(\)\{\s*if\(TUT_SWIFT_STAGES\.indexOf\(TUT_STAGE\)<0\) return;[^\n]*\n\s*TUT_STAGE='d2-store'; TUT_SWIFT_LOCK=false;/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
@@ -507,7 +513,7 @@ eq('over a frame window the dragon speaks from the frame bubble (the counter\'s 
 eq('D28k goes with its window; a kept line (D107g) moves back to the screen bubble', src.includes("function ftueFocusDone(){ if(SAY_ON==='D28k' || (FTUE_SHAPE_LINE && SAY_ON===FTUE_SHAPE_LINE)) sayHide(); }")
   && /function closeBook\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function closeTraitCard\(\)\{[^\n]*ftueFocusDone\(\)/.test(src) && /function cancelShape\(\)\{[\s\S]{0,200}ftueFocusDone\(\)/.test(src)
   && src.includes("ftueReward(list, ()=>{ if(line && SAY_ON===line){ if(e.keep) say(line); else sayHide(); } if(then) then(); });"), true);
-eq('the mug refuses another trait (TC5\'s swift pour is the lesson)', src.includes("if(mugOverAnvil() && canPourQuench() && ftuePourOk()){") && /function ftuePourOk\(\)\{[\s\S]{0,400}TUT_STAGE==='d2-quench'/.test(src), true);
+eq('the mug refuses another trait (TC5\'s swift pour is the lesson)', src.includes("if(mugOverAnvil() && canPourQuench() && ftuePourOk()){") && /function ftuePourOk\(\)\{[\s\S]{0,400}ftueTutTrait\(\)===melt\.reachedTrait\.trait\.id/.test(src), true);
 /* r291 (owner, 2026-10-21): the ore chain - after each tutorial sword the dragon gives exactly the next sword's ores,
    in the reward window with his line on top (record: "The ore chain" in specs/2026-10-07-ftue-v3-rework.md) */
 eq('oreChain is the recorded table', FTUE.oreChain, {

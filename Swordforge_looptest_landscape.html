@@ -2921,8 +2921,12 @@ function ftueFocus(o){ SAY_VARS.o=ftueOrderName(o); sayQueue('D28k');
     const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }   /* over the book or the picker */
 function ftueFocusDone(){ if(SAY_ON==='D28k' || (FTUE_SHAPE_LINE && SAY_ON===FTUE_SHAPE_LINE)) sayHide(); }   /* r300: and the shape window's lines */   /* the window it was said over has closed */
 function ftuePageOk(r){ const o=ftueOrderOpen(); if(!o || recipeTraits(r).some(a=>ftueOrderTraitOk(o, a.tid))) return true; ftueFocus(o); return false; }
+/* R11 (owner, 2026-10-23): the lock follows what the tutorial asks for, not only the order - TC5 orders Gale, but its first
+   step asks for Swift (before or after the ladle) */
+const TUT_SWIFT_STAGES=['d2-copper','d2-hammer','d2-pull','d2-quench'];
+function ftueTutTrait(){ return TUT_SWIFT_STAGES.indexOf(TUT_STAGE)>=0 ? 'swift' : null; }
 function ftuePourOk(){ const o=ftueOrderOpen(); if(!o || !melt || !melt.reachedTrait) return true;
-    if(TUT_STAGE==='d2-quench' || ftueOrderTraitOk(o, melt.reachedTrait.trait.id)) return true;   /* TC5's swift pour is the lesson */
+    if(ftueTutTrait()===melt.reachedTrait.trait.id || ftueOrderTraitOk(o, melt.reachedTrait.trait.id)) return true;   /* R11: the tutorial's trait, or the order's */
     if(!FTUE_POUR_SAID){ FTUE_POUR_SAID=true; ftueFocus(o); } return false; }
 /* ---- part 1 beats ---- */
 /* D26 is off the screen: the banner, then the quest list */
@@ -8681,8 +8685,8 @@ function tutSwiftAligned(){
     setTimeout(tutGatePointer, 0);   /* R5: the gate takes the trait */
 }
 function tutSwiftGot(){
-    if(TUT_STAGE!=='d2-quench') return;
-    TUT_STAGE='d2-store'; tutArrow(null,null); tutUnglow();
+    if(TUT_SWIFT_STAGES.indexOf(TUT_STAGE)<0) return;   /* R11: taken before or after the ladle */
+    TUT_STAGE='d2-store'; TUT_SWIFT_LOCK=false; tutArrow(null,null); tutUnglow();
     sayQueue('D99');
     setTimeout(()=>tutArrow('#orb', '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }), 0);
 }

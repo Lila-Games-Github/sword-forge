@@ -301,3 +301,16 @@ yours and come on top.
   Balanced at the route end, the dragon's coins at the shape window with D28c and D28d, the Longsword lit, the minigame,
   the dip), the sale and GC2's ore reward (2 iron, 2 manganese); no console errors. Parts 2-6 were checked per part
   (R3-R7), not played continuously; nothing was played on a phone.
+- **R11 (2026-10-23, owner play-test): TC5's swift metal is allowed at the gate.** Owner: "for this part, I actually want
+  the players to be able to craft a swift sword first, even though the customer asked for a gale ... I actually meant
+  only let them craft what the tutorial demands. So bring back the earlier flow, where they craft the swift, store it,
+  then craft again for the gale." The report: at the swift route's end the gate glows (the sword is on Swift), and a tap
+  there got D28k - the craft lock (`ftuePourOk`) let Swift through only once the ladle had parked the sword (stage
+  d2-quench). Now the lock follows the tutorial's step: through TC5's swift run (`TUT_SWIFT_STAGES`: d2-copper, d2-hammer,
+  d2-pull, d2-quench) the tutorial's trait is Swift (`ftueTutTrait`) and the gate takes it, before or after the ladle;
+  `tutSwiftGot` takes it from any of those stages (D99, the arrow to store the metal), so the run goes on as before. The
+  record's craft lock section carries the clarification.
+  FTUE test 706 -> 709 (written first). Checked in the browser (TC5's Gale order open at the counter, the swift run
+  staged): the route end on Swift at 30, the gate glowing, D97a up; the gate tapped before the ladle -> Swift (Weak, at
+  that distance), no D28k; the window closed -> D99, the store arrow; in the gale run the lock still refuses Swift (D28k);
+  no console errors. Taken before the ladle the swift metal is Weak; after it, Epic.
