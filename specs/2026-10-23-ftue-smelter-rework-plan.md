@@ -179,3 +179,24 @@ yours and come on top.
   All eight suites GREEN (FTUE 644, smelter 66). Checked in the browser: the intro, then D1 at part 1 with 2 iron; with
   `?freeplay`, free play (part 7, 20 of every ore, 500 gold); the PART buttons show; no console errors. The tutorial
   itself is not yet reworked (R1 on).
+- **R1 (2026-10-23): the first sword in the smelter loop.** The lines as approved: D4 "Drag the bellows handle up and
+  down.", D8 "...with each pump. Keep pumping...", D10 "We reached a '?' trait! Tap the smelter gate to take the trait.",
+  D12 "Pick the shape of the sword blade.", D17 "Pick up the blade by its handle and dip it in the bucket to finish.";
+  D5 and D7 removed (201 dialogue keys). The chain: ore (D3) -> bellows (D4; the pointer at the bellows) -> D8 once
+  the bellows have moved the sword `FTUE.pumpBeat` 0.4 full-speed s (a full down-and-up pump, two pulls of the
+  spring-back handle; `tutPumpBeat` in `smGlide`), the game paused -> travel -> at the '?' D10 with the pointer and a glow
+  on the gate (`tutGatePointer`; the stage keeps its name, 'quench') -> the trait window -> D6 and the pointer from the
+  metal at the gate to the anvil (`tutShapeStep`, stage 'anvil') -> on the anvil the shape window opens with D12 over it
+  (`ftueSaySh`) and the Shortsword lit -> the minigame (D13-D16 unchanged) -> shaped: D17 and a pointer from the blade to
+  the bucket (`tutMugStep`, `TUT_DIP`), gone while the blade is held, back if it is put down, ended by the dip
+  (`tutDipDone`) -> the crafted window (D17a). `STAGE_DARK`: bellows = the smelter; anvil = the anvil and the metal;
+  strike, quench (the gate) and travel = a map window and the smelter; no gate or hammer stages. `TUT_SKIP`: bellows ->
+  already on the trait (`tutTravelOnTrait`); anvil -> already on the anvil (`tutAnvilShape`: D12, tap the metal); no gate
+  entry. `tutHammerStep`, `tutAnvilStep` and the gate-on-heat branch of `tutGateStep` removed. Found in the browser
+  check: pumping while D8 pauses the game stored travel that ran out after it; the bellows now ignore moves while
+  paused. FTUE test 644 -> 658 (written first). Checked in the browser (1280x720, the frames run by hand, the pane
+  hidden): D1, D2, D3; the ores in -> D4 at the bellows, the smelter lit; two pulls -> D8, paused, the smelter lit
+  over the dim; D8 closed -> pumping to Balanced -> D10, the gate glowing; the gate (hit-tested) -> Balanced Epic, the
+  trait window; closed -> D6, the arrow, the anvil and the metal lit; the metal dragged to the anvil -> the shape window
+  with D12 over it (z 1011) and the Shortsword lit; the minigame's lines; shaped -> the hot blade on the anvil, D17, the
+  arrow to the bucket; picked up -> the arrow gone; dipped -> D17 gone, the craft window, D17a; no console errors.

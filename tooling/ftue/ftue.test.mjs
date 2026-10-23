@@ -147,8 +147,8 @@ eq('D57 text', line('D57'), "We got a {b}g bonus this time from sharpening the s
 eq('{b} is the sharpening bonus only', src.includes('SAY_VARS.b=P.sharp;'), true);
 /* r213 (owner, 2026-10-01): the dialogue review - fixes A1-A8, B10, C11-C19, new lines D20-D24 */
 const R213 = {
-  D8:   "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'.",
-  D10:  "Now that we have reached a '?' trait on the map, we can splash water on the metal to lock it in. Pick up the mug from the bucket and drag it to the metal.",   /* r282: D11 joined it */
+  D8:   "Look, the sword icon moves on the trait map with each pump. Keep pumping till we reach the '?'.",   /* R1: the bellows move it */
+  D10:  "We reached a '?' trait! Tap the smelter gate to take the trait.",   /* R1: the gate takes the trait (was the mug) */
   D14:  'Press and hold the metal, and I will heat it for you to hammer.',
   D15:  'It is hot enough.',   /* r283 (owner): the instruction moved to D15a */
   D22:  "You don't need to know who I am! Assassins are after me. I lost my sword too!",
@@ -222,6 +222,27 @@ eq('turn arrow follows the ore on the wheel', src.includes("function grindSpinWa
 eq('fog edge blur (stdDeviation 24 world units)', src.includes('<filter id="fogSoft" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="24"/></filter>')
   && src.includes('<g id="fogHoles" fill="#000" filter="url(#fogSoft)"></g>'), true);
 eq('ORE_START reads FTUE', /const ORE_START=\{[^}]*iron:FTUE\.oreStart\.iron, manganese:FTUE\.oreStart\.manganese/.test(src), true);
+
+/* R1 (2026-10-23, the smelter loop): the first sword's lines - specs/2026-10-23-ftue-smelter-rework-plan.md */
+eq('D4 text (R1)', line('D4'), 'Drag the bellows handle up and down.');
+eq('D12 text (R1)', line('D12'), 'Pick the shape of the sword blade.');
+eq('D17 text (R1)', line('D17'), 'Pick up the blade by its handle and dip it in the bucket to finish.');
+eq('D5 and D7 are gone (R1: the gate opens on a trait; the bellows move the sword)', /\n\s*D5: "/.test(src) || /\n\s*D7: "/.test(src) || /'D5'|'D7'/.test(src), false);
+eq('pumpBeat: D8 after this much pumping (full-speed s; about one pump)', FTUE.pumpBeat, 0.4);
+eq('the bellows count the beat as the sword glides', /function smGlide\(dt\)\{[\s\S]{0,400}advanceSword\(d\); tutPumpBeat\(d\);/.test(src)
+  && src.includes("function tutPumpBeat(d){ if(TUT_STAGE!=='bellows') return; TUT_STRIKE+=d; if(TUT_STRIKE>=FTUE.pumpBeat) tutStrikeStep(); }"), true);
+eq('pumping during a pause (D8) stores nothing (found in R1\'s browser check)', /function wireBellowGate\(\)\{[\s\S]{0,1400}if\(live!==e\.pointerId\) return; if\(TUT_PAUSE\)\{ lastY=e\.clientY; return; \}/.test(src), true);
+eq('the bellows step resets the beat', /function tutBellowsStep\(\)\{[\s\S]{0,200}TUT_STRIKE=0;/.test(src), true);
+eq('at the \'?\': D10, and the gate pointer goes up with it', src.includes("if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();")
+  && /function tutGatePointer\(\)\{ tutArrow\(null, '#furnaceGate'[^\n]*tutGlow\('#furnaceGate', true\); \}/.test(src), true);
+eq('the trait window closed: D6, the metal from the gate to the anvil', /function tutShapeStep\(\)\{\s*if\(TUT_STAGE!=='acquired'\) return;\s*TUT_STAGE='anvil';[\s\S]{0,300}say\('D6'\);[\s\S]{0,100}tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
+eq('on the anvil the shape window opens with D12 over it', /function openShapeSelect\(\)\{[\s\S]{0,300}if\(TUT_STAGE==='anvil'\)\{ TUT_STAGE='shape'; ftueSaySh\('D12'\); \}/.test(src), true);
+eq('the old hammer and anvil steps are gone', /function tutHammerStep\(|function tutAnvilStep\(/.test(src), false);
+eq('shaped: D17 with the pointer from the blade to the bucket', /function smShaped\(\)\{[\s\S]{0,500}smBladeShow\(\);[\s\S]{0,200}tutMugStep\(\);/.test(src)
+  && /function tutMugStep\(\)\{[\s\S]{0,300}say\('D17'\);[\s\S]{0,200}TUT_DIP=true; tutDipArrow\(\);/.test(src) && src.includes("function tutDipArrow(){ if(TUT_DIP) tutArrow('#smBlade', '#bucketBack'"), true);
+eq('the pointer goes while the blade is held, and comes back if it is put down', /function smBladeGrab\(e\)\{[\s\S]{0,900}if\(TUT_DIP\) tutArrow\(null,null\);/.test(src) && /function smBladeHome\(\)\{[\s\S]{0,700}tutDipArrow\(\);/.test(src), true);
+eq('the dip ends D17 and the pointer', /function smBladeQuench\(\)\{[\s\S]{0,300}tutDipDone\(\);/.test(src) && /function smBladeDrop\(\)\{[\s\S]{0,300}tutDipDone\(\);/.test(src)
+  && src.includes("function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); if(SAY_ON==='D17') sayHide(); }"), true);
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
@@ -479,11 +500,10 @@ eq('showAcquire closes the dragon\'s line', /function showAcquire\(bt,tier,total
 /* r282 (owner, 2026-10-21): D10 and D11 are one line (D10), with no close; the mug pointer goes up with it */
 eq('D11 is gone', /\n\s*D11: "/.test(src), false);
 eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SAY_SEQ\.indexOf\('D10'\)<0\) SAY_SEQ\.push\('D10'\);/.test(src) && !/'D11'/.test(src), true);
-eq('the mug pointer goes up with D10', src.includes("if(id==='D10' && TUT_STAGE==='quench') tutMugPointer();"), true);
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D5', 'D6', 'D7', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -505,11 +525,11 @@ eq('order made with the card open: shut the card', /if\(custOrderReady\(\)\)\{[\
 /* r276 (owner, 2026-10-16): while hammering to the '?' (stage 'travel', after D8) only the map, the anvil, the metal and the
    dialogue show */
 { const m = src.match(/const STAGE_DARK=({.*});/), T = m && new Function('return ' + m[1])();
-  eq('STAGE_DARK.travel: a map window, the anvil and the metal', T && T.travel, { cut: [{ sel: '#map-wrap' }], lift: ['#stAnvil', '#orb'] }); }
+  eq('STAGE_DARK.travel (R1): a map window and the smelter (the bellows)', T && T.travel, { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] }); }
 /* r275 (owner, 2026-10-16): the quench (D10, D11) is dark too: the dialogue, the bucket, the mug, the arrow, the anvil and
    the metal show. The pour's steam and mist (#quenchFog, z58) would be under the dim, so the dim lifts while they play */
 { const m = src.match(/const STAGE_DARK=(\{.*\});/), T = m && new Function('return ' + m[1])();
-  eq('STAGE_DARK.quench lifts the anvil, the metal, the bucket and the mug', T && T.quench, { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] }); }
+  eq('STAGE_DARK.quench (R1: the gate step, D10): a map window and the smelter', T && T.quench, { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] }); }
 eq('the bucket and the mug beat their inline z-index', src.includes('#frame.landscape #bucketBack.dark-lit { z-index: 61 !important; }') && src.includes('#frame.landscape #mug.dark-lit { z-index: 64 !important; }'), true);
 eq('the dim lifts while the quench steam and mist play', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
 /* r274 (owner, 2026-10-16): a lifted prop being dragged (the metal, the hammer, the dragon) stays over the dim. .dragging
@@ -532,12 +552,10 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
   eq('STAGE_DARK is the recorded table', m && new Function('return ' + m[1])(), {
     ore:     { cut: [{ sel: '#matPanel' }, { sel: '#map-wrap', fog: true }], lift: ['#stSmelt'] },
     bellows: { lift: ['#stSmelt'] },
-    gate:    { lift: ['#stSmelt'] },
     anvil:   { lift: ['#stAnvil', '#orb'] },
-    hammer:  { lift: ['#stAnvil', '#orb', '#hammerTool'] },
-    strike:  { cut: [{ sel: '#map-wrap' }] },
-    quench:  { lift: ['#stAnvil', '#orb', '#bucketBack', '#mug'] },
-    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stAnvil', '#orb'] } }); }
+    strike:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
+    quench:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
+    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] } }); }   /* R1: the smelter loop - no gate (on heat) or hammer steps */
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
 eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
@@ -934,11 +952,11 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
   const all = keys.concat(skeys);
   eq('every skip entry is a real stage', all.length > 20 && all.every(k => src.includes("TUT_STAGE='" + k + "'")), true);
   eq('no stage listed twice', new Set(all).size, all.length);
+  eq('no gate step any more (R1)', keys.includes('gate'), false);
   const E = {   /* stage: [done, next] - the record of what "already done" means */
     'ore':            ["ftueOreIn('iron')>=2 && ftueOreIn('manganese')>=2", 'tutCheckOre()'],
-    'bellows':        ["!!melt && (melt.stage!=='smelting' || gateReady)", 'tutGateStep()'],
-    'gate':           ["!!melt && (melt.stage==='hot' || melt.stage==='onAnvil')", 'tutAnvilStep()'],
-    'anvil':          ["!!melt && melt.stage==='onAnvil'", 'tutHammerStep()'],
+    'bellows':        ['!!melt && !!melt.reachedTrait', 'tutTravelOnTrait()'],   /* R1: pumped onto the trait already */
+    'anvil':          ["!!melt && melt.stage==='onAnvil'", 'tutAnvilShape()'],   /* R1: the metal is on the anvil already */
     'tc2-raw':        ["segs.some(g=>g.ore==='iron') && segs.some(g=>g.ore==='manganese')", 'tutTc2RawCheck()'],
     'regrind-iron':   ["tutGroundIn('iron')", "tutSmeltCheck('iron', 1)"],
     'regrind-mang':   ["tutGroundIn('manganese')", "tutSmeltCheck('manganese', 1)"],
