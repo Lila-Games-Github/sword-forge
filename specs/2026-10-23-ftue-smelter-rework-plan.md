@@ -278,3 +278,11 @@ yours and come on top.
   arrow for the raw 5th; in -> D105, the bellows; the Epic stop on Gale (0) -> D98, the gate; three more pulls while parked
   -> no movement; the gate -> Gale Epic; the window closed -> D106, the arrow to the anvil; no console errors. GC8's Weak
   stop was not played (its stop and gate pointer are the same code paths).
+- **R7 (2026-10-23): parts 5-6.** A stored ingot comes back hot at the gate (`restoreIngot`; one stored on the anvil is
+  turned hot too), so the anvil opens the shaping the same way every time. **Plan change:** D44 after D113 is kept, not
+  removed - Bram's swift metal now comes back at the gate, so "Take the hot metal to the anvil." is the right line; it
+  points from the metal to the anvil (was a glow on it). Garric's solo run (`TUT_SOLO`) gets no dip arrow (the other
+  hammered tutorial crafts keep it). The part 5 gale Longsword is made from the craft book (CRAFT 1 skips the smelter) and
+  needed no change. FTUE test 703 -> 705 (written first). Checked in the browser (PART 5 jump): the stored swift ingot
+  (stage onAnvil) -> D113 with the arrow from its slot -> taken out: hot at the gate -> D44, the arrow to the anvil; on
+  the anvil the shape window, D44 and the arrow gone; no console errors.

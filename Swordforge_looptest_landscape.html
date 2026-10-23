@@ -7307,7 +7307,7 @@ function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || 
     if(['D45','D46','D78'].includes(SAY_ON)) sayHide();   /* R4: the minigame's lines go with it */
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
     smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.');
-    if(TUT_STAGE==='forge2') tutDipStep('D47'); else if(!TUT_SAIDMUG) tutMugStep(); else if(!tutOver()){ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow(); } }   /* R4: the later crafts, the arrow alone */   /* R1: D17 and the pointer to the bucket. R3: TC2's D47 */
+    if(TUT_STAGE==='forge2') tutDipStep('D47'); else if(!TUT_SAIDMUG) tutMugStep(); else if(!tutOver() && !TUT_SOLO){ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow(); } }   /* R7: not in Garric's solo run */   /* R4: the later crafts, the arrow alone */   /* R1: D17 and the pointer to the bucket. R3: TC2's D47 */
 function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
     b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px';
     b.style.transform=''; b.style.transformOrigin=''; b.style.transition=''; b.style.opacity=''; b.style.zIndex=''; SM_BL=null;   /* s5: back to the resting pose */
@@ -7638,11 +7638,11 @@ function restoreIngot(id){
     melt={ heat:invCooled(g), hp:g.hp, hazSeen:(g.hazSeen||[]).slice(), smeltT0:performance.now(), stage:g.stage,
            reachedTrait:null, alignDist:null, acquiredTrait:null, tier:null,      // the tick recomputes these
            traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
+    if(melt.stage==='onAnvil') melt.stage='hot';   /* R7 (smelter loop): back hot at the gate - the anvil opens the shaping */
     segs=g.segs.map(x=>({...x, origin:{...x.origin}}));
     sword={seg:g.sword.seg, frac:g.sword.frac}; pull=g.pull?{x:g.pull.x, y:g.pull.y}:{x:0,y:0};   /* r197 */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); ensureSwordVisible();
-    orbEl.style.display='block'; updateOrbLook();
-    if(melt.stage==='onAnvil'){ const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); } else snapToGate();
+    orbEl.style.display='block'; updateOrbLook(); snapToGate();
     updateGauges(); updateHpPill(); setTimeout(updateSfTraits,0); invTab(1);
     hint(melt.heat<2 ? 'Back on the bench &mdash; stone cold. Drag it to the <b>furnace</b> and re-heat before it will travel.'
                      : 'Back on the bench, still warm. Its route and traits are exactly where you left them.');
@@ -8831,8 +8831,8 @@ function tutBram2Forge(){
 function tutBram2Restored(){
     if(TUT_STAGE!=='bram2-ingot') return;
     TUT_STAGE='bram2-shape'; tutArrow(null,null); FTUE_ST.swiftFree=true;   /* r205 */
-    sayQueue('D44');   /* the same instruction as the fire sword's */
-    setTimeout(()=>tutGlow('#orb', true), 0);
+    sayQueue('D44');   /* the same instruction as the fire sword's. R7: "Take the hot metal to the anvil" - it is back at the gate */
+    setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);
 }
 function tutBram2Hammering(){ if(TUT_STAGE==='bram2-shape'){ TUT_STAGE='bram2-forge2'; tutUnglow(); } }
 function tutBram2Crafted(){

@@ -266,7 +266,7 @@ eq('a line said as the trait window opens comes back when it closes', /smGateFx\
 eq('D44 and D77 go, and the arrow to the anvil, when the metal is on the anvil (the shape window opens)', /function openShapeSelect\(\)\{[\s\S]{0,700}if\(SAY_ON==='D44' \|\| SAY_ON==='D77'\) sayHide\(\); if\(TUT_ARROW && TUT_ARROW\.from==='#orb'\) tutArrow\(null,null\);/.test(src), true);
 eq('the minigame\'s lines go when the blade comes out onto the anvil (R4)', /function smShaped\(\)\{[\s\S]{0,600}if\(\['D45','D46','D78'\]\.includes\(SAY_ON\)\) sayHide\(\);/.test(src), true);
 eq('the minigame speaks D46 only; D47 comes with the blade on the anvil', src.includes("const id='D46';   /* R3: D47 is the dip's, on the anvil */")
-  && /function smShaped\(\)\{[\s\S]{0,700}if\(TUT_STAGE==='forge2'\) tutDipStep\('D47'\); else if\(!TUT_SAIDMUG\) tutMugStep\(\); else if\(!tutOver\(\)\)\{ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow\(\); \}/.test(src), true);
+  && /function smShaped\(\)\{[\s\S]{0,700}if\(TUT_STAGE==='forge2'\) tutDipStep\('D47'\); else if\(!TUT_SAIDMUG\) tutMugStep\(\); else if\(!tutOver\(\) && !TUT_SOLO\)\{ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow\(\); \}/.test(src), true);   /* R7: not in Garric's solo run */
 
 /* R4 (2026-10-23): TC3's fire run in the smelter loop - the metal stays in the smelter, the next ore goes straight in */
 eq('D69 text (R4)', line('D69'), 'Now pump the bellows.');
@@ -308,6 +308,10 @@ eq('Gale taken: D106 and the metal to the anvil', /function tutGaleGot\(\)\{[\s\
 eq('GC8: the bellows while it travels; parked in the Weak band, D107b and the gate', src.includes("if(TUT_STAGE==='p4-weak-heat'){ if(melt && melt.stage==='smelting') tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }")
   && /function tutWeakStop\(\)\{[\s\S]{0,1200}sayQueue\('D107b'\); setTimeout\(tutGatePointer, 0\);/.test(src), true);
 eq('no hammer to send home, no mug pointer left', !/homeHammer\(\)/.test(src.replace(/function homeHammer\(\)\{/, '')) && !/tutMugPointer/.test(src), true);
+
+/* R7 (2026-10-23): parts 5-6 - Bram's stored swift metal comes back at the gate; Garric's solo run gets no dip arrow */
+eq('a stored ingot comes back hot at the gate (one stored on the anvil too), so the anvil opens the shaping', /function restoreIngot\(id\)\{[\s\S]{0,1200}if\(melt\.stage==='onAnvil'\) melt\.stage='hot';[\s\S]{0,400}orbEl\.style\.display='block'; updateOrbLook\(\); snapToGate\(\);/.test(src), true);
+eq('Bram\'s metal back: D44, the arrow from it to the anvil', /function tutBram2Restored\(\)\{[\s\S]{0,300}sayQueue\('D44'\);[^\n]*\n\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
