@@ -726,7 +726,17 @@ for (const [k, prev] of [['D89b', 'D89a'], ['D89c', 'D89b'], ['D89d', 'D89c']]) 
 eq('closing the market starts the craft guide in part 1', src.includes("if(FTUE_ST.part===1 && m.o && !m.then) ftueGcCraftGo();"), true);
 eq('the craft guide stages tick', /const TUT_TICK_STAGES=\[[^\]]*'p1-craft-ore','p1-craft-heat'/.test(src), true);
 eq('ores: 2 iron, then 2 manganese, raw, to the smelter', /if\(TUT_STAGE==='p1-craft-ore'\)\{[\s\S]{0,300}tutFirstOreSlot/.test(src), true);
-eq('at the route end: the mug', /if\(TUT_STAGE==='p1-craft-heat'\)\{[\s\S]{0,900}swordAtRouteEnd\(\)\) tutMugPointer\(\)/.test(src), true);
+/* R2 (2026-10-23, the smelter loop): GC1-GC3's craft guide - one pointer worked out from the state, the gate's two checks back */
+eq('D9 text (R2)', line('D9'), 'Pumping the bellows also lets you collect experience points scattered all over the map. Collect them to level up.');
+eq('tutLoopPointer: the bellows, the gate on a trait, the hot metal to the anvil, the shaped blade to the bucket', (b => !!b
+  && b.includes("if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate'") && b.includes("else tutArrow(null, '#bellowtop'")
+  && b.includes("if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil'") && b.includes("if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack'")
+  )((src.replace(/\r\n/g, '\n').match(/function tutLoopPointer\(\)\{[\s\S]*?\n\}/) || [])[0]), true);
+eq('the craft guide points with it, through the shaping and the dip', src.includes("if(TUT_STAGE==='p1-craft-heat' || TUT_STAGE==='p1-craft-shape' || TUT_STAGE==='p1-craft-hammer'){ tutLoopPointer(); return; }"), true);
+eq('those stages tick', /const TUT_TICK_STAGES=\[[^\]]*'p1-craft-shape','p1-craft-hammer'/.test(src), true);
+eq('the guide notices the blade being held', /function tutNudgeSig\(\)\{[\s\S]{0,700}SM_BL\?1:0/.test(src), true);
+eq('the gate: the craft lock (another trait, D28k) and the GC retry (2 + 2, D28a) before it opens', /function openGate\(\)\{[\s\S]{0,400}FTUE_POUR_SAID=false; if\(!ftuePourOk\(\)\) return; if\(!ftueGateOk\(\)\) return;[\s\S]{0,200}tryAcquire\(\);/.test(src), true);
+eq('after the gate: the metal to the anvil (the pointer), not a glow on it', src.includes("function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); tutNudge(true); }"), true);
 eq('after the quench: the metal glows', src.includes("if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();"), true);
 /* owner, 2026-10-08: in the whole game, the shape the customer asked for is highlighted in the shape window */
 eq('the requested shape is highlighted, any customer', /function shapeGrid\(\)\{[\s\S]{0,1600}const req=custShapeFor\(k\)===sh;[\s\S]{0,200}if\(req\) b\.classList\.add\('sf-req'\)/.test(src), true);

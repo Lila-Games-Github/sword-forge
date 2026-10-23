@@ -200,3 +200,15 @@ yours and come on top.
   trait window; closed -> D6, the arrow, the anvil and the metal lit; the metal dragged to the anvil -> the shape window
   with D12 over it (z 1011) and the Shortsword lit; the minigame's lines; shaped -> the hot blade on the anvil, D17, the
   arrow to the bucket; picked up -> the arrow gone; dipped -> D17 gone, the craft window, D17a; no console errors.
+- **R2 (2026-10-23): GC1-GC3's craft guide in the smelter loop.** D9 as approved ("Pumping the bellows also lets
+  you collect..."). One pointer for a guided craft, worked out from the state (`tutLoopPointer`, reused by later parts):
+  smelting - the bellows (a glow), or the gate once the sword is on a trait (`gateReady`, a tap highlight); hot - the
+  metal to the anvil; on the anvil - none (the shape window opens itself); shaped - the blade to the bucket, none while it
+  is held. The GC stages p1-craft-heat, p1-craft-shape and p1-craft-hammer use it and tick; the guide's signature sees
+  the blade held (`SM_BL`). After the gate `ftueGcQuenched` points the metal to the anvil (was a glow on it). The gate
+  has the mug's two checks back: the craft lock on a trait the order did not ask for (`ftuePourOk`, D28k) and the GC1-GC3
+  "2 iron + 2 manganese" retry (`ftueGateOk`, D28a). FTUE test 658 -> 664 (written first; two pattern limits widened
+  for a comment line). Checked in the browser (GC1's craft staged: Bram served, 2 + 2 in the bag, the guide started):
+  the ore arrow; the ores in -> pumping with the bellows lit, the first book's D9; on Balanced the gate highlighted;
+  the gate, the trait window closed -> the arrow from the metal to the anvil; on the anvil the shape window, no
+  pointer; the minigame; shaped -> the arrow from the blade to the bucket, gone while held, back when put down.

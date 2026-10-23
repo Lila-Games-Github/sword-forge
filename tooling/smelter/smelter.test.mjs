@@ -105,7 +105,7 @@ eq('the bellows handle stores the travel (s3), it does not move the sword itself
   && !/function wireBellowGate\(\)\{[\s\S]{0,2400}advanceSword\(/.test(src), true);
 eq('every frame the sword glides out part of the store', /function tick\(now\)\{[\s\S]{0,4000}smGlide\(dt\); smGateSync\(\);/.test(src)
   && /function smGlide\(dt\)\{[\s\S]{0,300}const d=smEase\(SM_OWED, dt\); SM_OWED=Math\.max\(0, SM_OWED-d\); advanceSword\(d\);/.test(src), true);
-eq('the gate and a reset drop the rest of the store', /function openGate\(\)\{[\s\S]{0,300}SM_OWED=0;/.test(src) && /function resetRun\(\)\{[^\n]{0,120}SM_OWED=0;/.test(src), true);
+eq('the gate and a reset drop the rest of the store', /function openGate\(\)\{[\s\S]{0,500}SM_OWED=0;/.test(src) && /function resetRun\(\)\{[^\n]{0,120}SM_OWED=0;/.test(src), true);
 eq('released, the handle springs back to closed, and the spring moves nothing (s2)', /const end=e=>\{ if\(live!==e\.pointerId\) return; live=null; quiet\(\); SM_POS=0; paint\(SMELT\.springMs\); \};/.test(src)
   && /const paint=ms=>\{[^}]*top\.style\.transition=ms \? 'transform '\+ms\+'ms ease-out' : 'none';/.test(src), true);
 eq('heat no longer sets the speed', /function advanceSword\(dt\)\{[\s\S]{0,400}let step=SWORD_SPEED\*mul\*dt,/.test(src), true);

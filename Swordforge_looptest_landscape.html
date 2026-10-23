@@ -3027,7 +3027,7 @@ function ftueGcCraftGo(){ TUT_STAGE='p1-craft-go'; if(SF_SCREEN==='forge') ftueG
 function ftueGcAtForge(){ TUT_STAGE='p1-craft-ore'; tutExit(null); tutNudge(true); }
 /* owner, 2026-10-14: the Durable (GC4, TC4) and Weak (GC8) crafts kept pointing at the mug after the pour - the metal is next */
 function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }
-function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }
+function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); tutNudge(true); }   /* R2: the pointer takes the metal to the anvil */
 /* ---- owner, 2026-10-09: GC5 (guide:'map') and GC6 (guide:'book') make their fire sword from the craft book.
    One step function, worked out from the state each frame (stage p3-book). ---- */
 let FTUE_BOOK=null;
@@ -5992,6 +5992,7 @@ function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reach
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!melt.reachedTrait){ toast('Move the sword onto a <b>trait</b> first: drag the <b>bellows</b> up and down'); return; }
+    FTUE_POUR_SAID=false; if(!ftuePourOk()) return; if(!ftueGateOk()) return;   /* R2: the craft lock (D28k) and the GC1-GC3 retry (D28a), as the mug had */
     bellowing=false; SM_OWED=0; tryAcquire(); }   /* s3: the rest of the glide stops here */
 function smGateFx(){ const g=document.getElementById('furnaceGate'); if(!g) return; const r=benchRect(g);
     fxBurst(r.L+(r.R-r.L)*0.6, r.T+(r.B-r.T)*0.6, { n:16, kind:'ember', ang:-Math.PI/2, spread:1.6, dist:46, size:5, dur:700 }); }
@@ -7927,7 +7928,7 @@ const DIALOGUE = {
     D4: "Drag the bellows handle up and down.",   /* R1 (smelter loop) */
     D6: "Nice! Let's take this hot metal to the anvil.",
     D8: "Look, the sword icon moves on the trait map with each pump. Keep pumping till we reach the '?'.",   /* R1: D5 and D7 are gone (the gate opens on a trait; the bellows move the sword) */
-    D9: "Hammering also allows you to collect experience points scattered all over the map. Collect them to level up.",
+    D9: "Pumping the bellows also lets you collect experience points scattered all over the map. Collect them to level up.",   /* R2 (smelter loop) */
     D10: "We reached a '?' trait! Tap the smelter gate to take the trait.",   /* R1: the gate (was the mug) */   /* r282 (owner): D11 joined it */
     D12: "Pick the shape of the sword blade.",   /* R1: the window opens on the anvil */
     D13: "I'll help you heat up the metal again so you can start shaping it!",
@@ -9813,7 +9814,7 @@ let TUT_NUDGE_SIG='';
 function tutNudgeSig(){
     const panel=document.getElementById('bladePanel');
     return [TUT_STAGE, segs.length, /* r223 */ prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
-            melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, (melt && segs.length && swordAtRouteEnd())?1:0, gateReady?1:0, INV_TAB,   /* v3: the route's end (the mug, the pull lesson) */
+            melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, (melt && segs.length && swordAtRouteEnd())?1:0, gateReady?1:0, INV_TAB, SM_BL?1:0,   /* R2: the blade held */   /* v3: the route's end (the mug, the pull lesson) */
             panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,
             /* r157: what is actually ON SCREEN, so a pointer someone else wiped is put back */
             TUT_ARROW?1:0, TUT_TAB==null?0:1, document.querySelector('.tut-blink')?1:0,
@@ -9824,7 +9825,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p3-book'];   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer','p3-book'];   /* R2: through the shaping and the dip */   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -9833,6 +9834,15 @@ function tutNudge(force){
     TUT_NUDGE_SIG = tutNudgeSig();   /* r157: record what is on screen AFTER applying it, so a
                                         pointer anything else wipes no longer matches and the
                                         next frame restores it */
+}
+/* R2 (smelter loop): a craft's next move, worked out from the state: the bellows until the sword is on a trait, then the
+   gate; the hot metal to the anvil (it opens the shaping); nothing while it is on the anvil; the shaped blade to the bucket */
+function tutLoopPointer(){ if(!melt) return false;
+    if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+        else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return true; }
+    if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return true; }
+    if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack', { tfx:0.5, tfy:0.30, bow:0.18, back:24 }); return true; }
+    tutArrow(null,null); return true;
 }
 function tutNudgeApply(){
     tutSpinOn(null);
@@ -9872,14 +9882,7 @@ function tutNudgeApply(){
         const n=id=>segs.filter(g=>g.ore===id).length;
         if(n('iron')>=FTUE.gpcCraft.iron && n('manganese')>=FTUE.gpcCraft.manganese){ TUT_STAGE='p1-craft-heat'; tutPlaceBooks(); }   /* r258: GC1's route is final - its books (once: TUT_BOOKS) */
         else { tutArrow(tutFirstOreSlot, '#stSmelt .furnace', { tab:0, tfx:0.5, tfy:0.25, bow:0.22, back:20 }); return; } }
-    if(TUT_STAGE==='p1-craft-heat'){
-        if(!melt) return;
-        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
-            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){ if(swordAtRouteEnd()) tutMugPointer();
-            else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
-        return; }
+    if(TUT_STAGE==='p1-craft-heat' || TUT_STAGE==='p1-craft-shape' || TUT_STAGE==='p1-craft-hammer'){ tutLoopPointer(); return; }   /* R2: the smelter loop */
     /* v3 part 4: GC8's craft - iron, then manganese, ground; then the heat run (the Weak stop takes over) */
     if(TUT_STAGE==='p4-weak-grind'){
         const want=fireOreWanted(); if(!want){ tutArrow(null,null); return; }
