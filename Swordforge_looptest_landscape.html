@@ -3014,9 +3014,9 @@ function tutWeakStop(){
     const at=TUT_WEAK_STOP; if(!at) return false;
     if(sword.seg<at.seg || (sword.seg===at.seg && sword.frac<at.frac-0.0001)) return false;
     sword={ seg:at.seg, frac:at.frac };
-    TUT_SWIFT_LOCK=true; homeHammer();
+    TUT_SWIFT_LOCK=true;
     TUT_STAGE='p4-weak-quench'; tutArrow(null,null);
-    sayQueue('D107b'); setTimeout(tutMugPointer, 0);
+    sayQueue('D107b'); setTimeout(tutGatePointer, 0);   /* R6: the gate (was the mug) */
     return true;
 }
 /* ---- v3 (owner, 2026-10-08): GC1-GC3's whole craft, by pointers. Stages: p1-craft-go (to the forge),
@@ -7534,7 +7534,6 @@ function tick(now){
         updateGauges(); }
     smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();   /* r111. R4: after D71 is read */
-    if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
     const fireOnAnvil = dragonBreathing && fireHitsAnvil();
@@ -8061,7 +8060,7 @@ const DIALOGUE = {
     D94: "We should go and gather ores. Go back to the cave.",
     D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
     D95: "Grind two copper and add it to the smelter.",
-    D96: "Take it to the anvil and start hammering.",
+    D96: "Pump the bellows.",   /* R6 (smelter loop) */
     D97: "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!",   /* R5: the ladle (was the dragon) */
     D97a: "Remember? Tilt the ladle to pull the sword onto the trait.",   /* v3 part 4: TC5's swift step. R5: the ladle */
     D98: "Stop! This looks perfect.",
@@ -8069,11 +8068,11 @@ const DIALOGUE = {
     D99a: "Use it later. We don't need that now.",
     D100: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further.",
     D101: "Grind 3 copper. Let's see how far we can go.",
-    D102: "Use the hammer to travel along the path on the map.",
-    D103: "Put it back in the smelter and add one more ground copper.",
+    D102: "Use the bellows to travel along the path on the map.",   /* R6 */
+    D103: "Add one more ground copper.",   /* R6: the metal never left the smelter */
     D104: "See the '?'! We are almost there. Add one more copper.",
-    D105: "Heat it up and hammer.",
-    D106: "Amazing, you got it! We got it! Tap on the metal to select the shape.",
+    D105: "Pump the bellows.",   /* R6 */
+    D106: "Amazing, you got it! We got it! Take it to the anvil.",   /* R6: the anvil opens the shaping */
     D107: "Go sell it!",
     D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",   /* v3 part 4: GC8 (owner) */
     D107b: "Stop now! This alignment will give us a weak trait tier.",
@@ -8371,11 +8370,6 @@ function tutQuenchStep(){
 }
 /* R1: at the '?' the gate takes the trait - D10 goes up with the pointer to it */
 function tutGatePointer(){ tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 }); tutGlow('#furnaceGate', true); }
-/* r282: D10 explains and instructs (D11 joined it), so the pointer goes up with it */
-function tutMugPointer(){
-    tutArrow('#mug', '#orb', { tfx:0.5, tfy:0.42, bow:0.18, back:24 });
-    tutGlow('#mug', true);
-}
 function tutAcquired(){
     if(TUT_STAGE!=='quench') return;
     TUT_STAGE='acquired'; tutArrow(null,null); tutUnglow();
@@ -8702,7 +8696,7 @@ function tutGaleStart(){
 }
 function tutGaleSmelted(){
     if(TUT_STAGE==='d2-gale1' && fireOreWanted()===false){
-        TUT_STAGE='d2-gale-hammer'; sayQueue('D102'); return; }
+        TUT_STAGE='d2-gale-hammer'; sayQueue('D102'); tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R6 */
     if(TUT_STAGE==='d2-gale2' && fireOreWanted()===false){
         TUT_STAGE='d2-gale3'; tutArrow(null,null);
         const g=traits.find(t=>t.trait && t.trait.id==='gale'); if(g) tutSpotOn(g);   /* highlight it */
@@ -8712,7 +8706,7 @@ function tutGaleSmelted(){
         return; }
     if(TUT_STAGE==='d2-gale3' && fireOreWanted()===false){
         TUT_STAGE='d2-gale-work'; TUT_SWIFT_LOCK=false; TUT_GALE_KEY=''; tutArrow(null,null);   /* r198: fresh route, fresh stop point */
-        sayQueue('D105'); return; }   /* r126: the ring stays up until the trait is taken */
+        sayQueue('D105'); tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* r126: the ring stays up until the trait is taken. R6: the bellows */
 }
 /* the end of the three-ore route: back to the smelter for a fourth */
 /* r126: the pull has parked the sword on Gale - splash it before it drifts */
@@ -8743,14 +8737,14 @@ function tutGaleEpicStop(){
     const at=tutGaleStopAt(); if(!at) return false;
     if(sword.seg<at.seg || (sword.seg===at.seg && sword.frac<at.frac-0.0001)) return false;
     sword={seg:at.seg, frac:at.frac};
-    TUT_SWIFT_LOCK=true; homeHammer(); tutGaleAligned();
+    TUT_SWIFT_LOCK=true; tutGaleAligned();
     return true;
 }
 function tutGaleGot(){
     if(TUT_STAGE!=='d2-gale-quench') return;
     TUT_STAGE='d2-gale-shape'; tutArrow(null,null); tutUnglow();
     sayQueue('D106');
-    setTimeout(()=>tutGlow('#orb', true), 0);
+    setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);   /* R6 */
 }
 /* the minigame is left to the player; the finished sword sends them to the counter */
 function tutGaleHammering(){ if(TUT_STAGE==='d2-gale-shape'){ TUT_STAGE='d2-gale-forge'; tutUnglow(); } }
@@ -9117,10 +9111,10 @@ function tutQuestStep(){
 }
 function tutGaleEnd(){
     if(TUT_STAGE!=='d2-gale-hammer') return;
-    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    if(!melt || melt.stage!=='smelting' || !swordAtRouteEnd()) return;   /* R6: the metal is in the smelter */
     TUT_STAGE='d2-gale2';
     sayQueue('D103');
-    setTimeout(()=>tutArrow('#orb', '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.16, back:26 }), 0);
+    setTimeout(()=>tutWheelArrow('Copper'), 0);   /* R6: one more copper to the grindstone (no carry back) */
 }
 function tutDay2Copper(){
     if(TUT_STAGE!=='d2-back') return;
@@ -9131,7 +9125,7 @@ function tutDay2Copper(){
 function tutDay2Smelted(){
     if(TUT_STAGE!=='d2-copper' || fireOreWanted()!==false) return;
     TUT_STAGE='d2-hammer';
-    sayQueue('D96');
+    sayQueue('D96'); tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 });   /* R6 */
 }
 function tutDay2Mined(){
     if(TUT_STAGE==='p3-dur-mine'){   /* v3 part 3: the one trip is done */
@@ -9885,13 +9879,7 @@ function tutNudgeApply(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'); return; }
-    if(TUT_STAGE==='p4-weak-heat'){
-        if(!melt) return;
-        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
-            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil') tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 });
-        return; }
+    if(TUT_STAGE==='p4-weak-heat'){ if(melt && melt.stage==='smelting') tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R6: the bellows; the Weak stop takes over */
     if(TUT_STAGE==='regrind-mang'){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }

@@ -294,6 +294,21 @@ eq('D97a too (TC5\'s swift reminder), read while the metal is in the smelter', /
 eq('the ladle parks the sword on the lesson\'s trait (the clamp the dragon\'s fire had), then stops', /function smLadleTick\(dt\)\{[\s\S]{0,300}if\(TUT_SWIFT_LOCK\) return;[\s\S]{0,700}const want=tutPullTarget\(\), tg=want && traits\.find\(t=>t\.trait && t\.trait\.id===want\);[\s\S]{0,300}TUT_SWIFT_LOCK=true; setTimeout\(want==='swift' \? tutSwiftAligned : want==='durable' \? tutDurableAligned : tutGaleAligned, 0\);/.test(src), true);
 eq('parked on the trait: D98 and the gate (was the mug)', ['tutDurableAligned', 'tutSwiftAligned', 'tutGaleAligned'].every(f => new RegExp('function ' + f + '\\(\\)\\{[\\s\\S]{0,300}sayQueue\\(\'D98\'\\);[^\\n]*\\n\\s*setTimeout\\(tutGatePointer, 0\\);').test(src)), true);
 
+/* R6 (2026-10-23): TC5's swift and gale runs and GC8's Weak sword in the smelter loop */
+eq('D96 text (R6)', line('D96'), 'Pump the bellows.');
+eq('D102 text (R6)', line('D102'), 'Use the bellows to travel along the path on the map.');
+eq('D103 text (R6)', line('D103'), 'Add one more ground copper.');
+eq('D105 text (R6)', line('D105'), 'Pump the bellows.');
+eq('D106 text (R6)', line('D106'), 'Amazing, you got it! We got it! Take it to the anvil.');
+eq('each "pump" line lights the bellows', /function tutDay2Smelted\(\)\{[\s\S]{0,200}sayQueue\('D96'\); tutArrow\(null, '#bellowtop'/.test(src)
+  && src.includes("TUT_STAGE='d2-gale-hammer'; sayQueue('D102'); tutArrow(null, '#bellowtop'") && /TUT_STAGE='d2-gale-work';[\s\S]{0,200}sayQueue\('D105'\); tutArrow\(null, '#bellowtop'/.test(src), true);
+eq('the gale route\'s end: read while smelting, one more copper to the grindstone (no carry back)', /function tutGaleEnd\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;[\s\S]{0,200}sayQueue\('D103'\);\s*setTimeout\(\(\)=>tutWheelArrow\('Copper'\), 0\);/.test(src)
+  && !src.includes("if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);"), true);
+eq('Gale taken: D106 and the metal to the anvil', /function tutGaleGot\(\)\{[\s\S]{0,300}sayQueue\('D106'\);\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
+eq('GC8: the bellows while it travels; parked in the Weak band, D107b and the gate', src.includes("if(TUT_STAGE==='p4-weak-heat'){ if(melt && melt.stage==='smelting') tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }")
+  && /function tutWeakStop\(\)\{[\s\S]{0,1200}sayQueue\('D107b'\); setTimeout\(tutGatePointer, 0\);/.test(src), true);
+eq('no hammer to send home, no mug pointer left', !/homeHammer\(\)/.test(src.replace(/function homeHammer\(\)\{/, '')) && !/tutMugPointer/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */

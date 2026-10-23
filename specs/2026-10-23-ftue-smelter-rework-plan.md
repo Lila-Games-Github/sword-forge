@@ -264,3 +264,17 @@ yours and come on top.
   parked on Durable at 5 (Epic), locked, D98, the gate lit; held 1 s more -> no movement; the gate -> Durable Epic, the
   `epicHelp` quest counted; the window closed -> the arrow to the anvil; no console errors. GC4's craft uses the same
   pointer and steps (not played separately).
+- **R6 (2026-10-23): TC5's swift and gale runs and GC8's Weak sword.** D96 "Pump the bellows.", D102 "Use the bellows to
+  travel along the path on the map.", D103 "Add one more ground copper.", D105 "Pump the bellows.", D106 "Amazing, you
+  got it! We got it! Take it to the anvil." as approved. Each pump line lights the bellows. The gale route's end is read
+  while the metal is in the smelter (`tutGaleEnd`) and points one more copper to the grindstone (no carry back); the tick
+  line that cleared any arrow while smelting in that stage is gone (the metal now always is). Gale taken: D106 and the
+  metal to the anvil. GC8: the bellows while it travels; the Weak stop (in `advanceSword`, unchanged) parks the sword, says
+  D107b and points at the gate. The mug pointer (`tutMugPointer`) and the hammer homing calls are gone. FTUE test 693 ->
+  703 (written first). Checked in the browser (TC5 staged on the forge): 2 ground copper -> D96, the bellows lit; 21
+  pulls -> the route end 30 from Swift -> D97a, the ladle lit; the ladle -> parked on Swift (0, Epic) in 1.3 s -> D98,
+  the gate; the gate -> Swift Epic; the window closed -> D99, the arrow to store the metal. The gale run: 3 ground copper
+  -> D102, the bellows lit; the route end -> D103, the arrow from the copper to the grindstone; the 4th in -> D104, the
+  arrow for the raw 5th; in -> D105, the bellows; the Epic stop on Gale (0) -> D98, the gate; three more pulls while parked
+  -> no movement; the gate -> Gale Epic; the window closed -> D106, the arrow to the anvil; no console errors. GC8's Weak
+  stop was not played (its stop and gate pointer are the same code paths).
