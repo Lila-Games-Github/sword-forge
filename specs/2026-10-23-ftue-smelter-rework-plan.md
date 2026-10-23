@@ -248,3 +248,19 @@ yours and come on top.
   -> D73, in -> D74; Fire first touched at 34 with the bellows still lit; the route end at 17 -> D75 and the gate; Fire
   Fine, the trait window; closed -> D76, then D77 with the arrow to the anvil; on the anvil the shape window, the arrow
   and D77 gone; the minigame (D78); shaped -> D78 gone, the dip arrow.
+- **R5 (2026-10-23): the Durable crafts (GC4, TC4) and the ladle lessons.** D97 "Tilt the ladle beside the smelter. It
+  slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier
+  every time!", D97a "Remember? Tilt the ladle to pull the sword onto the trait." and the quest `epicHelp` "Use the
+  ladle for an epic tier sword." as approved. The Durable heat run (p3-dur-heat) uses the shared pointer on Durable; in
+  part 4 (TC4) its route end starts the ladle lesson (`tutTc4Pull`: D97, the tiers window, the ladle lit); TC5's reminder
+  (`tutDay2Pull`, D97a) is read while the metal is in the smelter and lights the ladle too. The tutorial's clamp moved
+  from the dragon's fire into the ladle's pull (`smLadleTick`): while a tier lesson runs (`tutPullTarget`: Durable,
+  Swift, Gale) the pull stops on the trait's closest point and locks (`TUT_SWIFT_LOCK`; the ladle does nothing while
+  locked); the aligned steps say D98 and point at the gate (was the mug). After the gate the Durable crafts point the
+  metal to the anvil (`ftueDurQuenched`). FTUE test 687 -> 693 (written first; the old "no mug re-point" check now asserts
+  its branch is gone; the smelter test's ladle window widened). Checked in the browser (PART 4 jump, TC4): the bell,
+  D92k, D92l, the way to the forge; 2 ground nickel in -> the bellows lit; 21 pulls -> the route end on Durable at 17 ->
+  D97, the ladle lit; D97 read -> the tiers window; closed; the ladle tilted 45 deg (the bowl hit-tested) -> 3.8 s ->
+  parked on Durable at 5 (Epic), locked, D98, the gate lit; held 1 s more -> no movement; the gate -> Durable Epic, the
+  `epicHelp` quest counted; the window closed -> the arrow to the anvil; no console errors. GC4's craft uses the same
+  pointer and steps (not played separately).

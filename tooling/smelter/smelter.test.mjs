@@ -49,7 +49,7 @@ eq('the ladle sits in the smelter station, behind the furnace', /<div class="sta
 eq('placed from SMELT, turned about its foot', /function wireLadle\(\)\{[\s\S]{0,900}SMELT\.ladleHead[\s\S]{0,300}SMELT\.ladleBase[\s\S]{0,400}SMELT\.ladlePivot/.test(src), true);
 eq('a drag tilts it by the turn of the pointer; a release tips it back', /function wireLadle\(\)\{[\s\S]{0,2400}SM_TILT=smLadleTilt\(SM_TILT, /.test(src) && /function wireLadle\(\)\{[\s\S]{0,3000}SM_TILT=0; paint\(SMELT\.springMs\);/.test(src), true);
 eq('every frame a tilted ladle pulls the route toward the centre, only while the metal is in the smelter', /function tick\(now\)\{[\s\S]{0,4000}smLadleTick\(dt\);/.test(src)
-  && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,400}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
+  && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,1200}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
 eq('wired at start', /wireBellowGate\(\); wireSmBlade\(\); wireLadle\(\);/.test(src), true);
 
 /* s5: the pendulum */

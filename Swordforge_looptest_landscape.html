@@ -2570,7 +2570,7 @@ const FTUE = {
               { id:'sleep',        label:'Go to bed. Remember to pet the dragon!', gold:20, xp:20 },
               { id:'craftDurable', label:'Craft a durable sword',                gold:20, xp:20 },
               { id:'buyFire',      label:'Buy a blueprint for the fire sword.',  gold:20, xp:20 },
-              { id:'epicHelp',     label:"Get dragon's help for an epic tier sword.", gold:20, xp:20 },
+              { id:'epicHelp',     label:'Use the ladle for an epic tier sword.', gold:20, xp:20 },   /* R5: the ladle aligns the tier */
               { id:'sellWeak',     label:'Sell a weak sword.',                   gold:20, xp:20 },
               { id:'craftSwift',   label:'Craft a swift sword',                  gold:20, xp:20 },
               { id:'craftGale',    label:'Craft a gale sword',                   gold:20, xp:20 },
@@ -2987,13 +2987,13 @@ function tutTc4Pull(){
     if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;
     TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
     sayQueue('D97');   /* its SAY_AFTER opens the tiers window */
-    setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 }); tutGlow('#dragon', true); }, 0);
+    setTimeout(()=>tutArrow(null, '#ladleHead'), 0);   /* R5: tilt the ladle (was: drag the dragon to the anvil) */
 }
 function tutDurableAligned(){
     if(TUT_STAGE!=='p4-pull') return;
     TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon();
     sayQueue('D98');
-    setTimeout(tutMugPointer, 0);
+    setTimeout(tutGatePointer, 0);   /* R5: the gate takes the trait */
 }
 function ftueTc4Sold(){
     CUSTOMER=null; refreshCounter(); counterUi(); tutArrow(null,null); tutExit(null);
@@ -3026,7 +3026,7 @@ function tutWeakStop(){
 function ftueGcCraftGo(){ TUT_STAGE='p1-craft-go'; if(SF_SCREEN==='forge') ftueGcAtForge(); else tutExitTo('forge'); }
 function ftueGcAtForge(){ TUT_STAGE='p1-craft-ore'; tutExit(null); tutNudge(true); }
 /* owner, 2026-10-14: the Durable (GC4, TC4) and Weak (GC8) crafts kept pointing at the mug after the pour - the metal is next */
-function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }
+function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0); }   /* R5: the metal waits at the gate */
 function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); tutNudge(true); }   /* R2: the pointer takes the metal to the anvil */
 /* ---- owner, 2026-10-09: GC5 (guide:'map') and GC6 (guide:'book') make their fire sword from the craft book.
    One step function, worked out from the state each frame (stage p3-book). ---- */
@@ -8062,8 +8062,8 @@ const DIALOGUE = {
     D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
     D95: "Grind two copper and add it to the smelter.",
     D96: "Take it to the anvil and start hammering.",
-    D97: "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map, and you can align the sword with the traits to get an epic tier every time!",
-    D97a: "Remember? Drag me to the anvil and hold to pull the sword onto the trait.",   /* v3 part 4: TC5's swift step */
+    D97: "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!",   /* R5: the ladle (was the dragon) */
+    D97a: "Remember? Tilt the ladle to pull the sword onto the trait.",   /* v3 part 4: TC5's swift step. R5: the ladle */
     D98: "Stop! This looks perfect.",
     D99: "We got metal with the swift trait. Very cool, but it is not what the customer asked for. Don't worry, you can store it for later.",
     D99a: "Use it later. We don't need that now.",
@@ -8668,11 +8668,10 @@ function tutPullTarget(){
 }
 function tutDay2Pull(){
     if(TUT_STAGE!=='d2-hammer') return;
-    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    if(!melt || melt.stage!=='smelting' || !swordAtRouteEnd()) return;   /* R5: the metal is in the smelter */
     TUT_STAGE='d2-pull'; TUT_SWIFT_LOCK=false;
     sayQueue('D97a');   /* v3 part 4: TC4 taught the pull (D97 and the tiers window) - this is the reminder */
-    setTimeout(()=>{ tutArrow('#dragon', '#stAnvil .anvil', { tfx:0.5, tfy:0.18, bow:0.16, back:26 });
-        tutGlow('#dragon', true); }, 0);
+    setTimeout(()=>tutArrow(null, '#ladleHead'), 0);   /* R5: the ladle */
 }
 /* r188: back to his opening spot. r236: that spot is LAYOUT's (applyLayout writes it inline), so clearing the
    inline left/top dropped him to the bench's bottom left; put the LAYOUT values back instead. */
@@ -8686,7 +8685,7 @@ function tutSwiftAligned(){
     if(TUT_STAGE!=='d2-pull') return;
     TUT_STAGE='d2-quench'; tutArrow(null,null); tutUnglow(); homeDragon();   /* r188 */
     sayQueue('D98');
-    setTimeout(tutMugPointer, 0);
+    setTimeout(tutGatePointer, 0);   /* R5: the gate takes the trait */
 }
 function tutSwiftGot(){
     if(TUT_STAGE!=='d2-quench') return;
@@ -8721,7 +8720,7 @@ function tutGaleAligned(){
     if(TUT_STAGE!=='d2-gale-work') return;
     TUT_STAGE='d2-gale-quench'; tutArrow(null,null); tutUnglow(); tutSpotOn(null);
     sayQueue('D98');   /* r198: "Stop! This looks perfect." - the same line as the Swift park */
-    setTimeout(tutMugPointer, 0);
+    setTimeout(tutGatePointer, 0);   /* R5: the gate takes the trait */
 }
 /* r198: the five-copper route runs straight through Gale (closest 0.4) and ends 37.4 past it, out of
    reach of any trait, so hammering on used to carry the sword off it. The hammer now stops the sword
@@ -9872,15 +9871,7 @@ function tutNudgeApply(){
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
         tutWheelArrow('Nickel'); return; }
-    if(TUT_STAGE==='p3-dur-heat'){
-        if(!melt) return;
-        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
-            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){ if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;   /* 2026-10-14: quenched - the metal is next */
-            if(swordAtRouteEnd()){ if(FTUE_ST.part===4) tutTc4Pull(); else tutMugPointer(); }   /* v3 part 4: the pull lesson */
-            else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
-        return; }
+    if(TUT_STAGE==='p3-dur-heat'){ if(FTUE_ST.part===4 && melt && melt.stage==='smelting' && swordAtRouteEnd()){ tutTc4Pull(); return; } tutLoopPointer('durable'); return; }   /* R5: the smelter loop; TC4: the ladle lesson */
     if(TUT_STAGE==='p3-book'){ ftueBookStep(); return; }   /* owner, 2026-10-09 */
     /* v3: GC1-GC3's craft - raw ores to the smelter, then the heat run to the trait and the mug */
     if(TUT_STAGE==='p1-craft-ore'){
@@ -10353,8 +10344,15 @@ let SM_POS=0, SM_BLADE_FILE=null, SM_OWED=0, SM_TILT=0;   /* s4: SM_TILT = the l
 function smLadleTick(dt){ const v=smLadleSpeed(SM_TILT), head=document.getElementById('ladleHead');
     const on=v>0 && !!melt && melt.stage==='smelting' && segs.length>0; if(head) head.classList.toggle('on', on);
     if(!on || melt.stage!=='smelting') return;
+    if(TUT_SWIFT_LOCK) return;   /* R5: parked on the lesson's trait */
     const p=swordPoint(), dx=START.x-p.x, dy=START.y-p.y, dist=Math.hypot(dx,dy); if(dist<=0.5) return;   /* at the centre */
-    const step=Math.min(dist, v*dt); pull.x+=dx/dist*step; pull.y+=dy/dist*step;
+    let step=Math.min(dist, v*dt);
+    /* R5: while a tier lesson runs, the pull stops on its trait (the clamp the dragon's fire had, r124): the closest point of
+       the straight line to the centre */
+    { const want=tutPullTarget(), tg=want && traits.find(t=>t.trait && t.trait.id===want);
+      if(tg){ const tt=(tg.x-p.x)*(dx/dist)+(tg.y-p.y)*(dy/dist);
+          if(tt <= step+0.001){ step=Math.max(0, tt); TUT_SWIFT_LOCK=true; setTimeout(want==='swift' ? tutSwiftAligned : want==='durable' ? tutDurableAligned : tutGaleAligned, 0); } } }
+    pull.x+=dx/dist*step; pull.y+=dy/dist*step;
     const np=swordPoint(); setSword(np.x,np.y); drawRoute(); moveX(); reveal(np.x,np.y,'sword'); checkTraitReach(np); checkHazard(np,dt); checkBooks(np); ensureSwordVisible(); }
 function wireLadle(){ const head=document.getElementById('ladleHead'), base=document.getElementById('ladleBase'), hot=document.getElementById('ladleHot'); if(!head || !base || !hot) return;
     const put=(el, p)=>{ el.style.left=p.x+'%'; el.style.top=p.y+'%'; el.style.width=p.w+'%'; };

@@ -35,7 +35,7 @@ eq('the other quests', FTUE.quests, [
   { id: 'sleep',        label: 'Go to bed. Remember to pet the dragon!', gold: 20, xp: 20 },
   { id: 'craftDurable', label: 'Craft a durable sword',                gold: 20, xp: 20 },
   { id: 'buyFire',      label: 'Buy a blueprint for the fire sword.',  gold: 20, xp: 20 },
-  { id: 'epicHelp',     label: "Get dragon's help for an epic tier sword.", gold: 20, xp: 20 },
+  { id: 'epicHelp',     label: 'Use the ladle for an epic tier sword.', gold: 20, xp: 20 },   /* R5: the ladle aligns the tier */
   { id: 'sellWeak',     label: 'Sell a weak sword.',                   gold: 20, xp: 20 },
   { id: 'craftSwift',   label: 'Craft a swift sword',                  gold: 20, xp: 20 },
   { id: 'craftGale',    label: 'Craft a gale sword',                   gold: 20, xp: 20 },
@@ -286,6 +286,14 @@ eq('both heat runs point with the shared pointer, the gate only on Fire at the r
   && src.includes("if(gateReady && (!want || (melt.reachedTrait && melt.reachedTrait.trait.id===want)) && (!atEnd || swordAtRouteEnd())) tutArrow(null, '#furnaceGate'")
   && /const TUT_TICK_STAGES=\[[^\]]*'fire-heat2'/.test(src), true);
 
+/* R5 (2026-10-23): GC4 and TC4's Durable crafts, and the ladle lessons (TC4's D97, TC5's D97a) */
+eq('D97 text (R5)', line('D97'), "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!");
+eq('the Durable heat run: the shared pointer on Durable; TC4 at the route end: the ladle lesson', src.includes("if(TUT_STAGE==='p3-dur-heat'){ if(FTUE_ST.part===4 && melt && melt.stage==='smelting' && swordAtRouteEnd()){ tutTc4Pull(); return; } tutLoopPointer('durable'); return; }"), true);
+eq('D97 points at the ladle, not the dragon', /function tutTc4Pull\(\)\{[\s\S]{0,300}sayQueue\('D97'\);[\s\S]{0,120}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutTc4Pull\(\)\{[\s\S]{0,400}'#dragon'/.test(src), true);
+eq('D97a too (TC5\'s swift reminder), read while the metal is in the smelter', /function tutDay2Pull\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;[\s\S]{0,300}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutDay2Pull\(\)\{[\s\S]{0,500}'#dragon'/.test(src), true);
+eq('the ladle parks the sword on the lesson\'s trait (the clamp the dragon\'s fire had), then stops', /function smLadleTick\(dt\)\{[\s\S]{0,300}if\(TUT_SWIFT_LOCK\) return;[\s\S]{0,700}const want=tutPullTarget\(\), tg=want && traits\.find\(t=>t\.trait && t\.trait\.id===want\);[\s\S]{0,300}TUT_SWIFT_LOCK=true; setTimeout\(want==='swift' \? tutSwiftAligned : want==='durable' \? tutDurableAligned : tutGaleAligned, 0\);/.test(src), true);
+eq('parked on the trait: D98 and the gate (was the mug)', ['tutDurableAligned', 'tutSwiftAligned', 'tutGaleAligned'].every(f => new RegExp('function ' + f + '\\(\\)\\{[\\s\\S]{0,300}sayQueue\\(\'D98\'\\);[^\\n]*\\n\\s*setTimeout\\(tutGatePointer, 0\\);').test(src)), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
@@ -357,7 +365,7 @@ eq('GC8 stops in the middle of the Weak band (20-34)', FTUE.weakStop, 27);
 const V3P4 = {
   D92k: 'I want a durable sword. Make sure it is EPIC! I only want the best.',
   D92l: 'Okay, time to learn how to craft the best tier sword!',
-  D97a: 'Remember? Drag me to the anvil and hold to pull the sword onto the trait.',
+  D97a: 'Remember? Tilt the ladle to pull the sword onto the trait.',   /* R5 */
   D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",
   D107b: 'Stop now! This alignment will give us a weak trait tier.' };
 for (const [k, v] of Object.entries(V3P4)) eq(k + ' text', line(k), v);
@@ -933,9 +941,9 @@ eq('the lights: ledger, then the request, then YES (call only)', src.includes("f
 eq('served: the guide ends (only once it has started - before part 4 nobody waits)', src.includes("if(!e){ if(FTUE_ST.wq && FTUE_ST.wq!=='done' && !wqAtCounter()) FTUE_ST.wq='done'; wqLit(); return; }"), true);
 eq('it runs every frame', /function updateHintArrow\(\)\{[\s\S]{0,1200}wqTick\(\);/.test(src), true);
 /* owner, 2026-10-14: the Durable craft's mug pointer stayed after the trait was in (also TC4's, GC8's) */
-eq('after the pour, the guide moves to the metal', src.includes("function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutGlow('#orb', true), 0); }")
+eq('after the gate, the guide takes the metal to the anvil (R5)', src.includes("function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0); }")
   && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();"), true);
-eq('the Durable guide no longer re-points at the mug once Durable is on', src.includes("if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;   /* 2026-10-14: quenched - the metal is next */"), true);
+eq('the Durable guide no longer re-points at the mug once Durable is on (R5: after the gate the metal is hot - the shared pointer takes it to the anvil; the old on-the-anvil branch is gone)', !src.includes("if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;"), true);
 /* owner, 2026-10-14: an arrow from the rail while the ore's tab is closed - not needed, the tab's glow is enough */
 eq('no arrow while its inventory tab is closed', src.includes("if(o.tab!=null){ const need=(typeof o.tab==='function') ? o.tab() : o.tab; if(need!=null && INV_TAB!==need){ svg.classList.remove('on'); return; } }")
   && /function tutDrawArrow\(\)\{[\s\S]{0,900}if\(o\.tab!=null\)/.test(src), true);
