@@ -1,0 +1,181 @@
+# FTUE rework for the smelter loop: change list and estimate (2026-10-23)
+
+**Status:** canon (decisions taken, 2026-10-23); the build is in progress, step by step (see "Build log"). Owner: "the smelter version of the game has been finalized, that means we will move forward with
+this as the main game. check what needs to be reworked in the ftue to fit the new game, list all the changes, and give
+me an estimate of how long it will take."
+
+**Sources:** the tutorial in play order (`specs/2026-09-15-looptest-landscape-tutorial-script.md`, r301), the smelter
+loop (`specs/2026-10-21-smelter-version-loop.md`, s1-s6), and the code of
+`Swordforge_looptest_landscape_smelterversion.html` (it still carries the whole FTUE; `smFreePlay` bypasses it).
+
+## What stays
+
+- **The six parts, the customers, the story, the market, the craft book, the cave, the basement, Garric:** unchanged.
+- **The ore chain and the refill (`FTUE.oreChain`, r291-r295):** the routes are the same (the bellows travel the same
+  path), so every sword still needs the same ores.
+- **The hammering minigame:** the dragon still heats the metal (D13-D16, D45, D46 stay). Only its mug ending goes.
+- **CRAFT 1 (craft book):** it skips the smelter and the minigame, so GC5-GC7's book and map routes are not affected.
+- **Hazards, books, the GC8 Weak stop (`tutWeakStop`) and the Epic stop on Gale (`tutGaleEpicStop`):** they run in
+  `advanceSword`, which the bellows still drive.
+
+## What changes in the loop (old -> new)
+
+| Step | Old loop (main build) | New loop (smelter version) |
+|---|---|---|
+| Travel | heat with the bellows (hold), open the gate, metal to the anvil, drag the hammer onto it | drag the bellows handle up and down; the metal stays in the smelter |
+| Take the trait | pour the mug over the metal on the anvil | tap the smelter gate while the sword is on a trait |
+| Go further | put the metal back in the smelter, add ore, heat, hammer | add more ore to the smelter (the metal never left) |
+| Tier alignment | drag the dragon to the anvil and hold (fire pulls) | tilt the ladle beside the smelter |
+| Shape | tap the metal on the anvil | dropping the hot metal on the anvil opens the shape window |
+| Finish | splash the mug in the minigame | the blade lies on the anvil, hot; pick it up by the handle and dip it in the bucket |
+| Heat | sets the travel speed; the gate waits for it | gone from the forge (only the minigame has heat) |
+
+## Decisions (owner, 2026-10-23)
+
+Owner: "1- yes 2- yes 3- yes 4- keep it 5- no." So:
+
+1. **The smelter version is the main file:** it becomes `Swordforge_looptest_landscape.html`; the old loop is kept as
+   `Swordforge_looptest_landscape_hammerloop.html` (reference only, no tests).
+2. **The heat lesson goes:** D39, D40 removed; D41 reworded.
+3. **The proposed wording is approved** (the tables below).
+4. **The bellows pacing stays** (`strokeSec` 0.2, about 19 pulls for the first sword).
+5. **The tiers window art does not show the dragon pulling:** it stays.
+
+Noted: the rework goes ahead before a phone play test of the smelter loop (the risk below stays open).
+
+## The questions that were asked
+
+1. **Which file is the main game.** Recommended: the smelter version replaces `Swordforge_looptest_landscape.html`
+   (same URL, `index.html` redirect and test paths), and the old loop is kept as
+   `Swordforge_looptest_landscape_hammerloop.html` for reference. The alternative leaves two names and eight test suites
+   to repoint.
+2. **The heat lesson (Part 2, D39-D41).** It taught "hotter metal travels faster", which is no longer true. Recommended:
+   drop it; TC2's craft goes grind, smelter, bellows, gate.
+3. **Dialogue wording.** About 27 lines change (listed below). Recommended: approve the proposed wording in one pass, as
+   with r300's lines.
+4. **Bellows pacing in the tutorial.** The first sword now takes about 19 pulls (`strokeSec` 0.2). Keep it, or give the
+   tutorial a faster stroke for the first sword.
+5. **The tiers window art** (`assets/ui/weak/fine/epic.webp`, opened by D97): check whether it shows the dragon pulling;
+   if so it needs new art.
+
+## Dialogue changes (proposed wording)
+
+### Part 1: the first sword
+
+| Id | Now | Proposed | Trigger change |
+|---|---|---|---|
+| D4 | "Heat up the smelter with the bellows. Tap and hold." | "Drag the bellows handle up and down." | none (the ores are in) |
+| D5 | "Tap on the smelter gate to open it." | **remove** (the gate now opens on a trait: D10) | - |
+| D7 | "Pick up the hammer and strike the hot metal on the anvil." | **remove** (the bellows move the sword) | - |
+| D8 | "Look, the sword icon moves on the trait map with each strike. Keep hammering till we reach the '?'." | "Look, the sword icon moves on the trait map with each pump. Keep pumping till we reach the '?'." | after a moment of pumping (was hammering) |
+| D10 | "Now that we have reached a '?' trait ... Pick up the mug from the bucket and drag it to the metal." | "We reached a '?' trait! Tap the smelter gate to take the trait." | the gate lights |
+| D6 | "Nice! Let's take this hot metal to the anvil." | unchanged | now after the trait window (was after the gate) |
+| D12 | "Tap on the metal to select the shape of the sword blade." | "Pick the shape of the sword blade." | the shape window opens by itself on the anvil |
+| D17 | "Pick up the mug and splash water on the blade to finish." | "Pick up the blade by its handle and dip it in the bucket to finish." | the blade is on the anvil (was: fully shaped, in the minigame) |
+| D9 (GC1) | "Hammering also allows you to collect experience points..." | "Pumping the bellows also lets you collect experience points scattered all over the map. Collect them to level up." | none |
+
+### Part 2: TC2 and TC3
+
+| Id | Now | Proposed |
+|---|---|---|
+| D39 | "Heat up the smelter. Oh, I almost forgot to tell you!" | **remove** (decision 2), or "Pump the bellows." |
+| D40 | "The hotter the metal is, the faster the sword icon travels..." | **remove** (decision 2) |
+| D41 | "Hot enough! Move it to the anvil and start hammering." | "We are on the balanced trait. Open the gate!" |
+| D42 | text unchanged | trigger: the gate gives Balanced (was the quench) |
+| D44 | "Tap on the metal to select a shape." | "Take the hot metal to the anvil." |
+| D47 | "Splash water to cool the blade and finish crafting." | "Dip the blade in the bucket to finish crafting." |
+| D69 | "Now heat it, take it to the anvil and hammer." | "Now pump the bellows." |
+| D71 | "Put the metal back in the smelter; we need to go further." | "We need to go further. Let's add one more ore." |
+| D72 | text unchanged | trigger: after D71 (was: the metal is back in the smelter) |
+| D74 | "Heat it, take it to the anvil and hammer." | "Pump the bellows." |
+| D75 | "Splash water on it! I hope this is the fire trait!" | "Open the gate! I hope this is the fire trait!" |
+| D76 | text unchanged | trigger: the gate gives Fire |
+| D77 | "Tap the metal and select a shape." | "Take it to the anvil." |
+
+### Part 4: TC4, TC5, GC8 (the ladle)
+
+| Id | Now | Proposed |
+|---|---|---|
+| D97 | "Drag me to the anvil and hold. Doing so will slowly drag the sword icon to the centre of the map..." | "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!" |
+| D97a | "Remember? Drag me to the anvil and hold to pull the sword onto the trait." | "Remember? Tilt the ladle to pull the sword onto the trait." |
+| D98 | text unchanged | trigger: the ladle holds the sword on the trait |
+| D96 | "Take it to the anvil and start hammering." | "Pump the bellows." |
+| D99 | text unchanged | trigger: the gate gives Swift |
+| D102 | "Use the hammer to travel along the path on the map." | "Use the bellows to travel along the path on the map." |
+| D103 | "Put it back in the smelter and add one more ground copper." | "Add one more ground copper." |
+| D105 | "Heat it up and hammer." | "Pump the bellows." |
+| D106 | "Amazing, you got it! We got it! Tap on the metal to select the shape." | "Amazing, you got it! We got it! Take it to the anvil." |
+
+### Part 5 and the quest list
+
+- **D44 after D113** (Bram's swift ingot): **remove** there; the anvil opens the shape window itself.
+- **Quest `epicHelp`:** "Get dragon's help for an epic tier sword." -> "Use the ladle for an epic tier sword."
+
+**Count:** 27 lines reworded or removed, 0-2 new (none if D39 is dropped). No change in Parts 3 and 6.
+
+## Code changes
+
+| # | Area | Change |
+|---|---|---|
+| C1 | Files and tests | The file swap (decision 1); point the 8 suites at the new file; fold `tooling/smelter` into them. |
+| C2 | Start | D1 again instead of free play (free play kept as a test aid, e.g. `?freeplay`); the PART buttons back, with their states rebuilt for the new loop (`ftuePart`). |
+| C3 | First sword | New stage chain: ore -> bellows -> travel -> gate -> anvil -> shape -> minigame -> dip (was ore, bellows, gate, anvil, hammer, strike, travel, quench, ...): `tutSmeltCheck`, `tutGateStep`, `tutAnvilStep`, `tutHammerStep`, `tutStrikeStep`, `tutQuenchStep`, `tutMugStep`; D8's pause on pumping time; `STAGE_DARK` (drop hammer/strike/quench; travel = map + smelter; new dip = anvil, blade, bucket). |
+| C4 | Bellows | Put back `TUT_BELLOWS_LOCK` (the new handler dropped it). |
+| C5 | Gate | Put back the two checks the new `openGate` dropped: `ftueGateOk` (the GC1-GC3 "2 iron + 2 manganese" retry, D28a) and `ftuePourOk` (the craft lock on a trait the order did not ask for, D28k). |
+| C6 | The dip | A pointer to the blade, then the bucket, after every hammered tutorial craft (first sword, GC1-GC3, TC2, TC3, GC4, TC4, TC5 x2, GC8, Bram, the gale Longsword, Garric); D17 and D47 on the blade, not the minigame mug (`tutHm2Idle`, `hmMugReady`). |
+| C7 | Fire and gale runs | Drop the put-it-back steps (`tutFireBack`, the `fire-*` and `d2-gale*` stages that wait for the metal back in the smelter or for heat): the next ore goes straight in. |
+| C8 | Ladle | Move the tutorial's pull clamp (`tutPullTarget` -> `tutSwiftAligned` / `tutDurableAligned` / `tutGaleAligned`, `TUT_SWIFT_LOCK`) from the dragon's fire into `smLadleTick`; the `d2-pull` / `p4-pull` stages wait for a ladle tilt instead of the dragon at the anvil (`dragonAtAnvil`); the pointers go to the ladle. |
+| C9 | Pointers | Retarget or remove the 21 `#hammerTool` and 14 `#mug` references (arrows, glows, dark lifts). |
+| C10 | Nudges and hints | The idle nudges (`hintArrowWanted`: metal on the anvil at the route end -> now route end with no trait -> add ore; `hintDownWanted`: tap the metal -> now the blade to the bucket); the remaining `hint()` lines. |
+| C11 | Ore chain | `CRAFT_REWIND` and `FIRST_SWORD_STAGES` name stages that change. |
+| C12 | Quest and art | The `epicHelp` label; the tiers window art (decision 5). |
+
+## Docs and tests
+
+- **FTUE test (644 checks):** about 60 checks read old-loop code (the hammer tool, mug, pull, gate on heat, quench) and
+  are rewritten; new checks for each new step, written first, as usual.
+- **Records:** a build record per step in `specs/2026-10-07-ftue-v3-rework.md`; the tutorial script regenerated in play
+  order; `specs/2026-10-21-smelter-version-loop.md` marked as the main loop; CLAUDE.md, HANDOFF.md, INDEX.md.
+
+## Estimate
+
+Built as before: one commit per step, test first, browser check, record. Hours are build time; play-test rounds are
+yours and come on top.
+
+| Phase | Steps | Build time |
+|---|---|---|
+| 0. Decisions, file swap, tests repointed, FTUE start back (C1, C2) | 2 | 1.5 h |
+| 1. Part 1: first sword chain, dark screens, dip (C3-C6) | 7 | 5 h |
+| 2. Part 1: GC1-GC3 craft guide (gate checks, dip) | 2 | 1.5 h |
+| 3. Part 2: TC2 (heat lesson out) and TC3's fire run (C7) | 4 | 3 h |
+| 4. Part 3: GC4 Durable | 1 | 0.5 h |
+| 5. Part 4: the ladle for TC4, TC5 (swift, gale), GC8 (C8) | 5 | 4 h |
+| 6. Parts 5-6: Bram's ingot and Dagger, the gale Longsword, Garric's solo craft | 2 | 1.5 h |
+| 7. Cross-cutting: pointers, nudges, hints, ore-chain stages, quest, PART jumps (C9-C12) | 3 | 2 h |
+| 8. A full Parts 1-6 play-through in the browser, and its fixes | - | 4 h |
+| **Total** | **about 26 steps** | **about 23 h (range 20-28 h)** |
+
+**Calendar:** about 3-4 working sessions of build time. With your play test after each part and one wording round, about
+1 to 1.5 weeks.
+
+## Risks
+
+- **The loop is not finger-tested yet.** The bellows, ladle and pendulum dip have only been driven by code in the
+  browser. A loop change after the FTUE rework means redoing tutorial steps, so a phone play session of the smelter
+  version first is the cheapest insurance.
+- **Wording rounds:** 27 lines; each round of changes adds about 1 h.
+- **No full Parts 1-6 run exists yet** for the current main build either (the ore chain, shape-window purchases); phase
+  8 covers both.
+
+## Build log
+
+- **R0 (2026-10-23): the smelter loop is the main game; the tutorial starts again.** Decision 1: `git mv` the old main
+  build to `Swordforge_looptest_landscape_hammerloop.html` and the smelter version to `Swordforge_looptest_landscape.html`
+  (the URL, `index.html`'s redirect and the suites' paths stay). The tutorial plays again: D1 after the intro, on load
+  and on a new game (`sayStart`); `?freeplay` gives free play instead (`SM_FREE`); the PART buttons are back. Tests: the
+  smelter test reads the main file, and its "the main build has none of it" check now reads the old loop's file; its
+  free-play and PART checks are rewritten (written first); two FTUE checks that read replaced code now read the new
+  code (the gate's embers instead of the mug's mist before the trait window; the travel step without the heat factor).
+  All eight suites GREEN (FTUE 644, smelter 66). Checked in the browser: the intro, then D1 at part 1 with 2 iron; with
+  `?freeplay`, free play (part 7, 20 of every ore, 500 gold); the PART buttons show; no console errors. The tutorial
+  itself is not yet reworked (R1 on).

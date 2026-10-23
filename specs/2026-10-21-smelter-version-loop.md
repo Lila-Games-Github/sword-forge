@@ -1,10 +1,12 @@
 # Smelter version: a separate crafting loop (owner, 2026-10-21)
 
-**Status:** canon for `Swordforge_looptest_landscape_smelterversion.html` only. The main build
-(`Swordforge_looptest_landscape.html`) is not changed by anything here.
+**Status:** canon. **Since 2026-10-23 this is the main game's loop:** the smelter version became
+`Swordforge_looptest_landscape.html`, and the old main build is kept as `Swordforge_looptest_landscape_hammerloop.html`
+(owner's decision 1 in `specs/2026-10-23-ftue-smelter-rework-plan.md`). Decision 1 below (free play, tutorial off) is
+superseded there: the tutorial is back, reworked to this loop; free play is the `?freeplay` test aid.
 
 **Test:** `node tooling/smelter/smelter.test.mjs` reads the smelter version and asserts the `SMELT` object, its pure
-rules (between the `SMELT-PURE` markers) and the wiring below. It also asserts the main build carries none of it.
+rules (between the `SMELT-PURE` markers) and the wiring below. It also asserts the old hammer loop carries none of it.
 
 ## The request
 
