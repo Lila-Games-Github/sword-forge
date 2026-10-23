@@ -4,7 +4,25 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-10-14)
+## Current state (2026-10-23): the smelter loop is the main game
+
+- **The main game's crafting loop changed (owner, 2026-10-23).** `Swordforge_looptest_landscape.html` now carries the
+  smelter loop (it was `Swordforge_looptest_landscape_smelterversion.html`, PR #26): the bellows handle moves the sword,
+  the smelter gate takes the trait, the ladle beside the smelter aligns the tier, the anvil opens the shape window and the
+  minigame (no mug), the shaped blade hangs from its handle and is quenched in the bucket. Loop record:
+  `specs/2026-10-21-smelter-version-loop.md`. The old loop is kept as `Swordforge_looptest_landscape_hammerloop.html`
+  (reference only). `?freeplay` starts free play instead of the tutorial (a test aid).
+- **The tutorial is reworked to it (R0-R9, branch `sword-forge/ftue-smelter-rework`).** Plan, the owner's decisions,
+  every line and code change, and the build log: **`specs/2026-10-23-ftue-smelter-rework-plan.md`**. 199 dialogue keys
+  (D5, D7, D39, D40 removed; ~27 lines reworded). The FTUE test is GREEN at 706, the smelter test at 66.
+- **Verified:** each part's crafts in the browser (staged per part), and Part 1 played continuously from a new game
+  through GC1's sale. **Not yet:** a continuous play of Parts 2-6, and any play on a phone (the bellows, the ladle and the
+  blade by finger). Fixed on the way: lines said as the trait window opens (D42, D76, D99, D106) had been closed at once
+  since r286 - they now come back when the window closes.
+- **Left in the file, unused:** the old forge hammer and forge mug (hidden by CSS) and their wiring; removing them is a
+  separate cleanup.
+
+## Earlier state (2026-10-14)
 
 - **Active build:** `Swordforge_looptest_landscape.html`, the **landscape loop-test**, and the only
   file being developed. The portrait loop-test (`Swordforge_new_looptest.html`) is deliberately never

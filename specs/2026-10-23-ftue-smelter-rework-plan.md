@@ -295,3 +295,9 @@ yours and come on top.
   section is regenerated from the build's DIALOGUE (199 keys) with the new triggers (the bellows, the gate, the ladle,
   the dip); D5, D7, D39 and D40 leave it (the only entries removed; the rest is renumbering), and the removed-lines note
   names them.
+- **R10 (2026-10-23): a continuous Part 1 play.** In the browser, from a new game: the first sword (D1-D17c), D18, the
+  counter, Bram (both replies, the sale, "Take care", D26), the ore reward, the quest list (D118, both claims, D119), the
+  dragon-tap lesson (D119a, D119b), the bell (D27), GC1 (D28b, the craft guide, D9 at the first book, the gate on
+  Balanced at the route end, the dragon's coins at the shape window with D28c and D28d, the Longsword lit, the minigame,
+  the dip), the sale and GC2's ore reward (2 iron, 2 manganese); no console errors. Parts 2-6 were checked per part
+  (R3-R7), not played continuously; nothing was played on a phone.
