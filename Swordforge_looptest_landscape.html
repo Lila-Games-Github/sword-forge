@@ -5855,7 +5855,6 @@ let bellowing=false, pestleGrinding=false, dragonBreathing=false, retreating=fal
    heat matters. The bellows is dead until that line has been read, so the player cannot pump past
    the explanation - and it lights up the moment they can use it. Second craft only: nothing else
    raises this. */
-let TUT_BELLOWS_LOCK=false;
 let stMortar, stSmelt, stAnvil, mugEl, orbEl, oreImgEl, sphereEl, fireEl, hammerEl, waterTimer=null;
 
 function benchEl(){ return document.getElementById('bench'); }
@@ -6656,7 +6655,7 @@ function craftLanded(id){ CRAFT_FLY=CRAFT_FLY.filter(x=>x!==id); if(!CRAFT_FLY.l
                        { duration:620, easing:'ease-out', fill:'forwards' }); }catch(e){}
         setTimeout(()=>p.remove(), 680); }
 }
-function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); }
+function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutRecordSay(); }
 
 // --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
 /* r144: Cancel is offered on EVERY route into the picker, not only when the recipe book has borrowed
@@ -6668,6 +6667,7 @@ function openShapeSelect(){
     SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
     if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }   /* r290: the first sword's minigame is the one D13 is for */
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
+    if(SAY_ON==='D44') sayHide();   /* R3: "take the metal to the anvil" is done */
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
     document.getElementById('shapeCancel').classList.add('on');   /* r144: always offered */
@@ -7305,7 +7305,7 @@ function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || 
     m.classList.remove('show'); hmClear(); cheatUi();
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
     smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.');
-    tutMugStep(); }   /* R1: D17 and the pointer to the bucket */
+    if(TUT_STAGE==='forge2') tutDipStep('D47'); else tutMugStep(); }   /* R1: D17 and the pointer to the bucket. R3: TC2's D47 */
 function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
     b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px';
     b.style.transform=''; b.style.transformOrigin=''; b.style.transition=''; b.style.opacity=''; b.style.zIndex=''; SM_BL=null;   /* s5: back to the resting pose */
@@ -7975,15 +7975,13 @@ const DIALOGUE = {
     D36: "Drag the ground ore to the smelter.",
     D37: "Do the same with manganese ore.",
     D38: "Great, the path is going all the way to the balanced trait we discovered last time.",
-    D39: "Heat up the smelter. Oh, I almost forgot to tell you!",
-    D40: "The hotter the metal is, the faster the sword icon travels on the defined path when you hammer.",
-    D41: "Hot enough! Move it to the anvil and start hammering.",
+    D41: "We are on the balanced trait. Open the gate!",   /* R3 (smelter loop): D39, D40 (the heat lesson) are gone */
     D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
     D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
-    D44: "Tap on the metal to select a shape.",
+    D44: "Take the hot metal to the anvil.",   /* R3 */
     D45: "You remember what to do, right? Go ahead, I'm ready!",
     D46: "Tell me where to FIRE, and hammer the blade.",
-    D47: "Splash water to cool the blade and finish crafting.",
+    D47: "Dip the blade in the bucket to finish crafting.",   /* R3: on the anvil, with the dip pointer */
     D48: "I found this sharpening wheel. I'll show you how to use it.",   /* v3 part 5 (owner): with its reward window, at Bram's ask */
     D49: "Drag and drop the sword from the inventory onto the table.",
     D50: "Tap on the sharpening wheel.",
@@ -8402,12 +8400,10 @@ function tutHm2Idle(){
        anything at all. Re-speaking still waits for a stall, or it would nag over active play. */
     if(TUT_HM2_SAID && (now-lastActAt < HINT_IDLE_MS || now-TUT_HM2_AT < HINT_IDLE_MS)) return;
     TUT_HM2_AT=now; TUT_HM2_SAID=true;
-    const mug=hmMugReady(), id=mug?'D47':'D46';
+    const id='D46';   /* R3: D47 is the dip's, on the anvil */
     if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
     SAY_I=SAY_SEQ.indexOf(id); say(id);
-    if(mug){ const a=document.getElementById('tutArrow'); if(a) a.classList.add('above');
-        tutArrow('#hmMug', '#hmWork', { tfx:0.5, tfy:0.45, bow:0.18, back:24 }); }
-    else tutHm2Clear();
+    tutHm2Clear();
 }
 /* r103: the second craft no longer ENDS the script - it hands over to the basement beat, so the
    pet switch moves to the sale that closes it. */
@@ -9716,12 +9712,13 @@ function updateTutorialCounterUi(){
    the first customer, who speaks before the dragon comments. */
 /* r100 - the record beat. D42 asks for it, D43 explains the choice, and the shape picker stays shut
    until one of the two buttons has been used. */
+/* R3: D42 waits for the trait window - it opens in the same beat and closes the dragon's line (r286), so D42 never showed */
+let TUT_D42_WAIT=false;
 function tutRecordStep(){
     if(TUT_STAGE!=='regrind-work') return;
-    TUT_STAGE='record';
-    if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42');
-    SAY_I=SAY_SEQ.indexOf('D42'); say('D42');
+    TUT_STAGE='record'; TUT_D42_WAIT=true;
 }
+function tutRecordSay(){ if(!TUT_D42_WAIT) return; TUT_D42_WAIT=false; if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42'); SAY_I=SAY_SEQ.indexOf('D42'); say('D42'); }
 function tutCompStep(){
     if(TUT_STAGE!=='record') return;
     tutArrow(null,null);
@@ -9750,7 +9747,8 @@ function tutHudClosed(){
     if(TUT_STAGE!=='record-close') return;
     TUT_STAGE='shape2'; tutExit(null);
     if(SAY_SEQ.indexOf('D44')<0) SAY_SEQ.push('D44');
-    SAY_I=SAY_SEQ.indexOf('D44'); say('D44'); tutGlow('#orb', true);
+    SAY_I=SAY_SEQ.indexOf('D44'); say('D44');
+    if(melt && melt.stage==='onAnvil') tutGlow('#orb', true); else tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 });   /* R3: the anvil opens the shaping */
 }
 function tutBellStep(){
     TUT_STAGE='p1-bell'; bellShow(true);   /* r199: this bell brings GPC1 now; 'bell' (TC2) comes after GPC2 */
@@ -9912,20 +9910,8 @@ function tutNudgeApply(){
         if(melt.stage==='onAnvil'){ tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
         return;
     }
-    if(TUT_STAGE==='regrind-heat'){
-        if(TUT_BELLOWS_LOCK){ tutArrow(null,null); return; }   /* r182: D38/D39 are still being read */
-        tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-    if(TUT_STAGE==='regrind-work'){
-        if(!melt) return;
-        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
-            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){
-            if(melt.reachedTrait) tutArrow('#mug', '#orb', { tfx:0.5, tfy:0.42, bow:0.18, back:24 });
-            else tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 });
-        }
-        return;
-    }
+    if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R3: the bellows, once D38 is read */
+    if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }   /* R3: the smelter loop */
     if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); return; }   /* r177 */
     if(TUT_STAGE==='record'){
         const panel=document.getElementById('bladePanel');
@@ -9986,22 +9972,17 @@ function tutSmeltCheck(ore, grind){
         SAY_I=SAY_SEQ.indexOf('D37'); say('D37'); return;
     }
     if(TUT_STAGE==='regrind-mang' && ore==='manganese'){
-        TUT_STAGE='regrind-heat'; tutArrow(null,null);
-        TUT_BELLOWS_LOCK=true;   /* r182: lifted by D40 */
-        ['D38','D39','D40'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
+        TUT_STAGE='regrind-heat'; tutArrow(null,null);   /* R3: no heat lesson - D38, then the bellows */
+        if(SAY_SEQ.indexOf('D38')<0) SAY_SEQ.push('D38');
         SAY_I=SAY_SEQ.indexOf('D38'); say('D38');
     }
 }
 /* R1 (smelter loop): the blade lies on the anvil, shaped - D17, and a pointer from it to the bucket (TUT_DIP) */
-let TUT_DIP=false;
-function tutMugStep(){
-    if(tutOver() || TUT_SAIDMUG) return; TUT_SAIDMUG=true;
-    if(SAY_SEQ.indexOf('D17')<0) SAY_SEQ.push('D17');
-    SAY_I=SAY_SEQ.indexOf('D17'); say('D17');
-    TUT_DIP=true; tutDipArrow();
-}
+let TUT_DIP=false, TUT_DIP_LINE=null;   /* R3: the line that asked for the dip (D17, D47) */
+function tutDipStep(id){ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); SAY_I=SAY_SEQ.indexOf(id); say(id); TUT_DIP=true; TUT_DIP_LINE=id; tutDipArrow(); }
+function tutMugStep(){ if(tutOver() || TUT_SAIDMUG) return; TUT_SAIDMUG=true; tutDipStep('D17'); }
 function tutDipArrow(){ if(TUT_DIP) tutArrow('#smBlade', '#bucketBack', { tfx:0.5, tfy:0.30, bow:0.18, back:24 }); }
-function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); if(SAY_ON==='D17') sayHide(); }
+function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); if(SAY_ON===TUT_DIP_LINE) sayHide(); TUT_DIP_LINE=null; }
 /* r156: D9 stops the world while it is read, the same way D8 does - the book is collected mid-swing
    and the sword keeps travelling underneath the line otherwise. tutPause(true) is the D8 effect:
    #tutDim over the board and the tick held. sayNext() already lifts it on the tap that closes the
@@ -10051,7 +10032,7 @@ function tutReset(){
     document.querySelectorAll('#csPanel > .cs-btn, #csPanel > .cs-dlg, #csPanel > .cs-resp').forEach(x=>x.style.display='');
     SAY_SEQ.length=0; SAY_OPENING.forEach(id=>SAY_SEQ.push(id));
     SAY_I=-1; SAY_LAST=null;
-    TUT_STRIKE=0; TUT_FIRE_PTR=false; TUT_BOOKS=false; TUT_SAIDBOOK=false;   /* r223: TUT_FIRE_PTR */ TUT_SAIDHAZ=false;   /* r179 */ TUT_BELLOWS_LOCK=false;   /* r182 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SAW_PARTS=false;   /* r196 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
+    TUT_STRIKE=0; TUT_FIRE_PTR=false; TUT_BOOKS=false; TUT_SAIDBOOK=false;   /* r223: TUT_FIRE_PTR */ TUT_SAIDHAZ=false;   /* r179 */ TUT_SOLO=false; TUT_SOLO_ASKED=false;   /* r189 */ TUT_SAW_TIERS=false;   /* r190 */ TUT_SAW_PARTS=false;   /* r196 */ TUT_SEEN_END=false; TUT_HMHOT=false; TUT_HMCOLD=false; TUT_SAIDMUG=false;
     BELL_ON=false; CUSTOMER=null; tutFakePath(false);
 }
 /* r82: the gate already pulses on its own the moment it is ready (#furnaceGate.ready), so this step
@@ -10060,7 +10041,7 @@ function tutReset(){
 function tutGateStep(){
     /* r100: the second run gets D41 here instead, then is left to the idle arrows */
     if(TUT_STAGE==='regrind-heat'){
-        TUT_STAGE='regrind-work'; tutArrow(null,null); tutGlow('#bellowtop', false); TUT_BELLOWS_LOCK=false;   /* r182 */
+        TUT_STAGE='regrind-work'; tutArrow(null,null);
         if(SAY_SEQ.indexOf('D41')<0) SAY_SEQ.push('D41');
         SAY_I=SAY_SEQ.indexOf('D41'); say('D41'); return;
     }
@@ -10240,7 +10221,6 @@ function say(id){
     if(id==='D17b' && CW_LESSON) cwLit('#cwFgRow');
     if(id==='D17c' && CW_LESSON) cwLit('#cwOres');
     if(id==='D72a' && TUT_STAGE==='fire-mang') tutForkPath('manganese');   /* 2026-10-13: beside iron's */
-    if(id==='D40'){ TUT_BELLOWS_LOCK=false; tutGlow('#bellowtop', true); }   /* r182: now it may be used, and it shows */
     if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
     if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
     if(id==='D92' && TUT_STAGE==='d2-counter') setTimeout(()=>tutExit('#panLeft'), 0);   /* r297: after D89's OK, the way to the counter */

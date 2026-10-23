@@ -212,3 +212,19 @@ yours and come on top.
   the ore arrow; the ores in -> pumping with the bellows lit, the first book's D9; on Balanced the gate highlighted;
   the gate, the trait window closed -> the arrow from the metal to the anvil; on the anvil the shape window, no
   pointer; the minigame; shaped -> the arrow from the blade to the bucket, gone while held, back when put down.
+- **R3 (2026-10-23): TC2 in the smelter loop.** Decision 2: the heat lesson goes - D39 and D40 removed (199 dialogue
+  keys); D41 "We are on the balanced trait. Open the gate!", D44 "Take the hot metal to the anvil.", D47 "Dip the blade
+  in the bucket to finish crafting." as approved. The ground manganese in -> D38, then the bellows lit (stage
+  regrind-heat); on Balanced (`gateReady`, the skip entry unchanged) -> D41 (regrind-work, the shared pointer: the
+  gate, then the metal); the gate -> the record lesson -> D44 with the arrow from the metal to the anvil (a glow on the
+  metal if it is on the anvil already); D44 goes when the shape window opens; the minigame speaks D46 only (the mug
+  branch is gone); shaped -> D47 with the dip pointer (`tutDipStep`, shared with D17: `TUT_DIP_LINE` is the line the dip
+  closes). **C4 changed:** the bellows lock (`TUT_BELLOWS_LOCK`, r182) only held the bellows during the heat lesson, so
+  it is removed instead of put back. **Found in the browser check:** D42 had not shown since r286 - it is spoken in the
+  same beat the trait window opens, and the window closes the dragon's line (the old build too). It now waits for the
+  window to close (`TUT_D42_WAIT`, `tutRecordSay` in `closeAcquire`). FTUE test 664 -> 675 (written first). Checked in
+  the browser (PART 2 jump, TC2 played through): the bell, D31, the forge, the raw ores, D32-D32c and the grindstone,
+  D33, D35; the iron and the manganese ground in -> D36, D37, D38, the bellows lit; 19 pulls -> D41, the gate lit; the
+  gate -> the trait window; closed -> D42; the record (D43, Update) -> the panel shut -> D44, the arrow to the anvil;
+  on the anvil the shape window, D44 gone; the minigame (D45); shaped -> D47, the arrow to the bucket; dipped -> the
+  craft window; no console errors.

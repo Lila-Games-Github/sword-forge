@@ -239,10 +239,30 @@ eq('the trait window closed: D6, the metal from the gate to the anvil', /functio
 eq('on the anvil the shape window opens with D12 over it', /function openShapeSelect\(\)\{[\s\S]{0,300}if\(TUT_STAGE==='anvil'\)\{ TUT_STAGE='shape'; ftueSaySh\('D12'\); \}/.test(src), true);
 eq('the old hammer and anvil steps are gone', /function tutHammerStep\(|function tutAnvilStep\(/.test(src), false);
 eq('shaped: D17 with the pointer from the blade to the bucket', /function smShaped\(\)\{[\s\S]{0,500}smBladeShow\(\);[\s\S]{0,200}tutMugStep\(\);/.test(src)
-  && /function tutMugStep\(\)\{[\s\S]{0,300}say\('D17'\);[\s\S]{0,200}TUT_DIP=true; tutDipArrow\(\);/.test(src) && src.includes("function tutDipArrow(){ if(TUT_DIP) tutArrow('#smBlade', '#bucketBack'"), true);
+  && src.includes("function tutMugStep(){ if(tutOver() || TUT_SAIDMUG) return; TUT_SAIDMUG=true; tutDipStep('D17'); }")
+  && src.includes("function tutDipStep(id){ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); SAY_I=SAY_SEQ.indexOf(id); say(id); TUT_DIP=true; TUT_DIP_LINE=id; tutDipArrow(); }")
+  && src.includes("function tutDipArrow(){ if(TUT_DIP) tutArrow('#smBlade', '#bucketBack'"), true);
 eq('the pointer goes while the blade is held, and comes back if it is put down', /function smBladeGrab\(e\)\{[\s\S]{0,900}if\(TUT_DIP\) tutArrow\(null,null\);/.test(src) && /function smBladeHome\(\)\{[\s\S]{0,700}tutDipArrow\(\);/.test(src), true);
 eq('the dip ends D17 and the pointer', /function smBladeQuench\(\)\{[\s\S]{0,300}tutDipDone\(\);/.test(src) && /function smBladeDrop\(\)\{[\s\S]{0,300}tutDipDone\(\);/.test(src)
-  && src.includes("function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); if(SAY_ON==='D17') sayHide(); }"), true);
+  && src.includes("function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); if(SAY_ON===TUT_DIP_LINE) sayHide(); TUT_DIP_LINE=null; }"), true);
+
+/* R3 (2026-10-23): TC2 in the smelter loop - no heat lesson (D39, D40 gone), D41 the gate, D44 the anvil, D47 the dip */
+eq('D41 text (R3)', line('D41'), 'We are on the balanced trait. Open the gate!');
+eq('D44 text (R3)', line('D44'), 'Take the hot metal to the anvil.');
+eq('D47 text (R3)', line('D47'), 'Dip the blade in the bucket to finish crafting.');
+eq('D39 and D40 are gone (R3: heat no longer sets the speed)', /\n\s*D39: "/.test(src) || /\n\s*D40: "/.test(src) || /'D39'|'D40'/.test(src), false);
+eq('ground manganese in: D38, then the bellows (no lock)', src.includes("TUT_STAGE='regrind-heat'; tutArrow(null,null);   /* R3: no heat lesson - D38, then the bellows */")
+  && !src.includes('TUT_BELLOWS_LOCK'), true);
+eq('TC2 pumps with the bellows lit, then the shared pointer', src.includes("if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }")
+  && src.includes("if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }"), true);
+eq('on Balanced: D41 (the gate)', /function tutGateStep\(\)\{[\s\S]{0,200}TUT_STAGE='regrind-work'; tutArrow\(null,null\);\s*if\(SAY_SEQ\.indexOf\('D41'\)<0\)/.test(src), true);
+eq('recorded and the panel shut: D44, the hot metal to the anvil (a glow on it if it is there already)', /function tutHudClosed\(\)\{[\s\S]{0,400}say\('D44'\);[\s\S]{0,80}if\(melt && melt\.stage==='onAnvil'\) tutGlow\('#orb', true\); else tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
+eq('D42 waits for the trait window to close (since r286 the window hid it at once; found in R3\'s browser check)', /function tutRecordStep\(\)\{\s*if\(TUT_STAGE!=='regrind-work'\) return;\s*TUT_STAGE='record'; TUT_D42_WAIT=true;\s*\}/.test(src)
+  && src.includes("function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutRecordSay(); }")
+  && src.includes("function tutRecordSay(){ if(!TUT_D42_WAIT) return; TUT_D42_WAIT=false; if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42'); SAY_I=SAY_SEQ.indexOf('D42'); say('D42'); }"), true);
+eq('D44 goes when the metal is on the anvil (the shape window opens)', /function openShapeSelect\(\)\{[\s\S]{0,700}if\(SAY_ON==='D44'\) sayHide\(\);/.test(src), true);
+eq('the minigame speaks D46 only; D47 comes with the blade on the anvil', src.includes("const id='D46';   /* R3: D47 is the dip's, on the anvil */")
+  && /function smShaped\(\)\{[\s\S]{0,700}if\(TUT_STAGE==='forge2'\) tutDipStep\('D47'\); else tutMugStep\(\);/.test(src), true);
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
@@ -980,7 +1000,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
     'd2-hammer':      ['tutAtRouteEnd()', 'tutDay2Pull()'],
     'd2-gale-hammer': ['tutAtRouteEnd()', 'tutGaleEnd()'] };
   for (const k in E) eq('skip ' + k, blk.includes("'" + k + "':") && blk.includes('done:()=>' + E[k][0] + ', next:()=>' + E[k][1]), true);
-  eq('the second craft keeps its heat lesson (D38-D40): it waits for the line to close', /'regrind-heat':\s*\{ quiet:true, done:\(\)=>!!melt && \(melt\.stage!=='smelting' \|\| gateReady\), next:\(\)=>tutGateStep\(\) \}/.test(blk), true);
+  eq('the second craft waits for D38 to close, then for the sword on Balanced (R3: gateReady is the trait now)', /'regrind-heat':\s*\{ quiet:true, done:\(\)=>!!melt && \(melt\.stage!=='smelting' \|\| gateReady\), next:\(\)=>tutGateStep\(\) \}/.test(blk), true);
   eq('grinding early: ground on the wheel, or already in the smelter', blk.includes("'regrind-grind':") && blk.includes("done:()=>(!!prep && prep.grind>=0.999) || tutGroundIn('iron')"), true);
   eq('the hammer opened early, for every shape step', ['fire-shape', 'd2-gale-shape', 'bram2-shape'].every(k => blk.includes("'" + k + "':   { done:()=>tutHmOpen(), next:()=>tutHmStep() }")), true);
   eq('a pickaxe point spent before the tree lesson counts', blk.includes("'d2-skill':") && blk.includes("done:()=>FTUE_ST.part===6 && rank('pick')>=1 && !TUT_D2_SPENT, next:()=>{ TUT_D2_SPENT=true; }"), true);
