@@ -228,3 +228,23 @@ yours and come on top.
   gate -> the trait window; closed -> D42; the record (D43, Update) -> the panel shut -> D44, the arrow to the anvil;
   on the anvil the shape window, D44 gone; the minigame (D45); shaped -> D47, the arrow to the bucket; dipped -> the
   craft window; no console errors.
+- **R4 (2026-10-23): TC3's fire run in the smelter loop.** D69 "Now pump the bellows.", D71 "We need to go further.
+  Let's add one more ore.", D74 "Pump the bellows.", D75 "Open the gate! I hope this is the fire trait!", D77 "Take it to
+  the anvil." as approved. The metal never leaves the smelter: after D70 and D71 (read first, `SAY_ON!=='D71'`) the
+  fork lesson (D72, D72a) and the next ore follow with no carry back. The route-end checks (`tutFireSpot`,
+  `tutFireReached`, and TC5's `tutDay2Pull` / `tutGaleEnd`) were called only by the old hammer branch; they now run as
+  the bellows move the sword (`tutTravelHooks` in `smGlide`), and the route end is read while the metal is in the
+  smelter (`tutAtRouteEnd`). Both heat runs use the shared pointer, the gate only on Fire at the route end
+  (`tutLoopPointer(want, atEnd)`); D75 waits for the route end too - the first touch of Fire is its Weak edge (34 in the
+  check), the route end is Fine (17), as `FTUE.fireAt` records. After the gate: D76, D77 and the arrow to the anvil;
+  D44/D77 and that arrow go when the shape window opens; the minigame's lines (D45, D46, D78) go when the blade comes out;
+  every later hammered tutorial craft gets the dip arrow without a line (C6). **Found in the browser check (the same
+  r286 effect as D42 in R3):** the trait window closed every line the gate's hooks said in that beat - D42, D76, D99,
+  D106 had not shown since r286, in the old build too. R3's D42-only fix is replaced by a general one: the line said by
+  the hooks (`sayNew`) is said again when the window closes (`TUT_ACQ_LINE`, `tutAcqLineBack` in `closeAcquire`). FTUE
+  test 675 -> 687 (written first; three pattern limits widened as functions grew). Checked in the browser (PART 3 jump,
+  the cave's result staged: 3 iron, 2 manganese, then `tutFireForge`): D67a and the map window, D68, the three ground
+  ores in -> D69, the bellows lit; the hazard lines D69a-D69c; the route end -> D70, D71; D72, D72a, the manganese ground
+  -> D73, in -> D74; Fire first touched at 34 with the bellows still lit; the route end at 17 -> D75 and the gate; Fire
+  Fine, the trait window; closed -> D76, then D77 with the arrow to the anvil; on the anvil the shape window, the arrow
+  and D77 gone; the minigame (D78); shaped -> D78 gone, the dip arrow.

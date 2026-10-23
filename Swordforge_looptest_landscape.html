@@ -6057,12 +6057,13 @@ function tryAcquire(){
         if(tier==='Epic' && (Math.abs(pull.x)>0.5 || Math.abs(pull.y)>0.5)) bumpQuest('epicHelp');   /* 2026-10-09 */
         const isNew=recordRecipe(bt.id, tier);        // r65: written down automatically
         if(firstFind) bumpQuest('discover3');
-        smGateFx(); setTimeout(()=>{ updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
+        smGateFx(); setTimeout(()=>{ const sayWas=SAY_ON; updateSfTraits(); tutAcquired(); tutRecordStep(); if(bt.id==='fire') tutFireGot();   /* r111 */
             if(bt.id==='swift') tutSwiftGot();   /* r124 */
             if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();   /* v3: GC1-GC3 */
             if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
             if(bt.id==='gale') tutGaleGot();   /* r126 */
-            showAcquire(bt,tier,melt.traits.length,firstFind);
+            const sayNew=(SAY_ON && SAY_ON!==sayWas) ? SAY_ON : null;   /* R4: a line these hooks said (D42, D76, D99, D106) */
+            showAcquire(bt,tier,melt.traits.length,firstFind); TUT_ACQ_LINE=sayNew;   /* the window closes it (r286); it comes back with tutAcqLineBack */
             if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
             hint('Took <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>hot metal</b> to the <b>anvil</b> to shape it, or back into the <b>smelter</b> for another trait.'); }, 450);   /* smelter version: the gate's embers, then the trait window */
     } else hint('The sword is not on a trait: drag the <b>bellows</b> up and down to move it onto one.');
@@ -6655,7 +6656,7 @@ function craftLanded(id){ CRAFT_FLY=CRAFT_FLY.filter(x=>x!==id); if(!CRAFT_FLY.l
                        { duration:620, easing:'ease-out', fill:'forwards' }); }catch(e){}
         setTimeout(()=>p.remove(), 680); }
 }
-function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutRecordSay(); }
+function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutAcqLineBack(); }
 
 // --- finalize: tap the orb on the anvil → shape select → hammer minigame (ported from swordforgeV2) ---
 /* r144: Cancel is offered on EVERY route into the picker, not only when the recipe book has borrowed
@@ -6667,7 +6668,7 @@ function openShapeSelect(){
     SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
     if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }   /* r290: the first sword's minigame is the one D13 is for */
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
-    if(SAY_ON==='D44') sayHide();   /* R3: "take the metal to the anvil" is done */
+    if(SAY_ON==='D44' || SAY_ON==='D77') sayHide(); if(TUT_ARROW && TUT_ARROW.from==='#orb') tutArrow(null,null);   /* R3/R4: "take the metal to the anvil" is done */
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
     document.getElementById('shapeCancel').classList.add('on');   /* r144: always offered */
@@ -7303,9 +7304,10 @@ function wireHmHammer(){
 /* smelter version: the shaped blade lies on the anvil; dragged into the bucket it is quenched and finished (finishBlade) */
 function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
     m.classList.remove('show'); hmClear(); cheatUi();
+    if(['D45','D46','D78'].includes(SAY_ON)) sayHide();   /* R4: the minigame's lines go with it */
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
     smBladeShow(); hint('Shaped! Drag the <b>blade</b> into the <b>bucket</b> to finish it.');
-    if(TUT_STAGE==='forge2') tutDipStep('D47'); else tutMugStep(); }   /* R1: D17 and the pointer to the bucket. R3: TC2's D47 */
+    if(TUT_STAGE==='forge2') tutDipStep('D47'); else if(!TUT_SAIDMUG) tutMugStep(); else if(!tutOver()){ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow(); } }   /* R4: the later crafts, the arrow alone */   /* R1: D17 and the pointer to the bucket. R3: TC2's D47 */
 function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCenter(stAnvil,0.5,0.16); if(!b) return;
     b.style.width=Math.round(stAnvil.getBoundingClientRect().width*SMELT.bladeW)+'px';   /* s3: 2x the anvil (was 1.25) */ b.style.left=a.x+'px'; b.style.top=a.y+'px';
     b.style.transform=''; b.style.transformOrigin=''; b.style.transition=''; b.style.opacity=''; b.style.zIndex=''; SM_BL=null;   /* s5: back to the resting pose */
@@ -7531,7 +7533,7 @@ function tick(now){
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
     smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
-    if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting') tutFireReheated();   /* r111 */
+    if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();   /* r111. R4: after D71 is read */
     if(TUT_STAGE==='d2-gale2' && melt && melt.stage==='smelting' && TUT_ARROW) tutArrow(null,null);   /* r125 */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
@@ -8005,20 +8007,20 @@ const DIALOGUE = {
     D67: "3 iron and 2 manganese. Not bad. Let's go back to the forge.",   /* 2026-10-13: the cave gives 3 iron now */
     D67a: "The map is divided into 5 parts. This picture gives you a hint about where each trait might be.",   /* r195 */
     D68: "Grind two iron and one manganese fully, then add them to the smelter.",
-    D69: "Now heat it, take it to the anvil and hammer.",
+    D69: "Now pump the bellows.",   /* R4 (smelter loop) */
     D69a: "Oh! We are crossing over a hazard zone.",        /* r179: the first hazard touch, ever */
     D69b: "The sword will take damage if we force it through the hazards, and a damaged sword sells for less.",   /* r215 */
     D69c: "Good thing this is a small one. Just keep going.",
     D69d: "The sword was damaged because of the Hazard zones. It will sell for a little less.",   /* r215: over the fire sword's craft window. owner, 2026-10-10: new text */
     D70: "Do you see that? I think that is the fire trait!",
-    D71: "Put the metal back in the smelter; we need to go further.",
+    D71: "We need to go further. Let's add one more ore.",   /* R4: the metal never left the smelter */
     D72: "If we use iron, we will cross another hazard zone.",   /* owner, 2026-10-13: the last ore is a choice */
     D72a: "But the manganese can avoid it.",
     D73: "Enough! Now add this to the smelter.",
-    D74: "Heat it, take it to the anvil and hammer.",
-    D75: "Splash water on it! I hope this is the fire trait!",
+    D74: "Pump the bellows.",   /* R4 */
+    D75: "Open the gate! I hope this is the fire trait!",   /* R4: the gate takes the trait */
     D76: "Yes! We got it! It is not perfect, but it is okay for now.",
-    D77: "Tap the metal and select a shape.",
+    D77: "Take it to the anvil.",   /* R4: the anvil opens the shaping */
     D78: "I'm ready!",
     D79: "Now let's make it look special. Do you want to customize it?",   /* v3 part 6: Garric's sword (was the fire sword's) */
     D80: "Wrong answer. Think again.",
@@ -8269,7 +8271,7 @@ function tutBellowsStep(){
    (updateHintArrow); it tries a stage once and waits for the stage to change before trying again. */
 function tutGroundIn(id){ return segs.some(g=>g.ore===id && g.tPct>=0.9995); }   /* a fully ground ore is in the smelter */
 function tutHmOpen(){ const m=document.getElementById('sfHammerModal'); return !!(m && m.classList.contains('show')); }
-function tutAtRouteEnd(){ return !!melt && melt.stage==='onAnvil' && swordAtRouteEnd(); }   /* those checks ran only while the hammer struck */
+function tutAtRouteEnd(){ return !!melt && melt.stage==='smelting' && swordAtRouteEnd(); }   /* R4: the sword travels while the metal is in the smelter */
 const TUT_SKIP={
     /* the first craft */
     'ore':            { done:()=>ftueOreIn('iron')>=2 && ftueOreIn('manganese')>=2, next:()=>tutCheckOre() },
@@ -8328,6 +8330,8 @@ function tutLit(on){
     if(box) box.classList.add('tut-lit');
 }
 /* R1 (smelter loop): D8 comes once the bellows have moved the sword FTUE.pumpBeat (full-speed s); smGlide counts it */
+/* R4: the checks that watched the sword travel (the old hammer branch in tick() called them) */
+function tutTravelHooks(){ tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }
 function tutPumpBeat(d){ if(TUT_STAGE!=='bellows') return; TUT_STRIKE+=d; if(TUT_STRIKE>=FTUE.pumpBeat) tutStrikeStep(); }
 /* pumped onto the '?' before the guide asked (TUT_SKIP) */
 function tutTravelOnTrait(){ TUT_STAGE='travel'; tutUnglow(); tutArrow(null,null); tutQuenchStep(); }
@@ -9336,7 +9340,7 @@ function tutSpotOn(t){
    half, and that glimpse is the point of the line. Nothing hides it any more. */
 function tutFireSpot(){
     if(TUT_STAGE!=='fire-heat1' || TUT_SAIDSPOT) return;
-    if(!melt || melt.stage!=='onAnvil' || !swordAtRouteEnd()) return;
+    if(!melt || melt.stage!=='smelting' || !swordAtRouteEnd()) return;   /* R4 */
     TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
     tutArrow(null,null); tutUnglow();   /* r184: D70 is a look-at-this line - the only thing to do is read on */
     const f=traits.find(t=>t.trait && t.trait.id==='fire');
@@ -9347,8 +9351,7 @@ function tutFireSpot(){
 /* D71 stops the pulse and points the metal back at the furnace */
 function tutFireBack(){
     tutSpotOn(null);   /* r113 */
-    TUT_STAGE='fire-reheat';
-    setTimeout(()=>tutArrow('#orb', '#stSmelt .furnace', { tfx:0.5, tfy:0.25, bow:0.16, back:26 }), 0);
+    TUT_STAGE='fire-reheat';   /* R4: the metal is still in the smelter - D72 follows once D71 is closed */
 }
 function tutFireReheated(){
     if(TUT_STAGE!=='fire-reheat') return;
@@ -9391,17 +9394,18 @@ let TUT_SAIDSPLASH=false;
 function tutFireReached(){
     if(TUT_STAGE!=='fire-heat2' || TUT_SAIDSPLASH) return;
     if(!melt || !melt.reachedTrait || melt.reachedTrait.trait.id!=='fire') return;
+    if(!swordAtRouteEnd()) return;   /* R4: the route ends on Fire, Fine (FTUE.fireAt) - the first touch is its Weak edge */
     TUT_SAIDSPLASH=true; tutSpotOn(null);   /* r113/r114 */
     if(SAY_SEQ.indexOf('D75')<0) SAY_SEQ.push('D75');
     SAY_I=SAY_SEQ.indexOf('D75'); say('D75');
-    tutMugPointer();
+    tutGatePointer();   /* R4 */
 }
 function tutFireGot(){
     if(TUT_STAGE!=='fire-heat2') return;
     TUT_STAGE='fire-shape'; tutArrow(null,null); tutUnglow();
     ['D76','D77'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D76'); say('D76');
-    setTimeout(()=>tutGlow('#orb', true), 0);
+    setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);   /* R4: the anvil opens the shaping */
 }
 /* the minigame gets one line and then the player is left to it */
 /* r115: the fire sword is finished, and the dragon has opinions about decorating it. Refusing is
@@ -9712,13 +9716,16 @@ function updateTutorialCounterUi(){
    the first customer, who speaks before the dragon comments. */
 /* r100 - the record beat. D42 asks for it, D43 explains the choice, and the shape picker stays shut
    until one of the two buttons has been used. */
-/* R3: D42 waits for the trait window - it opens in the same beat and closes the dragon's line (r286), so D42 never showed */
-let TUT_D42_WAIT=false;
 function tutRecordStep(){
     if(TUT_STAGE!=='regrind-work') return;
-    TUT_STAGE='record'; TUT_D42_WAIT=true;
+    TUT_STAGE='record';
+    if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42');
+    SAY_I=SAY_SEQ.indexOf('D42'); say('D42');
 }
-function tutRecordSay(){ if(!TUT_D42_WAIT) return; TUT_D42_WAIT=false; if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42'); SAY_I=SAY_SEQ.indexOf('D42'); say('D42'); }
+/* R4: the trait window closes the dragon's line as it opens (r286); a line the gate's hooks said in that beat (D42, D76,
+   D99, D106 - they never showed since r286) is said again when the window closes */
+let TUT_ACQ_LINE=null;
+function tutAcqLineBack(){ const id=TUT_ACQ_LINE; TUT_ACQ_LINE=null; if(!id || SAY_ON) return; SAY_I=SAY_SEQ.indexOf(id); say(id); }
 function tutCompStep(){
     if(TUT_STAGE!=='record') return;
     tutArrow(null,null);
@@ -9823,7 +9830,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer','p3-book'];   /* R2: through the shaping and the dip */   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer','p3-book'];   /* R2: through the shaping and the dip */   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -9835,8 +9842,8 @@ function tutNudge(force){
 }
 /* R2 (smelter loop): a craft's next move, worked out from the state: the bellows until the sword is on a trait, then the
    gate; the hot metal to the anvil (it opens the shaping); nothing while it is on the anvil; the shaped blade to the bucket */
-function tutLoopPointer(){ if(!melt) return false;
-    if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
+function tutLoopPointer(want, atEnd){ if(!melt) return false;   /* R4: want = the trait the gate is for (none: any); atEnd = only at the route end */
+    if(melt.stage==='smelting'){ if(gateReady && (!want || (melt.reachedTrait && melt.reachedTrait.trait.id===want)) && (!atEnd || swordAtRouteEnd())) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
         else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return true; }
     if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return true; }
     if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack', { tfx:0.5, tfy:0.30, bow:0.18, back:24 }); return true; }
@@ -9902,14 +9909,7 @@ function tutNudgeApply(){
        then the gate, then the metal to the anvil, then the hammer. tutArrow(null, '#bellowtop') is
        a GLOW, not an arrow - r152 routes a null `from` to tutTap(), and the bellows is an <img>. */
     if(TUT_STAGE==='cave-pick'){ tutMined(); return; }   /* r184: re-resolves the pickaxe after a tab switch */
-    if(TUT_STAGE==='fire-heat1'){
-        if(!melt) return;
-        if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate', { tfx:0.5, tfy:0.45, ox:-104, oy:-58, bow:0.18, back:20 });
-            else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }
-        if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return; }
-        if(melt.stage==='onAnvil'){ tutArrow('#hammerTool', '#stAnvil .anvil', { tfx:0.5, tfy:0.16, bow:0.18, back:26 }); }
-        return;
-    }
+    if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ tutLoopPointer('fire', true); return; }   /* R4: the smelter loop; the gate only on Fire */
     if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R3: the bellows, once D38 is read */
     if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }   /* R3: the smelter loop */
     if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); return; }   /* r177 */
@@ -10370,7 +10370,7 @@ function wireLadle(){ const head=document.getElementById('ladleHead'), base=docu
     const end=e=>{ if(live!==e.pointerId) return; live=null; SM_TILT=0; paint(SMELT.springMs); };   /* tips back; the pull stops */
     hot.addEventListener('pointerup', end); hot.addEventListener('pointercancel', end); }
 function smGlide(dt){ if(SM_OWED<=0) return; if(!melt || melt.stage!=='smelting' || swordAtRouteEnd()){ SM_OWED=0; return; }
-    const d=smEase(SM_OWED, dt); SM_OWED=Math.max(0, SM_OWED-d); advanceSword(d); tutPumpBeat(d); }   /* R1: D8's beat */
+    const d=smEase(SM_OWED, dt); SM_OWED=Math.max(0, SM_OWED-d); advanceSword(d); tutPumpBeat(d); tutTravelHooks(); }   /* R1: D8's beat. R4: the route-end checks */
 function smFreePlay(){ sayHide(); tutDone(); SAY_SEQ.length=0; SAY_I=-1; TUT_SEEN_END=true;
     FTUE_ST=ftueFresh(); FTUE_ST.part=7; TUT_BRAM_SOLD=true;   /* past the six parts: part 1 caps the first sword's ores */
     FTUE_ST.done=true; FTUE_ST.grind=true; FTUE_ST.grindUse=true; FTUE_ST.market=true; FTUE_ST.sharp=true; FTUE_ST.cwSeen=true;

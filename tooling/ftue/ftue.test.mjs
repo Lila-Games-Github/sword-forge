@@ -257,12 +257,34 @@ eq('TC2 pumps with the bellows lit, then the shared pointer', src.includes("if(T
   && src.includes("if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }"), true);
 eq('on Balanced: D41 (the gate)', /function tutGateStep\(\)\{[\s\S]{0,200}TUT_STAGE='regrind-work'; tutArrow\(null,null\);\s*if\(SAY_SEQ\.indexOf\('D41'\)<0\)/.test(src), true);
 eq('recorded and the panel shut: D44, the hot metal to the anvil (a glow on it if it is there already)', /function tutHudClosed\(\)\{[\s\S]{0,400}say\('D44'\);[\s\S]{0,80}if\(melt && melt\.stage==='onAnvil'\) tutGlow\('#orb', true\); else tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
-eq('D42 waits for the trait window to close (since r286 the window hid it at once; found in R3\'s browser check)', /function tutRecordStep\(\)\{\s*if\(TUT_STAGE!=='regrind-work'\) return;\s*TUT_STAGE='record'; TUT_D42_WAIT=true;\s*\}/.test(src)
-  && src.includes("function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutRecordSay(); }")
-  && src.includes("function tutRecordSay(){ if(!TUT_D42_WAIT) return; TUT_D42_WAIT=false; if(SAY_SEQ.indexOf('D42')<0) SAY_SEQ.push('D42'); SAY_I=SAY_SEQ.indexOf('D42'); say('D42'); }"), true);
-eq('D44 goes when the metal is on the anvil (the shape window opens)', /function openShapeSelect\(\)\{[\s\S]{0,700}if\(SAY_ON==='D44'\) sayHide\(\);/.test(src), true);
+/* found in R3/R4's browser checks: since r286 the trait window closes the dragon's line, and the lines said in the same beat
+   (D42, D76, D99, D106) were closed at once. Now a line said by the gate's hooks is said again when the window closes. */
+eq('a line said as the trait window opens comes back when it closes', /smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\);[\s\S]{0,900}const sayNew=\(SAY_ON && SAY_ON!==sayWas\) \? SAY_ON : null;[\s\S]{0,200}showAcquire\(bt,tier,melt\.traits\.length,firstFind\); TUT_ACQ_LINE=sayNew;/.test(src)
+  && src.includes("function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutAcqLineBack(); }")
+  && src.includes("function tutAcqLineBack(){ const id=TUT_ACQ_LINE; TUT_ACQ_LINE=null; if(!id || SAY_ON) return; SAY_I=SAY_SEQ.indexOf(id); say(id); }")
+  && /function tutRecordStep\(\)\{\s*if\(TUT_STAGE!=='regrind-work'\) return;\s*TUT_STAGE='record';\s*if\(SAY_SEQ\.indexOf\('D42'\)<0\) SAY_SEQ\.push\('D42'\);\s*SAY_I=SAY_SEQ\.indexOf\('D42'\); say\('D42'\);\s*\}/.test(src) && !src.includes('TUT_D42_WAIT'), true);
+eq('D44 and D77 go, and the arrow to the anvil, when the metal is on the anvil (the shape window opens)', /function openShapeSelect\(\)\{[\s\S]{0,700}if\(SAY_ON==='D44' \|\| SAY_ON==='D77'\) sayHide\(\); if\(TUT_ARROW && TUT_ARROW\.from==='#orb'\) tutArrow\(null,null\);/.test(src), true);
+eq('the minigame\'s lines go when the blade comes out onto the anvil (R4)', /function smShaped\(\)\{[\s\S]{0,600}if\(\['D45','D46','D78'\]\.includes\(SAY_ON\)\) sayHide\(\);/.test(src), true);
 eq('the minigame speaks D46 only; D47 comes with the blade on the anvil', src.includes("const id='D46';   /* R3: D47 is the dip's, on the anvil */")
-  && /function smShaped\(\)\{[\s\S]{0,700}if\(TUT_STAGE==='forge2'\) tutDipStep\('D47'\); else tutMugStep\(\);/.test(src), true);
+  && /function smShaped\(\)\{[\s\S]{0,700}if\(TUT_STAGE==='forge2'\) tutDipStep\('D47'\); else if\(!TUT_SAIDMUG\) tutMugStep\(\); else if\(!tutOver\(\)\)\{ TUT_DIP=true; TUT_DIP_LINE=null; tutDipArrow\(\); \}/.test(src), true);
+
+/* R4 (2026-10-23): TC3's fire run in the smelter loop - the metal stays in the smelter, the next ore goes straight in */
+eq('D69 text (R4)', line('D69'), 'Now pump the bellows.');
+eq('D71 text (R4)', line('D71'), "We need to go further. Let's add one more ore.");
+eq('D74 text (R4)', line('D74'), 'Pump the bellows.');
+eq('D75 text (R4)', line('D75'), 'Open the gate! I hope this is the fire trait!');
+eq('D77 text (R4)', line('D77'), 'Take it to the anvil.');
+eq('the route end is read while the metal is in the smelter', src.includes("function tutAtRouteEnd(){ return !!melt && melt.stage==='smelting' && swordAtRouteEnd(); }")
+  && /function tutFireSpot\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;/.test(src), true);
+eq('the travel hooks run as the bellows move the sword (the hammer branch that called them is gone)', /function smGlide\(dt\)\{[\s\S]{0,500}tutPumpBeat\(d\); tutTravelHooks\(\);/.test(src)
+  && src.includes('function tutTravelHooks(){ tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }'), true);
+eq('D71 is read before D72: no carry back, the next ore once it is closed', !/function tutFireBack\(\)\{[^}]*tutArrow\('#orb'/.test(src)
+  && src.includes("if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();"), true);
+eq('Fire reached: D75 and the gate, at the route end (FTUE.fireAt: it ends on Fire, Fine; at the first touch it was Weak)', /function tutFireReached\(\)\{[\s\S]{0,250}if\(!swordAtRouteEnd\(\)\) return;[\s\S]{0,300}say\('D75'\);\s*tutGatePointer\(\);/.test(src), true);
+eq('Fire taken: D76, D77 and the metal to the anvil', /function tutFireGot\(\)\{[\s\S]{0,300}say\('D76'\);\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
+eq('both heat runs point with the shared pointer, the gate only on Fire at the route end', src.includes("if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ tutLoopPointer('fire', true); return; }")
+  && src.includes("if(gateReady && (!want || (melt.reachedTrait && melt.reachedTrait.trait.id===want)) && (!atEnd || swordAtRouteEnd())) tutArrow(null, '#furnaceGate'")
+  && /const TUT_TICK_STAGES=\[[^\]]*'fire-heat2'/.test(src), true);
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
@@ -374,11 +396,11 @@ for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
-eq('the trait is gained at once; the hooks, the window and the toast wait for the effect (R0: the gate\'s embers, not the mug\'s mist)', /melt\.traits\.push[\s\S]{0,1500}smGateFx\(\); setTimeout\(\(\)=>\{ updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+eq('the trait is gained at once; the hooks, the window and the toast wait for the effect (R0: the gate\'s embers, not the mug\'s mist)', /melt\.traits\.push[\s\S]{0,1500}smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
 /* r301 (owner, 2026-10-21): the first sword's Shortsword blinks; a BUY the gold cannot cover is greyed; in the tutorial only the
    ordered (or waiting) blueprint can be bought - anything else gets D28m, in the shape window and the market */
 eq('D28m text, beside D28l', line('D28m') === "Let's buy those later. Focus on the customer's request." && keyList[keyList.indexOf('D28m') - 1] === 'D28l', true);
-eq('the first sword\'s shape window blinks the Shortsword', /function openShapeSelect\(\)\{[\s\S]{0,1000}if\(TUT_HM_FIRST\) setTimeout\(\(\)=>tutExit\("#sfShapeModal \.sf-shape\[data-shape='Shortsword'\]"\), 0\);/.test(src), true);
+eq('the first sword\'s shape window blinks the Shortsword', /function openShapeSelect\(\)\{[\s\S]{0,1400}if\(TUT_HM_FIRST\) setTimeout\(\(\)=>tutExit\("#sfShapeModal \.sf-shape\[data-shape='Shortsword'\]"\), 0\);/.test(src), true);
 eq('a BUY the gold cannot cover is greyed', src.includes("'<b class=\"sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'\">BUY '+marketPrice(k, sh)+'g</b>'") && src.includes('.sf-shape .sf-buy.poor {'), true);
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
     for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
@@ -394,7 +416,7 @@ eq('so does the market', /function marketBuy\(k, sh\)\{[\s\S]{0,700}if\(st==='bu
 eq('an order line has a lit OK again, and closing the order\'s last line starts the craft guide', ['D28b','D28e','D28g','D92a','D92i','D92j','D111b','D113a'].every(k => new RegExp('const SAY_GO_MORE=\\{[^}]*\\b' + k + ':1').test(src) && new RegExp('const SAY_GO_GLOW=\\{[^}]*\\b' + k + ':1').test(src))
   && src.includes("if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };") && /function sayHide\(\)\{[\s\S]{0,1600}if\(SAY_THEN && SAY_ON===SAY_THEN\.id\)\{ const f=SAY_THEN\.fn; SAY_THEN=null; setTimeout\(f, 0\); \}/.test(src), true);
 eq('the craft guide is the old market ending without the market', src.includes("function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }"), true);
-eq('the shape window runs the purchase for the order\'s trait', /function openShapeSelect\(\)\{[\s\S]{0,900}ftueShapeOpened\(\);/.test(src) && /function ftueShapeOpened\(\)\{[\s\S]{0,300}if\(k!==o\.trait\) return;/.test(src), true);
+eq('the shape window runs the purchase for the order\'s trait', /function openShapeSelect\(\)\{[\s\S]{0,1300}ftueShapeOpened\(\);/.test(src) && /function ftueShapeOpened\(\)\{[\s\S]{0,300}if\(k!==o\.trait\) return;/.test(src), true);
 eq('the dragon pays: D28c, coins to the shape, unlocked, then the done line and the shape', /function ftueShapeOpened\(\)\{[\s\S]{0,900}ftueSaySh\(FTUE\.marketWatch\);[\s\S]{0,400}coinFly\(dragonEl\(\), [\s\S]{0,200}FTUE_ST\.shapes\[key\]=true; shapeGrid\(\);[\s\S]{0,200}ftueShapeDone\(m\);/.test(src), true);
 eq('the player buys: BUY pointed at; short of gold, D28h and the top-up first', /function ftueShapeOpened\(\)\{[\s\S]{0,2000}m\.step='buy';[\s\S]{0,300}ftueSaySh\(FTUE\.marketShort\);/.test(src) && /function shapeBuy\(k, sh\)\{[\s\S]{0,900}ftueShapeBought\(k, sh\);/.test(src), true);
 eq('a purchase ends the lesson and points at the shape', /function ftueShapeDone\(m\)\{ FTUE_MK=null;[\s\S]{0,400}tutExit\(/.test(src), true);
@@ -749,9 +771,9 @@ eq('ores: 2 iron, then 2 manganese, raw, to the smelter', /if\(TUT_STAGE==='p1-c
 /* R2 (2026-10-23, the smelter loop): GC1-GC3's craft guide - one pointer worked out from the state, the gate's two checks back */
 eq('D9 text (R2)', line('D9'), 'Pumping the bellows also lets you collect experience points scattered all over the map. Collect them to level up.');
 eq('tutLoopPointer: the bellows, the gate on a trait, the hot metal to the anvil, the shaped blade to the bucket', (b => !!b
-  && b.includes("if(melt.stage==='smelting'){ if(gateReady) tutArrow(null, '#furnaceGate'") && b.includes("else tutArrow(null, '#bellowtop'")
+  && b.includes("if(melt.stage==='smelting'){ if(gateReady && (!want || (melt.reachedTrait && melt.reachedTrait.trait.id===want)) && (!atEnd || swordAtRouteEnd())) tutArrow(null, '#furnaceGate'") && b.includes("else tutArrow(null, '#bellowtop'")
   && b.includes("if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil'") && b.includes("if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack'")
-  )((src.replace(/\r\n/g, '\n').match(/function tutLoopPointer\(\)\{[\s\S]*?\n\}/) || [])[0]), true);
+  )((src.replace(/\r\n/g, '\n').match(/function tutLoopPointer\(want, atEnd\)\{[\s\S]*?\n\}/) || [])[0]), true);
 eq('the craft guide points with it, through the shaping and the dip', src.includes("if(TUT_STAGE==='p1-craft-heat' || TUT_STAGE==='p1-craft-shape' || TUT_STAGE==='p1-craft-hammer'){ tutLoopPointer(); return; }"), true);
 eq('those stages tick', /const TUT_TICK_STAGES=\[[^\]]*'p1-craft-shape','p1-craft-hammer'/.test(src), true);
 eq('the guide notices the blade being held', /function tutNudgeSig\(\)\{[\s\S]{0,700}SM_BL\?1:0/.test(src), true);
