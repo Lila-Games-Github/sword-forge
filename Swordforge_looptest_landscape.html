@@ -488,6 +488,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); animation: tutSpinTurn 1.7s linear infinite; }
 #tutSpin.on { display: block; }
 @keyframes tutSpinTurn { to { transform: rotate(360deg); } }
+/* R15 (owner, 2026-10-26): which way to drag - an up arrow on the ladle, an up-and-down arrow on the bellows (TUT_DRAG_GESTURE) */
+#tutDrag { position: absolute; z-index: 70; display: none; pointer-events: none; overflow: visible; width: 40px; height: 64px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); }
+#tutDrag.on { display: block; }
+#tutDrag.up { animation: tutDragUp 1.2s ease-in-out infinite; }
+#tutDrag.updown { animation: tutDragBob 0.6s ease-in-out infinite alternate; }
+#tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }
+@keyframes tutDragUp { 0% { transform: translateY(14px); opacity: 0; } 25%, 75% { opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
+@keyframes tutDragBob { from { transform: translateY(-9px); } to { transform: translateY(9px); } }
 #tutPath { fill: none; stroke: #ffd27a; stroke-width: 4.5; stroke-linecap: round;
     stroke-dasharray: 13 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,.75));
     animation: tutFlow .7s linear infinite; }
@@ -2167,6 +2176,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <path d="M 88,50 A 38,38 0 1 1 50,12" fill="none" stroke="#ffd27a" stroke-width="8"
               stroke-linecap="round" marker-end="url(#tutSpinHead)"></path>
     </svg>
+    <svg id="tutDrag" viewBox="0 0 40 64" aria-hidden="true"><!-- R15: the ladle's up, the bellows' up and down -->
+        <path d="M20,16 L20,48" stroke="#ffd27a" stroke-width="7" stroke-linecap="round" fill="none"></path>
+        <path class="g-up" d="M20,2 L33,19 L7,19 Z" fill="#ffd27a"></path>
+        <path class="g-down" d="M20,62 L33,45 L7,45 Z" fill="#ffd27a"></path></svg>
     <svg id="tutArrow" aria-hidden="true">
         <defs><marker id="tutHead" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="4.6" markerHeight="4.6" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 Z" fill="#ffd27a"></path></marker></defs>
@@ -7535,6 +7548,7 @@ function tick(now){
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
     tutDarkSync();   /* r271/r272 */
     tutSpinOn(null);   /* r229: every frame - shows the turn arrow while ore is on the wheel, hides it after */
+    tutDragDraw();   /* R15: the drag gesture follows its target, and hides while it is off screen */
     if(pestleGrinding && prep){ prep.grind=Math.min(grindCap(),prep.grind+GRIND_RATE*dt); updateOrbLook(); drawPrepPreview();   /* r104 */
         fxAcc.grind+=dt; if(fxAcc.grind>0.05){ fxAcc.grind=0; const g=fxPt(document.querySelector('#stMortar .mortar'),0.52,0.30); fxBurst(g.x,g.y,{n:3,kind:'spark',ang:-0.35,spread:1.1,dist:26,size:3.5,dur:340}); } }
     if(melt && melt.stage==='smelting'){ if(bellowing){ melt.heat=Math.min(100,melt.heat+HEAT_RISE*dt);
@@ -8180,8 +8194,18 @@ function tutTabUi(){
 }
 function tutNeedTab(n){ TUT_TAB = (n==null? null : n); tutTabUi(); }
 let TUT_TAP_GLOW=null;
+/* R15 (owner, 2026-10-26): a drag control the tutorial points at shows which way to drag (#tutDrag): the ladle tilts up, the
+   bellows pump up and down. fx/fy: the gesture's centre in the target's box */
+const TUT_DRAG_GESTURE={ '#ladleHead':{ kind:'up', fx:0.25, fy:0.1 }, '#bellowtop':{ kind:'updown', fx:0.6, fy:0.2 } };
+let TUT_DRAG=null;
+function tutDragOn(sel){ TUT_DRAG=(typeof sel==='string' && TUT_DRAG_GESTURE[sel]) ? sel : null; tutDragDraw(); }
+function tutDragDraw(){ const svg=document.getElementById('tutDrag'); if(!svg) return;
+    const g=TUT_DRAG && TUT_DRAG_GESTURE[TUT_DRAG], box=g && SF_SCREEN==='forge' && tutRect(TUT_DRAG);   /* the forge props stay laid out under the other screens */
+    if(!box){ svg.classList.remove('on'); return; }
+    svg.style.left=(box.x+box.w*g.fx-20).toFixed(0)+'px'; svg.style.top=(box.y+box.h*g.fy-32).toFixed(0)+'px';
+    svg.classList.remove(g.kind==='up' ? 'updown' : 'up'); svg.classList.add(g.kind, 'on'); }
 function tutTap(sel){
-    tutExit(null);
+    tutExit(null); tutDragOn(sel);
     if(TUT_TAP_GLOW){ tutGlow(TUT_TAP_GLOW, false); TUT_TAP_GLOW=null; }
     const el = sel && tutEl(sel); if(!el) return;
     if(el.tagName==='IMG' || el.querySelector('img')){ tutGlow(el, true); TUT_TAP_GLOW=el; }

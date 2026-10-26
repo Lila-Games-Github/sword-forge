@@ -348,3 +348,17 @@ yours and come on top.
   the browser before the fix (TC5's customer, a gale Shortsword on the counter, an empty bag, `oreRound` 5 copper: the
   reward window with 5 copper and D28l at `d2-gale-paid`); after it: no window, no D28l, no copper, "You're welcome." up;
   the thanks then goes on to D109 and `p4-bell`; no console errors.
+- **R15 (2026-10-26, owner): the drag gestures on the ladle and the bellows.** Owner: "show up arrow guide on the ladle,
+  and up and down arrow on the bellows". Before, `tutArrow(null, '#bellowtop')` and `tutArrow(null, '#ladleHead')` gave
+  only a glow (a tap pointer on a picture; the bellows calls' arrow offsets were never used), so nothing showed which way
+  to drag. Now a gesture overlay `#tutDrag` (like the grindstone's turn arrow, `#tutSpin`) shows over a drag control the
+  tutorial points at, with the glow kept: `TUT_DRAG_GESTURE` = `#ladleHead` { kind 'up', fx 0.25, fy 0.1 } (over the
+  handle's end; dragging it up tilts the ladle) and `#bellowtop` { kind 'updown', fx 0.6, fy 0.2 } (on the top board, by
+  the handle); fx/fy are the gesture's centre in the target's box. The up arrow slides up and fades (1.2 s); the
+  up-and-down arrow bobs (0.6 s each way). `tutTap` sets or clears it, so every pointer change does; `tutDragDraw` runs
+  every frame beside `tutSpinOn`, and shows it only on the forge screen (the forge props stay laid out under the other
+  screens). FTUE test 721 -> 727 (written first; the forge-screen check was added RED after the browser check found the
+  arrow over the customer screen). Checked in the browser: the first sword's bellows step (`tutBellowsStep`, D4) -> the
+  up-and-down arrow on the bellows; TC4's ladle lesson (`tutTc4Pull`) -> the up arrow and the glow on the ladle; a drag
+  from the handle's end upward tilted the ladle to 27.6 deg; a drag arrow, `tutDone` and the customer screen clear it, the
+  forge screen brings it back; no console errors.

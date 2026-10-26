@@ -345,6 +345,17 @@ eq('six orders are the dragon\'s', [1, 3, 5].flatMap(p => FTUE.parts[p].gpc).con
 eq('a scripted sale that keeps the customer marks the customer paid', src.includes('COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;'), true);
 eq('a paid customer has no open order (no refill, no craft lock)', /function ftueOrderOpen\(\)\{ if\(FTUE_ST\.done\) return null;\s*const c=CUSTOMER;\s*if\(c\)\{ if\(c\.paid\) return null;/.test(src), true);
 
+/* R15 (owner, 2026-10-26): "show up arrow guide on the ladle, and up and down arrow on the bellows" - the drag gestures */
+{ const t = src.match(/const TUT_DRAG_GESTURE=(\{[^\n]*\});/);
+  eq('the gesture table: the ladle tilts up, the bellows pump up and down', t && new Function('return ' + t[1])(),
+    { '#ladleHead': { kind: 'up', fx: 0.25, fy: 0.1 }, '#bellowtop': { kind: 'updown', fx: 0.6, fy: 0.2 } }); }
+eq('the gesture overlay is in the frame, with an up head and a down head', /<svg id="tutDrag" viewBox="0 0 40 64" aria-hidden="true">[\s\S]{0,400}class="g-up"[\s\S]{0,200}class="g-down"[\s\S]{0,80}<\/svg>/.test(src), true);
+eq('every tutorial tap pointer sets or clears it (so every pointer change does)', /function tutTap\(sel\)\{\s*tutExit\(null\); tutDragOn\(sel\);/.test(src), true);
+eq('it follows the layout every frame (hidden while its target is not on screen)', src.includes('tutSpinOn(null);   /* r229: every frame') && /tutSpinOn\(null\);   \/\* r229: every frame[^\n]*\n\s*tutDragDraw\(\);/.test(src), true);
+eq('only on the forge screen (its props stay laid out under the others)', /function tutDragDraw\(\)\{[^\n]*\n\s*const g=TUT_DRAG && TUT_DRAG_GESTURE\[TUT_DRAG\], box=g && SF_SCREEN==='forge' && tutRect\(TUT_DRAG\);/.test(src), true);
+eq('the up arrow slides up; the up-and-down arrow bobs', src.includes('#tutDrag.up { animation: tutDragUp') && src.includes('#tutDrag.updown { animation: tutDragBob')
+  && src.includes('#tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }'), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
