@@ -2912,7 +2912,8 @@ function ftueCraftRewind(){ const to=CRAFT_REWIND[TUT_STAGE]; if(!to) return;
    CONTINUE FROM HERE on another trait's page, another shape, and a pour on another trait are refused with D28k ---- */
 function ftueOrderOpen(){ if(FTUE_ST.done) return null;
     const c=CUSTOMER;
-    if(c){ if(c.items && c.items.length>1) return { items:c.items }; const t=c.tid || c.want; return t ? { trait:t, shape:c.shape || null } : null; }
+    if(c){ if(c.paid) return null;   /* R14: a customer who has paid (and stays to talk) has no open order */
+        if(c.items && c.items.length>1) return { items:c.items }; const t=c.tid || c.want; return t ? { trait:t, shape:c.shape || null } : null; }
     if(FTUE_ST.wq==='craft'){ const e=wqEntry(); if(e && e.items && e.items.length) return { items:e.items }; }   /* GC9, once D107g is said */
     return null; }
 function ftueOrderName(o){ return o.items ? o.items.map(it=>orderLabel(TRAIT_BY[it.trait].name, it.shape)).join(' and a ') : orderLabel(TRAIT_BY[o.trait].name, o.shape); }
@@ -3918,7 +3919,7 @@ function sellCounter(){
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
     const byeC = (!scriptedBye && !bram && CUSTOMER && !(ftueC && ftueC.tc4) && !refused) ? CUSTOMER : null;   /* r252: who thanks you */
-    COUNTER=null; if(!scriptedBye) CUSTOMER=null;
+    COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;   /* R14: served - no open order while they stay to talk */
     tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }

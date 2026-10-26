@@ -336,3 +336,15 @@ yours and come on top.
   gold): the market cell a lock, a tap left the gold at 1000; the shape window's Longsword a lock with no BUY, a tap
   bought nothing, the dragon's coins then bought it (owned, gold 1000); the other shapes kept their BUY; no console
   errors.
+- **R14 (2026-10-26, owner play-test): no refill after a scripted sale.** Owner: "'careful here try again' appears after
+  selling gale sword and the dragon gives reward before customer leaves." The line is D28l, the dragon's ore refill
+  (r293, `ftueRefillTick`, run every frame). Cause: after TC5's gale sale (stage `d2-gale-paid`) the customer stays at
+  the counter for D108 and "You're welcome." (`scriptedBye` in `sellCounter` keeps `CUSTOMER`). `ftueOrderOpen` still
+  read the customer's gale order as open, the craft lock was off (the gale sword had just been sold), and the bag was
+  short of the last round's ores, so the refill window opened with D28l before the customer left. TC2, TC3, Bram's Dagger
+  and Garric keep their customer the same way and had the same gap (it showed only when the bag was short). Now a
+  scripted sale marks the customer `paid`, and `ftueOrderOpen` returns no order for a paid customer. No customer object
+  is ever given a second order, so this closes nothing still owed. FTUE test 719 -> 721 (written first). Reproduced in
+  the browser before the fix (TC5's customer, a gale Shortsword on the counter, an empty bag, `oreRound` 5 copper: the
+  reward window with 5 copper and D28l at `d2-gale-paid`); after it: no window, no D28l, no copper, "You're welcome." up;
+  the thanks then goes on to D109 and `p4-bell`; no console errors.

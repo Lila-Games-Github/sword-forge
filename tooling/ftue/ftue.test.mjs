@@ -340,6 +340,11 @@ eq('the market shows it locked, with no price', src.includes("const gift=st!=='o
 eq('six orders are the dragon\'s', [1, 3, 5].flatMap(p => FTUE.parts[p].gpc).concat([FTUE.bramBlueprint]).filter(o => o.market && o.market.by === 'dragon')
   .map(o => o.trait + ':' + o.shape), ['balanced:Longsword', 'balanced:Broadsword', 'fire:Longsword', 'fire:Broadsword', 'gale:Longsword', 'swift:Dagger']);
 
+/* R14 (owner, 2026-10-26): D28l and the refill appeared after the TC5 gale sale, while the customer stayed to say thanks - his
+   order still read as open, with no gale sword and a short bag. A customer who has paid has no open order. */
+eq('a scripted sale that keeps the customer marks the customer paid', src.includes('COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;'), true);
+eq('a paid customer has no open order (no refill, no craft lock)', /function ftueOrderOpen\(\)\{ if\(FTUE_ST\.done\) return null;\s*const c=CUSTOMER;\s*if\(c\)\{ if\(c\.paid\) return null;/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
