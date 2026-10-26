@@ -314,3 +314,14 @@ yours and come on top.
   staged): the route end on Swift at 30, the gate glowing, D97a up; the gate tapped before the ladle -> Swift (Weak, at
   that distance), no D28k; the window closed -> D99, the store arrow; in the gale run the lock still refuses Swift (D28k);
   no console errors. Taken before the ladle the swift metal is Weak; after it, Epic.
+- **R12 (2026-10-26, owner play-test): the trait window for a first discovery only; no craft-book toast in Part 1.**
+  Owner: "the trait acquired window keeps showing up for every sword. It should only appear when it is discovered for
+  the first time. also, remove the 'balanced trait recorded' toast for the first four sword." The gate opened the trait
+  window on every take ("Trait locked in" after the first). Now `tryAcquire` opens it only when the trait was still a
+  `?` (`firstFind`); a re-take goes straight on (`tutShapeStep`, the pointer to the anvil), and a line the gate's
+  hooks said stays up, since no window closes it. The "recorded in the craft book" toast is quiet through Part 1
+  (`FTUE.bookToastQuietPart` 1, `ftueBookToastQuiet()`): Bram's sword and GC1-GC3, the first four swords, all
+  Balanced. Free play (`?freeplay`) and a finished FTUE keep the toast. FTUE test 709 -> 713 (written first; the R0
+  and R4 checks read the new call). Checked in the browser: four Balanced takes in Part 1 -> the window once, no toast;
+  Fire in Part 2 -> the window and the toast once; a GC re-take at `p1-craft-heat` -> no window, stage
+  `p1-craft-shape`, the pointer from the metal to the anvil; no console errors.

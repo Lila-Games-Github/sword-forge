@@ -259,7 +259,7 @@ eq('on Balanced: D41 (the gate)', /function tutGateStep\(\)\{[\s\S]{0,200}TUT_ST
 eq('recorded and the panel shut: D44, the hot metal to the anvil (a glow on it if it is there already)', /function tutHudClosed\(\)\{[\s\S]{0,400}say\('D44'\);[\s\S]{0,80}if\(melt && melt\.stage==='onAnvil'\) tutGlow\('#orb', true\); else tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
 /* found in R3/R4's browser checks: since r286 the trait window closes the dragon's line, and the lines said in the same beat
    (D42, D76, D99, D106) were closed at once. Now a line said by the gate's hooks is said again when the window closes. */
-eq('a line said as the trait window opens comes back when it closes', /smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\);[\s\S]{0,900}const sayNew=\(SAY_ON && SAY_ON!==sayWas\) \? SAY_ON : null;[\s\S]{0,200}showAcquire\(bt,tier,melt\.traits\.length,firstFind\); TUT_ACQ_LINE=sayNew;/.test(src)
+eq('a line said as the trait window opens comes back when it closes', /smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\);[\s\S]{0,900}const sayNew=\(SAY_ON && SAY_ON!==sayWas\) \? SAY_ON : null;[\s\S]{0,200}if\(firstFind\)\{ showAcquire\(bt,tier,melt\.traits\.length,true\); TUT_ACQ_LINE=sayNew; \}/.test(src)
   && src.includes("function closeAcquire(){ document.getElementById('sfAcquireModal').classList.remove('show'); tutShapeStep(); tutAcqLineBack(); }")
   && src.includes("function tutAcqLineBack(){ const id=TUT_ACQ_LINE; TUT_ACQ_LINE=null; if(!id || SAY_ON) return; SAY_I=SAY_SEQ.indexOf(id); say(id); }")
   && /function tutRecordStep\(\)\{\s*if\(TUT_STAGE!=='regrind-work'\) return;\s*TUT_STAGE='record';\s*if\(SAY_SEQ\.indexOf\('D42'\)<0\) SAY_SEQ\.push\('D42'\);\s*SAY_I=SAY_SEQ\.indexOf\('D42'\); say\('D42'\);\s*\}/.test(src) && !src.includes('TUT_D42_WAIT'), true);
@@ -322,6 +322,12 @@ eq('TC5\'s swift run: the tutorial\'s trait is Swift', src.includes("const TUT_S
 eq('the gate takes the tutorial\'s trait as well as the order\'s', /function ftuePourOk\(\)\{[^\n]*\n\s*if\(ftueTutTrait\(\)===melt\.reachedTrait\.trait\.id \|\| ftueOrderTraitOk\(o, melt\.reachedTrait\.trait\.id\)\) return true;/.test(src), true);
 eq('Swift taken before or after the ladle: D99 and the store', /function tutSwiftGot\(\)\{\s*if\(TUT_SWIFT_STAGES\.indexOf\(TUT_STAGE\)<0\) return;[^\n]*\n\s*TUT_STAGE='d2-store'; TUT_SWIFT_LOCK=false;/.test(src), true);
 
+/* R12 (owner, 2026-10-26): the trait window only for a first discovery; no craft-book toast for the first four swords (Part 1) */
+eq('the craft-book toast is quiet through Part 1 (Bram\'s sword and GC1-GC3)', FTUE.bookToastQuietPart, 1);
+eq('ftueBookToastQuiet reads it (free play and a finished FTUE keep the toast)',
+  src.includes('function ftueBookToastQuiet(){ return !SM_FREE && !FTUE_ST.done && FTUE_ST.part<=FTUE.bookToastQuietPart; }'), true);
+eq('the gate toasts a new page only when not quiet', src.includes("if(isNew && !ftueBookToastQuiet()) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);"), true);
+eq('the trait window opens on a first discovery only; a re-take goes straight on', src.includes('if(firstFind){ showAcquire(bt,tier,melt.traits.length,true); TUT_ACQ_LINE=sayNew; } else tutShapeStep();'), true);
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
@@ -432,7 +438,7 @@ for (const [k, v] of Object.entries(V3P6)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D87a','D87'],['D88a','D88'],['D89a','D89'],['D130b','D130a']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 /* r259 (owner, 2026-10-16): the mug quench - steam rises, a mist covers the screen and fades, then the trait window */
 { const m = src.match(/const QUENCH_FX=(\{[^}]*\});/); eq('QUENCH_FX is the recorded timing', m && new Function('return ' + m[1])(), { puffs: 4, steamLead: 250, fogIn: 350, hold: 350, fogOut: 600 }); }
-eq('the trait is gained at once; the hooks, the window and the toast wait for the effect (R0: the gate\'s embers, not the mug\'s mist)', /melt\.traits\.push[\s\S]{0,1500}smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,firstFind\);/.test(src), true);
+eq('the trait is gained at once; the hooks, the window and the toast wait for the effect (R0: the gate\'s embers, not the mug\'s mist)', /melt\.traits\.push[\s\S]{0,1500}smGateFx\(\); setTimeout\(\(\)=>\{ const sayWas=SAY_ON; updateSfTraits\(\); tutAcquired\(\);[\s\S]{0,900}showAcquire\(bt,tier,melt\.traits\.length,true\);/.test(src), true);
 /* r301 (owner, 2026-10-21): the first sword's Shortsword blinks; a BUY the gold cannot cover is greyed; in the tutorial only the
    ordered (or waiting) blueprint can be bought - anything else gets D28m, in the shape window and the market */
 eq('D28m text, beside D28l', line('D28m') === "Let's buy those later. Focus on the customer's request." && keyList[keyList.indexOf('D28m') - 1] === 'D28l', true);

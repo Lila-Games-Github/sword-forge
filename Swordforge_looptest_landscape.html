@@ -2580,6 +2580,7 @@ const FTUE = {
               gale:['Shortsword','Longsword','Rapier'],        swift:['Shortsword','Longsword','Dagger'],   /* r208: the swift Dagger (swift_dagger_blade) replaces the swift Rapier */
               durable:['Shortsword','Longsword','Broadsword'] },   /* v3 D5: Durable joins the FTUE */
     recipePages: 3,
+    bookToastQuietPart: 1,   /* R12 (owner, 2026-10-26): no "recorded in the craft book" toast through Part 1 (the first four swords) */
     tc2Ore: { iron:1, manganese:1 },   /* v3 D22: exactly this when TC2 arrives - raw, it misses Balanced */
     tc2Craft: { iron:1, manganese:1 },
     /* after: the stage the last GPC sale leaves behind - the bell that brings the next part's TC */
@@ -2776,6 +2777,7 @@ function ftueTraitKey(ids){ ids=ids||[];
 function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
+function ftueBookToastQuiet(){ return !SM_FREE && !FTUE_ST.done && FTUE_ST.part<=FTUE.bookToastQuietPart; }   /* R12 */
 let FTUE_ST = ftueFresh(), BUILD_ON = false;
 const DECOR_SCREENS = ['customer','shop','bedroom'];
 function ftueShapeOpen(trait, shape){ return shape===FTUE.startShape || !!FTUE_ST.shapes[trait+':'+shape]; }
@@ -6066,8 +6068,8 @@ function tryAcquire(){
             if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();   /* 2026-10-14 */
             if(bt.id==='gale') tutGaleGot();   /* r126 */
             const sayNew=(SAY_ON && SAY_ON!==sayWas) ? SAY_ON : null;   /* R4: a line these hooks said (D42, D76, D99, D106) */
-            showAcquire(bt,tier,melt.traits.length,firstFind); TUT_ACQ_LINE=sayNew;   /* the window closes it (r286); it comes back with tutAcqLineBack */
-            if(isNew) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
+            if(firstFind){ showAcquire(bt,tier,melt.traits.length,true); TUT_ACQ_LINE=sayNew; } else tutShapeStep();   /* the window closes it (r286); it comes back with tutAcqLineBack. R12: the window is for a first discovery only */
+            if(isNew && !ftueBookToastQuiet()) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);
             hint('Took <b style="color:'+tierColor(tier)+'">'+bt.symbol+' '+bt.name+' — '+tier+'</b> ('+melt.traits.length+' total). Drag the <b>hot metal</b> to the <b>anvil</b> to shape it, or back into the <b>smelter</b> for another trait.'); }, 450);   /* smelter version: the gate's embers, then the trait window */
     } else hint('The sword is not on a trait: drag the <b>bellows</b> up and down to move it onto one.');
 }

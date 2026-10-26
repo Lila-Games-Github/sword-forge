@@ -14,7 +14,7 @@ continuation prompt printed at close time.
   (reference only). `?freeplay` starts free play instead of the tutorial (a test aid).
 - **The tutorial is reworked to it (R0-R9, branch `sword-forge/ftue-smelter-rework`).** Plan, the owner's decisions,
   every line and code change, and the build log: **`specs/2026-10-23-ftue-smelter-rework-plan.md`**. 199 dialogue keys
-  (D5, D7, D39, D40 removed; ~27 lines reworded). The FTUE test is GREEN at 709, the smelter test at 66 (R11: TC5's swift metal is allowed at the gate).
+  (D5, D7, D39, D40 removed; ~27 lines reworded). The FTUE test is GREEN at 713, the smelter test at 66 (R11: TC5's swift metal is allowed at the gate; R12: the trait window for a first discovery only, no craft-book toast in Part 1).
 - **Verified:** each part's crafts in the browser (staged per part), and Part 1 played continuously from a new game
   through GC1's sale. **Not yet:** a continuous play of Parts 2-6, and any play on a phone (the bellows, the ladle and the
   blade by finger). Fixed on the way: lines said as the trait window opens (D42, D76, D99, D106) had been closed at once
@@ -252,7 +252,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 199 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 709 checks; the smelter test GREEN at 66; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 713 checks; the smelter test GREEN at 66; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
