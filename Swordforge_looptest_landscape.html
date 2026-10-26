@@ -6344,8 +6344,9 @@ function renderMarket(){
             const b=document.createElement('button'); b.type='button'; b.dataset.k=k+':'+sh;
             if(marketShapes(k).indexOf(sh)<0){ b.className='mk-cell none'; col.appendChild(b); return; }
             const st=marketRow(k, sh, marketCtx(k, sh)), pr=marketPrice(k, sh);
-            b.className='mk-cell '+st;
-            b.innerHTML = st==='free' ? 'Free' : st==='owned' ? '\u2713' : (st==='closed'||st==='unknown') ? '\u{1F512}'+pr : '\u{1FA99}'+pr;
+            const gift=st!=='owned' && st!=='free' && ftueDragonPays(k, sh);   /* R13: locked, no price */
+            b.className='mk-cell '+(gift ? 'closed gift' : st);
+            b.innerHTML = gift ? '\u{1F512}' : st==='free' ? 'Free' : st==='owned' ? '\u2713' : (st==='closed'||st==='unknown') ? '\u{1F512}'+pr : '\u{1FA99}'+pr;
             b.title = (known ? TRAIT_BY[k].name : '?')+' '+sh+(pr ? ' - '+pr+'g' : '');
             b.addEventListener('click', ()=>marketBuy(k, sh));
             col.appendChild(b); });
@@ -6408,7 +6409,7 @@ function ftueMarketBought(k, sh){
 /* the player buys */
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
-    if(FTUE_MK && FTUE_MK.step==='gift') return;   /* the dragon is paying */
+    if((FTUE_MK && FTUE_MK.step==='gift') || ftueDragonPays(k, sh)) return;   /* the dragon is paying. R13: or will pay for it */
     if(st==='buy' && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }   /* r301 (owner): only the order's blueprint */
     if(FTUE_MK && FTUE_MK.step==='buy' && (k!==FTUE_MK.o.trait || sh!==FTUE_MK.o.shape) && st==='buy'){
         toast('Buy the <b>'+orderLabel(TRAIT_BY[FTUE_MK.o.trait].name, FTUE_MK.o.shape)+'</b> blueprint first'); return; }
@@ -6692,9 +6693,9 @@ function shapeGrid(){
     const g=document.querySelector('#sfShapeModal .sf-shape-grid'); if(!g) return;
     const k=shapeTraitKey(); g.innerHTML='';
     marketShapes(k).forEach(sh=>{   /* v3: every shape the trait has; locked ones say where to get them */
-        const open=ftueShapeOpen(k, sh), b=document.createElement('button');
+        const open=ftueShapeOpen(k, sh), gift=!open && ftueDragonPays(k, sh), b=document.createElement('button');   /* R13: the dragon's to buy */
         b.type='button'; b.className='sf-shape'+(open?'':' locked'); b.dataset.shape=sh;
-        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open ? '' : '<b class="sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here. r301: greyed if the gold cannot cover it */
+        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open || gift ? '' : '<b class="sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here. r301: greyed if the gold cannot cover it */
         const req=custShapeFor(k)===sh;   /* owner, 2026-10-08: the shape the customer asked for, in the whole game */
         if(req) b.classList.add('sf-req');
         b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ shapeBuy(k, sh); return; } selectShape(sh); });   /* r299: a locked shape is bought from here */
@@ -6729,8 +6730,11 @@ function ftueBlueprintOk(k, sh){ if(FTUE_ST.done) return true;
     const hit=it=>it.trait===k && (!it.shape || it.shape===sh), o=ftueOrderOpen();
     if(o && (o.items ? o.items.some(hit) : hit(o))) return true;
     return (FTUE_ST.waiting||[]).some(e=>(e.items||[]).some(hit)); }
+/* R13 (owner, 2026-10-26): the blueprint the dragon buys for the open order is his to buy - no BUY, and a tap buys nothing */
+function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.o.market && m.o.market.by==='dragon' && m.o.trait===k && m.o.shape===sh); }
 /* r299 (owner, 2026-10-21): buy a blueprint from the shape window - the market's price, checks, gold and quests */
 function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
+    if(ftueDragonPays(k, sh)) return;   /* R13 */
     if(!ftueBlueprintOk(k, sh)){ ftueSaySh('D28m'); return; }   /* r301 (owner): only the order's blueprint in the tutorial */
     if(st==='closed'){ toast('Play more to unlock'); return; }
     if(st==='unknown'){ toast('Discover this trait first'); return; }

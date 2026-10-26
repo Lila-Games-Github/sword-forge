@@ -328,6 +328,18 @@ eq('ftueBookToastQuiet reads it (free play and a finished FTUE keep the toast)',
   src.includes('function ftueBookToastQuiet(){ return !SM_FREE && !FTUE_ST.done && FTUE_ST.part<=FTUE.bookToastQuietPart; }'), true);
 eq('the gate toasts a new page only when not quiet', src.includes("if(isNew && !ftueBookToastQuiet()) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);"), true);
 eq('the trait window opens on a first discovery only; a re-take goes straight on', src.includes('if(firstFind){ showAcquire(bt,tier,melt.traits.length,true); TUT_ACQ_LINE=sayNew; } else tutShapeStep();'), true);
+/* R13 (owner, 2026-10-26): a blueprint the dragon buys for the open order cannot be bought by the player */
+eq('ftueDragonPays: the open order\'s blueprint, when the dragon buys it',
+  src.includes("function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.o.market && m.o.market.by==='dragon' && m.o.trait===k && m.o.shape===sh); }"), true);
+eq('the shape window shows no BUY on it', src.includes("const open=ftueShapeOpen(k, sh), gift=!open && ftueDragonPays(k, sh), b=document.createElement('button');")
+  && src.includes("<span>'+sh+'</span>'+(open || gift ? '' : '<b class=\"sf-buy'"), true);
+eq('a tap on it buys nothing (the shape window)', /function shapeBuy\(k, sh\)\{[^\n]*\n\s*if\(ftueDragonPays\(k, sh\)\) return;/.test(src), true);
+eq('a tap on it buys nothing (the market)', /function marketBuy\(k, sh\)\{\s*const st=[^\n]*\n\s*if\(\(FTUE_MK && FTUE_MK\.step==='gift'\) \|\| ftueDragonPays\(k, sh\)\) return;/.test(src), true);
+eq('the market shows it locked, with no price', src.includes("const gift=st!=='owned' && st!=='free' && ftueDragonPays(k, sh);")
+  && src.includes("b.className='mk-cell '+(gift ? 'closed gift' : st);") && src.includes("b.innerHTML = gift ? '\\u{1F512}' : st==='free'"), true);
+eq('six orders are the dragon\'s', [1, 3, 5].flatMap(p => FTUE.parts[p].gpc).concat([FTUE.bramBlueprint]).filter(o => o.market && o.market.by === 'dragon')
+  .map(o => o.trait + ':' + o.shape), ['balanced:Longsword', 'balanced:Broadsword', 'fire:Longsword', 'fire:Broadsword', 'gale:Longsword', 'swift:Dagger']);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */

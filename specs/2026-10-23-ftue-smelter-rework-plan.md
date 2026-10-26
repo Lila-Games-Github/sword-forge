@@ -325,3 +325,14 @@ yours and come on top.
   and R4 checks read the new call). Checked in the browser: four Balanced takes in Part 1 -> the window once, no toast;
   Fire in Part 2 -> the window and the toast once; a GC re-take at `p1-craft-heat` -> no window, stage
   `p1-craft-shape`, the pointer from the metal to the anvil; no console errors.
+- **R13 (2026-10-26, owner): the dragon's blueprints cannot be bought by the player.** Owner: "make sure, the sword that
+  are bought by the dragon, players cannot click on the buttons and buy it themselves." Six tutorial orders have the
+  dragon buy the blueprint (`market.by` 'dragon': GC1's Longsword, GC2's Broadsword, GC5's fire Longsword, GC6's fire
+  Broadsword, the gale Longsword, Bram's swift Dagger). Until his coins landed, the shape window showed "BUY Xg" on that
+  shape and the market cell was buyable, so a player with the gold could buy it first. Now `ftueDragonPays(k, sh)`
+  (the open order's blueprint, `FTUE_MK`, when the dragon buys it) hides the BUY in the shape window, shows the market
+  cell locked with no price, and `shapeBuy` / `marketBuy` refuse a tap. The dragon's own purchase does not go through
+  either, so it is unchanged. FTUE test 713 -> 719 (written first). Checked in the browser (GC1's Longsword order, 1000
+  gold): the market cell a lock, a tap left the gold at 1000; the shape window's Longsword a lock with no BUY, a tap
+  bought nothing, the dragon's coins then bought it (owned, gold 1000); the other shapes kept their BUY; no console
+  errors.
