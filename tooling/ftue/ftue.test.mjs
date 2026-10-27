@@ -310,8 +310,15 @@ eq('GC8: the bellows while it travels; parked in the Weak band, D107b and the ga
 eq('no hammer to send home, no mug pointer left', !/homeHammer\(\)/.test(src.replace(/function homeHammer\(\)\{/, '')) && !/tutMugPointer/.test(src), true);
 
 /* R7 (2026-10-23): parts 5-6 - Bram's stored swift metal comes back at the gate; Garric's solo run gets no dip arrow */
-eq('a stored ingot comes back hot at the gate (one stored on the anvil too), so the anvil opens the shaping', /function restoreIngot\(id\)\{[\s\S]{0,1200}if\(melt\.stage==='onAnvil'\) melt\.stage='hot';[\s\S]{0,400}orbEl\.style\.display='block'; updateOrbLook\(\); snapToGate\(\);/.test(src), true);
-eq('Bram\'s metal back: D44, the arrow from it to the anvil', /function tutBram2Restored\(\)\{[\s\S]{0,300}sayQueue\('D44'\);[^\n]*\n\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
+/* R18 (owner, 2026-10-27): R7 sent a stored ingot to the gate, hot, though it is dropped on the anvil - it lands on the anvil now */
+eq('a stored ingot dropped on the anvil lands on the anvil (the anvil opens the shaping)', /function restoreIngot\(id\)\{[\s\S]{0,1800}orbEl\.style\.display='block'; placeOnAnvil\(\);/.test(src)
+  && !/function restoreIngot\(id\)\{[^]*?\n\}/.exec(src)[0].includes('snapToGate') && !src.includes("if(melt.stage==='onAnvil') melt.stage='hot';"), true);
+eq('its heat is the heat it was stored with', /function restoreIngot\(id\)\{[\s\S]{0,1300}melt=\{ heat:g\.heat,/.test(src), true);
+eq('the bag keeps an ingot\'s heat: no cooling while it waits', src.includes('const STASH_COOL = 0;'), true);
+eq('storing says so', src.includes("hint('Ingot stored. It keeps its ores, its route, its traits and its heat.');"), true);
+eq('Bram\'s metal on the anvil: D113 goes, no D44 or arrow (the shape window opens)', /function tutBram2Restored\(\)\{\s*if\(TUT_STAGE!=='bram2-ingot'\) return;\s*TUT_STAGE='bram2-shape'; tutArrow\(null,null\); FTUE_ST\.swiftFree=true;[^\n]*\n\s*if\(SAY_ON==='D113'\) sayHide\(\);[^\n]*\n\}/.test(src), true);
+eq('(R7, replaced by R18) no stored ingot comes back at the gate', /function restoreIngot\(id\)\{[\s\S]{0,1200}if\(melt\.stage==='onAnvil'\) melt\.stage='hot';[\s\S]{0,400}orbEl\.style\.display='block'; updateOrbLook\(\); snapToGate\(\);/.test(src), false);
+eq('(R7, replaced by R18) no D44 and arrow for Bram\'s metal', /function tutBram2Restored\(\)\{[\s\S]{0,300}sayQueue\('D44'\);/.test(src), false);
 
 /* R8 (2026-10-23): no gate-on-heat left */
 eq('markGateReady (the gate on heat) is gone', src.includes('markGateReady'), false);

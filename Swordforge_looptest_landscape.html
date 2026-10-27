@@ -7612,7 +7612,7 @@ function spendList(list,times){ for(let k=0;k<(times||1);k++) (list||[]).forEach
 const INV = { ingots: [], swords: [] };
 let INV_TAB = 0;                    // 0 ingredients, 1 ingots, 2 swords, 3 decor
 let INV_SEQ = 1;
-const STASH_COOL = 3.5;             // heat an ingot loses per second while it sits in the rack
+const STASH_COOL = 0;               // heat an ingot loses per second while it sits in the rack. R18 (owner): none - it keeps its heat (was 3.5)
 function benchBusy(){ return !!prep || !!melt; }
 function invCooled(g){ return Math.max(0, g.heat - STASH_COOL*(performance.now()-g.at)/1000); }
 // An ingot is melt + segs + sword (see the r60 header). Traits go in by id so the record is plain data.
@@ -7636,7 +7636,7 @@ function stashIngot(){
     if(!melt || (melt.stage!=='hot' && melt.stage!=='onAnvil')) return false;
     INV.ingots.push(ingotSnapshot());
     benchClear(); invTab(1); tutSwiftStored();   /* r124 */
-    hint('Ingot stored. It keeps its ores, its route and its traits &mdash; but it <b>cools</b> while it sits.');
+    hint('Ingot stored. It keeps its ores, its route, its traits and its heat.');
     return true;
 }
 /* r128: drag an ingot out of the bag and drop it on the anvil. */
@@ -7670,17 +7670,16 @@ function restoreIngot(id){
         sayQueue(FTUE.swiftLine); if(INV_TAB===1) buildShelf(); return; }
     const g=INV.ingots.splice(i,1)[0];
     setTimeout(tutBram2Restored, 0);   /* r127 */
-    melt={ heat:invCooled(g), hp:g.hp, hazSeen:(g.hazSeen||[]).slice(), smeltT0:performance.now(), stage:g.stage,
+    /* R18 (owner, 2026-10-27): it is dropped on the anvil, so it lands there, with the heat it was stored with (R7 sent it
+       to the gate, hot, and the bag cooled it by the second, so its heat depended on how long it waited) */
+    melt={ heat:g.heat, hp:g.hp, hazSeen:(g.hazSeen||[]).slice(), smeltT0:performance.now(), stage:g.stage,
            reachedTrait:null, alignDist:null, acquiredTrait:null, tier:null,      // the tick recomputes these
            traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
-    if(melt.stage==='onAnvil') melt.stage='hot';   /* R7 (smelter loop): back hot at the gate - the anvil opens the shaping */
     segs=g.segs.map(x=>({...x, origin:{...x.origin}}));
     sword={seg:g.sword.seg, frac:g.sword.frac}; pull=g.pull?{x:g.pull.x, y:g.pull.y}:{x:0,y:0};   /* r197 */
     const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); ensureSwordVisible();
-    orbEl.style.display='block'; updateOrbLook(); snapToGate();
+    orbEl.style.display='block'; placeOnAnvil();
     updateGauges(); updateHpPill(); setTimeout(updateSfTraits,0); invTab(1);
-    hint(melt.heat<2 ? 'Back on the bench &mdash; stone cold. Drag it to the <b>furnace</b> and re-heat before it will travel.'
-                     : 'Back on the bench, still warm. Its route and traits are exactly where you left them.');
 }
 function invTab(i){
     INV_TAB=i;
@@ -8876,8 +8875,7 @@ function tutBram2Forge(){
 function tutBram2Restored(){
     if(TUT_STAGE!=='bram2-ingot') return;
     TUT_STAGE='bram2-shape'; tutArrow(null,null); FTUE_ST.swiftFree=true;   /* r205 */
-    sayQueue('D44');   /* the same instruction as the fire sword's. R7: "Take the hot metal to the anvil" - it is back at the gate */
-    setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0);
+    if(SAY_ON==='D113') sayHide();   /* R18: it was dropped on the anvil, as D113 asked, and the shape window opens (R7 said D44 and pointed from the gate) */
 }
 function tutBram2Hammering(){ if(TUT_STAGE==='bram2-shape'){ TUT_STAGE='bram2-forge2'; tutUnglow(); } }
 function tutBram2Crafted(){

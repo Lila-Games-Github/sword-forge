@@ -391,3 +391,17 @@ yours and come on top.
   Fire Longsword, 40% health, 4 hazards, Crude 42% -> "-14g" with "4 hazards: -1 tier", "-8g Crude", 32g, the paper with
   three ore rows only; the first lesson D17b (hammer row) -> OK -> D17a (arrow) -> the arrow -> D17c (ores) -> OK -> CLOSE
   lit; the hurt lesson D69d (Health row) -> OK -> CLOSE lit; every tap hit-tested; no console errors.
+- **R18 (2026-10-27, owner play-test): a stored metal dropped on the anvil lands on the anvil, its heat kept.** Owner: "on
+  dragging the metal from the inventory (during bram's second visit) to the anvil, there is a bug that snaps the matl to
+  the smelter gate instead, makes it hot. ... I want to be able to directly place the metal from inventory to anvil, the
+  heat level should not change randomly." Cause: R7 (2026-10-23) made `restoreIngot` turn every stored metal 'hot' and
+  `snapToGate()` it, though the only way in is a drop on the anvil (`startIngotDrag` restores only `overAnvilEvent`);
+  and the bag cooled a metal by `STASH_COOL` 3.5 heat a second (`invCooled`), so the heat it came back with depended on
+  how long it had waited. Now `restoreIngot` puts it on the anvil with `placeOnAnvil()` (stage onAnvil; with a trait the
+  shape window opens, as for any metal put there), with the heat it was stored with (`g.heat`); `STASH_COOL` is 0, so the
+  bag keeps it (the stash hint says so). Bram's step (`tutBram2Restored`) drops D113 and no longer says D44 or points from
+  the gate: the shape window opens and the dragon buys the Dagger blueprint there. R7's two checks now assert their
+  absence. FTUE test 740 -> 745 (written first). Checked in the browser (PART 5 jump, Bram's step `bram2-ingot`, the
+  stored swift metal at heat 60, a real drag from its slot to the anvil after a wait): the metal on the anvil (not the
+  gate), heat 60, stage onAnvil, D113 gone, no arrow, the shape window open with the dragon's Dagger purchase (D28c); no
+  console errors.
