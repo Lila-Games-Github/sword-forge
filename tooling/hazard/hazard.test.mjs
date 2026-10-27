@@ -73,8 +73,9 @@ eq('tutHazardStep waits for the fire run', src.includes('if(TUT_SAIDHAZ || TUT_F
 eq('PART 2-3 jumps leave the hazard lines unsaid', src.includes('TUT_SAIDBOOK=true; TUT_SAIDMUG=true;') && src.includes('if(n>=4) TUT_SAIDHAZ=true;'), true);
 /* r217 (owner, 2026-10-01): "Integrity" is "Health" to the player, and the row shows the gold lost, in red */
 /* 2026-10-09: the new craft window - Health and the gold lost (in red) on its details paper */
-eq('craft window row is Health, gold lost in red', src.includes("'Health '+Math.round(hp*100)+'%'+(w.hp!=null ? '<br><small>'+hazLostHtml(w)+'</small>' : '')"), true);
-eq('the row names the gold lost', src.includes("'Gold lost: <span class=\"cr-lost\">-'+lost+'g</span>'"), true);
-eq('gold lost = full-health base minus base', src.includes('const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);'), true);
+/* R17 (owner, 2026-10-27): the Health row is on the card - the heart, its % under it, the gold lost on the right */
+eq('craft window row is Health, gold lost in red', src.includes('<div class="cw-box cw-row" id="cwHpRow">') && src.includes("document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w);"), true);
+eq('the row shows the gold lost', src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')"), true);
+eq('gold lost = full-health base minus base', src.includes("const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0"), true);
 eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
 console.log('[hazard] GREEN / ' + n + ' checks');

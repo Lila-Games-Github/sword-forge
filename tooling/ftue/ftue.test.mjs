@@ -918,16 +918,30 @@ eq('a request reads "1X Fire Claymore"', src.includes("function waitLabel(it){ r
 eq('the call-back question', src.includes('Call this customer back?') && src.includes('>WAIT LONGER<'), true);
 eq('someone already at the counter', src.includes('There is already a customer at the counter.'), true);
 /* owner, 2026-10-09: the crafted window at the wireframe's size - the card fills ~88% of the height (470 px wide in the 1080x600 frame) */
-eq('the crafted card is wireframe-sized', src.includes('.cw-stage { position: relative; width: 470px;') && src.includes('.cw-main .cr-art { height: 200px;'), true);
+eq('the crafted card is wireframe-sized (R17: the art 150 px, for the two stat rows)', src.includes('.cw-stage { position: relative; width: 470px;') && src.includes('.cw-main .cr-art { height: 150px;'), true);
 /* owner, 2026-10-09: the QUEST button glows green while a finished quest waits to be claimed */
 eq('the glow follows "something to claim"', src.includes("function questBtnUi(){ const b=document.getElementById('questBtn'); if(b) b.classList.toggle('qs-ready', QUESTS.some(q=>q.done && !q.claimed)); }"), true);
 eq('it is refreshed when a quest finishes, is claimed, and on load', /function bumpQuest\(id,n\)\{[\s\S]{0,600}questBtnUi\(\)/.test(src)
   && /function claimQuest\(id, btn\)\{[\s\S]{0,200}questBtnUi\(\)/.test(src) && /function applyState\(o\)\{[\s\S]*?questBtnUi\(\)/.test(src), true);
 eq('the green glow', src.includes('#questBtn.qs-ready {'), true);
 /* owner, 2026-10-09: the new "Sword crafted!" window (wireframes in assets/Anchor-images/Sword_crafted_*.png) */
-eq('the main card: title, art, name line, heart + hammer, ores, gold, CLOSE', ['<h3 class="cw-title">Sword crafted!</h3>', 'id="cwName"',
-  'class="cw-fill cw-hp"', 'class="cw-fill cw-hm"', 'id="cwOreN"', 'id="cwGold"', '<button class="cw-close" type="button" onclick="closeCraft()">Close</button>']
-  .every(t => src.includes(t)), true);
+eq('the main card: title, art, name line, heart + hammer with their gold, gold, CLOSE (R17: no ores)', ['<h3 class="cw-title">Sword crafted!</h3>', 'id="cwName"',
+  'class="cw-fill cw-hp"', 'class="cw-fill cw-hm"', 'id="cwHpEff"', 'id="cwHmEff"', 'id="cwGold"', '<button class="cw-close" type="button" onclick="closeCraft()">Close</button>']
+  .every(t => src.includes(t)) && !src.includes('id="cwOreN"'), true);
+/* R17 (owner, 2026-10-27): Health and hammering on the card - icon, percentage under it, the gold effect on the right; the
+   paper shows only the ores */
+{ const card = (src.match(/<div class="cw-main">([\s\S]*?)<button class="cw-close"/) || [])[1] || '', paper = (src.match(/<div class="cw-paper" id="cwPaper">([\s\S]*?)<\/div>\s*<div class="cw-main">/) || [])[1] || '';
+  eq('the card\'s rows: Health, then hammering, each the icon + % and the gold effect', /<div class="cw-stats">(?:<!--[^>]*-->)?\s*<div class="cw-box cw-row" id="cwHpRow"><span class="cw-stat"><span class="cw-fill cw-hp"[\s\S]*?<span class="cw-pct" id="cwHpPct"><\/span><\/span><span class="cw-eff" id="cwHpEff"><\/span><\/div>\s*<div class="cw-box cw-row" id="cwFgRow"><span class="cw-stat"><span class="cw-fill cw-hm"[\s\S]*?<span class="cw-pct" id="cwHmPct"><\/span><\/span><span class="cw-eff" id="cwHmEff"><\/span><\/div>\s*<\/div>/.test(card), true);
+  eq('the paper: the ores and its arrow, nothing else', paper.includes('<div class="cw-drow cw-dores" id="cwOres"></div>') && paper.includes('id="cwTab"')
+    && !/cwHpRow|cwFgRow|cwHpTxt|cwFgTxt/.test(paper), true); }
+eq('the Health gold: the full-health price minus the price (red), else "No loss"; a tier drop noted under it',
+  src.includes("function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);")
+  && src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }"), true);
+eq('the hammering gold: the price minus the unforged price (+ green, - red), else "No change"; the band under it',
+  src.includes("function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged }));")
+  && src.includes("return (d>0 ? '<span class=\"cw-up\">+'+d+'g</span>' : d<0 ? '<span class=\"cr-lost\">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }"), true);
+eq('showCraft fills them', src.includes("document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);"), true);
+eq('a lit card row keeps its orange edge', src.includes('#sfCraftModal .cw-box.tut-lit-ctl, #sfCraftModal .cw-drow.tut-lit-ctl'), true);
 eq('the paper behind it, and the arrow that slides it out', src.includes('<div class="cw-paper" id="cwPaper">') && src.includes('onclick="craftDetails()"')
   && src.includes('.cw-stage.open .cw-main {'), true);
 eq('one line: tier, trait, shape (several traits: "Epic Fire, Fine Swift Longsword")', src.includes("function craftName(w){"), true);
@@ -945,18 +959,22 @@ eq('D17c text', line('D17c'), 'This shows how much ore you used for the sword.')
 eq('once per game, saved with the FTUE state', /function ftueFresh\(\)\{ return \{[^\n]{0,300}cwSeen:false/.test(src), true);
 eq('the PART jumps skip it', src.includes('FTUE_ST.market=true; FTUE_ST.cwSeen=true;'), true);
 eq('the window starts it', /function showCraft\(w, n, after\)\{[\s\S]*?cwLessonStart\(\);\r?\n\}/.test(src), true);
-eq('the arrow opens the rows lesson', /function craftDetails\(\)\{[\s\S]{0,800}CW_LESSON==='arrow'[\s\S]{0,200}sayQueue\('D17b','D17c'\)/.test(src), true);
+/* R17: the hammer row is on the card now, so D17b comes first (the row lit), then D17a (the arrow), then the paper's D17c */
+eq('the window opens on D17b and the hammer row', src.includes("function cwLessonStart(){ if(FTUE_ST.cwSeen || FTUE_ST.done) return; FTUE_ST.cwSeen=true; CW_LESSON='hammer';")
+  && src.includes("setTimeout(()=>{ if(CW_LESSON!=='hammer') return; cwLit('#cwFgRow'); sayQueue('D17b'); cwLessonSay(); }, 350); }"), true);
+eq('closing D17b lights the arrow and says D17a', /D17b:function\(\)\{ if\(CW_LESSON==='hammer'\)\{ CW_LESSON='arrow'; cwLit\('#cwTab'\); sayQueue\('D17a'\); cwLessonSay\(\); \} \},/.test(src), true);
+eq('D17b keeps a continue button', /const SAY_GO_MORE=\{[^}]*D17b:1/.test(src), true);
+eq('the arrow opens the ores lesson', /function craftDetails\(\)\{[\s\S]{0,800}CW_LESSON==='arrow'[\s\S]{0,200}sayQueue\('D17c'\)/.test(src), true);
 eq('each line lights its own part', src.includes("if(id==='D17b' && CW_LESSON) cwLit('#cwFgRow');") && src.includes("if(id==='D17c' && CW_LESSON) cwLit('#cwOres');")
   && src.includes('id="cwFgRow"'), true);
 eq('after D17c the CLOSE button lights', /D17c:function\(\)\{ if\(CW_LESSON==='rows'\)\{ CW_LESSON='close'; cwLit\('#sfCraftModal \.cw-close'\);/.test(src), true);
 eq('D17c keeps a continue button', /const SAY_GO_MORE=\{[^}]*D17c:1/.test(src), true);
 eq('the lines sit over the window', /function cwLessonSay\(\)\{[^\n]*say-over-modal/.test(src), true);
 eq('closing ends the lesson', /function closeCraft\(\)\{\r?\n\s*cwLessonEnd\(\);/.test(src), true);
-/* owner, 2026-10-10: the hurt fire sword's window - D69d lights the arrow, the paper's Health row, then CLOSE */
+/* owner, 2026-10-10: the hurt fire sword's window - D69d lights the Health row, then CLOSE. R17: the row is on the card, no arrow first */
 eq('the hurt fire sword starts the Health lesson', src.includes("if(fireHurt) setTimeout(()=>cwHurtStart(), 350);"), true);
-eq('D69d waits on the arrow', src.includes("function cwHurtStart(){ if(CW_LESSON) return; CW_LESSON='hp-arrow'; cwLit('#cwTab'); sayQueue('D69d'); cwLessonSay(); }"), true);
-eq('opening the paper lights the Health row', src.includes("CW_LESSON==='hp-arrow'){ CW_LESSON='hp-row'; cwLit('#cwHpRow');") && src.includes('id="cwHpRow"'), true);
-eq('D69d has no continue until the paper is out', src.includes("if(id==='D69d' && CW_LESSON==='hp-arrow') sayGoIcon(go,'none');"), true);
+eq('D69d lights the card\'s Health row', src.includes("function cwHurtStart(){ if(CW_LESSON) return; CW_LESSON='hp-row'; cwLit('#cwHpRow'); sayQueue('D69d'); cwLessonSay(); }") && src.includes('id="cwHpRow"'), true);
+eq('no arrow step left in the Health lesson', !src.includes('hp-arrow'), true);
 eq('closing D69d lights CLOSE', src.includes("D69d:function(){ if(CW_LESSON==='hp-row'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close');"), true);
 eq('CLOSE ends it too', src.includes("if(['D17a','D17b','D17c','D69d'].indexOf(SAY_ON)>=0) sayHide();"), true);
 /* owner, 2026-10-13: the pickaxe never goes in the bag - it lies in the cave at one spot, and every arrival puts it back there */

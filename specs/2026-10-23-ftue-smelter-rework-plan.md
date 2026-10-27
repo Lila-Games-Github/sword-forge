@@ -373,3 +373,21 @@ yours and come on top.
   FTUE test 727 -> 732 (written first). Checked in the browser (the first sword's minigame): D13 -> the anvil, metal,
   hammer, quench tray and footer dark, the dragon and the bubble lit; OK (hit-tested) -> D14, the dark gone; the minigame
   cancelled over D13 -> no dark left; no console errors.
+- **R17 (2026-10-27, owner): the "Sword crafted!" window rearranged.** Owner (a screenshot of the window, paper out): "Show
+  the health and hammer info on the left side of the window only. On the expandable window, only show the ores used. It
+  should be like this - Health icon, percentage below it, money lost because of damage on health on the right. Below the
+  Health, we will have the hammering info, percentage below it, then the gold value affect on the right. The total gold
+  will show as it is right now." Now the card has two rows (`#cwHpRow`, `#cwFgRow`, ids kept from the paper): the heart
+  or hammer filled to its percentage, the percentage under it, and on the right the gold effect. Health:
+  `cwHpEffHtml` = the full-health price minus the price, in red ("-14g"), else "No loss", with "N hazards: -k tier" under
+  it when tiers dropped (the old `hazLostHtml`, which only the paper read). Hammering: `cwHmEffHtml` = the price minus
+  the price at `HM_HITS.unforged` (Good, x1.0), "+13g" in green, "-8g" in red, else "No change", with the band under it.
+  The card's ore box is gone; the paper shows only the ores (`#cwOres`). The art is 150 px (was 200) so the card still
+  fits the frame (it spans 37-563 of 600). The lessons follow the rows: the first window now says D17b on the hammer row
+  first, then D17a on the arrow (`SAY_AFTER.D17b`), then D17c on the ores once the paper is out, then CLOSE; the hurt fire
+  sword's D69d lights the card's Health row directly (no arrow step, `hp-arrow` removed). The dialogue texts are
+  unchanged. FTUE test 732 -> 740, hazard test still 37 (its Health-row checks read the new row; written first). Checked
+  in the browser: an Epic Balanced Shortsword, Masterwork 97%, full health -> "No loss", "+13g Masterwork", 57g; a Fine
+  Fire Longsword, 40% health, 4 hazards, Crude 42% -> "-14g" with "4 hazards: -1 tier", "-8g Crude", 32g, the paper with
+  three ore rows only; the first lesson D17b (hammer row) -> OK -> D17a (arrow) -> the arrow -> D17c (ores) -> OK -> CLOSE
+  lit; the hurt lesson D69d (Health row) -> OK -> CLOSE lit; every tap hit-tested; no console errors.

@@ -949,9 +949,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     padding: 36px 22px 44px; box-shadow: 0 14px 40px rgba(0,0,0,.55); text-align: center; transition: transform .35s ease; }
 .cw-title { position: absolute; left: 50%; top: -24px; transform: translateX(-50%); margin: 0; padding: 10px 24px; white-space: nowrap;
     background: #fdf0c8; border: 4px solid #e0b545; border-radius: 12px; font: 700 22px/1 'Cinzel', serif; color: #3f2c12; }
-.cw-main .cr-art { height: 200px; margin: 2px 0 10px; }
+.cw-main .cr-art { height: 150px; margin: 2px 0 8px; }   /* R17: 200 -> 150, room for the two stat rows */
 .cw-name { font: 700 21px/1.25 Georgia, serif; color: #2e2010; margin: 0 0 12px; }
 .cw-stats { display: flex; gap: 14px; margin: 0 0 12px; }
+/* R17 (owner, 2026-10-27): Health and hammering, one row each - the icon and its % on the left, the gold it made or cost on the right */
+#sfCraftModal .cw-stats { flex-direction: column; gap: 8px; }
+#sfCraftModal .cw-row { justify-content: space-between; height: 70px; padding: 0 30px; box-sizing: border-box; }   /* over .cw-box's centring */
+#sfCraftModal .cw-row .cw-fill { font-size: 36px; }
+.cw-eff { font: 700 26px/1.1 Georgia, serif; color: #2e2010; text-align: right; }
+.cw-eff small { display: block; font: 600 14px/1.2 Georgia, serif; color: #6b5634; }
+.cw-up { color: #2e8b3a; }
 .cw-box { flex: 1; display: flex; align-items: center; justify-content: center; gap: 24px; height: 86px; border: 3px solid #e0b545; border-radius: 10px; background: rgba(255,250,232,.6); }
 .cw-fill { position: relative; display: inline-block; font-size: 46px; line-height: 1; }
 .cw-fill .bg { filter: grayscale(1); opacity: .3; }
@@ -978,7 +985,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     border-radius: 0 10px 10px 0; background: #fdf0c8; color: #e07b00; font-size: 20px; cursor: pointer; padding: 0; }
 .cw-stage.open .cw-main { transform: translateX(-40%); }
 /* 2026-10-10: the lesson's rows keep a steady orange edge under the pulse, so no frame of it reads as unlit */
-#sfCraftModal .cw-drow.tut-lit-ctl, #sfCraftModal .cw-tab.tut-lit-ctl, #sfCraftModal .cw-close.tut-lit-ctl { border-color: #ff9a1f; }
+#sfCraftModal .cw-box.tut-lit-ctl, #sfCraftModal .cw-drow.tut-lit-ctl, #sfCraftModal .cw-tab.tut-lit-ctl, #sfCraftModal .cw-close.tut-lit-ctl { border-color: #ff9a1f; }
 #sfSkillModal .st-node.tut-lit-ctl { outline: 4px solid #ff9a1f; outline-offset: 2px; }   /* 2026-10-10: Day 3's pickaxe node */
 .cw-stage.open .cw-paper { transform: translateX(56%); padding-left: 16px; }   /* out: no room needed for the card behind it */
 .sf-continue { text-align: center; font-size: 12px; font-weight: bold; color: #7a5a2b; cursor: pointer; padding: 8px 0 2px; margin-top: 10px; border-top: 1px solid #cbb98f; letter-spacing: .5px; }
@@ -2533,19 +2540,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="sfCraftModal" class="sf-modal">
         <div class="cw-stage" id="cwStage">
             <div class="cw-paper" id="cwPaper">
-                <div class="cw-drow" id="cwHpRow"><span class="cw-dic">❤️</span><span id="cwHpTxt"></span></div>
-                <div class="cw-drow" id="cwFgRow"><span class="cw-dic">🔨</span><span id="cwFgTxt"></span></div>
-                <div class="cw-drow cw-dores" id="cwOres"></div>
+                <div class="cw-drow cw-dores" id="cwOres"></div><!-- R17: only the ores; Health and hammering are on the card -->
                 <button class="cw-tab" id="cwTab" type="button" title="Details" onclick="craftDetails()">&#9654;</button>
             </div>
             <div class="cw-main">
                 <h3 class="cw-title">Sword crafted!</h3>
                 <div id="sfCraftArt" class="cr-art"></div>
                 <div class="cw-name" id="cwName"></div>
-                <div class="cw-stats">
-                    <div class="cw-box"><span class="cw-stat"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span><span class="cw-pct" id="cwHpPct"></span></span>
-                        <span class="cw-stat"><span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span><span class="cw-pct" id="cwHmPct"></span></span></div>
-                    <div class="cw-box"><img class="cw-ore" id="cwOre" src="" alt=""><span class="cw-n" id="cwOreN"></span></div>
+                <div class="cw-stats"><!-- R17: Health, then hammering - the icon, its % under it, the gold effect on the right -->
+                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-stat"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span><span class="cw-pct" id="cwHpPct"></span></span><span class="cw-eff" id="cwHpEff"></span></div>
+                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-stat"><span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span><span class="cw-pct" id="cwHmPct"></span></span><span class="cw-eff" id="cwHmEff"></span></div>
                 </div>
                 <div class="cw-gold"><span class="cw-coin">🪙</span><b id="cwGold"></b></div>
                 <button class="cw-close" type="button" onclick="closeCraft()">Close</button>
@@ -6571,11 +6575,12 @@ let CRAFT_SHOW=null, CRAFT_AFTER=null;   /* r291: CRAFT_ORE sits with the ore ch
 let CRAFT_FLY=[], CRAFT_FLYING=false;
 function craftArriving(id){ return CRAFT_FLY.indexOf(id)>=0 && (CRAFT_FLYING || document.getElementById('sfCraftModal').classList.contains('show')); }
 function oreTally(list){ const t={}; (list||[]).forEach(o=>{ t[o]=(t[o]||0)+1; }); return t; }
-/* r217 (owner): the Health row shows what the damage cost, in gold and in red, not a percentage */
-function hazLostHtml(w){
-    const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);
-    const tiers=hazTierDrop(w.haz), note=tiers ? ', '+w.haz+' hazards: -'+tiers+' tier' : '';
-    return lost>0 ? 'Gold lost: <span class="cr-lost">-'+lost+'g</span>'+note : 'No loss'+note; }   /* 2026-10-10: named */
+/* r217 (owner): the Health row shows what the damage cost, in gold and in red. R17 (owner, 2026-10-27): on the card, right of
+   the heart and its %; the hammer row beside it shows the gold the forging band made or cost against an unforged sword */
+function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);
+    return (lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }
+function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged }));
+    return (d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }
 /* owner, 2026-10-09: "Epic Balanced Shortsword"; several traits: "Epic Fire, Fine Swift Longsword" */
 function craftName(w){
     const t=(w.traits||[]).map(a=>{ const id=a.tid || (a.t && a.t.id), bt=TRAIT_BY[id];
@@ -6584,18 +6589,18 @@ function craftName(w){
 function cwFill(el, f){ if(el) el.style.setProperty('--f', Math.max(0, Math.min(1, f)).toFixed(3)); }
 function craftDetails(){ const st=document.getElementById('cwStage'), open=!st.classList.contains('open');
     st.classList.toggle('open', open); document.getElementById('cwTab').innerHTML = open ? '&#9664;' : '&#9654;';
-    if(open && CW_LESSON==='hp-arrow'){ CW_LESSON='hp-row'; cwLit('#cwHpRow'); sayQueue('D69d'); cwLessonSay(); }   /* said again: a continue now, and back if it was tapped away */   /* 2026-10-10 */
-    if(open && CW_LESSON==='arrow'){ CW_LESSON='rows'; setTimeout(()=>{ sayQueue('D17b','D17c'); cwLessonSay(); }, 380); } }   /* after the slide */
-/* owner, 2026-10-10: the first crafted window of the game teaches itself. D17a lights the arrow; opening
-   the paper brings D17b (the hammer row) and D17c (the ore row); closing D17c lights CLOSE. */
+    if(open && CW_LESSON==='arrow'){ CW_LESSON='rows'; setTimeout(()=>{ sayQueue('D17c'); cwLessonSay(); }, 380); } }   /* after the slide */
+/* owner, 2026-10-10: the first crafted window of the game teaches itself. R17 (2026-10-27): the hammer row is on the card, so
+   D17b (the hammer row) comes first; closing it lights the arrow with D17a; opening the paper brings D17c (the ores);
+   closing D17c lights CLOSE. */
 let CW_LESSON=null;
 function cwLit(sel){ document.querySelectorAll('#sfCraftModal .tut-lit-ctl').forEach(e=>e.classList.remove('tut-lit-ctl'));
     const e=sel ? document.querySelector(sel) : null; if(e) e.classList.add('tut-lit-ctl'); }
 function cwLessonSay(){ const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb) sb.classList.add('say-over-modal'); }
-function cwLessonStart(){ if(FTUE_ST.cwSeen || FTUE_ST.done) return; FTUE_ST.cwSeen=true; CW_LESSON='arrow';
-    setTimeout(()=>{ if(CW_LESSON!=='arrow') return; cwLit('#cwTab'); sayQueue('D17a'); cwLessonSay(); }, 350); }
-/* owner, 2026-10-10: the hurt fire sword - D69d lights the arrow; the open paper lights Health and its gold lost; then CLOSE */
-function cwHurtStart(){ if(CW_LESSON) return; CW_LESSON='hp-arrow'; cwLit('#cwTab'); sayQueue('D69d'); cwLessonSay(); }
+function cwLessonStart(){ if(FTUE_ST.cwSeen || FTUE_ST.done) return; FTUE_ST.cwSeen=true; CW_LESSON='hammer';
+    setTimeout(()=>{ if(CW_LESSON!=='hammer') return; cwLit('#cwFgRow'); sayQueue('D17b'); cwLessonSay(); }, 350); }
+/* owner, 2026-10-10: the hurt fire sword - D69d lights Health and its gold lost (R17: on the card, no arrow first); then CLOSE */
+function cwHurtStart(){ if(CW_LESSON) return; CW_LESSON='hp-row'; cwLit('#cwHpRow'); sayQueue('D69d'); cwLessonSay(); }
 function cwLessonEnd(){ if(!CW_LESSON) return; CW_LESSON=null; cwLit(null);
     if(['D17a','D17b','D17c','D69d'].indexOf(SAY_ON)>=0) sayHide(); }
 function showCraft(w, n, after){
@@ -6610,17 +6615,14 @@ function showCraft(w, n, after){
     art.appendChild(a);
     if(n>1){ const x=document.createElement('span'); x.className='cr-x'; x.textContent='\u00d7'+n; art.appendChild(x); }
     body.innerHTML=craftName(w);
-    const hp=(w.hp!=null ? w.hp : 100)/100, fq=w.quality || HM_HITS.unforged, acc=(w.forge!=null ? w.forge : null);
+    const hp=(w.hp!=null ? w.hp : 100)/100, acc=(w.forge!=null ? w.forge : null);
     cwFill(document.querySelector('#sfCraftModal .cw-hp'), hp);
     cwFill(document.querySelector('#sfCraftModal .cw-hm'), acc!=null ? acc : 0);
     document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';   /* r235 */
-    const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]), total=ids.reduce((n2,k)=>n2+tally[k],0);
-    const oi=document.getElementById('cwOre'); if(oi){ oi.src=ids.length && ORE_BY[ids[0]] ? ORE_BY[ids[0]].img : ''; oi.style.visibility=ids.length ? '' : 'hidden'; }
-    document.getElementById('cwOreN').textContent='x'+total;
+    const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]);
+    document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);   /* R17 */
     document.getElementById('cwGold').textContent=swordPrice(w)+'g'+(n>1 ? ' x'+n : '');
-    /* the paper: Health (and the gold the hazards cost, in red), the forging band and %, each ore */
-    document.getElementById('cwHpTxt').innerHTML='Health '+Math.round(hp*100)+'%'+(w.hp!=null ? '<br><small>'+hazLostHtml(w)+'</small>' : '');
-    document.getElementById('cwFgTxt').textContent=fq+(acc!=null ? ' '+Math.round(acc*100)+'%' : '');
+    /* the paper: each ore (R17: only the ores) */
     const ob=document.getElementById('cwOres'); ob.innerHTML='';
     ids.forEach(k=>{ const r=document.createElement('div'); r.className='cw-orow';
         r.innerHTML='<img src="'+(ORE_BY[k] ? ORE_BY[k].img : '')+'" alt=""><span>x'+tally[k]+'</span>'; r.title=oreName(k); ob.appendChild(r); });
@@ -9084,6 +9086,7 @@ function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
 const SAY_AFTER={ D97:function(){ openTiers(); },
                   D72a:function(){ if(TUT_STAGE==='fire-mang') tutForkDone(); },   /* 2026-10-13 */
                   D69d:function(){ if(CW_LESSON==='hp-row'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
+                  D17b:function(){ if(CW_LESSON==='hammer'){ CW_LESSON='arrow'; cwLit('#cwTab'); sayQueue('D17a'); cwLessonSay(); } },   /* R17 */
                   D17c:function(){ if(CW_LESSON==='rows'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },   /* r255: now tap him */
                   D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
@@ -10199,7 +10202,7 @@ const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, 
                     D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
    follows the tap even though no line does. */
-const SAY_GO_MORE={ D67a:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1 };   /* r300: the order lines end on an OK */   /* 2026-10-10: D17c - CLOSE lights after it */
+const SAY_GO_MORE={ D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1 };   /* r300: the order lines end on an OK */   /* 2026-10-10: D17c - CLOSE lights after it */
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x). Kept: D8, D9 and
    D16 hold the game until closed, and closing D19 opens the tier window. A line mid-run keeps its OK. */
 /* r288 (owner): lines that pause the game for themselves alone - their OK lifts the pause before the next line
@@ -10239,7 +10242,6 @@ function say(id){
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');
-    if(id==='D69d' && CW_LESSON==='hp-arrow') sayGoIcon(go,'none');
     if(id==='D69d' && CW_LESSON==='hp-row') cwLit('#cwHpRow');   /* 2026-10-10: the arrow is the way on */
     if(id==='D17b' && CW_LESSON) cwLit('#cwFgRow');
     if(id==='D17c' && CW_LESSON) cwLit('#cwOres');
