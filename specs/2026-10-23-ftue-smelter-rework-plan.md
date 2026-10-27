@@ -362,3 +362,14 @@ yours and come on top.
   up-and-down arrow on the bellows; TC4's ladle lesson (`tutTc4Pull`) -> the up arrow and the glow on the ladle; a drag
   from the handle's end upward tilted the ladle to 27.6 deg; a drag arrow, `tutDone` and the customer screen clear it, the
   forge screen brings it back; no console errors.
+- **R16 (2026-10-27, owner): D13 on a dark minigame.** Owner (a screenshot of D13 over the first sword's minigame): "for
+  this part, darken everything (use the existing black overlay look) except the dragon and dialogue." The existing dark
+  (`#tutHole`, SAY_DARK, STAGE_DARK) is a frame layer at z60; the minigame's dragon (`#hmDragon`) is inside the hammer
+  window's stacking context (z1000), so nothing at frame level can sit between it and the rest of the scene. Now the
+  hammer window has its own dim, `#hmDim` (inset 0, z10, the same rgba(6,4,2,.74) as `#tutHole`), shown by the class
+  `hm-dark`, which also lifts `#hmDragon` to z11; the line (`#dragonSay`, z1100) is over the window already.
+  `HM_SAY_DARK` ['D13'] lists the lines; `hmDarkSync()` sets the class while the window is open and one of them is up,
+  every frame (beside `tutDarkSync`) and in `say()`. D14 ("hold the metal") is left lit, since it asks for the metal.
+  FTUE test 727 -> 732 (written first). Checked in the browser (the first sword's minigame): D13 -> the anvil, metal,
+  hammer, quench tray and footer dark, the dragon and the bubble lit; OK (hit-tested) -> D14, the dark gone; the minigame
+  cancelled over D13 -> no dark left; no console errors.

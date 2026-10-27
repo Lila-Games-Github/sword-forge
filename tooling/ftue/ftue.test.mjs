@@ -356,6 +356,17 @@ eq('only on the forge screen (its props stay laid out under the others)', /funct
 eq('the up arrow slides up; the up-and-down arrow bobs', src.includes('#tutDrag.up { animation: tutDragUp') && src.includes('#tutDrag.updown { animation: tutDragBob')
   && src.includes('#tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }'), true);
 
+/* R16 (owner, 2026-10-27): D13 in the first minigame - darken everything except the dragon and the line */
+eq('the minigame lines read on a dark scene', src.includes("const HM_SAY_DARK=['D13'];"), true);
+eq('the dim is in the hammer window (the dragon is inside its stacking context), the #tutHole look',
+  /<div id="sfHammerModal" class="sf-modal hm-modal">\s*<div id="hmDim"><\/div>/.test(src)
+  && src.includes('#hmDim { position: absolute; inset: 0; z-index: 10; background: rgba(6,4,2,.74); display: none; }'), true);
+eq('on: the dim shows and the dragon rises over it (the line, #dragonSay z1100, is over the window already)',
+  src.includes('#sfHammerModal.hm-dark #hmDim { display: block; } #sfHammerModal.hm-dark #hmDragon { z-index: 11; }'), true);
+eq('it follows the line: on while one of them is up in the open minigame',
+  src.includes("function hmDarkSync(){ const m=document.getElementById('sfHammerModal'); if(m) m.classList.toggle('hm-dark', m.classList.contains('show') && HM_SAY_DARK.includes(SAY_ON)); }"), true);
+eq('synced every frame and as the line is said', /tutDarkSync\(\);[^\n]*\n\s*hmDarkSync\(\);/.test(src) && /function say\(id\)\{[\s\S]{0,900}hmDarkSync\(\);/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
