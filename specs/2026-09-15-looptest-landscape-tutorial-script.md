@@ -360,11 +360,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 39. **D69c** Dragon: "Good thing this is a small one. Just keep going."
    *When: after D69b.*
 
-40. **D70** Dragon: "Do you see that? I think that is the fire trait!"
-   *When: the sword is at the end of the route.*
-
-41. **D71** Dragon: "We need to go further. Let's add one more ore."
-   *When: after D70.*
+40. **D71** Dragon: "We need to go further. Let's add one more ore."
+   *When: the sword is at the end of the route (Fire is still out of sight; R24, 2026-10-28).*
 
 42. **D72** Dragon: "If we use iron, we will cross another hazard zone."
    *When: D71 is closed (the metal is still in the smelter).*
@@ -373,10 +370,16 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after D72.*
 
 44. **D73** Dragon: "Enough! Now add this to the smelter."
-   *When: the chosen ore is fully ground.*
+   *When: the manganese is fully ground (only manganese is taken; R24).*
 
 45. **D74** Dragon: "Pump the bellows."
    *When: that ore is in the smelter; the bellows light up.*
+
+45a. **D70** Dragon: "Do you see that? I think that is the fire trait!"
+   *When: on the manganese path, Fire comes into the sword's view (its centre 105 or closer); the ring goes on; no pointer.*
+
+45b. **D70a** Dragon: "Let's finish it with one ground iron."
+   *When: after D70; the arrow goes from the iron to the grindstone (new, R24).*
 
 46. **D75** Dragon: "Open the gate! I hope this is the fire trait!"
    *When: the sword is at the end of the route, on Fire; the gate lights up.*

@@ -53,6 +53,8 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 ### Ores and routes
 
 - **7 ores:** Iron, Manganese, Copper, Aluminium, Nickel, Tin, Zinc (`ORES`), each with its own fixed path shape and length.
+  Since 2026-10-28 (R24) iron's path is turned 30 deg anticlockwise and manganese's 30 deg clockwise (`ORES` `rot`); Balanced
+  and Fire sit at the new ends (`FTUE.balancedAt`, `FTUE.fireAt`). Record: specs/2026-10-28-rotated-ore-paths-test.md.
   Each ore dropped into the smelter appends its path from the current route end (the **X**); ores stack.
 - **Raw vs ground:** a raw ore reaches **50%** of its path; on the grindstone two full turns of the handle (`GRIND_TURNS` **2**)
   grind it fully, **100%** (`tPct = 0.5 + 0.5 x grind`).

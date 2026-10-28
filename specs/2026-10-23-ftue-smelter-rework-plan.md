@@ -459,3 +459,22 @@ yours and come on top.
   `d2-d3cave`, the cave, D89c at `d2-morning`): the pickaxe dragged onto a seam and held 2 s - no swing, no ore (the seam
   stayed at 7), one toast; the tree opened, the lit Pickaxe Upgrade tapped (rank 1, the hold off); the tree closed (D140);
   the same drag - 6 ore (the seam 7 -> 1), no toast; every press hit-tested; no console errors.
+- **R24 (2026-10-28, owner): the rotated iron and manganese paths.** Owner: "If we rotate iron 30 degree anticlockwise
+  and manganese 30 degree clockwise. I would still want them to reach the balanced and fire traits as they do now.
+  nothing in the tutorial should break either." Tried in a generated test build first
+  (`Swordforge_looptest_landscape_pathtest.html`); after two fire-run versions the owner chose manganese then a ground
+  iron, and asked: "port this to the main build". The paths turn in `normalizeOrePaths` (`ORES` `rot`); Balanced
+  (`FTUE.balancedAt` (1163, 1036)) and Fire (`FTUE.fireAt` (807, 1113)) move after the map is built, their values kept;
+  `HAZ` removes the ribbon the run would cross and moves D69's speck and the fork speck; `ROUTE_FAST.irons` 5 -> 6. The
+  fire run: D68, D69 (hazard lesson), D71 at the three ores' end (D70 waits), D72 / D72a, manganese only, D73, D74; on
+  the manganese path Fire comes into view (`tutFireSeen`, `FTUE.fireSeenIn` 15): the ring, D70 (no pointer), the new
+  **D70a** "Let's finish it with one ground iron." (stage `fire-iron`, the iron arrow); the iron in, the bellows, D75.
+  200 dialogue keys. Records: specs/2026-10-28-rotated-ore-paths-test.md, the FTUE tracker ("Rotated iron and manganese
+  paths"), the hazard record, the script. FTUE test 759 -> 776 (written first, including a geometry block that rebuilds
+  both paths from the source and checks Balanced Epic, TC2's miss, Fire out of sight at D71, in view on the manganese
+  path, and the route's end Fine); hazard test 37 (its `HAZ` and fire-stage checks updated first). Checked in the
+  browser (PART 3 jump, the fire run driven stage by stage): D69a-c on the moved speck; D71 at the three ores' end; D72
+  and D72a with their one-ore paths; iron refused, manganese taken; D70 104 from Fire with the ring and no pointer;
+  D70a in `fire-iron`; the ground iron in; D75 at the end, 17.7 from Fire (Fine), 1 zone, health 95.3, normal speed.
+  Raw 2 + 2 ends on Balanced 2.0 away (Epic), raw 1 + 1 reaches no trait. No console errors. Not run: parts 3-6 by hand
+  (GC8, TC5 and Garric aim at Balanced through the same routes).

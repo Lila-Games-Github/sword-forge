@@ -1,7 +1,8 @@
 # Rotated iron and manganese paths: the path test (2026-10-28)
 
-Status: **test build only.** The main build (`Swordforge_looptest_landscape.html`) is unchanged. If the owner accepts
-the test, these values move into the main build with tests written first (the `HAZ`, `FTUE` and fire-run checks change).
+Status: **ported to the main build (R24, owner: "port this to the main build", 2026-10-28).** `FTUE.balancedAt`,
+`FTUE.fireAt` and the new `FTUE.fireSeenIn` (the table's `FIRE_SEEN_IN`) are in the `FTUE` object; the hazards in `HAZ`.
+The test build and its generator stay as they were at the port (the generator's anchors no longer match the main build).
 
 ## The requests
 

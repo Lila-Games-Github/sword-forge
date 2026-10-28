@@ -196,7 +196,7 @@ eq('dotted grind tail hidden until the grinder is usable',
 /* r223 (owner, 2026-10-06): the tutorial arrow starts at the metal the line is about, and moves on once enough of it is in */
 eq('part 1: iron until 2 are in, then manganese', src.includes("function tutFirstOreSlot(){ return (segs.filter(g=>g.ore==='iron').length<2 ? tutIronSlot : tutOreSlot('Manganese'))(); }")
   && src.includes("tutArrow(tutFirstOreSlot, '#stSmelt .furnace'") && src.includes('tutDrawArrow();   /* r223 */'), true);
-eq('fire sword: an ore arrow for each ore D68 asks for', src.includes("if(TUT_STAGE==='fire-grind'){") && src.includes("tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese')")
+eq('fire sword: an ore arrow for each ore D68 asks for (R24: and the finishing iron)', src.includes("if(TUT_STAGE==='fire-grind' || TUT_STAGE==='fire-iron'){") &&src.includes("tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese')")
   && /const TUT_TICK_STAGES=\[[^\]]*'fire-grind'/.test(src), true);
 eq('the pointer revises when an ore lands', src.includes("segs.length, /* r223 */"), true);
 eq('the fire ore arrow goes up with D68', src.includes('setTimeout(()=>tutNudge(true), 0);   /* r223: the ore arrow goes up with D68'), true);
@@ -277,12 +277,12 @@ eq('D77 text (R4)', line('D77'), 'Take it to the anvil.');
 eq('the route end is read while the metal is in the smelter', src.includes("function tutAtRouteEnd(){ return !!melt && melt.stage==='smelting' && swordAtRouteEnd(); }")
   && /function tutFireSpot\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;/.test(src), true);
 eq('the travel hooks run as the bellows move the sword (the hammer branch that called them is gone)', /function smGlide\(dt\)\{[\s\S]{0,500}tutPumpBeat\(d\); tutTravelHooks\(\);/.test(src)
-  && src.includes('function tutTravelHooks(){ tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }'), true);
+  && src.includes('function tutTravelHooks(){ tutFireSpot(); tutFireSeen(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }'), true);   /* R24: tutFireSeen */
 eq('D71 is read before D72: no carry back, the next ore once it is closed', !/function tutFireBack\(\)\{[^}]*tutArrow\('#orb'/.test(src)
   && src.includes("if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();"), true);
 eq('Fire reached: D75 and the gate, at the route end (FTUE.fireAt: it ends on Fire, Fine; at the first touch it was Weak)', /function tutFireReached\(\)\{[\s\S]{0,250}if\(!swordAtRouteEnd\(\)\) return;[\s\S]{0,300}say\('D75'\);\s*tutGatePointer\(\);/.test(src), true);
 eq('Fire taken: D76, D77 and the metal to the anvil', /function tutFireGot\(\)\{[\s\S]{0,300}say\('D76'\);\s*setTimeout\(\(\)=>tutArrow\('#orb', '#stAnvil \.anvil'/.test(src), true);
-eq('both heat runs point with the shared pointer, the gate only on Fire at the route end', src.includes("if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ tutLoopPointer('fire', true); return; }")
+eq('both heat runs point with the shared pointer, the gate only on Fire at the route end (R24: none over D70 / D70a)', src.includes("if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ if(SAY_ON==='D70' || SAY_ON==='D70a'){ tutArrow(null,null); return; } tutLoopPointer('fire', true); return; }")
   && src.includes("if(gateReady && (!want || (melt.reachedTrait && melt.reachedTrait.trait.id===want)) && (!atEnd || swordAtRouteEnd())) tutArrow(null, '#furnaceGate'")
   && /const TUT_TICK_STAGES=\[[^\]]*'fire-heat2'/.test(src), true);
 
@@ -624,7 +624,7 @@ eq('after TC5\'s sale, before D109', src.includes("ftueReward(FTUE.parts[4].rewa
 eq('after Bram\'s Dagger (his gift and the diary), before the bell', /function ftueAfterDiary\(\)\{[\s\S]{0,200}TUT_STAGE='p5-bell'; ftueOreSold\(\(\)=>\{ bellShow\(true\); ftueToCounter\(\); \}\);/.test(src), true);
 eq('TC5: 5 Copper once the swift ingot is stored', /function tutGaleStart\(\)\{[\s\S]{0,200}ftueOreReward\('tc5swift', \(\)=>\{ sayQueue\('D100','D101'\);/.test(src), true);
 eq('GC9: the ores come with D107g', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); ftueOreReward('gc9'); }"), true);
-eq('TC3: the unused spare goes when the fourth ore is in', /function tutFireSmelted2\(\)\{[\s\S]{0,300}ORE_COUNT\.iron=0; ORE_COUNT\.manganese=0;/.test(src), true);
+eq('TC3 (R24): the last iron stays in the bag when the manganese is in - it finishes the route', !/function tutFireSmelted2\(\)\{[\s\S]{0,300}ORE_COUNT\.iron=0;/.test(src), true);
 eq('the line sits over the reward window, and goes with it', /function ftueOreReward\(key, then\)\{[\s\S]{0,1400}say-over-modal/.test(src) && /function closeReward\(\)\{[\s\S]{0,300}say-over-modal/.test(src), true);
 eq('PART seeds follow the chain (part 4: 2 Nickel; part 5: empty; part 6: 2 + 2)', src.includes("ORE_COUNT.nickel=2; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound={ nickel:2 }; GOLD=520;")
   && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820;") && src.includes("ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; FTUE_ST.oreRound={ iron:2, manganese:2 }; GOLD=1100;"), true);
@@ -829,7 +829,7 @@ eq('the goodbye ends after CUST_BYE_MS or when the next customer comes', src.inc
   && /if\(CUSTOMER\) \{ toast\('Someone is already at the counter'\); return false; \}\r?\n    custByeEnd\(\);/.test(src), true);
 /* r251 (owner, 2026-10-15): a very long route (5+ fully ground irons of drawn length) runs the sword twice as fast;
    the hazard damage is scaled with it, so a zone costs the same per distance */
-{ const m = src.match(/const ROUTE_FAST=(\{[^}]*\});/); eq('ROUTE_FAST is the recorded threshold and multiplier', m && new Function('return ' + m[1])(), { irons: 5, mul: 2 }); }
+{ const m = src.match(/const ROUTE_FAST=(\{[^}]*\});/); eq('ROUTE_FAST is the recorded threshold and multiplier (R24: 6 irons, the fire route is 1116 long)', m && new Function('return ' + m[1])(), { irons: 6, mul: 2 }); }
 eq('the route length is what is drawn (len x ground fraction), the yardstick a fully ground iron',
   src.includes('function routeLen(){ return segs.reduce((n,s)=>n+(s.len||0)*(s.tPct==null?1:s.tPct), 0); }')
   && src.includes("function ironLen(){ if(!IRON_LEN){ measure.setAttribute('d', ORE_BY.iron.d); IRON_LEN=measure.getTotalLength(); } return IRON_LEN; }")
@@ -1016,15 +1016,16 @@ eq('D66 no longer puts it in the bag', !/D66: "[^"]*inventory/.test(src), true);
 eq('D66 text (owner approved 2026-10-14)', line('D66'), "Let's leave the pickaxe here for next time. We found it. We are not stealing. Not stealing at all.");
 eq('D66 no longer marked as a proposal', !/D66: "[^"]*",[^\n]*PROPOSED/.test(src), true);
 eq('D67 counts the 3 iron the cave now gives', line('D67'), "3 iron and 2 manganese. Not bad. Let's go back to the forge.");
-/* owner, 2026-10-13: the fire run's last ore - full iron (crosses a zone) or full manganese (goes round it), both Fine */
-eq('fireAt', FTUE.fireAt, { x: 824, y: 1016 });
+/* owner, 2026-10-13: the fire run's last ore - full iron (crosses a zone) or full manganese (goes round it), both Fine.
+   R24 (2026-10-28): the rotated paths - manganese, then a ground iron; Fire sits where the manganese path sees it */
+eq('fireAt (R24)', FTUE.fireAt, { x: 807, y: 1113 });
 eq('fire moves after hazards and books are placed', /addBook\(K,bx,by\); got\+\+; \} \}\);[\s\S]{0,900}const ft=traits\.find\(t=>t\.trait && t\.trait\.id==='fire'\); if\(ft\)\{ ft\.x=FTUE\.fireAt\.x; ft\.y=FTUE\.fireAt\.y;/.test(src), true);
 eq('D72 text', line('D72'), 'If we use iron, we will cross another hazard zone.');
 eq('D72a text', line('D72a'), 'But the manganese can avoid it.');
 eq('D72a follows D72', (() => { const ks = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return ks[ks.indexOf('D72a') - 1]; })(), 'D72');
 eq('no grind cap any more', !src.includes('GRIND_FIRE_CAP'), true);
-eq('either ore, fully ground', src.includes("if(TUT_STAGE==='fire-mang') return 'iron/manganese';") && src.includes("if(want && want.split('/').indexOf(oreId)<0)")
-  && /function fullGrindOnly\(\)\{[\s\S]{0,300}TUT_STAGE==='fire-mang'; \}/.test(src), true);
+eq('R24: manganese only (it avoids the hazard), fully ground', src.includes("if(TUT_STAGE==='fire-mang') return segs.filter(g=>g.ore==='manganese').length<2 ? 'manganese' : false;") && src.includes("if(want && want.split('/').indexOf(oreId)<0)")
+  && /function fullGrindOnly\(\)\{[\s\S]{0,300}TUT_STAGE==='fire-mang' \|\| TUT_STAGE==='fire-iron'; \}/.test(src), true);
 eq('after the reheat: both lines, and each draws its path', src.includes("sayQueue('D72','D72a'); tutForkPath('iron');") && src.includes("if(id==='D72a' && TUT_STAGE==='fire-mang') tutForkPath('manganese');"), true);
 eq('the choice paths are dashed, apart from the red route (found in the browser: iron blended into it)',
   src.includes("el.setAttribute('stroke', id==='iron' ? '#8e1a10' : '#2f9e4f'); el.setAttribute('stroke-dasharray','14 9'); el.setAttribute('stroke-width','5');"), true);
@@ -1033,9 +1034,57 @@ eq('the fog opens over the choice, so the hazard is seen (found in the browser: 
 eq('the hazard on the iron path shows red while it is talked about (found in the browser: faint under the fog texture)',
   src.includes("function tutForkHaz(on){ const m=HAZ.move[0], z=hazards.find(z=>Math.hypot(z.x-m.to.x, z.y-m.to.y)<1); if(z && z.el) z.el.classList.toggle('fork-hot', !!on); }") && src.includes(".haz.fork-hot .hazHot {")
   && src.includes("tutForkHaz(true);") && /function tutForkHide\(\)\{[^\n]*tutForkHaz\(false\);/.test(src), true);
-eq('then the grindstone, either ore', /D72a:function\(\)\{ if\(TUT_STAGE==='fire-mang'\) tutForkDone\(\); \}/.test(src), true);
+eq('then the manganese to the grindstone (R24)', /D72a:function\(\)\{ if\(TUT_STAGE==='fire-mang'\) tutForkDone\(\); \}/.test(src)
+  && src.includes("function tutForkDone(){ tutForkHide(); tutNeedTab(0); if(!prep) tutWheelArrow('Manganese'); }"), true);
 eq('a full grind says D73', src.includes("function tutFireGround(){") && src.includes("if(TUT_STAGE==='fire-mang') tutFireGround();"), true);
-eq('the PART jumps\' fire recipe is the full route', src.includes("RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[1,1,1,1], at:Date.now() };"), true);
+eq('the PART jumps\' fire recipe is the full route (R24)', src.includes("RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese','iron'], grinds:[1,1,1,1,1], at:Date.now() };"), true);
+/* R24 (owner, 2026-10-28): iron's path turns 30 deg anticlockwise, manganese's 30 deg clockwise (specs/2026-10-28-rotated-ore-paths-test.md) */
+eq('R24 record: balancedAt', FTUE.balancedAt, { x: 1163, y: 1036 });
+eq('R24 record: fireSeenIn', FTUE.fireSeenIn, 15);
+eq('R24: the ores carry the turn', /\{ id:'iron',[^\n]*len:200, rot:-30,/.test(src) && /\{ id:'manganese',[^\n]*len:258, rot:30,/.test(src)
+  && /function normalizeOrePaths\(\)\{[\s\S]{0,900}if\(o\.rot\)\{/.test(src), true);
+eq('R24: Balanced moves after the map is built, its value kept', /const bt=traits\.find\(t=>t\.trait && t\.trait\.id==='balanced'\); if\(bt\)\{ bt\.x=FTUE\.balancedAt\.x; bt\.y=FTUE\.balancedAt\.y; bt\.el\.setAttribute/.test(src)
+  && !/bt\.value=/.test(src), true);
+eq('R24: Fire keeps its old value (prices unchanged)', src.includes('ft.value=traitValue(824, 1016);'), true);
+eq('R24: at the first three ores\' end, D71 straight away (Fire is out of sight)', /function tutFireSpot\(\)\{[\s\S]{0,600}say\('D71'\);\s*\}/.test(src)
+  && !/function tutFireSpot\(\)\{[^}]*say\('D70'\)/.test(src), true);
+eq('R24: D70 and D70a when Fire comes into view', src.includes("if(!f || Math.hypot(p.x-f.x, p.y-f.y) > revealR()-FTUE.fireSeenIn) return;")
+  && /function tutFireSeen\(\)\{ if\(TUT_STAGE!=='fire-heat2' \|\| TUT_SAIDSEEN\) return;[\s\S]{0,400}tutSpotOn\(f\);[\s\S]{0,200}sayQueue\('D70','D70a'\);/.test(src), true);
+eq('R24: D70a text, beside D70', line('D70a'), "Let's finish it with one ground iron.");
+eq('R24: D70a follows D70', (() => { const ks = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return ks[ks.indexOf('D70a') - 1]; })(), 'D70');
+eq('R24: D70a asks for the iron (stage fire-iron, its arrow)', src.includes("if(id==='D70a') setTimeout(tutFireIronAsk, 0);")
+  && src.includes("function tutFireIronAsk(){ if(TUT_STAGE!=='fire-heat2') return; TUT_STAGE='fire-iron';")
+  && src.includes("if(TUT_STAGE==='fire-iron') return segs.filter(g=>g.ore==='iron').length<3 ? 'iron' : false;")
+  && src.includes("if(TUT_STAGE==='fire-grind' || TUT_STAGE==='fire-iron'){")
+  && /const TUT_TICK_STAGES=\[[^\]]*'fire-iron'/.test(src) && /const FIRE_STAGES=\[[^\]]*'fire-iron'/.test(src), true);
+eq('R24: the ground iron in, back to the bellows', src.includes("else if(_fireStage==='fire-iron') tutFireIronIn();")
+  && src.includes("function tutFireIronIn(){ if(TUT_STAGE!=='fire-iron' || fireOreWanted()!==false) return; TUT_STAGE='fire-heat2';"), true);
+/* R24 geometry: the paths as the build draws them (scaled to len, then turned), measured here the way the build does */
+{ const START = { x: 1400, y: 1030 }, EPIC = 9, FINE = 20, MAX = 34, SIGHT = 120;
+  const ore = id => { const r = src.match(new RegExp("\\{ id:'" + id + "',[^\\n]*?len:(\\d+), rot:(-?\\d+),[^\\n]*?d:'([^']+)'")); return { len: +r[1], rot: +r[2], v: r[3].match(/-?\d+(\.\d+)?/g).map(Number) }; };
+  const path = id => { const o = ore(id), v = o.v, pts = []; let x0 = v[0], y0 = v[1];
+    for (let i = 2; i + 5 < v.length; i += 6) { const [a, b, c, d, e, f] = v.slice(i, i + 6);
+      for (let k = (pts.length ? 1 : 0); k <= 400; k++) { const t = k / 400, u = 1 - t;
+        pts.push({ x: u*u*u*x0 + 3*u*u*t*a + 3*u*t*t*c + t*t*t*e, y: u*u*u*y0 + 3*u*u*t*b + 3*u*t*t*d + t*t*t*f }); }
+      x0 = e; y0 = f; }
+    let L = 0; const cum = [0]; for (let i = 1; i < pts.length; i++) { L += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y); cum.push(L); }
+    const k = o.len / L, A = o.rot * Math.PI / 180, cs = Math.cos(A), sn = Math.sin(A);
+    const P = pts.map(p => ({ x: (p.x*cs - p.y*sn) * k, y: (p.x*sn + p.y*cs) * k })), C = cum.map(c => c * k);
+    return f => { const want = f * o.len; const i = C.findIndex(c => c >= want - 1e-9); if (i <= 0) return P[Math.max(0, i)]; const t = (want - C[i-1]) / (C[i] - C[i-1]);
+      return { x: P[i-1].x + (P[i].x - P[i-1].x) * t, y: P[i-1].y + (P[i].y - P[i-1].y) * t }; }; };
+  const at = { iron: path('iron'), manganese: path('manganese') };
+  const end = seq => seq.reduce((o, [id, f]) => { const p = at[id](f); return { x: o.x + p.x, y: o.y + p.y }; }, START);
+  const dist = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+  const B = FTUE.balancedAt, Fi = FTUE.fireAt;
+  eq('R24 geometry: full 1 iron + 1 manganese ends on Balanced (Epic)', dist(end([['iron', 1], ['manganese', 1]]), B) <= EPIC, true);
+  eq('R24 geometry: raw 2 iron + 2 manganese ends on Balanced (Epic)', dist(end([['iron', .5], ['iron', .5], ['manganese', .5], ['manganese', .5]]), B) <= EPIC, true);
+  eq('R24 geometry: TC2\'s raw 1 + 1 still misses Balanced', dist(end([['iron', .5], ['manganese', .5]]), B) > MAX, true);
+  const pre = [['iron', 1], ['iron', 1], ['manganese', 1]], three = end(pre);
+  eq('R24 geometry: at the first three ores\' end Fire is out of sight (D71, no D70)', dist(three, Fi) > SIGHT + 30, true);
+  let near = 1e9; for (let i = 0; i <= 600; i++) { const p = at.manganese(i / 600); near = Math.min(near, dist({ x: three.x + p.x, y: three.y + p.y }, Fi)); }
+  eq('R24 geometry: the manganese path brings Fire into view (D70)', near <= SIGHT - FTUE.fireSeenIn, true);
+  const dFire = dist(end(pre.concat([['manganese', 1], ['iron', 1]])), Fi);
+  eq('R24 geometry: the full route ends on Fire, Fine (D76: not perfect)', dFire > EPIC && dFire <= FINE, true); }
 /* owner, 2026-10-14: the craft book - a heading on each box, and the page's own sword (fire, swift, gale) */
 eq('three headings', src.includes("cbHead(ob, 'Ores used');") && src.includes("cbHead(fb, 'Crafting process');") && src.includes("cbHead(sb, 'Shapes unlocked');")
   && src.includes("function cbHead(el, t){ const h=document.createElement('span'); h.className='cb-h'; h.textContent=t; el.appendChild(h); }") && src.includes('.cb-slot span.cb-h {') && src.includes('border: 0; background: none; padding: 0; border-radius: 0;'), true);   /* found in the browser: .cb-shapes span gave it the pill look */
