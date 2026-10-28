@@ -98,6 +98,9 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
   is moved. Dipped into the bucket's water from above, or released over the bucket, it is quenched (the glow fades, steam and
   mist) and the sword is made; released elsewhere it goes back on the anvil. Record: `specs/2026-10-21-smelter-version-loop.md`
   (s5, s6).
+- **Dragged swords swing:** a sword dragged out of the Swords tab on any screen (or off the counter or the table) hangs from
+  its grip and swings like the blade on the anvil, the same physics at the same size (`SMELT.swingW` 317 px). Record:
+  `specs/2026-10-21-smelter-version-loop.md` (s7).
 - **The made sword** goes to the Swords tab with its shape, traits and tiers, hammer grade, health and hazards crossed; the
   "Sword crafted!" window shows it. Decoration (the design desk) and sharpening (the basement wheel) are later, optional steps.
 

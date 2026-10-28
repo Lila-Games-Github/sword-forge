@@ -2704,7 +2704,8 @@ const FTUE = {
 const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500,
     ladleMax:45, ladleDead:4, ladlePull:24, ladleHead:{ x:-22.2, y:4.9, w:57.3 }, ladleBase:{ x:2.8, y:26.7, w:26.5 }, ladlePivot:{ x:66.7, y:90.6 },   /* s4: the ladle (tier alignment) */
     bladeG:2600, bladeCom:0.5, bladeDamp:1.2, bladeFollow:700, bladeGrab:24, bladeDropPx:70, bladeDropMs:320,   /* s5: the blade's pendulum */
-    waterX0:0.23, waterX1:0.80, waterY0:0.30 };   /* s6: the water in the bucket picture (fractions of its box) */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
+    waterX0:0.23, waterX1:0.80, waterY0:0.30,   /* s6: the water in the bucket picture (fractions of its box) */
+    swingW:317 };   /* s7: a dragged sword's width while held (the anvil blade's box), so it swings the same */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */
 function smHandle(pos, dyPx){ const np=Math.max(0, Math.min(1, pos - dyPx/SMELT.rangePx)); return { pos:np, moved:Math.abs(np-pos) }; }
 /* a handle movement as seconds of full-speed sword travel */
@@ -4048,7 +4049,7 @@ function wireWorkDrag(el, kind){
     const held = ()=> kind==='counter' ? COUNTER : WORK;
     const give = ()=> kind==='counter' ? takeCounter() : takeWork();
     let drag=false, moved=false, sx=0, sy=0, ghost=null;
-    const kill=()=>{ if(ghost){ ghost.remove(); ghost=null; } el.style.visibility=''; el.classList.remove('dragging'); railHot(false); };
+    const kill=()=>{ swSwingStop(); if(ghost){ ghost.remove(); ghost=null; } el.style.visibility=''; el.classList.remove('dragging'); railHot(false); };
     el.addEventListener('pointerdown', e=>{ if(!held()) return; e.preventDefault();
         drag=true; moved=false; sx=e.clientX; sy=e.clientY;
         try{ el.setPointerCapture(e.pointerId); }catch(err){} });
@@ -4058,9 +4059,10 @@ function wireWorkDrag(el, kind){
             const frame=document.getElementById('frame');
             ghost=document.createElement('div'); ghost.className='sw-ghost';
             swordParts(held()).forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; ghost.appendChild(im); });
-            frame.appendChild(ghost); }
+            frame.appendChild(ghost); const fr=frame.getBoundingClientRect();
+            swSwingStart(ghost, held(), e.clientX-fr.left, e.clientY-fr.top); }   /* s7: it swings */
         if(moved){ const fr=document.getElementById('frame').getBoundingClientRect();
-            ghost.style.left=(e.clientX-fr.left)+'px'; ghost.style.top=(e.clientY-fr.top)+'px';
+            swSwingTo(e.clientX-fr.left, e.clientY-fr.top);
             railHot(overRail(e)); } });
     const end=e=>{ if(!drag) return; drag=false;
         const wasMoved=moved, onRail=!!(e && overRail(e));
@@ -4069,6 +4071,25 @@ function wireWorkDrag(el, kind){
         };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
 }
+/* s7 (owner, 2026-10-28): a dragged sword hangs from its grip and swings like the anvil's blade - the same physics (smFollow,
+   smPendStep, SMELT), at the anvil blade's size (SMELT.swingW), its grip and tip read from the blade picture. Its own frame
+   loop while held: the game's tick holds during a tutorial pause. SW_SWING = the held sword (frame px) */
+let SW_SWING=null;
+function swSwingStart(ghost, w, cx, cy){ smBladeEndsOf(w.blade); const E=SM_ENDS[w.blade]||SM_ENDS_DEFAULT, W=SMELT.swingW;
+    swSwingStop(); ghost.style.width=W+'px';
+    const tx=(E.tip.x-E.tang.x)*W, ty=(E.tip.y-E.tang.y)*W;
+    SW_SWING={ g:ghost, file:w.blade, px:cx, py:cy, vx:0, vy:0, tx:cx, ty:cy, th:(90-(E.art+SM_REST_DEG))*Math.PI/180, om:0, L:SMELT.bladeCom*Math.hypot(tx, ty), t:performance.now() };
+    swSwingPaint(); SW_SWING.raf=requestAnimationFrame(swSwingFrame); }
+function swSwingPaint(){ const s=SW_SWING; if(!s) return; const E=SM_ENDS[s.file]||SM_ENDS_DEFAULT, W=SMELT.swingW;
+    s.g.style.transformOrigin=(E.tang.x*100).toFixed(2)+'% '+(E.tang.y*100).toFixed(2)+'%';
+    s.g.style.left=(s.px-E.tang.x*W)+'px'; s.g.style.top=(s.py-E.tang.y*W)+'px';
+    s.g.style.transform='rotate('+smRot(s.th, E.art).toFixed(2)+'deg)'; }
+function swSwingFrame(now){ const s=SW_SWING; if(!s) return; const dt=Math.min(0.05, (now-s.t)/1000); s.t=now;
+    if(dt>0){ const n=4, h=dt/n; for(let k=0; k<n; k++){ const fx=smFollow(s.px,s.vx,s.tx,h), fy=smFollow(s.py,s.vy,s.ty,h);
+        s.px=fx.p; s.vx=fx.v; s.py=fy.p; s.vy=fy.v; const st=smPendStep(s.th,s.om,fx.a,fy.a,s.L,h); s.th=st.th; s.om=st.om; } }
+    swSwingPaint(); s.raf=requestAnimationFrame(swSwingFrame); }
+function swSwingTo(cx, cy){ if(SW_SWING){ SW_SWING.tx=cx; SW_SWING.ty=cy; } }
+function swSwingStop(){ if(SW_SWING){ cancelAnimationFrame(SW_SWING.raf); SW_SWING=null; } }
 function startSwordDrag(w,e){
     const onShop = SF_SCREEN==='shop';                      // r70: three rack targets instead of one zone
     if(!zoneRect() && !onShop){ toast('Take a sword to the <b>workstation</b>, the <b>counter</b> or the <b>shop racks</b>'); return; }
@@ -4077,11 +4098,12 @@ function startSwordDrag(w,e){
     const ghost=document.createElement('div'); ghost.className='sw-ghost';
     swordParts(w).forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=''; ghost.appendChild(im); });
     frame.appendChild(ghost);
-    const move=ev=>{ ghost.style.left=(ev.clientX-fr.left)+'px'; ghost.style.top=(ev.clientY-fr.top)+'px';
+    swSwingStart(ghost, w, e.clientX-fr.left, e.clientY-fr.top);   /* s7 */
+    const move=ev=>{ swSwingTo(ev.clientX-fr.left, ev.clientY-fr.top);
         if(onShop) rackHot(rackAt(ev)); else showZone(true, overTable(ev)); };
     move(e);
     const up=ev=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up);
-        ghost.remove(); if(onShop) rackHot(-1); else showZone(false);
+        swSwingStop(); ghost.remove(); if(onShop) rackHot(-1); else showZone(false);
         const take=()=>{ const i=INV.swords.indexOf(w); if(i>=0) INV.swords.splice(i,1); };
         if(onShop){ const ri=rackAt(ev); if(ri>=0){ take(); placeOnRack(ri,w); } }
         else if(overTable(ev)){ if(counterShut()){ toast('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };

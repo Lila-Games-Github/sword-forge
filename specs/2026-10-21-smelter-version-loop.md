@@ -93,6 +93,25 @@ the pivot point on the handle."
   acceleration a), `smBladeEnds(rgba, w, h)`, `smRot(th, artDeg)` = the picture's rotation in degrees for a swing angle
   th (rad), the art's own tang-to-tip angle being artDeg: (90 - th in degrees) - artDeg.
 
+## Every dragged sword swings (owner, 2026-10-28, s7)
+
+Owner: "i like how the blade swings around when we pick it up from the anvil. I want the same for the swords in all
+screens. so, if i drag a sword out of the inventory on any screen, it should have the same movement and swings physics."
+
+- **Which drags:** a sword dragged out of the Swords tab on any screen (`startSwordDrag`: to the counter, the workstation
+  table or the shop's racks) and one dragged off the counter or the table back to the inventory (`wireWorkDrag`). Where it
+  can be dropped is unchanged (the pointer decides, as before).
+- **The same swing:** the sword (its four part pictures, as the drag ghost always showed it) hangs from its grip and swings
+  with s5's physics and values: the grip follows the finger (`smFollow`, `bladeFollow`), the sword swings about it
+  (`smPendStep`, `bladeG`, `bladeDamp`, L = `bladeCom` x the grip-to-tip length), four substeps a frame. The grip and the
+  tip are the blade picture's own ends (`smBladeEndsOf`, as for the anvil's blade; the part pictures share its canvas).
+  It starts from the angle the anvil's blade lies at (`SM_REST_DEG`), so it turns and drops the same way.
+- **The same size:** held, the sword is drawn `swingW` 317 px wide, the anvil blade's box (2 anvils, measured in the
+  1080 x 600 frame), so the swing has the same length and pace (about 1.1 s). At the drag ghost's old 74 px it would
+  swing about twice as fast.
+- **Its own frame loop** for the length of the drag (`swSwingFrame`, dt held to 0.05 s): the game's `tick` holds during a
+  tutorial pause, and a sword can be dragged then.
+
 ## Hot blade, quenched in the bucket (owner, 2026-10-21, s6)
 
 Owner: "the blade should get quenched near the bucket. Keep it glowing hot on the anvil, then when it is quenched, it is
@@ -143,6 +162,7 @@ finalized. We should be able to hold it, and dip it in the bucket as well. Dropp
 | `shapedHold` | 700 | ms between the last strike and the minigame closing, so the finished blade is seen |
 | `freeOres` | 20 | of every ore at the start of free play |
 | `freeGold` | 500 | gold at the start of free play |
+| `swingW` | 317 | a dragged sword's width in frame px while held: the anvil blade's box, so it swings the same (s7) |
 
 Full-speed travel is the main game's `SWORD_SPEED` (0.5 of a segment a second) times `routeSpeedMul()` (the long-route
 x2). Hazard damage keeps its per-distance rate (the bellows pass the same equivalent time to `checkHazard`).
@@ -177,3 +197,10 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
 - 2026-10-21: s4 the ladle: tilt it to pull the sword toward the centre (tier alignment); speed by the tilt; tips back on release.
 - 2026-10-21: s5 the blade hangs from its handle: picked up, it swings down and swings like a pendulum when moved; dropped straight down into the bucket.
 - 2026-10-21: s6 the blade glows hot until quenched; held, dipping its tip in the bucket's water quenches and finalizes it; dropping it in still works.
+- 2026-10-28: s7 every dragged sword (out of the inventory on any screen, off the counter or the table) hangs from its grip and swings with s5's physics, at the anvil blade's size (`swingW` 317). Smelter test 66 -> 71 (written first). Checked in the browser (1280x720, free
+  play, real pointer events; the hidden pane froze the frame loop, so `swSwingFrame` was stepped by hand at 60 fps): from
+  the Swords tab on the counter screen the sword is 317 px, starts at 95 deg (the anvil's lying angle), its grip 0 px from
+  the finger; held still it swings about 1 s a period, dying down (45, -44, -54, 7, 43, 11, -27, -18 deg every 250 ms);
+  dropped on the counter it is placed, the ghost and the loop gone. The counter's sword dragged to the inventory in 0.8 s
+  swings within about 120 deg and settles; dropped, it is back in the bag. A fast flick (600 px in 0.33 s) spins it over
+  the top, as the anvil's blade would. On the shop screen the drag swings the same. No console errors.

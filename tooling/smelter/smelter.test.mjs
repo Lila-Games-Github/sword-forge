@@ -23,7 +23,15 @@ const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.mov
 /* the record */
 eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500,
   ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 },
-  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320, waterX0: 0.23, waterX1: 0.8, waterY0: 0.3 });
+  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320, waterX0: 0.23, waterX1: 0.8, waterY0: 0.3, swingW: 317 });
+/* s7 (owner, 2026-10-28): a sword dragged on any screen hangs from its handle and swings like the anvil's blade */
+eq('the held sword: the anvil blade\'s size, its grip and tip read from the blade picture, swinging from the anvil\'s lying angle',
+  /function swSwingStart\(ghost, w, cx, cy\)\{ smBladeEndsOf\(w\.blade\); const E=SM_ENDS\[w\.blade\]\|\|SM_ENDS_DEFAULT, W=SMELT\.swingW;[\s\S]{0,400}th:\(90-\(E\.art\+SM_REST_DEG\)\)\*Math\.PI\/180, om:0, L:SMELT\.bladeCom\*Math\.hypot\(/.test(src), true);
+eq('each frame: the same physics as the anvil blade (follow, pendulum, 4 substeps), its own loop (the game tick holds in a pause)',
+  /function swSwingFrame\(now\)\{[\s\S]{0,300}const fx=smFollow\(s\.px,s\.vx,s\.tx,h\), fy=smFollow\(s\.py,s\.vy,s\.ty,h\);[\s\S]{0,200}const st=smPendStep\(s\.th,s\.om,fx\.a,fy\.a,s\.L,h\);[\s\S]{0,200}s\.raf=requestAnimationFrame\(swSwingFrame\);/.test(src), true);
+eq('turned about its grip, the grip under the finger', /function swSwingPaint\(\)\{[\s\S]{0,500}transformOrigin=[\s\S]{0,300}'rotate\('\+smRot\(s\.th, E\.art\)\.toFixed\(2\)\+'deg\)'/.test(src), true);
+eq('the inventory drag swings it', /function startSwordDrag\(w,e\)\{[\s\S]{0,700}swSwingStart\(ghost, w, e\.clientX-fr\.left, e\.clientY-fr\.top\);[\s\S]{0,200}const move=ev=>\{ swSwingTo\(ev\.clientX-fr\.left, ev\.clientY-fr\.top\);[\s\S]{0,300}swSwingStop\(\); ghost\.remove\(\);/.test(src), true);
+eq('so does the counter\'s and the table\'s', /function wireWorkDrag\(el, kind\)\{[\s\S]{0,400}const kill=\(\)=>\{ swSwingStop\(\); if\(ghost\)[\s\S]{0,1200}swSwingStart\(ghost, held\(\), e\.clientX-fr\.left, e\.clientY-fr\.top\);[\s\S]{0,200}if\(moved\)\{ const fr=[^\n]*\n\s*swSwingTo\(e\.clientX-fr\.left, e\.clientY-fr\.top\);/.test(src), true);
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
