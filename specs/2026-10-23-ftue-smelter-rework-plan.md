@@ -405,3 +405,16 @@ yours and come on top.
   stored swift metal at heat 60, a real drag from its slot to the anvil after a wait): the metal on the anvil (not the
   gate), heat 60, stage onAnvil, D113 gone, no arrow, the shape window open with the dragon's Dagger purchase (D28c); no
   console errors.
+- **R19 (2026-10-28, owner): the waiting customer's guide only at an empty counter, and only when the blueprints can be
+  bought.** Owner: "make sure the customer on the waiting list tutorial is only triggered when there is no customer
+  present at the counter, and only when players have the money to buy the requested blueprints." The guide (D107f "You can
+  now buy both the blueprints...", then D107g, then D107h "call them back"; `wqTick`, 2026-10-14) spoke at a "free moment"
+  (`wqFree`), which allowed the `p<n>-gpc` stages, when a gameplay customer stands at the counter; right after a sale the
+  customer's goodbye (`CUST_BYE`, 3.2 s) was also free, while `GOLD` already held the payment but its coins were still
+  flying and the shown gold was lower. And "can buy" was gold alone. Now `wqFree` also needs no `CUSTOMER` and no
+  `CUST_BYE` (this gates D107f and D107h), and D107f needs `wqCanBuy()`: the gold covers the blueprints still to buy and
+  the market sells each one (open, its trait discovered), the market's own rule. FTUE test 745 -> 747 (written first).
+  Checked in the browser (PART 5 jump, the waiting gale Katana + fire Claymore, 750g to buy): gold 749 - nothing; 750
+  with a customer at the counter - nothing; with a customer saying goodbye - nothing; with gale undiscovered - nothing;
+  750 and an empty counter - D107f; both swords in the bag with a customer present - no D107h, then an empty counter -
+  D107h; no console errors.

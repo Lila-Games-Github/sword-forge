@@ -5310,8 +5310,11 @@ function wqIsOrder(items){ const want=wqOrder(); return !!(items && want.length 
 function wqEntry(){ return (FTUE_ST.waiting||[]).find(e=>wqIsOrder(e.items)) || null; }
 function wqAtCounter(){ return !!(CUSTOMER && CUSTOMER.waiting && wqIsOrder(CUSTOMER.items)); }
 function wqNeed(){ return wqOrder().filter(it=>!FTUE_ST.shapes[it.trait+':'+it.shape]).reduce((n,it)=>n+marketPrice(it.trait, it.shape), 0); }
+/* R19 (owner, 2026-10-28): D107f says "you can now buy both" - so the gold covers what is left, and the market sells each one */
+function wqCanBuy(){ return GOLD>=wqNeed() && wqOrder().every(it=>{ const c=marketCtx(it.trait, it.shape); return c.owned || (c.open && c.known); }); }
 function wqHave(){ const pool=INV.swords.slice(); return wqOrder().every(it=>{ const j=pool.findIndex(w=>orderMatches(it, w)); if(j<0) return false; pool.splice(j,1); return true; }); }
 function wqFree(){ if(SAY_ON || document.querySelector('.sf-modal.show')) return false; const P=FTUE.parts[FTUE_ST.part];
+    if(CUSTOMER || CUST_BYE) return false;   /* R19 (owner): nobody at the counter - p<n>-gpc is a customer standing there; a goodbye is a sale's coins still flying */
     return !!(FTUE_ST.done || TUT_STAGE==null || /^p\d-(gpc|bell)$/.test(TUT_STAGE) || (P && TUT_STAGE===P.after)); }
 function wqStep(step, id){ FTUE_ST.wq=step; sayQueue(id); if(SF_SCREEN!=='customer'){ tutExitTo('customer'); WQ_EXIT=true; } wqLit(); }
 /* what is lit: the LEDGER button while the ledger is shut, the request while it is open, YES (call only) when asked */
@@ -5328,7 +5331,7 @@ function wqTick(){
     const e=wqEntry();
     if(!e){ if(FTUE_ST.wq && FTUE_ST.wq!=='done' && !wqAtCounter()) FTUE_ST.wq='done'; wqLit(); return; }
     wqLit();
-    if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(GOLD>=need && wqFree()) wqStep('see', 'D107f'); return; }
+    if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(wqCanBuy() && wqFree()) wqStep('see', 'D107f'); return; }
     if(FTUE_ST.wq==='craft'){ if(wqHave() && wqFree()) wqStep('call', 'D107h'); return; }
 }
 function buildWaitList(){

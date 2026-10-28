@@ -1032,7 +1032,12 @@ for (const [k, prev] of [['D107f', 'D107e'], ['D107g', 'D107f'], ['D107h', 'D107
 eq('its state is saved with the FTUE', /function ftueFresh\(\)\{ return \{[^\n]{0,400}wq:''/.test(src), true);
 eq('a free moment: no line, no window, the tutorial waiting on play', src.includes("function wqFree(){ if(SAY_ON || document.querySelector('.sf-modal.show')) return false; const P=FTUE.parts[FTUE_ST.part];")
   && src.includes("return !!(FTUE_ST.done || TUT_STAGE==null || /^p\\d-(gpc|bell)$/.test(TUT_STAGE) || (P && TUT_STAGE===P.after)); }"), true);
-eq('see: gold covers the blueprints still to buy', src.includes("if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(GOLD>=need && wqFree()) wqStep('see', 'D107f'); return; }"), true);
+/* R19 (owner, 2026-10-28): the waiting customer's guide only with nobody at the counter, and only when the blueprints can be bought */
+eq('no customer at the counter, nor one still saying goodbye (a sale\'s coins are still flying then)',
+  /function wqFree\(\)\{ if\(SAY_ON \|\| document\.querySelector\('\.sf-modal\.show'\)\) return false; const P=FTUE\.parts\[FTUE_ST\.part\];\s*if\(CUSTOMER \|\| CUST_BYE\) return false;/.test(src), true);
+eq('can buy: the gold covers the blueprints still to buy, and the market sells each (open, trait discovered)',
+  src.includes("function wqCanBuy(){ return GOLD>=wqNeed() && wqOrder().every(it=>{ const c=marketCtx(it.trait, it.shape); return c.owned || (c.open && c.known); }); }"), true);
+eq('see: D107f once they can be bought', src.includes("if(FTUE_ST.wq===''){ const need=wqNeed(); if(!need){ FTUE_ST.wq='craft'; return; } if(wqCanBuy() && wqFree()) wqStep('see', 'D107f'); return; }"), true);
 eq('craft: closing the ledger (r291: D107g comes over the ore reward)', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); ftueOreReward('gc9'); }"), true);
 eq('call: both swords in the bag', src.includes("if(FTUE_ST.wq==='craft'){ if(wqHave() && wqFree()) wqStep('call', 'D107h'); return; }"), true);
 eq('the lights: ledger, then the request, then YES (call only)', src.includes("function wqLit(){") && src.includes("'#sfWaitModal .wt-yes'") && src.includes("'#lbWait .lb-wreq'"), true);
