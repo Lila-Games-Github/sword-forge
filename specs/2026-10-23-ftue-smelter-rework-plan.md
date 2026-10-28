@@ -425,3 +425,17 @@ yours and come on top.
   D92 as well). FTUE test 747 -> 749 (written first). Checked in the browser (1280x720): the morning - D89 up, nothing
   blinks; its OK - D92 up, nothing blinks; its OK - the counter's arrow (`#panLeft`) blinks; the cave path - D92 up,
   nothing blinks; its OK - `#panLeft` blinks; every OK hit-tested; no console errors.
+- **R21 (2026-10-28, owner): an ore on the grindstone goes back to the inventory; no ores during D72/D72a.** Owner: "not able
+  to put ores back to inventory from grinder. also disable interaction with ores for tutorial about iron vs manganese path
+  for fire sword for d72." (1) r101 committed an ore once it was on the wheel ("nothing puts it back"); the orb's drop
+  handler (`handleOrbDrop`) had only the smelter or the wheel for it, and the drop on the inventory (`overRail`) only
+  stored a finished metal (`stashIngot`). Now the same drop runs `unprepOre()` for an ore on the wheel: the ore goes back
+  to the bag whole (`gainOre`), its grinding lost, the orb and its map preview go, and the Ingredients tab shows it. The
+  tutorial's pointers re-read the wheel on their own (`tutNudgeSig` holds `prep`). game-design.md section 3 records it. (2)
+  While D72 ("If we use iron, we will cross another hazard zone.") or D72a ("But the manganese can avoid it.") is up at
+  stage `fire-mang`, `startOreDrag` does nothing (`tutOresHeld`), so no ore leaves the bag while the dragon compares the two
+  paths; closing D72a frees them (`tutForkDone` points at the wheel, as before). FTUE test 749 -> 752 (written first).
+  Checked in the browser (1280x720, free play, real pointer drags): iron 20 -> on the wheel 19, ground to 60% -> dropped on
+  the inventory: 20, nothing on the wheel, no orb, no preview, no route; at `fire-mang` with D72 and with D72a up, a drag
+  from the iron and the manganese slots made no ghost and spent nothing; with D72a closed the iron went onto the wheel; no
+  console errors.

@@ -56,6 +56,8 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
   Each ore dropped into the smelter appends its path from the current route end (the **X**); ores stack.
 - **Raw vs ground:** a raw ore reaches **50%** of its path; on the grindstone two full turns of the handle (`GRIND_TURNS` **2**)
   grind it fully, **100%** (`tPct = 0.5 + 0.5 x grind`).
+- **Back to the bag:** an ore on the grindstone dropped on the inventory goes back to the bag, whole; its grinding is
+  lost (R21, 2026-10-28; until then an ore on the wheel was committed, r101).
 - **Route drawing:** the placed route is **dark brown**; while an ore is held its preview is a fainter **red** (solid to its
   reach, dotted for what grinding would add). The route behind the sword is erased as it travels.
 

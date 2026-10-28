@@ -374,6 +374,13 @@ eq('it follows the line: on while one of them is up in the open minigame',
   src.includes("function hmDarkSync(){ const m=document.getElementById('sfHammerModal'); if(m) m.classList.toggle('hm-dark', m.classList.contains('show') && HM_SAY_DARK.includes(SAY_ON)); }"), true);
 eq('synced every frame and as the line is said', /tutDarkSync\(\);[^\n]*\n\s*hmDarkSync\(\);/.test(src) && /function say\(id\)\{[\s\S]{0,900}hmDarkSync\(\);/.test(src), true);
 
+/* R21 (owner, 2026-10-28): an ore on the grindstone goes back to the inventory (r101 had it committed); no ores during D72/D72a */
+eq('the ore comes back whole (raw), the orb and its preview go, the Ingredients tab shows it',
+  src.includes("function unprepOre(){ if(!prep) return false; gainOre(prep.ore,1); prep=null; hidePreviewPaths(); orbEl.style.display='none'; oreImgEl.style.opacity=1; sphereEl.style.opacity=0; invTab(0); return true; }"), true);
+eq('dropped on the inventory: a metal is stored, an ore on the grindstone goes back', src.includes("if(e && moved && overRail(e) && (stashIngot() || unprepOre())) return;"), true);
+eq('no ore pickup while D72 or D72a compares the paths', src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && (SAY_ON==='D72' || SAY_ON==='D72a'); }")
+  && /function startOreDrag\(oreId,e\)\{ if\(tutOresHeld\(\)\) return;/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
