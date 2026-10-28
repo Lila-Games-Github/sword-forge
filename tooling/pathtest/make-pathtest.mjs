@@ -22,8 +22,9 @@ once("        o.d=o.d.replace(/-?\\d+(\\.\\d+)?/g, n=>{ const v=parseFloat(n)*k;
      "        if(o.rot){ const a=o.rot*Math.PI/180, c=Math.cos(a), sn=Math.sin(a), v=o.d.match(/-?\\d+(\\.\\d+)?/g).map(Number); let i=0;\n" +
      "            o.d=o.d.replace(/-?\\d+(\\.\\d+)?/g, ()=>{ const j=i++, x=v[j&~1], y=v[j|1], r=(j&1) ? x*sn+y*c : x*c-y*sn; return (Math.round(r*100)/100).toString(); }); }\n");
 
-/* 2. the traits: Balanced on the new iron + manganese meeting point, Fire 15 from the order choice's end (Fine) */
-once("    fireAt: { x:824, y:1016 },", "    fireAt: { x:790, y:1103 },   /* path test: 3 iron + 2 manganese (full) end at (790.1, 1118.2) in either order; 15 away = Fine (D76) */\n    balancedAt: { x:1163, y:1036 },   /* path test: 1 iron + 1 manganese full ends at (1162.6, 1035.1), 2 + 2 raw at (1163.9, 1037.8): Epic, as before */");
+/* 2. the traits: Balanced on the new iron + manganese meeting point; Fire 17.7 from the fire route's end (Fine), on the
+   side the manganese leg passes, so that leg comes within 100 of it (the sword sees 120) */
+once("    fireAt: { x:824, y:1016 },", "    fireAt: { x:807, y:1113 },   /* path test: 2 iron + 1 manganese, then manganese, then iron (full) end at (790.1, 1118.2): 17.7 away = Fine (D76) */\n    balancedAt: { x:1163, y:1036 },   /* path test: 1 iron + 1 manganese full ends at (1162.6, 1035.1), 2 + 2 raw at (1163.9, 1037.8): Epic, as before */");
 once("    { const ft=traits.find(t=>t.trait && t.trait.id==='fire'); if(ft){ ft.x=FTUE.fireAt.x; ft.y=FTUE.fireAt.y; ft.value=traitValue(ft.x, ft.y);",
      "    /* path test: the value stays the main build's (Balanced keeps its own, Fire's is read at the main build's spot), so prices match */\n" +
      "    { const bt=traits.find(t=>t.trait && t.trait.id==='balanced'); if(bt){ bt.x=FTUE.balancedAt.x; bt.y=FTUE.balancedAt.y; bt.el.setAttribute('transform','translate('+bt.x+','+bt.y+')'); } }\n" +
@@ -32,46 +33,60 @@ once("    { const ft=traits.find(t=>t.trait && t.trait.id==='fire'); if(ft){ ft.
 /* 3. the hazards: the big ribbon under the new iron leg goes; the D69 speck and the fork speck move */
 once("    clear: [ { x:1154, y:748, kind:'island' } ],", "    clear: [ { x:1154, y:748, kind:'island' }, { x:1003.22, y:1179.18, kind:'ribbon' } ],   /* path test: the fire run's first three ores ran ~240 px through this ribbon (D69c says 'a small one') */");
 once("    move: [ { kind:'speck', x:917.83, y:1003.27, to:{ x:866, y:1001 }, scale:0.75 } ]",
-     "    /* path test: [0] the fork speck, on the iron-first side only; [1] the D69 speck, on the first three ores' manganese leg */\n" +
+     "    /* path test: [0] the fork speck, on the 4th ore's iron path only; [1] the D69 speck, on the first three ores' manganese leg */\n" +
      "    move: [ { kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:0.75 } ]");
 
 /* 4. a 3 iron + 2 manganese fire route is 1116 long: keep the main build's pace (5 irons would double it) */
 once("const ROUTE_FAST={ irons:5, mul:2 };", "const ROUTE_FAST={ irons:6, mul:2 };   /* path test: was 5; the fire route is 3 iron + 2 manganese now */");
 
-/* 5. the fork: the last iron AND the last manganese, the order is the choice */
+/* 5. the fire run (owner, 2026-10-28): after the first three ores D71 asks for one more; D72 / D72a compare the iron and
+   manganese paths as in the main build, and only manganese is taken (it avoids the hazard). On its path Fire comes into
+   the sword's view: D70, then D70a asks for a ground iron to finish. */
 once("    if(TUT_STAGE==='fire-mang') return 'iron/manganese';   /* 2026-10-13: either - '/' lists the choices */",
-     "    if(TUT_STAGE==='fire-mang'){ const n=id=>segs.filter(g=>g.ore===id).length;   /* path test: the last two, either first */\n" +
-     "        return n('iron')<3 && n('manganese')<2 ? 'iron/manganese' : n('iron')<3 ? 'iron' : n('manganese')<2 ? 'manganese' : false; }");
-once('    D71: "We need to go further. Let\'s add one more ore.",', '    D71: "We need to go further. Let\'s add two more ores.",   /* path test */');
-once('    D72: "If we use iron, we will cross another hazard zone.",', '    D72: "If we add the iron first, we will cross another hazard zone.",   /* path test: the order is the choice */');
-once('    D72a: "But the manganese can avoid it.",', '    D72a: "But if the manganese goes first, it can avoid it.",');
-/* the preview: each order's two legs */
-once("    const o=routeEnd(); measure.setAttribute('d', ORE_BY[id].d); const len=measure.getTotalLength(), n=Math.max(2, Math.round(len/10)); let d='';\n" +
-     "    for(let i=0;i<=n;i++){ const p=measure.getPointAtLength(len*i/n); d+=(i?'L':'M')+(o.x+p.x).toFixed(1)+','+(o.y+p.y).toFixed(1)+' '; }\n",
-     "    const o=routeEnd(); let d='', x=o.x, y=o.y;   /* path test: id first, then the other ore */\n" +
-     "    [id, id==='iron' ? 'manganese' : 'iron'].forEach((oid,k)=>{ measure.setAttribute('d', ORE_BY[oid].d); const len=measure.getTotalLength(), n=Math.max(2, Math.round(len/10)); let e={x:0,y:0};\n" +
-     "        for(let i=0;i<=n;i++){ const p=measure.getPointAtLength(len*i/n); e=p; if(k && !i) continue; d+=(d?'L':'M')+(x+p.x).toFixed(1)+','+(y+p.y).toFixed(1)+' '; }\n" +
-     "        x+=e.x; y+=e.y; });\n");
-/* the first of the two, ground: no line, the smelter. The second: D73 as before */
-once("    if(!prep || ['iron','manganese'].indexOf(prep.ore)<0 || prep.grind < 0.999) return;\n    TUT_SAIDENOUGH=true;",
-     "    if(!prep || ['iron','manganese'].indexOf(prep.ore)<0 || prep.grind < 0.999) return;\n" +
-     "    if(String(fireOreWanted()).indexOf('/')>=0){ TUT_SAIDENOUGH=true; tutSpinOn(null); tutForkHide(); setTimeout(tutSmelterArrow, 0); return; }   /* path test: the first of the two */\n" +
-     "    TUT_SAIDENOUGH=true;");
-once("    if(TUT_STAGE!=='fire-mang') return;\n    TUT_STAGE='fire-heat2';",
-     "    if(TUT_STAGE!=='fire-mang') return;\n" +
-     "    { const want=fireOreWanted(); if(want){ TUT_SAIDENOUGH=false; tutArrow(null,null); tutSpinOn(null); setTimeout(()=>tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'), 0); return; } }   /* path test: one in - the other one next */\n" +
-     "    TUT_STAGE='fire-heat2';");
-
-/* 5b. D70 (owner, 2026-10-28: "the fire trait is in the fog of war when dragon points it out"): Fire is 238 from the
-   first three ores' end, the sword sees 120. One fog hole of the sword's own size opens toward Fire, placed so the
-   whole disc (TRAIT_R) and the fog's soft edge (24) clear; it overlaps the sword's own hole, so it reads as one view */
-once("    if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */",
-     "    if(f){ tutSpotOn(f); const p=swordPoint(), dx=p.x-f.x, dy=p.y-f.y, L=Math.hypot(dx,dy)||1, k=Math.max(0, revealR()-TRAIT_R-24)/L;\n" +
-     "        reveal(f.x+dx*k, f.y+dy*k, 'firespot'); }   /* path test: the ring, and a glimpse of Fire through the fog */");
+     "    if(TUT_STAGE==='fire-mang') return segs.filter(g=>g.ore==='manganese').length<2 ? 'manganese' : false;   /* path test: the manganese avoids the hazard */\n" +
+     "    if(TUT_STAGE==='fire-iron') return segs.filter(g=>g.ore==='iron').length<3 ? 'iron' : false;   /* path test: the ground iron that finishes it */");
+once("const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2',",
+     "const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron',");
+once("const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2'];",
+     "const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron'];");
+once("|| TUT_STAGE==='fire-mang'; }", "|| TUT_STAGE==='fire-mang' || TUT_STAGE==='fire-iron'; }");
+once("const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2',", "const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2','fire-iron',");
+once("    if(TUT_STAGE==='fire-grind'){\n", "    if(TUT_STAGE==='fire-grind' || TUT_STAGE==='fire-iron'){   /* path test: the finishing iron points the same way */\n");
+/* at the first three ores' end: D71 straight away (D70 waits for Fire to come into view) */
+once("    const f=traits.find(t=>t.trait && t.trait.id==='fire');\n    if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */\n" +
+     "    ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });\n    SAY_I=SAY_SEQ.indexOf('D70'); say('D70');",
+     "    if(SAY_SEQ.indexOf('D71')<0) SAY_SEQ.push('D71');   /* path test: Fire is out of sight here; D70 plays when it comes into view */\n    SAY_I=SAY_SEQ.indexOf('D71'); say('D71');");
+/* D72a closed: the manganese, not the grindstone in general */
+once("function tutForkDone(){ tutForkHide(); tutNeedTab(0); if(!prep) tutArrow(null, '#stMortar .mortar'); }",
+     "function tutForkDone(){ tutForkHide(); tutNeedTab(0); if(!prep) tutWheelArrow('Manganese'); }   /* path test: manganese only */");
+/* the manganese in: the iron stays in the bag for the finish */
+once("    ORE_COUNT.iron=0; ORE_COUNT.manganese=0; if(INV_TAB===0) buildShelf();   /* r291 (owner): the ore not chosen is removed */",
+     "    /* path test: the last iron stays in the bag - it finishes the route (D70a) */");
+/* Fire comes into view on the manganese path: D70 with the ring, then D70a */
+once("function tutTravelHooks(){ tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }",
+     "function tutTravelHooks(){ tutFireSpot(); tutFireSeen(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }\n" +
+     "/* path test: Fire's centre this far inside the sword's sight counts as seen (the manganese path comes within 100) */\n" +
+     "const FIRE_SEEN_IN=15; let TUT_SAIDSEEN=false;\n" +
+     "function tutFireSeen(){ if(TUT_STAGE!=='fire-heat2' || TUT_SAIDSEEN) return;\n" +
+     "    const f=traits.find(t=>t.trait && t.trait.id==='fire'), p=swordPoint(); if(!f || Math.hypot(p.x-f.x, p.y-f.y) > revealR()-FIRE_SEEN_IN) return;\n" +
+     "    TUT_SAIDSEEN=true; tutArrow(null,null); tutSpotOn(f);\n" +
+     "    ['D70','D70a'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); }); sayQueue('D70','D70a'); }\n" +
+     "/* D70a closed: the ground iron that finishes it */\n" +
+     "function tutFireIronAsk(){ if(TUT_STAGE!=='fire-heat2') return; TUT_STAGE='fire-iron'; tutSpotOn(null); tutNeedTab(0); tutNudge(true); }\n" +
+     "function tutFireIronIn(){ if(TUT_STAGE!=='fire-iron' || fireOreWanted()!==false) return; TUT_STAGE='fire-heat2'; tutArrow(null,null); tutSpinOn(null); setTimeout(()=>tutNudge(true), 0); }");
+once("    if(id==='D71') setTimeout(tutFireBack, 0);",
+     "    if(id==='D70a') setTimeout(tutFireIronAsk, 0);   /* path test */\n    if(id==='D71') setTimeout(tutFireBack, 0);");
+once("    if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();",
+     "    if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2(); else if(_fireStage==='fire-iron') tutFireIronIn();   /* path test */");
+once('    D70: "Do you see that? I think that is the fire trait!",',
+     '    D70: "Do you see that? I think that is the fire trait!",\n    D70a: "Let\'s finish it with one ground iron.",   /* path test (owner, 2026-10-28) */');
+/* D70 is a look-at-this line (r184): no bellows pointer over it or D70a */
+once("    if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ tutLoopPointer('fire', true); return; }",
+     "    if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ if(SAY_ON==='D70' || SAY_ON==='D70a'){ tutArrow(null,null); return; } tutLoopPointer('fire', true); return; }   /* path test */");
 
 /* 6. the PART jumps' fire recipe is the full new route */
 once("RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[1,1,1,1], at:Date.now() };",
-     "RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','iron','manganese'], grinds:[1,1,1,1,1], at:Date.now() };   /* path test */");
+     "RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese','iron'], grinds:[1,1,1,1,1], at:Date.now() };   /* path test */");
 
 /* 7. only the Balanced and Fire tutorial: the fire sword's sale ends it, free play follows */
 once("    FTUE_ST.part=3; FTUE_ST.gpc=0;\n    ftueReward([], ()=>{\n        sayQueue('D87');\n        setTimeout(()=>tutExit('#panRight'), 0); });",

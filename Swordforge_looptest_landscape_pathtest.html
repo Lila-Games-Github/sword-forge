@@ -2678,7 +2678,7 @@ const FTUE = {
     /* owner, 2026-10-13: fire sits between the two full-ground endings (2 iron + 1 manganese, then full iron OR full
        manganese): 17.1 and 16.0 away, both Fine. Moved after the map is built - TRAIT_POS feeds the seeded placement of
        every hazard and book, and moving it there would reshuffle them. */
-    fireAt: { x:790, y:1103 },   /* path test: 3 iron + 2 manganese (full) end at (790.1, 1118.2) in either order; 15 away = Fine (D76) */
+    fireAt: { x:807, y:1113 },   /* path test: 2 iron + 1 manganese, then manganese, then iron (full) end at (790.1, 1118.2): 17.7 away = Fine (D76) */
     balancedAt: { x:1163, y:1036 },   /* path test: 1 iron + 1 manganese full ends at (1162.6, 1035.1), 2 + 2 raw at (1163.9, 1037.8): Epic, as before */
     day2Swing: [2, 3],
     weakStop:  27,   /* v3 part 4: GC8's sword parks this far from Balanced - the middle of the Weak band (ALIGN_FINE 20 to ALIGN_MAX 34) */
@@ -3372,7 +3372,7 @@ function ftuePart(n){
         if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */
             const ft=traits.find(t=>t.trait && t.trait.id==='fire');
             if(ft){ ft.discovered=true; ft.txtEl.textContent=ft.trait.symbol; ft.txtEl.removeAttribute('font-weight'); reveal(ft.x,ft.y,'tr'+ft.trait.id); }
-            RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','iron','manganese'], grinds:[1,1,1,1,1], at:Date.now() };   /* path test */
+            RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese','iron'], grinds:[1,1,1,1,1], at:Date.now() };   /* path test */
             for(let i=59;i<=94;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D94b');
             FTUE_ST.part=3; FTUE_ST.gpc=4; FTUE_ST.dd={ balanced:1, flame:2 };   /* v3: part 3's four GCs served */
             FTUE_ST.shapes['fire:Longsword']=true; FTUE_ST.shapes['fire:Broadsword']=true; FTUE_ST.shapes['fire:Katana']=true;
@@ -5902,7 +5902,7 @@ const HAZ = {
     /* owner, 2026-10-13: the fire run's last ore is a choice. Both full paths crossed this speck; it moves, its own
        shape at 75%, onto the stretch only the full iron path takes (measured: iron 27/201 samples inside, manganese
        14 units clear). Applied after the map is built, so nothing else moves. */
-    /* path test: [0] the fork speck, on the iron-first side only; [1] the D69 speck, on the first three ores' manganese leg */
+    /* path test: [0] the fork speck, on the 4th ore's iron path only; [1] the D69 speck, on the first three ores' manganese leg */
     move: [ { kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:0.75 } ]
 };
 /* HAZARD-CONFIG-END */
@@ -6009,7 +6009,7 @@ function startPrep(oreId){ if(!oreLeft(oreId)) return; if(ftueGrindBlock()) retu
 function grindCap(){ if(rawOnly()) return 0;   /* r125: this one goes in unground */
     return 1; }
 /* which ore the scripted craft will accept next, and how many of it are already in */
-const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-shape','fire-forge'];
+const FIRE_STAGES=['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron','fire-shape','fire-forge'];
 /* r123: the swift craft. Two copper, both ground full, and nothing else. */
 /* r125: the gale run adds three more accepting stages. Counts are against the route so far, so a
    reload or a re-entry cannot desynchronise them. */
@@ -6026,8 +6026,8 @@ function fireOreWanted(){
     if(TUT_STAGE==='d2-gale2')  return copperIn()<4 ? 'copper' : false;
     if(TUT_STAGE==='d2-gale3')  return copperIn()<5 ? 'copper' : false;
     if(D2_CRAFT_STAGES.indexOf(TUT_STAGE)>=0) return false;
-    if(TUT_STAGE==='fire-mang'){ const n=id=>segs.filter(g=>g.ore===id).length;   /* path test: the last two, either first */
-        return n('iron')<3 && n('manganese')<2 ? 'iron/manganese' : n('iron')<3 ? 'iron' : n('manganese')<2 ? 'manganese' : false; }
+    if(TUT_STAGE==='fire-mang') return segs.filter(g=>g.ore==='manganese').length<2 ? 'manganese' : false;   /* path test: the manganese avoids the hazard */
+    if(TUT_STAGE==='fire-iron') return segs.filter(g=>g.ore==='iron').length<3 ? 'iron' : false;   /* path test: the ground iron that finishes it */
     if(FIRE_STAGES.indexOf(TUT_STAGE)<0) return null;   /* not this craft: no gate at all */
     if(TUT_STAGE!=='fire-grind') return false;          /* mid-craft: nothing more goes in */
     const n=id=>segs.filter(g=>g.ore===id).length;
@@ -6036,7 +6036,7 @@ function fireOreWanted(){
     return false;   /* all three are in - nothing more goes in this half */
 }
 function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='p3-dur-grind' || TUT_STAGE==='p4-weak-grind'
-    || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2' || TUT_STAGE==='fire-mang'; }   /* r111/r123/r125 */
+    || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2' || TUT_STAGE==='fire-mang' || TUT_STAGE==='fire-iron'; }   /* r111/r123/r125 */
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
     if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
@@ -6044,7 +6044,7 @@ function addPrep(){ if(!prep) return;
     const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
     if(_fireStage==='p3-dur-grind') ftueDurableSmelted();   /* v3 part 3 */
     if(_fireStage==='p4-weak-grind') ftueWeakSmelted();     /* v3 part 4 */
-    if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2();   /* r111 */
+    if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2(); else if(_fireStage==='fire-iron') tutFireIronIn();   /* path test */   /* r111 */
     else if(_fireStage==='d2-copper') tutDay2Smelted();   /* r123 */
     else if(String(_fireStage).indexOf('d2-gale')===0) tutGaleSmelted();   /* r125 */
      hidePreviewPaths(); orbEl.style.display='none'; hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
@@ -8089,9 +8089,10 @@ const DIALOGUE = {
     D69c: "Good thing this is a small one. Just keep going.",
     D69d: "The sword was damaged because of the Hazard zones. It will sell for a little less.",   /* r215: over the fire sword's craft window. owner, 2026-10-10: new text */
     D70: "Do you see that? I think that is the fire trait!",
-    D71: "We need to go further. Let's add two more ores.",   /* path test */   /* R4: the metal never left the smelter */
-    D72: "If we add the iron first, we will cross another hazard zone.",   /* path test: the order is the choice */   /* owner, 2026-10-13: the last ore is a choice */
-    D72a: "But if the manganese goes first, it can avoid it.",
+    D70a: "Let's finish it with one ground iron.",   /* path test (owner, 2026-10-28) */
+    D71: "We need to go further. Let's add one more ore.",   /* R4: the metal never left the smelter */
+    D72: "If we use iron, we will cross another hazard zone.",   /* owner, 2026-10-13: the last ore is a choice */
+    D72a: "But the manganese can avoid it.",
     D73: "Enough! Now add this to the smelter.",
     D74: "Pump the bellows.",   /* R4 */
     D75: "Open the gate! I hope this is the fire trait!",   /* R4: the gate takes the trait */
@@ -8417,7 +8418,16 @@ function tutLit(on){
 }
 /* R1 (smelter loop): D8 comes once the bellows have moved the sword FTUE.pumpBeat (full-speed s); smGlide counts it */
 /* R4: the checks that watched the sword travel (the old hammer branch in tick() called them) */
-function tutTravelHooks(){ tutFireSpot(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }
+function tutTravelHooks(){ tutFireSpot(); tutFireSeen(); tutFireReached(); tutDay2Pull(); tutGaleEnd(); }
+/* path test: Fire's centre this far inside the sword's sight counts as seen (the manganese path comes within 100) */
+const FIRE_SEEN_IN=15; let TUT_SAIDSEEN=false;
+function tutFireSeen(){ if(TUT_STAGE!=='fire-heat2' || TUT_SAIDSEEN) return;
+    const f=traits.find(t=>t.trait && t.trait.id==='fire'), p=swordPoint(); if(!f || Math.hypot(p.x-f.x, p.y-f.y) > revealR()-FIRE_SEEN_IN) return;
+    TUT_SAIDSEEN=true; tutArrow(null,null); tutSpotOn(f);
+    ['D70','D70a'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); }); sayQueue('D70','D70a'); }
+/* D70a closed: the ground iron that finishes it */
+function tutFireIronAsk(){ if(TUT_STAGE!=='fire-heat2') return; TUT_STAGE='fire-iron'; tutSpotOn(null); tutNeedTab(0); tutNudge(true); }
+function tutFireIronIn(){ if(TUT_STAGE!=='fire-iron' || fireOreWanted()!==false) return; TUT_STAGE='fire-heat2'; tutArrow(null,null); tutSpinOn(null); setTimeout(()=>tutNudge(true), 0); }
 function tutPumpBeat(d){ if(TUT_STAGE!=='bellows') return; TUT_STRIKE+=d; if(TUT_STRIKE>=FTUE.pumpBeat) tutStrikeStep(); }
 /* pumped onto the '?' before the guide asked (TUT_SKIP) */
 function tutTravelOnTrait(){ TUT_STAGE='travel'; tutUnglow(); tutArrow(null,null); tutQuenchStep(); }
@@ -9421,11 +9431,8 @@ function tutFireSpot(){
     if(!melt || melt.stage!=='smelting' || !swordAtRouteEnd()) return;   /* R4 */
     TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
     tutArrow(null,null); tutUnglow();   /* r184: D70 is a look-at-this line - the only thing to do is read on */
-    const f=traits.find(t=>t.trait && t.trait.id==='fire');
-    if(f){ tutSpotOn(f); const p=swordPoint(), dx=p.x-f.x, dy=p.y-f.y, L=Math.hypot(dx,dy)||1, k=Math.max(0, revealR()-TRAIT_R-24)/L;
-        reveal(f.x+dx*k, f.y+dy*k, 'firespot'); }   /* path test: the ring, and a glimpse of Fire through the fog */
-    ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
-    SAY_I=SAY_SEQ.indexOf('D70'); say('D70');
+    if(SAY_SEQ.indexOf('D71')<0) SAY_SEQ.push('D71');   /* path test: Fire is out of sight here; D70 plays when it comes into view */
+    SAY_I=SAY_SEQ.indexOf('D71'); say('D71');
 }
 /* D71 stops the pulse and points the metal back at the furnace */
 function tutFireBack(){
@@ -9443,22 +9450,19 @@ function tutForkPath(id){
     let el=document.getElementById('forkpath-'+id);
     if(!el){ el=tpl.cloneNode(false); el.id='forkpath-'+id; el.setAttribute('stroke', id==='iron' ? '#8e1a10' : '#2f9e4f'); el.setAttribute('stroke-dasharray','14 9'); el.setAttribute('stroke-width','5'); tpl.parentNode.insertBefore(el, tpl); }
     if(id==='iron'){ const m=HAZ.move[0]; reveal(m.to.x, m.to.y, 'fork'); tutForkHaz(true); }   /* the fog opens over the choice, and the hazard shows red */
-    const o=routeEnd(); let d='', x=o.x, y=o.y;   /* path test: id first, then the other ore */
-    [id, id==='iron' ? 'manganese' : 'iron'].forEach((oid,k)=>{ measure.setAttribute('d', ORE_BY[oid].d); const len=measure.getTotalLength(), n=Math.max(2, Math.round(len/10)); let e={x:0,y:0};
-        for(let i=0;i<=n;i++){ const p=measure.getPointAtLength(len*i/n); e=p; if(k && !i) continue; d+=(d?'L':'M')+(x+p.x).toFixed(1)+','+(y+p.y).toFixed(1)+' '; }
-        x+=e.x; y+=e.y; });
+    const o=routeEnd(); measure.setAttribute('d', ORE_BY[id].d); const len=measure.getTotalLength(), n=Math.max(2, Math.round(len/10)); let d='';
+    for(let i=0;i<=n;i++){ const p=measure.getPointAtLength(len*i/n); d+=(i?'L':'M')+(o.x+p.x).toFixed(1)+','+(o.y+p.y).toFixed(1)+' '; }
     el.setAttribute('d', d); el.style.display='';
 }
 function tutForkHide(){ ['iron','manganese'].forEach(id=>{ const el=document.getElementById('forkpath-'+id); if(el) el.style.display='none'; }); tutForkHaz(false); }
 function tutForkHaz(on){ const m=HAZ.move[0], z=hazards.find(z=>Math.hypot(z.x-m.to.x, z.y-m.to.y)<1); if(z && z.el) z.el.classList.toggle('fork-hot', !!on); }
 /* D72a closed: the paths go, the grindstone waits for either ore */
-function tutForkDone(){ tutForkHide(); tutNeedTab(0); if(!prep) tutArrow(null, '#stMortar .mortar'); }
+function tutForkDone(){ tutForkHide(); tutNeedTab(0); if(!prep) tutWheelArrow('Manganese'); }   /* path test: manganese only */
 /* the chosen ore is fully ground: that IS 'enough' (2026-10-13: was the manganese cap) */
 let TUT_SAIDENOUGH=false;
 function tutFireGround(){
     if(TUT_STAGE!=='fire-mang' || TUT_SAIDENOUGH) return;
     if(!prep || ['iron','manganese'].indexOf(prep.ore)<0 || prep.grind < 0.999) return;
-    if(String(fireOreWanted()).indexOf('/')>=0){ TUT_SAIDENOUGH=true; tutSpinOn(null); tutForkHide(); setTimeout(tutSmelterArrow, 0); return; }   /* path test: the first of the two */
     TUT_SAIDENOUGH=true; tutSpinOn(null); tutForkHide();
     if(SAY_SEQ.indexOf('D73')<0) SAY_SEQ.push('D73');
     SAY_I=SAY_SEQ.indexOf('D73'); say('D73');
@@ -9466,9 +9470,8 @@ function tutFireGround(){
 }
 function tutFireSmelted2(){
     if(TUT_STAGE!=='fire-mang') return;
-    { const want=fireOreWanted(); if(want){ TUT_SAIDENOUGH=false; tutArrow(null,null); tutSpinOn(null); setTimeout(()=>tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'), 0); return; } }   /* path test: one in - the other one next */
     TUT_STAGE='fire-heat2'; tutArrow(null,null); tutSpinOn(null); tutForkHide();
-    ORE_COUNT.iron=0; ORE_COUNT.manganese=0; if(INV_TAB===0) buildShelf();   /* r291 (owner): the ore not chosen is removed */
+    /* path test: the last iron stays in the bag - it finishes the route (D70a) */
     if(SAY_SEQ.indexOf('D74')<0) SAY_SEQ.push('D74');
     SAY_I=SAY_SEQ.indexOf('D74'); say('D74');
 }
@@ -9913,7 +9916,7 @@ function tutNudgeSig(){
    tutNudgeApply() without adding their stage here - so those pointers were set once and never
    revised. That is why the fire run's bellows kept glowing after the gate was opened: nothing ever
    ran the branch again to take it down. A named list, so the next branch is harder to forget. */
-const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer','p3-book'];   /* R2: through the shaping and the dip */   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
+const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2','fire-iron','cave-pick','fire-grind','p3-dur-grind','p3-dur-heat','p4-weak-grind','p4-weak-heat','p1-craft-ore','p1-craft-heat','p1-craft-shape','p1-craft-hammer','p3-book'];   /* R2: through the shaping and the dip */   /* v3: GC1-GC3 */   /* v3: the Durable craft */   /* r223: fire-grind */
 function tutTicks(){ const t=String(TUT_STAGE||'');
     return t.indexOf('regrind')===0 || TUT_TICK_STAGES.indexOf(t)>=0; }
 function tutNudge(force){
@@ -9945,7 +9948,7 @@ function tutNudgeApply(){
     /* r223 (owner): the fire sword's first half had no ore arrow at all - only the INGREDIENTS blink.
        Now it points like TC2's grind: the ore D68 still needs to the wheel, the turn, then the smelter;
        iron until 2 are in, then manganese. Only once D68 has asked (TUT_FIRE_PTR), not over D67a's window. */
-    if(TUT_STAGE==='fire-grind'){
+    if(TUT_STAGE==='fire-grind' || TUT_STAGE==='fire-iron'){   /* path test: the finishing iron points the same way */
         const want=fireOreWanted(); if(!TUT_FIRE_PTR || !want){ tutArrow(null,null); return; }
         if(prep && prep.grind>=0.999){ tutSmelterArrow(); return; }
         if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }
@@ -9978,7 +9981,7 @@ function tutNudgeApply(){
        then the gate, then the metal to the anvil, then the hammer. tutArrow(null, '#bellowtop') is
        a GLOW, not an arrow - r152 routes a null `from` to tutTap(), and the bellows is an <img>. */
     if(TUT_STAGE==='cave-pick'){ tutMined(); return; }   /* r184: re-resolves the pickaxe after a tab switch */
-    if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ tutLoopPointer('fire', true); return; }   /* R4: the smelter loop; the gate only on Fire */
+    if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ if(SAY_ON==='D70' || SAY_ON==='D70a'){ tutArrow(null,null); return; } tutLoopPointer('fire', true); return; }   /* path test */   /* R4: the smelter loop; the gate only on Fire */
     if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R3: the bellows, once D38 is read */
     if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }   /* R3: the smelter loop */
     if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); return; }   /* r177 */
@@ -10064,7 +10067,7 @@ function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); 
 /* r216 (owner): not the first crossing EVER - the first crossing while the fire sword is being built,
    which is the run the tutorial routes through D69's speck. A hazard touched before that (a free
    craft in parts 1-2) no longer spends the lines. */
-const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2'];
+const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron'];
 function tutHazardStep(){
     if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;
     sayQueue('D69a','D69b','D69c');
@@ -10304,6 +10307,7 @@ function say(id){
     if(id==='D89d') setTimeout(tutDay2Skill, 0);   /* 2026-10-10 */   /* r122: the button lights with the line that asks */
     if(id==='D118') setTimeout(tutQuestStep, 0);   /* r129 */
     if(id==='D119') setTimeout(tutGarricBell, 0);   /* r130: the bell lights with the last quest line */
+    if(id==='D70a') setTimeout(tutFireIronAsk, 0);   /* path test */
     if(id==='D71') setTimeout(tutFireBack, 0);   /* r111: the pulse stops, the furnace is pointed out */
     if(id==='D54' && TUT_STAGE==='dec-take'){ setTimeout(()=>{ const w=tutWorkSword();
         if(w) tutArrow(()=>w, '#oreShelf', { tfx:0.5, tfy:0.3, bow:0.18, back:24 }); }, 0); }   /* r117 */

@@ -21,8 +21,8 @@ continuation prompt printed at close time.
   since r286 - they now come back when the window closes.
 - **Path test (2026-10-28, not in the main build):** `Swordforge_looptest_landscape_pathtest.html`, generated from the main
   build by `node tooling/pathtest/make-pathtest.mjs` (regenerate after main-build changes; never edit it by hand). Iron
-  and manganese paths turned 30 deg each way; the fire run's fork is now the ORDER of the last two ores (a single-ore
-  choice cannot reach Fire after the turn). Record and values: `specs/2026-10-28-rotated-ore-paths-test.md`. Waiting
+  and manganese paths turned 30 deg each way; the fire run is 2 iron + 1 manganese, then manganese (it avoids the
+  hazard; Fire comes into view on its path, D70), then one ground iron (new D70a). Record and values: `specs/2026-10-28-rotated-ore-paths-test.md`. Waiting
   for the owner's play-test; if accepted, port it to the main build test-first.
 - **Left in the file, unused:** the old forge hammer and forge mug (hidden by CSS) and their wiring; removing them is a
   separate cleanup.

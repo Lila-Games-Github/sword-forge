@@ -3,12 +3,18 @@
 Status: **test build only.** The main build (`Swordforge_looptest_landscape.html`) is unchanged. If the owner accepts
 the test, these values move into the main build with tests written first (the `HAZ`, `FTUE` and fire-run checks change).
 
-## The request
+## The requests
 
-Owner: "can we change the path of iron and manganese a bit? If we rotate iron 30 degree anticlockwise and manganese 30
-degree clockwise. I would still want them to reach the balanced and fire traits as they do now. nothing in the tutorial
-should break either." Then: "go with the order choice version. can you make a separate html file where i can test this
-new pathing first? enable only the tutorial for balanced and fire sword in this test version."
+1. Owner: "can we change the path of iron and manganese a bit? If we rotate iron 30 degree anticlockwise and manganese
+   30 degree clockwise. I would still want them to reach the balanced and fire traits as they do now. nothing in the
+   tutorial should break either."
+2. "go with the order choice version. can you make a separate html file where i can test this new pathing first?
+   enable only the tutorial for balanced and fire sword in this test version."
+3. "the fire trait is in the fog of war when dragon points it out. any solution to that? i am okay increasing the
+   visible radius slightly." A one-off fog hole toward Fire at D70 was built (commit db25cd0), then **rejected**:
+4. "I do not like this solution. revert it. instead, lets have players use manganese (vs iron) because it avoids the
+   hazard. when they travel on the manganese path the fire trait should naturally come in the visible radius. ask them
+   to finish with a ground iron at the end." This is the current fire run.
 
 ## The file
 
@@ -24,12 +30,11 @@ Full ore ends (from the ore's origin): iron (-156.0, 0) becomes (-135.1, 78.0) (
 (-125.1, -12.0) becomes (-102.3, -72.9) (up-left). Before, the two pointed 5 degrees apart, so after 2 iron + 1
 manganese "one more iron" and "one more manganese" ended 33 px apart and Fire sat between them (both Fine). After the
 rotation they point 65 degrees apart and those two ends are 154 px apart. Fine needs 20 or less, Weak 34 or less, so no
-Fire spot can serve both, and the ladle (it pulls toward the centre only) cannot fix it.
+Fire spot can serve both as a last ore, and the ladle (it pulls toward the centre only) cannot fix it.
 
-The fork becomes **the order of the last two ores**: after 2 iron + 1 manganese (D68 unchanged), the last iron AND the
-last manganese go in, and the player picks which goes first. The same ores in any order end on the same point; the two
-orders run along the two sides of a 154 px wide diamond, so a hazard can sit on one side only. The cave's 3 iron + 2
-manganese (D67) are all used now; nothing is removed.
+The run now takes 2 iron + 1 manganese (D68 unchanged), then **manganese** (D72 / D72a: iron would cross a hazard,
+manganese avoids it; only manganese is taken), then **one ground iron** to finish. The cave's 3 iron + 2 manganese
+(D67) are all used; nothing is removed. On the manganese path Fire comes into the sword's view, and D70 plays there.
 
 ## Values
 
@@ -38,41 +43,40 @@ manganese (D67) are all used now; nothing is removed.
 | Iron path | `ORES.iron` | turned -30 deg (`rot:-30`, in `normalizeOrePaths`) |
 | Manganese path | `ORES.manganese` | turned +30 deg (`rot:30`) |
 | Balanced | TRAIT_POS (1119.5, 1019.5) | `FTUE.balancedAt` (1163, 1036), moved after the map is built; value kept (24) |
-| Fire | `FTUE.fireAt` (824, 1016) | (790, 1103); value read at (824, 1016) (48), so prices match |
+| Fire | `FTUE.fireAt` (824, 1016) | (807, 1113): 17.7 from the route end (790.1, 1118.2) = Fine, on the side the manganese leg passes (100 away at its closest; the best spot inside 18 of the end). Value read at (824, 1016) (48), so prices match |
 | `HAZ.clear` | the part 4 island | + the ribbon at (1003.22, 1179.18) |
-| `HAZ.move[0]` (fork speck) | speck (917.83, 1003.27) to (866, 1001), 75% | the same speck to (920, 1146), 56.25% |
+| `HAZ.move[0]` (fork speck) | speck (917.83, 1003.27) to (866, 1001), 75% | the same speck to (920, 1146), 56.25%: on the 4th ore's iron path only |
 | `HAZ.move[1]` (D69 speck) | none | speck (1028.4, 1016.22) to (1054, 1158), 75% |
 | `ROUTE_FAST.irons` | 5 | 6 (3 iron + 2 manganese full is 1116 long; 5 irons is 1000, which would double the fire run's speed) |
-| D71 | "Let's add one more ore." | "Let's add two more ores." |
-| D72 | "If we use iron, we will cross another hazard zone." | "If we add the iron first, we will cross another hazard zone." |
-| D72a | "But the manganese can avoid it." | "But if the manganese goes first, it can avoid it." |
-| PART jump fire recipe | iron, iron, manganese, manganese | iron, iron, manganese, iron, manganese |
+| `FIRE_SEEN_IN` | none | 15: D70 plays when Fire's centre is `revealR() - 15` (105) or closer to the sword |
+| D70a (new, beside D70) | none | "Let's finish it with one ground iron." |
+| D71, D72, D72a, D73 | | unchanged from the main build |
+| PART jump fire recipe | iron, iron, manganese, manganese | iron, iron, manganese, manganese, iron |
 
-## Fire-run flow (`fire-mang`)
+The sight radius (`REVEAL_R` 120) is unchanged.
 
-- `fireOreWanted()`: 'iron/manganese' until one of the last two is in, then the other one, then nothing.
-- D72 and D72a each draw their order's full two-leg path (red iron first, green manganese first).
-- The first ore, fully ground: no line, the arrow to the smelter. In the smelter: the arrow to the other ore.
-- The second ore, fully ground: D73 "Enough! Now add this to the smelter.", then D74 and the bellows as before.
+## Fire-run flow
 
-## D70: a glimpse of Fire (owner, 2026-10-28)
-
-Owner: "the fire trait is in the fog of war when dragon points it out. any solution to that? i am okay increasing the
-visible radius slightly." Fire is 238 from the first three ores' end and the sword sees `revealR()` = 120, so a slight
-radius increase cannot reach it (it would need about 210-240, nearly double, everywhere on the map). Instead, at D70
-(`tutFireSpot`) one fog hole of the sword's own size (key 'firespot') opens on the line from Fire to the sword, its
-centre `revealR() - TRAIT_R - 24` (66) from Fire: the whole disc and the fog's soft edge (24) are clear, and the hole
-overlaps the sword's own, so the two read as one view. Checked in the browser: at D70 the ringed "?" disc shows in full.
-The main build has the same gap at D70 (HANDOFF: "fire's disc is now fully under the fog"); this is the candidate fix.
+- `fire-grind` (D68): 2 iron + 1 manganese, ground full. `fire-heat1` (D69): the bellows; the moved D69 speck plays
+  D69a-c. At the route's end Fire is out of sight (238 away): **D71 straight away** ("Let's add one more ore."), no D70.
+- `fire-mang`: D72 draws the iron path (red, through the fork speck), D72a the manganese one (green). After D72a the
+  arrow goes from the manganese to the grindstone. `fireOreWanted()` = 'manganese' only (iron gets the "Not that one"
+  toast). Ground full: D73. In the smelter: D74, `fire-heat2`; the last iron stays in the bag.
+- `fire-heat2`, on the manganese path: when Fire's centre is within 105 of the sword (`tutFireSeen`, in
+  `tutTravelHooks`), the ring goes on Fire and **D70** plays (no pointer: a look-at-this line), then **D70a**. As D70a
+  shows, the stage becomes `fire-iron` and the arrow goes from the iron to the grindstone (the fire-grind pointer).
+- `fire-iron`: one iron, ground full (`fullGrindOnly`), to the smelter: back to `fire-heat2`, the bellows pointer; at the
+  route's end on Fire: D75, as before.
 
 ## Checks (2026-10-28, in the browser, the game's own path, hazard and trait functions)
 
 - Balanced: raw 2 iron + 2 manganese in all 6 orders end 2 px from Balanced, full 1 + 1 (both orders) 1 px: Epic,
   as before. TC2's raw 1 + 1 still misses (119 px short). None crosses a hazard (closest 105 px).
-- Fire run, played through `fire-grind` to D75: the first three ores cross the moved D69 speck (D69a-c play there) and
-  end 238 px from Fire, where D70 plays.
-- Manganese first: 1 zone, ends 15.1 from Fire (Fine), health 95.3. Iron first: 2 zones (free, no tier loss), 15.1
-  (Fine), health 86.5. Normal speed (`routeSpeedMul()` 1). Both fork previews are 456 long and end at (790, 1118).
+- Fire run, driven stage by stage from `fire-grind` to D75: D69a-c on the moved speck; D71 at the first three ores'
+  end; D72 / D72a with one-ore previews (iron 199, manganese 256 long); iron refused in `fire-mang`; D73, D74; D70 at
+  104 px from Fire on the manganese path, Fire's "?" disc and ring in view at the fog's edge, no pointer; D70a with the
+  iron arrow; a half-ground iron refused; the ground iron in; D75 at the route end, 17.7 from Fire: Fine. 1 hazard zone,
+  health 95.3, normal speed.
 - The sale's Thank you: free play (part 7, `done`). No console errors.
 - Copper and nickel routes (Swift, Gale, Durable) pass the new Balanced and Fire by 162 px or more.
 
