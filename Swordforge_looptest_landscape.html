@@ -10215,6 +10215,8 @@ const SAY_GO_MORE={ D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g
    (D15: the minigame holds while it is read; D15a, the strike, needs the live game) */
 const SAY_PAUSE_ONE={ D15:1 };
 const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28d:1, D28f:1, D28h:1, D28i:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
+/* R22 (owner, 2026-10-28): the dragon's lines on these screens have no X; a tap anywhere on the bubble closes them (OK stays) */
+const SAY_NO_X_SCREENS=['customer','cave'];
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 function sayGoIcon(go, kind, id){
@@ -10243,8 +10245,9 @@ function say(id){
     if(id===lastLine() && !tutTail()) TUT_SEEN_END=true;
     if(FTUE.endLines.indexOf(id)>=0 && !tutTail()){ TUT_SEEN_END=true; FTUE_ST.done=true; }   /* r206: any of Garric's endings */
     const go=document.getElementById(B[2]);
-    sayGoIcon(go, (SAY_CHOICES || SAY_NO_X[id]) ? 'none' :   /* r288: a listed line has none anywhere in a run (D23 repeats behind a stale run) */
-        ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next'), id);   /* r115/r174/r184/r196 */
+    /* r288: a listed line has none anywhere in a run (D23 repeats behind a stale run). r115/r174/r184/r196 */
+    const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');
+    sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN)) ? 'none' : goKind, id);   /* R22: no X there - a tap on the bubble closes it */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');

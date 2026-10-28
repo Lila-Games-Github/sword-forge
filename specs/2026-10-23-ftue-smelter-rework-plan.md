@@ -439,3 +439,12 @@ yours and come on top.
   the inventory: 20, nothing on the wheel, no orb, no preview, no route; at `fire-mang` with D72 and with D72a up, a drag
   from the iron and the manganese slots made no ghost and spent nothing; with D72a closed the iron went onto the wheel; no
   console errors.
+- **R22 (2026-10-28, owner): no X on the dragon's lines on the counter and cave screens.** Owner: "remove x from dragon's
+  dialogues for customer counter screen and cave". The X (`SAY_GO_CLOSE`) showed on the last line of a run; it has no
+  handler of its own (a tap on it reaches the bubble's `onclick="sayNext()"`, on both `#screenDragonSay` and
+  `#dragonSay`), so a tap anywhere on the bubble already closed the line. Now `say()` works out the button as before
+  (`goKind`: none, close or next) and, on a screen in `SAY_NO_X_SCREENS` ['customer','cave'], shows no button instead of
+  the X; OK (more to come) stays, and the forge and the other screens keep the X. FTUE test 752 -> 755 (written first; the
+  r288 check reads `goKind`). Checked in the browser (1280x720, PART 3 jump): the counter's morning - D89 with OK, its
+  bubble tapped - D92 with no button, the bubble tapped - closed; the cave - D92e as a last line with no button, the
+  bubble tapped - closed; the forge - a last line with the X; every tap hit-tested on the bubble; no console errors.
