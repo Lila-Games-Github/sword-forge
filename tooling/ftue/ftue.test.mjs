@@ -1259,7 +1259,7 @@ eq('no top-right bar left', !src.includes('id="sfHp"') && !src.includes('#sfHp')
 /* r242 (owner, 2026-10-15): every pointer glow is one the owner can see - the OK button's (tutLitCtl) for buttons and
    hotspots, the inventory tabs' face swap (tutBlinkTab) for every rail button, the skill tree's included */
 eq('.tut-blink is the OK glow', src.includes('.tut-blink { animation: tutLitCtl 1.15s ease-in-out infinite; }') && !src.includes('.tut-blink { animation: tutBlinkHalo'), true);
-eq('rail buttons blink like the tabs', src.includes('#settingsBtn.tut-blink, #marketBtn.tut-blink, #diaryBtn.tut-blink, #questBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }'), true);
+eq('rail buttons blink like the tabs (R26: MARKET only; the gear, the book and the basket glow along their art)', src.includes('#diaryBtn.tut-blink, #questBtn.tut-blink, #settingsBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }') && src.includes('#marketBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }'), true);
 eq('the skill button blinks like the tabs (still before .levelled)', src.includes('#skillBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }')
   && src.includes('#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.1s ease-in-out infinite; }')
   && src.indexOf('#skillBtn.tut-blink {') < src.indexOf('#skillBtn.levelled {'), true);
@@ -1359,5 +1359,29 @@ eq('R25: the ring - a tap toggles, a pull down opens, a push up closes', /functi
   && src.includes('wireRing(tg);'), true);
 eq('R25: the inkpot, the book and the ring glow along their art', src.includes('#saveBlade.tut-blink, #recipeBtn.tut-blink, #hudToggle.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }'), true);
 eq('R25: the toast names the inkpot', src.includes("toast('Record this craft first \\u2014 tap the <b>inkpot</b>')"), true);
+
+/* R26 (owner, 2026-10-28): the right rail, the bedroom calendar, the market on the counter (specs/2026-10-28-forge-screen-new-look.md) */
+{ const m = src.match(/const RAIL_ART=(\{[\s\S]*?\});/);
+  eq('R26: RAIL_ART is the record', m && new Function('return ' + m[1])(), {
+    diary: { left: 17, top: 537, w: 57, art: 'assets/ui/diary.webp' },
+    quest: { left: 58, top: 478, w: 79, art: 'assets/ui/questbasket.webp' },
+    gear:  { right: 4, bottom: 2, size: 40 },
+    cal:   { l: 24.5, t: 27, w: 6.5, h: 13 } }); }
+eq('R26: the art is on disk', ['diary', 'questbasket'].every(k => existsSync('assets/ui/' + k + '.png') && existsSync('assets/ui/' + k + '.webp')) && existsSync('assets/ui/icon_skilltree.webp'), true);
+eq('R26: the skill tree takes the day tile\'s place, with its level, points and xp', /<div class="statRow">\s*<button id="skillBtn" type="button" title="Skill Tree"><img class="sk-art" src="assets\/ui\/icon_skilltree\.webp" alt=""><span class="sk-lv" id="skillLv">Lv 1<\/span><span class="sk-xp"><i id="skillXpFill"><\/i><\/span><\/button>/.test(src)
+  && !src.includes('class="dayTile"') && !src.includes('class="statRow2"'), true);
+eq('R26: no MARKET on the rail', !/<div id="rail">[\s\S]*?id="marketBtn"[\s\S]*?<!-- ===== Shape select/.test(src), true);
+eq('R26: the gear sits in the frame\'s corner, outside the rail', /<\/div>\s*<button id="settingsBtn" type="button" title="Menu" aria-label="Menu">&#9881;<\/button>\s*<!-- ===== Shape select/.test(src)
+  && src.includes('#frame.landscape > #settingsBtn {'), true);
+eq('R26: the book and the basket are the diary and quest buttons', src.includes('<button id="diaryBtn" type="button" title="Diary" aria-label="Diary"></button>')
+  && src.includes('<button id="questBtn" type="button" title="Quests" aria-label="Quests"></button>')
+  && /function wireRailArt\(\)\{[\s\S]{0,900}\[\['diary','diaryBtn'\],\['quest','questBtn'\]\]/.test(src) && src.includes('wireRailArt();   /* R26 */'), true);
+eq('R26: the basket\'s claim glow follows the art', /#questBtn\.qs-ready \{[^}]*filter: drop-shadow/.test(src) || /#questBtn\.qs-ready \{[^}]*animation: qsReadyArt/.test(src), true);
+eq('R26: the day is a calendar on the bedroom wall, holding #dayNum', /<div id="calendar"><span class="cal-h">DAY<\/span><span class="n" id="dayNum">1<\/span><\/div>/.test(src)
+  && src.includes('#screenLayer.sc-bedroom #calendar { display: flex; }') && src.split('id="dayNum"').length === 2, true);
+eq('R26: the calendar is placed from RAIL_ART.cal', /function wireRailArt\(\)\{[\s\S]{0,1400}const c=document\.getElementById\('calendar'\)[\s\S]{0,200}c\.style\.left=RAIL_ART\.cal\.l\+'%';/.test(src), true);
+eq('R26: MARKET on the customer counter, under CRAFT BOOK, with the old id', src.includes("{ x:0.79, y:10.2, w:8.20, h:8.47, gl:'&#128722;', cap:'MARKET', title:'Market', act:'market', id:'marketBtn' }")
+  && src.includes("if(b.id) el.id=b.id;") && src.includes("else if(b.act==='market') el.addEventListener('click', openMarket);")
+  && /function buildScreenUi\(name\)\{[\s\S]{0,1400}marketBtnUi\(\);\s*\}/.test(src), true);
 
 console.log('[ftue] GREEN / ' + n + ' checks');

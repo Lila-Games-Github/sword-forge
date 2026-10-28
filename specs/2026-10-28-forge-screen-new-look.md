@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
-Status: **canon**, built in steps R25 (the craft frame), R26 (the bedroom calendar), R27 (the right rail and the market on
-the counter). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+Status: **canon**, built in steps R25 (the craft frame) and R26 (the right rail, the bedroom calendar, the market on the
+counter). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -46,3 +46,26 @@ Boxes, as % of the canvas (the `CRAFT_FRAME` object in the build):
   (`tutGlow`), not a rectangle.
 - The ids are the old ones (`#bladePanel`, `#traitSlots`, `#cancelCraft`, `#saveBlade`, `#recipeBtn`, `#hudToggle`), so
   every tutorial pointer and the `collapsed` class keep working.
+
+## R26: the right rail, the bedroom calendar, the market on the counter
+
+Placement read off the reference (x 0.8078 to the frame); rail values are px inside `#rail` (which starts at frame x 853),
+the calendar is % of the frame, like the bedroom's hotspots. The build keeps them in `RAIL_ART`.
+
+- **The skill tree in the day tile's place:** `#skillBtn` moves into `.statRow`, the same 30% x 64 px tile the day had
+  (the reference's tile is 60 x 65 px). Cream face, dark border, the tree art (`assets/ui/icon_skilltree.webp`) with the
+  level and talent points (`#skillLv`, "Lv 1 · 2 pt") under it and the thin xp bar, so nothing it showed is lost. The
+  second row (settings, skill, MARKET) is gone, so the inventory tabs move up 50 px and the grid gains that height.
+- **Settings:** `#settingsBtn`, a gear (the glyph, steel blue, no box; no art yet) in the frame's bottom-right corner:
+  `gear` right 4 px, bottom 2 px, 40 px.
+- **Diary and quests:** the book (`diary`, `#diaryBtn`) and the basket of scrolls (`questbasket`, `#questBtn`) stand over
+  the bottom of the grid, as in the reference: `diary` left 17, top 537, width 57; `quest` left 58, top 478, width 79
+  (px in `#rail`). They still appear only once unlocked (`RAIL_DIARY`, `RAIL_QUEST`). The basket's "something to claim"
+  glow and the tutorial's pointer follow the art.
+- **The day:** a calendar on the bedroom wall, left of the round window, clear of the bed's tap area: `#calendar`
+  (`cal`: left 24.5%, top 27%, width 6.5%, height 13% of the frame), a paper with a red DAY band and the number. Only on
+  the bedroom screen. `#dayNum` moves into it, so the save, the ledger and the day change keep reading the same element.
+  A placeholder until there is art.
+- **The market:** a temporary MARKET button on the customer counter, under CRAFT BOOK (`SCREEN_UI.customer`: x 0.79, y
+  10.2, w 8.20, h 8.47, % of the frame), with the old id `#marketBtn`, so the tutorial's pointers and the closed look
+  (`mk-closed`) still work. The forge has no market until the counter's icon arrives.

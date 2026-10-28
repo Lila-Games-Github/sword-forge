@@ -84,8 +84,9 @@ eq('fire still wins over another elemental', M.ftueTraitKey(['ice', 'fire']), 'f
 
 /* wiring in the build */
 eq('the market slides: a fixed shape column and a scrolling strip of trait columns', src.includes('<div class="mk-scroll" id="mkScroll">') && src.includes("onclick=\"marketSlide(-1)\"") && src.includes("onclick=\"marketSlide(1)\""), true);
-eq('MARKET button beside SKILL TREE', /id="skillBtn"[\s\S]{0,400}<\/button>\s*<button id="marketBtn"/.test(src), true);
-eq('SKILL TREE shows a tree icon (D9)', src.includes('<span class="sk-t sk-ic">\u{1F333}</span>'), true);
+/* R26 (owner, 2026-10-28): "market is no longer there (will add a separate image icon on customer counter later)" - a temporary button on the counter */
+eq('MARKET button on the customer counter (R26)', src.includes("cap:'MARKET', title:'Market', act:'market', id:'marketBtn' }"), true);
+eq('SKILL TREE shows a tree (D9; R26: the owner\'s tree art)', src.includes('<img class="sk-art" src="assets/ui/icon_skilltree.webp" alt="">'), true);
 eq('closed market toast (D6)', src.includes("toast('Play more to unlock')"), true);
 eq('the sale checks the order', src.includes('if(ftueC && !orderMatches(ftueC, COUNTER)){'), true);
 eq('the dragon buys with coins (D10)', src.includes('function marketGift(trait, shape, done){'), true);

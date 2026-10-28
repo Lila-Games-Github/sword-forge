@@ -490,3 +490,15 @@ yours and come on top.
   slots, X, inkpot and book where the reference has them, each hit-tested at its centre; pushed up, closed (9 px of book,
   the ring below); pushed up again, stays closed. The ring hangs over the dragon's wing when closed (the dragon stays top
   left, owner).
+- **R26 (2026-10-28, owner): the right rail, the bedroom calendar, the market on the counter.** Owner: "the skill tree
+  replaces the day tab. market is no longer there (will add a separate image icon on customer counter later) setting moves
+  to bottom right."; answers: a temporary market button on the counter; "the day shows up somewhere in the bedroom wall.
+  like a calendar decor on the wall"; the book is the Diary, the basket the Quests. `RAIL_ART` (record:
+  specs/2026-10-28-forge-screen-new-look.md): the skill tree (the owner's tree art, with its level, points and xp bar) in
+  the day tile's place; the second row gone; the gear in the frame's bottom-right corner; the diary book and the quest
+  basket over the bottom of the grid (their glow follows the art; the basket's claim glow too); `#dayNum` in a placeholder
+  calendar on the bedroom wall (the save, the ledger and the day change read it as before); MARKET on the counter under
+  CRAFT BOOK with its old id. FTUE test 785 -> 795, market test 54 (two checks rewritten), written first. Checked in the
+  browser (1280x720, free play): skill tile, gear, diary and basket where the reference has them, each hit-tested; the
+  basket glows green with a quest to claim; MARKET on the counter hit-tested and tapped (the market opens); the bedroom
+  calendar shows the day, 1 -> 2 after a night, clear of the bed and the dragon's hotspots; no console errors.
