@@ -1336,4 +1336,28 @@ eq('D1 waits for the intro: load opens it, its end speaks D1', /function initMec
 eq('a new game or a PART jump closes the intro without replaying it', /function newGame\(\)\{[\s\S]{0,200}introClose\(\);/.test(src), true);
 eq('a tap moves on, a tap during the fade is ignored, the last tap ends it', /function introNext\(\)\{ if\(INTRO_BUSY\) return;[\s\S]{0,200}introEnd\(\)/.test(src), true);
 
+/* R25 (owner, 2026-10-28): the forge's craft frame - the wood, the inkpot, the craft book and the pulley ring
+   (specs/2026-10-28-forge-screen-new-look.md) */
+{ const m = src.match(/const CRAFT_FRAME=(\{[\s\S]*?\});/);
+  eq('R25: CRAFT_FRAME is the record', m && new Function('return ' + m[1])(), {
+    w: 148, left: 4, top: -12, shut: 63.3, art: 'assets/ui/craft_window_frame.webp',
+    slots:  { l: 11.6, t: 8.0,  w: 76.4, h: 12.4 },
+    cancel: { l: 63.5, t: 21.4, w: 22.9, h: 14.1 },
+    record: { l: 17.4, t: 25.1, w: 33.7, h: 28.9, art: 'assets/ui/inkpot.webp' },
+    book:   { l: 8.0,  t: 54.0, w: 83.3, h: 17.9, art: 'assets/ui/craftbook.webp' },
+    ring:   { l: 17.0, t: 76.7, w: 20.5, h: 22.3, art: 'assets/ui/craft_window_frame_pulley.webp' } }); }
+eq('R25: the art is on disk (webp beside each png)', ['craft_window_frame', 'craft_window_frame_pulley', 'craftbook', 'inkpot']
+  .every(k => existsSync('assets/ui/' + k + '.png') && existsSync('assets/ui/' + k + '.webp')), true);
+eq('R25: one panel holds the slots, the X, the inkpot, the book and the ring (the old ids)',
+  /<div id="bladePanel">\s*<div id="traitSlots"[^>]*><\/div>\s*<button id="cancelCraft"[^>]*>[^<]*<\/button>\s*<button id="saveBlade"[^>]*><\/button>\s*<button id="recipeBtn"[^>]*><\/button>\s*<button id="hudToggle"[^>]*><\/button>\s*<\/div>/.test(src), true);
+eq('R25: no text buttons left (RECORD CRAFT, CRAFT BOOK, the chevrons)', !src.includes('💾 RECORD CRAFT') && !/id="recipeBtn"[^>]*>CRAFT BOOK/.test(src)
+  && !/function toggleHud\(\)\{[\s\S]{0,400}&#9660;/.test(src), true);
+eq('R25: closed, the frame slides up by shut % of its height', src.includes("#hud.collapsed #bladePanel { transform: translateY(calc(var(--cf-shut) * -1%)); }")
+  && src.includes("p.style.setProperty('--cf-shut', CRAFT_FRAME.shut);"), true);
+eq('R25: each box is placed from CRAFT_FRAME, its art inside it lined up with the canvas', /function wireCraftFrame\(\)\{[\s\S]{0,1600}im\.style\.width=\(100\*100\/b\.w\)\+'%'; im\.style\.height=\(100\*100\/b\.h\)\+'%'; im\.style\.left=\(-100\*b\.l\/b\.w\)\+'%'; im\.style\.top=\(-100\*b\.t\/b\.h\)\+'%';/.test(src), true);
+eq('R25: the ring - a tap toggles, a pull down opens, a push up closes', /function wireRing\(tg\)\{[\s\S]{0,700}Math\.abs\(dy\)<12 \? !open : dy>0/.test(src)
+  && src.includes('wireRing(tg);'), true);
+eq('R25: the inkpot, the book and the ring glow along their art', src.includes('#saveBlade.tut-blink, #recipeBtn.tut-blink, #hudToggle.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }'), true);
+eq('R25: the toast names the inkpot', src.includes("toast('Record this craft first \\u2014 tap the <b>inkpot</b>')"), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -478,3 +478,15 @@ yours and come on top.
   D70a in `fire-iron`; the ground iron in; D75 at the end, 17.7 from Fire (Fine), 1 zone, health 95.3, normal speed.
   Raw 2 + 2 ends on Balanced 2.0 away (Epic), raw 1 + 1 reaches no trait. No console errors. Not run: parts 3-6 by hand
   (GC8, TC5 and Garric aim at Balanced through the same routes).
+- **R25 (2026-10-28, owner): the forge's craft frame.** Owner: the new forge look (`assets/Anchor-images/Newforge.png`):
+  "There is a wooden frame at the top left with the 5 point trait system, the x is the cancel craft button, the inkpot is
+  the record craft and the craftbook is the craftbook. the pulley replaces the expand and collapse window. the collapsed
+  version still shows the craftbook slightly." The text panel (RECORD CRAFT, CRAFT BOOK, the chevrons) is replaced by the
+  owner's four layers on one 264 x 430 canvas, placed by `CRAFT_FRAME` (measured off the reference; record:
+  specs/2026-10-28-forge-screen-new-look.md): left 4, top -12, 148 wide; closed it slides up 63.3% so the book's edge and
+  the ring show. The ring: a tap toggles, a pull down opens, a push up closes. The old ids stay, so every tutorial pointer
+  holds; the inkpot, the book and the ring glow along their art. The toast says "tap the inkpot". Webp beside each png.
+  FTUE test 776 -> 785 (written first). Checked in the browser (1280x720, free play): the ring hit-tested, tapped open;
+  slots, X, inkpot and book where the reference has them, each hit-tested at its centre; pushed up, closed (9 px of book,
+  the ring below); pushed up again, stays closed. The ring hangs over the dragon's wing when closed (the dragon stays top
+  left, owner).

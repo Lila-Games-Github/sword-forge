@@ -148,7 +148,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
       "bench rail";
 }
 /* landscape HUD floats over the map (anchor style): vertical wood-plaque stack top-left + Skill Tree top-right */
-#frame.landscape > #hud { position: absolute; left: 6px; top: 1px; z-index: 31; width: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 0; background: none; border: none; box-shadow: none; }
+#frame.landscape > #hud { position: absolute; left: 4px; top: -12px; z-index: 31; width: auto; display: block; padding: 0; background: none; border: none; box-shadow: none; }   /* R25: CRAFT_FRAME.left / top (wireCraftFrame sets them) */
 #frame > #hud { grid-area: hud; }
 #frame > #map-wrap { grid-area: map; min-height: 0; }
 #frame > #bench { grid-area: bench; min-height: 0; }
@@ -1290,9 +1290,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r177: the same face swap the skill button (r167) and the tabs got, and for the same reason -
    #frame is overflow:hidden and this button sits 6px from its left edge, so a .tut-blink halo
    (15px blur, 5px spread) is cut off on that side. Swapping the face cannot be clipped. */
-#hudToggle.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }
-#hudToggle:active { transform: scale(.94); }
-#hud.collapsed #bladePanel { display: none; }
+/* R25: the ring is the toggle now; its glow is with the inkpot's and the book's (after .tut-blink) */
+#hud.collapsed #bladePanel { transform: translateY(calc(var(--cf-shut) * -1%)); }
 /* r34 — map pan arrows. The pad covers the LEFT SECTION only (frame minus the rail), so the arrows sit
    on that section's edges exactly as the wireframe places them, and follow --rail-w if it changes. */
 /* r43 — placeholder screens. Above the forge's own content, below the rail (the plates leave the rail's
@@ -1902,6 +1901,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r242 (owner): the plain halo was clipped by overflow:hidden panels and read as nothing; every pointer now uses the
    dialogue OK button's glow (a brighter face, an outer halo and an inset glow that no ancestor can clip) */
 .tut-blink { animation: tutLitCtl 1.15s ease-in-out infinite; }
+#saveBlade.tut-blink, #recipeBtn.tut-blink, #hudToggle.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }   /* R25: art, not a rectangle */
 #settingsBtn.tut-blink, #marketBtn.tut-blink, #diaryBtn.tut-blink, #questBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }
 #panPad button.tut-blink { animation: tutExitBlink 1s ease-in-out infinite; color: #2a1d0c; }
 #panUp, #panDown { width: 36px; height: 24px; left: 50%; margin-left: -18px; }
@@ -1950,10 +1950,20 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .zoom button.on { background: rgba(150,90,25,0.9); border-color: #d8a94e; }   /* fog cheat active */   /* r26: sink the bright tan crack texture so hazards read dark against the parchment */
 /* blade-trait panel (r21) - top-left, per the reference: 5 trait slots over cancel / save.
    A trait of tier N fills N slots with its icon, so the row doubles as the blade's capacity meter. */
-#bladePanel { width: 142px; padding: 1px; display: flex; flex-direction: column; gap: 2px; }
+/* R25 (owner, 2026-10-28): the craft frame. Every box is a % of the art's 264 x 430 canvas (CRAFT_FRAME); the art of a
+   button sits inside it, lined up with the canvas, so a glow follows the art */
+#bladePanel { position: relative; aspect-ratio: 264 / 430; transition: transform .35s ease; }
+#bladePanel > img.cf-art { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#bladePanel > #traitSlots, #bladePanel > button { position: absolute; }
+#bladePanel > #saveBlade, #bladePanel > #recipeBtn, #bladePanel > #hudToggle { padding: 0; margin: 0; border: none; background: none;
+    cursor: pointer; overflow: visible; display: block; }
+#bladePanel > button > img { position: absolute; max-width: none; pointer-events: none; }
+#bladePanel > #cancelCraft { display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
+    font-size: 21px; line-height: 1; color: #f4efe6; background: rgba(62,54,48,.62); border: none; border-radius: 3px; }
+#bladePanel > button:active { transform: scale(.95); }
 #traitSlots { display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; }
-.tslot { display: flex; align-items: center; justify-content: center; height: 32px; border-radius: 5px;
-    background: #f7edd4; border: 2px solid #241a0c; font-size: 17px; line-height: 1; }
+.tslot { display: flex; align-items: center; justify-content: center; height: 100%; border-radius: 5px;
+    background: #f7edd4; border: 2px solid #241a0c; font-size: 14px; line-height: 1; }
 .tslot:not(.filled)::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #7c6a45; }
 .bladeBtns { display: grid; grid-template-columns: 1fr; gap: 5px; }
 .bladeBtns button { height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -1968,15 +1978,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="sfIntro" class="show"><button type="button" id="introSkip">SKIP</button><div id="introSlides"></div></div><!-- r302: the intro, before D1 -->
 
     <div id="hud" class="collapsed">
-        <div id="bladePanel" class="railCard">
-            <div id="traitSlots" title="Traits on this blade — a tier-N trait fills N slots"></div>
-            <div class="bladeBtns">
-                <button id="cancelCraft" type="button" title="Cancel crafting — resets the sword">✕</button>
-            </div>
-            <button id="saveBlade" type="button" title="Record / update this blade's composition">💾 RECORD CRAFT</button>
-            <button id="recipeBtn" type="button" title="Craft book">CRAFT BOOK</button>
+        <!-- R25 (owner, 2026-10-28): the craft frame - the wood, the slots, the X, the inkpot, the craft book and the pulley
+             ring, placed by CRAFT_FRAME (wireCraftFrame) -->
+        <div id="bladePanel">
+            <div id="traitSlots" title="Traits on this blade: a tier-N trait fills N slots"></div>
+            <button id="cancelCraft" type="button" title="Cancel crafting: resets the sword">✕</button>
+            <button id="saveBlade" type="button" title="Record craft" aria-label="Record craft"></button>
+            <button id="recipeBtn" type="button" title="Craft book" aria-label="Craft book"></button>
+            <button id="hudToggle" type="button" title="Open the craft frame" aria-label="Open the craft frame" aria-expanded="false"></button>
         </div>
-        <button id="hudToggle" type="button" title="Expand the blade panel" aria-expanded="false">&#9660;</button>
     </div>
     <div id="screenLayer"><img id="screenArt" src="" alt=""><div id="decorLayer"></div><div id="screenProps"></div><div id="caveLayer"></div><div id="rackLayer"></div><div id="shopLocks"></div><div id="workZone"></div><div id="screenHots"></div><div id="screenUi"></div>
         <div id="csPanel" class="sc-panels">
@@ -6209,18 +6219,44 @@ function updateSfTraits(){ const el=document.getElementById('traitSlots'); if(!e
         h += p ? '<span class="tslot filled" style="color:'+tierColor(p.tier)+'" title="'+p.t.name+' — '+p.tier+'">'+p.t.symbol+'</span>'
                : '<span class="tslot"></span>'; }
     el.innerHTML=h; }
+/* R25 (owner, 2026-10-28): the craft frame. Boxes as % of the art's 264 x 430 canvas, measured off
+   assets/Anchor-images/Newforge.png (specs/2026-10-28-forge-screen-new-look.md); shut = how far it slides up, closed */
+const CRAFT_FRAME={ w:148, left:4, top:-12, shut:63.3, art:'assets/ui/craft_window_frame.webp',
+    slots:  { l:11.6, t:8.0,  w:76.4, h:12.4 },
+    cancel: { l:63.5, t:21.4, w:22.9, h:14.1 },
+    record: { l:17.4, t:25.1, w:33.7, h:28.9, art:'assets/ui/inkpot.webp' },
+    book:   { l:8.0,  t:54.0, w:83.3, h:17.9, art:'assets/ui/craftbook.webp' },
+    ring:   { l:17.0, t:76.7, w:20.5, h:22.3, art:'assets/ui/craft_window_frame_pulley.webp' } };
+function wireCraftFrame(){ const p=document.getElementById('bladePanel'), h=document.getElementById('hud'); if(!p) return;
+    if(h){ h.style.left=CRAFT_FRAME.left+'px'; h.style.top=CRAFT_FRAME.top+'px'; }
+    p.style.width=CRAFT_FRAME.w+'px'; p.style.setProperty('--cf-shut', CRAFT_FRAME.shut);
+    if(!p.querySelector('img.cf-art')){ const bg=document.createElement('img'); bg.className='cf-art'; bg.alt=''; bg.src=CRAFT_FRAME.art; p.insertBefore(bg, p.firstChild); }
+    [['slots','traitSlots'],['cancel','cancelCraft'],['record','saveBlade'],['book','recipeBtn'],['ring','hudToggle']].forEach(([k,id])=>{
+        const b=CRAFT_FRAME[k], el=document.getElementById(id); if(!el) return;
+        el.style.left=b.l+'%'; el.style.top=b.t+'%'; el.style.width=b.w+'%'; el.style.height=b.h+'%';
+        if(!b.art || el.querySelector('img')) return;
+        const im=document.createElement('img'); im.alt=''; im.src=b.art;   /* the whole canvas, shifted so it lines up with the frame's */
+        im.style.width=(100*100/b.w)+'%'; im.style.height=(100*100/b.h)+'%'; im.style.left=(-100*b.l/b.w)+'%'; im.style.top=(-100*b.t/b.h)+'%';
+        el.appendChild(im); }); }
+/* the pulley ring: a tap opens or closes the frame; a pull down opens it, a push up closes it */
+function wireRing(tg){ let y0=null;
+    tg.addEventListener('pointerdown', e=>{ y0=e.clientY; try{ tg.setPointerCapture(e.pointerId); }catch(err){} });
+    tg.addEventListener('pointerup', e=>{ if(y0==null) return; const dy=e.clientY-y0; y0=null;
+        const open=!document.getElementById('hud').classList.contains('collapsed'), want=Math.abs(dy)<12 ? !open : dy>0;
+        if(want!==open) toggleHud(); });
+    tg.addEventListener('pointercancel', ()=>{ y0=null; }); }
 function toggleHud(){ const h=document.getElementById('hud'), b=document.getElementById('hudToggle');
     const nowCollapsed=h.classList.toggle('collapsed');
-    b.innerHTML = nowCollapsed ? '&#9660;' : '&#9650;';
     b.setAttribute('aria-expanded', String(!nowCollapsed));
-    b.title = nowCollapsed ? 'Expand the blade panel' : 'Collapse the blade panel';
+    b.title = nowCollapsed ? 'Open the craft frame' : 'Close the craft frame'; b.setAttribute('aria-label', b.title);
     if(nowCollapsed && typeof tutHudClosed==='function') tutHudClosed(); }   /* r177 */
 /* r241 (owner): the X on the blade panel throws the craft away, so it asks first; only Yes cancels */
 function cancelCraftAsk(){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.add('show'); }
 function cancelCraftAnswer(yes){ const box=document.getElementById('sfCancelAsk'); if(box) box.classList.remove('show'); if(!yes) return;
     refundOre(); resetRun(); hint('Crafting cancelled: the blade and its traits are gone. Grind an ore to start again.'); }
 function wireBladePanel(){ const c=document.getElementById('cancelCraft'), sv=document.getElementById('saveBlade');
-    const tg=document.getElementById('hudToggle'); if(tg) tg.addEventListener('click', toggleHud);
+    wireCraftFrame();   /* R25 */
+    const tg=document.getElementById('hudToggle'); if(tg) wireRing(tg);
     if(c) c.addEventListener('click', cancelCraftAsk);   /* r241: it asks first */
     if(sv) sv.addEventListener('click', openComp);
     const rb=document.getElementById('recipeBtn'); if(rb) rb.addEventListener('click', openBook);
@@ -6739,7 +6775,7 @@ function closeAcquire(){ document.getElementById('sfAcquireModal').classList.rem
    it (r66). Tapping the metal on the anvil opened a modal whose only exit was committing to a shape. */
 let SHAPE_FROM_TUT=false;
 function openShapeSelect(){
-    if(TUT_STAGE==='record'){ toast('Record this craft first \u2014 tap <b>RECORD CRAFT</b>'); return; }   /* r100 */
+    if(TUT_STAGE==='record'){ toast('Record this craft first \u2014 tap the <b>inkpot</b>'); return; }   /* r100 */
     if(TUT_STAGE==='anvil'){ TUT_STAGE='shape'; ftueSaySh('D12'); }   /* R1: D12 over the window the anvil opened */
     SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
     if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }   /* r290: the first sword's minigame is the one D13 is for */
