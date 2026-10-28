@@ -19,6 +19,11 @@ continuation prompt printed at close time.
   through GC1's sale. **Not yet:** a continuous play of Parts 2-6, and any play on a phone (the bellows, the ladle and the
   blade by finger). Fixed on the way: lines said as the trait window opens (D42, D76, D99, D106) had been closed at once
   since r286 - they now come back when the window closes.
+- **Path test (2026-10-28, not in the main build):** `Swordforge_looptest_landscape_pathtest.html`, generated from the main
+  build by `node tooling/pathtest/make-pathtest.mjs` (regenerate after main-build changes; never edit it by hand). Iron
+  and manganese paths turned 30 deg each way; the fire run's fork is now the ORDER of the last two ores (a single-ore
+  choice cannot reach Fire after the turn). Record and values: `specs/2026-10-28-rotated-ore-paths-test.md`. Waiting
+  for the owner's play-test; if accepted, port it to the main build test-first.
 - **Left in the file, unused:** the old forge hammer and forge mug (hidden by CSS) and their wiring; removing them is a
   separate cleanup.
 
