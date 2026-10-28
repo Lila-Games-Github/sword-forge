@@ -1913,6 +1913,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #panLeft { left: 5px; }
 #panRight { right: 5px; }
 #matPanel { flex: 1 1 auto; min-height: 0; margin-top: -6px; position: relative; display: flex; flex-direction: column; padding: 3px; }
+/* R27b (owner, 2026-10-28): "the gradient is supposed to be dark in color". The bottom 115 px of the card (the fifth row, from its top at
+   frame y 480) darken to the rail's own #1b120c; over the slots (z 4), under the diary and the basket (z 6), taps pass through */
+#matPanel::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 115px; z-index: 4; pointer-events: none; border-radius: 0 0 6px 6px; background: linear-gradient(to bottom, rgba(27,18,12,0) 0%, rgba(27,18,12,.85) 45%, #1b120c 75%); }
 #matTabs { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; margin: 0; }
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
@@ -1938,10 +1941,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
-    grid-auto-rows: 85px; gap: 5px; padding: 0; align-content: start; overflow-y: auto;
-    -webkit-mask-image: linear-gradient(to bottom, #000 360px, transparent 435px); mask-image: linear-gradient(to bottom, #000 360px, transparent 435px); }
+    grid-auto-rows: 85px; gap: 5px; padding: 0; align-content: start; overflow-y: auto; }
 /* R27 (owner, 2026-10-28): 85 px rows - the shelf starts 120 px down the frame and the basket's top is at 478, so four rows (12
-   boxes) end above it; the fifth row (MAT_CELLS 15) sits behind the basket and fades from its top (360) to nothing (435) (r60 let the shelf scroll past 12; it still does) */
+   boxes) end above it; the fifth row (MAT_CELLS 15) sits behind the basket and fades into the rail's dark (R27b, the overlay below) (r60 let the shelf scroll past 12; it still does) */
 #frame.landscape .ore-slot { background: linear-gradient(180deg,#c4b189,#ab9770); border: 2px solid #241a0c;
     border-radius: 5px; box-shadow: inset 0 1px 0 rgba(255,255,255,.28); padding: 4px 2px; }
 #frame.landscape .ore-slot { justify-content: center; }

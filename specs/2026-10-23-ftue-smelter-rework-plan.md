@@ -511,3 +511,7 @@ yours and come on top.
   specs/2026-10-28-forge-screen-new-look.md. FTUE test 795 -> 799 (written first). Checked in the browser (1280x720,
   free play): row tops 120, 210, 300, 390, 480; the 12th box hit-tested; the fifth row fades behind the basket; the ore
   tab's names, art and counts fit the 85 px boxes; no console errors.
+  **R27b (owner):** "the gradient is supposed to be dark in color". The fade showed the light card behind the boxes; it is
+  now a dark overlay on the card's bottom 115 px (the rail's #1b120c, solid from 75%), over the slots and under the diary
+  and the basket, taps passing through (the left box of the fifth row hit-tested). FTUE test 799 (the mask check rewritten,
+  first). Checked in the browser; no console errors.

@@ -78,9 +78,11 @@ fades in a gradient behind the questbucket."
 
 - **The grid:** rows a fixed **85 px** with a **5 px** gap (was `minmax(44px,1fr)`, stretched to the shelf). The shelf
   starts 120 px down the frame and the basket's top is at 478, so four rows (12 boxes) end at 475, just above the basket.
-  **15 cells** at least (`MAT_CELLS`, was 12): the fifth row (3 boxes) sits behind the basket and the diary and **fades**
-  from the top of that row (360 px into the shelf) to nothing at **435 px** (a mask on `#oreShelf`, so it holds as the
-  shelf scrolls when a tab holds more than 15).
+  **15 cells** at least (`MAT_CELLS`, was 12): the fifth row (3 boxes) sits behind the basket and the diary and **fades
+  into dark** (R27b, owner: "the gradient is supposed to be dark in color"; a first cut faded the boxes out, which showed
+  the light card behind them): an overlay on the card's bottom **115 px** (from the fifth row's top, frame y 480), the
+  rail's own **#1b120c**, clear at its top, 85% at 45%, solid from 75%. It sits over the slots and under the diary and
+  the basket, and lets taps through; it stays put as the shelf scrolls when a tab holds more than 15.
 - **D42** ends "Tap the inkpot to record the craft." (was "Tap 'record craft'."); the rest of the line is unchanged.
 - **The sweep:** every dialogue line, toast, hint and button label was searched for the old controls (RECORD CRAFT, the
   chevron, the DAY tile, the rail's MARKET, DIARY and QUEST words, the old settings row). Only D42 named one; the "record
