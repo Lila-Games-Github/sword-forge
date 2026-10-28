@@ -9422,7 +9422,8 @@ function tutFireSpot(){
     TUT_SAIDSPOT=true; TUT_STAGE='fire-spot';
     tutArrow(null,null); tutUnglow();   /* r184: D70 is a look-at-this line - the only thing to do is read on */
     const f=traits.find(t=>t.trait && t.trait.id==='fire');
-    if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */
+    if(f){ tutSpotOn(f); const p=swordPoint(), dx=p.x-f.x, dy=p.y-f.y, L=Math.hypot(dx,dy)||1, k=Math.max(0, revealR()-TRAIT_R-24)/L;
+        reveal(f.x+dx*k, f.y+dy*k, 'firespot'); }   /* path test: the ring, and a glimpse of Fire through the fog */
     ['D70','D71'].forEach(id=>{ if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id); });
     SAY_I=SAY_SEQ.indexOf('D70'); say('D70');
 }

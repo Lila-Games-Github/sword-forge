@@ -55,6 +55,16 @@ manganese (D67) are all used now; nothing is removed.
 - The first ore, fully ground: no line, the arrow to the smelter. In the smelter: the arrow to the other ore.
 - The second ore, fully ground: D73 "Enough! Now add this to the smelter.", then D74 and the bellows as before.
 
+## D70: a glimpse of Fire (owner, 2026-10-28)
+
+Owner: "the fire trait is in the fog of war when dragon points it out. any solution to that? i am okay increasing the
+visible radius slightly." Fire is 238 from the first three ores' end and the sword sees `revealR()` = 120, so a slight
+radius increase cannot reach it (it would need about 210-240, nearly double, everywhere on the map). Instead, at D70
+(`tutFireSpot`) one fog hole of the sword's own size (key 'firespot') opens on the line from Fire to the sword, its
+centre `revealR() - TRAIT_R - 24` (66) from Fire: the whole disc and the fog's soft edge (24) are clear, and the hole
+overlaps the sword's own, so the two read as one view. Checked in the browser: at D70 the ringed "?" disc shows in full.
+The main build has the same gap at D70 (HANDOFF: "fire's disc is now fully under the fog"); this is the candidate fix.
+
 ## Checks (2026-10-28, in the browser, the game's own path, hazard and trait functions)
 
 - Balanced: raw 2 iron + 2 manganese in all 6 orders end 2 px from Balanced, full 1 + 1 (both orders) 1 px: Epic,

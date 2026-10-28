@@ -62,6 +62,13 @@ once("    if(TUT_STAGE!=='fire-mang') return;\n    TUT_STAGE='fire-heat2';",
      "    { const want=fireOreWanted(); if(want){ TUT_SAIDENOUGH=false; tutArrow(null,null); tutSpinOn(null); setTimeout(()=>tutWheelArrow(want==='iron' ? 'Iron' : 'Manganese'), 0); return; } }   /* path test: one in - the other one next */\n" +
      "    TUT_STAGE='fire-heat2';");
 
+/* 5b. D70 (owner, 2026-10-28: "the fire trait is in the fog of war when dragon points it out"): Fire is 238 from the
+   first three ores' end, the sword sees 120. One fog hole of the sword's own size opens toward Fire, placed so the
+   whole disc (TRAIT_R) and the fog's soft edge (24) clear; it overlaps the sword's own hole, so it reads as one view */
+once("    if(f) tutSpotOn(f);   /* r113: a ring over the fog, and NO reveal */",
+     "    if(f){ tutSpotOn(f); const p=swordPoint(), dx=p.x-f.x, dy=p.y-f.y, L=Math.hypot(dx,dy)||1, k=Math.max(0, revealR()-TRAIT_R-24)/L;\n" +
+     "        reveal(f.x+dx*k, f.y+dy*k, 'firespot'); }   /* path test: the ring, and a glimpse of Fire through the fog */");
+
 /* 6. the PART jumps' fire recipe is the full new route */
 once("RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese'], grinds:[1,1,1,1], at:Date.now() };",
      "RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','iron','manganese'], grinds:[1,1,1,1,1], at:Date.now() };   /* path test */");
