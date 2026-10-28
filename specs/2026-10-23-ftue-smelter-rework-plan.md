@@ -448,3 +448,14 @@ yours and come on top.
   r288 check reads `goKind`). Checked in the browser (1280x720, PART 3 jump): the counter's morning - D89 with OK, its
   bubble tapped - D92 with no button, the bubble tapped - closed; the cave - D92e as a last line with no button, the
   bubble tapped - closed; the forge - a last line with the X; every tap hit-tested on the bubble; no console errors.
+- **R23 (2026-10-28, owner): Day 3 - no gathering until the pickaxe skill is upgraded.** Owner: "do not let players gather
+  till they have upgraded skills on day 3". Day 3's morning (part 6, owner 2026-10-10) sends the player to the cave
+  (`d2-d3cave`, D89a, D89b), says D89c and D89d ("Why don't you upgrade your pickaxe skill from the skill tree?") there
+  (`d2-morning`), and opens the tree (`d2-skill`); the pickaxe gathered all along. Now `tutGatherHeld()` is true in those
+  three stages (`DAY3_HOLD`) of part 6 until the Pickaxe Upgrade point is spent (`TUT_D2_SPENT`, set by `tutDay2Spent`):
+  `pickCheck` does not swing at a seam and toasts "Upgrade the Pickaxe in the skill tree first" (at most every 2.5 s), and
+  `mineNode` gives no ore. With no talent point to spend, closing the tree ends the stage (D140), so nothing is stuck. FTUE
+  test 755 -> 759 (written first). Checked in the browser (1280x720, PART 6 jump, then the Day 3 morning: D89a at
+  `d2-d3cave`, the cave, D89c at `d2-morning`): the pickaxe dragged onto a seam and held 2 s - no swing, no ore (the seam
+  stayed at 7), one toast; the tree opened, the lit Pickaxe Upgrade tapped (rank 1, the hold off); the tree closed (D140);
+  the same drag - 6 ore (the seam 7 -> 1), no toast; every press hit-tested; no console errors.

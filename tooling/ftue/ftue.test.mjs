@@ -381,6 +381,12 @@ eq('dropped on the inventory: a metal is stored, an ore on the grindstone goes b
 eq('no ore pickup while D72 or D72a compares the paths', src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && (SAY_ON==='D72' || SAY_ON==='D72a'); }")
   && /function startOreDrag\(oreId,e\)\{ if\(tutOresHeld\(\)\) return;/.test(src), true);
 
+/* R23 (owner, 2026-10-28): Day 3 - no gathering until the pickaxe skill is upgraded */
+eq('the Day 3 morning stages that hold the pickaxe', src.includes("const DAY3_HOLD=['d2-d3cave','d2-morning','d2-skill'];"), true);
+eq('held until the pickaxe point is spent', src.includes("function tutGatherHeld(){ return !FTUE_ST.done && FTUE_ST.part===6 && DAY3_HOLD.includes(TUT_STAGE) && !TUT_D2_SPENT; }"), true);
+eq('the pickaxe does not swing at a seam, and says why (at most every 2.5 s)', /function pickCheck\(\)\{\s*if\(SF_SCREEN!=='cave' \|\| !PICK_OUT\)\{ stopStriking\(\); return; \}\s*if\(tutGatherHeld\(\)\)\{ stopStriking\(\); if\(pickSeam\(\) && performance\.now\(\)-GATHER_NOTE>2500\)\{ GATHER_NOTE=performance\.now\(\); toast\('Upgrade the <b>Pickaxe<\/b> in the skill tree first'\); \} return; \}/.test(src), true);
+eq('and no seam gives ore', /function mineNode\(n,el\)\{\s*if\(!PICK_OUT \|\| n\.left<=0 \|\| tutGatherHeld\(\)\) return;/.test(src), true);
+
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
   D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */

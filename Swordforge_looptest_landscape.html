@@ -4264,8 +4264,13 @@ function pickSeam(){
 function stopStriking(){ if(PICK_T){ clearInterval(PICK_T); PICK_T=null; }
     const p=document.querySelector('#caveLayer .cv-pick'); if(p) p.classList.remove('striking');
     const sp=document.getElementById('cvSpark'); if(sp) sp.classList.remove('on'); }
+/* R23 (owner, 2026-10-28): Day 3 - no gathering until the pickaxe skill is upgraded (D89d asks for it) */
+const DAY3_HOLD=['d2-d3cave','d2-morning','d2-skill'];
+function tutGatherHeld(){ return !FTUE_ST.done && FTUE_ST.part===6 && DAY3_HOLD.includes(TUT_STAGE) && !TUT_D2_SPENT; }
+let GATHER_NOTE=0;
 function pickCheck(){
     if(SF_SCREEN!=='cave' || !PICK_OUT){ stopStriking(); return; }
+    if(tutGatherHeld()){ stopStriking(); if(pickSeam() && performance.now()-GATHER_NOTE>2500){ GATHER_NOTE=performance.now(); toast('Upgrade the <b>Pickaxe</b> in the skill tree first'); } return; }
     const el=pickSeam(), p=document.querySelector('#caveLayer .cv-pick'), sp=document.getElementById('cvSpark');
     if(p) p.classList.toggle('striking', !!el);
     if(el && sp){ const r=el.getBoundingClientRect(), lr=plateBox().lr;
@@ -4278,7 +4283,7 @@ function pickCheck(){
     else if(PICK_T){ clearInterval(PICK_T); PICK_T=null; }
 }
 function mineNode(n,el){
-    if(!PICK_OUT || n.left<=0) return;
+    if(!PICK_OUT || n.left<=0 || tutGatherHeld()) return;   /* R23 */
     /* r218: Ore Extraction Upgrade - a seam rolls once, on its first swing; scripted seams never do */
     if(!n.script && !n.rolled){ n.rolled=true;
         if(Math.random() < extractChance(rank('extract'))){ const b=extractBonus(Math.random()); n.left+=b;
