@@ -8626,7 +8626,7 @@ function tutDay2Morning(){
     if(FTUE_ST.part===6){ TUT_STAGE='d2-d3cave'; TUT_D2_SPENT=false; tutExit(null); sayQueue('D89a','D89b'); setTimeout(()=>tutExitTo('cave'), 0); return; }   /* v3 part 6: Day 3. owner, 2026-10-10: the cave first, then the pickaxe */
     /* v3: the skill tree moved to part 6 (D21) - the morning sends the player to the counter, where the bell waits */
     TUT_STAGE='d2-counter'; tutExit(null);
-    sayQueue('D89','D92');   /* r297 (owner): D89's OK lights first; the arrow comes with D92 (the say() hook) */
+    sayQueue('D89','D92');   /* r297 (owner): D89's OK lights first. R20: the way to the counter lights after D92's OK (SAY_AFTER) */
 }
 /* D91 is the one that asks for the tree, so the button lights with it, not before */
 function tutDay2Skill(){ tutExit('#skillBtn'); }
@@ -9088,6 +9088,7 @@ const SAY_AFTER={ D97:function(){ openTiers(); },
                   D72a:function(){ if(TUT_STAGE==='fire-mang') tutForkDone(); },   /* 2026-10-13 */
                   D69d:function(){ if(CW_LESSON==='hp-row'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D17b:function(){ if(CW_LESSON==='hammer'){ CW_LESSON='arrow'; cwLit('#cwTab'); sayQueue('D17a'); cwLessonSay(); } },   /* R17 */
+                  D92:function(){ if(TUT_STAGE==='d2-counter') tutExit('#panLeft'); },   /* R20 (owner): the way to the counter after D92's OK (r297 lit it as D92 came up) */
                   D17c:function(){ if(CW_LESSON==='rows'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },   /* r255: now tap him */
                   D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
@@ -9184,8 +9185,7 @@ function tutDay2Mined(){
     if(CAVE_NODES.some(n=>n.left>0)) return;
     TUT_STAGE='d2-counter';   /* r203: was 'd2-back' (to the forge for TC4's copper); now D92 and the counter */
     sayHide(); tutNeedTab(null);   /* r167: 'Gather everything' is done, so it stops being said */
-    sayQueue('D92');
-    setTimeout(()=>tutExit('#panLeft'), 0);
+    sayQueue('D92');   /* R20: its OK lights the way to the counter (SAY_AFTER) */
 }
 function tutBedroom(){
     if(TUT_STAGE!=='to-bed') return;
@@ -10249,7 +10249,6 @@ function say(id){
     if(id==='D72a' && TUT_STAGE==='fire-mang') tutForkPath('manganese');   /* 2026-10-13: beside iron's */
     if(id==='D14') tutGlow('#hmOrb', true);             /* r181: 'hold on the metal' - so the metal glows */
     if(id==='D15'){ tutGlow('#hmOrb', false); setTimeout(()=>hmSwingOn(true), 0); }   /* r181: and the swing takes over */
-    if(id==='D92' && TUT_STAGE==='d2-counter') setTimeout(()=>tutExit('#panLeft'), 0);   /* r297: after D89's OK, the way to the counter */
     if(id==='D27') tutBellStep();                       /* r96: the bell arrives with the line */
     if(id==='D31') setTimeout(tutBackToForge, 0);       /* r96: and the way back is pointed out */
     if(id==='D33') tutFakePath(true);                   /* r99: what one of each would reach */

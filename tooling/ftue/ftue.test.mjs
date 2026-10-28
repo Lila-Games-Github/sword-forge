@@ -519,7 +519,10 @@ eq('until then a drop on the counter is refused and the sword stays in the bag',
 eq('a new game shuts it again', /function tutReset\(\)\{[\s\S]{0,300}TUT_BRAM_GIVE_OK=false;/.test(src), true);
 /* r297 (owner, 2026-10-21): Day 2 morning - D89's OK is lit first; only after it (D92) does the arrow to the counter blink */
 eq('the morning no longer blinks the arrow with D89', /function tutDay2Morning\(\)\{[\s\S]{0,700}TUT_STAGE='d2-counter'; tutExit\(null\);\s*sayQueue\('D89','D92'\);[^\n]*\n\s*\}/.test(src), true);
-eq('D92 brings the arrow to the counter', src.includes("if(id==='D92' && TUT_STAGE==='d2-counter') setTimeout(()=>tutExit('#panLeft'), 0);"), true);
+/* R20 (owner, 2026-10-28): the way to the counter lights after D92 (its OK), not as D92 comes up after D89 */
+eq('D92\'s close lights the way to the counter', /D92:function\(\)\{ if\(TUT_STAGE==='d2-counter'\) tutExit\('#panLeft'\); \},/.test(src), true);
+eq('not as D92 is said', src.includes("if(id==='D92' && TUT_STAGE==='d2-counter')"), false);
+eq('the cave path waits for D92 too', /TUT_STAGE='d2-counter';[^\n]*\n[^\n]*\n\s*sayQueue\('D92'\);[^\n]*\n\}/.test(src), true);
 eq('D89\'s OK is lit', /const SAY_GO_GLOW=\{[^}]*D89:1/.test(src), true);
 /* r293 (owner, 2026-10-21): the refill - when the bag can no longer make the open order (nothing on the bench, no ingot,
    the order not made), the dragon gives what is missing with D28l over the reward window */

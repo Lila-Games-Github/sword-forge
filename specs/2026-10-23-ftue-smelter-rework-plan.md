@@ -418,3 +418,10 @@ yours and come on top.
   with a customer at the counter - nothing; with a customer saying goodbye - nothing; with gale undiscovered - nothing;
   750 and an empty counter - D107f; both swords in the bag with a customer present - no D107h, then an empty counter -
   D107h; no console errors.
+- **R20 (2026-10-28, owner): the way to the counter on Day 2 lights after D92.** Owner: "make the highlight guide to go to
+  the customer counter on day 2 appear after d92, and not d89." r297 lit it (`tutExit('#panLeft')`) in `say()` as D92
+  came up, which is the moment D89's OK is tapped. Now D92's own close lights it (`SAY_AFTER.D92`, stage `d2-counter`),
+  for the morning (`tutDay2Morning`, D89 then D92) and for the cave path (`tutDay2Mined`, D92 alone, which lit it with
+  D92 as well). FTUE test 747 -> 749 (written first). Checked in the browser (1280x720): the morning - D89 up, nothing
+  blinks; its OK - D92 up, nothing blinks; its OK - the counter's arrow (`#panLeft`) blinks; the cave path - D92 up,
+  nothing blinks; its OK - `#panLeft` blinks; every OK hit-tested; no console errors.
