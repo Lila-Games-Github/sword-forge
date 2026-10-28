@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
-Status: **canon**, built in steps R25 (the craft frame) and R26 (the right rail, the bedroom calendar, the market on the
-counter). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+Status: **canon**, built in steps R25 (the craft frame), R26 (the right rail, the bedroom calendar, the market on the
+counter) and R27 (the grid above the basket, D42). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -69,3 +69,20 @@ the calendar is % of the frame, like the bedroom's hotspots. The build keeps the
 - **The market:** a temporary MARKET button on the customer counter, under CRAFT BOOK (`SCREEN_UI.customer`: x 0.79, y
   10.2, w 8.20, h 8.47, % of the frame), with the old id `#marketBtn`, so the tutorial's pointers and the closed look
   (`mk-closed`) still work. The forge has no market until the counter's icon arrives.
+
+## R27: the inventory grid above the basket, and the text that named the old buttons
+
+Owner (with a picture of the rail): "yes, reword D42 to "Tap the inkpot to record the craft". check and reword anything that
+remains. also, I want the inventory to show 12 boxes in the available space above the quest bucket, the last three boxes
+fades in a gradient behind the questbucket."
+
+- **The grid:** rows a fixed **85 px** with a **5 px** gap (was `minmax(44px,1fr)`, stretched to the shelf). The shelf
+  starts 120 px down the frame and the basket's top is at 478, so four rows (12 boxes) end at 475, just above the basket.
+  **15 cells** at least (`MAT_CELLS`, was 12): the fifth row (3 boxes) sits behind the basket and the diary and **fades**
+  from the top of that row (360 px into the shelf) to nothing at **435 px** (a mask on `#oreShelf`, so it holds as the
+  shelf scrolls when a tab holds more than 15).
+- **D42** ends "Tap the inkpot to record the craft." (was "Tap 'record craft'."); the rest of the line is unchanged.
+- **The sweep:** every dialogue line, toast, hint and button label was searched for the old controls (RECORD CRAFT, the
+  chevron, the DAY tile, the rail's MARKET, DIARY and QUEST words, the old settings row). Only D42 named one; the "record
+  this craft first" toast already says "tap the inkpot" (R25). Lines that name the craft book, the skill tree, the diary,
+  the quest list and the market still fit (the controls kept those jobs).

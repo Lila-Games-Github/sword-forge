@@ -502,3 +502,12 @@ yours and come on top.
   browser (1280x720, free play): skill tile, gear, diary and basket where the reference has them, each hit-tested; the
   basket glows green with a quest to claim; MARKET on the counter hit-tested and tapped (the market opens); the bedroom
   calendar shows the day, 1 -> 2 after a night, clear of the bed and the dragon's hotspots; no console errors.
+- **R27 (2026-10-28, owner): D42 names the inkpot; the inventory above the basket.** Owner: "reword D42 to "Tap the inkpot
+  to record the craft". check and reword anything that remains. also, I want the inventory to show 12 boxes in the
+  available space above the quest bucket, the last three boxes fades in a gradient behind the questbucket." D42 ends "Tap
+  the inkpot to record the craft."; a sweep of every line, toast, hint and label found nothing else naming an old control.
+  The grid's rows are a fixed 85 px (gap 5): four rows (12 boxes) end at 475, the basket starts at 478; `MAT_CELLS` 12 ->
+  15, the fifth row fading behind the basket (mask 360 -> 435 px into the shelf). Record:
+  specs/2026-10-28-forge-screen-new-look.md. FTUE test 795 -> 799 (written first). Checked in the browser (1280x720,
+  free play): row tops 120, 210, 300, 390, 480; the 12th box hit-tested; the fifth row fades behind the basket; the ore
+  tab's names, art and counts fit the 85 px boxes; no console errors.

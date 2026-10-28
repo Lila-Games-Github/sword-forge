@@ -277,7 +277,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 12. **D41** Dragon: "We are on the balanced trait. Open the gate!"
    *When: the sword is on Balanced; the gate lights up.*
 
-13. **D42** Dragon: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'."
+13. **D42** Dragon: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft."
    *When: the gate gives Balanced and its window is closed.*
 
 14. **D43** Dragon: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both."
@@ -1262,7 +1262,7 @@ the player has been told how every station works once already.*
 
 **D42** — Dragon
 > "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our
-> crafting process. It will be helpful later. Tap 'record craft'."
+> crafting process. It will be helpful later. Tap the inkpot to record the craft."
 
 *Trigger: acquiring the trait. The 💾 button is now labelled **RECORD CRAFT** so the line names
 something the player can read, and the shape picker refuses to open until the craft is recorded.*

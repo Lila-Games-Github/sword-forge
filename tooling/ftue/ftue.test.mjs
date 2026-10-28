@@ -1384,4 +1384,10 @@ eq('R26: MARKET on the customer counter, under CRAFT BOOK, with the old id', src
   && src.includes("if(b.id) el.id=b.id;") && src.includes("else if(b.act==='market') el.addEventListener('click', openMarket);")
   && /function buildScreenUi\(name\)\{[\s\S]{0,1400}marketBtnUi\(\);\s*\}/.test(src), true);
 
+/* R27 (owner, 2026-10-28): D42 names the inkpot; 12 boxes above the quest basket, the fifth row fading behind it */
+eq('R27: D42 names the inkpot', line('D42'), "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft.");
+eq('R27: 15 cells at least (12 above the basket, 3 fading behind it)', src.includes('const MAT_CELLS=15;'), true);
+eq('R27: fixed 85 px rows, 5 px gap: four rows end above the basket', src.includes('grid-auto-rows: 85px; gap: 5px; padding: 0; align-content: start;'), true);
+eq('R27: the fifth row fades behind the basket (360 to 435 px into the shelf)', src.includes('-webkit-mask-image: linear-gradient(to bottom, #000 360px, transparent 435px); mask-image: linear-gradient(to bottom, #000 360px, transparent 435px);'), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');

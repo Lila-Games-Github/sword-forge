@@ -1938,7 +1938,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matHead { text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px; letter-spacing: 1.6px;
     color: #241a0c; border-top: 2px solid #241a0c; border-bottom: 2px solid #241a0c; padding: 3px 0; margin-bottom: 7px; }
 #frame.landscape #oreShelf { position: static; flex: 1 1 auto; min-height: 0; grid-template-columns: repeat(3,1fr);
-    grid-auto-rows: minmax(44px,1fr); gap: 5px; padding: 0; align-content: stretch; overflow-y: auto; }   /* r60: rows stop shrinking at 44px and the shelf scrolls instead, so a tab can hold more than 12 */
+    grid-auto-rows: 85px; gap: 5px; padding: 0; align-content: start; overflow-y: auto;
+    -webkit-mask-image: linear-gradient(to bottom, #000 360px, transparent 435px); mask-image: linear-gradient(to bottom, #000 360px, transparent 435px); }
+/* R27 (owner, 2026-10-28): 85 px rows - the shelf starts 120 px down the frame and the basket's top is at 478, so four rows (12
+   boxes) end above it; the fifth row (MAT_CELLS 15) sits behind the basket and fades from its top (360) to nothing (435) (r60 let the shelf scroll past 12; it still does) */
 #frame.landscape .ore-slot { background: linear-gradient(180deg,#c4b189,#ab9770); border: 2px solid #241a0c;
     border-radius: 5px; box-shadow: inset 0 1px 0 rgba(255,255,255,.28); padding: 4px 2px; }
 #frame.landscape .ore-slot { justify-content: center; }
@@ -7855,7 +7858,7 @@ function shelfMisc(shelf){
         shelf.appendChild(s); n++; });
     return n;   /* owner, 2026-10-13: the pickaxe is no longer here - it stays in the cave */
 }
-const MAT_CELLS=12;   // r20: the reference inventory is a 3x4 grid. All 8 ORES are shown and the remainder are EMPTY cells - the old RAIL_FILLER invented duplicate materials, which a real inventory should not do. (non-interactive)
+const MAT_CELLS=15;   /* R27 (owner, 2026-10-28): 12 above the quest basket, the fifth row of 3 fading behind it */   // r20: the reference inventory is a 3x4 grid. All 8 ORES are shown and the remainder are EMPTY cells - the old RAIL_FILLER invented duplicate materials, which a real inventory should not do. (non-interactive)
 // r60: the boot entry now wires the four tabs; the shelves themselves are built by buildShelf()
 function wireOreTray(){
     [...document.querySelectorAll('#matTabs .matTab')].forEach((t,i)=>t.addEventListener('click', ()=>invTab(i)));
@@ -8111,7 +8114,7 @@ const DIALOGUE = {
     D37: "Do the same with manganese ore.",
     D38: "Great, the path is going all the way to the balanced trait we discovered last time.",
     D41: "We are on the balanced trait. Open the gate!",   /* R3 (smelter loop): D39, D40 (the heat lesson) are gone */
-    D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap 'record craft'.",
+    D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft.",   /* R27 (owner, 2026-10-28): the inkpot is the record button */
     D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
     D44: "Take the hot metal to the anvil.",   /* R3 */
     D45: "You remember what to do, right? Go ahead, I'm ready!",
