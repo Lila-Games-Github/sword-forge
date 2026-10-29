@@ -355,7 +355,7 @@ eq('a paid customer has no open order (no refill, no craft lock)', /function ftu
 /* R15 (owner, 2026-10-26): "show up arrow guide on the ladle, and up and down arrow on the bellows" - the drag gestures */
 { const t = src.match(/const TUT_DRAG_GESTURE=(\{[^\n]*\});/);
   eq('the gesture table: the ladle tilts up, the bellows pump up and down', t && new Function('return ' + t[1])(),
-    { '#ladleHead': { kind: 'up', fx: 0.25, fy: 0.1 }, '#bellowtop': { kind: 'updown', fx: 0.6, fy: 0.2 } }); }
+    { '#ladleHead': { kind: 'up', fx: 0.25, fy: 0.1 }, '#bellowtop': { kind: 'updown', fx: 0.6, fy: 0.2 }, '#hudToggle': { kind: 'down', fx: 0.5, fy: 0.75 } }); }   /* R28: the ring pulls down */
 eq('the gesture overlay is in the frame, with an up head and a down head', /<svg id="tutDrag" viewBox="0 0 40 64" aria-hidden="true">[\s\S]{0,400}class="g-up"[\s\S]{0,200}class="g-down"[\s\S]{0,80}<\/svg>/.test(src), true);
 eq('every tutorial tap pointer sets or clears it (so every pointer change does)', /function tutTap\(sel\)\{\s*tutExit\(null\); tutDragOn\(sel\);/.test(src), true);
 eq('it follows the layout every frame (hidden while its target is not on screen)', src.includes('tutSpinOn(null);   /* r229: every frame') && /tutSpinOn\(null\);   \/\* r229: every frame[^\n]*\n\s*tutDragDraw\(\);/.test(src), true);
@@ -1391,5 +1391,15 @@ eq('R27: fixed 85 px rows, 5 px gap: four rows end above the basket', src.includ
 /* R27b (owner, 2026-10-28): "the gradient is supposed to be dark in color" - a dark overlay (the rail's #1b120c), not a fade to the parchment */
 eq('R27b: the fifth row fades into the rail\'s dark, under the basket', src.includes("#matPanel::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 115px; z-index: 4; pointer-events: none; border-radius: 0 0 6px 6px; background: linear-gradient(to bottom, rgba(27,18,12,0) 0%, rgba(27,18,12,.85) 45%, #1b120c 75%); }")
   && !src.includes('mask-image: linear-gradient(to bottom, #000 360px'), true);
+
+/* R28 (owner, 2026-10-29): "add a glow on the pulley to guide players to drag the window down so they can see the inkpot. once they
+   record, guide them to click on the pulley again to close the window." */
+eq('R28: the record step reads the frame\'s closed state (it slides, it is never hidden)', src.includes("const open=!document.getElementById('hud').classList.contains('collapsed');")
+  && !/const panel=document.getElementById('bladePanel');s*const open=panel && getComputedStyle(panel).display/.test(src), true);
+eq('R28: closed - the ring glows with the down arrow; open - the inkpot glows, no arrow', src.includes("tutExit(open ? '#saveBlade' : '#hudToggle'); tutDragOn(open ? null : '#hudToggle');"), true);
+eq('R28: after recording - the ring glows, no arrow (a tap closes it)', src.includes("if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); tutDragOn(null); return; }"), true);
+eq('R28: the guide notices the frame opening and closing', src.includes("document.getElementById('hud').classList.contains('collapsed')?0:1,") && !src.includes("panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,"), true);
+eq('R28: the down arrow slides down, its up head hidden', src.includes('#tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }')
+  && src.includes('#tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }') && src.includes("svg.classList.remove('up','updown','down'); svg.classList.add(g.kind, 'on');"), true);
 
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -88,3 +88,17 @@ fades in a gradient behind the questbucket."
   chevron, the DAY tile, the rail's MARKET, DIARY and QUEST words, the old settings row). Only D42 named one; the "record
   this craft first" toast already says "tap the inkpot" (R25). Lines that name the craft book, the skill tree, the diary,
   the quest list and the market still fit (the controls kept those jobs).
+
+## R28: the ring guides the record step (2026-10-29)
+
+Owner (with a picture of D42 over the closed frame): "add a glow on the pulley to guide players to drag the window down so
+they can see the inkpot. once they record, guide them to click on the pulley again to close the window."
+
+- **Found:** the record step (r121) and the guide's change watcher (`tutNudgeSig`) asked whether the panel was *hidden*
+  (`display`). Since R25 the closed frame slides up instead, so the step always took it for open and lit the inkpot, which
+  was off screen, and the watcher never saw the frame open or close. Both now read the `collapsed` class on `#hud`.
+- **D42, the frame closed:** the ring glows and a **down** arrow slides over it (`TUT_DRAG_GESTURE['#hudToggle']`: kind
+  `down`, centred at 0.5 / 0.75 of the ring's box), the R15 gesture vocabulary with a third kind. Open: the inkpot glows,
+  no arrow.
+- **After recording (`record-close`, r177):** the ring glows, no arrow: a tap closes the frame, and the closing moves the
+  tutorial on (D44), as before.

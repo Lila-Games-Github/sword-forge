@@ -499,6 +499,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutDrag.up { animation: tutDragUp 1.2s ease-in-out infinite; }
 #tutDrag.updown { animation: tutDragBob 0.6s ease-in-out infinite alternate; }
 #tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }
+/* R28: the ring's pull - the down head only, sliding down */
+#tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }
+#tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }
+@keyframes tutDragDown { 0% { transform: translateY(-14px); opacity: 0; } 25%, 75% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
 @keyframes tutDragUp { 0% { transform: translateY(14px); opacity: 0; } 25%, 75% { opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
 @keyframes tutDragBob { from { transform: translateY(-9px); } to { transform: translateY(9px); } }
 #tutPath { fill: none; stroke: #ffd27a; stroke-width: 4.5; stroke-linecap: round;
@@ -8312,14 +8316,14 @@ function tutNeedTab(n){ TUT_TAB = (n==null? null : n); tutTabUi(); }
 let TUT_TAP_GLOW=null;
 /* R15 (owner, 2026-10-26): a drag control the tutorial points at shows which way to drag (#tutDrag): the ladle tilts up, the
    bellows pump up and down. fx/fy: the gesture's centre in the target's box */
-const TUT_DRAG_GESTURE={ '#ladleHead':{ kind:'up', fx:0.25, fy:0.1 }, '#bellowtop':{ kind:'updown', fx:0.6, fy:0.2 } };
+const TUT_DRAG_GESTURE={ '#ladleHead':{ kind:'up', fx:0.25, fy:0.1 }, '#bellowtop':{ kind:'updown', fx:0.6, fy:0.2 }, '#hudToggle':{ kind:'down', fx:0.5, fy:0.75 } };   /* R28: the craft frame's ring pulls down */
 let TUT_DRAG=null;
 function tutDragOn(sel){ TUT_DRAG=(typeof sel==='string' && TUT_DRAG_GESTURE[sel]) ? sel : null; tutDragDraw(); }
 function tutDragDraw(){ const svg=document.getElementById('tutDrag'); if(!svg) return;
     const g=TUT_DRAG && TUT_DRAG_GESTURE[TUT_DRAG], box=g && SF_SCREEN==='forge' && tutRect(TUT_DRAG);   /* the forge props stay laid out under the other screens */
     if(!box){ svg.classList.remove('on'); return; }
     svg.style.left=(box.x+box.w*g.fx-20).toFixed(0)+'px'; svg.style.top=(box.y+box.h*g.fy-32).toFixed(0)+'px';
-    svg.classList.remove(g.kind==='up' ? 'updown' : 'up'); svg.classList.add(g.kind, 'on'); }
+    svg.classList.remove('up','updown','down'); svg.classList.add(g.kind, 'on'); }
 function tutTap(sel){
     tutExit(null); tutDragOn(sel);
     if(TUT_TAP_GLOW){ tutGlow(TUT_TAP_GLOW, false); TUT_TAP_GLOW=null; }
@@ -9968,10 +9972,9 @@ function tutSmelterArrow(){ tutArrow('#orb', '#furnaceGlow', { tfx:0.5, tfy:0.30
    churn the signature on every frame while the pointer sat still. */
 let TUT_NUDGE_SIG='';
 function tutNudgeSig(){
-    const panel=document.getElementById('bladePanel');
     return [TUT_STAGE, segs.length, /* r223 */ prep? prep.ore : '-', prep? (prep.grind>=0.999?1:0) : '-',
             melt? melt.stage : '-', melt&&melt.reachedTrait?1:0, (melt && segs.length && swordAtRouteEnd())?1:0, gateReady?1:0, INV_TAB, SM_BL?1:0,   /* R2: the blade held */   /* v3: the route's end (the mug, the pull lesson) */
-            panel? (getComputedStyle(panel).display!=='none'?1:0) : 0,
+            document.getElementById('hud').classList.contains('collapsed')?0:1,   /* R28: the craft frame slides shut, it is never hidden */
             /* r157: what is actually ON SCREEN, so a pointer someone else wiped is put back */
             TUT_ARROW?1:0, TUT_TAB==null?0:1, document.querySelector('.tut-blink')?1:0,
             document.querySelector('.tut-glow')?1:0, ftueBookSig()].join('|');
@@ -10049,10 +10052,9 @@ function tutNudgeApply(){
     if(TUT_STAGE==='fire-heat1' || TUT_STAGE==='fire-heat2'){ if(SAY_ON==='D70' || SAY_ON==='D70a'){ tutArrow(null,null); return; } tutLoopPointer('fire', true); return; }   /* R24: D70 is a look-at-this line (r184) */   /* R4: the smelter loop; the gate only on Fire */
     if(TUT_STAGE==='regrind-heat'){ tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return; }   /* R3: the bellows, once D38 is read */
     if(TUT_STAGE==='regrind-work'){ tutLoopPointer(); return; }   /* R3: the smelter loop */
-    if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); return; }   /* r177 */
+    if(TUT_STAGE==='record-close'){ tutArrow(null,null); tutExit('#hudToggle'); tutDragOn(null); return; }   /* R28 (owner): the ring glows; a tap closes it */   /* r177 */
     if(TUT_STAGE==='record'){
-        const panel=document.getElementById('bladePanel');
-        const open=panel && getComputedStyle(panel).display!=='none';
+        const open=!document.getElementById('hud').classList.contains('collapsed');   /* R28: the frame slides shut (R25), it is never hidden */
         /* r101 drew an arrow here and had to bend it up from below-right, because the toggle sits in
            the very top-left corner and an arrow above it was clipped by the frame. r121 blinks the
            control instead, which has no such problem. */
@@ -10061,7 +10063,7 @@ function tutNudgeApply(){
            be cleared by noteAction() on the very tap that got here; r157 stopped that wipe, which
            left the splash arrow hanging over D42. */
         tutArrow(null,null);
-        tutExit(open ? '#saveBlade' : '#hudToggle');   /* r121 */
+        tutExit(open ? '#saveBlade' : '#hudToggle'); tutDragOn(open ? null : '#hudToggle');   /* r121. R28 (owner): closed, the ring glows and the arrow says pull it down */
     }
 }
 /* v3 part 2 (D13): the player loads the raw iron and manganese, the path misses Balanced, the dragon gives

@@ -515,3 +515,13 @@ yours and come on top.
   now a dark overlay on the card's bottom 115 px (the rail's #1b120c, solid from 75%), over the slots and under the diary
   and the basket, taps passing through (the left box of the fifth row hit-tested). FTUE test 799 (the mask check rewritten,
   first). Checked in the browser; no console errors.
+- **R28 (2026-10-29, owner): the ring guides the record step.** Owner: "add a glow on the pulley to guide players to drag the
+  window down so they can see the inkpot. once they record, guide them to click on the pulley again to close the window."
+  Found: the record step (r121) and the guide's change watcher asked whether the panel was hidden; since R25 the frame
+  slides shut instead, so the step lit the off-screen inkpot and the watcher missed every open and close. Both read the
+  `collapsed` class now. D42 with the frame closed: the ring glows and a down arrow slides over it (`TUT_DRAG_GESTURE`, a
+  third kind, `down`); open: the inkpot glows; after recording: the ring glows, no arrow, and its tap closes the frame
+  (D44). Record: specs/2026-10-28-forge-screen-new-look.md. FTUE test 799 -> 804 (the checks failed on the previous
+  build, passed on this one). Checked in the browser (1280x720, PART 2 jump, the record stage): closed - ring glowing,
+  arrow on; the ring pulled down (hit-tested) - open, the inkpot glowing, arrow off; recorded - the ring glowing, arrow
+  off; the ring tapped - closed, D44; no console errors.
