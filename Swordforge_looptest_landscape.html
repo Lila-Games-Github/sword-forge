@@ -1348,11 +1348,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     box-shadow: 0 6px 20px rgba(0,0,0,.6); }
 #sfToast.show { display: block; animation: sfToastIn .5s ease-out; }
 @keyframes sfToastIn { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px); } 100% { opacity: 1; transform: translateX(-50%) translateY(0); } }
-/* r96 - the counter bell. It swings about its crown, not its middle. */
-#screenProps img[src$="bell.webp"] { transform-origin: 50% 18%; }
-#screenProps img.bell-ring { animation: bellShake .55s ease-in-out; }
-@keyframes bellShake { 0%,100% { transform: rotate(0deg); } 14% { transform: rotate(-14deg); }
-    34% { transform: rotate(11deg); } 54% { transform: rotate(-7deg); } 76% { transform: rotate(4deg); } }
+/* R30 (owner, 2026-10-29): the counter bell hangs from the top edge on its rope and swings about the rope's top - a little
+   when idle, more when tapped. The tutorial's glow runs WITH the swing: one rule lists both animations (the glow is a filter,
+   the swing a transform), or the glow would stop the swing. */
+#screenProps img[data-act="bell"] { transform-origin: 50% 0; animation: bellIdle 2.8s ease-in-out infinite; }
+#screenProps img[data-act="bell"].bell-ring { animation: bellSwing 1.6s ease-out; }
+#screenProps img[data-act="bell"].tut-glow, #screenProps img[data-act="bell"].tut-blink { animation: bellIdle 2.8s ease-in-out infinite, tutGlow 1.15s ease-in-out infinite; }
+#screenProps img[data-act="bell"].bell-ring.tut-glow, #screenProps img[data-act="bell"].bell-ring.tut-blink { animation: bellSwing 1.6s ease-out, tutGlow 1.15s ease-in-out infinite; }
+@keyframes bellIdle { 0%,100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@keyframes bellSwing { 0% { transform: rotate(0); } 12% { transform: rotate(16deg); } 30% { transform: rotate(-12deg); } 48% { transform: rotate(8deg); }
+    66% { transform: rotate(-5deg); } 84% { transform: rotate(2deg); } 100% { transform: rotate(0); } }
 .bell-ripple { position: absolute; border: 3px solid rgba(255,226,150,.9); border-radius: 50%;
     pointer-events: none; transform: translate(-50%,-50%); animation: bellRipple .95s ease-out forwards; }
 @keyframes bellRipple { 0% { width: 8px; height: 8px; opacity: .95; }
@@ -1465,6 +1470,21 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sc-btn .sc-gl { font-size: 21px; line-height: 1; }     /* r150: the ledger icon exists now, so nothing uses this - kept for the next button that needs a glyph before its art lands */
 /* NOT .cap - that class is the bench stations' caption and is position:absolute (and hidden in clean mode) */
 .sc-btn .sc-cap { font-size: 9px; line-height: 1.15; text-align: center; }
+/* R30 (owner, 2026-10-29): the counter's art controls - the shelf (the forge's craft frame, wood, book and ring), the scroll
+   ledger and the rotary market. COUNTER_UI places them; counterUiBuild builds them */
+#screenUi .sc-art { padding: 0; border: none; background: none; box-shadow: none; }
+#screenUi .sc-art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0,0,0,.55)); }
+#screenUi .sc-art.tut-lit-ctl { animation: tutGlow 1.15s ease-in-out infinite; }
+#cntShelf { position: absolute; pointer-events: none; aspect-ratio: 264 / 430; transition: transform .35s ease; }
+#cntShelf > img.cf-art { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#cntShelf > button { position: absolute; pointer-events: auto; padding: 0; margin: 0; border: none; background: none; cursor: pointer; overflow: visible; }
+#cntShelf > button > img { position: absolute; max-width: none; pointer-events: none; }
+#cntShelf > button:active { transform: scale(.95); }
+#cntBook.tut-blink, #cntRing.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }
+#screenUi .mkt-rotary { position: absolute; pointer-events: auto; padding: 0; border: none; background: none; cursor: grab; touch-action: none;
+    transition: left .35s ease; }
+#screenUi .mkt-rotary.dragging { transition: none; cursor: grabbing; }
+#screenUi .mkt-rotary img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.55)); }
 /* r68 — the cave: ore seams, the pickaxe you leave lying there, and ore flying home to the rail.
    Its own layer rather than #screenProps, because a seam is centred on a spot and PROP_OPQ's
    left/bottom anchoring is built for art measured off a reference plate. */
@@ -1908,7 +1928,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    dialogue OK button's glow (a brighter face, an outer halo and an inset glow that no ancestor can clip) */
 .tut-blink { animation: tutLitCtl 1.15s ease-in-out infinite; }
 #saveBlade.tut-blink, #recipeBtn.tut-blink, #hudToggle.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }   /* R25: art, not a rectangle */
-#marketBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }
+#marketBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }   /* R30: the rotary glows along its art */
 #diaryBtn.tut-blink, #questBtn.tut-blink, #settingsBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }   /* R26: art, not a box */
 #panPad button.tut-blink { animation: tutExitBlink 1s ease-in-out infinite; color: #2a1d0c; }
 #panUp, #panDown { width: 36px; height: 24px; left: 50%; margin-left: -18px; }
@@ -3113,7 +3133,7 @@ function ftueBookStep(){
             if(SF_SCREEN!=='forge'){ tutHole(null); tutSpotOn(null); if(!g.saidGo){ g.saidGo=true; sayQueue('D92m'); } tutExitTo('forge'); return; }
             const f=traits.find(t=>t.trait && t.trait.id===g.trait); tutExit(null); if(!g.saidTap) tutMapShow(f); tutSpotOn(f); tutHole(f); if(!g.saidTap){ g.saidTap=true; sayQueue('D92n'); } return; }   /* r245: tap the fire icon, everything else dark */
         tutSpotOn(null);
-        if(SF_SCREEN==='customer') tutExit("#screenUi .sc-btn[title='Craft book']");
+        if(SF_SCREEN==='customer') tutExit(cntBookSel());   /* R30: the shelf's book, or its ring when shut */
         else if(SF_SCREEN==='forge') tutExit('#recipeBtn');
         else tutExitTo('forge');
         return; }
@@ -3262,7 +3282,7 @@ function ftueBulkStep(){
         if(COUNTER){ tutArrow(null,null); tutExit(null); return; }   /* placeCounter lights SELL */
         tutExit(null); tutArrow(tutSwordSlot, ()=>zoneRect(), { tab:2, tfx:0.5, tfy:0.5, bow:0.18, back:24 }); return; }
     tutArrow(null,null);
-    if(!open){ tutExit(SF_SCREEN==='customer' ? "#screenUi .sc-btn[title='Craft book']" : '#recipeBtn'); return; }
+    if(!open){ tutExit(SF_SCREEN==='customer' ? cntBookSel() : '#recipeBtn'); return; }   /* R30 */
     const k=ftueBulkKey();
     if(k && CB_SEL!==k){ tutExit(".cb-mark.rec[data-key='"+k+"']"); return; }
     tutExit('#cbCraft5');
@@ -3818,13 +3838,60 @@ const SCREEN_UI = {
         { x:1.00,  y:2.09,  w:8.24,  h:8.50,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
         { x:65.31, y:83.61, w:11.90, h:11.18, ic:'assets/forge/ledger.webp',             cap:'LEDGER',        title:'Ledger', act:'ledger' }
     ],
-    customer: [
-        { x:0.79, y:0.85,  w:8.20,  h:8.47,  ic:'assets/ui/icon_recipe.webp', cap:'CRAFT<br>BOOK', title:'Craft book', act:'book' },
-        /* R26 (owner, 2026-10-28): a temporary MARKET here until its icon art arrives; the old id keeps the tutorial's pointers */
-        { x:0.79, y:10.2, w:8.20, h:8.47, gl:'&#128722;', cap:'MARKET', title:'Market', act:'market', id:'marketBtn' },
-        { x:2.50, y:84.50, w:11.90, h:11.18,   /* r150: back to the LEFT and under the dragon. r146 had it bottom-right, straight on top of the bell at x 72% - the control that calls the next customer. */ ic:'assets/forge/ledger.webp',            cap:'LEDGER',        title:'Ledger', act:'ledger' }
-    ]
+    customer: [],   /* R30 (owner, 2026-10-29): CRAFT BOOK, MARKET and LEDGER are art now - counterUiBuild */
 };
+/* R30 (owner, 2026-10-29): the customer counter's new look, read off assets/Anchor-images/customer_counter_new.png
+   (specs/2026-10-28-forge-screen-new-look.md). shelfOpen: how far the shelf slides up when open (% of its height) - it opens
+   only as far as the craft book; bell: plate %; ledger / rotary: % of the frame; inX: where the rotary rests behind the
+   inventory panel, its crank still out */
+const COUNTER_UI={ shelfOpen:48.5,
+    bell:   { l:70.1, w:4.84, b:28.8, art:'assets/ui/bell_new.webp' },
+    ledger: { x:0, y:90.7, w:8.6, h:9.9, art:'assets/ui/ledger.webp' },
+    rotary: { x:60.9, y:71.4, w:15.9, h:24.1, inX:76.6, art:'assets/ui/Market.webp' } };
+let CNT_SHELF_OPEN=true, MKT_IN=false;   /* the player's choices, kept (owner) */
+function cntBookSel(){ return CNT_SHELF_OPEN ? '#cntBook' : '#cntRing'; }
+/* a pull ring: a tap toggles, a pull down opens, a push up closes (the forge's ring, wireRing, does the same for the frame) */
+function wirePull(el, isOpen, setOpen){ let y0=null;
+    el.addEventListener('pointerdown', e=>{ y0=e.clientY; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+    el.addEventListener('pointerup', e=>{ if(y0==null) return; const dy=e.clientY-y0; y0=null;
+        const open=isOpen(), want=Math.abs(dy)<12 ? !open : dy>0; if(want!==open) setOpen(want); });
+    el.addEventListener('pointercancel', ()=>{ y0=null; }); }
+function cntShelfSet(open){ CNT_SHELF_OPEN=!!open; const sh=document.getElementById('cntShelf'); if(!sh) return;
+    sh.style.transform='translateY(-'+(open ? COUNTER_UI.shelfOpen : CRAFT_FRAME.shut)+'%)';
+    const rg=document.getElementById('cntRing'); if(rg){ rg.title=open ? 'Close the shelf' : 'Open the shelf'; rg.setAttribute('aria-label', rg.title); }
+    /* a pointer at the book follows it: closed, the ring; opened again, the book */
+    const bk=document.getElementById('cntBook');
+    if(open && rg && rg.classList.contains('tut-blink')) tutExit('#cntBook'); else if(!open && bk && bk.classList.contains('tut-blink')) tutExit('#cntRing'); }
+function mktRotarySet(inn){ MKT_IN=!!inn; const r=document.getElementById('marketBtn'); if(!r) return;
+    r.style.left=(inn ? COUNTER_UI.rotary.inX : COUNTER_UI.rotary.x)+'%'; r.title=inn ? 'Market (drag it out)' : 'Market'; }
+function counterUiBuild(box){ const C=CRAFT_FRAME;
+    const sh=document.createElement('div'); sh.id='cntShelf'; sh.style.left=C.left+'px'; sh.style.top=C.top+'px'; sh.style.width=C.w+'px';
+    sh.innerHTML='<img class="cf-art" src="'+C.art+'" alt=""><button id="cntBook" type="button" title="Craft book" aria-label="Craft book"></button><button id="cntRing" type="button"></button>';
+    [['book','cntBook'],['ring','cntRing']].forEach(([k,id])=>{ const b=C[k], el=sh.querySelector('#'+id);
+        el.style.left=b.l+'%'; el.style.top=b.t+'%'; el.style.width=b.w+'%'; el.style.height=b.h+'%';
+        const im=document.createElement('img'); im.alt=''; im.src=b.art;   /* the whole canvas, lined up with the frame's, as on the forge */
+        im.style.width=(100*100/b.w)+'%'; im.style.height=(100*100/b.h)+'%'; im.style.left=(-100*b.l/b.w)+'%'; im.style.top=(-100*b.t/b.h)+'%';
+        el.appendChild(im); });
+    box.appendChild(sh); cntShelfSet(CNT_SHELF_OPEN);
+    sh.querySelector('#cntBook').addEventListener('click', openBook);
+    wirePull(sh.querySelector('#cntRing'), ()=>CNT_SHELF_OPEN, cntShelfSet);
+    const L=COUNTER_UI.ledger, lg=document.createElement('button'); lg.type='button';
+    lg.className='sc-btn sc-art'; lg.title='Ledger'; lg.setAttribute('aria-label', 'Ledger');
+    lg.style.left=L.x+'%'; lg.style.top=L.y+'%'; lg.style.width=L.w+'%'; lg.style.height=L.h+'%';
+    lg.innerHTML='<img src="'+L.art+'" alt="">'; lg.addEventListener('click', openLedger); box.appendChild(lg);
+    const Q=COUNTER_UI.rotary, r=document.createElement('button'); r.type='button';
+    r.id='marketBtn'; r.className='mkt-rotary'; r.title='Market'; r.setAttribute('aria-label', 'Market');
+    r.style.top=Q.y+'%'; r.style.width=Q.w+'%'; r.style.height=Q.h+'%'; r.innerHTML='<img src="'+Q.art+'" alt="">';
+    box.appendChild(r); mktRotarySet(MKT_IN);
+    /* drag it right and it slides behind the inventory panel (the crank stays out); drag it left, or tap it, and it comes back */
+    let x0=null, l0=0, dx=0;
+    r.addEventListener('pointerdown', e=>{ x0=e.clientX; dx=0; l0=parseFloat(r.style.left); r.classList.add('dragging'); try{ r.setPointerCapture(e.pointerId); }catch(err){} });
+    r.addEventListener('pointermove', e=>{ if(x0==null) return; dx=e.clientX-x0; const W=box.getBoundingClientRect().width||1;
+        r.style.left=Math.max(Q.x, Math.min(Q.inX, l0+dx/W*100))+'%'; });
+    r.addEventListener('pointerup', ()=>{ if(x0==null) return; x0=null; r.classList.remove('dragging');
+        if(Math.abs(dx)<8){ if(MKT_IN) mktRotarySet(false); else openMarket(); return; }
+        mktRotarySet(dx>0); });
+    r.addEventListener('pointercancel', ()=>{ x0=null; r.classList.remove('dragging'); mktRotarySet(MKT_IN); }); }
 function buildScreenUi(name){
     const box=document.getElementById('screenUi'); if(!box) return;
     box.innerHTML='';
@@ -3837,6 +3904,7 @@ function buildScreenUi(name){
         else if(b.act==='ledger') el.addEventListener('click', openLedger);
         else if(b.act==='market') el.addEventListener('click', openMarket);
         box.appendChild(el); });
+    if(name==='customer') counterUiBuild(box);   /* R30 */
     /* R26: the counter's MARKET wears the closed look */ marketBtnUi();
 }
 // Props drawn onto a plate. l / w / b are the prop's VISIBLE ART left, width and bottom as a % of the
@@ -3877,7 +3945,8 @@ const PROP_OPQ = {
     'assets/customer/woman1.webp':                 { ox:0,      oy:0.3080, ow:0.5580, oh:0.5000, ar:304/572 },
     'assets/customer/woman2.webp':                 { ox:0,      oy:0.2500, ow:0.6170, oh:0.5580, ar:304/572 },
     'assets/customer/woman3.webp':                 { ox:0,      oy:0.2420, ow:0.6250, oh:0.5500, ar:304/572 },
-    'assets/forge/bell.webp':                      { ox:0,      oy:0,      ow:1,      oh:1,      ar:898/1048 }
+    'assets/forge/bell.webp':                      { ox:0,      oy:0,      ow:1,      oh:1,      ar:898/1048 },
+    'assets/ui/bell_new.webp':                   { ox:0,      oy:0,      ow:1,      oh:1,      ar:93/307 }   /* R30: the rope runs to the top */
 };
 // what a prop's click does, if anything. A prop with an act gets the hover sheen and a pointer whether
 // or not there is a handler yet - the basement's two workstations have no windows behind them so far.
@@ -4156,7 +4225,7 @@ function buildScreenProps(name){
     else if(name==='customer' && CUST_BYE) list.unshift({ src:CUST_BYE.portrait, l:7.97, w:20.99, b:86.16 });   /* r252 */
     /* r96: the bell sits on the right corner of the counter, from D27 onward. The rail covers the plate
        from 79% across, so 72% is the right-hand end of the table the player can actually see. */
-    if(name==='customer' && BELL_ON) list.push({ src:'assets/forge/bell.webp', l:72.0, w:5.2, b:96.5,
+    if(name==='customer' && BELL_ON) list.push({ src:COUNTER_UI.bell.art, l:COUNTER_UI.bell.l, w:COUNTER_UI.bell.w, b:COUNTER_UI.bell.b,   /* R30: top right, on its rope */
         act:'bell', title:'Ring for the next customer' });
     if(name==='basement' && WORK) list.push(Object.assign({ kind:'sword', parts:swordParts(WORK),
         act:'work', title:WORK.shape+' \u2014 drag it back to the rail' }, WORK_SWORD));
@@ -4966,7 +5035,7 @@ function txtOf(id){ const e=document.getElementById(id); return e? e.textContent
 function bakeIngot(g){ return Object.assign({}, g, { heat:invCooled(g), at:0 }); }
 function saveBlob(){
     return { v:SAVE_V, at:Date.now(), screen:SF_SCREEN,
-        hud:{ day:txtOf('dayNum') }, econ:{ gold:GOLD, rep:REP, pop:POP, lv:POPLV }, sales:SALES, counter:COUNTER,
+        hud:{ day:txtOf('dayNum'), cntShelf:CNT_SHELF_OPEN, mktIn:MKT_IN }, econ:{ gold:GOLD, rep:REP, pop:POP, lv:POPLV }, sales:SALES, counter:COUNTER,
         inv:{ ingots:INV.ingots.map(bakeIngot), swords:INV.swords, seq:INV_SEQ },
         work:WORK, sel:Object.assign({},DD_SEL), blade:DD_BLADE, sharp:SH_VAL,
         exp:exp, seed:seed, recipes:RECIPES, ore:ORE_COUNT, lastCraft:LAST_CRAFT,
@@ -5031,7 +5100,8 @@ function applyState(o){
     if(o.prep) prep=Object.assign({},o.prep);
     if(o.marker){ marker=Object.assign({},o.marker); if(!o.bench) setSword(marker.x,marker.y); }
     if(o.view){ view=Object.assign({},o.view); setView(); }
-    if(o.hud){ const e=document.getElementById('dayNum'); if(e&&o.hud.day!=null) e.textContent=o.hud.day; }
+    if(o.hud){ const e=document.getElementById('dayNum'); if(e&&o.hud.day!=null) e.textContent=o.hud.day;
+        if(o.hud.cntShelf!=null) CNT_SHELF_OPEN=!!o.hud.cntShelf; if(o.hud.mktIn!=null) MKT_IN=!!o.hud.mktIn; }   /* R30 */
     if(o.econ){ GOLD=o.econ.gold||0; REP=o.econ.rep||0; POP=o.econ.pop||0; POPLV=o.econ.lv||1; }
     Object.keys(RECIPES).forEach(k=>delete RECIPES[k]);
     Object.keys(o.recipes||{}).forEach(k=>{ const r=o.recipes[k]; RECIPES[k]=Object.assign({}, r, { key:k, traits:recipeTraits(r) }); });
@@ -5076,6 +5146,7 @@ function newGame(){
     SKILL_RANK={ bulk:0, master:0, vision:0, restore:0 };
     QUESTS.forEach(q=>{ q.progress=0; q.done=false; q.claimed=false; }); questBtnUi();   /* r200 */
     (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='1'; })();   // r69: a new game is day 1
+    CNT_SHELF_OPEN=true; MKT_IN=false;   /* R30: the counter's shelf open, its rotary out */
     GOLD=0; REP=0; POP=0; POPLV=1; COUNTER=null; SALES.length=0; updateHud();
     Object.keys(RECIPES).forEach(k=>delete RECIPES[k]); CB_SEL=null; LAST_CRAFT=null;
     pickHome(); rollCaveNodes(); buildCave();
@@ -9746,19 +9817,19 @@ const CUST_ASKS=[ n=>'Do you have a '+n+'?',
                   n=>'I want a '+n+'.',
                   n=>'Give me a '+n+', if you have one.',
                   n=>'I hear you make a fine blade. A '+n+', if you can.' ];
-function bellEl(){ return document.querySelector('#screenProps img[src$="bell.webp"]'); }
+function bellEl(){ return document.querySelector('#screenProps img[data-act="bell"]'); }
 function bellShow(on){ BELL_ON=!!on; if(SF_SCREEN==='customer') buildScreenProps('customer'); }
 function bellFx(){
     const im=bellEl(); if(!im) return;
     im.classList.remove('bell-ring'); void im.offsetWidth; im.classList.add('bell-ring');
-    setTimeout(()=>im.classList.remove('bell-ring'), 700);
+    setTimeout(()=>im.classList.remove('bell-ring'), 1650);   /* R30: the bigger swing's length */
     /* r96b: NOT #screenProps - buildScreenProps empties it the moment the customer arrives, which
        took the ripples with it. #screenLayer is the stable parent. */
     const layer=document.getElementById('screenLayer'); if(!layer) return;
     const lr=layer.getBoundingClientRect(), br=im.getBoundingClientRect();
     for(let i=0;i<3;i++){ const d=document.createElement('div'); d.className='bell-ripple';
         d.style.left=(br.left+br.width*0.5-lr.left)+'px';
-        d.style.top =(br.top +br.height*0.3-lr.top )+'px';
+        d.style.top =(br.top +br.height*0.85-lr.top )+'px';   /* R30: the bell is at the foot of its rope */
         d.style.animationDelay=(i*170)+'ms';
         layer.appendChild(d); setTimeout(()=>{ if(d.parentNode) d.remove(); }, 1200+i*170); }
 }

@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
 Status: **canon**, built in steps R25 (the craft frame), R26 (the right rail, the bedroom calendar, the market on the
-counter) and R27 (the grid above the basket, D42). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step) and R30 (the customer counter). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -102,3 +102,33 @@ they can see the inkpot. once they record, guide them to click on the pulley aga
   no arrow.
 - **After recording (`record-close`, r177):** the ring glows, no arrow: a tap closes the frame, and the closing moves the
   tutorial on (D44), as before.
+
+## R30: the customer counter's new look (2026-10-29)
+
+Owner: "`assets/Anchor-images/customer_counter_new.png` is the reference for the customer counter screen. the top left
+shelf is the same as on the forge screen, but it only opens till the craftbook, and it remains open by default. Players can
+close it. the bell will now be on the top right. I want it swinging slightly when idle. It will have the same glow as we do
+now in the tutorial. When players click on it, it should swing more.. `assets/ui/bell_new.png` is the new image for bell.
+the scroll is the ledger at the bottom left. the market is now the rotary which can slide right to go behind the inventory
+panel." Answers: when the rotary slides in, **a sliver stays out** (drag it left, or tap it, to bring it back); the shelf
+**remembers the player's choice** (open the first time).
+
+Art: `assets/ui/bell_new`, `ledger`, `Market` (png, a webp beside each). Placement read off the reference (1920 wide, so
+0.5625 to the frame). The build keeps the values in `COUNTER_UI`.
+
+- **The shelf (`#cntShelf`):** the forge's craft frame (`CRAFT_FRAME`: same art, size and place), only the wood, the
+  craft book (`#cntBook`, opens the craft book) and the ring (`#cntRing`). Open it slides up **48.5%** of its height, so
+  the whole book shows and nothing above it (the reference); closed it slides up `CRAFT_FRAME.shut` (63.3%), as on the
+  forge. Open at first; the player's choice is kept (`CNT_SHELF_OPEN`, saved). The ring: a tap toggles, a pull down opens,
+  a push up closes. A tutorial pointer at the craft book goes to the book when the shelf is open and to the ring when it
+  is closed; opening it moves the pointer to the book.
+- **The bell:** `bell_new`, hanging from the top edge at the top right (plate %: left 70.1, width 4.84, bottom 28.8). It
+  swings about the top of its rope: idle **+/-2.5 deg** over 2.8 s; a tap swings it **+/-16 deg**, dying away over 1.6 s.
+  The tutorial's glow (`tutGlow`) runs with the swing, not instead of it (one rule lists both animations). It still shows
+  only from D27 (`BELL_ON`) and still calls the next customer.
+- **The ledger:** the scroll at the bottom left (frame %: left 0, top 90.7, width 8.6, height 9.9), title "Ledger", opens
+  the ledger; the waiting-list lesson's light (`tut-lit-ctl`) glows along the art.
+- **The market:** the rotary on the counter (frame %: left 60.9, top 71.4, width 15.9, height 24.1), id `#marketBtn`
+  (the tutorial's pointers and the closed look hold). Drag it right and it slides behind the inventory panel, leaving
+  **26 px** out (left 76.6%; the crank shows); drag it left, or tap it, and it comes back. A tap when it is out opens the
+  market. Its place is kept (`MKT_IN`, saved). The temporary MARKET and CRAFT BOOK buttons go.

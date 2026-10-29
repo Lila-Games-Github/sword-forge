@@ -85,7 +85,8 @@ eq('fire still wins over another elemental', M.ftueTraitKey(['ice', 'fire']), 'f
 /* wiring in the build */
 eq('the market slides: a fixed shape column and a scrolling strip of trait columns', src.includes('<div class="mk-scroll" id="mkScroll">') && src.includes("onclick=\"marketSlide(-1)\"") && src.includes("onclick=\"marketSlide(1)\""), true);
 /* R26 (owner, 2026-10-28): "market is no longer there (will add a separate image icon on customer counter later)" - a temporary button on the counter */
-eq('MARKET button on the customer counter (R26)', src.includes("cap:'MARKET', title:'Market', act:'market', id:'marketBtn' }"), true);
+/* R30 (owner, 2026-10-29): "the market is now the rotary which can slide right to go behind the inventory panel" */
+eq('MARKET on the customer counter: the rotary (R30)', /r\.id='marketBtn';[^\n]*r\.title='Market';/.test(src), true);
 eq('SKILL TREE shows a tree (D9; R26: the owner\'s tree art)', src.includes('<img class="sk-art" src="assets/ui/icon_skilltree.webp" alt="">'), true);
 eq('closed market toast (D6)', src.includes("toast('Play more to unlock')"), true);
 eq('the sale checks the order', src.includes('if(ftueC && !orderMatches(ftueC, COUNTER)){'), true);

@@ -533,3 +533,15 @@ yours and come on top.
   jumps (TC4 at the bell) - hidden, its drag area not hit; TC4 arrives - shown, the drag area hit-tested; PART 5 and free
   play - shown; no console errors. Noted: the quest "Use the ladle for an epic tier sword" (page 2) can be listed in part
   3, before the ladle appears; it is still done in part 4.
+- **R30 (2026-10-29, owner): the customer counter's new look** (`assets/Anchor-images/customer_counter_new.png`). The shelf
+  top left is the forge's craft frame showing only the craft book and the ring (open to the book, 48.5%; closed as on the
+  forge), open at first and the player's choice kept; the bell (`bell_new`) hangs top right and swings a little when idle,
+  more when tapped, glowing with the swing in the tutorial; the ledger is the scroll at the bottom left; the market is the
+  rotary (`#marketBtn`), which slides behind the inventory panel when dragged right, its crank left out (a tap or a drag
+  left brings it back; a tap opens the market). Answers: a sliver stays out; the shelf remembers. Values in `COUNTER_UI`;
+  record: specs/2026-10-28-forge-screen-new-look.md (R30). FTUE test 808 -> 819, market test 54 (one check rewritten),
+  written first. Checked in the browser (1280x720, free play): book, ring, bell, scroll and rotary where the reference has
+  them, each hit-tested; the ring pushed up - closed (9 px of book), tapped - open; the bell tapped - the big swing, a
+  customer called; with the tutorial's glow it runs both animations; the rotary dragged right - in, 26 px out; its sliver
+  tapped - out; tapped - the market opens; no console errors. Noted: with a customer at the counter, the speech bubble and
+  COME LATER sit over the bell's lower half (the bell is not needed then).

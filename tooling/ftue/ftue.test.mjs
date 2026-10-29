@@ -1259,7 +1259,7 @@ eq('no top-right bar left', !src.includes('id="sfHp"') && !src.includes('#sfHp')
 /* r242 (owner, 2026-10-15): every pointer glow is one the owner can see - the OK button's (tutLitCtl) for buttons and
    hotspots, the inventory tabs' face swap (tutBlinkTab) for every rail button, the skill tree's included */
 eq('.tut-blink is the OK glow', src.includes('.tut-blink { animation: tutLitCtl 1.15s ease-in-out infinite; }') && !src.includes('.tut-blink { animation: tutBlinkHalo'), true);
-eq('rail buttons blink like the tabs (R26: MARKET only; the gear, the book and the basket glow along their art)', src.includes('#diaryBtn.tut-blink, #questBtn.tut-blink, #settingsBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }') && src.includes('#marketBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }'), true);
+eq('rail buttons blink like the tabs (R26: MARKET only; the gear, the book and the basket glow along their art)', src.includes('#diaryBtn.tut-blink, #questBtn.tut-blink, #settingsBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }') && src.includes('#marketBtn.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }'), true);   /* R30: the rotary glows along its art */
 eq('the skill button blinks like the tabs (still before .levelled)', src.includes('#skillBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }')
   && src.includes('#skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.1s ease-in-out infinite; }')
   && src.indexOf('#skillBtn.tut-blink {') < src.indexOf('#skillBtn.levelled {'), true);
@@ -1380,9 +1380,8 @@ eq('R26: the basket\'s claim glow follows the art', /#questBtn\.qs-ready \{[^}]*
 eq('R26: the day is a calendar on the bedroom wall, holding #dayNum', /<div id="calendar"><span class="cal-h">DAY<\/span><span class="n" id="dayNum">1<\/span><\/div>/.test(src)
   && src.includes('#screenLayer.sc-bedroom #calendar { display: flex; }') && src.split('id="dayNum"').length === 2, true);
 eq('R26: the calendar is placed from RAIL_ART.cal', /function wireRailArt\(\)\{[\s\S]{0,1400}const c=document\.getElementById\('calendar'\)[\s\S]{0,200}c\.style\.left=RAIL_ART\.cal\.l\+'%';/.test(src), true);
-eq('R26: MARKET on the customer counter, under CRAFT BOOK, with the old id', src.includes("{ x:0.79, y:10.2, w:8.20, h:8.47, gl:'&#128722;', cap:'MARKET', title:'Market', act:'market', id:'marketBtn' }")
-  && src.includes("if(b.id) el.id=b.id;") && src.includes("else if(b.act==='market') el.addEventListener('click', openMarket);")
-  && /function buildScreenUi\(name\)\{[\s\S]{0,1400}marketBtnUi\(\);\s*\}/.test(src), true);
+/* R30: the temporary MARKET button became the rotary (below); its closed look still runs after every build */
+eq('R26/R30: the counter\'s market keeps the closed look', /function buildScreenUi\(name\)\{[\s\S]{0,1400}marketBtnUi\(\);\s*\}/.test(src), true);
 
 /* R27 (owner, 2026-10-28): D42 names the inkpot; 12 boxes above the quest basket, the fifth row fading behind it */
 eq('R27: D42 names the inkpot', line('D42'), "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft.");
@@ -1408,5 +1407,40 @@ eq('R29: unlocked from part 4 (TC4\'s arrival opens it) or once the tutorial is 
 eq('R29: refreshed with the grindstone (load, new game, PART jumps, free play, start)', src.includes("function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); ftueLadleUi(); }"), true);
 eq('R29: and the moment TC4 arrives', /function tutTc4Arrive\(\)\{[\s\S]{0,200}FTUE_ST\.part=4; FTUE_ST\.gpc=0; ftueLadleUi\(\);/.test(src)
   && src.includes("FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */"), true);
+
+/* R30 (owner, 2026-10-29): the customer counter's new look - the shelf, the swinging bell, the scroll ledger, the rotary market
+   (specs/2026-10-28-forge-screen-new-look.md) */
+{ const m = src.match(/const COUNTER_UI=(\{[\s\S]*?\});/);
+  eq('R30: COUNTER_UI is the record', m && new Function('return ' + m[1])(), {
+    shelfOpen: 48.5,
+    bell:   { l: 70.1, w: 4.84, b: 28.8, art: 'assets/ui/bell_new.webp' },
+    ledger: { x: 0, y: 90.7, w: 8.6, h: 9.9, art: 'assets/ui/ledger.webp' },
+    rotary: { x: 60.9, y: 71.4, w: 15.9, h: 24.1, inX: 76.6, art: 'assets/ui/Market.webp' } }); }
+eq('R30: the art is on disk', ['bell_new', 'ledger', 'Market'].every(k => existsSync('assets/ui/' + k + '.png') && existsSync('assets/ui/' + k + '.webp')), true);
+eq('R30: no text buttons on the counter (CRAFT BOOK, MARKET, LEDGER)', /customer: \[\],/.test(src) && src.includes("if(name==='customer') counterUiBuild(box);"), true);
+eq('R30: the shelf is the forge frame, open to the book (shelfOpen), closed to the frame\'s shut', /function cntShelfSet\(open\)\{[\s\S]{0,300}translateY\(-'\+\(open \? COUNTER_UI\.shelfOpen : CRAFT_FRAME\.shut\)\+'%\)/.test(src)
+  && /function counterUiBuild\(box\)\{[\s\S]{0,600}id="cntBook"[\s\S]{0,200}id="cntRing"/.test(src), true);
+eq('R30: open at first, the player\'s choice kept (saved)', src.includes('let CNT_SHELF_OPEN=true, MKT_IN=false;')
+  && src.includes("hud:{ day:txtOf('dayNum'), cntShelf:CNT_SHELF_OPEN, mktIn:MKT_IN },")
+  && src.includes('if(o.hud.cntShelf!=null) CNT_SHELF_OPEN=!!o.hud.cntShelf; if(o.hud.mktIn!=null) MKT_IN=!!o.hud.mktIn;'), true);
+eq('R30: the ring pulls like the forge\'s (tap toggles, down opens, up closes)', /function wirePull\(el, isOpen, setOpen\)\{[\s\S]{0,600}Math\.abs\(dy\)<12 \? !open : dy>0/.test(src), true);
+eq('R30: a pointer at the craft book picks the book or, closed, the ring', src.includes("function cntBookSel(){ return CNT_SHELF_OPEN ? '#cntBook' : '#cntRing'; }")
+  && src.split('tutExit(cntBookSel())').length === 2 && src.includes("tutExit(SF_SCREEN==='customer' ? cntBookSel() : '#recipeBtn')")
+  && !src.includes(".sc-btn[title='Craft book']"), true);
+eq('R30: the bell hangs top right, from COUNTER_UI.bell', src.includes("list.push({ src:COUNTER_UI.bell.art, l:COUNTER_UI.bell.l, w:COUNTER_UI.bell.w, b:COUNTER_UI.bell.b,")
+  && src.includes("'assets/ui/bell_new.webp':                   { ox:0,      oy:0,      ow:1,      oh:1,      ar:93/307 }")
+  && src.includes("function bellEl(){ return document.querySelector('#screenProps img[data-act=\"bell\"]'); }"), true);
+eq('R30: idle swing, a bigger swing on a tap, and the glow runs with the swing', src.includes('#screenProps img[data-act="bell"] { transform-origin: 50% 0; animation: bellIdle 2.8s ease-in-out infinite; }')
+  && src.includes('#screenProps img[data-act="bell"].bell-ring { animation: bellSwing 1.6s ease-out; }')
+  && src.includes('#screenProps img[data-act="bell"].tut-glow, #screenProps img[data-act="bell"].tut-blink { animation: bellIdle 2.8s ease-in-out infinite, tutGlow 1.15s ease-in-out infinite; }')
+  && src.includes('@keyframes bellIdle { 0%,100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }')
+  && /@keyframes bellSwing \{ 0% \{ transform: rotate\(0\); \} 12% \{ transform: rotate\(16deg\); \}/.test(src)
+  && src.includes("setTimeout(()=>im.classList.remove('bell-ring'), 1650);"), true);
+eq('R30: the ledger is the scroll, its lesson light along the art', /function counterUiBuild\(box\)\{[\s\S]{0,1600}lg\.className='sc-btn sc-art'; lg\.title='Ledger';/.test(src)
+  && src.includes('#screenUi .sc-art.tut-lit-ctl { animation: tutGlow 1.15s ease-in-out infinite; }'), true);
+eq('R30: the rotary is the market (#marketBtn): a tap opens it, slid in a tap brings it back', /function counterUiBuild\(box\)\{[\s\S]{0,2600}r\.id='marketBtn';/.test(src)
+  && src.includes('if(Math.abs(dx)<8){ if(MKT_IN) mktRotarySet(false); else openMarket(); return; }')
+  && src.includes('mktRotarySet(dx>0);')
+  && /function mktRotarySet\(inn\)\{[\s\S]{0,200}r\.style\.left=\(inn \? COUNTER_UI\.rotary\.inX : COUNTER_UI\.rotary\.x\)\+'%';/.test(src), true);
 
 console.log('[ftue] GREEN / ' + n + ' checks');
