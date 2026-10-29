@@ -570,3 +570,12 @@ yours and come on top.
   (R33). FTUE test 826 -> 830 (failing on the previous build first). Checked in the browser (1280x720, each tab hit-tested):
   a new game - ores only, the counter too; the first sword - swords pops in, and stays after it is sold; the first store -
   metal; the banner reward - decor; PART 2 - ores and swords; PART 5 - and metal; free play - all four; no console errors.
+- **R34 (2026-10-29, owner): the smelter's lit states.** The new `anchor_furnace` is the lit furnace (the pour running);
+  three layers on its canvas lie over it: the crown cold, the gate cold, the gate glowing. Off with no metal, in the smelter
+  until the first pump, and with the metal on the anvil; the first pump fades the crown out (1500 ms); a trait reached lights
+  the gate; the gate tapped (the metal out) clears all three. The old heat glow on the gate (`#furnaceGlow`) is no longer
+  driven. All four images as webp, 416x505. Record: specs/2026-10-28-forge-screen-new-look.md (R34). FTUE test 830 -> 844
+  (failing on the previous build first). Checked in the browser (1280x720, free play): each layer 1:1 on the furnace;
+  start 1/1/0; ore in 1/1/0; the bellows pumped (through its own handler) 0/1/0 with a 1500 ms fade; on a trait 0/1/1;
+  the gate tapped (hit-tested) 0/0/0 with the orb at the gate; on the anvil 1/1/0; put back in the smelter 1/1/0 until
+  pumped; no console errors.

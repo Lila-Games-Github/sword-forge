@@ -294,6 +294,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* station image sizes (arranged per reference) */
 .mortar { width: 100%; }                 /* fills its %-sized station wrapper (size set by LAYOUT) */
 .furnace { width: 100%; display: block; }/* smelter fills its station; new anchor-cut smelter (crossed A-frame bracing, centre-left arch, flared rim) is already anchor-oriented — no flip */
+.station img.furnace-ov { position: absolute; left: 0; top: 0; width: 100%; z-index: 1; filter: none; }   /* R34: on the furnace's own canvas, 1:1; no shadow of their own */
+#fo-gateOn { opacity: 0; }
 #frame.landscape #stSmelt { z-index: 3; }   /* r12: furnace+bellows above the wheel (stMortar) so the bellows ring handle at the back-right isn't occluded (Opus audit fix) */
 /* r24: the separate .cauldron overlay (assets/forge/anchor_cauldron.png) was removed from the scene.
    It had been display:none since r10, when the molten pot was baked into the re-cut anchor_furnace.png,
@@ -2338,7 +2340,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="station" id="stSmelt">
             <span class="badge" style="left:auto; right:-9px;">3</span>
             <div id="ladle"><img id="ladleBase" src="assets/forge/ladle_base.webp" alt=""><img id="ladleHead" src="assets/forge/ladle_head.webp" alt="Ladle"></div><!-- s4: tier alignment -->
-            <img class="furnace" src="assets/forge/anchor_furnace.webp" alt="Smelter">
+            <img class="furnace" src="assets/forge/anchor_furnace.webp" alt="Smelter"><img class="furnace-ov" id="fo-top" src="assets/forge/anchor_furnace_top_off.webp" alt=""><img class="furnace-ov" id="fo-gateOff" src="assets/forge/anchor_furnace_gate_off.webp" alt=""><img class="furnace-ov" id="fo-gateOn" src="assets/forge/anchor_furnace_gate_on.webp" alt=""><!-- R34: the lit states -->
             <img id="furnaceSmoke" src="assets/forge/smoke.webp" alt=""><!-- r38: vents from the crucible, only while bellowing -->
             <div class="furnaceGlow" id="furnaceGlow"></div>
             <img class="bellowtop" id="bellowtop" src="assets/forge/anchor_bellows.webp" alt="Bellows">
@@ -6086,7 +6088,7 @@ function hidePreviewPaths(){ previewEl.style.display='none'; previewSolidEl.styl
 function drawPrepPreview(){ if(!prep){ hidePreviewPaths(); if(segs.length) moveX(); else xmark.style.display='none'; return; } drawSegmentPreview(prep.ore, 0.5+0.5*prep.grind); }
 
 // --- orb visuals + placement (the #orb element shows the prep ore OR the extracted hot melt) ---
-function updateGauges(){ updateHpPill(); const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; const fg=document.getElementById('furnaceGlow'); if(fg) fg.style.opacity=(h/100*0.9).toFixed(2); }   // furnace mouth glows brighter as it heats (bellows feedback)
+function updateGauges(){ updateHpPill(); const h=melt?melt.heat:0; const gh=document.getElementById('g-heat'); if(gh) gh.style.width=h+'%'; }   // R34: #furnaceGlow is no longer driven - the furnace art's own lit states show the heat (furnaceArtSync)
 function updateOrbLook(){ if(prep){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=1-prep.grind; sphereEl.style.opacity=prep.grind; } else if(melt&&(melt.stage==='hot'||(melt.stage==='onAnvil' && melt.heat>0))){ orbEl.classList.add('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } else if(melt&&melt.stage==='onAnvil'){ orbEl.classList.remove('hot'); oreImgEl.style.opacity=0; sphereEl.style.opacity=1; } }   /* r261 (owner): quenched (no heat) on the anvil = the grey cold sphere */
 function placeOrb(cx,cy){ orbEl.style.left=(cx-orbEl.offsetWidth/2)+'px'; orbEl.style.top=(cy-orbEl.offsetHeight/2)+'px'; }
 function orbCenter(){ const r=orbEl.getBoundingClientRect(), b=benchEl().getBoundingClientRect(); return {x:r.left+r.width/2-b.left, y:r.top+r.height/2-b.top}; }
@@ -6106,7 +6108,7 @@ function overTarget(c,name){
 function canAddOre(){ return !prep && (!melt || melt.stage==='smelting'); }
 
 // --- stage transitions ---
-function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,hp:BLADE_HP_MAX,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
+function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!melt){ melt={heat:BASE_HEAT,hp:BLADE_HP_MAX,smeltT0:performance.now(),stage:'smelting',reachedTrait:null,alignDist:null,acquiredTrait:null,tier:null,traits:[]}; gateReady=false; gate.classList.remove('ready'); } else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.lit=false; melt.smeltT0=performance.now(); gateReady=false; gate.classList.remove('ready'); } updateGauges(); }
 /* r101: the ore leaves the shelf HERE, not at the smelter, so a shelf still counting it was just wrong.
    (r101 also had nothing put it back; since R21 dropping it on the inventory does, unprepOre.) */
 function startPrep(oreId){ if(!oreLeft(oreId)) return; if(ftueGrindBlock()) return;   /* r199 */ if(ftueFirstSpent(oreId)) return;   /* r201: capped, silently */
@@ -6170,6 +6172,17 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(ftueFirstCap(oreId)) return;   /* r199 */
     ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
+/* R34 (owner, 2026-10-29): the smelter's lit states. anchor_furnace is the lit furnace (the pour running); three layers on its
+   canvas lie over it: the crown cold (#fo-top), the gate cold (#fo-gateOff), the gate glowing (#fo-gateOn). Off with no metal,
+   in the smelter until the first pump, and with the metal on the anvil; the first pump fades the crown out over litMs; a trait
+   reached lights the gate (over the cold gate, so no fade shows the pour); the gate tapped (the metal out) clears all three */
+const FURNACE_ART={ litMs:1500, fadeMs:400 };
+function furnaceLook(m, ready){ if(!m || m.stage==='onAnvil') return { top:1, gateOff:1, gateOn:0 }; if(m.stage==='hot') return { top:0, gateOff:0, gateOn:0 }; if(ready) return { top:0, gateOff:1, gateOn:1 }; return { top:m.lit ? 0 : 1, gateOff:1, gateOn:0 }; }
+let FURNACE_KEY='';
+function furnaceArtSync(){ const l=furnaceLook(melt, gateReady), k=l.top+','+l.gateOff+','+l.gateOn; if(k===FURNACE_KEY) return; FURNACE_KEY=k;
+    ['top','gateOff','gateOn'].forEach(n=>{ const el=document.getElementById('fo-'+n); if(!el) return;
+        const ms=(n==='top' && !l.top && melt && melt.stage==='smelting') ? FURNACE_ART.litMs : FURNACE_ART.fadeMs;
+        el.style.transition='opacity '+ms+'ms ease-out'; el.style.opacity=l[n]; }); }
 function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
@@ -7756,7 +7769,7 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
-    smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
+    smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync(); furnaceArtSync();   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();   /* r111. R4: after D71 is read */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter
@@ -8045,7 +8058,7 @@ function wireBellowGate(){ const bh=document.getElementById('bellowHot'), gate=d
         const h=smHandle(SM_POS, (e.clientY-lastY)/scale()); lastY=e.clientY;
         if(h.moved<=0) return; SM_POS=h.pos; paint();
         if(!melt || melt.stage!=='smelting') return;
-        bellowing=true; if(smoke) smoke.classList.add('on');
+        bellowing=true; melt.lit=true; if(smoke) smoke.classList.add('on');   /* R34: the first pump lights the furnace */
         SM_OWED+=smTravelDt(h.moved);   /* s3: stored; smGlide moves the sword in the frame loop */
         if(idle) clearTimeout(idle); idle=setTimeout(quiet, 160); });   /* the smoke stops when the hand does */
     const end=e=>{ if(live!==e.pointerId) return; live=null; quiet(); SM_POS=0; paint(SMELT.springMs); };   /* s2: springs back closed; the spring moves nothing */

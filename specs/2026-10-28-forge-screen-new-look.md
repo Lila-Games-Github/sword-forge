@@ -164,3 +164,34 @@ the banner. check is there is any error in my instructions as well."
   tutorial is over. Older saves without the marks: swords from part 2 (or Bram's sale), metal from part 5.
 - **Look:** a tab not there yet keeps its slot (the four stay in place, nothing shifts when one appears) and pops in when it
   appears (`tab-new`). Asking for a tab that is not there (a screen's default, `invTab`) gives the ores tab.
+
+## R34: the smelter's lit states (2026-10-29)
+
+Owner: "I have updated the furnace image. Also added the off state of the top and gate. I want these images to be overlaid
+on the furnace. So, initially, the furnace will look off, no glow. As we start bellowing, the furnace_top_off goes from 100
+to 0 %opacity. when we arrive at the trait, the furnace_gate_on is visible, showing the gate glowing. when we click on the
+gate, we see the updated furnace image, all other images at 0. the metal orb shows as it is now. when we transfer the metal
+to anvil the metal shows the off state again." ("the metal shows the off state" read as the furnace.)
+
+- **Art:** `assets/forge/anchor_furnace` is the lit furnace (the pot glowing, the pour running from the gate). Three layers
+  on the same 638x775 canvas lie over it 1:1 (`.furnace-ov`, left 0, top 0, the furnace's width, no shadow of their own):
+  `anchor_furnace_top_off` (the crown cold), `anchor_furnace_gate_off` (the gate cold), `anchor_furnace_gate_on` (the gate
+  glowing). All four load as webp, 416x505, quality 0.86.
+- **The states (`furnaceLook(melt, gateReady)`, opacity of top / gate off / gate on):**
+
+  | State | When | top | gate off | gate on |
+  |---|---|---|---|---|
+  | off | no metal, or the metal on the anvil | 1 | 1 | 0 |
+  | lit | in the smelter, the bellows pumped (`melt.lit`) | 0 | 1 | 0 |
+  | gate | in the smelter, the sword on a trait (`gateReady`) | 0 | 1 | 1 |
+  | open | the gate tapped, the metal out and hot (`stage 'hot'`) | 0 | 0 | 0 |
+
+  In the smelter and not pumped yet, it is off. The gate glow lies over the cold gate (the cold gate stays at 1 under it),
+  so the fade never shows the pour through a half-faded gate. The sword leaving the trait puts the gate back to cold.
+- **Timing (`FURNACE_ART`):** the crown goes out over `litMs` 1500 ms on the first pump (a fade, set off by the first
+  pump: the owner's "as we start bellowing"); every other change fades in `fadeMs` 400 ms.
+- **Back to off:** the metal on the anvil (`onAnvil`), stored, or the run cleared. Put back in the smelter, the metal
+  starts cold again (`melt.lit` false) until the bellows are pumped.
+- **The old heat glow retired:** `#furnaceGlow` (an orange radial glow on the gate, driven by the heat from the moment an
+  ore went in) is no longer driven, since it would glow while the furnace looks off. The element stays: the tutorial's
+  arrow aims at it. The gate's `ready` ring (the pulsing outline on the gate's tap box) is unchanged.

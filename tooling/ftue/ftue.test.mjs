@@ -1460,4 +1460,23 @@ eq('R33: asking for a tab that is not there gives the ores tab', /function invTa
 eq('R33: checked whenever the bag is redrawn and when a reward lands', /function buildShelf\(\)\{\s*invTabsUi\(\);/.test(src)
   && src.includes("if(r.kind==='decor'){ FTUE_ST.decor.push(r.id); invTabsUi(); }"), true);
 
+/* R34 (owner, 2026-10-29): the smelter's lit states - three layers over the lit furnace (specs/2026-10-28-forge-screen-new-look.md, R34) */
+const fa = src.match(/const FURNACE_ART=\{[^\n]*\};/), fl = src.match(/function furnaceLook\(m, ready\)\{[^\n]*\}/);
+eq('R34: FURNACE_ART and furnaceLook are in the build', !!fa && !!fl, true);
+const FA = new Function(fa[0] + '; return FURNACE_ART;')(), look = new Function(fl[0] + '; return furnaceLook;')();
+eq('R34: the crown goes out over 1500 ms; other changes fade in 400 ms', FA, { litMs: 1500, fadeMs: 400 });
+eq('R34: off - no metal', look(null, false), { top: 1, gateOff: 1, gateOn: 0 });
+eq('R34: off - in the smelter, not pumped yet', look({ stage: 'smelting' }, false), { top: 1, gateOff: 1, gateOn: 0 });
+eq('R34: lit - pumped', look({ stage: 'smelting', lit: true }, false), { top: 0, gateOff: 1, gateOn: 0 });
+eq('R34: gate - on a trait (the glow over the cold gate)', look({ stage: 'smelting', lit: true }, true), { top: 0, gateOff: 1, gateOn: 1 });
+eq('R34: open - the gate tapped, the metal out', look({ stage: 'hot', lit: true }, false), { top: 0, gateOff: 0, gateOn: 0 });
+eq('R34: off again - the metal on the anvil', look({ stage: 'onAnvil', lit: true }, false), { top: 1, gateOff: 1, gateOn: 0 });
+eq('R34: the three layers lie over the furnace, in order', src.includes('<img class="furnace" src="assets/forge/anchor_furnace.webp" alt="Smelter"><img class="furnace-ov" id="fo-top" src="assets/forge/anchor_furnace_top_off.webp" alt=""><img class="furnace-ov" id="fo-gateOff" src="assets/forge/anchor_furnace_gate_off.webp" alt=""><img class="furnace-ov" id="fo-gateOn" src="assets/forge/anchor_furnace_gate_on.webp" alt="">'), true);
+eq('R34: 1:1 on the furnace, no shadow of their own; the glow starts hidden', src.includes('.station img.furnace-ov { position: absolute; left: 0; top: 0; width: 100%; z-index: 1; filter: none; }') && src.includes('#fo-gateOn { opacity: 0; }'), true);
+const webp = f => { const b = readFileSync('assets/forge/' + f + '.webp'); return [b.slice(8, 12).toString(), b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1]; };
+eq('R34: all four webps on one canvas (416x505)', ['anchor_furnace', 'anchor_furnace_top_off', 'anchor_furnace_gate_off', 'anchor_furnace_gate_on'].map(webp), [0, 0, 0, 0].map(() => ['WEBP', 416, 505]));
+eq('R34: the first pump lights it; put back in the smelter, it starts cold', src.includes("bellowing=true; melt.lit=true; if(smoke) smoke.classList.add('on');") && src.includes("else if(melt.stage!=='smelting'){ melt.stage='smelting'; melt.lit=false;"), true);
+eq('R34: synced every frame, after the gate', src.includes('smGlide(dt); smGateSync(); furnaceArtSync();'), true);
+eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity=(h/100*0.9)"), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');
