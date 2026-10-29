@@ -545,3 +545,12 @@ yours and come on top.
   customer called; with the tutorial's glow it runs both animations; the rotary dragged right - in, 26 px out; its sliver
   tapped - out; tapped - the market opens; no console errors. Noted: with a customer at the counter, the speech bubble and
   COME LATER sit over the bell's lower half (the bell is not needed then).
+- **R31 (2026-10-29, owner): the ring follows the finger.** Owner: "I like the 'swipe to close' on the market rotory. Have the
+  same controls on the pulley for the craft window as well". Both rings (the forge's craft frame, the counter's shelf) go
+  through one `wirePull`: held, the frame slides with the finger between its open and shut places (no further, no
+  animation while held); let go after 12 px it goes the way it was going; a tap toggles. Record:
+  specs/2026-10-28-forge-screen-new-look.md (R31). FTUE test 819 -> 821 (two ring checks rewritten, two added; failing on
+  the previous build first). Checked in the browser (1280x720, free play): the forge ring pulled down 20/60/100 px - the
+  frame followed (top -145, -105, -65), let go - open; pushed up - shut; half down and back up to 30 px - open; half up -
+  shut; tapped twice - open, shut (each eased to -12 or -165 px); the counter ring the same between its book-open place and
+  shut; every press hit-tested; no console errors.

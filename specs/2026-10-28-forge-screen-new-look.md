@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
 Status: **canon**, built in steps R25 (the craft frame), R26 (the right rail, the bedroom calendar, the market on the
-counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step) and R30 (the customer counter). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step), R30 (the customer counter) and R31 (the ring follows the finger). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -132,3 +132,14 @@ Art: `assets/ui/bell_new`, `ledger`, `Market` (png, a webp beside each). Placeme
   (the tutorial's pointers and the closed look hold). Drag it right and it slides behind the inventory panel, leaving
   **26 px** out (left 76.6%; the crank shows); drag it left, or tap it, and it comes back. A tap when it is out opens the
   market. Its place is kept (`MKT_IN`, saved). The temporary MARKET and CRAFT BOOK buttons go.
+
+## R31: the ring follows the finger (2026-10-29)
+
+Owner: "I like the 'swipe to close' on the market rotory. Have the same controls on the pulley for the craft window as well"
+
+- The rotary follows the finger while it is dragged and, let go, goes the way it was going. The ring now does the same for
+  both frames (the forge's craft frame and the counter's shelf): while the ring is dragged the frame slides with the finger,
+  between its open and its shut place (forge 0 to 63.3%, counter 48.5 to 63.3% of its height; no further); let go after
+  12 px or more and it settles the way it was going (down opens, up shuts); a tap still toggles. One function,
+  `wirePull(el, isOpen, setOpen, panel, range, settle)`, does it for both rings; the frame does not animate while it is
+  held (`dragging`), and eases to its place when let go.

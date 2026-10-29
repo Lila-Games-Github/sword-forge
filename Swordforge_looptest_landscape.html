@@ -1298,6 +1298,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    (15px blur, 5px spread) is cut off on that side. Swapping the face cannot be clipped. */
 /* R25: the ring is the toggle now; its glow is with the inkpot's and the book's (after .tut-blink) */
 #hud.collapsed #bladePanel { transform: translateY(calc(var(--cf-shut) * -1%)); }
+#bladePanel.dragging, #cntShelf.dragging { transition: none; }   /* R31: held, the frame follows the finger */
 /* r34 — map pan arrows. The pad covers the LEFT SECTION only (frame minus the rail), so the arrows sit
    on that section's edges exactly as the wireframe places them, and follow --rail-w if it changes. */
 /* r43 — placeholder screens. Above the forge's own content, below the rail (the plates leave the rail's
@@ -3850,12 +3851,17 @@ const COUNTER_UI={ shelfOpen:48.5,
     rotary: { x:60.9, y:71.4, w:15.9, h:24.1, inX:76.6, art:'assets/ui/Market.webp' } };
 let CNT_SHELF_OPEN=true, MKT_IN=false;   /* the player's choices, kept (owner) */
 function cntBookSel(){ return CNT_SHELF_OPEN ? '#cntBook' : '#cntRing'; }
-/* a pull ring: a tap toggles, a pull down opens, a push up closes (the forge's ring, wireRing, does the same for the frame) */
-function wirePull(el, isOpen, setOpen){ let y0=null;
-    el.addEventListener('pointerdown', e=>{ y0=e.clientY; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
-    el.addEventListener('pointerup', e=>{ if(y0==null) return; const dy=e.clientY-y0; y0=null;
-        const open=isOpen(), want=Math.abs(dy)<12 ? !open : dy>0; if(want!==open) setOpen(want); });
-    el.addEventListener('pointercancel', ()=>{ y0=null; }); }
+/* R31 (owner, 2026-10-29): "I like the 'swipe to close' on the market rotory. Have the same controls on the pulley for the craft
+   window as well". A pull ring, as the rotary: while it is dragged the frame (panel) slides with the finger between its open and
+   shut places (range(): [open %, shut %] of its height it slides up); let go after 12 px or more and it goes the way it was going
+   (down opens, up shuts); a tap toggles. settle() puts the frame back on its own place (the class, or the inline transform) */
+function wirePull(el, isOpen, setOpen, panel, range, settle){ let y0=null, dy=0, start=0;
+    el.addEventListener('pointerdown', e=>{ y0=e.clientY; dy=0; start=range()[isOpen() ? 0 : 1]; panel.classList.add('dragging'); try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+    el.addEventListener('pointermove', e=>{ if(y0==null) return; dy=e.clientY-y0; const [o,c]=range(), h=panel.offsetHeight||1;
+        panel.style.transform='translateY(-'+Math.max(o, Math.min(c, start-dy/h*100))+'%)'; });
+    el.addEventListener('pointerup', e=>{ if(y0==null) return; dy=e.clientY-y0; y0=null; panel.classList.remove('dragging');
+        const open=isOpen(), want=Math.abs(dy)<12 ? !open : dy>0; if(want!==open) setOpen(want); settle(); });
+    el.addEventListener('pointercancel', ()=>{ if(y0==null) return; y0=null; panel.classList.remove('dragging'); settle(); }); }
 function cntShelfSet(open){ CNT_SHELF_OPEN=!!open; const sh=document.getElementById('cntShelf'); if(!sh) return;
     sh.style.transform='translateY(-'+(open ? COUNTER_UI.shelfOpen : CRAFT_FRAME.shut)+'%)';
     const rg=document.getElementById('cntRing'); if(rg){ rg.title=open ? 'Close the shelf' : 'Open the shelf'; rg.setAttribute('aria-label', rg.title); }
@@ -3874,7 +3880,7 @@ function counterUiBuild(box){ const C=CRAFT_FRAME;
         el.appendChild(im); });
     box.appendChild(sh); cntShelfSet(CNT_SHELF_OPEN);
     sh.querySelector('#cntBook').addEventListener('click', openBook);
-    wirePull(sh.querySelector('#cntRing'), ()=>CNT_SHELF_OPEN, cntShelfSet);
+    wirePull(sh.querySelector('#cntRing'), ()=>CNT_SHELF_OPEN, cntShelfSet, sh, ()=>[COUNTER_UI.shelfOpen, CRAFT_FRAME.shut], ()=>cntShelfSet(CNT_SHELF_OPEN));   /* R31 */
     const L=COUNTER_UI.ledger, lg=document.createElement('button'); lg.type='button';
     lg.className='sc-btn sc-art'; lg.title='Ledger'; lg.setAttribute('aria-label', 'Ledger');
     lg.style.left=L.x+'%'; lg.style.top=L.y+'%'; lg.style.width=L.w+'%'; lg.style.height=L.h+'%';
@@ -6324,12 +6330,8 @@ function wireCraftFrame(){ const p=document.getElementById('bladePanel'), h=docu
         im.style.width=(100*100/b.w)+'%'; im.style.height=(100*100/b.h)+'%'; im.style.left=(-100*b.l/b.w)+'%'; im.style.top=(-100*b.t/b.h)+'%';
         el.appendChild(im); }); }
 /* the pulley ring: a tap opens or closes the frame; a pull down opens it, a push up closes it */
-function wireRing(tg){ let y0=null;
-    tg.addEventListener('pointerdown', e=>{ y0=e.clientY; try{ tg.setPointerCapture(e.pointerId); }catch(err){} });
-    tg.addEventListener('pointerup', e=>{ if(y0==null) return; const dy=e.clientY-y0; y0=null;
-        const open=!document.getElementById('hud').classList.contains('collapsed'), want=Math.abs(dy)<12 ? !open : dy>0;
-        if(want!==open) toggleHud(); });
-    tg.addEventListener('pointercancel', ()=>{ y0=null; }); }
+function wireRing(tg){ const p=document.getElementById('bladePanel'), h=document.getElementById('hud');   /* R31: through wirePull, as the counter's */
+    wirePull(tg, ()=>!h.classList.contains('collapsed'), open=>{ if(open===h.classList.contains('collapsed')) toggleHud(); }, p, ()=>[0, CRAFT_FRAME.shut], ()=>{ p.style.transform=''; }); }
 /* R26 (owner, 2026-10-28): the right rail and the bedroom calendar, read off assets/Anchor-images/Newforge.png
    (specs/2026-10-28-forge-screen-new-look.md). diary / quest: px inside #rail; gear: px from the frame's corner; cal: % of the frame */
 const RAIL_ART={ diary:{ left:17, top:537, w:57, art:'assets/ui/diary.webp' },
