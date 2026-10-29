@@ -525,3 +525,11 @@ yours and come on top.
   build, passed on this one). Checked in the browser (1280x720, PART 2 jump, the record stage): closed - ring glowing,
   arrow on; the ring pulled down (hit-tested) - open, the inkpot glowing, arrow off; recorded - the ring glowing, arrow
   off; the ring tapped - closed, D44; no console errors.
+- **R29 (2026-10-29, owner): the ladle appears with TC4.** Owner: "Same as grinder, the ladle should appear only after the
+  tutorial of it begins, when TC4 arrives." Like the grindstone (`#stMortar.ftue-lock`), `#ladle` and `#ladleHot` carry
+  `ftue-lock` (not seen, no touch) until part 4 or the end of the tutorial; TC4's arrival is what makes it part 4, so the
+  part is the switch and no save field is added. Record: specs/2026-10-21-smelter-version-loop.md (the ladle). FTUE test
+  804 -> 808 (failing on the previous build first). Checked in the browser (1280x720): a new game, the PART 3 and PART 4
+  jumps (TC4 at the bell) - hidden, its drag area not hit; TC4 arrives - shown, the drag area hit-tested; PART 5 and free
+  play - shown; no console errors. Noted: the quest "Use the ladle for an epic tier sword" (page 2) can be listed in part
+  3, before the ladle appears; it is still done in part 4.

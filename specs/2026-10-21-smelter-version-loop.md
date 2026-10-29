@@ -65,6 +65,10 @@ tilt." Answer (owner, 2026-10-21): on release it tips back upright, like the bel
   { x -22.2, y 4.9, w 57.3 }, `ladleBase` { x 2.8, y 26.7, w 26.5 }, `ladlePivot` { x 66.7, y 90.6 }.
 - **Pure rules:** `smLadleTilt(tilt, dDeg)` = the tilt plus the turn, clamped to 0..`ladleMax`; `smLadleSpeed(tilt)` as above.
 
+- **In the tutorial (R29, owner, 2026-10-29: "Same as grinder, the ladle should appear only after the tutorial of it begins,
+  when TC4 arrives."):** `ftueLadleUi()` hides the ladle and its drag area (`ftue-lock`: not seen, no touch) until part 4,
+  which TC4's arrival starts, or once the tutorial is over (free play has it). It is refreshed with the grindstone's
+  `ftueGrindUi()` (load, new game, PART jumps, free play, start) and at TC4's arrival.
 ## The blade on a string: pendulum physics (owner, 2026-10-21, s5)
 
 Owner: "can we give some physics to the blade? i want it to rotate and drop when we pick it by the handle on the anvil. so

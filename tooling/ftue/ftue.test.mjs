@@ -1402,4 +1402,11 @@ eq('R28: the guide notices the frame opening and closing', src.includes("documen
 eq('R28: the down arrow slides down, its up head hidden', src.includes('#tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }')
   && src.includes('#tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }') && src.includes("svg.classList.remove('up','updown','down'); svg.classList.add(g.kind, 'on');"), true);
 
+/* R29 (owner, 2026-10-29): "Same as grinder, the ladle should appear only after the tutorial of it begins, when TC4 arrives." */
+eq('R29: the ladle and its drag area are not seen, and take no touch, while locked', src.includes("#ladle.ftue-lock, #ladleHot.ftue-lock { visibility: hidden; pointer-events: none; }"), true);
+eq('R29: unlocked from part 4 (TC4\'s arrival opens it) or once the tutorial is over', src.includes("function ftueLadleUi(){ const on=FTUE_ST.done || FTUE_ST.part>=4; ['ladle','ladleHot'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.toggle('ftue-lock', !on); }); }"), true);
+eq('R29: refreshed with the grindstone (load, new game, PART jumps, free play, start)', src.includes("function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); ftueLadleUi(); }"), true);
+eq('R29: and the moment TC4 arrives', /function tutTc4Arrive\(\)\{[\s\S]{0,200}FTUE_ST\.part=4; FTUE_ST\.gpc=0; ftueLadleUi\(\);/.test(src)
+  && src.includes("FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */"), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');

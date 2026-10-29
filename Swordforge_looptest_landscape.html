@@ -877,6 +877,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #oreShelf .ore-slot.ftue-spent { filter: grayscale(1) brightness(0.6); opacity: 0.55; }
 #screenProps img.ftue-lock-prop { filter: grayscale(1) brightness(0.6); }
 #stMortar.ftue-lock { visibility: hidden; pointer-events: none; }   /* owner, 2026-10-14: not seen at all until it is given (was dimmed) */
+#ladle.ftue-lock, #ladleHot.ftue-lock { visibility: hidden; pointer-events: none; }   /* R29 (owner, 2026-10-29): the ladle, the same, until TC4 arrives */
 #decorLayer { position: absolute; inset: 0; z-index: 41; pointer-events: none; }
 .decor-item { position: absolute; transform: translate(-50%,-50%); box-sizing: border-box; border: 2px solid rgba(0,0,0,.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; color: #f6e7c8; font: 700 11px/1.15 sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,.7); box-shadow: 0 3px 8px rgba(0,0,0,.45); user-select: none; touch-action: none; }
 .decor-ghost { z-index: 120; pointer-events: none; opacity: 0.85; }
@@ -2836,7 +2837,10 @@ function ftueGrindBlock(){
     if(!FTUE_ST.grind) return true;   /* 2026-10-14: hidden, so silent */
     if(!FTUE_ST.grindUse){ toast('Proceed with the tutorial'); return true; }
     return false; }
-function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); }
+function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); ftueLadleUi(); }
+/* R29 (owner, 2026-10-29): "Same as grinder, the ladle should appear only after the tutorial of it begins, when TC4 arrives." TC4's
+   arrival is what makes it part 4, so the part is the switch (no new save field); free play and a finished tutorial have it */
+function ftueLadleUi(){ const on=FTUE_ST.done || FTUE_ST.part>=4; ['ladle','ladleHot'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.toggle('ftue-lock', !on); }); }
 
 /* ---- rewards: one window for all of them; each is applied the moment the window opens ---- */
 let RW_THEN=null;
@@ -3029,7 +3033,7 @@ function ftueDurableAtCounter(){ if(TUT_STAGE!=='p3-dur-sell') return;
 function tutTc4Arrive(){
     if(TUT_STAGE!=='p4-tc4') return;
     TUT_STAGE='p4-ask'; tutUnglow(); sayHide(); tutExit(null);
-    FTUE_ST.part=4; FTUE_ST.gpc=0;
+    FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* R29: the ladle appears with TC4 */
     CUSTOMER={ portrait:'assets/customer/woman2.webp', tid:'durable', shape:null, tier:'Epic', name:'Durable', ftue:true, qty:1, got:0, tc4:true };
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D92k);
@@ -8806,7 +8810,7 @@ function tutDay2Customer(){
     if(TUT_STAGE!=='d2-bell') return;
     TUT_STAGE='d2-ask'; tutExit(null); sayHide();
     CUSTOMER={ portrait:'assets/customer/man2.webp', tid:'gale', shape:'Shortsword', name:'Gale' };   /* v3 D33 */
-    FTUE_ST.part=4; FTUE_ST.gpc=0;   /* r203: TC4 opens part 4 */
+    FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */
     buildScreenProps('customer'); counterUi();
     /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
        cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */
