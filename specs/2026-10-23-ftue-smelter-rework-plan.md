@@ -579,3 +579,10 @@ yours and come on top.
   start 1/1/0; ore in 1/1/0; the bellows pumped (through its own handler) 0/1/0 with a 1500 ms fade; on a trait 0/1/1;
   the gate tapped (hit-tested) 0/0/0 with the orb at the gate; on the anvil 1/1/0; put back in the smelter 1/1/0 until
   pumped; no console errors.
+- **R35 (2026-10-29, owner): the smelter's crown follows the bellows, and cools.** In the smelter the cold crown's
+  opacity is `1 - melt.glow`; the glow rises over 3 s of pumping (R34: a 1.5 s fade on the first pump) and falls over 6 s
+  without (`furnaceGlowStep`, `FURNACE_ART { litS 3, coolS 6, fadeMs 400 }`). The gate layers, the open state and the anvil
+  are unchanged. Record: specs/2026-10-28-forge-screen-new-look.md (R35). FTUE test 844 -> 849 (failing on the previous
+  build first). Checked in the browser (free play, the bellows pumped through its own handler, the frame loop driven by
+  timestamps): cold 1; pumped 1.5 s 0.5; 3 s 0; idle 3 s 0.5; 6 s 1; a 0.75 s pump 0.75; on a trait the gate glows with
+  the crown at its own heat; the gate tapped 0/0/0; the anvil 1/1/0; back in the smelter cold; no console errors.

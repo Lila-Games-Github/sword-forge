@@ -195,3 +195,18 @@ to anvil the metal shows the off state again." ("the metal shows the off state" 
 - **The old heat glow retired:** `#furnaceGlow` (an orange radial glow on the gate, driven by the heat from the moment an
   ore went in) is no longer driven, since it would glow while the furnace looks off. The element stays: the tutorial's
   arrow aims at it. The gate's `ready` ring (the pulsing outline on the gate's tap box) is unchanged.
+
+## R35: the smelter's crown follows the bellows, and cools (2026-10-29)
+
+Owner: "I want the furnace top to go from 100 to 0 opacity a bit slower while bellowing. also, if i do not bellow, it
+gradually loses heat and goes up to 100% opacity making it look off."
+
+- **The crown's heat (`melt.glow`, 0 cold to 1 lit):** in the smelter it rises while the bellows are pumped and falls
+  while they are not (`furnaceGlowStep(g, pumping, dt)`, held between 0 and 1). The cold crown's opacity is `1 - glow`,
+  set every frame (no CSS fade on it in the smelter).
+- **Timing (`FURNACE_ART`):** cold to lit takes `litS` 3 s of pumping (R34's fade was 1.5 s); lit to cold takes `coolS`
+  6 s without pumping. "Pumping" is the bellows' own `bellowing` mark, which drops 160 ms after the hand stops.
+- **Unchanged from R34:** the gate layers (cold gate always under; the glowing gate on a trait, whatever the crown's
+  heat), the open state (all three clear when the gate is tapped), off with the metal on the anvil (400 ms fade), and a
+  metal put back in the smelter starting cold (`glow` 0). R34's `melt.lit` and `litMs` are replaced by `glow` and
+  `litS`.
