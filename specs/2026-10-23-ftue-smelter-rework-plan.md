@@ -562,3 +562,11 @@ yours and come on top.
   826 (failing on the previous build first). Checked in the browser (1280x720, a new game, D1): 5 then 8 of 24 words shown
   at 300 and 510 ms, the bubble 137 px tall throughout; the bubble tapped (hit-tested) - all 24 words, still D1; tapped
   again - D2, typing; D2 finished on its own; no console errors.
+- **R33 (2026-10-29, owner): the inventory tabs appear as they are first used.** Ores always; swords with the first sword;
+  metal with the first stored metal (D99, TC5's gale order, part 4: the owner's "while crafting the swift sword" was the
+  one slip, the swift dagger is part 5's and uses that stored metal); decor with Garric's banner. Each stays once seen
+  (`FTUE_ST.tab*`); all four after the tutorial. A tab not there keeps its slot and pops in; a screen asking for it
+  (the counter's swords default before the first sword) gets ores. Record: specs/2026-10-28-forge-screen-new-look.md
+  (R33). FTUE test 826 -> 830 (failing on the previous build first). Checked in the browser (1280x720, each tab hit-tested):
+  a new game - ores only, the counter too; the first sword - swords pops in, and stays after it is sold; the first store -
+  metal; the banner reward - decor; PART 2 - ores and swords; PART 5 - and metal; free play - all four; no console errors.

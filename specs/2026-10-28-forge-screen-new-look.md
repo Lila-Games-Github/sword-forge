@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
 Status: **canon**, built in steps R25 (the craft frame), R26 (the right rail, the bedroom calendar, the market on the
-counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step), R30 (the customer counter) and R31 (the ring follows the finger). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step), R30 (the customer counter), R31 (the ring follows the finger) and R33 (the inventory tabs appear as first used). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -143,3 +143,24 @@ Owner: "I like the 'swipe to close' on the market rotory. Have the same controls
   12 px or more and it settles the way it was going (down opens, up shuts); a tap still toggles. One function,
   `wirePull(el, isOpen, setOpen, panel, range, settle)`, does it for both rings; the frame does not animate while it is
   held (`dragging`), and eases to its place when let go.
+
+## R33: the inventory tabs appear as they are first used (2026-10-29)
+
+Owner: "I want each of these tabs to appear as they are introduced/used for the first time. So, at the beginning, we will
+only have the ores tab, then when the sword is crafted we see the swords tab. The metal orb tab appears while crafting the
+swift sword, when we have to store the metal in the inventory for the first time. The decor tab appears after garric rewards
+the banner. check is there is any error in my instructions as well."
+
+- **Checked against the script:** the first metal is stored during **TC5's gale order (part 4, D99)**: the gale run makes
+  swift metal by mistake and the dragon says to store it; the swift dagger (Bram, part 5, D113) is made later from that
+  stored metal. So the metal tab appears at D99, the first store, which is what "when we have to store the metal for the
+  first time" means; "while crafting the swift sword" was the one slip. Garric gives the banner with every grade
+  (`FTUE.garricRewards`), so the decor tab appears with his reward window. The counter, the basement and the shop open the
+  swords tab (`SCREEN_TAB`), and Bram's first visit comes before the first sword: with that tab not there yet, the bag
+  stays on ores. A metal can be stored by drag at any time, so its tab appears at the first store, whenever that is.
+- **The rule (`invTabShown`):** ores always; metal once a metal is stored (`INV.ingots`), swords once a sword is made
+  (`INV.swords`), decor once a decor piece is owned (`FTUE_ST.decor` or placed). Each stays once seen (`FTUE_ST.tabIngots`,
+  `tabSwords`, `tabDecor`, saved), so selling every sword does not take the tab away. All four in free play and once the
+  tutorial is over. Older saves without the marks: swords from part 2 (or Bram's sale), metal from part 5.
+- **Look:** a tab not there yet keeps its slot (the four stay in place, nothing shifts when one appears) and pops in when it
+  appears (`tab-new`). Asking for a tab that is not there (a screen's default, `invTab`) gives the ores tab.

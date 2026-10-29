@@ -1948,6 +1948,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .matTab { height: 50px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 8px; letter-spacing: .2px; color: #e8d3a4; text-align: center; line-height: 1.15; padding: 2px 1px; background: linear-gradient(180deg,#4c3a21,#2c2013); border: 2px solid #241a0c;
     border-radius: 4px 4px 0 0; cursor: pointer; }
 .matTab.is-on { background: linear-gradient(180deg,#7a5c28,#4c3a21); }
+.matTab.tab-hidden { visibility: hidden; pointer-events: none; }   /* R33: not there yet - it keeps its slot, so nothing shifts when it appears */
+.matTab.tab-new { animation: tabNew .5s ease-out; }
+@keyframes tabNew { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
 /* r232 (owner): the tabs are icons - ore, ingot, a balanced sword, the banner - named by title/aria-label */
 .matTab { overflow: hidden; }
 .mt-ic { display: block; width: 100%; height: 40px; object-fit: contain; pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
@@ -2893,7 +2896,7 @@ function ftueRewardSub(r){
     return ''; }
 function ftueRewardApply(r){
     if(r.kind==='ore'){ gainOre(r.id, r.n); if(INV_TAB===0) buildShelf(); return; }   /* r291 */
-    if(r.kind==='decor') FTUE_ST.decor.push(r.id);
+    if(r.kind==='decor'){ FTUE_ST.decor.push(r.id); invTabsUi(); }   /* R33: the decor tab with Garric's banner */
     else if(r.kind==='blueprint') FTUE_ST.shapes[r.trait+':'+r.shape]=true;
     else if(r.kind==='unlock' && r.id==='grindstone'){ FTUE_ST.grind=true; ftueGrindUi(); }
     else if(r.kind==='unlock' && r.id==='sharpen'){ FTUE_ST.sharp=true; if(SF_SCREEN==='basement') buildScreenProps('basement'); }
@@ -7867,7 +7870,22 @@ function restoreIngot(id){
     orbEl.style.display='block'; placeOnAnvil();
     updateGauges(); updateHpPill(); setTimeout(updateSfTraits,0); invTab(1);
 }
+/* R33 (owner, 2026-10-29): "I want each of these tabs to appear as they are introduced/used for the first time." Ores always;
+   metal once a metal is stored (the first is D99, TC5's gale order, part 4), swords once a sword is made, decor once a piece is
+   owned (Garric's banner). Each stays once seen (FTUE_ST.tab*, saved); all four once the tutorial is over. Older saves without
+   the marks: swords from part 2 (or Bram's sale), metal from part 5 */
+function invTabShown(i){ if(i===0 || FTUE_ST.done) return true;
+    if(i===1) return !!(FTUE_ST.tabIngots || INV.ingots.length || FTUE_ST.part>=5);
+    if(i===2) return !!(FTUE_ST.tabSwords || INV.swords.length || TUT_BRAM_SOLD || FTUE_ST.part>=2);
+    return !!(FTUE_ST.tabDecor || (FTUE_ST.decor||[]).length || (FTUE_ST.placed||[]).length); }
+function invTabsUi(){ if(INV.ingots.length) FTUE_ST.tabIngots=true; if(INV.swords.length) FTUE_ST.tabSwords=true;
+    if((FTUE_ST.decor||[]).length) FTUE_ST.tabDecor=true;
+    [...document.querySelectorAll('#matTabs .matTab')].forEach((t,k)=>{ const on=invTabShown(k), was=!t.classList.contains('tab-hidden');
+        t.classList.toggle('tab-hidden', !on);
+        if(on && !was){ t.classList.remove('tab-new'); void t.offsetWidth; t.classList.add('tab-new'); } });   /* it pops in */
+    if(!invTabShown(INV_TAB)) invTab(0); }
 function invTab(i){
+    if(!invTabShown(i)) i=0;   /* R33 */
     INV_TAB=i;
     setTimeout(tutTabUi, 0);   /* r153: landing on the right tab puts its halo out */
     setTimeout(tutDrawArrow, 0);   /* 2026-10-14: and the arrow out of it appears (or goes) */
@@ -7875,6 +7893,7 @@ function invTab(i){
     buildShelf();
 }
 function buildShelf(){
+    invTabsUi();   /* R33: a tab appears with its first item */
     const shelf=document.getElementById('oreShelf'); if(!shelf) return;
     shelf.querySelectorAll('.ore-slot').forEach(x=>x.remove());
     const n = INV_TAB===0 ? shelfOres(shelf) : INV_TAB===1 ? shelfIngots(shelf) : INV_TAB===2 ? shelfSwords(shelf) : shelfMisc(shelf);
