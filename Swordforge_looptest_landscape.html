@@ -2612,7 +2612,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="toast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="toast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="toast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>
 
 <script>
 // ============================================================
@@ -3399,7 +3399,7 @@ function startDecorDrag(id, e, idx){
 function ftuePart(n){
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
-    if(n>6) return 'Part '+n+' is not built yet';
+    if(n>7) return 'Part '+n+' is not built yet';   /* R36: 7 is GAME, just after the tutorial */
     newGame();
     setTimeout(()=>{   /* newGame() speaks D1 after 500 ms; set up after it */
         sayHide(); tutDone();
@@ -3454,12 +3454,19 @@ function ftuePart(n){
             RAIL_DIARY=true; railUi();
             FTUE_ST.desk=false; FTUE_ST.part=5; FTUE_ST.gpc=1; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true; FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.sharp=true;
             ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; FTUE_ST.oreRound={ iron:2, manganese:2 }; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
+        if(n>=7){   /* R36 (owner, 2026-10-29): just after the tutorial - Garric served at his best grade, Day 3's cave gathered and its
+                       Pickaxe point spent, D140 said: the FTUE done */
+            FTUE.garricRewards[3].forEach(ftueRewardApply);
+            Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1; FTUE_ST.oreRound=null;
+            (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='3'; })();
+            FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140');
+            GOLD=1300; exp=1100; }
         SAY_I=SAY_SEQ.length;
-        LEVEL=levelFromExp(exp); TALENT=LEVEL-1; updateHud(); ftueGrindUi(); buildShelf();
+        LEVEL=levelFromExp(exp); TALENT=LEVEL-1-(n>=7 ? 1 : 0); updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
-        ftueBellGlow();
+        if(n<7) ftueBellGlow();
     }, 650);
-    return 'Part '+n+': setting up (TC'+n+' is at the bell)';
+    return n===7 ? 'Game: setting up (just after the tutorial, Day 3)' : 'Part '+n+': setting up (TC'+n+' is at the bell)';
 }
 window.ftuePart=ftuePart;
 

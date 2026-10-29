@@ -1485,4 +1485,13 @@ eq('R35: the heat moves only in the smelter, by the bellows; put back in the sme
 eq('R35: synced every frame, after the gate; the crown is set directly in the smelter, no fade', src.includes('smGlide(dt); smGateSync(); furnaceArtSync(dt);') && src.includes("const ms=(n==='top' && melt && melt.stage==='smelting') ? 0 : FURNACE_ART.fadeMs;"), true);
 eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity=(h/100*0.9)"), true);
 
+/* R36 (owner, 2026-10-29): "add a 'game' section in the console helper after part 6, that is after the tutorial" */
+eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="toast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>'), true);
+const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);
+eq('R36: ftuePart(7) is built (8 and up are not)', !!fp && fp[0].includes("if(n>7) return 'Part '+n+' is not built yet';"), true);
+eq('R36: Garric served at his best grade - his rewards applied', !!fp && fp[0].includes('FTUE.garricRewards[3].forEach(ftueRewardApply);'), true);
+eq('R36: Day 3 - its cave in the bag, the Pickaxe Upgrade at rank 1', !!fp && fp[0].includes("Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1;") && fp[0].includes("d.textContent='3'"), true);
+eq('R36: the tutorial over - done, part 6, the end seen, no stage', !!fp && fp[0].includes("FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140');"), true);
+eq('R36: gold 1300, exp 1100; one talent point spent; no tutorial glow on the bell', !!fp && fp[0].includes('GOLD=1300; exp=1100;') && fp[0].includes('TALENT=LEVEL-1-(n>=7 ? 1 : 0);') && fp[0].includes('if(n<7) ftueBellGlow();'), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');

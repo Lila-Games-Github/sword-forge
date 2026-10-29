@@ -586,3 +586,11 @@ yours and come on top.
   build first). Checked in the browser (free play, the bellows pumped through its own handler, the frame loop driven by
   timestamps): cold 1; pumped 1.5 s 0.5; 3 s 0; idle 3 s 0.5; 6 s 1; a 0.75 s pump 0.75; on a trait the gate glows with
   the crown at its own heat; the gate tapped 0/0/0; the anvil 1/1/0; back in the smelter cold; no console errors.
+- **R36 (2026-10-29, owner): a GAME jump after PART 6.** Owner: "add a 'game' section in the console helper after part 6,
+  that is after the tutorial." A **GAME** button after PART 6 in the cheat bar runs `ftuePart(7)`: a new game set up as
+  if the tutorial had just ended (a test aid with guessed values, as the part jumps are). It builds part 6's state, then:
+  Garric served at his best grade (`FTUE.garricRewards[3]` applied: 10g, his six balanced parts, the banner); Day 3, its
+  cave gathered (`FTUE.day3Cave` in the bag) and the Pickaxe Upgrade at rank 1 (one talent point spent), as Day 3's
+  lesson leaves it; `FTUE_ST.done` true, `part` 6, `TUT_SEEN_END` true, no tutorial stage, D140 counted as said (not
+  spoken); gold 1300, exp 1100 (guesses). It lands on the counter with the bell on and no tutorial glow on it. Free play
+  (`?freeplay`) stays as it was.
