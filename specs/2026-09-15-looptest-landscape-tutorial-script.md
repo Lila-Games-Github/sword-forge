@@ -37,6 +37,11 @@ Placeholder art; the shape is what matters:
 - anchored to the dragon element, so it follows the dragon when dragged and at any frame size;
 - body text dark (`#4a3623`): the parchment is pale, the same trap r55 hit on the counter;
 - click anywhere on the bubble to advance.
+- **the line types in (R32, owner, 2026-10-29: "the customer have a nice dialogue text appearing from left to right, do the
+  same for dragon's dialogues."):** a word at a time at the customer's pace (`TYPE_MS`, 70 ms a word), in all four of
+  the dragon's bubbles (`SAY_BOXES`). Every word is laid out from the start and shown in turn (`.sw` / `.sw.on`), so
+  the bubble has its full size at once and nothing beside it moves. A tap while it types shows the rest; the next tap
+  advances, as the customer's line does. Closing a line stops its typing (`sayHide`).
 
 Pointer arrows come from `tutArrow(from, to, opt)` and the pulsing highlight from `tutGlow(sel, on)`;
 both are cleared by `tutDone()`.

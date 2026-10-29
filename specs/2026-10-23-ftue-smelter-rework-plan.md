@@ -554,3 +554,11 @@ yours and come on top.
   frame followed (top -145, -105, -65), let go - open; pushed up - shut; half down and back up to 30 px - open; half up -
   shut; tapped twice - open, shut (each eased to -12 or -165 px); the counter ring the same between its book-open place and
   shut; every press hit-tested; no console errors.
+- **R32 (2026-10-29, owner): the dragon's lines type in.** Owner: "the customer have a nice dialogue text appearing from left
+  to right, do the same for dragon's dialogues." `say()` types the line a word at a time at the customer's pace (`TYPE_MS`,
+  70 ms) in all four of the dragon's bubbles, every word laid out from the start (the bubble has its full size at once); a
+  tap while it types shows the rest, the next tap advances; `sayHide` stops it. Its own timer, so a customer's typing is
+  untouched. Record: specs/2026-09-15-looptest-landscape-tutorial-script.md (the dragon's dialogue box). FTUE test 821 ->
+  826 (failing on the previous build first). Checked in the browser (1280x720, a new game, D1): 5 then 8 of 24 words shown
+  at 300 and 510 ms, the bubble 137 px tall throughout; the bubble tapped (hit-tested) - all 24 words, still D1; tapped
+  again - D2, typing; D2 finished on its own; no console errors.

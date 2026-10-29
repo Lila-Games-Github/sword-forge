@@ -500,6 +500,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutDrag.updown { animation: tutDragBob 0.6s ease-in-out infinite alternate; }
 #tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }
 /* R28: the ring's pull - the down head only, sliding down */
+#dragonSayText .sw, #screenDragonSayText .sw, #shSayText .sw, #ddSayText .sw { opacity: 0; transition: opacity .12s; }
+#dragonSayText .sw.on, #screenDragonSayText .sw.on, #shSayText .sw.on, #ddSayText .sw.on { opacity: 1; }   /* R32: the dragon's line types in */
 #tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }
 #tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }
 @keyframes tutDragDown { 0% { transform: translateY(-14px); opacity: 0; } 25%, 75% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
@@ -10412,13 +10414,25 @@ function sayGoIcon(go, kind, id){
     go.title = kind==='close' ? 'Close' : 'OK';
     go.innerHTML = kind==='none' ? '' : (kind==='close' ? SAY_GO_CLOSE : SAY_GO_NEXT);
 }
+/* R32 (owner, 2026-10-29): "the customer have a nice dialogue text appearing from left to right, do the same for dragon's
+   dialogues." The dragon's line types a word at a time at the customer's pace (TYPE_MS). Every word is laid out from the start
+   and shown in turn, so the bubble has its full size at once and nothing beside it moves; a tap while it types shows the rest,
+   the next tap goes on (sayNext), as the customer's line does. Its own timer, so a customer typing at the same time is untouched */
+let SAY_TYPE_T=null, SAY_TYPE_EL=null;
+function sayTypeStop(all){ if(SAY_TYPE_T){ clearInterval(SAY_TYPE_T); SAY_TYPE_T=null; }
+    if(all && SAY_TYPE_EL) SAY_TYPE_EL.querySelectorAll('.sw').forEach(w=>w.classList.add('on')); SAY_TYPE_EL=null; }
+function sayType(el, text){ sayTypeStop(false); el.textContent='';
+    String(text||'').trim().split(/\s+/).forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' '));
+        const s=document.createElement('span'); s.className='sw'; s.textContent=w; el.appendChild(s); });
+    const words=[...el.querySelectorAll('.sw')]; let i=0; SAY_TYPE_EL=el;
+    SAY_TYPE_T=setInterval(()=>{ if(i>=words.length){ sayTypeStop(false); return; } words[i++].classList.add('on'); }, TYPE_MS); }
 function say(id){
     const where=sayWhere(), B=SAY_BOXES[where];
     const box=document.getElementById(B[0]), t=document.getElementById(B[1]);
     const line=DIALOGUE[id]; if(!box||!t||!line) return;
     Object.keys(SAY_BOXES).forEach(k=>{ if(k===where) return;
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
-    SAY_ON=id; SAY_LAST=id; t.textContent=sayFill(line); box.classList.add('show');   /* r104 */
+    SAY_ON=id; SAY_LAST=id; sayType(t, sayFill(line)); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
     if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270. r271/r272: a dark stage keeps its own */
     hmDarkSync();   /* R16 */
@@ -10468,6 +10482,7 @@ function sayHide(){
        to the anvil left the line hidden, TUT_SAW_TIERS false and the modal closed.
        Nothing is interrupted by opening here: positioning him and holding to breathe are separate
        presses, and the pointer capture keeps the drag working under the window. */
+    sayTypeStop(true);   /* R32: a closed line stops typing */
     const after = SAY_AFTER[SAY_ON];   /* r194/r196 */
     if(after) setTimeout(after, 0);
     if(TUT_PAUSE && SAY_PAUSE_ONE[SAY_ON]) tutPause(false);   /* r288: a hidden D15 does not leave the game held */
@@ -10529,6 +10544,7 @@ function sayAgain(){
 const SM_FREE=location.search.indexOf('freeplay')>=0;   /* R0: the free-play test aid (the main game plays the tutorial) */
 function sayStart(){ if(SM_FREE){ smFreePlay(); return; } if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 function sayNext(){
+    if(SAY_TYPE_T){ sayTypeStop(true); return; }   /* R32: a tap while the line types shows the rest */
     if(SAY_CHOICES && !SAY_CHOICES_OPT) return;   /* r115: answer the question first. r189: unless it is only an offer */
     if(SAY_CHOICES) sayChoose(null);
     /* r85: the click that closes D8 restarts the world. r179: a paused RUN holds until its LAST
