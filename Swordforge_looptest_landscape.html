@@ -3459,7 +3459,7 @@ function ftuePart(n){
             FTUE.garricRewards[3].forEach(ftueRewardApply);
             Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1; FTUE_ST.oreRound=null;
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='3'; })();
-            FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140');
+            FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140'); FTUE_ST.wq='done';   /* R37: no waiting-customer guide (D107f) */
             GOLD=1300; exp=1100; }
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1-(n>=7 ? 1 : 0); updateHud(); ftueGrindUi(); buildShelf();

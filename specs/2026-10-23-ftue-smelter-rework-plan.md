@@ -594,3 +594,8 @@ yours and come on top.
   lesson leaves it; `FTUE_ST.done` true, `part` 6, `TUT_SEEN_END` true, no tutorial stage, D140 counted as said (not
   spoken); gold 1300, exp 1100 (guesses). It lands on the counter with the bell on and no tutorial glow on it. Free play
   (`?freeplay`) stays as it was.
+- **R37 (2026-10-29, owner): no tutorial in GAME.** Owner, on D107f showing in GAME: "i dont want this tutorial in the
+  game section either." PART 5 and 6 leave Gale's order waiting in the ledger, and its guide (`wqTick`: D107f, then D107g
+  and D107h, the ledger lit) runs after the tutorial too. GAME now marks that guide finished (`FTUE_ST.wq='done'`): the
+  request stays in the ledger as a plain waiting order, with no dragon lines and nothing lit. The guide itself is
+  unchanged in the tutorial.

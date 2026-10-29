@@ -1494,4 +1494,7 @@ eq('R36: Day 3 - its cave in the bag, the Pickaxe Upgrade at rank 1', !!fp && fp
 eq('R36: the tutorial over - done, part 6, the end seen, no stage', !!fp && fp[0].includes("FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140');"), true);
 eq('R36: gold 1300, exp 1100; one talent point spent; no tutorial glow on the bell', !!fp && fp[0].includes('GOLD=1300; exp=1100;') && fp[0].includes('TALENT=LEVEL-1-(n>=7 ? 1 : 0);') && fp[0].includes('if(n<7) ftueBellGlow();'), true);
 
+/* R37 (owner, 2026-10-29): "i dont want this tutorial in the game section either" - the waiting customer's guide (D107f) */
+eq('R37: GAME marks the waiting customer\'s guide finished; the request stays in the ledger', !!fp && fp[0].includes("SAY_SEQ.push('D140'); FTUE_ST.wq='done';") && !/FTUE_ST\.waiting=\[\][^\n]*\n[^\n]*GOLD=1300/.test(fp[0]), true);
+
 console.log('[ftue] GREEN / ' + n + ' checks');
