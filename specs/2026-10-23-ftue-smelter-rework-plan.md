@@ -599,3 +599,20 @@ yours and come on top.
   and D107h, the ledger lit) runs after the tutorial too. GAME now marks that guide finished (`FTUE_ST.wq='done'`): the
   request stays in the ledger as a plain waiting order, with no dragon lines and nothing lit. The guide itself is
   unchanged in the tutorial.
+- **R38 (2026-10-29, owner): the rotary market.** The MARKET button opens the owner's new window (`assets/ui/market_rotary.webp`
+  over the black overlay): a wheel of the 25 trait tags on the drum (4 in view, the second from the top is the trait on
+  the pages; undiscovered "?"; each trait its own colour; it wraps; it turns with the finger and carries on by the swipe's
+  speed, `MK_ROT.fling` 0.35 s; a tag tapped turns to it) and one blueprint per page ("<Shape> blueprint", its own line from
+  `MARKET_DESC`, a placeholder preview from the forge's parts, a round buy button "Buy for" coin price; OWNED on the
+  Shortsword, PURCHASED on a bought one, over the button). Swipe up for the next page, down for the previous; past a
+  trait's last page the next trait's first, the wheel turning with it. A tap off the paper closes; a small close button
+  was added for the tutorial to light. Tutorial: the ordered blueprint's page, its button lit (the dragon's coins fly to
+  it); the come-later show is Gale Katana, then Fire Claymore and the close button (`MK_ROT.laterMs` 1600 ms); swiping is
+  locked meanwhile. Record: specs/2026-10-29-rotary-market.md (with the 250 lines: the owner's two, the first reference's
+  Claymore line, the rest drafts for review). Market test 54 -> 84, FTUE test two checks rewritten (856), both failing on
+  the previous build first. Checked in the browser (GAME, pointer events through `elementFromPoint`): pages up, down, a
+  slow short drag stays, a flick turns, past Fire's last page to Swift's Shortsword with the wheel; the wheel one tag
+  slow, two tags slow, a 60 ms flick of one tag carries 6 more, a tag tapped; 4 tags visible; a swipe that starts on the
+  buy button buys nothing; a buy (1300 -> 1100, PURCHASED); too dear (red, the toast); a tap outside closes; the
+  come-later show, the dragon's gift and the top-up lesson; no console errors. Fixed on the way: a tap on the buy
+  button after an earlier swipe was ignored while a lesson locked the page.

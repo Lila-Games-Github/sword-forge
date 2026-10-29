@@ -342,8 +342,8 @@ eq('the shape window shows no BUY on it', src.includes("const open=ftueShapeOpen
   && src.includes("<span>'+sh+'</span>'+(open || gift ? '' : '<b class=\"sf-buy'"), true);
 eq('a tap on it buys nothing (the shape window)', /function shapeBuy\(k, sh\)\{[^\n]*\n\s*if\(ftueDragonPays\(k, sh\)\) return;/.test(src), true);
 eq('a tap on it buys nothing (the market)', /function marketBuy\(k, sh\)\{\s*const st=[^\n]*\n\s*if\(\(FTUE_MK && FTUE_MK\.step==='gift'\) \|\| ftueDragonPays\(k, sh\)\) return;/.test(src), true);
-eq('the market shows it locked, with no price', src.includes("const gift=st!=='owned' && st!=='free' && ftueDragonPays(k, sh);")
-  && src.includes("b.className='mk-cell '+(gift ? 'closed gift' : st);") && src.includes("b.innerHTML = gift ? '\\u{1F512}' : st==='free'"), true);
+eq('the market shows it locked, with no price (R38: on the buy button)', src.includes("gift=st!=='owned' && st!=='free' && ftueDragonPays(p.trait, p.shape);")
+  && src.includes("B.innerHTML=mkBuyFace(gift ? 'gift' : st, pr);"), true);
 eq('six orders are the dragon\'s', [1, 3, 5].flatMap(p => FTUE.parts[p].gpc).concat([FTUE.bramBlueprint]).filter(o => o.market && o.market.by === 'dragon')
   .map(o => o.trait + ':' + o.shape), ['balanced:Longsword', 'balanced:Broadsword', 'fire:Longsword', 'fire:Broadsword', 'gale:Longsword', 'swift:Dagger']);
 
@@ -803,7 +803,8 @@ eq('second map window art', src.includes("openIllus('assets/ui/MAP_parts2.webp',
    and COME LATER */
 eq('the request lights MARKET (D107d waits)', src.includes("if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */\n        typeAfter(()=>tutExit('#marketBtn')); }")
   || src.includes("if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */\r\n        typeAfter(()=>tutExit('#marketBtn')); }"), true);
-eq('in the market: both blueprints shown and lit, then Close', src.includes("if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterCells(true); setTimeout(()=>tutExit('#sfMarketModal .mk-foot .paperBtn'), 0); return; }")
+eq('in the market: Gale Katana lit, then Fire Claymore, then the close button (R38)', src.includes("if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterShow(); return; }")
+  && /function ftueLaterShow\(\)\{[\s\S]{0,600}tutExit\('#mkClose'\)[\s\S]{0,100}MK_ROT\.laterMs/.test(src)
   && src.includes("const FTUE_LATER_KEYS=['gale:Katana','fire:Claymore'];"), true);
 eq('closing it: D107d and COME LATER', src.includes("if(FTUE_LATER==='close'){ FTUE_LATER=null; ftueLaterCells(false); tutExit(null); sayQueue('D107d'); setTimeout(()=>tutExit('#csPanel .cs-later'), 0); }"), true);
 eq('COME LATER first ends the guide', src.includes("const lesson = (c.lesson==='later' && !c.waiting); FTUE_LATER=null; ftueLaterCells(false);"), true);

@@ -64,7 +64,7 @@ document.addEventListener('fullscreenchange', sfApplyFit);
 </script>
 <title>Swordforge — Loop Test</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Lora:ital@0;1&family=MedievalSharp&display=swap');   /* r302: Lora for the intro */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Lora:ital@0;1&family=MedievalSharp&family=Caveat:wght@600&family=Inter:wght@400;500&display=swap');   /* R38: Caveat + Inter for the market's pages */   /* r302: Lora for the intro */
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 /* r135: the portrait gate. Covers everything, including modals, and carries no new art. */
 /* r302: the intro - full-frame pictures before D1, over everything in the frame */
@@ -813,40 +813,49 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape.sf-req::after { content: 'Requested'; position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
     font: 700 7px/1 'Cinzel', serif; letter-spacing: .4px; color: #fff; background: #c9861a; padding: 2px 4px; border-radius: 4px; }
 @keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(224,165,44,.0); } 50% { box-shadow: 0 0 10px 3px rgba(224,165,44,.85); } }
-/* v3: the market window - a shape column, then one column per trait */
-.sf-modal-box.mk-box { max-width: 600px; width: 92%; padding: 12px 14px; }
-/* owner, 2026-10-09: 25 traits - the shape names stay put, the trait columns slide (five in view) */
-.mk-wrap { display: flex; align-items: center; gap: 4px; }
-.mk-arr { flex: 0 0 22px; height: 60px; border: 0; border-radius: 6px; background: #c9a35a; color: #3a2a10; font-size: 12px; cursor: pointer; }
-.mk-arr:active { transform: scale(.95); }
-.mk-grid { flex: 1; min-width: 0; display: flex; gap: 3px; font-family: 'Cinzel', serif; color: #4a3623; }
-.mk-labels { flex: 0 0 74px; display: flex; flex-direction: column; gap: 3px; }
-.mk-scroll { flex: 1; min-width: 0; display: flex; gap: 3px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; padding-bottom: 3px; }
-.mk-col { flex: 0 0 calc((100% - 12px) / 5); display: flex; flex-direction: column; gap: 3px; scroll-snap-align: start; }
-.mk-grid .mk-h { height: 18px; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.mk-grid .mk-sh { height: 22px; }
-.mk-grid .mk-h { font-size: 10px; font-weight: 900; text-align: center; padding: 3px 0; border-bottom: 2px solid #cbb98f; }
-.mk-grid .mk-sh { font-size: 10px; font-weight: 700; display: flex; align-items: center; padding-left: 4px; }
-.mk-cell { font: 700 10px/1 'Cinzel', serif; height: 22px; border-radius: 6px; border: 1.5px solid #cbb98f; background: #f3ead6;
-    color: #4a3623; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 0; cursor: pointer; }
-.mk-cell.none { visibility: hidden; }
-.mk-cell.free, .mk-cell.owned { background: #dfe9cf; border-color: #9fb582; color: #3f5a2a; cursor: default; }
-.mk-cell.closed, .mk-cell.unknown { background: #e3d9c3; color: #8a7a60; }
-.mk-cell.poor { color: #a0412f; }
-.mk-cell.buy { background: #fff3cf; border-color: #c99a3a; }
-.mk-cell.buy:hover { filter: brightness(1.05); }
-.mk-cell.unlocking { animation: mkUnlock .7s ease-out; }
-@keyframes mkUnlock { 0% { transform: scale(1); } 35% { transform: scale(1.35); box-shadow: 0 0 14px 4px rgba(255,200,70,.9); } 100% { transform: scale(1); } }
+/* R38 (owner, 2026-10-29): the rotary market - the art on a 16:9 stage, a wheel of traits, one blueprint page at a time.
+   Positions are the art's own pixels (1920x1080) as percentages. Record: specs/2026-10-29-rotary-market.md */
+#sfMarketModal { container-type: size; }
+.mk-stage { position: relative; width: min(100cqw, 177.78cqh); aspect-ratio: 16 / 9; container-type: inline-size; }
+.mk-art { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.mk-paper { position: absolute; left: 12.08%; top: 3.89%; width: 47.29%; height: 73.52%; overflow: hidden; touch-action: none; }
+.mk-pages, .mk-pg { position: absolute; inset: 0; }
+.mk-pg { color: #2b241c; font-family: 'Inter', system-ui, sans-serif; user-select: none; }
+.mk-title { position: absolute; left: 11.8%; top: 8.6%; margin: 0; font-size: 3.2cqw; font-weight: 500; white-space: nowrap; }
+.mk-desc { position: absolute; left: 11%; top: 25%; width: 34%; margin: 0; text-align: center; font-size: 1.7cqw; line-height: 1.65; }
+.mk-prev { position: absolute; left: 54%; top: 55.9%; width: 64%; aspect-ratio: 1; transform: translate(-50%,-50%) rotate(180deg); pointer-events: none; }   /* the part art runs tip top right: turned, the tip points down left as in the reference */
+.mk-prev img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; filter: drop-shadow(0 .4cqw .5cqw rgba(60,40,10,.35)); }
+.mk-prev.dark img { filter: brightness(0) opacity(.28); }
+.mk-buy { position: absolute; left: 74.8%; top: 78.8%; width: 30%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 50%; box-sizing: border-box;
+    border: .32cqw solid #5ad3c6; background: #c4f7f3; color: #1d2a2a; cursor: pointer; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2cqw; font-family: 'Caveat', cursive; }
+.mk-buy .mk-bf, .mk-buy .mk-pr { font-size: 2.6cqw; line-height: 1; transform: rotate(12deg); }
+.mk-buy .mk-pr { display: flex; align-items: center; gap: .4cqw; }
+.mk-buy .mk-lk { font-size: 2.4cqw; line-height: 1; }
+.mk-buy[data-st='poor'] .mk-pr { color: #b03a26; }
+.mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'] { background: #e3ddd0; border-color: #a99f8c; color: #6f6656; }
+.mk-stamp { position: absolute; left: 74.8%; top: 78.8%; transform: translate(-50%,-50%) rotate(-16deg); padding: .55cqw 1.2cqw;
+    background: #5ec46a; border: .3cqw solid #2f8a3c; border-radius: .6cqw; color: #10301a; font: 900 3.1cqw/1 Georgia, 'Times New Roman', serif;
+    letter-spacing: .04em; white-space: nowrap; pointer-events: none; box-shadow: 0 .3cqw .8cqw rgba(0,0,0,.3); }
+.mk-stamp[hidden] { display: none; }
+.mk-stamp.unlocking { animation: mkStamp .55s ease-out; }
+@keyframes mkStamp { 0% { transform: translate(-50%,-50%) rotate(-16deg) scale(2.2); opacity: 0; } 60% { transform: translate(-50%,-50%) rotate(-16deg) scale(.92); opacity: 1; } 100% { transform: translate(-50%,-50%) rotate(-16deg) scale(1); opacity: 1; } }
+/* the drum: x 1150-1440, y 640-1080 of the art; the tags are placed in it by mkTagPos */
+.mk-wheel { position: absolute; left: 59.9%; top: 59.26%; width: 15.1%; height: 40.74%; overflow: hidden; touch-action: none; }
+.mk-tag { position: absolute; width: 50%; height: 11.4%; box-sizing: border-box; border: .25cqw solid; border-radius: .3cqw; padding: 0;
+    display: flex; align-items: center; justify-content: center; font: 500 1.25cqw/1 'Inter', system-ui, sans-serif; color: #1d1a16; cursor: pointer; white-space: nowrap; }
+.mk-close { position: absolute; left: 59.4%; top: 3.9%; width: 3.4cqw; height: 3.4cqw; transform: translate(-50%,-50%); border-radius: 50%; box-sizing: border-box;
+    border: .2cqw solid #6a5636; background: #e8dcc0; color: #4a3623; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.mk-close svg { width: 55%; height: 55%; }
+.mk-gold { position: absolute; left: 62.5%; top: 1.6%; padding: .4cqw 1cqw; border-radius: 1cqw; background: rgba(20,14,7,.85); border: .15cqw solid #c8a84b;
+    font: 700 1.5cqw/1 'Cinzel', serif; color: #ffe08a; white-space: nowrap; }
 /* v3: the dragon speaks INSIDE the market window - on the counter screen his bubble lives in #screenLayer,
-   whose stacking context keeps it under any modal, whatever its own z-index */
-.mk-say { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 10px; border-radius: 8px;
+   whose stacking context keeps it under any modal, whatever its own z-index. R38: top right, off the paper */
+.mk-say { position: absolute; left: 62.5%; top: 9%; width: 34%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px;
     background: #fff7e2; border: 2px solid #c99a3a; font-family: Georgia, serif; font-size: 12px; color: #2a1d0c; }
 .mk-say[hidden] { display: none; }
 .mk-say .who { font: 900 9px/1 'Cinzel', serif; color: #8a5a1c; letter-spacing: .6px; }
 .mk-say p { margin: 0; }
-.mk-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.mk-gold { font: 700 13px/1 'Cinzel', serif; color: #4a3623; }
-.mk-foot .paperBtn.red { flex: 0 0 auto; width: 96px; }   /* the shape picker's Cancel size, not 30% of a wide box */
 /* v3 D10: the dragon's coins fly over everything, the market window included */
 .coin-fly { position: absolute; z-index: 1100; font-size: 22px; line-height: 1; pointer-events: none;
     transform: translate(-50%,-50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
@@ -2444,16 +2453,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="rwd-ok"><button class="paperBtn wide" type="button" onclick="closeReward()">OK</button></div>
         </div>
     </div>
-    <!-- ===== v3: the market (blueprints per trait and shape) ===== -->
-    <div id="sfMarketModal" class="sf-modal">
-        <div class="sf-modal-box mk-box">
-            <h3 class="sf-modal-h">Market</h3>
-            <p class="sf-modal-sub">Blueprints: each shape, for each trait.</p>
+    <!-- ===== R38: the rotary market (specs/2026-10-29-rotary-market.md): a wheel of traits, one blueprint page at a time ===== -->
+    <div id="sfMarketModal" class="sf-modal" onclick="mkOutside(event)">
+        <div class="mk-stage">
+            <img class="mk-art" src="assets/ui/market_rotary.webp" alt="">
+            <div class="mk-paper" id="mkPaper"><div class="mk-pages" id="mkPage"></div></div>
+            <div class="mk-wheel" id="mkWheel"></div>
+            <button class="mk-close" id="mkClose" type="button" title="Close" onclick="closeMarket()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg></button>
+            <span class="mk-gold">🪙 <b id="mkGold">0</b></span>
             <div class="mk-say" id="mkSay" hidden><span class="who">DRAGON</span><p></p></div>
-            <div class="mk-wrap"><button class="mk-arr" type="button" title="Previous traits" onclick="marketSlide(-1)">&#9664;</button>
-                <div class="mk-grid" id="mkGrid"><div class="mk-labels" id="mkLabels"></div><div class="mk-scroll" id="mkScroll"></div></div>
-                <button class="mk-arr" type="button" title="More traits" onclick="marketSlide(1)">&#9654;</button></div>
-            <div class="mk-foot"><span class="mk-gold">🪙 <b id="mkGold">0</b></span><button class="paperBtn red" type="button" onclick="closeMarket()">Close</button></div>
         </div>
     </div>
     <div id="sfShapeModal" class="sf-modal">
@@ -2809,7 +2817,307 @@ const MARKET = {
              durable: ['Dagger','Katana','Cutlass','Machete','Saber','Scimitar','Claymore'] },
     coins: 5, coinMs: 700   /* D10: the dragon's coins, how many and how long each flies */
 };
+/* R38 (owner, 2026-10-29): the rotary market. Record: specs/2026-10-29-rotary-market.md (Values, tag colours) */
+const MK_ROT = {
+    art: 'assets/ui/market_rotary.webp',
+    visible: 4, sel: 1,   /* four tags in view; the second from the top is the trait on the pages */
+    fling: 0.35,          /* s: a released wheel turns on by its speed (tags/s) x this, then snaps to a tag */
+    turn: 0.12, flick: 0.5,   /* a page turns on a drag of this share of the paper's height, or a swipe faster than this (px/ms) */
+    laterMs: 1600,        /* the come-later lesson: Gale Katana this long, then Fire Claymore */
+    stamp: { free:'OWNED', owned:'PURCHASED' },
+    geo: { stepDeg:27, selDeg:-14, cy:900, r:230, x:1258, dx:18, fadeDeg:-48, goneDeg:-62, botDeg:58 },   /* the drum, in the art's pixels */
+    unknown: ['#d9d2c3','#8a7f6a'],   /* an undiscovered trait's "?" tag */
+    tags: {
+            balanced:['#ffffff','#5f6670'], fire:['#ffc9c4','#e8452c'], swift:['#fdeaa0','#f0c43a'], gale:['#c6f6f0','#4fd1c5'],
+            durable:['#e3d3bd','#8a6a45'], flexible:['#d9f2c4','#6fb04a'], heavy:['#cfd3d8','#4c5560'], celestial:['#d9d4ff','#6b5bd6'],
+            cloud:['#f2f6fb','#9fb3c8'], rainbow:['#ffe0f0','#d94fa0'], luck:['#c9f2cf','#2f9e48'], lightning:['#fff6b8','#d9a400'],
+            noble:['#f1dcff','#8a3fc2'], grace:['#fde4ec','#d97aa0'], floral:['#ffd9e8','#e05a94'], fury:['#ffd0b8','#d9531e'],
+            ice:['#dff4ff','#4aa8e0'], water:['#cfe6ff','#2f7fd6'], magma:['#ffd1a8','#c4400f'], mist:['#e4e7ea','#8d969e'],
+            poison:['#d6f5b8','#5c9e1e'], savage:['#f2dcc0','#a8642a'], blood:['#f5c4c8','#a3162a'], cursed:['#ddd0e6','#5a3a6e'],
+            dark:['#c9c4d0','#2c2533'] }
+};
 /* MARKET-CONFIG-END */
+/* MARKET-DESC-BEGIN */
+/* R38 (owner, 2026-10-29): one line per trait and shape, on the market's pages. The record's table
+   (specs/2026-10-29-rotary-market.md) is the source; the market test compares the two. */
+const MARKET_DESC = {
+    balanced: {
+        Shortsword:'Compact, clean and simple. The most basic sword.',
+        Longsword:'More reach, same calm. A sword for every job.',
+        Broadsword:'Wide and steady. It never picks a fight it cannot finish.',
+        Katana:'One clean curve, one clean cut.',
+        Cutlass:'Made for ships and tight corners. Simple and sure.',
+        Machete:'Clears the path ahead. Plain, sharp and useful.',
+        Saber:'A light curve for a quick hand.',
+        Scimitar:'A long curve that keeps its balance.',
+        Claymore:'A broad, imposing blade built to command attention.',
+        Dagger:'Short and honest. Good for close work.' },
+    fire: {
+        Shortsword:'Small, but fiery. Do not underestimate. It will get angry.',
+        Longsword:'A long flame with a short temper.',
+        Broadsword:'Wide and hot. Stand back when it swings.',
+        Katana:'Cuts like a flash of flame.',
+        Cutlass:'Warm enough to dry a wet deck.',
+        Machete:'Burns a path through anything green.',
+        Saber:'Quick, bright and always smoking.',
+        Scimitar:'A curve of fire that leaves the air glowing.',
+        Claymore:'Huge and blazing. It wants everyone to look.',
+        Dagger:'A little spark. Keep it away from the curtains.' },
+    swift: {
+        Shortsword:'Light as a feather. Gone before you see it.',
+        Longsword:'Long, but never slow.',
+        Dagger:'Blink and it has already struck.',
+        Katana:'Drawn and back in the sheath in one breath.',
+        Cutlass:'Quick on deck, quicker in a fight.',
+        Machete:'Fast hands, fast blade, short path.',
+        Saber:'Made for the charge. It never waits.',
+        Scimitar:'A quick curve that dances past a guard.',
+        Claymore:'A giant sword that somehow moves like a small one.',
+        Rapier:'A needle in the wind. Strikes first, every time.' },
+    gale: {
+        Shortsword:'A small gust with a sharp edge.',
+        Longsword:'It sings when the wind blows through it.',
+        Rapier:'Thin as a breeze, and just as hard to catch.',
+        Katana:'Each cut leaves a little storm behind.',
+        Cutlass:'Smells of sea wind. Every sailor wants one.',
+        Machete:'Cuts through the tall grass like a gale.',
+        Saber:'Rides the wind into every charge.',
+        Scimitar:'A curve of wind that bends around a shield.',
+        Claymore:'Swing it once and the trees bow.',
+        Dagger:'A pocket of wind. It whistles when thrown.' },
+    durable: {
+        Shortsword:'Small and stubborn. It will outlast you.',
+        Longsword:'Long, tough and hard to chip.',
+        Broadsword:'A wall of steel you can swing.',
+        Katana:'A fine edge that refuses to dull.',
+        Cutlass:'Salt, rain and battle. It does not care.',
+        Machete:'Chop wood all day. Still sharp tomorrow.',
+        Saber:'Takes every blow and asks for more.',
+        Scimitar:'A curve that keeps its shape for life.',
+        Claymore:'Heavy, tough and nearly unbreakable.',
+        Dagger:'Bends nothing, breaks nothing.' },
+    flexible: {
+        Shortsword:'It bends, it springs back, it wins.',
+        Longsword:'A long blade with a little give.',
+        Broadsword:'Wide, yet it flexes like a reed.',
+        Katana:'Supple steel with a straight answer.',
+        Cutlass:'Springs back from every parry.',
+        Machete:'Whips through brush like a willow branch.',
+        Saber:'Bends in the charge and snaps back in time.',
+        Scimitar:'A curve that curves even further.',
+        Claymore:'Big and bendy. Nobody expects that.',
+        Dagger:'Bends around a guard to find its mark.' },
+    heavy: {
+        Shortsword:'Small, but it lands like a hammer.',
+        Longsword:'Every swing feels like a falling tree.',
+        Broadsword:'Do not drop it on your foot.',
+        Katana:'A slow draw and a very heavy cut.',
+        Cutlass:'Sinks ships. Also sinks if dropped.',
+        Machete:'One chop is all it needs.',
+        Saber:'A cavalry blade for a strong arm.',
+        Scimitar:'The curve adds weight to every blow.',
+        Claymore:'Two hands, strong back, no regrets.',
+        Dagger:'The heaviest little knife in town.' },
+    celestial: {
+        Shortsword:'A small sword with stars in the steel.',
+        Longsword:'Forged under the night sky. It still glows.',
+        Broadsword:'Wide as the sky after sunset.',
+        Katana:'Its edge follows the path of the moon.',
+        Cutlass:'Sailors steer by the light on its blade.',
+        Machete:'Cuts a path the stars would follow.',
+        Saber:'A comet in the charge.',
+        Scimitar:'Curved like a new moon.',
+        Claymore:'A blade as big as the heavens.',
+        Dagger:'A fallen star with a point.' },
+    cloud: {
+        Shortsword:'Soft to look at, sharp to touch.',
+        Longsword:'Light as a cloud, long as a summer day.',
+        Broadsword:'A wide, white blade that seems to float.',
+        Katana:'Drifts in, cuts clean, drifts away.',
+        Cutlass:'Smells of rain over the sea.',
+        Machete:'Clears the fog off a jungle path.',
+        Saber:'Rides high and comes down fast.',
+        Scimitar:'A curve as soft as the edge of a cloud.',
+        Claymore:'A thunderhead you can carry.',
+        Dagger:'A wisp of cloud with a point.' },
+    rainbow: {
+        Shortsword:'Small and bright. Every colour at once.',
+        Longsword:'A long arc of colour.',
+        Broadsword:'Wide enough to hold all seven colours.',
+        Katana:'Each cut leaves a trail of light.',
+        Cutlass:'Pirates say there is gold at the end of it.',
+        Machete:'Paints the jungle as it cuts.',
+        Saber:'A bright flash on the charge.',
+        Scimitar:'Already curved like a rainbow.',
+        Claymore:'Huge, loud and very colourful.',
+        Dagger:'A little spark of colour.' },
+    luck: {
+        Shortsword:'Small, lucky and always in the right place.',
+        Longsword:'Long odds, but this blade likes them.',
+        Broadsword:'Wide blade, wide luck.',
+        Katana:'It finds the gap every time. Pure luck?',
+        Cutlass:'Every pirate swears by it.',
+        Machete:'Somehow it always misses the rocks.',
+        Saber:'The coin landed on heads again.',
+        Scimitar:'A lucky curve. Carry it on game night.',
+        Claymore:'Big blade, bigger luck.',
+        Dagger:'A lucky charm with a point.' },
+    lightning: {
+        Shortsword:'Small, quick and crackling.',
+        Longsword:'Strikes twice in the same place.',
+        Broadsword:'A storm with a handle.',
+        Katana:'The flash comes first. The thunder comes later.',
+        Cutlass:'Keep it below deck in a storm.',
+        Machete:'Every chop crackles.',
+        Saber:'A bolt from the sky on the charge.',
+        Scimitar:'Curved like a fork of lightning.',
+        Claymore:'Raise it high and the sky answers.',
+        Dagger:'A small spark that bites.' },
+    noble: {
+        Shortsword:'Small, proud and polished.',
+        Longsword:'Fit for a knight. Fit for a king.',
+        Broadsword:'Wide, gilded and full of honour.',
+        Katana:'A blade of old and noble houses.',
+        Cutlass:'A captain carries this one.',
+        Machete:'Even the palace gardeners use one.',
+        Saber:'For parades and for duels.',
+        Scimitar:'A royal curve, with gold on the hilt.',
+        Claymore:'Lifted only for the crown.',
+        Dagger:'Worn at court, never without reason.' },
+    grace: {
+        Shortsword:'Small, light and lovely to hold.',
+        Longsword:'Every swing looks like a dance.',
+        Broadsword:'Wide, yet it moves with grace.',
+        Katana:'A cut so smooth it seems polite.',
+        Cutlass:'Dances across the deck.',
+        Machete:'Even chopping looks elegant.',
+        Saber:'Light, fast and very elegant.',
+        Scimitar:'A curve as graceful as a swan.',
+        Claymore:'A giant sword with good manners.',
+        Dagger:'Gentle hands, sharp point.' },
+    floral: {
+        Shortsword:'Small and sweet. It smells of spring.',
+        Longsword:'Long as a rose stem, and as thorny.',
+        Broadsword:'A wide blade in full bloom.',
+        Katana:'Cuts like a falling petal.',
+        Cutlass:'Flowers on the deck, steel in the hand.',
+        Machete:'Made for gardens. Trims a hedge in one swing.',
+        Saber:'Blooms on the charge.',
+        Scimitar:'Curved like a lily leaf.',
+        Claymore:'A tree in full bloom, with an edge.',
+        Dagger:'A thorn you can carry.' },
+    fury: {
+        Shortsword:'Small and furious. Do not make it wait.',
+        Longsword:'A long blade with a short fuse.',
+        Broadsword:'Wide, loud and always angry.',
+        Katana:'Calm sheath, furious blade.',
+        Cutlass:'Picks fights in every port.',
+        Machete:'Chops harder when it is cross.',
+        Saber:'Charges first. Thinks later.',
+        Scimitar:'A curve that never cools down.',
+        Claymore:'Pure rage, two hands wide.',
+        Dagger:'Small rage, sharp point.' },
+    ice: {
+        Shortsword:'Small and cold. Frost on every edge.',
+        Longsword:'A long, cold silence.',
+        Broadsword:'A wide sheet of ice with a handle.',
+        Katana:'Cuts clean and leaves frost behind.',
+        Cutlass:'Freezes the spray off the sea.',
+        Machete:'Cuts through snow like butter.',
+        Saber:'A cold wind on the charge.',
+        Scimitar:'Curved like a frozen wave.',
+        Claymore:'A glacier you can swing.',
+        Dagger:'An icicle with a point.' },
+    water: {
+        Shortsword:'Small and calm, like a still pond.',
+        Longsword:'Flows like a river.',
+        Broadsword:'A wide wave of steel.',
+        Katana:'Cuts like a waterfall.',
+        Cutlass:'At home on the sea.',
+        Machete:'Clears a path through the rain forest.',
+        Saber:'Rushes in like the tide.',
+        Scimitar:'Curved like a breaking wave.',
+        Claymore:'A flood in two hands.',
+        Dagger:'A drop of water with a point.' },
+    magma: {
+        Shortsword:'Small and molten. Hold it by the handle.',
+        Longsword:'A long river of molten rock.',
+        Broadsword:'Wide, heavy and still glowing.',
+        Katana:'Cuts through stone like warm wax.',
+        Cutlass:'Boils the sea where it is dipped.',
+        Machete:'Melts the vines it cuts.',
+        Saber:'Hot on the charge, hotter after.',
+        Scimitar:'A curve of lava.',
+        Claymore:'A volcano you can carry. Mostly.',
+        Dagger:'A drop of magma that never cools.' },
+    mist: {
+        Shortsword:'Small and hard to see.',
+        Longsword:'Long, grey and quiet.',
+        Broadsword:'Wide, yet it vanishes in the fog.',
+        Katana:'You hear the cut. You never see it.',
+        Cutlass:'Made for foggy decks and quiet raids.',
+        Machete:'Cuts a path no one can follow.',
+        Saber:'Charges out of the morning mist.',
+        Scimitar:'A curve you see only once.',
+        Claymore:'A huge sword nobody saw coming.',
+        Dagger:'Gone into the mist before it is missed.' },
+    poison: {
+        Shortsword:'Small, green and nasty.',
+        Longsword:'One scratch is enough.',
+        Broadsword:'Wide blade, slow venom.',
+        Katana:'A clean cut with a bitter end.',
+        Cutlass:'A snake on a pirate ship.',
+        Machete:'Do not use it on the vegetables.',
+        Saber:'Strikes fast. The venom is slower.',
+        Scimitar:'Curved like a snake fang.',
+        Claymore:'A big blade with a mean streak.',
+        Dagger:'The classic. Keep it away from your dinner.' },
+    savage: {
+        Shortsword:'Small, wild and full of teeth.',
+        Longsword:'A long claw.',
+        Broadsword:'Wide, rough and hungry.',
+        Katana:'A wild beast with a fine edge.',
+        Cutlass:'For pirates with no manners.',
+        Machete:'Rips through the jungle.',
+        Saber:'Runs with the pack.',
+        Scimitar:'A curve like a tiger claw.',
+        Claymore:'A monster of a sword.',
+        Dagger:'A fang you can hold.' },
+    blood: {
+        Shortsword:'Small, red and always thirsty.',
+        Longsword:'A long, red line.',
+        Broadsword:'Wide and dark red.',
+        Katana:'One cut, one drop.',
+        Cutlass:'Red sails, red blade.',
+        Machete:'Chops and stains.',
+        Saber:'Red on the charge.',
+        Scimitar:'A curve as red as wine.',
+        Claymore:'A huge blade that is never satisfied.',
+        Dagger:'A small blade with a big thirst.' },
+    cursed: {
+        Shortsword:'Small and unlucky. Mostly for others.',
+        Longsword:'Long and cold. It whispers at night.',
+        Broadsword:'Wide and heavy with an old curse.',
+        Katana:'Once drawn, it will not go back in.',
+        Cutlass:'Found on a ghost ship.',
+        Machete:'The path it cuts grows back black.',
+        Saber:'Its last owner charged and never returned.',
+        Scimitar:'A crooked curve with a crooked past.',
+        Claymore:'Big, old and very cursed. Handle with care.',
+        Dagger:'Nobody remembers who made it.' },
+    dark: {
+        Shortsword:'Small and black as night.',
+        Longsword:'A long shadow with an edge.',
+        Broadsword:'Wide enough to block out the sun.',
+        Katana:'Cuts the light itself.',
+        Cutlass:'Sails on moonless nights.',
+        Machete:'Cuts a path through the night.',
+        Saber:'A shadow on the charge.',
+        Scimitar:'A curve of night.',
+        Claymore:'Darkness, two hands wide.',
+        Dagger:'Made for the darkest corner.' }
+};
+/* MARKET-DESC-END */
 /* MARKET-PURE-BEGIN */
 /* a trait's whole column, in the chart's order: its base shapes plus the market-only ones */
 function marketShapes(trait){ const base=FTUE.shapes[trait]||FTUE.shapes.balanced, ex=MARKET.extra[trait]||MARKET.extra.balanced;
@@ -2844,6 +3152,28 @@ function ftueTraitKey(ids){ ids=ids||[];
     for(const k of ['fire','gale','swift']) if(ids.indexOf(k)>=0) return k;
     const other=ids.find(k=>MARKET.traits.indexOf(k)>=0 && k!=='balanced' && k!=='durable'); if(other) return other;   /* owner, 2026-10-09: every market trait has its own shapes */
     return ids.indexOf('durable')>=0 ? 'durable' : 'balanced'; }
+/* R38: the rotary market's rules. The pages: by trait in wheel order, each the Shortsword then the price order */
+let MK_PAGES=null;
+function mkPages(){ return MK_PAGES || (MK_PAGES=MARKET.traits.flatMap(t=>[FTUE.startShape].concat(marketSteps(t)).map(sh=>({ trait:t, shape:sh })))); }
+function mkWrap(i, n){ return ((i%n)+n)%n; }
+function mkPageOf(trait, shape){ return mkPages().findIndex(p=>p.trait===trait && p.shape===shape); }
+function mkFirstPage(trait){ return mkPages().findIndex(p=>p.trait===trait); }
+/* the short way round a ring of n */
+function mkRingDelta(from, to, n){ let d=mkWrap(to-from, n); if(d>n/2) d-=n; return d; }
+/* a released wheel: v tags/s carries it on, then it snaps to a tag */
+function mkFling(pos, v){ return Math.round(pos + v*MK_ROT.fling); }
+/* a page swipe: 1 = next (up), -1 = previous (down), 0 = stays. dy px, h the paper's height, v px/ms */
+function mkTurn(dy, h, v){ v=v||0; return (dy<=-MK_ROT.turn*h || v<=-MK_ROT.flick) ? 1 : (dy>=MK_ROT.turn*h || v>=MK_ROT.flick) ? -1 : 0; }
+function mkStamp(st){ return MK_ROT.stamp[st] || ''; }
+/* a tag off places from the selected slot, on the drum (art px): position, opacity, squash */
+function mkTagPos(off){ const G=MK_ROT.geo, a=G.selDeg+off*G.stepDeg, s=Math.sin(a*Math.PI/180);
+    return { x:G.x+G.dx*s, y:G.cy+G.r*s, sy:0.6+0.4*Math.cos(a*Math.PI/180),
+             op:(a<=G.goneDeg || a>=G.botDeg) ? 0 : a<G.fadeDeg ? (a-G.goneDeg)/(G.fadeDeg-G.goneDeg) : 1 }; }
+/* the buy button's face: Buy for and the price; locked, a padlock and the price; the dragon's to buy, a padlock only */
+function mkBuyFace(st, pr){ const lock='<span class="mk-lk">\u{1F512}</span>';
+    if(st==='gift') return lock;
+    if(st==='closed' || st==='unknown') return lock+'<span class="mk-pr">'+pr+'</span>';
+    return '<span class="mk-bf">Buy for</span><span class="mk-pr">\u{1FA99}'+pr+'</span>'; }
 /* MARKET-PURE-END */
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
@@ -6563,43 +6893,104 @@ function closeMarket(){
     const m=FTUE_MK;
     if(m && m.step==='gift') return;   /* not while the coins are in the air */
     document.getElementById('sfMarketModal').classList.remove('show');
-    mkSayOff();
+    mkSayOff(); MK_LOCK=false; MK_DRAG.on=null;   /* R38 */
     if(m && m.step==='done') ftueMarketDone(m);   /* v3 (owner): GC1-GC3 are guided through the craft */   /* v3 part 5: Bram's run goes on */
     else if(m && m.step==='buy'){ m.step='ask'; tutExit('#marketBtn'); }   /* closed before buying: back to MARKET */
     if(FTUE_LATER==='close'){ FTUE_LATER=null; ftueLaterCells(false); tutExit(null); sayQueue('D107d'); setTimeout(()=>tutExit('#csPanel .cs-later'), 0); }   /* r253 */
 }
-function renderMarket(){
-    const L=document.getElementById('mkLabels'), S=document.getElementById('mkScroll'); if(!L || !S) return;
-    const keep=S.scrollLeft; L.innerHTML=''; S.innerHTML='';
-    const div=(cls, txt)=>{ const d=document.createElement('div'); d.className=cls; d.textContent=txt; return d; };
-    L.appendChild(div('mk-h', ''));
-    MARKET.order.forEach(sh=>L.appendChild(div('mk-sh', sh)));
-    MARKET.traits.forEach(k=>{
-        const col=document.createElement('div'); col.className='mk-col'; col.dataset.trait=k;
-        const known=traitKnown(k);
-        col.appendChild(div('mk-h', known ? TRAIT_BY[k].name : '?'));   /* D14: a '?' for a trait not found yet */
-        MARKET.order.forEach(sh=>{
-            const b=document.createElement('button'); b.type='button'; b.dataset.k=k+':'+sh;
-            if(marketShapes(k).indexOf(sh)<0){ b.className='mk-cell none'; col.appendChild(b); return; }
-            const st=marketRow(k, sh, marketCtx(k, sh)), pr=marketPrice(k, sh);
-            const gift=st!=='owned' && st!=='free' && ftueDragonPays(k, sh);   /* R13: locked, no price */
-            b.className='mk-cell '+(gift ? 'closed gift' : st);
-            b.innerHTML = gift ? '\u{1F512}' : st==='free' ? 'Free' : st==='owned' ? '\u2713' : (st==='closed'||st==='unknown') ? '\u{1F512}'+pr : '\u{1FA99}'+pr;
-            b.title = (known ? TRAIT_BY[k].name : '?')+' '+sh+(pr ? ' - '+pr+'g' : '');
-            b.addEventListener('click', ()=>marketBuy(k, sh));
-            col.appendChild(b); });
-        S.appendChild(col); });
-    S.scrollLeft=keep;
-    const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD;
-}
-function marketSlide(d){ const S=document.getElementById('mkScroll'); if(S) S.scrollBy({ left:d*S.clientWidth, behavior:'smooth' }); }
-/* bring a blueprint's column into view (the dragon's gift, the lesson's pointer) */
-function mkShow(key){ const c=document.querySelector(".mk-cell[data-k='"+key+"']"), S=document.getElementById('mkScroll');
-    if(c && S){ const col=c.parentNode; S.scrollLeft=Math.max(0, col.offsetLeft-S.offsetLeft); } return c; }
+/* R38: the rotary market (specs/2026-10-29-rotary-market.md). MK.page = the page shown (mkPages index); MK.rot = the
+   wheel's turn in tags (unbounded; the trait under the selected slot is MARKET.traits[mkWrap(round(rot))]). */
+const MK={ page:0, rot:0, anim:0 };
+const MK_DRAG={ on:null, moved:false, y0:0, rot0:0, pts:[] };
+let MK_LOCK=false;   /* the come-later show */
+function mkLocked(){ return !!((FTUE_MK && FTUE_MK.mk && (FTUE_MK.step==='gift' || FTUE_MK.step==='buy')) || MK_LOCK); }   /* the tutorial's blueprint stays on screen */
+function mkCur(){ return mkPages()[MK.page]; }
+function mkCurPg(){ return document.querySelector('#mkPage .mk-pg:not(.old)'); }
+function mkOutside(e){ if(e.target===e.currentTarget || e.target.classList.contains('mk-stage')) closeMarket(); }   /* a tap off the paper and the wheel */
+function mkStageW(){ const st=document.querySelector('#sfMarketModal .mk-stage'); return st ? st.getBoundingClientRect().width : 0; }
+function mkTagGap(){ return Math.max(8, (mkTagPos(1).y-mkTagPos(0).y)/1920*mkStageW()); }   /* screen px per tag */
+function mkWheelBuild(){ const W=document.getElementById('mkWheel'), P=document.getElementById('mkPaper'); if(!W || !P || W.children.length) return;
+    MARKET.traits.forEach((k,i)=>{ const t=document.createElement('button'); t.type='button'; t.className='mk-tag'; t.dataset.i=i; W.appendChild(t); });
+    [[W,'wheel'],[P,'page']].forEach(([el,kind])=>{ el.addEventListener('pointerdown', e=>mkPtrDown(e, kind)); el.addEventListener('pointermove', mkPtrMove);
+        el.addEventListener('pointerup', mkPtrUp); el.addEventListener('pointercancel', mkPtrUp); }); }
+function mkWheelDraw(){ const W=document.getElementById('mkWheel'); if(!W) return; const n=MARKET.traits.length, B={ x0:1150, y0:640, w:290, h:440 };
+    [...W.children].forEach(t=>{ const i=+t.dataset.i, k=MARKET.traits[i], known=traitKnown(k), c=known ? MK_ROT.tags[k] : MK_ROT.unknown;
+        const d=mkWrap(i-MK.rot+n/2, n)-n/2, p=mkTagPos(d);
+        t.textContent=known ? TRAIT_BY[k].name : '?'; t.style.background=c[0]; t.style.borderColor=c[1];   /* D14: a '?' for a trait not found yet */
+        t.style.left=((p.x-B.x0)/B.w*100).toFixed(2)+'%'; t.style.top=((p.y-B.y0)/B.h*100).toFixed(2)+'%';
+        t.style.transform='translate(-50%,-50%) scaleY('+p.sy.toFixed(3)+')'; t.style.opacity=p.op.toFixed(3);
+        t.style.visibility=p.op>0 ? '' : 'hidden'; t.style.zIndex=Math.round(100-Math.abs(d)*10); }); }
+/* the wheel turns to a tag; the state is set by the caller, this only moves the art (a timer lands it if rAF is frozen) */
+function mkSpinTo(target){ const from=MK.rot, tok=++MK.anim, dur=Math.min(1400, 260+90*Math.abs(target-from)), t0=performance.now();
+    const step=now=>{ if(tok!==MK.anim) return; const u=Math.min(1, (now-t0)/dur), e=1-Math.pow(1-u, 3);
+        MK.rot=from+(target-from)*e; mkWheelDraw(); if(u<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+    setTimeout(()=>{ if(tok!==MK.anim) return; MK.anim++; MK.rot=mkWrap(target, MARKET.traits.length); mkWheelDraw(); }, dur+60); }
+const MK_PG_HTML='<h3 class="mk-title"></h3><p class="mk-desc"></p><div class="mk-prev"></div><button class="mk-buy" id="mkBuy" type="button"></button><div class="mk-stamp" id="mkStamp" hidden></div>';
+function mkPageEl(){ const P=document.getElementById('mkPage'); if(!P) return null; let pg=mkCurPg();
+    if(!pg){ pg=document.createElement('div'); pg.className='mk-pg'; pg.innerHTML=MK_PG_HTML; P.appendChild(pg);
+        pg.querySelector('.mk-buy').addEventListener('click', ()=>{ if(MK_DRAG.moved) return; const c=mkCur(); marketBuy(c.trait, c.shape); }); }
+    return pg; }
+/* one page: its title, line, preview (placeholder: the forge's blade for it and the trait's first parts), buy button and stamp */
+function mkFill(pg){ const p=mkCur(), known=traitKnown(p.trait), st=marketRow(p.trait, p.shape, marketCtx(p.trait, p.shape)), pr=marketPrice(p.trait, p.shape),
+        gift=st!=='owned' && st!=='free' && ftueDragonPays(p.trait, p.shape);   /* R13: locked, no price */
+    pg.dataset.k=p.trait+':'+p.shape;
+    pg.querySelector('.mk-title').textContent=p.shape+' blueprint';
+    pg.querySelector('.mk-desc').textContent=known ? MARKET_DESC[p.trait][p.shape] : 'Find this trait on the map to read this blueprint.';
+    const pv=pg.querySelector('.mk-prev'), skin=DD_SKIN_OF[p.trait]||'balanced', set=DD_SETS[skin]||DD_SETS.balanced,
+        list=['assets/sword-parts/blades/'+bladeFor(skin, p.shape)+'.webp', ddSrc('guard', set.guard[0]), ddSrc('grip', set.grip[0]), ddSrc('pommel', set.pommel[0])];
+    if(pv.dataset.src!==list.join()){ pv.dataset.src=list.join(); pv.innerHTML=list.map(x=>'<img src="'+x+'" alt="">').join(''); }
+    pv.classList.toggle('dark', !known);
+    const B=pg.querySelector('.mk-buy'); B.dataset.st=gift ? 'gift' : st;
+    B.innerHTML=mkBuyFace(gift ? 'gift' : st, pr);
+    B.title=(known ? TRAIT_BY[p.trait].name : '?')+' '+p.shape+(pr ? ' - '+pr+'g' : '');
+    const S=pg.querySelector('.mk-stamp'), w=mkStamp(st); S.textContent=w; S.hidden=!w; }
+function renderMarket(){ mkWheelBuild(); mkWheelDraw(); const pg=mkPageEl(); if(pg) mkFill(pg);
+    const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD; }
+/* turn to page i: the old page leaves the way the swipe went (dir 1 up, -1 down), the new one comes in; the wheel follows its trait */
+function mkSetPage(i, dir, noSpin){ const N=mkPages().length, n=MARKET.traits.length; i=mkWrap(i, N); if(i===MK.page) return mkPageEl();
+    MK.page=i; const old=mkCurPg();
+    if(old){ old.classList.add('old'); old.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+        old.animate([{ transform:old.style.transform||'translateY(0)', opacity:1 }, { transform:'translateY('+(dir>0 ? -55 : dir<0 ? 55 : 0)+'%)', opacity:0 }], { duration:260, easing:'ease-in', fill:'forwards' });
+        setTimeout(()=>old.remove(), 300); }
+    const pg=mkPageEl(); if(!pg) return null; mkFill(pg);
+    pg.animate([{ transform:'translateY('+(dir>0 ? 40 : dir<0 ? -40 : 0)+'%)', opacity:0 }, { transform:'translateY(0)', opacity:1 }], { duration:300, easing:'ease-out' });
+    const t=MARKET.traits.indexOf(mkCur().trait), cur=mkWrap(Math.round(MK.rot), n);
+    if(!noSpin && cur!==t) mkSpinTo(Math.round(MK.rot)+mkRingDelta(cur, t, n));
+    return pg; }
+/* swipes: the wheel turns with the finger and carries on by its speed; a page follows the finger, then turns or settles */
+function mkPtrDown(e, kind){ if(MK_DRAG.on) return; MK_DRAG.moved=false; if(mkLocked()) return;   /* a fresh touch is a tap until it moves, locked or not */
+    if(kind==='wheel') MK.anim++;   /* a touch stops the wheel where it is */
+    Object.assign(MK_DRAG, { on:kind, id:e.pointerId, el:e.currentTarget, moved:false, y0:e.clientY, rot0:MK.rot, pts:[[performance.now(), e.clientY]] }); }
+function mkPtrMove(e){ if(!MK_DRAG.on || e.pointerId!==MK_DRAG.id) return; const dy=e.clientY-MK_DRAG.y0;
+    if(!MK_DRAG.moved && Math.abs(dy)>6){ MK_DRAG.moved=true; try{ MK_DRAG.el.setPointerCapture(e.pointerId); }catch(_){} }   /* captured only once it is a swipe, so a tap still reaches its button */
+    MK_DRAG.pts.push([performance.now(), e.clientY]); if(MK_DRAG.pts.length>8) MK_DRAG.pts.shift();
+    if(!MK_DRAG.moved) return;
+    if(MK_DRAG.on==='wheel'){ MK.rot=MK_DRAG.rot0-dy/mkTagGap(); mkWheelDraw(); }
+    else { const pg=mkCurPg(); if(pg) pg.style.transform='translateY('+(dy*0.6).toFixed(1)+'px)'; } }
+function mkSpeed(){ const p=MK_DRAG.pts, now=performance.now(), b=p[p.length-1], a=p.find(q=>now-q[0]<=100)||b; return b[0]>a[0] ? (b[1]-a[1])/(b[0]-a[0]) : 0; }   /* px/ms over the last 100 ms */
+function mkPtrUp(e){ const kind=MK_DRAG.on; if(!kind || e.pointerId!==MK_DRAG.id) return; MK_DRAG.on=null;
+    const dy=e.clientY-MK_DRAG.y0, v=e.type==='pointercancel' ? 0 : mkSpeed(), n=MARKET.traits.length;
+    if(kind==='wheel'){ let target;
+        if(!MK_DRAG.moved){ const h=document.elementFromPoint(e.clientX, e.clientY), t=h && h.closest && h.closest('.mk-tag');   /* a tag tapped */
+            target=t ? Math.round(MK.rot)+mkRingDelta(mkWrap(Math.round(MK.rot), n), +t.dataset.i, n) : Math.round(MK.rot); }
+        else target=mkFling(MK.rot, -v*1000/mkTagGap());
+        const k=MARKET.traits[mkWrap(target, n)], dir=Math.sign(target-MK.rot)||1;
+        mkSpinTo(target);
+        if(mkCur().trait!==k) mkSetPage(mkFirstPage(k), dir, true);   /* the pages show the new trait's first blueprint */
+        return; }
+    const pg=mkCurPg(), h=document.getElementById('mkPaper').getBoundingClientRect().height, dir=MK_DRAG.moved ? mkTurn(dy, h, v) : 0;
+    if(dir) mkSetPage(MK.page+dir, dir);
+    else if(pg && pg.style.transform){ pg.animate([{ transform:pg.style.transform }, { transform:'translateY(0)' }], { duration:180, easing:'ease-out' }); pg.style.transform=''; } }
+/* bring a blueprint's page up, the wheel on its trait (the dragon's gift, the lesson's pointer); its buy button */
+function mkShow(key){ const ks=key.split(':'), i=mkPageOf(ks[0], ks[1]); if(i<0) return null;
+    mkSetPage(i, Math.sign(mkRingDelta(MK.page, i, mkPages().length))); return document.getElementById('mkBuy'); }
+function mkStampIn(k, sh){ const pg=mkCurPg(), st=document.getElementById('mkStamp');
+    if(pg && st && pg.dataset.k===k+':'+sh){ st.classList.remove('unlocking'); void st.offsetWidth; st.classList.add('unlocking'); } }
 /* v3 part 1: the market lesson. FTUE_MK = { o:the order, step }: ask (go to the market), gift (the dragon is
    paying), buy (the player must buy this one), done (bought - close the window). */
 let FTUE_MK=null;
-function mkCellOf(o){ return ()=>document.querySelector(".mk-cell[data-k='"+o.trait+":"+o.shape+"']"); }
+function mkCellOf(o){ return ()=>{ const pg=mkCurPg(); return (pg && pg.dataset.k===o.trait+':'+o.shape) ? document.getElementById('mkBuy') : null; }; }
 /* the dragon's line while the market is open: in the window's own strip (see .mk-say) */
 function sayOver(id){
     const box=document.getElementById('mkSay'), open=document.getElementById('sfMarketModal').classList.contains('show');
@@ -6614,24 +7005,24 @@ function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide
 /* owner, 2026-10-13: the player already owns the ordered blueprint - no trip to the market (it looped: buy, close, ask) */
 function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='shape' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }   /* r300: 'shape' */
 /* r253 (owner): the come-later customer's guide. MARKET lights after the request; in the market both blueprints are
-   scrolled into view and lit, with Close lit; closing it gives D107d and lights COME LATER. FTUE_LATER: 'mk' -> 'close'
+   scrolled into view and lit, with Close lit; closing it gives D107d and lights COME LATER. R38: one page at a time -
+   Gale Katana lit, then Fire Claymore lit with the close button (ftueLaterShow). FTUE_LATER: 'mk' -> 'close'
    -> null. Its own flag, so FTUE_MK (the orders' market lesson) is untouched; COME LATER at any point ends it. */
 let FTUE_LATER=null;
 const FTUE_LATER_KEYS=['gale:Katana','fire:Claymore'];
-function ftueLaterCells(on){
-    const cells=FTUE_LATER_KEYS.map(k=>document.querySelector(".mk-cell[data-k='"+k+"']")).filter(Boolean);
-    cells.forEach(c=>c.classList.toggle('tut-glow', !!on));
-    const S=document.getElementById('mkScroll');
-    if(on && S && cells.length) S.scrollLeft=Math.max(0, Math.min(...cells.map(c=>c.parentNode.offsetLeft))-S.offsetLeft); }
+function ftueLaterCells(on){ const b=document.getElementById('mkBuy'); if(b) b.classList.toggle('tut-glow', !!on); }
+function ftueLaterShow(){ MK_LOCK=true; mkShow(FTUE_LATER_KEYS[0]); ftueLaterCells(true);
+    const next=()=>{ if(FTUE_LATER!=='close') return; mkShow(FTUE_LATER_KEYS[1]); ftueLaterCells(true); MK_LOCK=false; tutExit('#mkClose'); };
+    setTimeout(next, MK_ROT.laterMs); }
 function ftueMarketOpened(){
-    if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterCells(true); setTimeout(()=>tutExit('#sfMarketModal .mk-foot .paperBtn'), 0); return; }
+    if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterShow(); return; }
     const m=FTUE_MK; if(!m || m.step!=='ask') return;
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
-        m.step='gift'; sayOver(FTUE.marketWatch);
-        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; if(o.market.done) sayOver(o.market.done); tutExit('#sfMarketModal .mk-foot .paperBtn'); }), 900);
+        m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);
+        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; if(o.market.done) sayOver(o.market.done); tutExit('#mkClose'); }), 900);
         return; }
-    m.step='buy';
+    m.step='buy'; m.mk=true;   /* R38: the page stays put (mkLocked) */
     mkShow(o.trait+':'+o.shape);
     if(GOLD<marketPrice(o.trait, o.shape)){ sayOver(FTUE.marketShort); setTimeout(ftueMarketTopUp, 900); }
     else tutExit(mkCellOf(o));
@@ -6655,8 +7046,7 @@ function marketBuy(k, sh){
     if(st==='unknown'){ toast('Discover this trait first'); return; }
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
     if(st!=='buy') return;
-    GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket();
-    const c=document.querySelector(".mk-cell[data-k='"+k+":"+sh+"']"); if(c) c.classList.add('unlocking');
+    GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket(); mkStampIn(k, sh);   /* R38: PURCHASED */
     toast('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');   /* 2026-10-09 */
     ftueMarketBought(k, sh);   /* v3 part 1 */
@@ -6686,9 +7076,8 @@ function coinFly(fromEl, toEl, then){
 function marketGift(trait, shape, done){
     const key=trait+':'+shape;
     renderMarket(); document.getElementById('sfMarketModal').classList.add('show');
-    const cell=mkShow(key);   /* slide its column into view before the coins fly */
-    const finish=()=>{ FTUE_ST.shapes[key]=true; renderMarket();
-        const c=document.querySelector(".mk-cell[data-k='"+key+"']"); if(c) c.classList.add('unlocking');
+    const cell=mkShow(key);   /* R38: its page up, the coins fly to its buy button */
+    const finish=()=>{ FTUE_ST.shapes[key]=true; renderMarket(); mkStampIn(trait, shape);
         toast('The dragon bought the <b>'+TRAIT_BY[trait].name+' '+shape+'</b> blueprint'); if(done) done(); };
     if(!cell){ finish(); return; }
     coinFly(dragonEl(), cell, finish);

@@ -1264,6 +1264,9 @@ Asserted by `tooling/ftue/ftue.test.mjs` (249; each check written first and seen
 
 ## Rising prices and the 25-trait market (owner, 2026-10-09)
 
+> **2026-10-29 (R38):** the market window is now the rotary market, `specs/2026-10-29-rotary-market.md` (a wheel of
+> traits, one blueprint per page). The prices, shapes, states and lessons below stand; the grid and its slider are gone.
+
 Replaces D2 (every blueprint 50g). Asserted by `tooling/market/market.test.mjs` (50; written first and seen failing).
 
 - **Price** = `MARKET.priceStep` (50) x (the trait's place in `MARKET.traits` + the shape's step). Shortsword is free.

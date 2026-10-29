@@ -9,7 +9,8 @@
 > of 7 customers, the old minigames) and have not been rewritten; for the current economy, customers, market, quests and
 > tutorial use the dated records, which win over this file: `specs/2026-10-21-smelter-version-loop.md` (the loop, its values
 > and tests), `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it),
-> `specs/2026-10-07-ftue-v3-rework.md` (the FTUE, the market, blueprints, the ore chain), `specs/2026-10-01-hammer-hit-points.md`
+> `specs/2026-10-07-ftue-v3-rework.md` (the FTUE, the market, blueprints, the ore chain; the market window since R38:
+> `specs/2026-10-29-rotary-market.md`), `specs/2026-10-01-hammer-hit-points.md`
 > (the minigame), `specs/2026-10-01-hazard-integrity.md` (hazards), and `HANDOFF.md`.
 
 > The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
