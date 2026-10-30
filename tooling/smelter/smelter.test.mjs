@@ -147,7 +147,7 @@ eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   gale: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] },
     wind: { speed: 900, orbit: { n: 3, ry: 28, pad: 14, arc: 1.4, spin: 4, alpha: 0.85, width: 3 },   /* R48: the swirl when still, */
       trail: { at: [[-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]], keep: 0.2, gap: 140, alpha: 0.85, width: 3 } },   /* the trails when moving */
-    gusts: { rest: 2, perPx: 0.01, max: 15, life: [0.45, 0.8], r: [18, 44], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 4, alpha: 0.85 },   /* R49: larger and fewer */
+    gusts: { rest: 2, perPx: 0.01, max: 15, life: [0.45, 0.8], r: [18, 44], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 10, alpha: 0.85 },   /* R49: larger and fewer; R50: much thicker */
     color: { edge: [80, 195, 225], core: [200, 250, 255] } } });   /* R47: the gale winds */
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
 eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });

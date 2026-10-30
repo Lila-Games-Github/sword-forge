@@ -713,3 +713,7 @@ yours and come on top.
   across (was 8-26), line 4 px (was 3). Record: specs/2026-10-30-fire-swing-fx.md (R49). Smelter test 124 checks, its
   values updated first (failing on the previous build). Checked in the browser: over three back-and-forth swings at most
   15 curls, 19-40 px; no errors.
+- **R50 (2026-10-30, owner): the curls much thicker.** Owner: "can you also make the swirls thicker, like much thicker?"
+  The gale curls' line 4 -> 10 px (soft edge 22 px), still thinning to 40% over a curl's life. Record:
+  specs/2026-10-30-fire-swing-fx.md (R50). Smelter test 124 checks, its value updated first (failing on the previous
+  build). Checked in the browser: a gale swing, 15 curls at the new width, no errors.

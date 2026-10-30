@@ -177,4 +177,9 @@ the gale effect is unchanged.
 | gusts.perPx | 0.025 | 0.01 |
 | gusts.max | 40 | 15 |
 | gusts.r | 8-26 | 18-44 |
-| gusts.width | 3 | 4 |
+| gusts.width | 3 | 4 (R50: 10) |
+
+## R50: the curls much thicker (2026-10-30)
+
+Owner: "can you also make the swirls thicker, like much thicker?" The curls' line `gusts.width` 4 -> 10 px (its soft edge
+stroke 2.2 times that, 22 px); it still thins to 40% over a curl's life. Nothing else changes.
