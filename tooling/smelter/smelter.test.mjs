@@ -142,7 +142,7 @@ const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
 eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   glow: { rest: 0.35, full: 1, speed: 1600 },
   embers: { rest: 14, perPx: 0.09, max: 180, life: [0.25, 0.55], size: [12, 26], inherit: 0.3, drag: 3, rise: 420, jitter: 35, tipBias: 2 },
-  ribbon: { speed: 900, keep: 0.12, inner: 0.8, alpha: 0.65, gap: 140 } } });
+  ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.65, gap: 140 } } });
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
 eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
 const sp = X.fxSpawn(FF, 1000, 0.1, 0.5);
@@ -160,6 +160,6 @@ eq('R40 C: painted over the scene', src.includes("g.globalCompositeOperation='so
 eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>F.ribbon.gap) continue;'), true);
 eq('R40: fire swords only, while dragged', src.includes("fx:swordHasTrait(w, 'fire') ? SWING_FX.fire : null") && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
 eq('R40 A: the glow is cut to the blade picture', /\.sw-ghost \.sw-glow \{[^}]*mask-size: contain;/.test(src) && src.includes("gl.style.maskImage=gl.style.webkitMaskImage='url('+blade+')';"), true);
-eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; z-index: 121; pointer-events: none; }'), true);
+eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }'), true);   /* R41: frame-sized whatever the pixel ratio */
 
 console.log('[smelter] GREEN / ' + n + ' checks');

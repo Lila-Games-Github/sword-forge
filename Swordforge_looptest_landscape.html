@@ -1350,7 +1350,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     animation: swGlowFlicker .9s steps(9) infinite; }
 @keyframes swGlowFlicker { 0% { filter: brightness(1); } 22% { filter: brightness(1.3); } 41% { filter: brightness(.88); } 63% { filter: brightness(1.22); } 80% { filter: brightness(1); } 100% { filter: brightness(1.12); } }
 /* B and C: the embers and the ribbon, one canvas over the frame, above the dragged sword */
-#swingFx { position: absolute; inset: 0; z-index: 121; pointer-events: none; }
+#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }   /* R41: frame-sized in CSS; its pixels follow the screen's ratio */
 /* r128: the ingot's ghost is the orb itself, so it does not inherit the blade's -45deg */
 .sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
 .sw-ghost.ingot .inv-orb { width: 100%; }
@@ -2811,7 +2811,7 @@ function smDipped(was, t, r){ return smInWater(t, r) && was.y < r.T+SMELT.waterY
 const SWING_FX={ fire:{
     glow:{ rest:0.35, full:1, speed:1600 },   /* A: the glow's opacity, still .. from this speed on */
     embers:{ rest:14, perPx:0.09, max:180, life:[0.25,0.55], size:[12,26], inherit:0.3, drag:3, rise:420, jitter:35, tipBias:2 },   /* B: made per s still + per px/s; s; px */
-    ribbon:{ speed:900, keep:0.12, inner:0.8, alpha:0.65, gap:140 } } };   /* C: drawn from this speed; each piece kept this long (s); tip to this far along the blade; a tip jump over gap px is skipped */
+    ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.65, gap:140 } } };   /* C: drawn from this speed; each piece kept this long (s); tip to this far along the blade; a tip jump over gap px is skipped */
 function fxGlow(F, sp){ const G=F.glow; return G.rest+(G.full-G.rest)*Math.min(1, sp/G.speed); }
 /* how many embers this frame; the fraction is carried to the next */
 function fxSpawn(F, sp, dt, carry){ const x=carry+(F.embers.rest+F.embers.perPx*sp)*dt, n=Math.floor(x); return { n:n, carry:x-n }; }

@@ -22,7 +22,7 @@ A-E): "go with A + B + C, fire only, while dragging."
 |---|---|---|
 | A. Glow | An orange glow cut to the blade's outline (masked by the blade picture), flickering, over the blade. | Opacity `rest` (0.35) when still, rising with the tip's speed to `full` (1) at `speed` (1600 px/s) and above. |
 | B. Embers | Glowing specks along the blade, more near the tip, that trail behind it, rise like heat and fade. | Made at `rest` (14) per second plus `perPx` (0.09) per px/s of tip speed; at most `max` (180) alive. Each starts at a point along the blade (`1 - (1-u)^tipBias`, `tipBias` 2: tip-heavy) with `inherit` (0.3) of that point's velocity plus up to `jitter` (35 px/s) each way; it slows by `drag` (3 /s), rises at `rise` (420 px/s^2), lives `life` (0.25-0.55 s) and is `size` (12-26 px) wide, shrinking to 40%. |
-| C. Ribbon | A flame strip over the swept path, between the tip and a point `inner` (80%) along the blade, orange at the tip edge fading inward. | Drawn only while the tip moves at `speed` (900 px/s) or more; each piece fades out over `keep` (0.12 s); peak opacity `alpha` (0.65), painted over the scene (not added light, which washes out on the bright wall); a piece whose tip jumped more than `gap` (140 px) since the last is skipped (a slow frame would draw a huge wedge). |
+| C. Ribbon | A flame strip over the swept path, between the tip and a point `inner` (65%) along the blade (R41, owner: "make the slash a bit thicker so it covers more area"; it was 80%), orange at the tip edge fading inward. | Drawn only while the tip moves at `speed` (900 px/s) or more; each piece fades out over `keep` (0.12 s); peak opacity `alpha` (0.65), painted over the scene (not added light, which washes out on the bright wall); a piece whose tip jumped more than `gap` (140 px) since the last is skipped (a slow frame would draw a huge wedge). |
 
 **Speed:** the tip's speed in frame px per second, smoothed (35% of the new reading each frame).
 
@@ -37,9 +37,9 @@ light on light (`lighter`), so overlapping specks read as flame.
 |---|---|
 | glow | rest 0.35, full 1, speed 1600 |
 | embers | rest 14, perPx 0.09, max 180, life 0.25-0.55, size 12-26, inherit 0.3, drag 3, rise 420, jitter 35, tipBias 2 |
-| ribbon | speed 900, keep 0.12, inner 0.8, alpha 0.65, gap 140 |
+| ribbon | speed 900, keep 0.12, inner 0.65, alpha 0.65, gap 140 |
 
 ## Drawing
 
-One canvas over the frame (`#swingFx`, above the dragged sword, taps pass through), its own frame loop while anything is
+One canvas over the frame (`#swingFx`, above the dragged sword, taps pass through), sized to the frame in CSS (100% by 100%) and drawn at the screen's pixel ratio (R41: without the CSS size, a screen at 125% or 150% showed the canvas that much larger, so the slash landed mid-blade instead of at the tip), its own frame loop while anything is
 alive. Visual only: no game state depends on it (a hidden page freezes its frames, which only pauses the picture).

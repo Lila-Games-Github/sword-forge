@@ -638,3 +638,12 @@ yours and come on top.
   the embers gone in 0.7 s and the loop stopped; the balanced sword - nothing; no console errors. Fixed on the way: the
   blade length is read each frame (the picture's ends load after the drag starts, so the start used a default 157 px
   for a 277 px blade); the ribbon uses the swing frame's clock.
+- **R41 (2026-10-30, owner): the slash at the tip, and thicker.** Owner: "the slash effect appears in the middle of the
+  blades. make sure it is at the very tip. the ember looks okay. also, make the slash a bit thicker so it covers more
+  area." Cause: the effect canvas had its pixel size set to the screen's ratio but no CSS size, so on a screen at 125% or
+  150% it showed that much larger and every flame landed further from the frame's corner (the slash mid-blade; the
+  embers too, unnoticed as they scatter). The R40 checks ran at ratio 1, where the two agree. Now `#swingFx` is 100% by
+  100% of the frame. Thicker: the slash reaches 65% down the blade from the grip (`SWING_FX.fire.ribbon.inner`, was 80%).
+  Record: specs/2026-10-30-fire-swing-fx.md. Smelter test 87 (two checks changed; failing on the previous build first).
+  Checked in the browser at a simulated ratio of 1.5: the canvas 1080 x 600 on screen (it was 1620 x 900), a marker at the
+  computed tip on the drawn blade's tip, the slash running from it; no console errors.
