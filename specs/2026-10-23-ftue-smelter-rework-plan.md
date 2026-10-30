@@ -844,3 +844,10 @@ yours and come on top.
   typed, both up when it finished, and both up at once after a tap that finished it early; Garric's, Bram's two (D20),
   "Thank you." (D56) and Bram's return reply (D110, his tag turning to BRAM first) each hidden while typing and up after;
   no console errors.
+- **R61 (2026-10-30, owner): sword names, tiers, "sharpened" and "customized" bold and coloured in the dialogues.** Owner: "I
+  want the sword names to be bold. Color code every trait and show that color for the text of the sword and it's shape as
+  well ... Same for 'sharpened' and 'customized'. this is only for the dialogues." Every trait has a colour (its market tag
+  colour, darkened until it reads on the parchment); a sword's name (trait words straight before a shape) is bold in it, a tier
+  word bold in the tier window's colour, "sharpened" and "customized" bold in their own. The dragon's bubbles, the market's
+  dragon line and the customer's line; nothing else. Record: `specs/2026-10-30-dialogue-sword-names.md`. Asserted by the
+  FTUE test (written first).

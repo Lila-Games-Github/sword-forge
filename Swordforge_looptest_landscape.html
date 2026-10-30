@@ -504,6 +504,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* R28: the ring's pull - the down head only, sliding down */
 #dragonSayText .sw, #screenDragonSayText .sw, #shSayText .sw, #ddSayText .sw { opacity: 0; transition: opacity .12s; }
 #dragonSayText .sw.on, #screenDragonSayText .sw.on, #shSayText .sw.on, #ddSayText .sw.on { opacity: 1; }   /* R32: the dragon's line types in */
+.dlg-k { font-weight: 700; }   /* R61: a sword's name, a tier, sharpened, customized (DLG_HL gives the colour) */
 #tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }
 #tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }
 @keyframes tutDragDown { 0% { transform: translateY(-14px); opacity: 0; } 25%, 75% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
@@ -7225,7 +7226,7 @@ function sayOver(id){
     const box=document.getElementById('mkSay'), open=document.getElementById('sfMarketModal').classList.contains('show');
     if(!box || !open){ sayQueue(id); return; }
     sayHide(); if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
-    box.querySelector('p').textContent=DIALOGUE[id]; box.hidden=false; }
+    dlgFill(box.querySelector('p'), DIALOGUE[id]); box.hidden=false; }
 function mkSayOff(){ const box=document.getElementById('mkSay'); if(box) box.hidden=true; }
 /* the end of a market step: the order's next beat (closeMarket, or the skip below) */
 function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide(); if(f) setTimeout(f, 0);
@@ -10435,11 +10436,45 @@ function finishD19(){
 /* ---- r95: the customer speaks a word at a time. Only the CUSTOMER - the dragon's own bubble is a
    guide and reads better all at once. Clicking the line finishes it early. ---- */
 const TYPE_MS=70;
+/* R61 (owner, 2026-10-30): "I want the sword names to be bold. Color code every trait and show that color for the text of the sword
+   and it's shape as well ... Same for 'sharpened' and 'customized'. this is only for the dialogues." Record: specs/2026-10-30-dialogue-sword-names.md */
+/* DLG-PURE-BEGIN */
+const DLG_HL={ back:'#f3e7c6',   /* the dragon's bubble; the customer's parchment is the same tone */
+    trait:{ balanced:'#5f6670', fire:'#bc3824', swift:'#7a641e', gale:'#2b736c', durable:'#806340', flexible:'#487230', heavy:'#4c5560',
+            celestial:'#6656cb', cloud:'#5c6874', rainbow:'#ab3e7e', luck:'#237736', lightning:'#826200', noble:'#8a3fc2', grace:'#96546e',
+            floral:'#aa4470', fury:'#b24419', ice:'#306d92', water:'#2769b2', magma:'#ba3d0e', mist:'#63696f', poison:'#437316',
+            savage:'#965925', blood:'#a3162a', cursed:'#5a3a6e', dark:'#2c2533' },
+    tier:{ Epic:'#8e44d9', Fine:'#2b7fd8', Weak:'#4d4d4d' },   /* tierColor's, as the tier window shows them */
+    word:{ sharpened:'#2f5d7c', customized:'#9a3f8a', customised:'#9a3f8a' },
+    shapes:['sword','shortsword','longsword','broadsword','rapier','dagger','katana','claymore','cutlass','machete','saber','scimitar'],
+    tierThen:['tier','trait'] };
+/* a word as its leading marks, its letters, its trailing marks: "'balanced'" -> ' balanced ' */
+function dlgSplit(w){ const m=/^([^A-Za-z]*)([A-Za-z](?:[A-Za-z']*[A-Za-z])?)?([\s\S]*)$/.exec(w); return { pre:m[1], core:m[2]||'', post:m[3] }; }
+/* the colour of each word of a line, or null. A sword's name is one or more trait words straight before a shape ("balanced
+   Longsword", "Fire swords"), each in its trait's colour, the shape in the last one's; nothing but quotes between them. A tier
+   word counts before a trait, a shape, "tier" or "trait", or in capitals ("EPIC!"), so "Fine, I'll" and "a fine blade" stay plain */
+function dlgMarks(words){ const H=DLG_HL, P=words.map(dlgSplit), lc=P.map(p=>p.core.toLowerCase()), out=words.map(()=>null),
+        quotes=s=>/^['"]*$/.test(s), shape=k=>k<words.length && quotes(P[k].pre) && (H.shapes.indexOf(lc[k])>=0 || (/s$/.test(lc[k]) && H.shapes.indexOf(lc[k].slice(0,-1))>=0));
+    for(let i=0;i<words.length;i++){ const tk=lc[i].charAt(0).toUpperCase()+lc[i].slice(1);
+        if(H.tier[tk]){ const caps=P[i].core.length>1 && P[i].core===P[i].core.toUpperCase(), nx=lc[i+1];
+            if(caps || (quotes(P[i].post) && nx!=null && (H.trait[nx] || shape(i+1) || H.tierThen.indexOf(nx)>=0))) out[i]=H.tier[tk]; continue; }
+        if(H.word[lc[i]]){ out[i]=H.word[lc[i]]; continue; }
+        if(H.trait[lc[i]]){ let j=i; while(j<words.length && H.trait[lc[j]] && quotes(P[j].post)) j++;
+            if(j>i && shape(j)){ for(let k=i;k<j;k++) out[k]=H.trait[lc[k]]; out[j]=H.trait[lc[j-1]]; i=j; } } }
+    return out; }
+/* DLG-PURE-END */
+/* a word into el: a marked word's letters bold in its colour, the marks round them plain */
+function dlgWordNodes(el, w, c){ if(!c){ el.appendChild(document.createTextNode(w)); return; } const p=dlgSplit(w);
+    if(p.pre) el.appendChild(document.createTextNode(p.pre)); const b=document.createElement('b'); b.className='dlg-k'; b.style.color=c; b.textContent=p.core; el.appendChild(b);
+    if(p.post) el.appendChild(document.createTextNode(p.post)); }
+/* a whole line at once */
+function dlgFill(el, text){ el.textContent=''; const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);
+    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' ')); dlgWordNodes(el, w, cs[i]); }); }
 let TYPE_T=null, TYPE_EL=null, TYPE_WORDS=null, TYPE_I=0;
 function typeStop(){ if(TYPE_T){ clearInterval(TYPE_T); TYPE_T=null; } TYPE_EL=null; TYPE_WORDS=null; TYPE_I=0; TYPE_DONE=null; }
 function typeDone(){                                  /* jump to the finished line */
     if(!TYPE_EL || !TYPE_WORDS) return false;
-    TYPE_EL.textContent=TYPE_WORDS.join(' ');
+    dlgFill(TYPE_EL, TYPE_WORDS.join(' '));   /* R61 */
     counterLayout();   /* r149: a tap that skips the typewriter jumps the box to its full height, and whatever sits under it has to follow in the same frame */
     const f=TYPE_DONE; typeStop(); if(f) f(); return true;
 }
@@ -10451,10 +10486,10 @@ function typeLine(el, text){
     const after=TYPE_DONE;                              /* typeStop clears it, so carry it across */
     typeStop(); TYPE_DONE=after; if(!el) return;
     const words=String(text||'').trim().split(/\s+/);
-    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent='';
+    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words);   /* R61 */
     TYPE_T=setInterval(()=>{
         if(TYPE_I>=TYPE_WORDS.length){ const f=TYPE_DONE; typeStop(); if(f) f(); return; }
-        TYPE_EL.textContent += (TYPE_I? ' ' : '') + TYPE_WORDS[TYPE_I++];
+        if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I]); TYPE_I++;
         counterLayout();   /* r149: the box grows as it types */
     }, TYPE_MS);
 }
@@ -11135,8 +11170,9 @@ let SAY_TYPE_T=null, SAY_TYPE_EL=null;
 function sayTypeStop(all){ if(SAY_TYPE_T){ clearInterval(SAY_TYPE_T); SAY_TYPE_T=null; }
     if(all && SAY_TYPE_EL) SAY_TYPE_EL.querySelectorAll('.sw').forEach(w=>w.classList.add('on')); SAY_TYPE_EL=null; }
 function sayType(el, text){ sayTypeStop(false); el.textContent='';
-    String(text||'').trim().split(/\s+/).forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' '));
-        const s=document.createElement('span'); s.className='sw'; s.textContent=w; el.appendChild(s); });
+    const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);   /* R61 */
+    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' '));
+        const s=document.createElement('span'); s.className='sw'; dlgWordNodes(s, w, cs[i]); el.appendChild(s); });
     const words=[...el.querySelectorAll('.sw')]; let i=0; SAY_TYPE_EL=el;
     SAY_TYPE_T=setInterval(()=>{ if(i>=words.length){ sayTypeStop(false); return; } words[i++].classList.add('on'); }, TYPE_MS); }
 function say(id){
