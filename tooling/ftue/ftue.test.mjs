@@ -1576,4 +1576,7 @@ eq('R61: the dragon\'s, the market\'s and the customer\'s lines are drawn throug
   "dlgFill(box.querySelector('p'), DIALOGUE[id]); box.hidden=false; }", "    dlgFill(TYPE_EL, TYPE_WORDS.join(' '));   /* R61 */", "TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words);   /* R61 */",
   "if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I]); TYPE_I++;",
   ".dlg-k { font-weight: 700; }"].every(s => src.replace(/\r\n/g, '\n').includes(s)), true);
+/* R62 (owner, 2026-10-30): "the trait keeps glowing even after crafting the sword" */
+eq('R62: Garric\'s ring is not lit when the iron is already in', src.includes("    if(b && !segs.some(s=>s.ore==='iron')) tutSpotOn(b);   /* the same ring fire and gale get - marked, not explained. R62: not when the iron went in while the dragon was still talking */"), true);
+eq('R62: a sword made (hammer, craft book) takes the ring down', ["        hp:Math.round(melt?melt.hp:BLADE_HP_MAX), haz:hz });\n    tutSpotOn(null);   /* R62 (owner): a sword made ends the tutorial's trait ring (Garric's, fire's, gale's) */\n", "        tutSpotOn(null); invTab(2); renderRecipe();   /* R62: and a sword made from the book */\n        CRAFT_ORE="].every(s => src.replace(/\r\n/g, '\n').includes(s)), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

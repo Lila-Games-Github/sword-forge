@@ -851,3 +851,12 @@ yours and come on top.
   word bold in the tier window's colour, "sharpened" and "customized" bold in their own. The dragon's bubbles, the market's
   dragon line and the customer's line; nothing else. Record: `specs/2026-10-30-dialogue-sword-names.md`. Asserted by the
   FTUE test (written first).
+- **R62 (2026-10-30, owner): the trait ring goes out once the sword is made.** Owner, with a picture of the ring still on
+  Balanced: "the trait keeps glowing even after crafting the sword. this happened while crafting garric's sword. but check
+  others as well." Cause: Garric's ring (`tutGarricHandsOff`, after D130b's reward) comes down only when an iron reaches the
+  smelter (`tutSoloOre`). The bubbles no longer block (R57), so a player can put all four ores in while D129-D130b are still
+  up; the ring is then lit after the last iron and nothing takes it down. A stored metal (`restoreIngot`) adds no ore at all.
+  Gale's ring had the same weakness (it comes down only in `tutGaleAligned`, at stage `d2-gale-work`); Fire's comes down in
+  three places (D70a, D71, reaching Fire). Now: (1) Garric's ring is not lit when the iron is already in, and (2) every sword
+  made (the hammer's, and the craft book's) takes the ring down, whatever lit it. Checked in the browser (iron in before the
+  hands-off: ring stayed; now it does not). Asserted by the FTUE test (written first).

@@ -7052,7 +7052,7 @@ function cbCraft(n){
                 traits:traits.map(a=>Object.assign({},a)), hp:(r.hp!=null?r.hp:100), haz:(r.haz||0) });   /* r215 */
             gainExp(XP_CRAFT,'craft'); questSwordMade(INV.swords[INV.swords.length-1]);   // r73: an auto-craft is still a crafted sword. 2026-10-09: the quests
             if(traits.some(a=>a.tier==='Epic')) bumpQuest('epic5'); }
-        invTab(2); renderRecipe();
+        tutSpotOn(null); invTab(2); renderRecipe();   /* R62: and a sword made from the book */
         CRAFT_ORE=(n===1) ? ftueSwordKey({}) : null;   /* r291: the ore chain */
         showCraft(INV.swords[INV.swords.length-1], n);                 // r90: same window, n blades in flight
     };
@@ -8294,6 +8294,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
     INV.swords.push({ id:INV_SEQ++, shape:hmShape, blade:bladeFor(cSkin, hmShape),
         design:ddCoerce(DD_SEL, cSkin), sharp:0, ores:cOres, grinds:cGrinds, traits:wTraits, quality:fq.name, forge:fq.acc,
         hp:Math.round(melt?melt.hp:BLADE_HP_MAX), haz:hz });
+    tutSpotOn(null);   /* R62 (owner): a sword made ends the tutorial's trait ring (Garric's, fire's, gale's) */
     (melt && melt.recipeKeys || []).forEach(k=>{ if(RECIPES[k]) RECIPES[k].forge={ quality:fq.name, acc:fq.acc }; });   /* 2026-10-09: the hammering goes into the pages */
     if(cTraits.length) LAST_CRAFT={ traits:cTraits.map(a=>({tid:a.tid, tier:a.tier})), ores:cOres, grinds:cGrinds, hp:wHp, haz:hz, forge:{ quality:fq.name, acc:fq.acc } };   // r67: resetRun wipes the bench, the composition window still needs this route
     gainExp(XP_CRAFT,'craft'); questSwordMade(INV.swords[INV.swords.length-1]);   // r73. 2026-10-09: the quests
@@ -9946,7 +9947,7 @@ function tutGarricHandsOff(){
     sayHide(); TUT_STAGE=null; tutArrow(null,null); tutUnglow();
     TUT_SOLO=true; TUT_SOLO_ASKED=false;
     const b=traits.find(t=>t.trait && t.trait.id==='balanced');
-    if(b) tutSpotOn(b);   /* the same ring fire and gale get - marked, not explained */
+    if(b && !segs.some(s=>s.ore==='iron')) tutSpotOn(b);   /* the same ring fire and gale get - marked, not explained. R62: not when the iron went in while the dragon was still talking */
 }
 /* every ore that reaches the smelter, from addSegment() */
 function tutSoloOre(oreId){
