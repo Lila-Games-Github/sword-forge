@@ -12,7 +12,7 @@ A-E): "go with A + B + C, fire only, while dragging."
 ## Scope
 
 - **When:** while a sword is dragged and swings from its grip (s7: the inventory, the counter and the work table drags,
-  `swSwingStart` / `swSwingFrame`). Not the anvil blade before the quench (s5), not the hammer minigame.
+  `swSwingStart` / `swSwingFrame`), and since R44 while the forge's blade is held before the quench (s5). Not the hammer minigame.
 - **Which swords:** a sword with the fire trait (`swordHasTrait(w, 'fire')`). Every other sword is unchanged.
 - **After the drop:** the embers already in the air finish their short life; nothing new is made.
 
@@ -70,3 +70,17 @@ in the outer 20% with no ember there.
 - **Clear:** each frame clears the whole canvas in its own pixels (the scale reset for the clear).
 - **Ratio:** the canvas is drawn at the screen's ratio held to 1-2 (it was up to 2 only), so it is never coarser than the
   frame.
+
+## R44: the forge's blade burns too (2026-10-30)
+
+Owner: "i want the same effects for the blades in the forge screen as well." The forge's blade is the shaped blade on the
+anvil, picked up by its handle and swung into the bucket (s5, `SM_BL`).
+
+- **When:** while that blade is held (`SM_BL.live`) and its metal carries the fire trait (`swordHasTrait(melt, 'fire')`).
+  It stops when the blade is let go (back to the anvil, or dropped into the bucket) or its tip is quenched in the water;
+  embers in the air finish their life.
+- **The same effect, the same values** (`SWING_FX.fire`): A the glow (`#smBladeGlow`, laid over the blade picture with its
+  place, size and turn each frame), B the embers, C the slash, on the one canvas (`#swingFx`).
+- **One code path:** `fxSwing` takes the swing's picture width (`W`: the anvil blade's own width; the dragged sword's
+  `SMELT.swingW` when absent) and its offset in the frame (`off`: the bench's place in the frame; none for the dragged
+  sword, which already uses frame px).

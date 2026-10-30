@@ -177,4 +177,12 @@ eq('R42: SM_ENDS starts filled from the table', src.includes('Object.keys(SM_END
 eq('R43: each frame clears the whole canvas in its own pixels', src.includes("g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(FX.d, 0, 0, FX.d, 0, 0);"), true);
 eq('R43: drawn at the pixel ratio held to 1-2', src.includes('d=Math.min(2, Math.max(1, window.devicePixelRatio||1));'), true);
 
+/* R44 (owner, 2026-10-30): the forge's blade burns too, while held, when it carries fire */
+eq('R44: the forge blade gets the effect when its metal carries fire', src.includes("fx:swordHasTrait(melt, 'fire') ? SWING_FX.fire : null") && /function smBladeGrab\(e\)\{[\s\S]{0,900}smFxOn\(b\);/.test(src), true);
+eq('R44: every held frame it burns', /function smBladeTick\(dt\)\{[\s\S]{0,900}smBladePaint\(\); if\(SM_BL\.fx\) fxSwing\(SM_BL, dt\);/.test(src) && /function tick\(now\)\{[\s\S]{0,4000}if\(SM_BL\) SM_BL\.t=now; smBladeTick\(dt\);/.test(src), true);
+eq('R44: it stops when let go or quenched', /function smBladeUp\(e\)\{[^\n]*smFxOff\(\); smBladeDrop\(\);/.test(src) && /function smBladeQuench\(\)\{[\s\S]{0,300}tutDipDone\(\); smFxOff\(\);/.test(src), true);
+eq('R44: one effect for both swings - the picture width and the place in the frame', /function fxSwing\(s, dt\)\{[\s\S]{0,400}o=s\.off\|\|\{ x:0, y:0 \};[\s\S]{0,200}\*\(s\.W\|\|SMELT\.swingW\), px=s\.px\+o\.x, py=s\.py\+o\.y,/.test(src), true);
+eq('R44: the glow lies over the held blade', src.includes('#smBladeGlow { position: absolute; z-index: 41;') && /function smFxPaint\(b\)\{[^\n]*\['left','top','width','transform','transformOrigin'\]/.test(src), true);
+eq('R44: the loop runs while the forge blade burns', src.includes('(SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)'), true);
+
 console.log('[smelter] GREEN / ' + n + ' checks');

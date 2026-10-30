@@ -1350,7 +1350,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     animation: swGlowFlicker .9s steps(9) infinite; }
 @keyframes swGlowFlicker { 0% { filter: brightness(1); } 22% { filter: brightness(1.3); } 41% { filter: brightness(.88); } 63% { filter: brightness(1.22); } 80% { filter: brightness(1); } 100% { filter: brightness(1.12); } }
 /* B and C: the embers and the ribbon, one canvas over the frame, above the dragged sword */
-#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }   /* R41: frame-sized in CSS; its pixels follow the screen's ratio */
+#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }
+/* R44: the forge blade's glow - laid over the held blade (#smBlade, z 40 while held) in the bench, as .sw-glow is in the ghost */
+#smBladeGlow { position: absolute; z-index: 41; display: none; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+    background: radial-gradient(closest-side, rgba(255,190,80,.95), rgba(255,120,30,.9) 55%, rgba(220,55,12,.75));
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain;
+    animation: swGlowFlicker .9s steps(9) infinite; }   /* R41: frame-sized in CSS; its pixels follow the screen's ratio */
 /* r128: the ingot's ghost is the orb itself, so it does not inherit the blade's -45deg */
 .sw-ghost.ingot { transform: translate(-50%,-50%); width: 56px; }
 .sw-ghost.ingot .inv-orb { width: 100%; }
@@ -4590,14 +4595,14 @@ function fxCanvas(){ if(FX.cv && FX.cv.isConnected) return; const fr=document.ge
         const g=sp.getContext('2d'), c3=fxRamp(i/15).join(','), gr=g.createRadialGradient(32, 32, 0, 32, 32, 32);
         gr.addColorStop(0, 'rgba('+c3+',1)'); gr.addColorStop(.4, 'rgba('+c3+',.6)'); gr.addColorStop(1, 'rgba('+c3+',0)'); g.fillStyle=gr; g.fillRect(0, 0, 64, 64); return sp; }); }
 /* each swing frame: the tip's speed sets the glow, makes embers along the blade, and lays the ribbon on a fast swing */
-function fxSwing(s, dt){ if(!(dt>0)) return; const F=s.fx, sn=Math.sin(s.th), cs=Math.cos(s.th), E=SM_ENDS[s.file]||SM_ENDS_DEFAULT;
-    const len=Math.hypot(E.tip.x-E.tang.x, E.tip.y-E.tang.y)*SMELT.swingW, tip={ x:s.px+len*sn, y:s.py+len*cs };   /* the blade's length, read each frame: its picture's ends load after the drag starts */
+function fxSwing(s, dt){ if(!(dt>0)) return; const F=s.fx, sn=Math.sin(s.th), cs=Math.cos(s.th), E=SM_ENDS[s.file]||SM_ENDS_DEFAULT, o=s.off||{ x:0, y:0 };   /* R44: the forge blade is in bench px (off), the dragged sword in frame px */
+    const len=Math.hypot(E.tip.x-E.tang.x, E.tip.y-E.tang.y)*(s.W||SMELT.swingW), px=s.px+o.x, py=s.py+o.y, tip={ x:px+len*sn, y:py+len*cs };   /* the blade's length, read each frame: its picture's ends load after the drag starts */
     const raw=s.tip0 ? Math.hypot(tip.x-s.tip0.x, tip.y-s.tip0.y)/dt : 0; s.tip0=tip; s.sp=(s.sp||0)+(raw-(s.sp||0))*0.35;   /* smoothed */
     if(s.glow) s.glow.style.opacity=fxGlow(F, s.sp).toFixed(3);
     const k=fxSpawn(F, s.sp, dt, FX.carry); FX.carry=k.carry;
     for(let i=0; i<k.n && FX.em.length<F.embers.max; i++){ const r=fxAlong(F, Math.random())*len;   /* a blade point's velocity: the grip's plus the turn's */
-        FX.em.push(fxEmber(F, { x:s.px+r*sn, y:s.py+r*cs, vx:s.vx+s.om*r*cs, vy:s.vy-s.om*r*sn }, { a:Math.random(), b:Math.random(), c:Math.random(), d:Math.random() })); }
-    if(s.sp>=F.ribbon.speed) FX.rib.push({ x:tip.x, y:tip.y, ix:s.px+len*F.ribbon.inner*sn, iy:s.py+len*F.ribbon.inner*cs, t:s.t });   /* the swing frame's time, the clock fxFrame keeps */
+        FX.em.push(fxEmber(F, { x:px+r*sn, y:py+r*cs, vx:s.vx+s.om*r*cs, vy:s.vy-s.om*r*sn }, { a:Math.random(), b:Math.random(), c:Math.random(), d:Math.random() })); }
+    if(s.sp>=F.ribbon.speed) FX.rib.push({ x:tip.x, y:tip.y, ix:px+len*F.ribbon.inner*sn, iy:py+len*F.ribbon.inner*cs, t:s.t });   /* the swing frame's time, the clock fxFrame keeps */
     fxCanvas(); FX.F=F; if(!FX.raf){ FX.t=0; FX.raf=requestAnimationFrame(fxFrame); } }
 function fxFrame(now){ const F=FX.F, g=FX.g, c=FX.cv; if(!F || !g || !c.isConnected){ FX.raf=0; return; }
     const dt=FX.t ? Math.min(0.05, (now-FX.t)/1000) : 1/60; FX.t=now;
@@ -4611,7 +4616,7 @@ function fxFrame(now){ const F=FX.F, g=FX.g, c=FX.cv; if(!F || !g || !c.isConnec
     g.globalCompositeOperation='lighter';   /* B: light on light, so overlapping embers read as flame */
     FX.em.forEach(p=>{ const L=fxEmberLook(p.age/p.life), z=p.size*L.s; g.globalAlpha=L.a; g.drawImage(FX.spr[L.i], p.x-z/2, p.y-z/2, z, z); });   /* B */
     g.globalAlpha=1; g.globalCompositeOperation='source-over';
-    if(FX.em.length || FX.rib.length || (SW_SWING && SW_SWING.fx)) FX.raf=requestAnimationFrame(fxFrame); else { FX.raf=0; FX.t=0; } }
+    if(FX.em.length || FX.rib.length || (SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)) FX.raf=requestAnimationFrame(fxFrame); else { FX.raf=0; FX.t=0; } }
 function startSwordDrag(w,e){
     const onShop = SF_SCREEN==='shop';                      // r70: three rack targets instead of one zone
     if(!zoneRect() && !onShop){ toast('Take a sword to the <b>workstation</b>, the <b>counter</b> or the <b>shop racks</b>'); return; }
@@ -8027,7 +8032,7 @@ function smBladeHome(){ const b=document.getElementById('smBlade'), a=stationCen
     tutDipArrow(); }   /* R1: and the dip pointer back */
 function smBladeShow(){ const b=document.getElementById('smBlade'); if(!b || !SM_BLADE_FILE) return;
     b.src='assets/sword-parts/blades/'+SM_BLADE_FILE+'.webp'; b.style.display='block'; b.classList.add('hot'); smBladeHome(); smBladeEndsOf(SM_BLADE_FILE); }   /* s6: hot */
-function smBladeHide(){ const b=document.getElementById('smBlade'); SM_BL=null; if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
+function smBladeHide(){ const b=document.getElementById('smBlade'); smFxOff(); SM_BL=null; if(b){ b.style.display='none'; b.classList.remove('dragging'); } }
 /* s5 (owner): the blade hangs from its handle and swings like a pendulum. SM_BL = the held blade: pivot (the tang) p, its
    velocity v, the finger t, the swing th/om, L. The ends of each blade picture are read from its pixels (smBladeEnds). */
 let SM_BL=null, SM_DIPPING=false;
@@ -8080,7 +8085,7 @@ function smSegDist(x, y, A, B){ const vx=B.x-A.x, vy=B.y-A.y, L2=vx*vx+vy*vy||1,
 function smBladePaint(){ const b=document.getElementById('smBlade'), E=smEnds(), W=b.offsetWidth, H=b.offsetHeight||W; if(!SM_BL) return;
     b.style.transformOrigin=(E.tang.x*100).toFixed(2)+'% '+(E.tang.y*100).toFixed(2)+'%';
     b.style.left=(SM_BL.px-E.tang.x*W)+'px'; b.style.top=(SM_BL.py-E.tang.y*H)+'px';
-    b.style.transform='rotate('+smRot(SM_BL.th, E.art).toFixed(2)+'deg)'; }
+    b.style.transform='rotate('+smRot(SM_BL.th, E.art).toFixed(2)+'deg)'; if(SM_BL.glow) smFxPaint(b); }
 /* a press within bladeGrab px of the blade's line picks it up by the handle; it swings from the angle it lay at */
 function smBladeGrab(e){ const b=document.getElementById('smBlade'); if(!b || b.style.display!=='block' || SM_BL || SM_DIPPING) return;
     const q=benchEl().getBoundingClientRect(), x=e.clientX-q.left, y=e.clientY-q.top, E=smEnds(), A=smBladePt(E.tang.x, E.tang.y), B=smBladePt(E.tip.x, E.tip.y);
@@ -8088,21 +8093,30 @@ function smBladeGrab(e){ const b=document.getElementById('smBlade'); if(!b || b.
     e.preventDefault(); e.stopPropagation();
     SM_BL={ id:e.pointerId, live:true, px:A.x, py:A.y, vx:0, vy:0, tx:x, ty:y, th:(90-(E.art+SM_REST_DEG))*Math.PI/180, om:0,
         L:SMELT.bladeCom*Math.hypot(B.x-A.x, B.y-A.y) };
-    b.classList.add('dragging'); smBladePaint();
+    b.classList.add('dragging'); smBladePaint(); smFxOn(b);
     if(TUT_DIP) tutArrow(null,null); }   /* R1: the dip pointer goes while it is held */
 function smBladeMove(e){ if(!SM_BL || !SM_BL.live || e.pointerId!==SM_BL.id) return; const q=benchEl().getBoundingClientRect(); SM_BL.tx=e.clientX-q.left; SM_BL.ty=e.clientY-q.top; }
-function smBladeUp(e){ if(!SM_BL || !SM_BL.live || e.pointerId!==SM_BL.id) return; SM_BL.live=false; document.getElementById('smBlade').classList.remove('dragging'); smBladeDrop(); }
+function smBladeUp(e){ if(!SM_BL || !SM_BL.live || e.pointerId!==SM_BL.id) return; SM_BL.live=false; document.getElementById('smBlade').classList.remove('dragging'); smFxOff(); smBladeDrop(); }
+/* R44 (owner, 2026-10-30): "i want the same effects for the blades in the forge screen as well" - held, a fire blade burns as a
+   dragged fire sword does (R40): the same fxSwing, in bench px moved into the frame (off), at the blade's own width (W) */
+function smFxOn(b){ if(!SM_BL) return; const q=benchEl().getBoundingClientRect(), f=document.getElementById('frame').getBoundingClientRect();
+    Object.assign(SM_BL, { file:SM_BLADE_FILE, W:b.offsetWidth, off:{ x:q.left-f.left, y:q.top-f.top }, t:performance.now(), fx:swordHasTrait(melt, 'fire') ? SWING_FX.fire : null });
+    if(!SM_BL.fx) return; let g=document.getElementById('smBladeGlow');
+    if(!g){ g=document.createElement('div'); g.id='smBladeGlow'; benchEl().appendChild(g); }
+    g.style.maskImage=g.style.webkitMaskImage='url('+b.src+')'; g.style.display='block'; SM_BL.glow=g; FX.carry=0; smFxPaint(b); }
+function smFxPaint(b){ const g=SM_BL && SM_BL.glow; if(!g) return; ['left','top','width','transform','transformOrigin'].forEach(k=>{ g.style[k]=b.style[k]; }); g.style.height=(b.offsetHeight||b.offsetWidth)+'px'; }
+function smFxOff(){ const g=document.getElementById('smBladeGlow'); if(g){ g.style.display='none'; g.style.opacity='0'; } if(SM_BL){ SM_BL.fx=null; SM_BL.glow=null; } }
 /* every frame: the handle follows the finger, the blade swings about it (4 substeps) */
 function smBladeTick(dt){ if(!SM_BL || !SM_BL.live || !(dt>0)) return; const n=4, h=dt/n;
     for(let k=0; k<n; k++){ const fx=smFollow(SM_BL.px, SM_BL.vx, SM_BL.tx, h), fy=smFollow(SM_BL.py, SM_BL.vy, SM_BL.ty, h);
         SM_BL.px=fx.p; SM_BL.vx=fx.v; SM_BL.py=fy.p; SM_BL.vy=fy.v;
         const st=smPendStep(SM_BL.th, SM_BL.om, fx.a, fy.a, SM_BL.L, h); SM_BL.th=st.th; SM_BL.om=st.om; }
-    smBladePaint();
+    smBladePaint(); if(SM_BL.fx) fxSwing(SM_BL, dt);   /* R44 */
     const tip=smBladeTip(), was=SM_BL.tip||tip; SM_BL.tip=tip;
     if(smDipped(was, tip, benchRect(document.getElementById('bucketBack')))) smBladeQuench(); }   /* s6: dipped from above */
 /* s6: held, the tip touched the water - quenched where it is: behind the rim, the glow fades, the steam at the tip, finalized */
 function smBladeQuench(){ const b=document.getElementById('smBlade'); if(!b || SM_DIPPING) return;
-    SM_DIPPING=true; if(SM_BL) SM_BL.live=false; b.classList.remove('dragging'); b.style.zIndex='8'; tutDipDone();
+    SM_DIPPING=true; if(SM_BL) SM_BL.live=false; b.classList.remove('dragging'); b.style.zIndex='8'; tutDipDone(); smFxOff();
     b.classList.remove('hot');
     const t=smBladeTip();
     quenchFx(()=>{ b.style.display='none'; SM_DIPPING=false; SM_BL=null; finishBlade(); }, { host:benchEl(), x:t.x, y:t.y, unit:'px', step:22 }); }
@@ -8276,7 +8290,7 @@ function tick(now){
         /* r83: the gate waits on HEAT, not on a timer. The bellows was the one station a player could
            skip entirely - the smelt used to ready itself after SMELT_TIME whether or not anyone pumped. */
         updateGauges(); }
-    smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync(); furnaceArtSync(dt);   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
+    if(SM_BL) SM_BL.t=now; smBladeTick(dt); smLadleTick(dt); smGlide(dt); smGateSync(); furnaceArtSync(dt);   /* smelter version: s3 the bellows' travel glides out; the gate glows while the sword is on a trait */
     if(TUT_STAGE==='fire-reheat' && melt && melt.stage==='smelting' && SAY_ON!=='D71') tutFireReheated();   /* r111. R4: after D71 is read */
     if(TUT_STAGE==='fire-mang') tutFireGround();   /* r111. 2026-10-13: a full grind, either ore */
     if(melt && (melt.stage==='hot'||melt.stage==='onAnvil') && melt.heat>0){ melt.heat=Math.max(0, melt.heat-HEAT_DECAY*dt); updateGauges(); }   // heat (=speed) cools once the orb is out of the smelter

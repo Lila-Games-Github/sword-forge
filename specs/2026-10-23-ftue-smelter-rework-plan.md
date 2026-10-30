@@ -665,3 +665,13 @@ yours and come on top.
   (failing on the previous build first). Checked in the browser at a simulated ratio of 0.8: before, about 113,000 lit
   pixels left in the outer 20% after a swing there; after, none; at 1.5 the tip marker still on the drawn tip; no console
   errors.
+- **R44 (2026-10-30, owner): the forge's blade burns too.** Owner: "i want the same effects for the blades in the forge
+  screen as well." The shaped blade picked up off the anvil (s5) gets the R40 effect while held when its metal carries
+  fire: the glow laid over it (`#smBladeGlow`, following its place, size and turn), the embers and the slash on the same
+  canvas. It stops when the blade is let go or quenched. `fxSwing` now serves both swings: the picture width (`W`) and
+  the place in the frame (`off`, the bench's) come with the swing. Record: specs/2026-10-30-fire-swing-fx.md (R44).
+  Smelter test 93 -> 99 (failing on the previous build first). Checked in the browser (GAME, the forge, a shaped fire
+  Longsword on the anvil picked up by pointer events, frames driven by hand): held - the effect on, the glow over the
+  blade; swung - embers and the slash, the effect's tip equal to the forge's own tip (180, 279); let go - back on the
+  anvil, the glow off, the embers gone, the loop stopped; a balanced blade - nothing; a fire blade dipped while held -
+  the effect off; no console errors.
