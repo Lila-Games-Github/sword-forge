@@ -717,3 +717,9 @@ yours and come on top.
   The gale curls' line 4 -> 10 px (soft edge 22 px), still thinning to 40% over a curl's life. Record:
   specs/2026-10-30-fire-swing-fx.md (R50). Smelter test 124 checks, its value updated first (failing on the previous
   build). Checked in the browser: a gale swing, 15 curls at the new width, no errors.
+- **R51 (2026-10-30, owner): the gale trails thick, like the slash.** Owner, with a picture of the thin trail lines: "these
+  lines on the blade, make them thick as well. make it similar to the slash". Each trail is now one filled band, 18 px
+  across at the sword and narrowing with age to nothing at its 0.2 s tail (a soft edge band 1.6 times as wide under the
+  core), not a line drawn in separate pieces; a pause or a jump breaks it, a still sword leaves none. Record:
+  specs/2026-10-30-fire-swing-fx.md (R51). Smelter test 124 -> 128 (failing on the previous build first). Checked in the
+  browser: a gale swing - four bands following the sword beside the slash; no errors.

@@ -2820,7 +2820,7 @@ const SWING_FX={ fire:{
     plain:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] } },   /* R45 (owner): the base swords' white slash - no glow, no embers */
     gale:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] },   /* R47 (owner): the same slash, */
         wind:{ speed:900, orbit:{ n:3, ry:28, pad:14, arc:1.4, spin:4, alpha:0.85, width:3 },   /* R48 (owner: "I didn't want them to be rings") D1: streaks swirling round the sword when still, gone by speed (px/s) */
-            trail:{ at:[[-0.1,0],[0.3,-9],[0.6,9],[0.9,0]], keep:0.2, gap:140, alpha:0.85, width:3 } },   /* D2: trails left by these sword points ([blade fraction, px to the side]) when moving, kept keep s */
+            trail:{ at:[[-0.1,0],[0.3,-9],[0.6,9],[0.9,0]], keep:0.2, gap:140, alpha:0.85, width:18 } },   /* R51 (owner): a band width px at the sword, like the slash */   /* D2: trails left by these sword points ([blade fraction, px to the side]) when moving, kept keep s */
         gusts:{ rest:2, perPx:0.01, max:15, life:[0.45,0.8], r:[18,44], sweep:[3,4.5], spin:7, inherit:0.35, jitter:30, drag:2.5, width:10, alpha:0.85 },   /* E: wind curls instead of embers; R49 (owner): larger and fewer; R50: much thicker */
         color:{ edge:[80,195,225], core:[200,250,255] } } };   /* slightly cyan: a soft edge stroke under a bright core */
 const FX_PLAIN_TRAITS=['balanced','durable','swift'];   /* R46 (owner): swift slashes white too */
@@ -2851,6 +2851,17 @@ function fxBySpeed(R, sp, speed){ return R[0]+(R[1]-R[0])*Math.min(1, sp/speed);
 function fxWindPts(W, at){ return at.map(a=>({ x:W.px+a[0]*W.len*W.sn+a[1]*W.cs, y:W.py+a[0]*W.len*W.cs-a[1]*W.sn })); }
 /* each frame's trail points last their keep */
 function fxTrailKeep(pts, now){ return pts.filter(p=>now-p.t<=p.F.wind.trail.keep*1000); }
+/* R51: one trail's stretches - point j over the kept frames, broken by a pause (60 ms) or a jump (gap px); points under 0.5 px apart are one */
+function fxTrailRuns(L, j, gap){ const out=[]; let run=null, last=null;
+    L.forEach(f=>{ const q=f.p[j]; if(!q) return; const pt={ x:q.x, y:q.y, t:f.t };
+        if(last && (pt.t-last.t>60 || Math.hypot(pt.x-last.x, pt.y-last.y)>gap)) run=null;
+        if(!run){ run=[pt]; out.push(run); } else if(Math.hypot(pt.x-last.x, pt.y-last.y)<0.5) run[run.length-1]=pt; else run.push(pt); last=pt; });
+    return out.filter(r=>r.length>1); }
+/* R51: a stretch as a band - each point pushed out across its path, w wide when new, narrowing to nothing at keep s old */
+function fxTrailPoly(run, w, now, keep){ const n=run.length, A=[], B=[];
+    run.forEach((p,i)=>{ const a=run[Math.max(0, i-1)], b=run[Math.min(n-1, i+1)], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx, dy)||1, r=w/2*Math.max(0, 1-(now-p.t)/(keep*1000));
+        A.push({ x:p.x-dy/d*r, y:p.y+dx/d*r }); B.push({ x:p.x+dy/d*r, y:p.y-dx/d*r }); });
+    return A.concat(B.reverse()); }
 /* R47 E: a new gust at sword point b; r = five randoms in 0..1 (e: its start angle) */
 function fxGust(F, b, r){ const G=F.gusts, lerp=(a,k)=>a[0]+(a[1]-a[0])*k;
     return { x:b.x, y:b.y, vx:b.vx*G.inherit+(r.a*2-1)*G.jitter, vy:b.vy*G.inherit+(r.b*2-1)*G.jitter, age:0, life:lerp(G.life, r.c), r:lerp(G.r, r.d), sweep:lerp(G.sweep, r.d), a0:r.e*2*Math.PI }; }
@@ -4643,11 +4654,11 @@ function fxWindDraw(g, W){ const O=W.F.wind.orbit, C=W.F.color, a=fxBySpeed([O.a
     const u0=-0.15, mid=(u0+1)/2, cx=W.px+mid*W.len*W.sn, cy=W.py+mid*W.len*W.cs, rx=(1-u0)/2*W.len+O.pad, rot=Math.atan2(W.cs, W.sn), k=6; g.lineCap='round';
     for(let i=0; i<O.n; i++){ const h=W.ph+i*2*Math.PI/O.n;
         for(let j=0; j<k; j++){ const f=(j+1)/k, s0=h-O.arc*(1-j/k), s1=h-O.arc*(1-f); fxStroke2(g, C, O.width*f, a*f, ()=>g.ellipse(cx, cy, rx, O.ry, rot, s0, s1)); } } }
-/* R48 D2: the trails - each sword point's last keep s, fading and thinning; a pause or a jump ends a stretch */
-function fxTrailDraw(g, now){ const L=FX.wtr; g.lineCap='round';
-    for(let i=1; i<L.length; i++){ const A=L[i-1], B=L[i], T=B.F.wind.trail; if(B.t-A.t>60) continue; const k=Math.max(0, 1-(now-B.t)/(T.keep*1000));
-        B.p.forEach((q,j)=>{ const o=A.p[j]; if(!o || Math.hypot(q.x-o.x, q.y-o.y)>T.gap) return; if(Math.hypot(q.x-o.x, q.y-o.y)<0.5) return;
-            fxStroke2(g, B.F.color, T.width*(0.4+0.6*k), T.alpha*k, ()=>{ g.moveTo(o.x, o.y); g.lineTo(q.x, q.y); }); }); } }
+/* R48 D2, R51: the trails - each sword point's last keep s as one tapered band, like the slash: a soft edge band under the core */
+function fxTrailDraw(g, now){ const L=FX.wtr; if(L.length<2) return; const F=L[L.length-1].F, T=F.wind.trail, C=F.color;
+    T.at.forEach((_,j)=>fxTrailRuns(L, j, T.gap).forEach(run=>{
+        [[T.width*1.6, C.edge, .35], [T.width, C.core, 1]].forEach(q=>{ const P=fxTrailPoly(run, q[0], now, T.keep); g.globalAlpha=T.alpha*q[2]; g.fillStyle='rgb('+q[1].join(',')+')';
+            g.beginPath(); P.forEach((t,i)=>i ? g.lineTo(t.x, t.y) : g.moveTo(t.x, t.y)); g.closePath(); g.fill(); }); })); }
 /* R47 E: a gust - its open spiral */
 function fxGustDraw(g, p){ const L=fxGustLook(p.age/p.life), P=fxGustPath(p, 10); g.lineCap='round';
     fxStroke2(g, p.F.color, p.F.gusts.width*L.s, p.F.gusts.alpha*L.a, ()=>P.forEach((t,i)=>i ? g.lineTo(t.x, t.y) : g.moveTo(t.x, t.y))); }

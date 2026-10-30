@@ -164,7 +164,7 @@ and the curls (E) are unchanged.
 |---|---|
 | wind | speed 900 |
 | wind.orbit | n 3, ry 28, pad 14, arc 1.4, spin 4, alpha 0.85, width 3 |
-| wind.trail | at [-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]; keep 0.2, gap 140, alpha 0.85, width 3 |
+| wind.trail | at [-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]; keep 0.2, gap 140, alpha 0.85, width 3 (R51: 18, a band) |
 
 ## R49: the curls larger and fewer (2026-10-30)
 
@@ -183,3 +183,18 @@ the gale effect is unchanged.
 
 Owner: "can you also make the swirls thicker, like much thicker?" The curls' line `gusts.width` 4 -> 10 px (its soft edge
 stroke 2.2 times that, 22 px); it still thins to 40% over a curl's life. Nothing else changes.
+
+## R51: the trails thick, like the slash (2026-10-30)
+
+Owner, with a picture of the thin cyan trail lines beside the slash: "these lines on the blade, make them thick as well. make
+it similar to the slash". Each trail (D2) is now a band filled in one piece, as the slash is, not a line of separate pieces:
+
+- **Shape:** along the path a sword point swept over the last `keep` (0.2 s), `width` (18 px) across at the sword, narrowing
+  with age to nothing at its tail (`fxTrailPoly`: each point pushed out to both sides, across its path).
+- **Breaks:** a pause over 60 ms or a jump over `gap` px ends a band and starts the next; points under 0.5 px apart count as
+  one, so a still sword leaves nothing (`fxTrailRuns`).
+- **Colour:** a soft `edge` band 1.6 times as wide at 35%, under the bright `core` band, at `alpha` (0.85).
+
+| Key | Was (R48) | Now |
+|---|---|---|
+| wind.trail.width | 3 (a line) | 18 (a band, at the sword) |

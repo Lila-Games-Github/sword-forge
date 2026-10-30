@@ -137,7 +137,7 @@ eq('the old loop is kept apart, without the smelter loop', ['SMELT-PURE', 'const
    Record: specs/2026-10-30-fire-swing-fx.md */
 const fxm = src.match(/\/\* FIREFX-PURE-BEGIN \*\/([\s\S]*?)\/\* FIREFX-PURE-END \*\//);
 assert.ok(fxm, 'FIREFX-PURE markers not found in ' + HTML);
-const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxBySpeed, fxWindPts, fxTrailKeep, fxGust, fxGustStep, fxGustPath, fxGustLook, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
+const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxBySpeed, fxWindPts, fxTrailKeep, fxTrailRuns, fxTrailPoly, fxGust, fxGustStep, fxGustPath, fxGustLook, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
 const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
 eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   glow: { rest: 0.35, full: 1, speed: 1600 },
@@ -146,7 +146,7 @@ eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   plain: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] } },   /* R45: the white slash, no glow, no embers */
   gale: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] },
     wind: { speed: 900, orbit: { n: 3, ry: 28, pad: 14, arc: 1.4, spin: 4, alpha: 0.85, width: 3 },   /* R48: the swirl when still, */
-      trail: { at: [[-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]], keep: 0.2, gap: 140, alpha: 0.85, width: 3 } },   /* the trails when moving */
+      trail: { at: [[-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]], keep: 0.2, gap: 140, alpha: 0.85, width: 18 } },   /* R51: a band */   /* the trails when moving */
     gusts: { rest: 2, perPx: 0.01, max: 15, life: [0.45, 0.8], r: [18, 44], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 10, alpha: 0.85 },   /* R49: larger and fewer; R50: much thicker */
     color: { edge: [80, 195, 225], core: [200, 250, 255] } } });   /* R47: the gale winds */
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
@@ -213,7 +213,13 @@ eq('R48 D1: the swirl shows when still, gone from 900 px/s', [X.fxBySpeed([FG.wi
 eq('R48 D2: the trail points - along the blade and to its side', X.fxWindPts({ px: 0, py: 0, sn: 0, cs: 1, len: 100 }, [[0.5, 0], [1, 10], [-0.1, -9]]), [{ x: 0, y: 50 }, { x: 10, y: 100 }, { x: -9, y: -10 }]);
 eq('R48 D2: each trail piece kept 0.2 s', X.fxTrailKeep([{ t: 0, F: FG }, { t: 100, F: FG }, { t: 250, F: FG }], 300).map(q => q.t), [100, 250]);
 eq('R48: no rings left', /g\.ellipse\(cx, cy, D\.rx/.test(src) || src.includes('W.ph+=fxBySpeed(F.wind.spin'), false);
-eq('R48 D2: each frame the trail points are kept; a still sword leaves no dots; the loop runs while they last', src.includes('FX.wtr.push({ t:s.t, p:fxWindPts(W, F.wind.trail.at), F:F });') && src.includes('if(Math.hypot(q.x-o.x, q.y-o.y)<0.5) return;') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);
+eq('R48 D2: each frame the trail points are kept; the loop runs while they last', src.includes('FX.wtr.push({ t:s.t, p:fxWindPts(W, F.wind.trail.at), F:F });') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);
+/* R51 (owner, 2026-10-30): the trails thick, like the slash - one tapered band each */
+const fr = (x, y, t) => ({ p: [{ x, y }], t });
+eq('R51: a trail broken by a pause (over 60 ms) or a jump (over gap px); points under 0.5 px merged; a lone point is no band', X.fxTrailRuns([fr(0, 0, 0), fr(10, 0, 16), fr(10.2, 0, 32), fr(20, 0, 48), fr(30, 0, 200), fr(40, 0, 216), fr(400, 0, 232)], 0, 140).map(r => r.map(q => q.x)), [[0, 10.2, 20], [30, 40]]);
+eq('R51: a still sword leaves no band', X.fxTrailRuns([fr(5, 5, 0), fr(5, 5, 16), fr(5.1, 5, 32)], 0, 140), []);
+eq('R51: the band - full width at the sword, narrowing with age to nothing', X.fxTrailPoly([{ x: 0, y: 0, t: 0 }, { x: 10, y: 0, t: 100 }, { x: 20, y: 0, t: 200 }], 16, 200, 0.2), [{ x: 0, y: 0 }, { x: 10, y: 4 }, { x: 20, y: 8 }, { x: 20, y: -8 }, { x: 10, y: -4 }, { x: 0, y: 0 }]);
+eq('R51: filled in one piece, a soft edge band under the core', src.includes("[[T.width*1.6, C.edge, .35], [T.width, C.core, 1]].forEach(q=>{ const P=fxTrailPoly(run, q[0], now, T.keep);") && src.includes('g.closePath(); g.fill();'), true);
 eq('R49 E: gusts made - 2 a second when still, plus 0.01 per px/s', [X.fxSpawn(FG, 0, 1, 0, 'gusts'), X.fxSpawn(FG, 1000, 0.1, 0.2, 'gusts').n], [{ n: 2, carry: 0 }, 1]);
 eq('R40 B: embers still made by default', X.fxSpawn(X.SWING_FX.fire, 0, 1, 0), { n: 14, carry: 0 });
 const gu = X.fxGust(FG, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5, e: 0 });
@@ -225,6 +231,6 @@ const gp0 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0 }), 4), gp1 =
 eq('R47 E: an open spiral, growing from 40% to its full radius', [gp0.length, r3(Math.hypot(gp0[4].x, gp0[4].y)), r3(Math.hypot(gp1[4].x, gp1[4].y)), r3(Math.hypot(gp1[0].x, gp1[0].y))], [5, 12.4, 31, 9.3]);
 eq('R47 E: fades in over 15%, then out; thins to 40%', [X.fxGustLook(0).a, X.fxGustLook(0.15).a > 0.8, X.fxGustLook(1).a, r3(X.fxGustLook(1).s)], [0, true, 0, 0.4]);
 eq('R47: the winds follow the held sword and stop with it; gusts keep their values', src.includes('if(F.wind){') && src.includes('(W.s===SW_SWING || (W.s===SM_BL && W.s.live))') && src.includes('FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);   /* R48: and the trails */
-eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one helper for the swirl, the trails and the curls)', src.includes("function fxStroke2(g, C, w, a, path){ [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(") && (src.match(/fxStroke2\(g, /g) || []).length, 4);   /* the helper and its 3 uses */
+eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one helper for the swirl, the trails and the curls)', src.includes("function fxStroke2(g, C, w, a, path){ [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(") && (src.match(/fxStroke2\(g, /g) || []).length, 3);   /* the helper and its 2 uses (R51: the trails are filled bands) */
 
 console.log('[smelter] GREEN / ' + n + ' checks');
