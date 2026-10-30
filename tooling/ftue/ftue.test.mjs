@@ -657,7 +657,7 @@ eq('a listed line shows no button anywhere in a run', src.includes("const goKind
 /* R22 (owner, 2026-10-28): no X on the dragon's lines on the counter and cave screens - a tap on the bubble closes them */
 eq('the screens without the X', src.includes("const SAY_NO_X_SCREENS=['customer','cave'];"), true);
 eq('there a closing line shows no button (OK stays; R54: but D119a)', src.includes("sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN) && !SAY_X_KEEP[id]) ? 'none' : goKind, id);"), true);
-eq('both bubbles close on a tap anywhere on them', src.includes('<div id="screenDragonSay" onclick="sayNext()">') && src.includes('<div id="dragonSay" onclick="sayNext()">'), true);
+eq('both bubbles close on a tap anywhere on them (R55: unless the X is up)', src.includes('<div id="screenDragonSay" onclick="sayTap(event)">') && src.includes('<div id="dragonSay" onclick="sayTap(event)">'), true);
 /* r280 (owner, 2026-10-20): the route the metal follows (ore in the smelter) is dark brown; the preview while an ore is
    held stays red, fainter (values: Claude's proposal) */
 { const tag = id => (src.match(new RegExp('<path id="' + id + '"[^>]*>')) || [''])[0], at = (t, a) => (t.match(new RegExp(' ' + a + '="([^"]*)"')) || [])[1];
@@ -1522,4 +1522,8 @@ eq('R53: a copy of the dragon over the dark, in his place, with the window', src
 /* R54 (owner, 2026-10-30): "for this dialogues, show the x button and make it highlighted" (D119a) */
 eq('R54: D119a keeps its X on the counter and the cave, and only it', src.includes('const SAY_X_KEEP={ D119a:1 };'), true);
 eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src), true);
+/* R55 (owner, 2026-10-30): "the dialogues should only close when clicking the x, otherwise no" */
+eq('R55: a tap on the bubble - the rest of a typing line; with the X up, only the X goes on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(SAY_GO_KIND==='close' && !(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
+eq('R55: the shown button is kept', src.includes('SAY_GO_KIND=kind;'), true);
+eq('R55: all four bubbles take the tap through it', (src.match(/onclick="sayTap\(event\)"/g) || []).length === 4 && !src.includes('onclick="sayNext()"'), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

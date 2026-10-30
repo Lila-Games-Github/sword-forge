@@ -758,3 +758,15 @@ yours and come on top.
   FTUE test 871 -> 873 (failing on the previous build first). Checked in the browser at the counter (PART 1): after D119's
   OK, D119a shows a lit X under the bubble (on screen, the top element at its centre); tapped there it closes the line,
   the stage goes to p1-dragon-tap and the dragon glows.
+- **R55 (2026-10-30, owner): a line with an X closes only from the X.** Owner, after R54: "make only the X close it. the
+  dialogues should only close when clicking the x, otherwise no." Every dragon line that shows the X (`SAY_GO_KIND` 'close')
+  now closes only when the X itself is tapped; a tap elsewhere on the bubble does nothing, except while the line is still
+  typing, when it shows the rest (R32). Unchanged: a line with OK goes on from a tap anywhere on the bubble, and a line with
+  no button (the counter and the cave, R22; the lines the player's action moves on, `SAY_NO_X`) still closes from a tap on
+  the bubble, so none can be left with no way to close. All four bubbles (the forge, the screens, the basement, the design
+  desk) take the tap through `sayTap`. Asserted by the FTUE test (written first).
+  FTUE test 873 -> 876 (failing on the previous build first; R22's bubble check now reads \`sayTap\`). Checked in the browser,
+  every tap through elementFromPoint: at the counter, D119 (OK) went on from a tap on its text; D119a (X) stayed after taps
+  on its text and its right side, and the X closed it (stage p1-dragon-tap); D119b (no button there) still closed from a
+  tap on the bubble. On the forge, a tap while D119a typed showed the rest and left it up; a tap on its text left it up;
+  the X closed it.
