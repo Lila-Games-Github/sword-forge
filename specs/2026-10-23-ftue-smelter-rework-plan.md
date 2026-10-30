@@ -675,3 +675,13 @@ yours and come on top.
   blade; swung - embers and the slash, the effect's tip equal to the forge's own tip (180, 279); let go - back on the
   anvil, the glow off, the embers gone, the loop stopped; a balanced blade - nothing; a fire blade dipped while held -
   the effect off; no console errors.
+- **R45 (2026-10-30, owner): the base swords slash white.** Owner: "I want the same slash effect on the base swords-
+  balanced and durable as well. Give it is generic white slash, no particles." A sword whose traits are all base traits
+  (balanced, durable) or that has none gets the slash only, white (`SWING_FX.plain`): no glow, no embers. Fire is
+  unchanged; any other trait (swift, gale, ice, water, ...) has no effect yet. Both swings (the dragged sword and the
+  forge's held blade) pick the effect with one rule, `fxFor(w)`. Each slash piece and ember keeps the values it was made
+  with, so a fire swing's embers finish their life when a white swing starts. Record: specs/2026-10-30-fire-swing-fx.md
+  (R45). Smelter test 99 -> 106 (failing on the previous build first). Checked in the browser with frames driven by hand:
+  a balanced and a durable Longsword - white slash, no embers, no glow; a swift one - nothing; a fire one - unchanged; a
+  white swing straight after a fire swing - the fire embers ran out, no error; the forge blade - balanced white, gale
+  nothing, fire with its glow.

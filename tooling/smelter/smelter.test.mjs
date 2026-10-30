@@ -137,12 +137,13 @@ eq('the old loop is kept apart, without the smelter loop', ['SMELT-PURE', 'const
    Record: specs/2026-10-30-fire-swing-fx.md */
 const fxm = src.match(/\/\* FIREFX-PURE-BEGIN \*\/([\s\S]*?)\/\* FIREFX-PURE-END \*\//);
 assert.ok(fxm, 'FIREFX-PURE markers not found in ' + HTML);
-const X = new Function(fxm[1] + '; return { SWING_FX, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
+const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
 const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
 eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   glow: { rest: 0.35, full: 1, speed: 1600 },
   embers: { rest: 14, perPx: 0.09, max: 180, life: [0.25, 0.55], size: [12, 26], inherit: 0.3, drag: 3, rise: 420, jitter: 35, tipBias: 2 },
-  ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.65, gap: 140 } } });
+  ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.65, gap: 140, stops: [[0, [255, 200, 90], 1], [0.45, [255, 95, 20], 0.8], [1, [190, 35, 8], 0]] } },
+  plain: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] } } });   /* R45: the white slash, no glow, no embers */
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
 eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
 const sp = X.fxSpawn(FF, 1000, 0.1, 0.5);
@@ -157,8 +158,8 @@ eq('R40 B: colour - white-yellow new, orange mid-life, smoke at the end', [X.fxR
 eq('R40 B: fades in, then out; 16 colour steps; shrinks to 40%', [X.fxEmberLook(0).a, X.fxEmberLook(0.5).a > 0.4, X.fxEmberLook(1).a, X.fxEmberLook(0).i, X.fxEmberLook(1).i, r3(X.fxEmberLook(1).s)], [0, true, 0, 0, 15, 0.4]);
 eq('R40 C: the ribbon keeps 0.12 s of the swept path', X.fxRibbonKeep(FF, [{ t: 0 }, { t: 100 }, { t: 200 }], 300).map(p => p.t), [200]);
 eq('R40 C: painted over the scene', src.includes("g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */"), true);
-eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>F.ribbon.gap) continue;'), true);
-eq('R40: fire swords only, while dragged', src.includes("fx:swordHasTrait(w, 'fire') ? SWING_FX.fire : null") && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
+eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>b.F.ribbon.gap) continue;'), true);   /* R45: the piece's own values */
+eq('R40: fire swords only, while dragged', src.includes('fx:fxFor(w)') && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
 eq('R40 A: the glow is cut to the blade picture', /\.sw-ghost \.sw-glow \{[^}]*mask-size: contain;/.test(src) && src.includes("gl.style.maskImage=gl.style.webkitMaskImage='url('+blade+')';"), true);
 eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }'), true);   /* R41: frame-sized whatever the pixel ratio */
 
@@ -178,11 +179,21 @@ eq('R43: each frame clears the whole canvas in its own pixels', src.includes("g.
 eq('R43: drawn at the pixel ratio held to 1-2', src.includes('d=Math.min(2, Math.max(1, window.devicePixelRatio||1));'), true);
 
 /* R44 (owner, 2026-10-30): the forge's blade burns too, while held, when it carries fire */
-eq('R44: the forge blade gets the effect when its metal carries fire', src.includes("fx:swordHasTrait(melt, 'fire') ? SWING_FX.fire : null") && /function smBladeGrab\(e\)\{[\s\S]{0,900}smFxOn\(b\);/.test(src), true);
+eq('R44: the forge blade gets the effect when its metal carries fire', src.includes('fx:fxFor(melt)') && /function smBladeGrab\(e\)\{[\s\S]{0,900}smFxOn\(b\);/.test(src), true);
 eq('R44: every held frame it burns', /function smBladeTick\(dt\)\{[\s\S]{0,900}smBladePaint\(\); if\(SM_BL\.fx\) fxSwing\(SM_BL, dt\);/.test(src) && /function tick\(now\)\{[\s\S]{0,4000}if\(SM_BL\) SM_BL\.t=now; smBladeTick\(dt\);/.test(src), true);
 eq('R44: it stops when let go or quenched', /function smBladeUp\(e\)\{[^\n]*smFxOff\(\); smBladeDrop\(\);/.test(src) && /function smBladeQuench\(\)\{[\s\S]{0,300}tutDipDone\(\); smFxOff\(\);/.test(src), true);
 eq('R44: one effect for both swings - the picture width and the place in the frame', /function fxSwing\(s, dt\)\{[\s\S]{0,400}o=s\.off\|\|\{ x:0, y:0 \};[\s\S]{0,200}\*\(s\.W\|\|SMELT\.swingW\), px=s\.px\+o\.x, py=s\.py\+o\.y,/.test(src), true);
 eq('R44: the glow lies over the held blade', src.includes('#smBladeGlow { position: absolute; z-index: 41;') && /function smFxPaint\(b\)\{[^\n]*\['left','top','width','transform','transformOrigin'\]/.test(src), true);
 eq('R44: the loop runs while the forge blade burns', src.includes('(SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)'), true);
+
+/* R45 (owner, 2026-10-30): the base swords (balanced, durable) slash white, no particles */
+eq('R45: the base traits', X.FX_PLAIN_TRAITS, ['balanced', 'durable']);
+const fw = ids => ({ traits: ids.map(k => ({ tid: k })) }), fm = ids => ({ traits: ids.map(k => ({ t: { id: k } })) });
+eq('R45: fire burns, even with a base trait', [X.fxFor(fw(['fire'])) === X.SWING_FX.fire, X.fxFor(fm(['durable', 'fire'])) === X.SWING_FX.fire], [true, true]);
+eq('R45: balanced, durable or none slash white', [fw(['balanced']), fw(['durable']), fm(['balanced', 'durable']), fw([]), {}].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true, true, true]);
+eq('R45: any other trait has no effect yet', [X.fxFor(fw(['swift'])), X.fxFor(fm(['balanced', 'gale'])), X.fxFor(fw(['water'])), X.fxFor(null)], [null, null, null, null]);
+eq('R45: the white slash has no glow and no embers', [X.SWING_FX.plain.glow, X.SWING_FX.plain.embers], [undefined, undefined]);
+eq('R45: embers and the glow only when the values have them', /function fxSwing\(s, dt\)\{[\s\S]{0,900}if\(s\.glow && F\.glow\)[\s\S]{0,200}if\(F\.embers\)\{/.test(src) && src.includes('if(SW_SWING.fx && SW_SWING.fx.glow){') && src.includes('if(!SM_BL.fx || !SM_BL.fx.glow) return;'), true);
+eq('R45: each slash piece and ember keeps its own values', src.includes('fxEmberStep(p.F, p, dt)') && src.includes('b.F.ribbon.stops.forEach(') && src.includes(', t:s.t, F:F });'), true);
 
 console.log('[smelter] GREEN / ' + n + ' checks');

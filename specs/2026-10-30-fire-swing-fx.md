@@ -13,7 +13,7 @@ A-E): "go with A + B + C, fire only, while dragging."
 
 - **When:** while a sword is dragged and swings from its grip (s7: the inventory, the counter and the work table drags,
   `swSwingStart` / `swSwingFrame`), and since R44 while the forge's blade is held before the quench (s5). Not the hammer minigame.
-- **Which swords:** a sword with the fire trait (`swordHasTrait(w, 'fire')`). Every other sword is unchanged.
+- **Which swords:** a sword with the fire trait (`swordHasTrait(w, 'fire')`). Since R45 the base swords (balanced, durable) get a white slash; see R45.
 - **After the drop:** the embers already in the air finish their short life; nothing new is made.
 
 ## The three parts
@@ -84,3 +84,23 @@ anvil, picked up by its handle and swung into the bucket (s5, `SM_BL`).
 - **One code path:** `fxSwing` takes the swing's picture width (`W`: the anvil blade's own width; the dragged sword's
   `SMELT.swingW` when absent) and its offset in the frame (`off`: the bench's place in the frame; none for the dragged
   sword, which already uses frame px).
+
+## R45: the base swords slash white (2026-10-30)
+
+Owner: "I want the same slash effect on the base swords- balanced and durable as well. Give it is generic white slash, no
+particles."
+
+- **Which swords** (`fxFor(w)`, the sword or the forge's metal): a fire sword burns (`SWING_FX.fire`, unchanged). A sword whose
+  traits are all base traits (`FX_PLAIN_TRAITS`: balanced, durable), or that has none, slashes white (`SWING_FX.plain`). A sword
+  with any other trait (swift, gale, ice, water, ...) has no effect yet; each waits for its own.
+- **What:** the slash (C) only: no glow (A), no embers (B). The same shape and timing as the fire slash, white.
+- **Where:** both swings, as R44: the dragged sword and the forge's held blade.
+- **Colour:** each slash takes its colour stops from its own values (`ribbon.stops`: offset from the tip edge, rgb, opacity).
+  Each slash piece and each ember keeps the values it was made with, so a fire swing's embers still finish their life when a
+  white swing starts.
+
+| Key | fire | plain |
+|---|---|---|
+| ribbon | speed 900, keep 0.12, inner 0.65, alpha 0.65, gap 140 | speed 900, keep 0.12, inner 0.65, alpha 0.7, gap 140 |
+| ribbon.stops | 0: 255,200,90 at 1; 0.45: 255,95,20 at 0.8; 1: 190,35,8 at 0 | 0: 255,255,255 at 1; 0.45: 235,242,255 at 0.55; 1: 220,230,250 at 0 |
+| glow, embers | as Values above | none |
