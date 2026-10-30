@@ -723,3 +723,13 @@ yours and come on top.
   core), not a line drawn in separate pieces; a pause or a jump breaks it, a still sword leaves none. Record:
   specs/2026-10-30-fire-swing-fx.md (R51). Smelter test 124 -> 128 (failing on the previous build first). Checked in the
   browser: a gale swing - four bands following the sword beside the slash; no errors.
+- **R52 (2026-10-30, owner): "It is hot enough" waits for full heat.** Owner, with a picture of D15 over the minigame: "for
+  this part, wait for the metal to reach max heat before showing this dialogue". D15 used to come the moment the metal
+  crossed the working heat (`HM_FORGE.workMin`, 0.35 of full). Now it comes when the heat reaches `FTUE.hotLine` (0.98):
+  the metal never rests at exactly full (it cools a little every frame, also under the flame), so 0.98 is full in play
+  (about 0.8 s of flame after 0.35). Unchanged: the strike works from 0.35; D16 ("The metal cools down slowly...") still
+  comes when the heat falls back under 0.35, and only after D15 has been said; released early, the metal cools and D15
+  waits until it is held to full. Asserted by the FTUE test (written first).
+  FTUE test 866 -> 868 (failing on the previous build first). Checked in the browser (PART 1, the first sword's minigame,
+  the flame and frames driven by hand): heated to 0.38 - no D15; let go and cooled - none; heated to full - D15 at 0.985;
+  cooled under 0.35 - D16.

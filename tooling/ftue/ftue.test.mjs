@@ -1512,4 +1512,7 @@ eq('R36: gold 1300, exp 1100; one talent point spent; no tutorial glow on the be
 /* R37 (owner, 2026-10-29): "i dont want this tutorial in the game section either" - the waiting customer's guide (D107f) */
 eq('R37: GAME marks the waiting customer\'s guide finished; the request stays in the ledger', !!fp && fp[0].includes("SAY_SEQ.push('D140'); FTUE_ST.wq='done';") && !/FTUE_ST\.waiting=\[\][^\n]*\n[^\n]*GOLD=1300/.test(fp[0]), true);
 
+/* R52 (owner, 2026-10-30): "wait for the metal to reach max heat before showing this dialogue" (D15) */
+eq('R52: D15 waits for full heat (0.98: the heat never rests at exactly 1)', FTUE.hotLine, 0.98);
+eq('R52: every heat change checks for it; D15 is said once; the cold line still keys on the working heat', src.includes('if(!hmQuenching && hmHeat>=FTUE.hotLine) tutHmHeat(true);') && src.includes('if(!hmQuenching && !hot) tutHmHeat(false);') && !src.includes('if(!hmQuenching) tutHmHeat(hot);') && src.includes('if(hot && !TUT_HMHOT){ TUT_HMHOT=true;'), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

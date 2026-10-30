@@ -2768,7 +2768,9 @@ const FTUE = {
         { img:'assets/Illustrations/intro_3_hearth.webp', title:'A New Hearth',
           text:"At the remote edge of Oakhaven, I stumbled across it: an old, long-abandoned forge. The grand hearth was cold and choked with soot, waiting for a master's spark." },
         { img:'assets/Illustrations/intro_4_anvil.webp', title:'The Anvil Awaits',
-          text:'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ] }
+          text:'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ] },
+    /* R52 (owner, 2026-10-30): D15 "It is hot enough." waits for the metal at full heat (0.98: it cools a little every frame, so it never rests at 1) */
+    hotLine: 0.98
 };
 /* FTUE-CONFIG-END */
 /* Smelter version (owner, 2026-10-21): a separate crafting loop - the bellows move the sword, the gate takes the trait, the
@@ -7792,10 +7794,11 @@ function hmMugReady(){ return hmProg>=2; }
 let HM_WASHOT=false;
 function hmHeatWatch(){
     const hot = hmHeat>=HM_FORGE.workMin;
+    if(!hmQuenching && hmHeat>=FTUE.hotLine) tutHmHeat(true);   /* R52 (owner): D15 waits for full heat; said once (TUT_HMHOT) */
     if(hot===HM_WASHOT) return;
     HM_WASHOT=hot; hmSay();
     hmPtsHeat();   /* r219: was the cold toggle (r209); now every band */
-    if(!hmQuenching) tutHmHeat(hot);   /* the final quench is not "it went cold, reheat it" */
+    if(!hmQuenching && !hot) tutHmHeat(false);   /* the final quench is not "it went cold, reheat it" */
 }
 function homeHmMug(){ const m=document.getElementById('hmMug'); if(!m) return;
     m.style.left=HM_MUG_HOME.x+'%'; m.style.top=HM_MUG_HOME.y+'%'; m.classList.remove('pouring'); }
