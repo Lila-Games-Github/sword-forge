@@ -656,7 +656,7 @@ eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)'
 eq('a listed line shows no button anywhere in a run', src.includes("const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');"), true);
 /* R22 (owner, 2026-10-28): no X on the dragon's lines on the counter and cave screens - a tap on the bubble closes them */
 eq('the screens without the X', src.includes("const SAY_NO_X_SCREENS=['customer','cave'];"), true);
-eq('there a closing line shows no button (OK stays)', src.includes("sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN)) ? 'none' : goKind, id);"), true);
+eq('there a closing line shows no button (OK stays; R54: but D119a)', src.includes("sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN) && !SAY_X_KEEP[id]) ? 'none' : goKind, id);"), true);
 eq('both bubbles close on a tap anywhere on them', src.includes('<div id="screenDragonSay" onclick="sayNext()">') && src.includes('<div id="dragonSay" onclick="sayNext()">'), true);
 /* r280 (owner, 2026-10-20): the route the metal follows (ore in the smelter) is dark brown; the preview while an ore is
    held stays red, fainter (values: Claude's proposal) */
@@ -1519,4 +1519,7 @@ eq('R52: every heat change checks for it; D15 is said once; the cold line still 
 eq('R53: the window at the top, 30 px down', src.includes('#sfRewardModal { align-items: flex-start; padding-top: 30px; }'), true);
 eq('R53: over the window the line goes under it, 10 px, beside the dragon on screen', /function sayLayout\(\)\{[\s\S]{0,300}if\(rwOpen\(\)\)\{ rwSayLayout\(\); return; \}/.test(src) && src.includes('let x=mr.left, y=mr.bottom+10, beside=false;') && src.includes('if(dr.right-6+w+6<=fr.right){ x=dr.right-6; beside=true; }'), true);
 eq('R53: a copy of the dragon over the dark, in his place, with the window', src.includes('<img id="rwDragon" src="assets/forge/dragon.webp" alt="">') && /function ftueReward\([\s\S]{0,900}classList\.add\('show'\); rwDragonShow\(\);/.test(src) && /function closeReward\(\)\{[\s\S]{0,400}rwDragonHide\(\);/.test(src), true);
+/* R54 (owner, 2026-10-30): "for this dialogues, show the x button and make it highlighted" (D119a) */
+eq('R54: D119a keeps its X on the counter and the cave, and only it', src.includes('const SAY_X_KEEP={ D119a:1 };'), true);
+eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

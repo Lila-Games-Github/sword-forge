@@ -749,3 +749,12 @@ yours and come on top.
   the counter dragon shown) - the window 114-370 px, the line under it at 379 beside the dragon with its tail to him, the
   copy exactly on his picture; OK tapped through elementFromPoint closes the window and the copy goes; a reward on the
   forge screen - the line under the window beside the forge dragon, his copy over the dark.
+- **R54 (2026-10-30, owner): D119a keeps its X, lit.** Owner, with a picture of D119a ("If you are not sure what to do, at
+  any point, you can tap on me. I'll help you.") at the counter with no button: "for this dialogues, show the x button and
+  make it highlighted. players click on it." R22 took the X off the dragon's closing lines on the counter and the cave
+  (`SAY_NO_X_SCREENS`); D119a is now the one line that keeps it there (`SAY_X_KEEP`), lit as r255 meant it (`SAY_GO_GLOW`).
+  Every other closing line on those screens is unchanged (no X; a tap on the bubble closes it). Asserted by the FTUE test
+  (written first).
+  FTUE test 871 -> 873 (failing on the previous build first). Checked in the browser at the counter (PART 1): after D119's
+  OK, D119a shows a lit X under the bubble (on screen, the top element at its centre); tapped there it closes the line,
+  the stage goes to p1-dragon-tap and the dragon glows.
