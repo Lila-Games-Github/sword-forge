@@ -655,9 +655,9 @@ eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)'
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
 eq('a listed line shows no button anywhere in a run', src.includes("const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');"), true);
 /* R22 (owner, 2026-10-28): no X on the dragon's lines on the counter and cave screens - a tap on the bubble closes them */
-eq('the screens without the X', src.includes("const SAY_NO_X_SCREENS=['customer','cave'];"), true);
-eq('there a closing line shows no button (OK stays; R54: but D119a)', src.includes("sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN) && !SAY_X_KEEP[id]) ? 'none' : goKind, id);"), true);
-eq('both bubbles close on a tap anywhere on them (R55: unless the X is up)', src.includes('<div id="screenDragonSay" onclick="sayTap(event)">') && src.includes('<div id="dragonSay" onclick="sayTap(event)">'), true);
+eq('R57: the X on every screen (R22 undone)', !src.includes('SAY_NO_X_SCREENS'), true);
+eq('R57: a closing line shows the X, whatever the screen', src.includes("sayGoIcon(go, goKind, id);   /* R57 (owner): the X on every screen (R22 took it off the counter and the cave) */"), true);
+eq('both bubbles take the tap through sayTap (R57: it never closes them)', src.includes('<div id="screenDragonSay" onclick="sayTap(event)">') && src.includes('<div id="dragonSay" onclick="sayTap(event)">'), true);
 /* r280 (owner, 2026-10-20): the route the metal follows (ore in the smelter) is dark brown; the preview while an ore is
    held stays red, fainter (values: Claude's proposal) */
 { const tag = id => (src.match(new RegExp('<path id="' + id + '"[^>]*>')) || [''])[0], at = (t, a) => (t.match(new RegExp(' ' + a + '="([^"]*)"')) || [])[1];
@@ -1520,10 +1520,10 @@ eq('R53: the window at the top, 30 px down', src.includes('#sfRewardModal { alig
 eq('R53: over the window the line goes under it, 10 px, beside the dragon on screen', /function sayLayout\(\)\{[\s\S]{0,300}if\(rwOpen\(\)\)\{ rwSayLayout\(\); return; \}/.test(src) && src.includes('let x=mr.left, y=mr.bottom+10, beside=false;') && src.includes('if(dr.right-6+w+6<=fr.right){ x=dr.right-6; beside=true; }'), true);
 eq('R53: a copy of the dragon over the dark, in his place, with the window', src.includes('<img id="rwDragon" src="assets/forge/dragon.webp" alt="">') && /function ftueReward\([\s\S]{0,900}classList\.add\('show'\); rwDragonShow\(\);/.test(src) && /function closeReward\(\)\{[\s\S]{0,400}rwDragonHide\(\);/.test(src), true);
 /* R54 (owner, 2026-10-30): "for this dialogues, show the x button and make it highlighted" (D119a) */
-eq('R54: D119a keeps its X on the counter and the cave, and only it', src.includes('const SAY_X_KEEP={ D119a:1 };'), true);
+eq('R54: D119a shows its X at the counter (R57: every line does; no exception list)', !src.includes('SAY_X_KEEP'), true);
 eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src), true);
 /* R55 (owner, 2026-10-30): "the dialogues should only close when clicking the x, otherwise no" */
-eq('R55: a tap on the bubble - the rest of a typing line; with the X up, only the X goes on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(SAY_GO_KIND==='close' && !(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
+eq('R57: a tap on the bubble - only the rest of a typing line; only its button (OK, X) moves it on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
 eq('R55: the shown button is kept', src.includes('SAY_GO_KIND=kind;'), true);
 eq('R55: all four bubbles take the tap through it', (src.match(/onclick="sayTap\(event\)"/g) || []).length === 4 && !src.includes('onclick="sayNext()"'), true);
 /* R56 (owner, 2026-10-30): the player replies to the customer before the dragon speaks (13 places, approved) */

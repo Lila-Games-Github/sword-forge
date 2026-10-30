@@ -11057,10 +11057,6 @@ const SAY_GO_MORE={ D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g
    (D15: the minigame holds while it is read; D15a, the strike, needs the live game) */
 const SAY_PAUSE_ONE={ D15:1 };
 const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28d:1, D28f:1, D28h:1, D28i:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
-/* R22 (owner, 2026-10-28): the dragon's lines on these screens have no X; a tap anywhere on the bubble closes them (OK stays) */
-const SAY_NO_X_SCREENS=['customer','cave'];
-/* R54 (owner, 2026-10-30): "for this dialogues, show the x button and make it highlighted. players click on it." - lines that keep their X there (lit: SAY_GO_GLOW) */
-const SAY_X_KEEP={ D119a:1 };
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 let SAY_GO_KIND=null;   /* R55: the shown line's button: 'close' (the X), 'next' (OK) or 'none' */
@@ -11104,7 +11100,7 @@ function say(id){
     const go=document.getElementById(B[2]);
     /* r288: a listed line has none anywhere in a run (D23 repeats behind a stale run). r115/r174/r184/r196 */
     const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');
-    sayGoIcon(go, (goKind==='close' && SAY_NO_X_SCREENS.includes(SF_SCREEN) && !SAY_X_KEEP[id]) ? 'none' : goKind, id);   /* R22: no X there - a tap on the bubble closes it */
+    sayGoIcon(go, goKind, id);   /* R57 (owner): the X on every screen (R22 took it off the counter and the cave) */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');
@@ -11201,9 +11197,9 @@ function sayAgain(){
 }
 const SM_FREE=location.search.indexOf('freeplay')>=0;   /* R0: the free-play test aid (the main game plays the tutorial) */
 function sayStart(){ if(SM_FREE){ smFreePlay(); return; } if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
-/* R55 (owner, 2026-10-30): "the dialogues should only close when clicking the x, otherwise no" - a tap on the bubble shows the
-   rest of a typing line; with the X up only the X goes on; an OK or no button goes on from anywhere on it, as before */
-function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(SAY_GO_KIND==='close' && !(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }
+/* R55/R57 (owner, 2026-10-30): "only the x button should close the dialogues, on all the screens" - a tap on the bubble only shows
+   the rest of a typing line; only its button moves it on (OK: the next line, X: close); a line with none waits for the action */
+function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }
 function sayNext(){
     if(SAY_TYPE_T){ sayTypeStop(true); return; }   /* R32: a tap while the line types shows the rest */
     if(SAY_CHOICES && !SAY_CHOICES_OPT) return;   /* r115: answer the question first. r189: unless it is only an offer */

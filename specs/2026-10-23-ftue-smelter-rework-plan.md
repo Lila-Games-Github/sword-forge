@@ -439,7 +439,7 @@ yours and come on top.
   the inventory: 20, nothing on the wheel, no orb, no preview, no route; at `fire-mang` with D72 and with D72a up, a drag
   from the iron and the manganese slots made no ghost and spent nothing; with D72a closed the iron went onto the wheel; no
   console errors.
-- **R22 (2026-10-28, owner): no X on the dragon's lines on the counter and cave screens.** Owner: "remove x from dragon's
+- **R22 (2026-10-28, owner): no X on the dragon's lines on the counter and cave screens.** (Undone by R57.) Owner: "remove x from dragon's
   dialogues for customer counter screen and cave". The X (`SAY_GO_CLOSE`) showed on the last line of a run; it has no
   handler of its own (a tap on it reaches the bubble's `onclick="sayNext()"`, on both `#screenDragonSay` and
   `#dragonSay`), so a tap anywhere on the bubble already closed the line. Now `say()` works out the button as before
@@ -801,3 +801,15 @@ yours and come on top.
   tap brought D28b, SELL back); TC2 (D31), TC4 (D92l), TC5 (D93a); TC3 through her greeting and D62 (the reply in her
   panel, lit; D64, stage to-cave); Bram through "I am glad you survived.", the illustration and D111 (D111b); part 3's
   durable order (D92b); an owned fire Longsword (the reply, then D92m); no console errors.
+- **R57 (2026-10-30, owner): a tap on the dragon's bubble never closes it; the X on every screen.** Owner: "clicking on the
+  dragon dialogues, closes it on the forge screen. make sure this does not happen. only the x button should close the
+  dialogues, on all the screens. the dialogues do not close for the first crafting". R55 held the bubble only while the X was
+  up; a line with OK, or with no button (the lines the player's action moves on, `SAY_NO_X`, as through the first craft),
+  still went on or closed from a tap anywhere on the bubble. Now a tap on the bubble only shows the rest of a line that is
+  still typing (R32); only its button moves it on: OK to the next line, the X to close. The X is back on the counter and
+  the cave (R22's `SAY_NO_X_SCREENS` and R54's `SAY_X_KEEP` are gone), since a line there could otherwise not be closed.
+  A line with no button waits for the player's action, as it was built to. Asserted by the FTUE test (written first).
+  FTUE test 881 (R22's, R54's and R55's checks rewritten to the new rule, failing on the previous build first). Checked in
+  the browser, every tap through elementFromPoint: on the forge, a tap while D1 typed showed the rest and left it up; taps
+  on the bubble left D1 (OK), D3 (no button, the first craft's ore line) and D119b (X) up; OK went to D2, the X closed
+  D119b. At the counter, the bubble left D119 (OK) and D119b up; OK went on; the X, shown again, closed it.
