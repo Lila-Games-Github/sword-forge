@@ -147,7 +147,7 @@ eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   gale: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] },
     wind: { speed: 900, orbit: { n: 3, ry: 28, pad: 14, arc: 1.4, spin: 4, alpha: 0.85, width: 3 },   /* R48: the swirl when still, */
       trail: { at: [[-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]], keep: 0.2, gap: 140, alpha: 0.85, width: 3 } },   /* the trails when moving */
-    gusts: { rest: 5, perPx: 0.025, max: 40, life: [0.45, 0.8], r: [8, 26], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 3, alpha: 0.85 },
+    gusts: { rest: 2, perPx: 0.01, max: 15, life: [0.45, 0.8], r: [18, 44], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 4, alpha: 0.85 },   /* R49: larger and fewer */
     color: { edge: [80, 195, 225], core: [200, 250, 255] } } });   /* R47: the gale winds */
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
 eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
@@ -214,15 +214,15 @@ eq('R48 D2: the trail points - along the blade and to its side', X.fxWindPts({ p
 eq('R48 D2: each trail piece kept 0.2 s', X.fxTrailKeep([{ t: 0, F: FG }, { t: 100, F: FG }, { t: 250, F: FG }], 300).map(q => q.t), [100, 250]);
 eq('R48: no rings left', /g\.ellipse\(cx, cy, D\.rx/.test(src) || src.includes('W.ph+=fxBySpeed(F.wind.spin'), false);
 eq('R48 D2: each frame the trail points are kept; a still sword leaves no dots; the loop runs while they last', src.includes('FX.wtr.push({ t:s.t, p:fxWindPts(W, F.wind.trail.at), F:F });') && src.includes('if(Math.hypot(q.x-o.x, q.y-o.y)<0.5) return;') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);
-eq('R47 E: gusts made - 5 a second when still, plus 0.025 per px/s', [X.fxSpawn(FG, 0, 1, 0, 'gusts'), X.fxSpawn(FG, 1000, 0.1, 0.2, 'gusts').n], [{ n: 5, carry: 0 }, 3]);
+eq('R49 E: gusts made - 2 a second when still, plus 0.01 per px/s', [X.fxSpawn(FG, 0, 1, 0, 'gusts'), X.fxSpawn(FG, 1000, 0.1, 0.2, 'gusts').n], [{ n: 2, carry: 0 }, 1]);
 eq('R40 B: embers still made by default', X.fxSpawn(X.SWING_FX.fire, 0, 1, 0), { n: 14, carry: 0 });
 const gu = X.fxGust(FG, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5, e: 0 });
-eq('R47 E: a new gust - its point, 0.35 of its velocity, mid life, size and sweep', Object.assign({}, gu, { life: r3(gu.life), r: r3(gu.r), sweep: r3(gu.sweep), vx: r3(gu.vx), vy: r3(gu.vy) }), { x: 10, y: 20, vx: 35, vy: -17.5, age: 0, life: 0.625, r: 17, sweep: 3.75, a0: 0 });
+eq('R47 E: a new gust - its point, 0.35 of its velocity, mid life, size and sweep', Object.assign({}, gu, { life: r3(gu.life), r: r3(gu.r), sweep: r3(gu.sweep), vx: r3(gu.vx), vy: r3(gu.vy) }), { x: 10, y: 20, vx: 35, vy: -17.5, age: 0, life: 0.625, r: 31, sweep: 3.75, a0: 0 });   /* R49: r 18-44 */
 const g2 = Object.assign({}, gu), live = X.fxGustStep(FG, g2, 0.1);
 eq('R47 E: it slows, does not rise, turns and ages', [live, r3(g2.vx) < 35, r3(g2.vy) > -17.5, r3(g2.a0), r3(g2.age)], [true, true, true, 0.7, 0.1]);
 eq('R47 E: it goes at the end of its life', X.fxGustStep(FG, Object.assign({}, gu, { age: 0.62 }), 0.01), false);
 const gp0 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0 }), 4), gp1 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0, age: gu.life }), 4);
-eq('R47 E: an open spiral, growing from 40% to its full radius', [gp0.length, r3(Math.hypot(gp0[4].x, gp0[4].y)), r3(Math.hypot(gp1[4].x, gp1[4].y)), r3(Math.hypot(gp1[0].x, gp1[0].y))], [5, 6.8, 17, 5.1]);
+eq('R47 E: an open spiral, growing from 40% to its full radius', [gp0.length, r3(Math.hypot(gp0[4].x, gp0[4].y)), r3(Math.hypot(gp1[4].x, gp1[4].y)), r3(Math.hypot(gp1[0].x, gp1[0].y))], [5, 12.4, 31, 9.3]);
 eq('R47 E: fades in over 15%, then out; thins to 40%', [X.fxGustLook(0).a, X.fxGustLook(0.15).a > 0.8, X.fxGustLook(1).a, r3(X.fxGustLook(1).s)], [0, true, 0, 0.4]);
 eq('R47: the winds follow the held sword and stop with it; gusts keep their values', src.includes('if(F.wind){') && src.includes('(W.s===SW_SWING || (W.s===SM_BL && W.s.live))') && src.includes('FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);   /* R48: and the trails */
 eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one helper for the swirl, the trails and the curls)', src.includes("function fxStroke2(g, C, w, a, path){ [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(") && (src.match(/fxStroke2\(g, /g) || []).length, 4);   /* the helper and its 3 uses */

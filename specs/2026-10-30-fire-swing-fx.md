@@ -139,7 +139,7 @@ around the blade and the sword. use slightly cyan color for this."
 |---|---|
 | ribbon | as plain (R45): speed 900, keep 0.12, inner 0.65, alpha 0.7, gap 140, white stops |
 | wind | at -0.15, 0.2, 0.5, 0.8; rx 20, ry 6, arc 4, spin 5-16, speed 1600, alpha 0.4-0.9, width 3 |
-| gusts | rest 5, perPx 0.025, max 40, life 0.45-0.8, r 8-26, sweep 3-4.5, spin 7, inherit 0.35, jitter 30, drag 2.5, width 3, alpha 0.85 |
+| gusts (R49: see R49) | rest 5, perPx 0.025, max 40, life 0.45-0.8, r 8-26, sweep 3-4.5, spin 7, inherit 0.35, jitter 30, drag 2.5, width 3, alpha 0.85 |
 | color | edge 80,195,225; core 200,250,255 |
 
 ## R48: the gale winds swirl when still, trail when moving (2026-10-30)
@@ -165,3 +165,16 @@ and the curls (E) are unchanged.
 | wind | speed 900 |
 | wind.orbit | n 3, ry 28, pad 14, arc 1.4, spin 4, alpha 0.85, width 3 |
 | wind.trail | at [-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]; keep 0.2, gap 140, alpha 0.85, width 3 |
+
+## R49: the curls larger and fewer (2026-10-30)
+
+Owner: "make the swirls larger and fewer" (the wind curls, E). About 2.5 times fewer and about 1.8 times larger; the rest of
+the gale effect is unchanged.
+
+| Key | Was (R47) | Now |
+|---|---|---|
+| gusts.rest | 5 | 2 |
+| gusts.perPx | 0.025 | 0.01 |
+| gusts.max | 40 | 15 |
+| gusts.r | 8-26 | 18-44 |
+| gusts.width | 3 | 4 |

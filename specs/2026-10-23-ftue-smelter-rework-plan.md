@@ -708,3 +708,8 @@ yours and come on top.
   on the previous build first). Checked in the browser with frames driven by hand: settled still - the streaks round the
   sword; a swing at 2150 px/s - the swirl gone, trails, slash and curls; let go - all gone and the loop stopped within 46
   frames; the forge's gale blade - trails and slash, gone on release; no console errors, no missing files.
+- **R49 (2026-10-30, owner): the curls larger and fewer.** Owner: "make the swirls larger and fewer" (taken as the gale's
+  wind curls, E). Made at 2 a second still (was 5) plus 0.01 per px/s (was 0.025), at most 15 alive (was 40); 18-44 px
+  across (was 8-26), line 4 px (was 3). Record: specs/2026-10-30-fire-swing-fx.md (R49). Smelter test 124 checks, its
+  values updated first (failing on the previous build). Checked in the browser: over three back-and-forth swings at most
+  15 curls, 19-40 px; no errors.
