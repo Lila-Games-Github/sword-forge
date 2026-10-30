@@ -1515,4 +1515,8 @@ eq('R37: GAME marks the waiting customer\'s guide finished; the request stays in
 /* R52 (owner, 2026-10-30): "wait for the metal to reach max heat before showing this dialogue" (D15) */
 eq('R52: D15 waits for full heat (0.98: the heat never rests at exactly 1)', FTUE.hotLine, 0.98);
 eq('R52: every heat change checks for it; D15 is said once; the cold line still keys on the working heat', src.includes('if(!hmQuenching && hmHeat>=FTUE.hotLine) tutHmHeat(true);') && src.includes('if(!hmQuenching && !hot) tutHmHeat(false);') && !src.includes('if(!hmQuenching) tutHmHeat(hot);') && src.includes('if(hot && !TUT_HMHOT){ TUT_HMHOT=true;'), true);
+/* R53 (owner, 2026-10-30): the reward window higher, the dragon's line under it, the dragon over the dark */
+eq('R53: the window at the top, 30 px down', src.includes('#sfRewardModal { align-items: flex-start; padding-top: 30px; }'), true);
+eq('R53: over the window the line goes under it, 10 px, beside the dragon on screen', /function sayLayout\(\)\{[\s\S]{0,300}if\(rwOpen\(\)\)\{ rwSayLayout\(\); return; \}/.test(src) && src.includes('let x=mr.left, y=mr.bottom+10, beside=false;') && src.includes('if(dr.right-6+w+6<=fr.right){ x=dr.right-6; beside=true; }'), true);
+eq('R53: a copy of the dragon over the dark, in his place, with the window', src.includes('<img id="rwDragon" src="assets/forge/dragon.webp" alt="">') && /function ftueReward\([\s\S]{0,900}classList\.add\('show'\); rwDragonShow\(\);/.test(src) && /function closeReward\(\)\{[\s\S]{0,400}rwDragonHide\(\);/.test(src), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

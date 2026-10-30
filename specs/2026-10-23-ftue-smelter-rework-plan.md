@@ -733,3 +733,19 @@ yours and come on top.
   FTUE test 866 -> 868 (failing on the previous build first). Checked in the browser (PART 1, the first sword's minigame,
   the flame and frames driven by hand): heated to 0.38 - no D15; let go and cooled - none; heated to full - D15 at 0.985;
   cooled under 0.35 - D16.
+- **R53 (2026-10-30, owner): the reward window higher, the dragon's line under it, the dragon over the dark.** Owner, with
+  a picture of the ore reward at the counter (the line at the frame's top left, far from the dragon at the bottom left):
+  "the dragon's dialogues are faar from the dragon. Let's show the reward box a bit higher, and show the dragon's dialogues
+  below it. Make the dragon visible as well, not hidden behind the black overlay". Cause: over the reward window the line
+  uses the forge's bubble (r292), which was placed against the forge's dragon, not the one on screen.
+  - **The window:** at the top of the frame, 30 px down (it was centred).
+  - **The line:** over the reward window it sits 10 px under the window; beside the dragon on screen when it fits there
+    (its tail to his head, as r93), else at the window's left edge; kept inside the frame (`rwSayLayout`).
+  - **The dragon:** his own layer is under the window's dark (the counter's screen layer is z 40, the window z 1000), so
+    the window carries a copy of his picture (`#rwDragon`) in his place on screen, shown with the window and gone with
+    it; none when he is not on screen (`rwDragonEl`).
+  Asserted by the FTUE test (written first).
+  FTUE test 868 -> 871 (failing on the previous build first). Checked in the browser: the ore reward at the counter (PART 1,
+  the counter dragon shown) - the window 114-370 px, the line under it at 379 beside the dragon with its tail to him, the
+  copy exactly on his picture; OK tapped through elementFromPoint closes the window and the copy goes; a reward on the
+  forge screen - the line under the window beside the forge dragon, his copy over the dark.

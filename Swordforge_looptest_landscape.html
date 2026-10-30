@@ -872,6 +872,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r199: FTUE - a shape without its blueprint, the reward window, the locked grindstone, build mode */
 .sf-shape.locked { cursor: pointer; }   /* r299: a locked shape is bought from here; only its icon and name are greyed (above) */
 #sfRewardModal .sf-modal-box { max-width: 360px; }
+/* R53 (owner, 2026-10-30): the window higher, the dragon's line under it (rwSayLayout), the dragon over the dark - a copy of his
+   picture in his place (his own layer is under the window's dark) */
+#sfRewardModal { align-items: flex-start; padding-top: 30px; }
+#rwDragon { position: absolute; display: none; pointer-events: none; object-fit: contain; }
 .rwd-list { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; }
 .rwd-row { display: flex; align-items: center; gap: 10px; background: #f3ead6; border: 2px solid #cbb98f; border-radius: 10px; padding: 8px 10px; }
 .rwd-ic { width: 44px; height: 44px; object-fit: contain; flex: 0 0 44px; }
@@ -2462,6 +2466,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <!-- ===== Shape select ===== -->
     <!-- r199: one window for every FTUE reward -->
     <div id="sfRewardModal" class="sf-modal">
+        <img id="rwDragon" src="assets/forge/dragon.webp" alt="">
         <div class="sf-modal-box">
             <h3 class="sf-modal-h">Reward!</h3>
             <div id="rwList" class="rwd-list"></div>
@@ -3338,8 +3343,26 @@ function ftueReward(list, then){
             row.innerHTML=ftueRewardIcon(r)+'<span class="rwd-tx"><b>'+ftueRewardName(r)+'</b><span>'+ftueRewardSub(r)+'</span></span>';
             box.appendChild(row); }); }
     RW_THEN=then||null; sayHide();
-    const m=document.getElementById('sfRewardModal'); if(m) m.classList.add('show'); }
+    const m=document.getElementById('sfRewardModal'); if(m){ m.classList.add('show'); rwDragonShow(); } }
+/* R53 (owner, 2026-10-30): the dragon on screen (his picture), or null when he is not shown */
+function rwDragonEl(){ const d=document.getElementById(onScreenDragon() ? 'screenDragon' : 'dragon'), im=d && d.querySelector('img'); return (im && im.getBoundingClientRect().width>2) ? im : null; }
+function rwOpen(){ const m=document.getElementById('sfRewardModal'); return !!(m && m.classList.contains('show')); }
+/* his picture over the window's dark, in his place */
+function rwDragonShow(){ const c=document.getElementById('rwDragon'), m=document.getElementById('sfRewardModal'), im=rwDragonEl(); if(!c || !m) return;
+    if(!im){ c.style.display='none'; return; } const r=im.getBoundingClientRect(), q=m.getBoundingClientRect();
+    Object.assign(c.style, { left:(r.left-q.left)+'px', top:(r.top-q.top)+'px', width:r.width+'px', height:r.height+'px', display:'block' }); }
+function rwDragonHide(){ const c=document.getElementById('rwDragon'); if(c) c.style.display='none'; }
+/* the line over the window: 10 px under it, beside the dragon on screen when it fits (tail to his head), else at the window's left */
+function rwSayLayout(){ const box=document.getElementById('dragonSay'), m=document.querySelector('#sfRewardModal .sf-modal-box'), f=document.getElementById('frame'), b=benchEl(), im=rwDragonEl();
+    if(!box || !m || !f || !b) return; const mr=m.getBoundingClientRect(), fr=f.getBoundingClientRect(), host=b.getBoundingClientRect(), w=box.offsetWidth||315, h=box.offsetHeight||83;
+    let x=mr.left, y=mr.bottom+10, beside=false;
+    if(im){ const dr=im.getBoundingClientRect(); if(dr.right-6+w+6<=fr.right){ x=dr.right-6; beside=true; }
+        y=Math.min(fr.bottom-h-42, y); if(beside) box.style.setProperty('--tailY', Math.max(14, Math.min(h-36, dr.top+dr.height*0.26-y-15)).toFixed(0)+'px'); }
+    x=Math.max(fr.left+6, Math.min(fr.right-w-6, x)); y=Math.min(fr.bottom-h-42, y);
+    box.classList.remove('above'); box.classList.toggle('tail-left', beside);
+    box.style.left=(x-host.left).toFixed(0)+'px'; box.style.top=(y-host.top).toFixed(0)+'px'; }
 function closeReward(){
+    rwDragonHide();   /* R53 */
     document.querySelectorAll('.say-over-modal').forEach(e=>e.classList.remove('say-over-modal'));   /* r291: the dragon's line came down over it */
     const m=document.getElementById('sfRewardModal'); if(m) m.classList.remove('show');
     const f=RW_THEN; RW_THEN=null; if(f) setTimeout(f, 0); }
@@ -10917,6 +10940,7 @@ function sayWhere(){
 }
 function sayLayout(){
     { const w=sayWhere(); if(w==='sharp' || w==='design') return; }   /* r103/r116: placed by CSS */
+    if(rwOpen()){ rwSayLayout(); return; }   /* R53 (owner): over the reward window, under it and beside the dragon on screen */
     const onScreen=onScreenDragon();
     const box=document.getElementById(onScreen?'screenDragonSay':'dragonSay'), b=onScreen?document.getElementById('screenLayer'):benchEl(), f=document.getElementById('frame');
     if(!box||!b||!f) return;
