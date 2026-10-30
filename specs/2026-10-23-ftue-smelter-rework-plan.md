@@ -770,3 +770,34 @@ yours and come on top.
   on its text and its right side, and the X closed it (stage p1-dragon-tap); D119b (no button there) still closed from a
   tap on the bubble. On the forge, a tap while D119a typed showed the rest and left it up; a tap on its text left it up;
   the X closed it.
+- **R56 (2026-10-30, owner): the player replies before the dragon speaks.** Owner, with a picture of an order line and the
+  dragon's D28b straight under it: "I want to put a pause between the customer's dialogues and the dragon dialogues... add
+  a response for the customer dialogue like 'yes, I can craft one.' players click on the response, then dragon dialogue
+  comes up." The audit found 13 places where a dragon line followed a customer line; the owner approved the list and the
+  replies ("approved, build it"). Once the customer's line has landed, the reply (`FTUE.replies`) comes up lit under it;
+  its tap takes it away and brings the dragon's line, exactly as before. The counter's reply box (`.cs-resp`) holds it,
+  SELL and the others hidden behind it while it waits (`#csPanel.cs-replying`); for the adventurer and Bram, whose lines
+  are in the named panel, the panel's reply button (`#bramResponses`). One helper, `custReply(key, fn, named)`.
+
+  | # | Where | Reply (`FTUE.replies`) | Then the dragon |
+  |---|---|---|---|
+  | 1-3 | Part 1 orders (balanced Longsword, Broadsword, Katana) | order: "Yes, I can craft one." | D28b, D28e, D28g |
+  | 4 | Part 2, TC2 (D29) | tc2: "I'll craft you a good one." | D31 |
+  | 5 | Part 2, TC3 (D62 or D63) | tc3: "Yes, I can craft a fire sword." | D64 |
+  | 6 | Part 3, GC4 durable Shortsword | order | D92b, D92c |
+  | 7-9 | Part 3 fire Longsword, Broadsword, Katana | order | D92h (then D92a), D92i, D92j |
+  | 10 | Part 4, TC4 (D92k) | tc4: "One Epic durable sword. I'll do my best." | D92l |
+  | 11 | Part 4, TC5 (D93) | tc5: "Not yet, but I can craft one." | D93a |
+  | 12 | Part 5, Bram (D111 + D111a) | bram2: "Yes, a sharper swift dagger. Leave it to me." | D111b, D48 |
+  | 13 | Part 5, gale Longsword | order | D113a |
+
+  An order whose blueprint is already owned (a replay, a PART jump) skips the market lines but still gets the dragon's
+  craft guide line, so the reply comes before that. Not changed (a reply or the player's own tap
+  already comes first, or no dragon line follows): Bram's first visit, TC3's greeting, Garric's opening and verdict, the
+  thank-you lines after sales, GC8 (weak), the two-sword waiting order, a waiting customer's return, every customer after
+  the tutorial.
+  FTUE test 876 -> 881 (failing on the previous build first; r300's owned-blueprint check now reads the reply). Checked
+  in the browser, every tap through elementFromPoint: part 1 orders 1-2 (the reply on top, lit, SELL hidden behind it; its
+  tap brought D28b, SELL back); TC2 (D31), TC4 (D92l), TC5 (D93a); TC3 through her greeting and D62 (the reply in her
+  panel, lit; D64, stage to-cave); Bram through "I am glad you survived.", the illustration and D111 (D111b); part 3's
+  durable order (D92b); an owned fire Longsword (the reply, then D92m); no console errors.

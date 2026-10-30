@@ -1214,7 +1214,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
   eq('a quiet entry waits while a line is up', src.includes("if(!e || TUT_SKIP_TRIED===st || (e.quiet && SAY_ON)) return;"), true);
   /* the market: a blueprint the player already owns is not bought again (it looped: buy -> close -> ask) */
   eq('owned blueprint: no purchase, straight to the craft (r300)', src.includes("function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='shape' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }")
-    && src.includes("if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; ftueOrderGo(o); return; }"), true);
+    && src.includes("if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; custReplyShow('order', ()=>ftueOrderGo(o)); return; }"), true);   /* R56: the player's reply first */
   eq('closeMarket and the skip share one ending', /function closeMarket\(\)\{[\s\S]{0,300}if\(m && m\.step==='done'\) ftueMarketDone\(m\);/.test(src), true);
 }
 /* D28a must sit beside D28, never at the end: lastLine() is the map's final key */
@@ -1526,4 +1526,10 @@ eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(s
 eq('R55: a tap on the bubble - the rest of a typing line; with the X up, only the X goes on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(SAY_GO_KIND==='close' && !(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
 eq('R55: the shown button is kept', src.includes('SAY_GO_KIND=kind;'), true);
 eq('R55: all four bubbles take the tap through it', (src.match(/onclick="sayTap\(event\)"/g) || []).length === 4 && !src.includes('onclick="sayNext()"'), true);
+/* R56 (owner, 2026-10-30): the player replies to the customer before the dragon speaks (13 places, approved) */
+eq('R56: the approved replies', FTUE.replies, { order: 'Yes, I can craft one.', tc2: "I'll craft you a good one.", tc3: 'Yes, I can craft a fire sword.', tc4: "One Epic durable sword. I'll do my best.", tc5: 'Not yet, but I can craft one.', bram2: 'Yes, a sharper swift dagger. Leave it to me.' });
+eq('R56: one helper - after the line lands, the lit reply; its tap brings the dragon', src.includes('function custReply(key, fn, named){ typeAfter(()=>custReplyShow(key, fn, named)); }') && src.includes("re.textContent=FTUE.replies[key]; re.classList.add('tut-lit-ctl');") && src.includes("#csPanel.cs-replying > .cs-btn { visibility: hidden; }"), true);
+eq('R56: the orders (parts 1, 3, 5) - the reply before the market lines, or before the craft guide when the blueprint is owned', src.includes("if(ftueMarketOwned()){ FTUE_MK=null; custReplyShow('order', ()=>ftueOrderGo(o)); return; }\n        custReplyShow('order', ()=>{") && src.includes("if(o.lesson==='durable') custReply('order', ftueDurableStart);"), true);
+eq('R56: TC2, TC3, TC4, TC5, Bram', ["custReply('tc2', ()=>{", "custReply('tc3', ()=>tutFireAsked(), true);", "custReply('tc4', ()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l');", "custReply('tc5', ()=>{ TUT_STAGE='d2-back'; sayQueue('D93a');", "custReply('bram2', toForge, true);"].every(s => src.includes(s)), true);
+eq('R56: the replies say tap-free player words, straight quotes', Object.values(FTUE.replies).every(s => !/[\u2018\u2019\u201c\u201d]/.test(s) && !/click/i.test(s)), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

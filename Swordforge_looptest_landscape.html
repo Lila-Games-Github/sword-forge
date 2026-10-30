@@ -1456,6 +1456,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-dlg p { margin: 0; font-size: 19.125px; line-height: 1.4; color: #4a3623; text-align: left; width: 100%; }   /* Dialogue_box.png is pale parchment, so the text has to be dark. r231: 17px -> 25.5px (owner: 50% bigger); r234: 25% smaller, 19.125px. r244: left-aligned across the box, so it types left to right */
 /* r149: sized to its label. "Take care" filled a 44.92%-wide, 104px-tall slab; it is centred on the
    panel and grows only as far as the text needs, up to the old width. counterLayout() owns top. */
+#csPanel.cs-replying > .cs-btn { visibility: hidden; }   /* R56: the reply waits alone */
 .cs-resp { position: absolute; left: 50%; transform: translateX(-50%); width: auto; max-width: 44.92%;
     min-height: 44px; padding: 10px 44px; box-sizing: border-box;
     background: url('assets/ui/Paper_button_wider.webp') center / 100% 100% no-repeat;
@@ -2775,7 +2776,9 @@ const FTUE = {
         { img:'assets/Illustrations/intro_4_anvil.webp', title:'The Anvil Awaits',
           text:'My destiny is unwritten. I will master the flames, rebuild my legacy, and become the greatest blacksmith this world has ever seen. The work begins now.' } ] },
     /* R52 (owner, 2026-10-30): D15 "It is hot enough." waits for the metal at full heat (0.98: it cools a little every frame, so it never rests at 1) */
-    hotLine: 0.98
+    hotLine: 0.98,
+    /* R56 (owner, 2026-10-30): the player's reply to the customer before the dragon speaks (custReply; 13 places, approved) */
+    replies: { order:'Yes, I can craft one.', tc2:"I'll craft you a good one.", tc3:'Yes, I can craft a fire sword.', tc4:"One Epic durable sword. I'll do my best.", tc5:'Not yet, but I can craft one.', bram2:'Yes, a sharper swift dagger. Leave it to me.' }
 };
 /* FTUE-CONFIG-END */
 /* Smelter version (owner, 2026-10-21): a separate crafting loop - the bellows move the sword, the gate takes the trait, the
@@ -3498,7 +3501,7 @@ function tutTc4Arrive(){
     CUSTOMER={ portrait:'assets/customer/woman2.webp', tid:'durable', shape:null, tier:'Epic', name:'Durable', ftue:true, qty:1, got:0, tc4:true };
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D92k);
-    typeAfter(()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l'); setTimeout(()=>tutExitTo('forge'), 0); });   /* owner, 2026-10-09: the nickel is in the bag from Day 2's one trip */
+    custReply('tc4', ()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l'); setTimeout(()=>tutExitTo('forge'), 0); });   /* R56: the player's reply first */   /* owner, 2026-10-09: the nickel is in the bag from Day 2's one trip */
 }
 function tutTc4Pull(){
     if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;
@@ -3665,14 +3668,15 @@ function ftueGpcArrive(){
     /* r213: the dragon's word on the first unguided craft (GPC1), the bulk order (GPC3), the first fire order (GPC4) */
     const nudge = o.market ? o.market.ask : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
                 : null;
-    if(o.lesson==='durable') typeAfter(ftueDurableStart);   /* v3 part 3 */
+    if(o.lesson==='durable') custReply('order', ftueDurableStart);   /* v3 part 3. R56: the reply first */
     if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
     if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */
         typeAfter(()=>{ FTUE_ST.seenMarket=true; marketBtnUi(); tutExit('#marketBtn'); }); }   /* 2026-10-09: COME LATER appears with them. R39: the market appears as it is lit */
-    if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; ftueOrderGo(o); return; }
+    if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; custReplyShow('order', ()=>ftueOrderGo(o)); return; }
+        custReplyShow('order', ()=>{   /* R56: the player's reply, then the dragon */
         const lines=[nudge].concat(o.market && o.market.more ? [o.market.more] : []);
         if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };   /* r300: closing the order's lines starts the craft guide */
-        sayQueue.apply(null, lines); });
+        sayQueue.apply(null, lines); }); });
     custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.lesson==='later' ? DIALOGUE.D107c : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
                            : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
@@ -9529,7 +9533,7 @@ function tutDay2Customer(){
     buildScreenProps('customer'); counterUi();
     /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
        cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */
-    typeAfter(()=>{ TUT_STAGE='d2-back'; sayQueue('D93a'); setTimeout(()=>tutExit('#panRight'), 0); });   /* r213: why copper */
+    custReply('tc5', ()=>{ TUT_STAGE='d2-back'; sayQueue('D93a'); setTimeout(()=>tutExit('#panRight'), 0); });   /* R56: the player's reply first */   /* r213: why copper */
     custLine(null, DIALOGUE.D93);
 }
 /* the cave is emptied before the walk home */
@@ -9702,7 +9706,7 @@ function tutBram2Illus(){
         TUT_STAGE='bram2-wheel'; sayQueue(b.market.ask, 'D48'); };
     /* r205: he also wants it sharper (D111a), which is what brings the basement back into the run.
        One speech, typed together: chained, D111a replaced D111 the instant it finished, unread. */
-    typeAfter(toForge);
+    custReply('bram2', toForge, true);   /* R56: the player's reply, then the dragon (D111b) */
     custLine(document.getElementById('bramLine'), DIALOGUE.D111+' '+DIALOGUE[FTUE.bramLine]);
 }
 function tutBram2Forge(){
@@ -10119,7 +10123,7 @@ function custDlgTap(){
     if(CUST_Q.length){ custQNext(); return; }   /* r130 */
     if(TUT_GARRIC_STATE==='reacted'){ garricLeaves(); return; }   /* r131 */
     if(TUT_FIRE_NEXT){ const id=TUT_FIRE_NEXT; TUT_FIRE_NEXT=null; custMore(false);
-        typeAfter(()=>tutFireAsked());
+        custReply('tc3', ()=>tutFireAsked(), true);   /* R56: the player's reply, then the dragon (D64) */
         custLine(document.getElementById('bramLine'), DIALOGUE[id]); return; }
     typeDone();
 }
@@ -10535,6 +10539,16 @@ function counterUi(){
         b.style.display = here ? '' : 'none'; if(here) b.disabled=false; });
     sellLabel();   /* r103 */
 }
+/* R56 (owner, 2026-10-30): "I want to put a pause between the customer's dialogues and the dragon dialogues" - once the
+   customer's line has landed the player's reply (FTUE.replies[key]) comes up lit under it; its tap brings the dragon (fn).
+   The counter's reply box, SELL and the rest hidden behind it; named: the named panel's reply (the adventurer, Bram) */
+function custReply(key, fn, named){ typeAfter(()=>custReplyShow(key, fn, named)); }
+function custReplyShow(key, fn, named){
+    if(named){ garricButtons([[FTUE.replies[key], ()=>{ garricButtons(null); fn(); }]]); const b=document.querySelector('#bramResponses button'); if(b) b.classList.add('tut-lit-ctl'); return; }
+    const re=document.querySelector('#csPanel > .cs-resp'), pn=document.getElementById('csPanel'); if(!re){ fn(); return; }
+    re.textContent=FTUE.replies[key]; re.classList.add('tut-lit-ctl'); if(pn) pn.classList.add('cs-replying');
+    re.onclick=()=>{ re.onclick=null; re.style.display='none'; re.classList.remove('tut-lit-ctl'); re.textContent='Response \u2014 placeholder'; if(pn) pn.classList.remove('cs-replying'); fn(); };
+    re.style.display='flex'; counterLayout(); }
 /* r97: a line nobody can see is worse than no line - never type into a hidden box.
    r98: and the dragon steps back while a customer is speaking. */
 function custLine(el, text){
@@ -10643,7 +10657,7 @@ function tutBellRung(){
     CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null, want:'balanced' };   /* r221: 'a good one' is a balanced sword (want: for the map ring only) */
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
-    typeAfter(()=>{
+    custReply('tc2', ()=>{   /* R56: the player's reply, then the dragon */
         if(SAY_SEQ.indexOf('D31')<0) SAY_SEQ.push('D31');   /* r174: D30 deleted */
         SAY_I=SAY_SEQ.indexOf('D31'); say('D31');
     });
