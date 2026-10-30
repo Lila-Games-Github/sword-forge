@@ -122,7 +122,7 @@ around the blade and the sword. use slightly cyan color for this."
 - **Which swords** (`fxFor`): fire first, then gale: a sword with the gale trait (and no fire) gets `SWING_FX.gale`, whatever
   else it carries. Then the white slash (R45-R46), else none.
 - **C. The slash:** the same white slash as the base swords (the same values).
-- **D. Wind rings:** flat rings wrapped around the sword, drawn across it at points `at` along it (fractions of the blade from
+- **D. Wind rings (replaced by R48):** flat rings wrapped around the sword, drawn across it at points `at` along it (fractions of the blade from
   the grip, the first one negative: over the hilt), each an open arc `arc` (rad) of an ellipse `rx` across by `ry` along,
   spinning around the sword at `spin` (rad/s, from still to `speed` and above), each ring's arc started 1.7 rad on from the
   last. Opacity `alpha` from still to `speed`. Shown while the sword is held, also still.
@@ -141,3 +141,27 @@ around the blade and the sword. use slightly cyan color for this."
 | wind | at -0.15, 0.2, 0.5, 0.8; rx 20, ry 6, arc 4, spin 5-16, speed 1600, alpha 0.4-0.9, width 3 |
 | gusts | rest 5, perPx 0.025, max 40, life 0.45-0.8, r 8-26, sweep 3-4.5, spin 7, inherit 0.35, jitter 30, drag 2.5, width 3, alpha 0.85 |
 | color | edge 80,195,225; core 200,250,255 |
+
+## R48: the gale winds swirl when still, trail when moving (2026-10-30)
+
+Owner, on R47's rings: "I didn't want them to be rings. I like that they swirl around when the sword is still, but in
+motion, they should act more like the slash, like a trail following the sword." The rings (R47 D) are gone; the slash (C)
+and the curls (E) are unchanged.
+
+- **D1. The swirl (still):** `orbit.n` wind streaks circling the whole sword on one flat ellipse round it (from the hilt,
+  -0.15 of the blade, to the tip; `pad` px past each end, `ry` px out to each side), turning at `spin` (rad/s). Each
+  streak is an arc of `arc` (rad) that thickens and brightens from its tail to its head (6 steps). Its opacity is
+  `orbit.alpha` when still, falling to 0 at the tip speed `wind.speed` (900 px/s, the speed the slash starts at), so in a
+  swing the swirl gives way to the trails.
+- **D2. The trails (moving):** wind lines left by points on the sword (`trail.at`: [fraction of the blade from the grip,
+  px to the side]): one over the hilt, two beside the blade (one each side), one near the tip under the slash. Each frame
+  each point's place is kept for `keep` (s), as the slash keeps the tip's; a piece fades and thins (to 40%) over that time
+  from `alpha`; a piece whose ends are more than `gap` px or 60 ms apart is skipped, one under 0.5 px is not drawn (a still
+  sword leaves no dots). They show at any speed, so they grow with the swing.
+- **Colour:** as R47 (a soft `edge` stroke under a bright `core`, slightly cyan).
+
+| Key | Value |
+|---|---|
+| wind | speed 900 |
+| wind.orbit | n 3, ry 28, pad 14, arc 1.4, spin 4, alpha 0.85, width 3 |
+| wind.trail | at [-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]; keep 0.2, gap 140, alpha 0.85, width 3 |

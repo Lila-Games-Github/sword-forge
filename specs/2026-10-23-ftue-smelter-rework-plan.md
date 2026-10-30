@@ -699,3 +699,12 @@ yours and come on top.
   the browser with frames driven by hand: a gale Longsword - slash, 4 rings, up to 22 curls, no embers, no glow; let go -
   the rings gone at once, the curls gone and the loop stopped within 44 frames; the forge's gale blade - the same, the
   rings gone on release; no console errors.
+- **R48 (2026-10-30, owner): the gale winds swirl when still, trail when moving.** Owner, on R47: "I didn't want them to
+  be rings. I like that they swirl around when the sword is still, but in motion, they should act more like the slash,
+  like a trail following the sword." The rings are gone. Still: 3 cyan streaks circle the whole sword on one ellipse
+  round it, fading out as the tip speeds up (gone at 900 px/s, where the slash starts). Moving: four points on the sword
+  (the hilt, each side of the blade, near the tip) leave cyan wind trails kept 0.2 s, as the slash keeps the tip's. The
+  slash and the curls are unchanged. Record: specs/2026-10-30-fire-swing-fx.md (R48). Smelter test 120 -> 124 (failing
+  on the previous build first). Checked in the browser with frames driven by hand: settled still - the streaks round the
+  sword; a swing at 2150 px/s - the swirl gone, trails, slash and curls; let go - all gone and the loop stopped within 46
+  frames; the forge's gale blade - trails and slash, gone on release; no console errors, no missing files.
