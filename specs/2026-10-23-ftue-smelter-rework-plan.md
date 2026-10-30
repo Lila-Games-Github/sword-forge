@@ -813,3 +813,13 @@ yours and come on top.
   the browser, every tap through elementFromPoint: on the forge, a tap while D1 typed showed the rest and left it up; taps
   on the bubble left D1 (OK), D3 (no button, the first craft's ore line) and D119b (X) up; OK went to D2, the X closed
   D119b. At the counter, the bubble left D119 (OK) and D119b up; OK went on; the X, shown again, closed it.
+- **R58 (2026-10-30, owner): a celebration burst when a trait is discovered.** Owner, with a picture of the "New trait
+  discovered" window: "when this window pops up, have some kind of a vfx particle burst radiating out. like, a
+  celebration". When the window opens, a ring and 70 particles (glowing sparks and spinning confetti, in the tier's colour,
+  gold and white) burst out from behind it, slow, fall a little and fade within 1.3 s. Record:
+  specs/2026-10-30-trait-discovery-burst.md (values `ACQ_FX`). Asserted by the smelter test (written first).
+  Tuned in the browser before the owner saw it (the record's last section): the particles start on the window's edge and
+  fly further. Smelter test 128 -> 137 (failing on the previous build first). Checked in the browser (frames driven by
+  hand): an Epic Balanced window - 37 of 70 particles outside the box at the first frame, all 70 at 0.2 s, the ring round
+  it; all gone, the loop stopped and the canvas clear by frame 64; continue (tapped through elementFromPoint, on top of the
+  canvas) closed the window; no console errors.

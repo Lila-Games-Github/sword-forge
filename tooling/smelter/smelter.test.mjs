@@ -233,4 +233,21 @@ eq('R47 E: fades in over 15%, then out; thins to 40%', [X.fxGustLook(0).a, X.fxG
 eq('R47: the winds follow the held sword and stop with it; gusts keep their values', src.includes('if(F.wind){') && src.includes('(W.s===SW_SWING || (W.s===SM_BL && W.s.live))') && src.includes('FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);   /* R48: and the trails */
 eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one helper for the swirl, the trails and the curls)', src.includes("function fxStroke2(g, C, w, a, path){ [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(") && (src.match(/fxStroke2\(g, /g) || []).length, 3);   /* the helper and its 2 uses (R51: the trails are filled bands) */
 
+/* R58 (owner, 2026-10-30): the trait window's celebration burst. Record: specs/2026-10-30-trait-discovery-burst.md */
+const acm = src.match(/\/\* ACQFX-PURE-BEGIN \*\/([\s\S]*?)\/\* ACQFX-PURE-END \*\//);
+assert.ok(acm, 'ACQFX-PURE markers not found in ' + HTML);
+const Q = new Function(acm[1] + '; return { ACQ_FX, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
+eq('R58: the values (record: Values)', QF, { count: 70, speed: [380, 820], drag: 1.8, fall: 260, life: [0.7, 1.3], size: [5, 10], spin: 12, mix: [0.5, 0.85],
+  ring: { r: 320, time: 0.55, width: 6 }, tint: { Weak: [210, 210, 210], Fine: [90, 170, 255], Epic: [190, 120, 255] }, gold: [255, 214, 90], white: [255, 250, 232] });
+const qp = Q.acqParticle(QF, 100, 50, 120, 80, 'Epic', 0, { a: 0, b: 0.25, c: 0.25, d: 0.5, e: 0.5 });
+eq('R58: particle 0 - on the box edge (120 px right of the centre), straight right at mid speed, a spark, the tier colour, mid life and size', [qp.x, qp.y, r3(qp.vx), r3(qp.vy), qp.kind, qp.col, r3(qp.life), r3(qp.size), qp.age], [220, 50, 600, 0, 'spark', [190, 120, 255], 1, 7.5, 0]);
+const qq = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 35, { a: 0, b: 0.75, c: 0.6, d: 0, e: 0 }), q2 = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 17.5 / 1, { a: 0, b: 0, c: 0, d: 0, e: 0 });
+eq('R58: particle 35 - half way round (the left edge), confetti, gold, the shortest life; a quarter round - the bottom edge', [r3(qq.x), r3(qq.y), r3(qq.vx), r3(qq.vy), qq.kind, qq.col, qq.life, r3(q2.x), r3(q2.y)], [-120, 0, -380, 0, 'confetti', [255, 214, 90], 0.7, 0, 80]);
+eq('R58: the rest white', Q.acqParticle(QF, 0, 0, 120, 80, 'Weak', 1, { a: 0, b: 0, c: 0.9, d: 0, e: 0 }).col, [255, 250, 232]);
+const qs = Object.assign({}, qp), qlive = Q.acqStep(QF, qs, 0.1);
+eq('R58: a step - it slows, falls, moves, ages', [qlive, r3(qs.vx) < 600, r3(qs.vy) > 0, qs.x > 220, r3(qs.age)], [true, true, true, true, 0.1]);
+eq('R58: gone at the end of its life', Q.acqStep(QF, Object.assign({}, qp, { age: 0.99 }), 0.02), false);
+eq('R58: opacity - in over 8%, then 1 - k^2', [Q.acqLook(0), Q.acqLook(0.08), r3(Q.acqLook(0.5)), Q.acqLook(1)], [0, 0.9936, 0.75, 0]);
+eq('R58: the ring - grows to 320 px easing out, fading', [Q.acqRing(QF, 0).r, r3(Q.acqRing(QF, 0.275).r), Q.acqRing(QF, 0.55).r, Q.acqRing(QF, 0).a, Q.acqRing(QF, 0.55).a], [0, 240, 320, 1, 0]);
+eq('R58: the window bursts as it opens; the canvas behind its box, taps through', src.includes("document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }") && src.includes('#acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }') && src.includes('#sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }'), true);
 console.log('[smelter] GREEN / ' + n + ' checks');
