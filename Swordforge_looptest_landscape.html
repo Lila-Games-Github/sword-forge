@@ -4533,7 +4533,7 @@ function sellCounter(){
     COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;   /* R14: served - no open order while they stay to talk */
     tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
-    if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; } }
+    if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; counterLayout(); }); }   /* R60: once the line has landed */ }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else { ftueC.got=(ftueC.got||0)+1; ftueGpcSold(); } }   /* v3: TC4 is scripted */   /* r199. r267: an order of several only gets here with its last sword */
     if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
@@ -9495,7 +9495,7 @@ function tutSold3(){
         const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
               re=document.querySelector('#csPanel > .cs-resp');
         if(se) se.style.display='none'; if(de) de.style.display='none';
-        if(re){ re.textContent='Thank you.'; re.style.display='flex'; re.onclick=tutThankYou3; }
+        if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Thank you.'; re.style.display='flex'; re.onclick=tutThankYou3; counterLayout(); }); }   /* R60: once the line has landed */
     }, 0);
 }
 function tutThankYou3(){
@@ -9705,7 +9705,7 @@ function tutGaleSold(){
         const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
               re=document.querySelector('#csPanel > .cs-resp');
         if(se) se.style.display='none'; if(de) de.style.display='none';
-        if(re){ re.textContent="You're welcome."; re.style.display='flex'; re.onclick=tutGaleThanks; }
+        if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent="You're welcome."; re.style.display='flex'; re.onclick=tutGaleThanks; counterLayout(); }); }   /* R60: once the line has landed */
     }, 0);
 }
 function tutGaleThanks(){
@@ -9739,9 +9739,9 @@ function tutBram2Arrive(){
     const w=document.getElementById('custWho'); if(w) w.textContent='???';
     typeAfter(()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='BRAM'; });
     const r=document.getElementById('bramResponses');
-    if(r){ r.style.display=''; r.innerHTML='';
+    if(r){ r.style.display='none'; r.innerHTML='';   /* R60: shown once D110 has landed */
         const b=document.createElement('button'); b.type='button'; b.textContent='I am glad you survived.';
-        b.addEventListener('click', tutBram2Reply); r.appendChild(b); }
+        b.addEventListener('click', tutBram2Reply); r.appendChild(b); typeAlso(()=>{ r.style.display=''; counterLayout(); }); }
     counterBoxes();
     custLine(document.getElementById('bramLine'), DIALOGUE.D110);
 }
@@ -9798,7 +9798,7 @@ function tutBram2Thanks(){
         const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
               re=document.querySelector('#csPanel > .cs-resp');
         if(se) se.style.display='none'; if(de) de.style.display='none';
-        if(re){ re.textContent='Thank you for the gift.'; re.style.display='flex'; re.onclick=tutBram2Gift; }
+        if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Thank you for the gift.'; re.style.display='flex'; re.onclick=tutBram2Gift; counterLayout(); }); }   /* R60: once the line has landed */
     }, 0);
 }
 function tutBram2Gift(){
@@ -9830,9 +9830,10 @@ function tutGarricArrive(){
     CUSTOMER={ portrait:'assets/customer/man4.webp', tid:'balanced', name:'Balanced' };
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     garricWho('???');   /* he does not give his name until D126 */
-    garricButtons([['Yes, I came yesterday.', garricLecture]]);
+    garricButtons(null);
     counterBoxes();
     custLine(document.getElementById('bramLine'), DIALOGUE.D120);
+    typeAlso(()=>{ garricButtons([['Yes, I came yesterday.', garricLecture]]); counterLayout(); });   /* R60: once D120 has landed */
 }
 /* v3 part 6: the banner lesson (r200's, moved from part 1), then the second night */
 function ftueGarricBanner(){ if(FTUE_ST.part!==6 || TUT_STAGE==='p1-decor-tab') return;
@@ -10097,7 +10098,7 @@ function tutSold2(){
         const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'),
               re=document.querySelector('#csPanel > .cs-resp');
         if(se) se.style.display='none'; if(de) de.style.display='none';
-        if(re){ re.textContent='Thank you.'; re.style.display='flex'; re.onclick=tutThankYou; }
+        if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Thank you.'; re.style.display='flex'; re.onclick=tutThankYou; counterLayout(); }); }   /* R60: once the line has landed */
     }, 0);
 }
 /* the customer leaves, and the dragon does the sums out loud */
@@ -10130,9 +10131,10 @@ function tutFireCustomer(){
     CUSTOMER={ portrait:'assets/customer/woman1.webp', tid:'fire', shape:'Shortsword', name:null };   /* v3 D19 */
     buildScreenProps('customer'); counterUi(); updateTutorialCounterUi();
     const w=document.getElementById('custWho'); if(w) w.textContent='CUSTOMER';   /* she has no name yet */
-    tutFireButtons(true);
+    tutFireButtons(false);
     counterBoxes();   /* r105: hides the counter's own box and its buttons behind this panel */
     custLine(document.getElementById('bramLine'), DIALOGUE.D59);
+    typeAlso(()=>{ tutFireButtons(true); counterLayout(); });   /* R60: once D59 has landed */
 }
 /* the panel's two buttons are Bram's markup, rebuilt for whoever is standing there */
 function tutFireButtons(on){
@@ -10422,8 +10424,8 @@ function finishD19(){
     (()=>{ const w=document.getElementById('custWho'); if(w) w.textContent='???'; })();   /* r213: he will not say who he is (D22); BRAM from his return (D110) */
     const p=document.getElementById('bramIntro'), l=document.getElementById('bramLine'), r=document.getElementById('bramResponses');
     if(l) custLine(l, DIALOGUE.D20);
-    if(r){ r.innerHTML=BRAM_REPLIES; r.style.display='flex';   /* r227: rebuilt - the D22 reply replaces them */
-        r.querySelectorAll('button').forEach(b=>b.classList.add('tut-lit-ctl')); }   /* r184: both answers */
+    if(r){ r.innerHTML=BRAM_REPLIES; r.style.display='none';   /* r227: rebuilt - the D22 reply replaces them */
+        r.querySelectorAll('button').forEach(b=>b.classList.add('tut-lit-ctl')); typeAlso(()=>{ r.style.display='flex'; counterLayout(); }); }   /* r184: both answers. R60: once D20 has landed */
     if(p) p.classList.add('show'); buildScreenProps('customer');
     const d=document.getElementById('screenDragon'), b=document.getElementById('screenDragonSay'), layer=document.getElementById('screenLayer');
     if(d){ d.style.display='none'; d.classList.remove('dragging'); } if(b) b.classList.remove('show'); if(layer) layer.classList.remove('tut-counter');
@@ -10443,6 +10445,8 @@ function typeDone(){                                  /* jump to the finished li
 }
 let TYPE_DONE=null;
 function typeAfter(fn){ TYPE_DONE=fn; }                 /* r96: run this once the line has landed */
+/* R60 (owner, 2026-10-30): "spawn the response only after the customer dialogue is fully displayed" - this too, after what is already set */
+function typeAlso(fn){ const f=TYPE_DONE; TYPE_DONE=f ? ()=>{ f(); fn(); } : fn; }
 function typeLine(el, text){
     const after=TYPE_DONE;                              /* typeStop clears it, so carry it across */
     typeStop(); TYPE_DONE=after; if(!el) return;

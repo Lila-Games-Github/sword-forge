@@ -831,3 +831,16 @@ yours and come on top.
   Smelter test 137 -> 142. Checked in the browser (frames driven by hand): an Epic window - 112 particles and one ring at
   once, the second burst at frame 22 (0.35 s; 162 particles, two rings), all gone and the loop stopped 97 frames in; a
   Fine window - 70, then 102 with the second burst; no console errors.
+- **R60 (2026-10-30, owner): the player's replies come once the customer's line has landed.** Owner, with a picture of
+  TC3's greeting (D59) still typing and her two replies already up: "spawn the response only after the customer dialogue
+  is fully displayed." Nine replies came up as the line began: Bram's two answers (D20) and his "Take care" (D25), TC3's two
+  answers (D59), Bram's "I am glad you survived." (D110), Garric's "Yes, I came yesterday." (D120), and the four thanks
+  after a sale ("Thank you." after D56 and D86, "You're welcome." after D108, "Thank you for the gift." after D114). Each now
+  waits for its line to finish typing (or for the tap that finishes it), as R56's replies and the later answers already did
+  (`typeAlso`: it adds to what the line runs when it lands, so D110's name tag still turns over first). Asserted by the FTUE
+  test (written first).
+  FTUE test 881 -> 884 (failing on the previous build first; r227's intro check now reads the hidden start). Checked in
+  the browser, each reply's visibility read as a player sees it (elementFromPoint): TC3's two answers hidden while D59
+  typed, both up when it finished, and both up at once after a tap that finished it early; Garric's, Bram's two (D20),
+  "Thank you." (D56) and Bram's return reply (D110, his tag turning to BRAM first) each hidden while typing and up after;
+  no console errors.
