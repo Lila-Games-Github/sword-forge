@@ -42,9 +42,23 @@ Sparks and the ring are added light; confetti is painted.
 | ring | r 320, time 0.55, width 6 |
 | tint | Weak 210,210,210; Fine 90,170,255; Epic 190,120,255 |
 | gold, white | 255,214,90; 255,250,232 |
+| big (R59) | Epic: n 1.6, sp 1.35, ring 1.3 (Weak, Fine: 1) |
+| after (R59) | delay 0.35, n 0.45, sp 0.6, ring 0.6 |
 
 ## Tuning in the browser (2026-10-30, before the owner saw it)
 
 The first values (speed 260-620, drag 2.2, ring 240, from the box's centre) left 40 of the 70 particles behind the window
 half a second in: the burst barely cleared the box. Now they start on its edge and fly further (380-820, drag 1.8: 176 to 380
 px out at 1 s), and the ring reaches 320 px.
+
+## R59: Epic bigger, and a second, smaller burst (2026-10-30)
+
+Owner: "make the burst bigger for epic tier, and have a smaller burst after the main."
+
+- **Epic** (`big.Epic`): `n` times the particles, `sp` times their speed, `ring` times the ring's size: 112 particles at
+  513-1107 px/s and a 416 px ring. Weak and Fine are unchanged (70, 380-820, 320).
+- **The second burst** (`after`), every tier: `delay` s after the first, from the same window, `n` of the first's
+  particles at `sp` of its speed with a ring `ring` of its size: 32 particles and a 192 px ring for Weak and Fine, 50 and
+  250 px for Epic. Its particles and ring follow the same rules as the first's.
+- One rule gives each burst's size (`acqWave(F, tier, second)`: count, speed scale, ring radius); the particles of a burst
+  are spread evenly round the window by that burst's own count.

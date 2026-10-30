@@ -257,7 +257,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 881 checks; the smelter test GREEN at 137 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 881 checks; the smelter test GREEN at 142 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

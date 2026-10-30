@@ -236,9 +236,10 @@ eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one 
 /* R58 (owner, 2026-10-30): the trait window's celebration burst. Record: specs/2026-10-30-trait-discovery-burst.md */
 const acm = src.match(/\/\* ACQFX-PURE-BEGIN \*\/([\s\S]*?)\/\* ACQFX-PURE-END \*\//);
 assert.ok(acm, 'ACQFX-PURE markers not found in ' + HTML);
-const Q = new Function(acm[1] + '; return { ACQ_FX, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
+const Q = new Function(acm[1] + '; return { ACQ_FX, acqWave, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
 eq('R58: the values (record: Values)', QF, { count: 70, speed: [380, 820], drag: 1.8, fall: 260, life: [0.7, 1.3], size: [5, 10], spin: 12, mix: [0.5, 0.85],
-  ring: { r: 320, time: 0.55, width: 6 }, tint: { Weak: [210, 210, 210], Fine: [90, 170, 255], Epic: [190, 120, 255] }, gold: [255, 214, 90], white: [255, 250, 232] });
+  ring: { r: 320, time: 0.55, width: 6 }, tint: { Weak: [210, 210, 210], Fine: [90, 170, 255], Epic: [190, 120, 255] }, gold: [255, 214, 90], white: [255, 250, 232],
+  big: { Epic: { n: 1.6, sp: 1.35, ring: 1.3 } }, after: { delay: 0.35, n: 0.45, sp: 0.6, ring: 0.6 } });   /* R59 */
 const qp = Q.acqParticle(QF, 100, 50, 120, 80, 'Epic', 0, { a: 0, b: 0.25, c: 0.25, d: 0.5, e: 0.5 });
 eq('R58: particle 0 - on the box edge (120 px right of the centre), straight right at mid speed, a spark, the tier colour, mid life and size', [qp.x, qp.y, r3(qp.vx), r3(qp.vy), qp.kind, qp.col, r3(qp.life), r3(qp.size), qp.age], [220, 50, 600, 0, 'spark', [190, 120, 255], 1, 7.5, 0]);
 const qq = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 35, { a: 0, b: 0.75, c: 0.6, d: 0, e: 0 }), q2 = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 17.5 / 1, { a: 0, b: 0, c: 0, d: 0, e: 0 });
@@ -250,4 +251,12 @@ eq('R58: gone at the end of its life', Q.acqStep(QF, Object.assign({}, qp, { age
 eq('R58: opacity - in over 8%, then 1 - k^2', [Q.acqLook(0), Q.acqLook(0.08), r3(Q.acqLook(0.5)), Q.acqLook(1)], [0, 0.9936, 0.75, 0]);
 eq('R58: the ring - grows to 320 px easing out, fading', [Q.acqRing(QF, 0).r, r3(Q.acqRing(QF, 0.275).r), Q.acqRing(QF, 0.55).r, Q.acqRing(QF, 0).a, Q.acqRing(QF, 0.55).a], [0, 240, 320, 1, 0]);
 eq('R58: the window bursts as it opens; the canvas behind its box, taps through', src.includes("document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }") && src.includes('#acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }') && src.includes('#sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }'), true);
+/* R59 (owner, 2026-10-30): "make the burst bigger for epic tier, and have a smaller burst after the main" */
+const wv = (tr, s) => { const w = Q.acqWave(QF, tr, s); return [w.n, r3(w.sp), r3(w.ring)]; };
+eq('R59: the bursts - Weak and Fine 70 / 1 / 320, Epic 112 / 1.35 / 416', [wv('Weak', false), wv('Fine', false), wv('Epic', false)], [[70, 1, 320], [70, 1, 320], [112, 1.35, 416]]);
+eq('R59: the second burst - 32 / 0.6 / 192, Epic 50 / 0.81 / 249.6', [wv('Fine', true), wv('Epic', true)], [[32, 0.6, 192], [50, 0.81, 249.6]]);
+const we = Q.acqWave(QF, 'Epic', false), pe = Q.acqParticle(QF, 0, 0, 120, 80, 'Epic', 28, { a: 0, b: 0, c: 0, d: 0.5, e: 0 }, we);
+eq('R59: a burst spreads its own count round the window and scales its speed (Epic particle 28 of 112: straight down at 600 x 1.35)', [r3(pe.x), r3(pe.y), r3(pe.vx), r3(pe.vy)], [0, 80, 0, 810]);
+eq('R59: the ring at its own size', [r3(Q.acqRing(QF, 0.275, 416).r), Q.acqRing(QF, 0.55, 192).r], [312, 192]);
+eq('R59: the second burst comes after the delay, counted in the frames', src.includes('ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;') && src.includes('if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }') && src.includes('if(ACQ.ps.length || ACQ.rings.length || ACQ.next)'), true);
 console.log('[smelter] GREEN / ' + n + ' checks');

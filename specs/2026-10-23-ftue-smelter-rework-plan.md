@@ -823,3 +823,11 @@ yours and come on top.
   hand): an Epic Balanced window - 37 of 70 particles outside the box at the first frame, all 70 at 0.2 s, the ring round
   it; all gone, the loop stopped and the canvas clear by frame 64; continue (tapped through elementFromPoint, on top of the
   canvas) closed the window; no console errors.
+- **R59 (2026-10-30, owner): the Epic burst bigger, and a second, smaller burst.** Owner: "make the burst bigger for epic
+  tier, and have a smaller burst after the main." Epic: 1.6 times the particles (112), 1.35 times the speed, a 1.3 times
+  ring (416 px); Weak and Fine as they were. Then, every tier, 0.35 s later a second burst from the window: 45% of the
+  particles, 60% of the speed, a 60% ring. Record: specs/2026-10-30-trait-discovery-burst.md (R59; `ACQ_FX.big`,
+  `ACQ_FX.after`, `acqWave`). Asserted by the smelter test (written first).
+  Smelter test 137 -> 142. Checked in the browser (frames driven by hand): an Epic window - 112 particles and one ring at
+  once, the second burst at frame 22 (0.35 s; 162 particles, two rings), all gone and the loop stopped 97 frames in; a
+  Fine window - 70, then 102 with the second burst; no console errors.

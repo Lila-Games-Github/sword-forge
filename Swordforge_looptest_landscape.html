@@ -2890,10 +2890,15 @@ function fxGustLook(k){ k=Math.max(0, Math.min(1, k)); return { a:k<0.15 ? k/0.1
 /* R58 (owner, 2026-10-30): "when this window pops up, have some kind of a vfx particle burst radiating out. like, a celebration" -
    the trait window's burst: a ring and particles (sparks, confetti) from behind its box. Record: specs/2026-10-30-trait-discovery-burst.md */
 const ACQ_FX={ count:70, speed:[380,820], drag:1.8, fall:260, life:[0.7,1.3], size:[5,10], spin:12, mix:[0.5,0.85],   /* px/s; /s; px/s^2; s; px; rad/s; tint below mix[0], gold below mix[1] */
-    ring:{ r:320, time:0.55, width:6 }, tint:{ Weak:[210,210,210], Fine:[90,170,255], Epic:[190,120,255] }, gold:[255,214,90], white:[255,250,232] };
-/* particle i of the burst round a box centred (cx, cy), half-size hw x hh, for this tier; r = five randoms in 0..1. It starts on the
-   box's edge (the ellipse through its sides), so none is hidden behind the window at the start */
-function acqParticle(F, cx, cy, hw, hh, tier, i, r){ const lerp=(a,k)=>a[0]+(a[1]-a[0])*k, ang=2*Math.PI*(i+r.a*0.6)/F.count, sp=lerp(F.speed, r.d),
+    ring:{ r:320, time:0.55, width:6 }, tint:{ Weak:[210,210,210], Fine:[90,170,255], Epic:[190,120,255] }, gold:[255,214,90], white:[255,250,232],
+    big:{ Epic:{ n:1.6, sp:1.35, ring:1.3 } },   /* R59 (owner): "make the burst bigger for epic tier" - times the count, speed, ring (other tiers 1) */
+    after:{ delay:0.35, n:0.45, sp:0.6, ring:0.6 } };   /* R59: "and have a smaller burst after the main" - s later; times the first's count, speed, ring */
+/* R59: a burst's size for this tier - its particle count, speed scale and ring radius; second: the smaller one after */
+function acqWave(F, tier, second){ const B=F.big[tier]||{ n:1, sp:1, ring:1 }, A=second ? F.after : { n:1, sp:1, ring:1 };
+    return { n:Math.round(F.count*B.n*A.n), sp:B.sp*A.sp, ring:F.ring.r*B.ring*A.ring }; }
+/* particle i of the burst round a box centred (cx, cy), half-size hw x hh, for this tier; r = five randoms in 0..1; w = the burst
+   (acqWave; the first by default). It starts on the box's edge (the ellipse through its sides), so none is hidden behind the window */
+function acqParticle(F, cx, cy, hw, hh, tier, i, r, w){ w=w||{ n:F.count, sp:1 }; const lerp=(a,k)=>a[0]+(a[1]-a[0])*k, ang=2*Math.PI*(i+r.a*0.6)/w.n, sp=lerp(F.speed, r.d)*w.sp,
         cs=Math.cos(ang), sn=Math.sin(ang), e=1/Math.sqrt((cs/hw)*(cs/hw)+(sn/hh)*(sn/hh));
     return { x:cx+e*cs, y:cy+e*sn, vx:sp*Math.cos(ang), vy:sp*Math.sin(ang), age:0, life:lerp(F.life, r.d), size:lerp(F.size, r.e), kind:r.b<0.5 ? 'spark' : 'confetti',
         col:r.c<F.mix[0] ? (F.tint[tier]||F.tint.Weak) : r.c<F.mix[1] ? F.gold : F.white, rot:r.a*2*Math.PI, vr:(r.b*2-1)*F.spin }; }
@@ -2901,8 +2906,8 @@ function acqParticle(F, cx, cy, hw, hh, tier, i, r){ const lerp=(a,k)=>a[0]+(a[1
 function acqStep(F, p, dt){ const k=Math.exp(-F.drag*dt); p.vx*=k; p.vy=p.vy*k+F.fall*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.rot+=p.vr*dt; p.age+=dt; return p.age<p.life; }
 /* its opacity at age k (0 new .. 1 gone): in over 8%, then out */
 function acqLook(k){ k=Math.max(0, Math.min(1, k)); return Math.min(1, k/0.08)*(1-k*k); }
-/* the ring at t s: its radius (easing out) and opacity */
-function acqRing(F, t){ const k=Math.max(0, Math.min(1, t/F.ring.time)); return { r:F.ring.r*(1-(1-k)*(1-k)), a:1-k }; }
+/* the ring at t s: its radius (easing out, to R; F.ring.r by default) and opacity */
+function acqRing(F, t, R){ const k=Math.max(0, Math.min(1, t/F.ring.time)); return { r:(R||F.ring.r)*(1-(1-k)*(1-k)), a:1-k }; }
 /* ACQFX-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -6925,21 +6930,26 @@ function showAcquire(bt,tier,total,fresh){
     sayHide();   /* r286 (owner): the dragon's line (D10) does not stay behind the window */
     document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }
 /* R58: the burst - one canvas over the window's dark, behind its box; its own frame loop while anything lives. Visual only */
-const ACQ={ cv:null, g:null, d:1, ps:[], ring:null, raf:0, t:0 };
+const ACQ={ cv:null, g:null, d:1, ps:[], rings:[], next:null, clock:0, raf:0, t:0 };
 function acqBurst(tier){ const m=document.getElementById('sfAcquireModal'), box=m && m.querySelector('.sf-modal-box'); if(!box) return;
     let c=document.getElementById('acqFx'); if(!c){ c=document.createElement('canvas'); c.id='acqFx'; m.insertBefore(c, m.firstChild); }
     const d=Math.min(2, Math.max(1, window.devicePixelRatio||1)); c.width=Math.round(m.clientWidth*d); c.height=Math.round(m.clientHeight*d);
-    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d;
-    const q=m.getBoundingClientRect(), b=box.getBoundingClientRect(), cx=b.left+b.width/2-q.left, cy=b.top+b.height/2-q.top, R=Math.random;
-    ACQ.ps=Array.from({ length:ACQ_FX.count }, (_,i)=>acqParticle(ACQ_FX, cx, cy, b.width/2, b.height/2, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }));
-    ACQ.ring={ x:cx, y:cy, t:0, col:ACQ_FX.tint[tier]||ACQ_FX.tint.Weak }; if(!ACQ.raf){ ACQ.t=0; ACQ.raf=requestAnimationFrame(acqFrame); } }
+    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[];
+    const q=m.getBoundingClientRect(), b=box.getBoundingClientRect(), geo={ cx:b.left+b.width/2-q.left, cy:b.top+b.height/2-q.top, hw:b.width/2, hh:b.height/2 };
+    acqWaveSpawn(tier, geo, false); ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;   /* R59: the smaller burst after */
+    if(!ACQ.raf){ ACQ.t=0; ACQ.raf=requestAnimationFrame(acqFrame); } }
+/* R59: one burst - its particles round the window and its ring, sized by acqWave */
+function acqWaveSpawn(tier, geo, second){ const w=acqWave(ACQ_FX, tier, second), R=Math.random;
+    for(let i=0; i<w.n; i++) ACQ.ps.push(acqParticle(ACQ_FX, geo.cx, geo.cy, geo.hw, geo.hh, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }, w));
+    ACQ.rings.push({ x:geo.cx, y:geo.cy, t:0, R:w.ring, col:ACQ_FX.tint[tier]||ACQ_FX.tint.Weak }); }
 function acqFrame(now){ const g=ACQ.g, c=ACQ.cv; if(!g || !c.isConnected){ ACQ.raf=0; return; }
     const dt=ACQ.t ? Math.min(0.05, (now-ACQ.t)/1000) : 1/60; ACQ.t=now;
-    ACQ.ps=ACQ.ps.filter(p=>acqStep(ACQ_FX, p, dt)); if(ACQ.ring){ ACQ.ring.t+=dt; if(ACQ.ring.t>ACQ_FX.ring.time) ACQ.ring=null; }
+    ACQ.clock+=dt; if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }   /* R59 */
+    ACQ.ps=ACQ.ps.filter(p=>acqStep(ACQ_FX, p, dt)); ACQ.rings.forEach(o=>{ o.t+=dt; }); ACQ.rings=ACQ.rings.filter(o=>o.t<=ACQ_FX.ring.time);
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(ACQ.d, 0, 0, ACQ.d, 0, 0);
     g.globalCompositeOperation='lighter'; g.lineCap='round';
-    if(ACQ.ring){ const k=acqRing(ACQ_FX, ACQ.ring.t); g.globalAlpha=k.a; g.strokeStyle='rgb('+ACQ.ring.col.join(',')+')'; g.lineWidth=1+(ACQ_FX.ring.width-1)*k.a;
-        g.beginPath(); g.arc(ACQ.ring.x, ACQ.ring.y, Math.max(0.1, k.r), 0, 2*Math.PI); g.stroke(); }
+    ACQ.rings.forEach(o=>{ const k=acqRing(ACQ_FX, o.t, o.R); g.globalAlpha=k.a; g.strokeStyle='rgb('+o.col.join(',')+')'; g.lineWidth=1+(ACQ_FX.ring.width-1)*k.a;
+        g.beginPath(); g.arc(o.x, o.y, Math.max(0.1, k.r), 0, 2*Math.PI); g.stroke(); });
     ACQ.ps.forEach(p=>{ if(p.kind!=='spark') return; const a=acqLook(p.age/p.life); g.globalAlpha=a; g.strokeStyle='rgb('+p.col.join(',')+')';   /* a glowing streak along its flight */
         g.lineWidth=p.size*0.6; g.beginPath(); g.moveTo(p.x-p.vx*0.035, p.y-p.vy*0.035); g.lineTo(p.x, p.y); g.stroke();
         g.globalAlpha=a*0.35; g.lineWidth=p.size*1.6; g.stroke(); });
@@ -6947,7 +6957,7 @@ function acqFrame(now){ const g=ACQ.g, c=ACQ.cv; if(!g || !c.isConnected){ ACQ.r
     ACQ.ps.forEach(p=>{ if(p.kind!=='confetti') return; g.globalAlpha=acqLook(p.age/p.life); g.fillStyle='rgb('+p.col.join(',')+')';   /* a small card, flipping as it turns */
         g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.scale(1, Math.cos(p.rot*1.7)); g.fillRect(-p.size/2, -p.size/4, p.size, p.size/2); g.restore(); });
     g.globalAlpha=1;
-    if(ACQ.ps.length || ACQ.ring) ACQ.raf=requestAnimationFrame(acqFrame); else { ACQ.raf=0; ACQ.t=0; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); } }
+    if(ACQ.ps.length || ACQ.rings.length || ACQ.next) ACQ.raf=requestAnimationFrame(acqFrame); else { ACQ.raf=0; ACQ.t=0; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); } }
 // r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
 // element symbols of each recorded composition.
 const CB_MARK_SLOTS = 10;   // r65: the top row of bookmarks IS the recipe list
