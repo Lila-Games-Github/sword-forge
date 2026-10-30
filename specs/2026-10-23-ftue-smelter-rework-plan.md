@@ -685,3 +685,8 @@ yours and come on top.
   a balanced and a durable Longsword - white slash, no embers, no glow; a swift one - nothing; a fire one - unchanged; a
   white swing straight after a fire swing - the fire embers ran out, no error; the forge blade - balanced white, gale
   nothing, fire with its glow.
+- **R46 (2026-10-30, owner): the swift sword slashes white too.** Owner: "give me the same slash for the swift sword as
+  well." Swift joins the white-slash traits (`FX_PLAIN_TRAITS`: balanced, durable, swift); fire still wins over it, and
+  any other trait mixed with it still has no effect. Record: specs/2026-10-30-fire-swing-fx.md (R46). Smelter test 106 ->
+  108 (failing on the previous build first). Checked in the browser with frames driven by hand: a swift Longsword - white
+  slash, no embers, no glow; swift with fire - the fire effect; swift with gale - nothing; the forge's swift blade - white.

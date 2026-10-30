@@ -104,3 +104,12 @@ particles."
 | ribbon | speed 900, keep 0.12, inner 0.65, alpha 0.65, gap 140 | speed 900, keep 0.12, inner 0.65, alpha 0.7, gap 140 |
 | ribbon.stops | 0: 255,200,90 at 1; 0.45: 255,95,20 at 0.8; 1: 190,35,8 at 0 | 0: 255,255,255 at 1; 0.45: 235,242,255 at 0.55; 1: 220,230,250 at 0 |
 | glow, embers | as Values above | none |
+
+## R46: the swift sword slashes white too (2026-10-30)
+
+Owner: "give me the same slash for the swift sword as well."
+
+- **Which swords:** swift joins the white-slash traits: `FX_PLAIN_TRAITS` is balanced, durable, swift. A sword whose traits are
+  all among them (or none) slashes white (`SWING_FX.plain`, unchanged); fire still burns, also with swift (fire first); any
+  other trait (gale, ice, water, ...) still has no effect, also when mixed with swift.
+- **Where:** both swings, as R45.

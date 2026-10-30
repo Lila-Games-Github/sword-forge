@@ -2818,7 +2818,7 @@ const SWING_FX={ fire:{
     embers:{ rest:14, perPx:0.09, max:180, life:[0.25,0.55], size:[12,26], inherit:0.3, drag:3, rise:420, jitter:35, tipBias:2 },   /* B: made per s still + per px/s; s; px */
     ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.65, gap:140, stops:[[0,[255,200,90],1],[0.45,[255,95,20],0.8],[1,[190,35,8],0]] } },   /* C: drawn from this speed; each piece kept this long (s); tip to this far along the blade; a tip jump over gap px is skipped; stops: from the tip edge in, rgb, opacity */
     plain:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] } } };   /* R45 (owner): the base swords' white slash - no glow, no embers */
-const FX_PLAIN_TRAITS=['balanced','durable'];
+const FX_PLAIN_TRAITS=['balanced','durable','swift'];   /* R46 (owner): swift slashes white too */
 /* R45: a sword's (or the forge metal's) effect - fire burns; all base traits (or none) slash white; any other trait waits for its own */
 function fxFor(w){ if(!w) return null; const ids=(w.traits||[]).map(a=>a.tid || (a.t && a.t.id));
     if(ids.indexOf('fire')>=0) return SWING_FX.fire; return ids.every(k=>FX_PLAIN_TRAITS.indexOf(k)>=0) ? SWING_FX.plain : null; }

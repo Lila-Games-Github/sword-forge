@@ -187,13 +187,17 @@ eq('R44: the glow lies over the held blade', src.includes('#smBladeGlow { positi
 eq('R44: the loop runs while the forge blade burns', src.includes('(SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)'), true);
 
 /* R45 (owner, 2026-10-30): the base swords (balanced, durable) slash white, no particles */
-eq('R45: the base traits', X.FX_PLAIN_TRAITS, ['balanced', 'durable']);
+eq('R45: the base traits (R46: and swift)', X.FX_PLAIN_TRAITS, ['balanced', 'durable', 'swift']);
 const fw = ids => ({ traits: ids.map(k => ({ tid: k })) }), fm = ids => ({ traits: ids.map(k => ({ t: { id: k } })) });
 eq('R45: fire burns, even with a base trait', [X.fxFor(fw(['fire'])) === X.SWING_FX.fire, X.fxFor(fm(['durable', 'fire'])) === X.SWING_FX.fire], [true, true]);
 eq('R45: balanced, durable or none slash white', [fw(['balanced']), fw(['durable']), fm(['balanced', 'durable']), fw([]), {}].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true, true, true]);
-eq('R45: any other trait has no effect yet', [X.fxFor(fw(['swift'])), X.fxFor(fm(['balanced', 'gale'])), X.fxFor(fw(['water'])), X.fxFor(null)], [null, null, null, null]);
+eq('R45: any other trait has no effect yet', [X.fxFor(fw(['gale'])), X.fxFor(fm(['balanced', 'gale'])), X.fxFor(fw(['water'])), X.fxFor(null)], [null, null, null, null]);
 eq('R45: the white slash has no glow and no embers', [X.SWING_FX.plain.glow, X.SWING_FX.plain.embers], [undefined, undefined]);
 eq('R45: embers and the glow only when the values have them', /function fxSwing\(s, dt\)\{[\s\S]{0,900}if\(s\.glow && F\.glow\)[\s\S]{0,200}if\(F\.embers\)\{/.test(src) && src.includes('if(SW_SWING.fx && SW_SWING.fx.glow){') && src.includes('if(!SM_BL.fx || !SM_BL.fx.glow) return;'), true);
 eq('R45: each slash piece and ember keeps its own values', src.includes('fxEmberStep(p.F, p, dt)') && src.includes('b.F.ribbon.stops.forEach(') && src.includes(', t:s.t, F:F });'), true);
+
+/* R46 (owner, 2026-10-30): the swift sword slashes white too */
+eq('R46: swift slashes white, alone or with a base trait', [fw(['swift']), fm(['swift', 'balanced']), fw(['durable', 'swift'])].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true]);
+eq('R46: fire with swift burns; gale with swift has none', [X.fxFor(fw(['swift', 'fire'])) === X.SWING_FX.fire, X.fxFor(fm(['swift', 'gale']))], [true, null]);
 
 console.log('[smelter] GREEN / ' + n + ' checks');
