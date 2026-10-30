@@ -2817,14 +2817,18 @@ const SWING_FX={ fire:{
     glow:{ rest:0.35, full:1, speed:1600 },   /* A: the glow's opacity, still .. from this speed on */
     embers:{ rest:14, perPx:0.09, max:180, life:[0.25,0.55], size:[12,26], inherit:0.3, drag:3, rise:420, jitter:35, tipBias:2 },   /* B: made per s still + per px/s; s; px */
     ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.65, gap:140, stops:[[0,[255,200,90],1],[0.45,[255,95,20],0.8],[1,[190,35,8],0]] } },   /* C: drawn from this speed; each piece kept this long (s); tip to this far along the blade; a tip jump over gap px is skipped; stops: from the tip edge in, rgb, opacity */
-    plain:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] } } };   /* R45 (owner): the base swords' white slash - no glow, no embers */
+    plain:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] } },   /* R45 (owner): the base swords' white slash - no glow, no embers */
+    gale:{ ribbon:{ speed:900, keep:0.12, inner:0.65, alpha:0.7, gap:140, stops:[[0,[255,255,255],1],[0.45,[235,242,255],0.55],[1,[220,230,250],0]] },   /* R47 (owner): the same slash, */
+        wind:{ at:[-0.15,0.2,0.5,0.8], rx:20, ry:6, arc:4, spin:[5,16], speed:1600, alpha:[0.4,0.9], width:3 },   /* D: rings round the sword at these fractions of the blade (- = the hilt); px; rad; rad/s and opacity still .. from speed */
+        gusts:{ rest:5, perPx:0.025, max:40, life:[0.45,0.8], r:[8,26], sweep:[3,4.5], spin:7, inherit:0.35, jitter:30, drag:2.5, width:3, alpha:0.85 },   /* E: wind curls instead of embers */
+        color:{ edge:[80,195,225], core:[200,250,255] } } };   /* slightly cyan: a soft edge stroke under a bright core */
 const FX_PLAIN_TRAITS=['balanced','durable','swift'];   /* R46 (owner): swift slashes white too */
-/* R45: a sword's (or the forge metal's) effect - fire burns; all base traits (or none) slash white; any other trait waits for its own */
+/* R45: a sword's (or the forge metal's) effect - fire burns; R47: gale blows; all base traits (or none) slash white; any other trait waits for its own */
 function fxFor(w){ if(!w) return null; const ids=(w.traits||[]).map(a=>a.tid || (a.t && a.t.id));
-    if(ids.indexOf('fire')>=0) return SWING_FX.fire; return ids.every(k=>FX_PLAIN_TRAITS.indexOf(k)>=0) ? SWING_FX.plain : null; }
+    if(ids.indexOf('fire')>=0) return SWING_FX.fire; if(ids.indexOf('gale')>=0) return SWING_FX.gale; return ids.every(k=>FX_PLAIN_TRAITS.indexOf(k)>=0) ? SWING_FX.plain : null; }
 function fxGlow(F, sp){ const G=F.glow; return G.rest+(G.full-G.rest)*Math.min(1, sp/G.speed); }
 /* how many embers this frame; the fraction is carried to the next */
-function fxSpawn(F, sp, dt, carry){ const x=carry+(F.embers.rest+F.embers.perPx*sp)*dt, n=Math.floor(x); return { n:n, carry:x-n }; }
+function fxSpawn(F, sp, dt, carry, k){ const E=F[k||'embers'], x=carry+(E.rest+E.perPx*sp)*dt, n=Math.floor(x); return { n:n, carry:x-n }; }
 /* where along the blade (0 grip .. 1 tip) for a random u: tip-heavy */
 function fxAlong(F, u){ return 1-Math.pow(1-u, F.embers.tipBias); }
 /* a new ember at blade point b (its place and velocity); r = four randoms in 0..1 */
@@ -2840,6 +2844,18 @@ function fxRamp(k){ k=Math.max(0, Math.min(1, k)); let i=1; while(i<FX_RAMP.leng
 function fxEmberLook(k){ return { i:Math.min(15, Math.round(k*15)), a:Math.max(0, Math.min(1, k/0.1)*(1-k)), s:1-0.6*k }; }
 /* the ribbon keeps the last keep seconds of the tip's fast path */
 function fxRibbonKeep(F, pts, now){ return pts.filter(p=>now-p.t<=F.ribbon.keep*1000); }
+/* R47: a [still, full] range by speed */
+function fxBySpeed(R, sp, speed){ return R[0]+(R[1]-R[0])*Math.min(1, sp/speed); }
+/* R47 E: a new gust at sword point b; r = five randoms in 0..1 (e: its start angle) */
+function fxGust(F, b, r){ const G=F.gusts, lerp=(a,k)=>a[0]+(a[1]-a[0])*k;
+    return { x:b.x, y:b.y, vx:b.vx*G.inherit+(r.a*2-1)*G.jitter, vy:b.vy*G.inherit+(r.b*2-1)*G.jitter, age:0, life:lerp(G.life, r.c), r:lerp(G.r, r.d), sweep:lerp(G.sweep, r.d), a0:r.e*2*Math.PI }; }
+/* one step: it slows (no rise), turns, ages; false when its life is over */
+function fxGustStep(F, p, dt){ const G=F.gusts, k=Math.exp(-G.drag*dt); p.vx*=k; p.vy*=k; p.x+=p.vx*dt; p.y+=p.vy*dt; p.a0+=G.spin*dt; p.age+=dt; return p.age<p.life; }
+/* its open spiral now, n+1 points: radius 40% .. full over its life, from 30% at the inner end */
+function fxGustPath(p, n){ const R=p.r*(0.4+0.6*Math.min(1, p.age/p.life)), out=[];
+    for(let i=0; i<=n; i++){ const u=i/n, a=p.a0+p.sweep*u, q=R*(0.3+0.7*u); out.push({ x:p.x+q*Math.cos(a), y:p.y+q*Math.sin(a) }); } return out; }
+/* its opacity (in over 15%, then out) and line scale (to 40%) at age k */
+function fxGustLook(k){ k=Math.max(0, Math.min(1, k)); return { a:k<0.15 ? k/0.15 : 1-(k-0.15)/0.85, s:1-0.6*k }; }
 /* FIREFX-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -4593,7 +4609,7 @@ function swSwingTo(cx, cy){ if(SW_SWING){ SW_SWING.tx=cx; SW_SWING.ty=cy; } }
 function swSwingStop(){ if(SW_SWING){ cancelAnimationFrame(SW_SWING.raf); SW_SWING=null; } }
 /* R40 (owner, 2026-10-30): the fire sword's swing effect while dragged - A the glow (.sw-glow), B embers, C the ribbon on one canvas.
    Visual only: its own frame loop while anything is alive, no game state hangs on it. Record: specs/2026-10-30-fire-swing-fx.md */
-const FX={ cv:null, g:null, spr:null, em:[], rib:[], raf:0, t:0, carry:0, F:null };
+const FX={ cv:null, g:null, spr:null, em:[], gu:[], rib:[], raf:0, t:0, carry:0, gcarry:0, wrap:null, F:null };   /* R47: gu the gusts, wrap the held sword's rings */
 function fxCanvas(){ if(FX.cv && FX.cv.isConnected) return; const fr=document.getElementById('frame'), c=document.createElement('canvas'), d=Math.min(2, Math.max(1, window.devicePixelRatio||1));   /* R43: never coarser than the frame */
     c.id='swingFx'; c.width=fr.clientWidth*d; c.height=fr.clientHeight*d; fr.appendChild(c); FX.cv=c; FX.g=c.getContext('2d'); FX.d=d; FX.g.setTransform(d, 0, 0, d, 0, 0);
     if(!FX.spr) FX.spr=Array.from({ length:16 }, (_,i)=>{ const sp=document.createElement('canvas'); sp.width=sp.height=64;   /* one soft glow per colour step */
@@ -4607,21 +4623,36 @@ function fxSwing(s, dt){ if(!(dt>0)) return; const F=s.fx, sn=Math.sin(s.th), cs
     if(F.embers){ const k=fxSpawn(F, s.sp, dt, FX.carry); FX.carry=k.carry;   /* R45: the white slash has none */
     for(let i=0; i<k.n && FX.em.length<F.embers.max; i++){ const r=fxAlong(F, Math.random())*len;   /* a blade point's velocity: the grip's plus the turn's */
         FX.em.push(fxEmber(F, { x:px+r*sn, y:py+r*cs, vx:s.vx+s.om*r*cs, vy:s.vy-s.om*r*sn }, { a:Math.random(), b:Math.random(), c:Math.random(), d:Math.random() })); FX.em[FX.em.length-1].F=F; } }
+    if(F.gusts){ const k=fxSpawn(F, s.sp, dt, FX.gcarry, 'gusts'); FX.gcarry=k.carry;   /* R47 E: gale's curls, from the hilt to the tip */
+        for(let i=0; i<k.n && FX.gu.length<F.gusts.max; i++){ const r=(Math.random()*1.15-0.15)*len;
+            FX.gu.push(Object.assign(fxGust(F, { x:px+r*sn, y:py+r*cs, vx:s.vx+s.om*r*cs, vy:s.vy-s.om*r*sn }, { a:Math.random(), b:Math.random(), c:Math.random(), d:Math.random(), e:Math.random() }), { F:F })); } }
+    if(F.wind){ const W=(FX.wrap && FX.wrap.s===s) ? FX.wrap : (FX.wrap={ s:s, ph:0 });   /* R47 D: the rings drawn round where the sword is now */
+        Object.assign(W, { px:px, py:py, sn:sn, cs:cs, len:len, sp:s.sp, F:F }); W.ph+=fxBySpeed(F.wind.spin, s.sp, F.wind.speed)*dt; }
     if(s.sp>=F.ribbon.speed) FX.rib.push({ x:tip.x, y:tip.y, ix:px+len*F.ribbon.inner*sn, iy:py+len*F.ribbon.inner*cs, t:s.t, F:F });   /* the swing frame's time, the clock fxFrame keeps */
     fxCanvas(); FX.F=F; if(!FX.raf){ FX.t=0; FX.raf=requestAnimationFrame(fxFrame); } }
+/* R47 D: the rings round the held sword - open arcs of flat ellipses across it, spinning */
+function fxWindDraw(g, W){ const D=W.F.wind, C=W.F.color, a=fxBySpeed(D.alpha, W.sp, D.speed), rot=Math.atan2(W.cs, W.sn)+Math.PI/2; g.lineCap='round';
+    D.at.forEach((u,i)=>{ const cx=W.px+u*W.len*W.sn, cy=W.py+u*W.len*W.cs, st=W.ph+i*1.7;
+        [[D.width*2.2, C.edge, .35], [D.width, C.core, 1]].forEach(q=>{ g.globalAlpha=a*q[2]; g.strokeStyle='rgb('+q[1].join(',')+')'; g.lineWidth=q[0]; g.beginPath(); g.ellipse(cx, cy, D.rx, D.ry, rot, st, st+D.arc); g.stroke(); }); }); }
+/* R47 E: a gust - its open spiral, a soft edge under a bright core */
+function fxGustDraw(g, p){ const L=fxGustLook(p.age/p.life), C=p.F.color, P=fxGustPath(p, 10), w=p.F.gusts.width*L.s; g.lineCap='round';
+    [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(q=>{ g.globalAlpha=p.F.gusts.alpha*L.a*q[2]; g.strokeStyle='rgb('+q[1].join(',')+')'; g.lineWidth=q[0];
+        g.beginPath(); P.forEach((t,i)=>i ? g.lineTo(t.x, t.y) : g.moveTo(t.x, t.y)); g.stroke(); }); }
 function fxFrame(now){ const F=FX.F, g=FX.g, c=FX.cv; if(!F || !g || !c.isConnected){ FX.raf=0; return; }
     const dt=FX.t ? Math.min(0.05, (now-FX.t)/1000) : 1/60; FX.t=now;
-    FX.em=FX.em.filter(p=>fxEmberStep(p.F, p, dt));   /* R45: each keeps the values it was made with */ FX.rib=fxRibbonKeep(F, FX.rib, now);
+    FX.em=FX.em.filter(p=>fxEmberStep(p.F, p, dt)); FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));   /* R45: each keeps the values it was made with */ FX.rib=fxRibbonKeep(F, FX.rib, now);
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(FX.d, 0, 0, FX.d, 0, 0);   /* R43: the whole canvas, in its own pixels */
     g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */
     for(let i=1; i<FX.rib.length; i++){ const a=FX.rib[i-1], b=FX.rib[i]; if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>b.F.ribbon.gap) continue;   /* C: a pause or a jump ends a stretch */
         const gr=g.createLinearGradient(b.x, b.y, b.ix, b.iy); b.F.ribbon.stops.forEach(q=>gr.addColorStop(q[0], 'rgba('+q[1].join(',')+','+q[2]+')'));   /* R45: fire or white */
         g.globalAlpha=b.F.ribbon.alpha*Math.max(0, 1-(now-b.t)/(b.F.ribbon.keep*1000)); g.fillStyle=gr;
         g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.lineTo(b.ix, b.iy); g.lineTo(a.ix, a.iy); g.closePath(); g.fill(); }
+    const W=FX.wrap; if(W && W.s.fx===W.F && (W.s===SW_SWING || (W.s===SM_BL && W.s.live))) fxWindDraw(g, W); else FX.wrap=null;   /* R47 D */
+    FX.gu.forEach(p=>fxGustDraw(g, p)); g.globalAlpha=1;   /* R47 E */
     g.globalCompositeOperation='lighter';   /* B: light on light, so overlapping embers read as flame */
     FX.em.forEach(p=>{ const L=fxEmberLook(p.age/p.life), z=p.size*L.s; g.globalAlpha=L.a; g.drawImage(FX.spr[L.i], p.x-z/2, p.y-z/2, z, z); });   /* B */
     g.globalAlpha=1; g.globalCompositeOperation='source-over';
-    if(FX.em.length || FX.rib.length || (SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)) FX.raf=requestAnimationFrame(fxFrame); else { FX.raf=0; FX.t=0; } }
+    if(FX.em.length || FX.gu.length || FX.rib.length || (SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)) FX.raf=requestAnimationFrame(fxFrame); else { FX.raf=0; FX.t=0; } }
 function startSwordDrag(w,e){
     const onShop = SF_SCREEN==='shop';                      // r70: three rack targets instead of one zone
     if(!zoneRect() && !onShop){ toast('Take a sword to the <b>workstation</b>, the <b>counter</b> or the <b>shop racks</b>'); return; }

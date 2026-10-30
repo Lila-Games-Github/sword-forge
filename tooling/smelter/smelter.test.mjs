@@ -137,13 +137,17 @@ eq('the old loop is kept apart, without the smelter loop', ['SMELT-PURE', 'const
    Record: specs/2026-10-30-fire-swing-fx.md */
 const fxm = src.match(/\/\* FIREFX-PURE-BEGIN \*\/([\s\S]*?)\/\* FIREFX-PURE-END \*\//);
 assert.ok(fxm, 'FIREFX-PURE markers not found in ' + HTML);
-const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
+const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxBySpeed, fxGust, fxGustStep, fxGustPath, fxGustLook, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
 const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
 eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
   glow: { rest: 0.35, full: 1, speed: 1600 },
   embers: { rest: 14, perPx: 0.09, max: 180, life: [0.25, 0.55], size: [12, 26], inherit: 0.3, drag: 3, rise: 420, jitter: 35, tipBias: 2 },
   ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.65, gap: 140, stops: [[0, [255, 200, 90], 1], [0.45, [255, 95, 20], 0.8], [1, [190, 35, 8], 0]] } },
-  plain: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] } } });   /* R45: the white slash, no glow, no embers */
+  plain: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] } },   /* R45: the white slash, no glow, no embers */
+  gale: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] },
+    wind: { at: [-0.15, 0.2, 0.5, 0.8], rx: 20, ry: 6, arc: 4, spin: [5, 16], speed: 1600, alpha: [0.4, 0.9], width: 3 },
+    gusts: { rest: 5, perPx: 0.025, max: 40, life: [0.45, 0.8], r: [8, 26], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 3, alpha: 0.85 },
+    color: { edge: [80, 195, 225], core: [200, 250, 255] } } });   /* R47: the gale winds */
 eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
 eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
 const sp = X.fxSpawn(FF, 1000, 0.1, 0.5);
@@ -191,13 +195,31 @@ eq('R45: the base traits (R46: and swift)', X.FX_PLAIN_TRAITS, ['balanced', 'dur
 const fw = ids => ({ traits: ids.map(k => ({ tid: k })) }), fm = ids => ({ traits: ids.map(k => ({ t: { id: k } })) });
 eq('R45: fire burns, even with a base trait', [X.fxFor(fw(['fire'])) === X.SWING_FX.fire, X.fxFor(fm(['durable', 'fire'])) === X.SWING_FX.fire], [true, true]);
 eq('R45: balanced, durable or none slash white', [fw(['balanced']), fw(['durable']), fm(['balanced', 'durable']), fw([]), {}].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true, true, true]);
-eq('R45: any other trait has no effect yet', [X.fxFor(fw(['gale'])), X.fxFor(fm(['balanced', 'gale'])), X.fxFor(fw(['water'])), X.fxFor(null)], [null, null, null, null]);
+eq('R45: any other trait has no effect yet (R47: gale has its own)', [X.fxFor(fw(['water'])), X.fxFor(fm(['balanced', 'ice'])), X.fxFor(null)], [null, null, null]);
 eq('R45: the white slash has no glow and no embers', [X.SWING_FX.plain.glow, X.SWING_FX.plain.embers], [undefined, undefined]);
 eq('R45: embers and the glow only when the values have them', /function fxSwing\(s, dt\)\{[\s\S]{0,900}if\(s\.glow && F\.glow\)[\s\S]{0,200}if\(F\.embers\)\{/.test(src) && src.includes('if(SW_SWING.fx && SW_SWING.fx.glow){') && src.includes('if(!SM_BL.fx || !SM_BL.fx.glow) return;'), true);
 eq('R45: each slash piece and ember keeps its own values', src.includes('fxEmberStep(p.F, p, dt)') && src.includes('b.F.ribbon.stops.forEach(') && src.includes(', t:s.t, F:F });'), true);
 
 /* R46 (owner, 2026-10-30): the swift sword slashes white too */
 eq('R46: swift slashes white, alone or with a base trait', [fw(['swift']), fm(['swift', 'balanced']), fw(['durable', 'swift'])].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true]);
-eq('R46: fire with swift burns; gale with swift has none', [X.fxFor(fw(['swift', 'fire'])) === X.SWING_FX.fire, X.fxFor(fm(['swift', 'gale']))], [true, null]);
+eq('R46: fire with swift burns', X.fxFor(fw(['swift', 'fire'])) === X.SWING_FX.fire, true);
+
+/* R47 (owner, 2026-10-30): the gale sword - the same slash, swirling cyan winds instead of particles */
+const FG = X.SWING_FX.gale;
+eq('R47: gale gets the winds, alone or mixed; fire still first', [fw(['gale']), fm(['swift', 'gale']), fw(['water', 'gale'])].map(w => X.fxFor(w) === FG).concat(X.fxFor(fw(['gale', 'fire'])) === X.SWING_FX.fire), [true, true, true, true]);
+eq('R47: the same slash as the base swords; no glow, no embers', [JSON.stringify(FG.ribbon) === JSON.stringify(X.SWING_FX.plain.ribbon), FG.glow, FG.embers], [true, undefined, undefined]);
+eq('R47 D: the rings spin and show by speed', [X.fxBySpeed(FG.wind.spin, 0, 1600), X.fxBySpeed(FG.wind.spin, 800, 1600), X.fxBySpeed(FG.wind.alpha, 1600, 1600), X.fxBySpeed(FG.wind.alpha, 9000, 1600)], [5, 10.5, 0.9, 0.9]);
+eq('R47 E: gusts made - 5 a second when still, plus 0.025 per px/s', [X.fxSpawn(FG, 0, 1, 0, 'gusts'), X.fxSpawn(FG, 1000, 0.1, 0.2, 'gusts').n], [{ n: 5, carry: 0 }, 3]);
+eq('R40 B: embers still made by default', X.fxSpawn(X.SWING_FX.fire, 0, 1, 0), { n: 14, carry: 0 });
+const gu = X.fxGust(FG, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5, e: 0 });
+eq('R47 E: a new gust - its point, 0.35 of its velocity, mid life, size and sweep', Object.assign({}, gu, { life: r3(gu.life), r: r3(gu.r), sweep: r3(gu.sweep), vx: r3(gu.vx), vy: r3(gu.vy) }), { x: 10, y: 20, vx: 35, vy: -17.5, age: 0, life: 0.625, r: 17, sweep: 3.75, a0: 0 });
+const g2 = Object.assign({}, gu), live = X.fxGustStep(FG, g2, 0.1);
+eq('R47 E: it slows, does not rise, turns and ages', [live, r3(g2.vx) < 35, r3(g2.vy) > -17.5, r3(g2.a0), r3(g2.age)], [true, true, true, 0.7, 0.1]);
+eq('R47 E: it goes at the end of its life', X.fxGustStep(FG, Object.assign({}, gu, { age: 0.62 }), 0.01), false);
+const gp0 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0 }), 4), gp1 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0, age: gu.life }), 4);
+eq('R47 E: an open spiral, growing from 40% to its full radius', [gp0.length, r3(Math.hypot(gp0[4].x, gp0[4].y)), r3(Math.hypot(gp1[4].x, gp1[4].y)), r3(Math.hypot(gp1[0].x, gp1[0].y))], [5, 6.8, 17, 5.1]);
+eq('R47 E: fades in over 15%, then out; thins to 40%', [X.fxGustLook(0).a, X.fxGustLook(0.15).a > 0.8, X.fxGustLook(1).a, r3(X.fxGustLook(1).s)], [0, true, 0, 0.4]);
+eq('R47: the rings follow the held sword and stop with it; gusts keep their values', src.includes('if(F.wind){') && src.includes('(W.s===SW_SWING || (W.s===SM_BL && W.s.live))') && src.includes('FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));') && src.includes('if(FX.em.length || FX.gu.length || FX.rib.length ||'), true);
+eq('R47: each wind line drawn twice - a soft edge, then a bright core', (src.match(/\[\[[a-zA-Z.*]+\*2\.2, C\.edge, \.35\], \[[a-zA-Z.]+, C\.core, 1\]\]/g) || []).length, 2);
 
 console.log('[smelter] GREEN / ' + n + ' checks');

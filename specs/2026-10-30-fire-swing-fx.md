@@ -113,3 +113,31 @@ Owner: "give me the same slash for the swift sword as well."
   all among them (or none) slashes white (`SWING_FX.plain`, unchanged); fire still burns, also with swift (fire first); any
   other trait (gale, ice, water, ...) still has no effect, also when mixed with swift.
 - **Where:** both swings, as R45.
+
+## R47: the gale sword's winds (2026-10-30)
+
+Owner: "I want something for the gale sword as well. Use the same slash, but instead of particles, I want swirling winds
+around the blade and the sword. use slightly cyan color for this."
+
+- **Which swords** (`fxFor`): fire first, then gale: a sword with the gale trait (and no fire) gets `SWING_FX.gale`, whatever
+  else it carries. Then the white slash (R45-R46), else none.
+- **C. The slash:** the same white slash as the base swords (the same values).
+- **D. Wind rings:** flat rings wrapped around the sword, drawn across it at points `at` along it (fractions of the blade from
+  the grip, the first one negative: over the hilt), each an open arc `arc` (rad) of an ellipse `rx` across by `ry` along,
+  spinning around the sword at `spin` (rad/s, from still to `speed` and above), each ring's arc started 1.7 rad on from the
+  last. Opacity `alpha` from still to `speed`. Shown while the sword is held, also still.
+- **E. Gusts** (instead of embers): small wind curls made like embers (`rest` per second plus `perPx` per px/s of tip speed,
+  at most `max` alive) at a random point on the sword (from the hilt, -0.15, to the tip), with `inherit` of that point's
+  velocity plus up to `jitter` px/s each way, slowed by `drag` (/s), not rising. Each is an open spiral of `sweep` (rad)
+  turning at `spin` (rad/s), its radius growing from 40% to its full `r` over its `life`, its line `width` thinning to 40%;
+  it fades in over the first 15% and out after.
+- **Colour:** slightly cyan (`color`): each wind line is drawn twice, a wider soft `edge` stroke at 35% then a thin bright
+  `core` stroke, so it reads on the light walls and the dark forge alike. Painted over the scene (not added light).
+- **Where:** both swings, as R44-R46. No glow (A) on a gale sword.
+
+| Key | Value |
+|---|---|
+| ribbon | as plain (R45): speed 900, keep 0.12, inner 0.65, alpha 0.7, gap 140, white stops |
+| wind | at -0.15, 0.2, 0.5, 0.8; rx 20, ry 6, arc 4, spin 5-16, speed 1600, alpha 0.4-0.9, width 3 |
+| gusts | rest 5, perPx 0.025, max 40, life 0.45-0.8, r 8-26, sweep 3-4.5, spin 7, inherit 0.35, jitter 30, drag 2.5, width 3, alpha 0.85 |
+| color | edge 80,195,225; core 200,250,255 |

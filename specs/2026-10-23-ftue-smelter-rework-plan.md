@@ -690,3 +690,12 @@ yours and come on top.
   any other trait mixed with it still has no effect. Record: specs/2026-10-30-fire-swing-fx.md (R46). Smelter test 106 ->
   108 (failing on the previous build first). Checked in the browser with frames driven by hand: a swift Longsword - white
   slash, no embers, no glow; swift with fire - the fire effect; swift with gale - nothing; the forge's swift blade - white.
+- **R47 (2026-10-30, owner): the gale sword's winds.** Owner: "I want something for the gale sword as well. Use the same
+  slash, but instead of particles, I want swirling winds around the blade and the sword. use slightly cyan color for
+  this." A gale sword (fire still first) gets the white slash, spinning cyan wind rings wrapped round the sword from the
+  hilt to the tip (D), and cyan wind curls that spin off it instead of embers (E); no glow. Each wind line is a soft edge
+  stroke under a bright core, to read on light and dark scenes. Both swings (dragged sword, forge blade). Record:
+  specs/2026-10-30-fire-swing-fx.md (R47). Smelter test 108 -> 120 (failing on the previous build first). Checked in
+  the browser with frames driven by hand: a gale Longsword - slash, 4 rings, up to 22 curls, no embers, no glow; let go -
+  the rings gone at once, the curls gone and the loop stopped within 44 frames; the forge's gale blade - the same, the
+  rings gone on release; no console errors.
