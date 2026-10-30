@@ -133,4 +133,33 @@ eq('the minigame line no longer asks for the mug', !src.includes("'Blade shaped:
 /* 2026-10-23 (owner): this loop is the main game; the old hammer loop is kept as its own file, without it */
 eq('the old loop is kept apart, without the smelter loop', ['SMELT-PURE', 'const SMELT=', 'smFreePlay', 'smShaped', 'smHandle'].some(k => old.includes(k)), false);
 
+/* R40 (owner, 2026-10-30): the fire sword's swing effect - A glow, B embers, C ribbon; fire only, while dragged.
+   Record: specs/2026-10-30-fire-swing-fx.md */
+const fxm = src.match(/\/\* FIREFX-PURE-BEGIN \*\/([\s\S]*?)\/\* FIREFX-PURE-END \*\//);
+assert.ok(fxm, 'FIREFX-PURE markers not found in ' + HTML);
+const X = new Function(fxm[1] + '; return { SWING_FX, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
+const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
+eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
+  glow: { rest: 0.35, full: 1, speed: 1600 },
+  embers: { rest: 14, perPx: 0.09, max: 180, life: [0.25, 0.55], size: [12, 26], inherit: 0.3, drag: 3, rise: 420, jitter: 35, tipBias: 2 },
+  ribbon: { speed: 900, keep: 0.12, inner: 0.8, alpha: 0.65, gap: 140 } } });
+eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
+eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
+const sp = X.fxSpawn(FF, 1000, 0.1, 0.5);
+eq('R40 B: plus 0.09 per px/s of speed, the fraction carried to the next frame', [sp.n, r3(sp.carry)], [10, 0.9]);
+eq('R40 B: along the blade, tip-heavy', [X.fxAlong(FF, 0), X.fxAlong(FF, 0.5), X.fxAlong(FF, 1)], [0, 0.75, 1]);
+const em = X.fxEmber(FF, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5 });
+eq('R40 B: a new ember - its point, 0.3 of its velocity, mid life and size', Object.assign({}, em, { life: r3(em.life), size: r3(em.size) }), { x: 10, y: 20, vx: 30, vy: -15, age: 0, life: 0.4, size: 19 });
+const e2 = Object.assign({}, em), alive = X.fxEmberStep(FF, e2, 0.1);
+eq('R40 B: it slows, rises and ages', [alive, e2.vx < em.vx, e2.vy < em.vy, r3(e2.age)], [true, true, true, 0.1]);
+eq('R40 B: it goes at the end of its life', X.fxEmberStep(FF, { x: 0, y: 0, vx: 0, vy: 0, age: 0.54, life: 0.55, size: 10 }, 0.02), false);
+eq('R40 B: colour - white-yellow new, orange mid-life, smoke at the end', [X.fxRamp(0), X.fxRamp(0.5), X.fxRamp(1)], [[255, 244, 200], [245, 110, 25], [70, 50, 45]]);
+eq('R40 B: fades in, then out; 16 colour steps; shrinks to 40%', [X.fxEmberLook(0).a, X.fxEmberLook(0.5).a > 0.4, X.fxEmberLook(1).a, X.fxEmberLook(0).i, X.fxEmberLook(1).i, r3(X.fxEmberLook(1).s)], [0, true, 0, 0, 15, 0.4]);
+eq('R40 C: the ribbon keeps 0.12 s of the swept path', X.fxRibbonKeep(FF, [{ t: 0 }, { t: 100 }, { t: 200 }], 300).map(p => p.t), [200]);
+eq('R40 C: painted over the scene', src.includes("g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */"), true);
+eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>F.ribbon.gap) continue;'), true);
+eq('R40: fire swords only, while dragged', src.includes("fx:swordHasTrait(w, 'fire') ? SWING_FX.fire : null") && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
+eq('R40 A: the glow is cut to the blade picture', /\.sw-ghost \.sw-glow \{[^}]*mask-size: contain;/.test(src) && src.includes("gl.style.maskImage=gl.style.webkitMaskImage='url('+blade+')';"), true);
+eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; z-index: 121; pointer-events: none; }'), true);
+
 console.log('[smelter] GREEN / ' + n + ' checks');

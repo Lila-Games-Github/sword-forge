@@ -626,3 +626,15 @@ yours and come on top.
   element hit-tested): PART 1 to PART 4 - neither; the come-later customer's request typed - the market, lit, popping in;
   the rotary tapped - the market opens; closed - COME LATER lit; tapped - the ledger pops in, the toast names it; forge and
   back - both stay; PART 5, PART 6, GAME, free play - both; no console errors.
+- **R40 (2026-10-30, owner): the fire sword burns while it swings.** Owner, after the proposal: "go with A + B + C, fire only,
+  while dragging." A sword with the fire trait, dragged (s7), gets: A an orange glow cut to the blade picture, flickering,
+  its opacity rising with the tip's speed; B embers along the blade (tip-heavy, more the faster it moves) that trail,
+  rise and fade from white-yellow to smoke, drawn as added light; C a flame ribbon over the tip's swept path on fast
+  swings (900 px/s and up), painted. Embers in the air finish after the drop. Values in `SWING_FX.fire`; record:
+  specs/2026-10-30-fire-swing-fx.md. Smelter test 71 -> 87 (failing on the previous build first; two tuning passes,
+  each written to the record and the test first). Checked in the browser (GAME, a fire and a balanced Longsword dragged
+  from the bag by pointer events, the frames driven at 60 per second because the hidden pane is throttled): still - a dim
+  glow, a few embers; a 1.5 Hz swing - full glow, embers along the swept path, the ribbon on the fast strokes; dropped -
+  the embers gone in 0.7 s and the loop stopped; the balanced sword - nothing; no console errors. Fixed on the way: the
+  blade length is read each frame (the picture's ends load after the drag starts, so the start used a default 157 px
+  for a 277 px blade); the ribbon uses the swing frame's clock.
