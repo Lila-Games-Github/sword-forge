@@ -657,3 +657,11 @@ yours and come on top.
   Smelter test 87 -> 91 (failing on the previous build first; it fails on a blade picture with no row). Checked in the
   browser with the pixel read blocked: the stored ends used, the blade 277 px, a marker at the computed tip on the drawn
   tip, the slash from it; no console errors.
+- **R43 (2026-10-30, owner): the fire effect's canvas cleared whole.** Owner, with flame patterns piling up along the
+  frame's right and bottom edges: "what is all this flame patters? it appears when i swing the sword. fix it." Cause: each
+  frame cleared the canvas with the pixel-ratio scale applied; below a ratio of 1 (a browser zoomed out) that cleared less
+  than the canvas, so the right and bottom bands kept every flame drawn there. Now the clear resets the scale and clears
+  the whole canvas, and the ratio is held to 1-2. Record: specs/2026-10-30-fire-swing-fx.md (R43). Smelter test 91 -> 93
+  (failing on the previous build first). Checked in the browser at a simulated ratio of 0.8: before, about 113,000 lit
+  pixels left in the outer 20% after a swing there; after, none; at 1.5 the tip marker still on the drawn tip; no console
+  errors.

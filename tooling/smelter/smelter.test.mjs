@@ -173,4 +173,8 @@ eq('R42: each tip lies up and right of its tang, about 45 deg (the art conventio
 eq('R42: the flame Longsword as measured (277 px at the swing size)', [ART.flame_longsword_blade, Math.round(Math.hypot(ART.flame_longsword_blade[2] - ART.flame_longsword_blade[0], ART.flame_longsword_blade[3] - ART.flame_longsword_blade[1]) * 317)], [[0.2919, 0.7059, 0.9064, 0.0833], 277]);
 eq('R42: SM_ENDS starts filled from the table', src.includes('Object.keys(SM_ENDS_ART).forEach(f=>{ const a=SM_ENDS_ART[f]; SM_ENDS[f]={ tang:{ x:a[0], y:a[1] }, tip:{ x:a[2], y:a[3] }, art:Math.atan2(a[3]-a[1], a[2]-a[0])*180/Math.PI }; });'), true);
 
+/* R43 (owner, 2026-10-30): the canvas cleared whole, whatever the pixel ratio */
+eq('R43: each frame clears the whole canvas in its own pixels', src.includes("g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(FX.d, 0, 0, FX.d, 0, 0);"), true);
+eq('R43: drawn at the pixel ratio held to 1-2', src.includes('d=Math.min(2, Math.max(1, window.devicePixelRatio||1));'), true);
+
 console.log('[smelter] GREEN / ' + n + ' checks');

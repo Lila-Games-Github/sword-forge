@@ -4584,8 +4584,8 @@ function swSwingStop(){ if(SW_SWING){ cancelAnimationFrame(SW_SWING.raf); SW_SWI
 /* R40 (owner, 2026-10-30): the fire sword's swing effect while dragged - A the glow (.sw-glow), B embers, C the ribbon on one canvas.
    Visual only: its own frame loop while anything is alive, no game state hangs on it. Record: specs/2026-10-30-fire-swing-fx.md */
 const FX={ cv:null, g:null, spr:null, em:[], rib:[], raf:0, t:0, carry:0, F:null };
-function fxCanvas(){ if(FX.cv && FX.cv.isConnected) return; const fr=document.getElementById('frame'), c=document.createElement('canvas'), d=Math.min(2, window.devicePixelRatio||1);
-    c.id='swingFx'; c.width=fr.clientWidth*d; c.height=fr.clientHeight*d; fr.appendChild(c); FX.cv=c; FX.g=c.getContext('2d'); FX.g.setTransform(d, 0, 0, d, 0, 0);
+function fxCanvas(){ if(FX.cv && FX.cv.isConnected) return; const fr=document.getElementById('frame'), c=document.createElement('canvas'), d=Math.min(2, Math.max(1, window.devicePixelRatio||1));   /* R43: never coarser than the frame */
+    c.id='swingFx'; c.width=fr.clientWidth*d; c.height=fr.clientHeight*d; fr.appendChild(c); FX.cv=c; FX.g=c.getContext('2d'); FX.d=d; FX.g.setTransform(d, 0, 0, d, 0, 0);
     if(!FX.spr) FX.spr=Array.from({ length:16 }, (_,i)=>{ const sp=document.createElement('canvas'); sp.width=sp.height=64;   /* one soft glow per colour step */
         const g=sp.getContext('2d'), c3=fxRamp(i/15).join(','), gr=g.createRadialGradient(32, 32, 0, 32, 32, 32);
         gr.addColorStop(0, 'rgba('+c3+',1)'); gr.addColorStop(.4, 'rgba('+c3+',.6)'); gr.addColorStop(1, 'rgba('+c3+',0)'); g.fillStyle=gr; g.fillRect(0, 0, 64, 64); return sp; }); }
@@ -4602,7 +4602,8 @@ function fxSwing(s, dt){ if(!(dt>0)) return; const F=s.fx, sn=Math.sin(s.th), cs
 function fxFrame(now){ const F=FX.F, g=FX.g, c=FX.cv; if(!F || !g || !c.isConnected){ FX.raf=0; return; }
     const dt=FX.t ? Math.min(0.05, (now-FX.t)/1000) : 1/60; FX.t=now;
     FX.em=FX.em.filter(p=>fxEmberStep(F, p, dt)); FX.rib=fxRibbonKeep(F, FX.rib, now);
-    g.clearRect(0, 0, c.width, c.height); g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(FX.d, 0, 0, FX.d, 0, 0);   /* R43: the whole canvas, in its own pixels */
+    g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */
     for(let i=1; i<FX.rib.length; i++){ const a=FX.rib[i-1], b=FX.rib[i]; if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>F.ribbon.gap) continue;   /* C: a pause or a jump ends a stretch */
         const gr=g.createLinearGradient(b.x, b.y, b.ix, b.iy); gr.addColorStop(0, 'rgba(255,200,90,1)'); gr.addColorStop(.45, 'rgba(255,95,20,.8)'); gr.addColorStop(1, 'rgba(190,35,8,0)');
         g.globalAlpha=F.ribbon.alpha*Math.max(0, 1-(now-b.t)/(F.ribbon.keep*1000)); g.fillStyle=gr;

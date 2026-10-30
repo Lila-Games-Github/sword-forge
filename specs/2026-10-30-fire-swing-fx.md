@@ -57,3 +57,16 @@ browser by blocking the pixel read.
   `assets/sword-parts/blades/`. `SM_ENDS` starts filled from it; a picture missing from it is still measured at run time.
 - **Upkeep:** a blade picture added or redrawn needs its row (the test fails on a picture with no row). Measure it as on
   2026-10-30: in the game served by the dev server, `smBladeEndsOf(file)`, then read `SM_ENDS[file]`.
+
+## R43: the canvas cleared whole (2026-10-30)
+
+Owner, with a picture of flame patterns piling up along the frame's right and bottom edges: "there is some weird effect at
+the right and bottom side now. what is all this flame patters? it appears when i swing the sword. fix it." Cause: the canvas
+is drawn at the screen's pixel ratio (R41) and each frame cleared with that scale applied. Below a ratio of 1 (a browser
+zoomed out, as on the owner's screen) the cleared area was that much smaller than the canvas, so the right and bottom
+bands were never cleared and every flame drawn there stayed. Reproduced at a ratio of 0.8: about 113,000 lit pixels left
+in the outer 20% with no ember there.
+
+- **Clear:** each frame clears the whole canvas in its own pixels (the scale reset for the clear).
+- **Ratio:** the canvas is drawn at the screen's ratio held to 1-2 (it was up to 2 only), so it is never coarser than the
+  frame.
