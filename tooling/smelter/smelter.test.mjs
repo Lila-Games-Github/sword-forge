@@ -6,7 +6,7 @@
  * loop (kept as Swordforge_looptest_landscape_hammerloop.html) carries none of it.
  * Run: node tooling/smelter/smelter.test.mjs
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const HTML = 'Swordforge_looptest_landscape.html';
@@ -161,5 +161,16 @@ eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.
 eq('R40: fire swords only, while dragged', src.includes("fx:swordHasTrait(w, 'fire') ? SWING_FX.fire : null") && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
 eq('R40 A: the glow is cut to the blade picture', /\.sw-ghost \.sw-glow \{[^}]*mask-size: contain;/.test(src) && src.includes("gl.style.maskImage=gl.style.webkitMaskImage='url('+blade+')';"), true);
 eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }'), true);   /* R41: frame-sized whatever the pixel ratio */
+
+/* R42 (2026-10-30): the blade ends stored in the game, so a page opened as a file (no pixel reads) swings and burns right */
+const bem = src.match(/\/\* BLADE-ENDS-BEGIN \*\/([\s\S]*?)\/\* BLADE-ENDS-END \*\//);
+assert.ok(bem, 'BLADE-ENDS markers not found in ' + HTML);
+const ART = new Function(bem[1] + '; return SM_ENDS_ART;')();
+const bladeFiles = readdirSync('assets/sword-parts/blades').filter(f => f.endsWith('.webp')).map(f => f.replace(/\.webp$/, '')).sort();
+eq('R42: a row for every blade picture, none for a missing one', Object.keys(ART).sort(), bladeFiles);
+eq('R42: each tip lies up and right of its tang, about 45 deg (the art convention)', Object.keys(ART).filter(f => { const [ax, ay, bx, by] = ART[f], d = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
+  return !(bx > ax && by < ay && d > -60 && d < -30); }), []);
+eq('R42: the flame Longsword as measured (277 px at the swing size)', [ART.flame_longsword_blade, Math.round(Math.hypot(ART.flame_longsword_blade[2] - ART.flame_longsword_blade[0], ART.flame_longsword_blade[3] - ART.flame_longsword_blade[1]) * 317)], [[0.2919, 0.7059, 0.9064, 0.0833], 277]);
+eq('R42: SM_ENDS starts filled from the table', src.includes('Object.keys(SM_ENDS_ART).forEach(f=>{ const a=SM_ENDS_ART[f]; SM_ENDS[f]={ tang:{ x:a[0], y:a[1] }, tip:{ x:a[2], y:a[3] }, art:Math.atan2(a[3]-a[1], a[2]-a[0])*180/Math.PI }; });'), true);
 
 console.log('[smelter] GREEN / ' + n + ' checks');

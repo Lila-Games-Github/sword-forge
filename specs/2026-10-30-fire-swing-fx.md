@@ -43,3 +43,17 @@ light on light (`lighter`), so overlapping specks read as flame.
 
 One canvas over the frame (`#swingFx`, above the dragged sword, taps pass through), sized to the frame in CSS (100% by 100%) and drawn at the screen's pixel ratio (R41: without the CSS size, a screen at 125% or 150% showed the canvas that much larger, so the slash landed mid-blade instead of at the tip), its own frame loop while anything is
 alive. Visual only: no game state depends on it (a hidden page freezes its frames, which only pauses the picture).
+
+## R42: the blade ends stored in the game (2026-10-30)
+
+Owner, with a picture of the slash near the grip: "the slice is closer to the centre on my screen". Cause: every swing
+(s5 the anvil blade, s7 a dragged sword, and this effect) needs each blade picture's tang and tip; the game measured them
+by reading the picture's pixels (`smBladeEndsOf`, `smBladeEnds`). A page opened as a file (`file://`) may not read picture
+pixels, so it used `SM_ENDS_DEFAULT`, a 157 px blade for a 277 px one: the slash landed mid-blade. Reproduced in the
+browser by blocking the pixel read.
+
+- **The table (`SM_ENDS_ART`):** each blade picture's tang and tip as fractions of the picture (tang x, tang y, tip x,
+  tip y), measured with `smBladeEnds` through the dev server on 2026-10-30, four decimals, for all 21 blade pictures in
+  `assets/sword-parts/blades/`. `SM_ENDS` starts filled from it; a picture missing from it is still measured at run time.
+- **Upkeep:** a blade picture added or redrawn needs its row (the test fails on a picture with no row). Measure it as on
+  2026-10-30: in the game served by the dev server, `smBladeEndsOf(file)`, then read `SM_ENDS[file]`.

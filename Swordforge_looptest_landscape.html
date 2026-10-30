@@ -8030,7 +8030,36 @@ function smBladeHide(){ const b=document.getElementById('smBlade'); SM_BL=null; 
 /* s5 (owner): the blade hangs from its handle and swings like a pendulum. SM_BL = the held blade: pivot (the tang) p, its
    velocity v, the finger t, the swing th/om, L. The ends of each blade picture are read from its pixels (smBladeEnds). */
 let SM_BL=null, SM_DIPPING=false;
+/* BLADE-ENDS-BEGIN */
+/* R42 (2026-10-30): each blade picture's tang and tip (fractions of the picture: tang x, tang y, tip x, tip y), measured with
+   smBladeEnds through the dev server. A page opened as a file cannot read picture pixels, so without this table it fell back to
+   SM_ENDS_DEFAULT (a 157 px blade for a 277 px one) and the fire slash landed mid-blade. A picture not in it is still measured at
+   run time. A new or redrawn blade picture needs its row (the smelter test fails without it). Record: specs/2026-10-30-fire-swing-fx.md (R42) */
+const SM_ENDS_ART={
+    balanced_broadsword_blade:[0.2394,0.7662,0.8615,0.1222],
+    balanced_claymore_blade:[0.3378,0.6629,0.9696,0.0314],
+    balanced_cutlass_blade:[0.3092,0.6597,0.7293,0.2125],
+    balanced_katana_blade:[0.333,0.664,0.8925,0.0403],
+    balanced_longsword_blade:[0.2397,0.7595,0.9189,0.0798],
+    balanced_machete_blade:[0.3257,0.6915,0.8503,0.097],
+    balanced_rapier_blade:[0.3437,0.6729,0.8934,0.1177],
+    balanced_saber_blade:[0.3259,0.7146,0.881,0.023],
+    balanced_scimitar_blade:[0.3052,0.658,0.7955,0.0493],
+    balanced_shortsword_blade:[0.282,0.72,0.6504,0.3471],
+    flame_broadsword_blade:[0.2332,0.7675,0.8805,0.1162],
+    flame_longsword_blade:[0.2919,0.7059,0.9064,0.0833],
+    flame_shortsword_blade:[0.258,0.7405,0.6328,0.207],
+    gale_longsword_blade:[0.3776,0.6248,0.9185,0.089],
+    gale_rapier_blade:[0.3813,0.6187,0.9662,0.0366],
+    gale_shortsword_blade:[0.3821,0.6096,0.6962,0.3305],
+    ice_longsword_blade:[0.1552,0.8422,0.92,0.077],
+    swift_dagger_blade:[0.1998,0.797,0.7205,0.2739],
+    swift_longsword_blade:[0.2085,0.7894,0.9312,0.0624],
+    swift_shortsword_blade:[0.2035,0.7942,0.6941,0.2958],
+    water_longsword_blade:[0.2171,0.7794,0.9585,0.0409] };
+/* BLADE-ENDS-END */
 const SM_ENDS={}, SM_ENDS_DEFAULT={ tang:{ x:0.30, y:0.70 }, tip:{ x:0.65, y:0.35 }, art:-45 }, SM_REST_DEG=40;   /* SM_REST_DEG: #smBlade's CSS rotate */
+Object.keys(SM_ENDS_ART).forEach(f=>{ const a=SM_ENDS_ART[f]; SM_ENDS[f]={ tang:{ x:a[0], y:a[1] }, tip:{ x:a[2], y:a[3] }, art:Math.atan2(a[3]-a[1], a[2]-a[0])*180/Math.PI }; });   /* R42: the stored ends first */
 function smBladeEndsOf(file){ if(!file || SM_ENDS[file]) return; const im=new Image();
     im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const x=c.getContext('2d'); x.drawImage(im,0,0);
         const e=smBladeEnds(x.getImageData(0,0,c.width,c.height).data, c.width, c.height);

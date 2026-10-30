@@ -647,3 +647,13 @@ yours and come on top.
   Record: specs/2026-10-30-fire-swing-fx.md. Smelter test 87 (two checks changed; failing on the previous build first).
   Checked in the browser at a simulated ratio of 1.5: the canvas 1080 x 600 on screen (it was 1620 x 900), a marker at the
   computed tip on the drawn blade's tip, the slash running from it; no console errors.
+- **R42 (2026-10-30, owner): the blade ends stored in the game.** Owner, with a picture of the slash near the grip: "the
+  slice is closer to the centre on my screen". Cause: the swings (s5, s7) and the fire effect read each blade picture's
+  tang and tip from its pixels; a page opened as a file may not read pixels, so it used the default ends (a 157 px blade
+  for a 277 px one). Reproduced in the browser by blocking the pixel read: the computed tip mid-blade, the slash near the
+  centre. Now `SM_ENDS_ART` holds all 21 blade pictures' ends, measured through the dev server, and `SM_ENDS` starts
+  from it (a picture not in it is still measured live). This also corrects, on a page opened as a file, where the anvil
+  blade and a dragged sword hang and the bucket's tip-in-water check. Record: specs/2026-10-30-fire-swing-fx.md (R42).
+  Smelter test 87 -> 91 (failing on the previous build first; it fails on a blade picture with no row). Checked in the
+  browser with the pixel read blocked: the stored ends used, the blade 277 px, a marker at the computed tip on the drawn
+  tip, the slash from it; no console errors.
