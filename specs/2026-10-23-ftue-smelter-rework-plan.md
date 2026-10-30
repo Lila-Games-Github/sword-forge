@@ -616,3 +616,13 @@ yours and come on top.
   buy button buys nothing; a buy (1300 -> 1100, PURCHASED); too dear (red, the toast); a tap outside closes; the
   come-later show, the dragon's gift and the top-up lesson; no console errors. Fixed on the way: a tap on the buy
   button after an earlier swipe was ignored while a lesson locked the page.
+- **R39 (2026-10-30, owner): the market and the ledger appear when first named.** Owner: "do the same for the market and
+  ledger. hide them till they are mentioned for the first time. I do not want a greyed out market, hide it completely". As
+  R33: the market (the rotary) appears when the come-later lesson lights it (part 4, after the request); the ledger (the
+  scroll) at the first COME LATER, whose toast names it. Each stays once seen (`FTUE_ST.seenMarket` / `seenLedger`); both
+  from part 5, in the PART 5 and PART 6 jumps, in GAME, in free play and after the tutorial. Not there yet, neither is drawn
+  (`cnt-hidden`); the greyed market (`mk-closed`) is gone; each pops in. Record: specs/2026-10-28-forge-screen-new-look.md
+  (R39). FTUE test 856 -> 866 (one check rewritten; failing on the previous build first). Checked in the browser (each
+  element hit-tested): PART 1 to PART 4 - neither; the come-later customer's request typed - the market, lit, popping in;
+  the rotary tapped - the market opens; closed - COME LATER lit; tapped - the ledger pops in, the toast names it; forge and
+  back - both stay; PART 5, PART 6, GAME, free play - both; no console errors.

@@ -1218,7 +1218,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #skillBtn .sk-ic { font-size: 19px; line-height: 1; letter-spacing: 0; }   /* v3 D9: a tree, not the words */
 /* v3: MARKET shares SKILL TREE's old width, half each, and wears the same wood */
 /* R26: MARKET is a temporary button on the customer counter (SCREEN_UI.customer), styled as the screen's other buttons */
-#marketBtn.mk-closed { filter: grayscale(.7) brightness(.85); }
 #skillBtn .sk-lv { font-size: 8.5px; font-weight: 700; letter-spacing: .3px; color: #4a381c; line-height: 1; }   /* R26: dark on the cream tile */
 #skillBtn .sk-lv .pt { color: #2f7d32; }
 #skillBtn .sk-xp { position: absolute; left: 7px; right: 7px; bottom: 4px; height: 3px; border-radius: 2px;
@@ -1497,6 +1496,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #cntBook.tut-blink, #cntRing.tut-blink { animation: tutGlow 1.15s ease-in-out infinite; }
 #screenUi .mkt-rotary { position: absolute; pointer-events: auto; padding: 0; border: none; background: none; cursor: grab; touch-action: none;
     transition: left .35s ease; }
+#screenUi .cnt-hidden { display: none; }   /* R39: the market and the ledger, not named yet: not drawn at all */
+#screenUi .tab-new { animation: tabNew .5s ease-out; }   /* R39: they pop in, as the tabs */
 #screenUi .mkt-rotary.dragging { transition: none; cursor: grabbing; }
 #screenUi .mkt-rotary img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.55)); }
 /* r68 — the cave: ore seams, the pickaxe you leave lying there, and ore flying home to the rail.
@@ -3565,7 +3566,7 @@ function ftueGpcArrive(){
     if(o.lesson==='durable') typeAfter(ftueDurableStart);   /* v3 part 3 */
     if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
     if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */
-        typeAfter(()=>tutExit('#marketBtn')); }   /* 2026-10-09: COME LATER appears with them */
+        typeAfter(()=>{ FTUE_ST.seenMarket=true; marketBtnUi(); tutExit('#marketBtn'); }); }   /* 2026-10-09: COME LATER appears with them. R39: the market appears as it is lit */
     if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; ftueOrderGo(o); return; }
         const lines=[nudge].concat(o.market && o.market.more ? [o.market.more] : []);
         if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };   /* r300: closing the order's lines starts the craft guide */
@@ -3774,8 +3775,8 @@ function ftuePart(n){
                 benchClear(); })();
             for(let i=95;i<=109;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D99a');
             FTUE_ST.part=4; FTUE_ST.gpc=2; FTUE_ST.dd.gale=2;   /* v3: TC4, TC5 and GC8 served; no gale blueprints */
-            FTUE_ST.laterOn=true; FTUE_ST.waiting=[ { portrait:'assets/customer/woman3.webp', tid:'gale', shape:'Katana', tier:null, name:'Gale', ftue:true,
-                items:[ { trait:'gale', shape:'Katana' }, { trait:'fire', shape:'Claymore' } ] } ];   /* 2026-10-09: the waiting customer */
+            FTUE_ST.laterOn=true; FTUE_ST.seenMarket=true; FTUE_ST.seenLedger=true; FTUE_ST.waiting=[ { portrait:'assets/customer/woman3.webp', tid:'gale', shape:'Katana', tier:null, name:'Gale', ftue:true,
+                items:[ { trait:'gale', shape:'Katana' }, { trait:'fire', shape:'Claymore' } ] } ];   /* 2026-10-09: the waiting customer. R39: the market and the ledger already named */
             TUT_SAW_TIERS=true;
             ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }   /* v3: GC9's copper */
         if(n>=6){   /* the end of part 5: Bram's sharpened swift sword sold, the diary read, GPC9-10 served, Garric at the bell */
@@ -4255,7 +4256,7 @@ function buildScreenUi(name){
         else if(b.act==='market') el.addEventListener('click', openMarket);
         box.appendChild(el); });
     if(name==='customer') counterUiBuild(box);   /* R30 */
-    /* R26: the counter's MARKET wears the closed look */ marketBtnUi();
+    /* R39: the market and the ledger only once named */ marketBtnUi();
 }
 // Props drawn onto a plate. l / w / b are the prop's VISIBLE ART left, width and bottom as a % of the
 // plate image — exactly what a diff of the owner's reference against the bare plate measures.
@@ -5777,7 +5778,8 @@ function comeLater(){
     CUSTOMER=null; tutExit(null); sayHide(); tutArrow(null,null);
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi(); buildScreenProps('customer');
-    toast('They will wait. Call them back from the <b>ledger</b>.');
+    FTUE_ST.seenLedger=true; marketBtnUi();
+    toast('They will wait. Call them back from the <b>ledger</b>.');   /* R39: the ledger appears as it is named */
     if(lesson) ftueGpcSold();   /* the part goes on: the bell brings Bram */
 }
 let WAIT_I=-1;
@@ -6885,7 +6887,15 @@ function buildSkillNodes(){
 function marketOpen(){ return !!(FTUE_ST.market || FTUE_ST.done); }
 function traitKnown(k){ return traits.some(t=>t.trait && t.trait.id===k && t.discovered); }
 function marketCtx(trait, shape){ return { open:marketOpen(), known:traitKnown(trait), owned:!!FTUE_ST.shapes[trait+':'+shape], gold:GOLD }; }
-function marketBtnUi(){ const b=document.getElementById('marketBtn'); if(b) b.classList.toggle('mk-closed', !marketOpen()); }
+/* R39 (owner, 2026-10-30): "do the same for the market and ledger. hide them till they are mentioned for the first time. I do not
+   want a greyed out market, hide it completely". The market from the come-later lesson, which lights it (part 4); the ledger from the
+   first COME LATER, whose toast names it. Each stays once seen (FTUE_ST.seenMarket / seenLedger, saved); both from part 5 and after
+   the tutorial. Record: specs/2026-10-28-forge-screen-new-look.md (R39) */
+function cntShown(k){ return !!(FTUE_ST.done || FTUE_ST.part>=5 || FTUE_ST[k==='market' ? 'seenMarket' : 'seenLedger']); }
+function cntPropsUi(){ [['market','#marketBtn'],['ledger','#screenUi .sc-btn[title="Ledger"]']].forEach(([k,sel])=>{ const el=document.querySelector(sel); if(!el) return;
+    const on=cntShown(k), was=!el.classList.contains('cnt-hidden'); el.classList.toggle('cnt-hidden', !on);
+    if(on && !was){ el.classList.remove('tab-new'); void el.offsetWidth; el.classList.add('tab-new'); } }); }   /* it pops in */
+function marketBtnUi(){ cntPropsUi(); }
 function openMarket(){
     if(!marketOpen()){ toast('Play more to unlock'); return; }
     renderMarket(); document.getElementById('sfMarketModal').classList.add('show'); ftueMarketOpened(); }

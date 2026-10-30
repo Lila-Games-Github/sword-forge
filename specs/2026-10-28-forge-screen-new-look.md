@@ -1,7 +1,7 @@
 # The forge screen's new look (2026-10-28)
 
 Status: **canon**, built in steps R25 (the craft frame), R26 (the right rail, the bedroom calendar, the market on the
-counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step), R30 (the customer counter), R31 (the ring follows the finger) and R33 (the inventory tabs appear as first used). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
+counter), R27 (the grid above the basket, D42), R28 (the ring guides the record step), R30 (the customer counter), R31 (the ring follows the finger), R33 (the inventory tabs appear as first used) and R39 (the market and the ledger appear when first named). Build log: specs/2026-10-23-ftue-smelter-rework-plan.md.
 
 ## The request
 
@@ -210,3 +210,20 @@ gradually loses heat and goes up to 100% opacity making it look off."
   heat), the open state (all three clear when the gate is tapped), off with the metal on the anvil (400 ms fade), and a
   metal put back in the smelter starting cold (`glow` 0). R34's `melt.lit` and `litMs` are replaced by `glow` and
   `litS`.
+
+## R39: the market and the ledger appear when first named (2026-10-30)
+
+Owner, with a picture of the counter (the ledger scroll bottom left, the rotary market bottom right): "do the same for the
+market and ledger. hide them till they are mentioned for the first time. I do not want a greyed out market, hide it
+completely". "The same" is R33: hidden until introduced, then kept.
+
+- **Checked against the script:** no dialogue line names the market before part 4; since r300 the tutorial's blueprints
+  are bought at the shape window, so parts 1-3 never send the player to it. The first time the game points at it is the
+  come-later customer (part 4, `lesson:'later'`, r253): after the request the rotary is lit. The first time the ledger is
+  named is that customer's COME LATER: "They will wait. Call them back from the ledger." (the dragon's D107f and D107h,
+  which also name it, come later).
+- **The rule (`cntShown`):** the market from the moment the come-later lesson lights it (`FTUE_ST.seenMarket`); the ledger
+  from the first COME LATER (`FTUE_ST.seenLedger`). Each stays once seen (saved). Both from part 5 (older saves and the
+  PART 5 and PART 6 jumps), in free play, in GAME and once the tutorial is over.
+- **Look:** not there yet, the element is not drawn at all (`cnt-hidden`, `display: none`); the greyed "closed" market look
+  (`mk-closed`) is gone. Each pops in when it appears (`tab-new`, as the tabs).
