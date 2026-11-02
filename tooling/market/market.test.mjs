@@ -6,15 +6,16 @@
  * between the MARKET-PURE markers. This test reads both OUT OF THE SHIPPED HTML.
  * Run: node tooling/market/market.test.mjs
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const HTML = 'Swordforge_looptest_landscape.html';
 const src = readFileSync(HTML, 'utf8');
 const pick = (tag) => { const m = src.match(new RegExp('/\\* ' + tag + '-BEGIN \\*/([\\s\\S]*?)/\\* ' + tag + '-END \\*/'));
   assert.ok(m, tag + ' markers not found in ' + HTML); return m[1]; };
-const M = new Function(pick('FTUE-CONFIG') + pick('MARKET-CONFIG') + pick('MARKET-PURE') +
-  '; return { FTUE, MARKET, marketShapes, marketRow, orderMatches, orderLabel, ftueTraitKey, marketSteps, marketPrice };')();
+const M = new Function(pick('FTUE-CONFIG') + pick('MARKET-CONFIG') + pick('MARKET-DESC') + pick('MARKET-PURE') +
+  '; return { FTUE, MARKET, marketShapes, marketRow, orderMatches, orderLabel, ftueTraitKey, marketSteps, marketPrice,' +
+  ' MK_ROT, MARKET_DESC, mkPages, mkWrap, mkPageOf, mkFirstPage, mkFling, mkTurn, mkStamp, mkRingDelta, mkTagPos, mkBuyFace };')();
 const { FTUE, MARKET } = M;
 
 let n = 0;
@@ -83,9 +84,11 @@ eq('any market trait is a key (an ice blade offers ice shapes)', M.ftueTraitKey(
 eq('fire still wins over another elemental', M.ftueTraitKey(['ice', 'fire']), 'fire');
 
 /* wiring in the build */
-eq('the market slides: a fixed shape column and a scrolling strip of trait columns', src.includes('<div class="mk-scroll" id="mkScroll">') && src.includes("onclick=\"marketSlide(-1)\"") && src.includes("onclick=\"marketSlide(1)\""), true);
-eq('MARKET button beside SKILL TREE', /id="skillBtn"[\s\S]{0,400}<\/button>\s*<button id="marketBtn"/.test(src), true);
-eq('SKILL TREE shows a tree icon (D9)', src.includes('<span class="sk-t sk-ic">\u{1F333}</span>'), true);
+eq('R38: the grid is gone (no sliding strip of trait columns)', src.includes('id="mkScroll"') || src.includes('marketSlide('), false);
+/* R26 (owner, 2026-10-28): "market is no longer there (will add a separate image icon on customer counter later)" - a temporary button on the counter */
+/* R30 (owner, 2026-10-29): "the market is now the rotary which can slide right to go behind the inventory panel" */
+eq('MARKET on the customer counter: the rotary (R30)', /r\.id='marketBtn';[^\n]*r\.title='Market';/.test(src), true);
+eq('SKILL TREE shows a tree (D9; R26: the owner\'s tree art)', src.includes('<img class="sk-art" src="assets/ui/icon_skilltree.webp" alt="">'), true);
 eq('closed market toast (D6)', src.includes("toast('Play more to unlock')"), true);
 eq('the sale checks the order', src.includes('if(ftueC && !orderMatches(ftueC, COUNTER)){'), true);
 eq('the dragon buys with coins (D10)', src.includes('function marketGift(trait, shape, done){'), true);
@@ -97,5 +100,51 @@ eq('a locked shape shows BUY and its price (r301: greyed when the gold cannot co
 eq('tapping a locked shape buys it (not the old "buy it in the market" toast)', /function shapeGrid\(\)\{[\s\S]{0,1400}if\(!ftueShapeOpen\(k, sh\)\)\{ shapeBuy\(k, sh\); return; \}/.test(src) && !src.includes("blueprint in the market'); return; } selectShape(sh); });"), true);
 eq('shapeBuy: the market\'s checks, price, gold and quests', /function shapeBuy\(k, sh\)\{ const st=marketRow\(k, sh, marketCtx\(k, sh\)\)[\s\S]{0,700}GOLD-=marketPrice\(k, sh\); FTUE_ST\.shapes\[k\+':'\+sh\]=true;[\s\S]{0,300}bumpQuest\('buyBlueprint'\); if\(k==='fire'\) bumpQuest\('buyFire'\);/.test(src), true);
 eq('the BUY stays bright on a locked shape', src.includes('.sf-shape.locked > .ic, .sf-shape.locked > span { opacity: .55; filter: grayscale(1); }') && src.includes('.sf-shape.locked { cursor: pointer; }') && src.includes('.sf-shape .sf-buy {'), true);
+
+/* R38 (owner, 2026-10-29): the rotary market. Record: specs/2026-10-29-rotary-market.md */
+const REC = readFileSync('specs/2026-10-29-rotary-market.md', 'utf8');
+const recRows = REC.split('\n').filter(l => /^\| [a-z]+ \| /.test(l)).map(l => l.replace(/^\| | \|\s*$/g, '').split(' | '));
+const { MK_ROT, MARKET_DESC } = M;
+eq('rotary values (record: Values)', { visible: MK_ROT.visible, sel: MK_ROT.sel, fling: MK_ROT.fling, turn: MK_ROT.turn, flick: MK_ROT.flick, laterMs: MK_ROT.laterMs, stamp: MK_ROT.stamp },
+  { visible: 4, sel: 1, fling: 0.35, turn: 0.12, flick: 0.5, laterMs: 1600, stamp: { free: 'OWNED', owned: 'PURCHASED' } });
+eq('rotary geometry (record: Values, geo)', MK_ROT.geo, { stepDeg: 27, selDeg: -14, cy: 900, r: 230, x: 1258, dx: 18, fadeDeg: -48, goneDeg: -62, botDeg: 58 });
+eq('the art', MK_ROT.art, 'assets/ui/market_rotary.webp');
+const tagRec = {}; recRows.filter(r => r.length === 3 && MARKET.traits.includes(r[0])).forEach(r => { tagRec[r[0]] = [r[1], r[2]]; });
+eq('a tag colour for every trait, as recorded', MK_ROT.tags, tagRec);
+eq('the undiscovered tag, as recorded', MK_ROT.unknown, (REC.match(/\| \? \(undiscovered\) \| (#\w+) \| (#\w+) \|/) || []).slice(1));
+const descRec = {}; recRows.filter(r => r.length === 4 && MARKET.traits.includes(r[0])).forEach(r => { (descRec[r[0]] = descRec[r[0]] || {})[r[1]] = r[3]; });
+eq('MARKET_DESC is the record\'s table, line for line', MARKET_DESC, descRec);
+eq('the record\'s prices are the market\'s', recRows.filter(r => r.length === 4 && MARKET.traits.includes(r[0])).every(r => M.marketPrice(r[0], r[1]) === +r[2]), true);
+eq('one line for every shape of every trait', MARKET.traits.map(t => Object.keys(MARKET_DESC[t] || {}).sort().join()), MARKET.traits.map(t => M.marketShapes(t).slice().sort().join()));
+const lines = Object.values(MARKET_DESC).flatMap(o => Object.values(o));
+eq('250 lines, no two alike', [lines.length, new Set(lines).size], [250, 250]);
+eq('each line at most 64 characters, straight quotes, no dashes', lines.filter(l => l.length > 64 || /[\u2018\u2019\u201c\u201d\u2013\u2014]/.test(l)), []);
+eq('the owner\'s two lines', [MARKET_DESC.balanced.Shortsword, MARKET_DESC.fire.Shortsword],
+  ['Compact, clean and simple. The most basic sword.', 'Small, but fiery. Do not underestimate. It will get angry.']);
+const pages = M.mkPages();
+eq('a page per blueprint, 250', pages.length, 250);
+eq('Balanced first, Shortsword then the price order', pages.slice(0, 10).map(p => p.trait + ':' + p.shape), ['Shortsword', ...M.marketSteps('balanced')].map(s => 'balanced:' + s));
+eq('then Fire\'s Shortsword', [M.mkFirstPage('fire'), pages[10].trait + ':' + pages[10].shape], [10, 'fire:Shortsword']);
+eq('the last page is Dark\'s dearest', pages[249].trait + ':' + pages[249].shape, 'dark:' + M.marketSteps('dark').slice(-1)[0]);
+eq('a page found by its blueprint', M.mkPageOf('fire', 'Claymore'), 10 + 1 + M.marketSteps('fire').indexOf('Claymore'));
+eq('pages wrap: before the first is the last, after the last the first', [M.mkWrap(-1, 250), M.mkWrap(250, 250), M.mkWrap(9 + 1, 250)], [249, 0, 10]);
+eq('the wheel turns the short way round the ring', [M.mkRingDelta(24, 0, 25), M.mkRingDelta(0, 24, 25), M.mkRingDelta(3, 10, 25), M.mkRingDelta(0, 13, 25)], [1, -1, 7, -12]);
+eq('the swipe sets the turn: none, slow, fast', [M.mkFling(3, 0), M.mkFling(3, 10), M.mkFling(3.4, -1), M.mkFling(0, 40)], [3, 7, 3, 14]);
+eq('a page turns on a long drag or a flick; up is next', [M.mkTurn(-13, 100, 0), M.mkTurn(-11, 100, 0), M.mkTurn(13, 100, 0), M.mkTurn(-2, 100, -0.6), M.mkTurn(2, 100, 0.6), M.mkTurn(-2, 100, -0.3)], [1, 0, -1, 1, -1, 0]);
+eq('stamps: the Shortsword OWNED, a bought one PURCHASED, none to buy', [M.mkStamp('free'), M.mkStamp('owned'), M.mkStamp('buy'), M.mkStamp('poor')], ['OWNED', 'PURCHASED', '', '']);
+const offs = []; for (let o = -12; o <= 12; o++) offs.push(o);
+const vis = offs.filter(o => M.mkTagPos(o).op > 0);
+eq('four tags visible', vis, [-1, 0, 1, 2]);
+eq('the selected tag is the second from the top', vis.slice().sort((a, b) => M.mkTagPos(a).y - M.mkTagPos(b).y).indexOf(0), MK_ROT.sel);
+eq('the selected tag sits on the drum (art y 844)', Math.round(M.mkTagPos(0).y), 844);
+eq('a tag fades over the top of the drum', M.mkTagPos(-1.5).op > 0 && M.mkTagPos(-1.5).op < 1, true);
+eq('the buy button: Buy for and the price; padlock and price when locked; padlock only when the dragon pays',
+  [M.mkBuyFace('buy', 450).includes('Buy for') && M.mkBuyFace('buy', 450).includes('450'), M.mkBuyFace('unknown', 300).includes('\u{1F512}') && M.mkBuyFace('unknown', 300).includes('300'),
+   M.mkBuyFace('gift', 450).includes('\u{1F512}') && !M.mkBuyFace('gift', 450).includes('450')], [true, true, true]);
+eq('the window: art, wheel, page, buy button, stamp, close', ['<img class="mk-art" src="assets/ui/market_rotary.webp"', 'id="mkWheel"', 'id="mkPage"', 'id="mkBuy"', 'id="mkClose"', 'id="mkStamp"'].filter(x => !src.includes(x)), []);
+const webp = existsSync('assets/ui/market_rotary.webp') ? readFileSync('assets/ui/market_rotary.webp') : Buffer.alloc(12);
+eq('the art is a webp', webp.slice(0, 4).toString() + webp.slice(8, 12).toString(), 'RIFFWEBP');
+eq('the black overlay stays (the modal\'s own)', src.includes('.sf-modal { position: absolute; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); }'), true);
+eq('swiping is locked while the tutorial shows a blueprint', /function mkLocked\(\)\{[^\n]*FTUE_MK[^\n]*'gift'[^\n]*'buy'[^\n]*MK_LOCK/.test(src), true);
 
 console.log('[market] GREEN / ' + n + ' checks');

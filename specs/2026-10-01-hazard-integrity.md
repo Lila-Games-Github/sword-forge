@@ -27,8 +27,8 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
 | `floor` | 0.5 | price x (floor + (1 - floor) x health/100): full health = full price, near 0 = half |
 | `free` | 2 | zones a run may cross with no tier loss |
 | `steps` | [3, 5] | 3 or more zones: every trait drops 1 tier; 5 or more: 2 tiers (Weak is the floor) |
-| `clear` | [{ x:1154, y:748, kind:'island' }] | tutorial clearing: the zone the part 4 gale route crossed |
-| `move` | [{ kind:'speck', x:917.83, y:1003.27, to:{ x:866, y:1001 }, scale:0.75 }] | 2026-10-13 (owner): the fire run's choice - see below |
+| `clear` | [{ x:1154, y:748, kind:'island' }, { x:1003.22, y:1179.18, kind:'ribbon' }] | tutorial clearing: the zone the part 4 gale route crossed; 2026-10-28 the ribbon the rotated fire run would cross - see below |
+| `move` | [{ kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:0.75 }] | 2026-10-28 (owner): [0] the fork speck, on the iron path D72 shows; [1] D69's speck - see below |
 
 - **A zone counts once per run**, by its index, however often the sword re-enters it. Moving
   through it is what counts (`checkHazard` only runs while the sword moves).
@@ -51,6 +51,14 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
   path takes: measured, iron 27 of 201 samples inside, manganese 14 units clear. Applied after the map is
   built, like `clear`, so no other zone moves. The speck at (1028, 1016) stays: every fire run crosses it
   (D69's lesson); with iron the run crosses 2 zones, still inside `free`, so no tier is lost.
+- **Rotated paths (owner, 2026-10-28; supersedes the two bullets' positions above):** iron's path turns 30 deg
+  anticlockwise and manganese's 30 deg clockwise (specs/2026-10-28-rotated-ore-paths-test.md). The fire run is then
+  2 iron + 1 manganese, manganese, a ground iron. Its first three ores would run ~240 units through the ribbon at
+  (1003.22, 1179.18), against D69c ("a small one"): `clear` removes it. `move[1]` puts D69's speck (1028.4, 1016.22),
+  75%, at (1054, 1158) on those three ores' manganese leg: D69a-c play there. `move[0]` puts the fork speck at (920,
+  1146), 56.25%, on the 4th ore's iron path (the one D72 draws) and clear of the manganese path the run takes.
+  Measured in the browser: the run crosses 1 zone; every Balanced route (raw 2 + 2 in all orders, full 1 + 1) none,
+  105 units clear at the closest; any order of the fire recipe's 3 iron + 2 manganese at most 2 (inside `free`).
 
 ## Tutorial lines (owner approved the text)
 

@@ -25,10 +25,12 @@ function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; c
 eq('floor', HAZ.floor, 0.5);
 eq('free zones', HAZ.free, 2);
 eq('steps', HAZ.steps, [3, 5]);
-eq('tutorial clearing', HAZ.clear, [{ x: 1154, y: 748, kind: 'island' }]);
+/* R24 (owner, 2026-10-28): the rotated paths - the ribbon the fire run would cross goes */
+eq('tutorial clearing', HAZ.clear, [{ x: 1154, y: 748, kind: 'island' }, { x: 1003.22, y: 1179.18, kind: 'ribbon' }]);
 /* owner, 2026-10-13: the fire run's last ore is a choice - full iron crosses a zone, full manganese goes round it.
    The speck both full paths crossed (#59) moves, its own shape at 75%, onto the stretch only iron takes. */
-eq('tutorial move', HAZ.move, [{ kind: 'speck', x: 917.83, y: 1003.27, to: { x: 866, y: 1001 }, scale: 0.75 }]);
+/* R24: [0] the fork speck on the iron path D72 shows, [1] D69's speck on the first three ores' path */
+eq('tutorial move', HAZ.move, [{ kind: 'speck', x: 917.83, y: 1003.27, to: { x: 920, y: 1146 }, scale: 0.5625 }, { kind: 'speck', x: 1028.4, y: 1016.22, to: { x: 1054, y: 1158 }, scale: 0.75 }]);
 eq('the move is applied after the map is built (no reshuffle)', /HAZ\.move\.forEach\(c=>\{ const z=hazards\.find\(z=>z\.kind===c\.kind && Math\.hypot\(z\.x-c\.x, z\.y-c\.y\)<=2\);/.test(src), true);
 
 /* price: full health keeps the price, 0 health halves it, unknown health is full */
@@ -68,13 +70,14 @@ eq('D69d follows D69c', keys[keys.indexOf('D69d') - 1], 'D69c');
 /* r216 (owner, 2026-10-01): the hazard lines play the first time the sword crosses a hazard WHILE
    BUILDING THE FIRE SWORD, not on the first crossing ever; the PART 2-3 jumps leave them unsaid */
 eq('fire-run stages', (src.match(/const TUT_FIRE_BUILD = (\[[^\]]*\]);/) || [])[1],
-  "['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2']");
+  "['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron']");   /* R24: the finishing iron */
 eq('tutHazardStep waits for the fire run', src.includes('if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;'), true);
 eq('PART 2-3 jumps leave the hazard lines unsaid', src.includes('TUT_SAIDBOOK=true; TUT_SAIDMUG=true;') && src.includes('if(n>=4) TUT_SAIDHAZ=true;'), true);
 /* r217 (owner, 2026-10-01): "Integrity" is "Health" to the player, and the row shows the gold lost, in red */
 /* 2026-10-09: the new craft window - Health and the gold lost (in red) on its details paper */
-eq('craft window row is Health, gold lost in red', src.includes("'Health '+Math.round(hp*100)+'%'+(w.hp!=null ? '<br><small>'+hazLostHtml(w)+'</small>' : '')"), true);
-eq('the row names the gold lost', src.includes("'Gold lost: <span class=\"cr-lost\">-'+lost+'g</span>'"), true);
-eq('gold lost = full-health base minus base', src.includes('const lost=swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w);'), true);
+/* R17 (owner, 2026-10-27): the Health row is on the card - the heart, its % under it, the gold lost on the right */
+eq('craft window row is Health, gold lost in red', src.includes('<div class="cw-box cw-row" id="cwHpRow">') && src.includes("document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w);"), true);
+eq('the row shows the gold lost', src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')"), true);
+eq('gold lost = full-health base minus base', src.includes("const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0"), true);
 eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
 console.log('[hazard] GREEN / ' + n + ' checks');

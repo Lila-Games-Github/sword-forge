@@ -4,7 +4,30 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-10-14)
+## Current state (2026-10-23): the smelter loop is the main game
+
+- **The main game's crafting loop changed (owner, 2026-10-23).** `Swordforge_looptest_landscape.html` now carries the
+  smelter loop (it was `Swordforge_looptest_landscape_smelterversion.html`, PR #26): the bellows handle moves the sword,
+  the smelter gate takes the trait, the ladle beside the smelter aligns the tier, the anvil opens the shape window and the
+  minigame (no mug), the shaped blade hangs from its handle and is quenched in the bucket. Loop record:
+  `specs/2026-10-21-smelter-version-loop.md`. The old loop is kept as `Swordforge_looptest_landscape_hammerloop.html`
+  (reference only). `?freeplay` starts free play instead of the tutorial (a test aid).
+- **The tutorial is reworked to it (R0-R9, branch `sword-forge/ftue-smelter-rework`).** Plan, the owner's decisions,
+  every line and code change, and the build log: **`specs/2026-10-23-ftue-smelter-rework-plan.md`**. 200 dialogue keys
+  (D5, D7, D39, D40 removed; ~27 lines reworded). The FTUE test is GREEN at 856, the smelter test at 71 (R11: TC5's swift metal is allowed at the gate; R12: the trait window for a first discovery only, no craft-book toast in Part 1; R13: the dragon's blueprints cannot be bought by the player; R14: no refill after a scripted sale; R15: the drag gestures on the ladle and the bellows; R16: D13 on a dark minigame; R17: the crafted window rearranged; R18: a stored metal lands on the anvil, its heat kept; R19: the waiting customer's guide only at an empty counter, when the blueprints can be bought; R20: Day 2's way to the counter after D92; R21: an ore back from the grindstone, no ores during D72/D72a; R22: no X on the dragon's lines at the counter and in the cave; R23: Day 3, no gathering before the pickaxe upgrade; R24: the rotated iron and manganese paths - Balanced and Fire moved, the fire run is manganese then a ground iron, D70 when Fire comes into view, new D70a; R25: the craft frame - wood, inkpot, craft book, pulley ring; R26: the rail - skill tree in the day tile's place, gear bottom right, diary book and quest basket, the day on a bedroom calendar, MARKET on the counter; R27: 12 boxes above the quest basket, the fifth row fading behind it, D42 names the inkpot; R28: the ring glows and shows a down arrow for D42, and glows again to close the frame after recording; R29: the ladle appears only when TC4 arrives; R30: the counter - the shelf with the craft book, the swinging bell top right, the scroll ledger, the rotary market; R31: the craft frame's ring follows the finger, like the rotary; R32: the dragon's lines type in word by word, a tap finishes them; R33: the inventory tabs appear as they are first used).
+- **Verified:** each part's crafts in the browser (staged per part), and Part 1 played continuously from a new game
+  through GC1's sale. **Not yet:** a continuous play of Parts 2-6, and any play on a phone (the bellows, the ladle and the
+  blade by finger). Fixed on the way: lines said as the trait window opens (D42, D76, D99, D106) had been closed at once
+  since r286 - they now come back when the window closes.
+- **Path test (2026-10-28, ported to the main build as R24):** `Swordforge_looptest_landscape_pathtest.html`, generated from the main
+  build by `node tooling/pathtest/make-pathtest.mjs` (regenerate after main-build changes; never edit it by hand). Iron
+  and manganese paths turned 30 deg each way; the fire run is 2 iron + 1 manganese, then manganese (it avoids the
+  hazard; Fire comes into view on its path, D70), then one ground iron (new D70a). Record and values: `specs/2026-10-28-rotated-ore-paths-test.md`. Ported (R24);
+  the test file is reference only, and its generator no longer applies to the main build.
+- **Left in the file, unused:** the old forge hammer and forge mug (hidden by CSS) and their wiring; removing them is a
+  separate cleanup.
+
+## Earlier state (2026-10-14)
 
 - **Active build:** `Swordforge_looptest_landscape.html`, the **landscape loop-test**, and the only
   file being developed. The portrait loop-test (`Swordforge_new_looptest.html`) is deliberately never
@@ -19,7 +42,7 @@ continuation prompt printed at close time.
   and content). Its **"## Log"** (the last section) is the dated one-line list of every change; each
   change's full record is a bullet appended just above **"## Cross-part issues"** (which itself only holds
   the cross-part items X1-X2). Recorded values sit in the `FTUE` object (top of the main
-  script), `MARKET` (blueprints), `HAZ` (hazards, incl. `HAZ.move`) and `HM_HITS`; seven test suites assert
+  script), `MARKET` (blueprints), `HAZ` (hazards, incl. `HAZ.move`) and `HM_HITS`; eight test suites assert
   them (see "How to verify").
 - **Owner play-testing:** the owner play-tested v3 piece by piece this session and reported each issue;
   every report is fixed. **A full play-through of the whole v3 FTUE on the live build has not happened
@@ -207,7 +230,7 @@ in the dated specs, not `specs/game-design.md` (see "Documentation drift").
      labels them "Recipe" / "Shapes discovered". The owner's words were kept; confirm.
    - The waiting customer's guide starts as soon as gold reaches 750g - possibly right after that customer
      says "come back when you are richer". Confirm the timing.
-   - At D70 fire's disc is now fully under the fog (fire moved 5 units away); only the pulsing ring marks it.
+   - (Resolved by R24, 2026-10-28: D70 now plays when Fire comes into view on the manganese path.)
    - `assets/Game-elements/polishing_desk.png` is in the repo but deliberately not shown yet.
 3. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` but not `TUT_STAGE`. Not
    built; ask the owner before building.
@@ -231,10 +254,10 @@ node tooling/mobile-fit/fit.test.mjs
 bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
-`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 203 dialogue keys, `lastLine()`
+`http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 200 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 644 checks; the market test GREEN at 54; the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 899 checks; the smelter test GREEN at 142 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 
@@ -279,7 +302,8 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 - **Rewards and coins time out; they never wait on an animation.** A hidden pane freezes animations,
   so `flyCoins` lands the gold on a `setTimeout`, not `onfinish`.
 - **`ftuePart(n)` builds an approximate state** (gold, exp, fog and books are guesses), and part of it
-  settles after a delay. It is a test aid for jumping to a part, not a save.
+  settles after a delay. It is a test aid for jumping to a part, not a save. `ftuePart(7)` (the GAME button, R36)
+  is just after the tutorial: Day 3, Garric served at his best grade, `FTUE_ST.done`, no waiting-customer guide (R37).
 - **Verify through the path a player takes.** Drive real `tick()` frames and real `PointerEvent`s, and
   click through `elementFromPoint`. See LEARNINGS.
 - **There is one arrow.** `#tutArrow` is the dashed pointer. Since r263 the idle nudges use it too (written to `TUT_ARROW`

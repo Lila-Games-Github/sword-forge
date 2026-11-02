@@ -1,5 +1,11 @@
 # Sword Forge — Onboarding / Handoff
 
+> ⚠️ **Current state (2026-10-23): read this first; everything below it describes older builds.** The game is
+> **`Swordforge_looptest_landscape.html`**, which since 2026-10-23 carries the **smelter crafting loop** (bellows, gate, ladle,
+> anvil, bucket) and the six-part FTUE reworked to it. Read in this order: `CLAUDE.md` (conventions, test suites, how to
+> verify), `HANDOFF.md` (state, what is next, gotchas), `INDEX.md` (which docs are canon), then `specs/2026-10-21-smelter-version-loop.md` (the crafting loop) and `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it). The sections
+> below (`index.html`, the 50x50 grid, metals, the heat minigame) are V1/V2 history.
+
 > ⚠️ **Canon update (2026-09-18) — read this before the banners below.** The build under active
 > development is **`Swordforge_looptest_landscape.html`** (landscape loop-test, guided tutorial
 > D1–D43). `swordforgeV2.html` and `index.html` are earlier builds; `Swordforge_new_looptest.html`

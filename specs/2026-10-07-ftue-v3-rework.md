@@ -1,5 +1,12 @@
 # FTUE v3 rework: tracker
 
+> **2026-10-23: the crafting loop changed.** The FTUE's parts, customers, rewards, market and ore chain below still hold, but
+> every craft step written here in the old loop (heat with the bellows, hammer the metal on the anvil to travel, pour the mug,
+> drag the dragon to the anvil to pull) now runs in the smelter loop (pump the bellows, take the trait at the gate, tilt the
+> ladle, the anvil opens the shaping, dip the blade in the bucket). The loop: `specs/2026-10-21-smelter-version-loop.md`; each
+> step's rework, the reworded lines and the owner's decisions: `specs/2026-10-23-ftue-smelter-rework-plan.md` (R0-R11). This
+> file's records below are kept as written.
+
 Status: **planning complete 2026-10-08; all six parts built 2026-10-08 (owner play-test pending).** Opened 2026-10-07. Build: `Swordforge_looptest_landscape.html`.
 
 How this works: the owner explains the new FTUE one part at a time. For each part this file records
@@ -1257,6 +1264,9 @@ Asserted by `tooling/ftue/ftue.test.mjs` (249; each check written first and seen
 
 ## Rising prices and the 25-trait market (owner, 2026-10-09)
 
+> **2026-10-29 (R38):** the market window is now the rotary market, `specs/2026-10-29-rotary-market.md` (a wheel of
+> traits, one blueprint per page). The prices, shapes, states and lessons below stand; the grid and its slider are gone.
+
 Replaces D2 (every blueprint 50g). Asserted by `tooling/market/market.test.mjs` (50; written first and seen failing).
 
 - **Price** = `MARKET.priceStep` (50) x (the trait's place in `MARKET.traits` + the shape's step). Shortsword is free.
@@ -1428,7 +1438,7 @@ From the wireframes `assets/Anchor-images/Sword_crafted_wireframe.png` and `..._
   13 px; the button widens from 32 to 44 px) instead of the double arrow; the close X on a run's last line is
   unchanged, and the glow on the lines that light it (`SAY_GO_GLOW`) is kept. Asserted by the FTUE test (364),
   written first. Checked in the browser: D1 and D2 show OK (lit), D3 keeps the X; a screenshot of D1.
-- **The fire run's last ore is a choice (owner, 2026-10-13).** The first half is unchanged (2 iron + 1 manganese, full,
+- **The fire run's last ore is a choice (owner, 2026-10-13).** *Superseded 2026-10-28 by "Rotated iron and manganese paths" below.* The first half is unchanged (2 iron + 1 manganese, full,
   across speck (1028, 1016): the hazard lesson, D69a-c). After the reheat the dragon says D72 "If we use iron, we will cross
   another hazard zone." (it draws the full iron path, dashed dark red, opens the fog over the choice and pulses the hazard
   red) and D72a "But the manganese can avoid it." (the manganese path, dashed green); closing D72a clears them and lights
@@ -2183,6 +2193,13 @@ order's trait, a shape the order did not ask for, and a pour on a trait the orde
 dragon says D28k "The customer asked for a {o}. Let's focus on that." ({o} = the order's name). TC5's swift pour is the
 lesson and is allowed. With no order open (the first sword), nothing is refused.
 
+**Clarified (owner, 2026-10-23):** "When earlier I said I only want the players to craft what the customer ask for, I
+actually meant only let them craft what the tutorial demands." TC5 orders Gale, but the tutorial's step first asks for
+Swift ("I want them to learn they can craft swords the customer did not ask for"): through TC5's whole swift run
+(stages d2-copper, d2-hammer, d2-pull, d2-quench) the gate takes Swift, before or after the ladle has parked the sword on
+it, and the run goes on to D99 and storing the metal; then the gale run as before. Built in R11
+(`specs/2026-10-23-ftue-smelter-rework-plan.md`).
+
 ### The refill
 
 When the bag can no longer make the open order (nothing on the bench, the order not yet made, and the bag short of the
@@ -2357,6 +2374,28 @@ portrait game version, copy the text from those for now." The texts are copied w
   fade does nothing; the last tap (slide 4, "TAP TO BEGIN") closes it and D1 is spoken; on a reload SKIP (hit-tested at
   1280x720) closes it and D1 is spoken; PART 1 over the intro closes it and D1 is spoken once; no console errors.
 
+## Rotated iron and manganese paths (owner, 2026-10-28)
+
+Owner: "If we rotate iron 30 degree anticlockwise and manganese 30 degree clockwise. I would still want them to reach the
+balanced and fire traits as they do now. nothing in the tutorial should break either." Tried in a test build first; the
+owner chose the fire run below and asked: "port this to the main build". Geometry, the measurements and the rejected
+versions: specs/2026-10-28-rotated-ore-paths-test.md. Hazards: specs/2026-10-01-hazard-integrity.md.
+
+- **Paths:** `ORES` iron `rot:-30`, manganese `rot:30`, applied in `normalizeOrePaths()` after the length scaling.
+- **Balanced:** `FTUE.balancedAt` (1163, 1036), moved after the map is built like Fire (its value kept, 24). Raw 2 + 2
+  in any order and full 1 + 1 still end on it (Epic); TC2's raw 1 + 1 still misses.
+- **Fire:** `FTUE.fireAt` (807, 1113), 17.7 from the route's end (Fine, D76), on the side the manganese path passes.
+  Its value stays 48 (read at the old spot, 824, 1016), so prices do not change.
+- **The fire run:** 2 iron + 1 manganese (D68), the bellows (D69, the hazard lesson). At that route's end Fire is out of
+  sight, so D71 plays straight away (D70 waits). D72 / D72a draw the iron and the manganese path as before, and only
+  manganese is taken (it avoids the hazard); D73, D74. On the manganese path Fire comes into view: when its centre is
+  `revealR() - FTUE.fireSeenIn` (120 - 15 = 105) or closer, the ring goes on, **D70** plays (no pointer), then the new
+  **D70a** "Let's finish it with one ground iron." (stage `fire-iron`, the iron arrow). The ground iron in: the bellows,
+  D75 at the route's end on Fire. The cave's 3 iron + 2 manganese are all used (the spare is no longer removed).
+- **Pace:** `ROUTE_FAST.irons` 5 -> 6 (the fire route is 1116 long; 5 irons, 1000, would double its speed).
+- **PART jumps:** the fire recipe is iron, iron, manganese, manganese, iron.
+- Resolves the open item "at D70 fire's disc is now fully under the fog".
+
 ## Cross-part issues
 
 Problems that touch more than one part (rewards that move, D-ids reused, locks, saves).
@@ -2502,3 +2541,4 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r300 the tutorial buys blueprints at the shape window (the dragon pays there; the Katanas are bought there).
 - 2026-10-21: r301 Shortsword lit for the first sword; unaffordable BUY greyed; only the ordered blueprint can be bought (D28m).
 - 2026-10-21: r302 the intro: four pictures with the old portrait intro's texts before D1 (tap to move on, SKIP).
+- 2026-10-28: R24 the rotated iron and manganese paths (manganese, then a ground iron; Balanced and Fire moved).

@@ -1,16 +1,17 @@
 /* The smelter version's crafting loop, guarded against drift.
  *
  * Record: specs/2026-10-21-smelter-version-loop.md. The smelter version keeps the values in SMELT and the rules between
- * the SMELT-PURE markers. This test reads both OUT OF Swordforge_looptest_landscape_smelterversion.html, checks the
- * wiring, and checks the main build carries none of it.
+ * the SMELT-PURE markers. This test reads both OUT OF Swordforge_looptest_landscape.html (the main game since
+ * 2026-10-23; it was Swordforge_looptest_landscape_smelterversion.html), checks the wiring, and checks the old hammer
+ * loop (kept as Swordforge_looptest_landscape_hammerloop.html) carries none of it.
  * Run: node tooling/smelter/smelter.test.mjs
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
-const HTML = 'Swordforge_looptest_landscape_smelterversion.html';
+const HTML = 'Swordforge_looptest_landscape.html';
 const src = readFileSync(HTML, 'utf8');
-const main = readFileSync('Swordforge_looptest_landscape.html', 'utf8');
+const old = readFileSync('Swordforge_looptest_landscape_hammerloop.html', 'utf8');   /* 2026-10-23: the old loop, kept for reference */
 const m = src.match(/\/\* SMELT-PURE-BEGIN \*\/([\s\S]*?)\/\* SMELT-PURE-END \*\//);
 assert.ok(m, 'SMELT-PURE markers not found in ' + HTML);
 const S = new Function(m[1] + '; return { SMELT, smHandle, smTravelDt, smEase, smLadleTilt, smLadleSpeed, smPendStep, smFollow, smBladeEnds, smRot, smInWater, smDipped };')();
@@ -22,7 +23,15 @@ const r2 = o => ({ pos: Math.round(o.pos * 1000) / 1000, moved: Math.round(o.mov
 /* the record */
 eq('SMELT (s2: strokeSec 0.5 -> 0.2, springMs)', S.SMELT, { rangePx: 40, lift: 12, strokeSec: 0.2, springMs: 250, easeSec: 0.15, flush: 0.002, bladeW: 2, shapedHold: 700, freeOres: 20, freeGold: 500,
   ladleMax: 45, ladleDead: 4, ladlePull: 24, ladleHead: { x: -22.2, y: 4.9, w: 57.3 }, ladleBase: { x: 2.8, y: 26.7, w: 26.5 }, ladlePivot: { x: 66.7, y: 90.6 },
-  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320, waterX0: 0.23, waterX1: 0.8, waterY0: 0.3 });
+  bladeG: 2600, bladeCom: 0.5, bladeDamp: 1.2, bladeFollow: 700, bladeGrab: 24, bladeDropPx: 70, bladeDropMs: 320, waterX0: 0.23, waterX1: 0.8, waterY0: 0.3, swingW: 317 });
+/* s7 (owner, 2026-10-28): a sword dragged on any screen hangs from its handle and swings like the anvil's blade */
+eq('the held sword: the anvil blade\'s size, its grip and tip read from the blade picture, swinging from the anvil\'s lying angle',
+  /function swSwingStart\(ghost, w, cx, cy\)\{ smBladeEndsOf\(w\.blade\); const E=SM_ENDS\[w\.blade\]\|\|SM_ENDS_DEFAULT, W=SMELT\.swingW;[\s\S]{0,400}th:\(90-\(E\.art\+SM_REST_DEG\)\)\*Math\.PI\/180, om:0, L:SMELT\.bladeCom\*Math\.hypot\(/.test(src), true);
+eq('each frame: the same physics as the anvil blade (follow, pendulum, 4 substeps), its own loop (the game tick holds in a pause)',
+  /function swSwingFrame\(now\)\{[\s\S]{0,300}const fx=smFollow\(s\.px,s\.vx,s\.tx,h\), fy=smFollow\(s\.py,s\.vy,s\.ty,h\);[\s\S]{0,200}const st=smPendStep\(s\.th,s\.om,fx\.a,fy\.a,s\.L,h\);[\s\S]{0,200}s\.raf=requestAnimationFrame\(swSwingFrame\);/.test(src), true);
+eq('turned about its grip, the grip under the finger', /function swSwingPaint\(\)\{[\s\S]{0,500}transformOrigin=[\s\S]{0,300}'rotate\('\+smRot\(s\.th, E\.art\)\.toFixed\(2\)\+'deg\)'/.test(src), true);
+eq('the inventory drag swings it', /function startSwordDrag\(w,e\)\{[\s\S]{0,700}swSwingStart\(ghost, w, e\.clientX-fr\.left, e\.clientY-fr\.top\);[\s\S]{0,200}const move=ev=>\{ swSwingTo\(ev\.clientX-fr\.left, ev\.clientY-fr\.top\);[\s\S]{0,300}swSwingStop\(\); ghost\.remove\(\);/.test(src), true);
+eq('so does the counter\'s and the table\'s', /function wireWorkDrag\(el, kind\)\{[\s\S]{0,400}const kill=\(\)=>\{ swSwingStop\(\); if\(ghost\)[\s\S]{0,1200}swSwingStart\(ghost, held\(\), e\.clientX-fr\.left, e\.clientY-fr\.top\);[\s\S]{0,200}if\(moved\)\{ const fr=[^\n]*\n\s*swSwingTo\(e\.clientX-fr\.left, e\.clientY-fr\.top\);/.test(src), true);
 /* the handle */
 eq('up 20px from closed: half raised', r2(S.smHandle(0, -20)), { pos: 0.5, moved: 0.5 });
 eq('up past the top: clamped, only the real travel counts', r2(S.smHandle(0.5, -60)), { pos: 1, moved: 0.5 });
@@ -48,7 +57,7 @@ eq('the ladle sits in the smelter station, behind the furnace', /<div class="sta
 eq('placed from SMELT, turned about its foot', /function wireLadle\(\)\{[\s\S]{0,900}SMELT\.ladleHead[\s\S]{0,300}SMELT\.ladleBase[\s\S]{0,400}SMELT\.ladlePivot/.test(src), true);
 eq('a drag tilts it by the turn of the pointer; a release tips it back', /function wireLadle\(\)\{[\s\S]{0,2400}SM_TILT=smLadleTilt\(SM_TILT, /.test(src) && /function wireLadle\(\)\{[\s\S]{0,3000}SM_TILT=0; paint\(SMELT\.springMs\);/.test(src), true);
 eq('every frame a tilted ladle pulls the route toward the centre, only while the metal is in the smelter', /function tick\(now\)\{[\s\S]{0,4000}smLadleTick\(dt\);/.test(src)
-  && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,400}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
+  && /function smLadleTick\(dt\)\{[\s\S]{0,200}const v=smLadleSpeed\(SM_TILT\)[\s\S]{0,300}melt\.stage!=='smelting'[\s\S]{0,1200}pull\.x\+=dx\/dist\*step; pull\.y\+=dy\/dist\*step;[\s\S]{0,300}checkTraitReach\(np\); checkHazard\(np,dt\); checkBooks\(np\);/.test(src), true);
 eq('wired at start', /wireBellowGate\(\); wireSmBlade\(\); wireLadle\(\);/.test(src), true);
 
 /* s5: the pendulum */
@@ -88,12 +97,13 @@ eq('held, the tip in the water quenches it where it is', /function smBladeTick\(
   && /function smBladeQuench\(\)\{[\s\S]{0,500}b\.classList\.remove\('hot'\);[\s\S]{0,400}quenchFx\(\(\)=>\{[\s\S]{0,200}finishBlade\(\);/.test(src), true);
 eq('dropped in, it cools too', /function smBladeDrop\(\)\{[\s\S]{0,400}b\.classList\.remove\('hot'\);/.test(src), true);
 
-/* 1. free play */
-eq('free play instead of D1: on load, after the intro, on a new game', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) smFreePlay\(\);/.test(src)
-  && /function introEnd\(\)\{[\s\S]{0,200}smFreePlay\(\);/.test(src) && /function newGame\(\)\{[\s\S]{0,700}setTimeout\(smFreePlay, 500\);/.test(src) && !/setTimeout\(sayStart/.test(src), true);
+/* 1. free play - since 2026-10-23 (R0) a test aid: the main game starts the tutorial (D1); ?freeplay starts free play */
+eq('the tutorial starts again (D1 on load, after the intro, on a new game); ?freeplay gives free play instead', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) setTimeout\(sayStart, 600\);/.test(src)
+  && /function introEnd\(\)\{[\s\S]{0,200}setTimeout\(sayStart, 600\);/.test(src) && /function newGame\(\)\{[\s\S]{0,700}setTimeout\(sayStart, 500\);/.test(src)
+  && /function sayStart\(\)\{ if\(SM_FREE\)\{ smFreePlay\(\); return; \}/.test(src) && src.includes("const SM_FREE=location.search.indexOf('freeplay')>=0;"), true);
 eq('free play: tutorial done, stations and market open, the ores and gold', /function smFreePlay\(\)\{[\s\S]{0,900}tutDone\(\);[\s\S]{0,300}TUT_SEEN_END=true;[\s\S]{0,300}FTUE_ST\.done=true;[\s\S]{0,400}SMELT\.freeOres[\s\S]{0,200}GOLD=SMELT\.freeGold;/.test(src), true);
 eq('free play is past the tutorial\'s parts (part 1 caps the first sword at 2 iron + 2 manganese and greys the rest)', /function smFreePlay\(\)\{[\s\S]{0,600}FTUE_ST\.part=7; TUT_BRAM_SOLD=true;/.test(src), true);
-eq('the PART buttons are hidden, SKIP HAMMER stays', src.includes('.cheatPart { display: none !important; }') && src.includes('id="cheatSkipHm"'), true);
+eq('the PART buttons are back (R0), SKIP HAMMER stays', !src.includes('.cheatPart { display: none !important; }') && src.includes('id="cheatSkipHm"'), true);
 /* 2. the gate */
 eq('the gate glows on a trait, not on heat', /function tick\(now\)\{[\s\S]{0,4000}smGateSync\(\);/.test(src) && !src.includes('if(!gateReady && melt.heat>=HEAT_READY) markGateReady();'), true);
 eq('the gate opens only on a trait, and acquires it', /function openGate\(\)\{ if\(!melt\|\|melt\.stage!=='smelting'\) return; if\(!melt\.reachedTrait\)\{[\s\S]{0,200}return; \}[\s\S]{0,200}tryAcquire\(\);/.test(src), true);
@@ -103,7 +113,7 @@ eq('the bellows handle stores the travel (s3), it does not move the sword itself
   && !/function wireBellowGate\(\)\{[\s\S]{0,2400}advanceSword\(/.test(src), true);
 eq('every frame the sword glides out part of the store', /function tick\(now\)\{[\s\S]{0,4000}smGlide\(dt\); smGateSync\(\);/.test(src)
   && /function smGlide\(dt\)\{[\s\S]{0,300}const d=smEase\(SM_OWED, dt\); SM_OWED=Math\.max\(0, SM_OWED-d\); advanceSword\(d\);/.test(src), true);
-eq('the gate and a reset drop the rest of the store', /function openGate\(\)\{[\s\S]{0,300}SM_OWED=0;/.test(src) && /function resetRun\(\)\{[^\n]{0,120}SM_OWED=0;/.test(src), true);
+eq('the gate and a reset drop the rest of the store', /function openGate\(\)\{[\s\S]{0,500}SM_OWED=0;/.test(src) && /function resetRun\(\)\{[^\n]{0,120}SM_OWED=0;/.test(src), true);
 eq('released, the handle springs back to closed, and the spring moves nothing (s2)', /const end=e=>\{ if\(live!==e\.pointerId\) return; live=null; quiet\(\); SM_POS=0; paint\(SMELT\.springMs\); \};/.test(src)
   && /const paint=ms=>\{[^}]*top\.style\.transition=ms \? 'transform '\+ms\+'ms ease-out' : 'none';/.test(src), true);
 eq('heat no longer sets the speed', /function advanceSword\(dt\)\{[\s\S]{0,400}let step=SWORD_SPEED\*mul\*dt,/.test(src), true);
@@ -120,7 +130,133 @@ eq('the blade on the anvil is SMELT.bladeW anvils wide (s3)', /function smBladeH
 eq('a reset clears the blade', /function resetRun\(\)\{[\s\S]{0,300}smBladeHide\(\);/.test(src), true);
 eq('the minigame line no longer asks for the mug', !src.includes("'Blade shaped: <b>splash it with the mug</b> to finish'"), true);
 
-/* the main build is untouched */
-eq('the main build has none of it', ['SMELT-PURE', 'const SMELT=', 'smFreePlay', 'smShaped', 'smHandle'].some(k => main.includes(k)), false);
+/* 2026-10-23 (owner): this loop is the main game; the old hammer loop is kept as its own file, without it */
+eq('the old loop is kept apart, without the smelter loop', ['SMELT-PURE', 'const SMELT=', 'smFreePlay', 'smShaped', 'smHandle'].some(k => old.includes(k)), false);
 
+/* R40 (owner, 2026-10-30): the fire sword's swing effect - A glow, B embers, C ribbon; fire only, while dragged.
+   Record: specs/2026-10-30-fire-swing-fx.md */
+const fxm = src.match(/\/\* FIREFX-PURE-BEGIN \*\/([\s\S]*?)\/\* FIREFX-PURE-END \*\//);
+assert.ok(fxm, 'FIREFX-PURE markers not found in ' + HTML);
+const X = new Function(fxm[1] + '; return { SWING_FX, FX_PLAIN_TRAITS, fxFor, fxBySpeed, fxWindPts, fxTrailKeep, fxTrailRuns, fxTrailPoly, fxGust, fxGustStep, fxGustPath, fxGustLook, fxGlow, fxSpawn, fxAlong, fxEmber, fxEmberStep, fxRamp, fxEmberLook, fxRibbonKeep };')();
+const FF = X.SWING_FX.fire, r3 = v => Math.round(v * 1000) / 1000;
+eq('R40: the values (record: Values)', X.SWING_FX, { fire: {
+  glow: { rest: 0.35, full: 1, speed: 1600 },
+  embers: { rest: 14, perPx: 0.09, max: 180, life: [0.25, 0.55], size: [12, 26], inherit: 0.3, drag: 3, rise: 420, jitter: 35, tipBias: 2 },
+  ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.65, gap: 140, stops: [[0, [255, 200, 90], 1], [0.45, [255, 95, 20], 0.8], [1, [190, 35, 8], 0]] } },
+  plain: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] } },   /* R45: the white slash, no glow, no embers */
+  gale: { ribbon: { speed: 900, keep: 0.12, inner: 0.65, alpha: 0.7, gap: 140, stops: [[0, [255, 255, 255], 1], [0.45, [235, 242, 255], 0.55], [1, [220, 230, 250], 0]] },
+    wind: { speed: 900, orbit: { n: 3, ry: 28, pad: 14, arc: 1.4, spin: 4, alpha: 0.85, width: 3 },   /* R48: the swirl when still, */
+      trail: { at: [[-0.1, 0], [0.3, -9], [0.6, 9], [0.9, 0]], keep: 0.2, gap: 140, alpha: 0.85, width: 18 } },   /* R51: a band */   /* the trails when moving */
+    gusts: { rest: 2, perPx: 0.01, max: 15, life: [0.45, 0.8], r: [18, 44], sweep: [3, 4.5], spin: 7, inherit: 0.35, jitter: 30, drag: 2.5, width: 10, alpha: 0.85 },   /* R49: larger and fewer; R50: much thicker */
+    color: { edge: [80, 195, 225], core: [200, 250, 255] } } });   /* R47: the gale winds */
+eq('R40 A: the glow - rest when still, rising with speed, full from 1600 px/s', [X.fxGlow(FF, 0), r3(X.fxGlow(FF, 800)), X.fxGlow(FF, 1600), X.fxGlow(FF, 5000)], [0.35, 0.675, 1, 1]);
+eq('R40 B: embers made - 14 a second when still', X.fxSpawn(FF, 0, 1, 0), { n: 14, carry: 0 });
+const sp = X.fxSpawn(FF, 1000, 0.1, 0.5);
+eq('R40 B: plus 0.09 per px/s of speed, the fraction carried to the next frame', [sp.n, r3(sp.carry)], [10, 0.9]);
+eq('R40 B: along the blade, tip-heavy', [X.fxAlong(FF, 0), X.fxAlong(FF, 0.5), X.fxAlong(FF, 1)], [0, 0.75, 1]);
+const em = X.fxEmber(FF, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5 });
+eq('R40 B: a new ember - its point, 0.3 of its velocity, mid life and size', Object.assign({}, em, { life: r3(em.life), size: r3(em.size) }), { x: 10, y: 20, vx: 30, vy: -15, age: 0, life: 0.4, size: 19 });
+const e2 = Object.assign({}, em), alive = X.fxEmberStep(FF, e2, 0.1);
+eq('R40 B: it slows, rises and ages', [alive, e2.vx < em.vx, e2.vy < em.vy, r3(e2.age)], [true, true, true, 0.1]);
+eq('R40 B: it goes at the end of its life', X.fxEmberStep(FF, { x: 0, y: 0, vx: 0, vy: 0, age: 0.54, life: 0.55, size: 10 }, 0.02), false);
+eq('R40 B: colour - white-yellow new, orange mid-life, smoke at the end', [X.fxRamp(0), X.fxRamp(0.5), X.fxRamp(1)], [[255, 244, 200], [245, 110, 25], [70, 50, 45]]);
+eq('R40 B: fades in, then out; 16 colour steps; shrinks to 40%', [X.fxEmberLook(0).a, X.fxEmberLook(0.5).a > 0.4, X.fxEmberLook(1).a, X.fxEmberLook(0).i, X.fxEmberLook(1).i, r3(X.fxEmberLook(1).s)], [0, true, 0, 0, 15, 0.4]);
+eq('R40 C: the ribbon keeps 0.12 s of the swept path', X.fxRibbonKeep(FF, [{ t: 0 }, { t: 100 }, { t: 200 }], 300).map(p => p.t), [200]);
+eq('R40 C: painted over the scene', src.includes("g.globalCompositeOperation='source-over';   /* C: painted, so it stays orange on a bright wall */"), true);
+eq('R40 C: a piece whose tip jumped over 140 px is skipped', src.includes('if(b.t-a.t>60 || Math.hypot(b.x-a.x, b.y-a.y)>b.F.ribbon.gap) continue;'), true);   /* R45: the piece's own values */
+eq('R40: fire swords only, while dragged', src.includes('fx:fxFor(w)') && /function swSwingFrame\(now\)\{[\s\S]{0,700}if\(s\.fx\) fxSwing\(s, dt\);/.test(src), true);
+eq('R40 A: the glow is cut to the blade picture', /\.sw-ghost \.sw-glow \{[^}]*mask-size: contain;/.test(src) && src.includes("gl.style.maskImage=gl.style.webkitMaskImage='url('+blade+')';"), true);
+eq('R40: the canvas lets taps through and sits over the dragged sword', src.includes('#swingFx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 121; pointer-events: none; }'), true);   /* R41: frame-sized whatever the pixel ratio */
+
+/* R42 (2026-10-30): the blade ends stored in the game, so a page opened as a file (no pixel reads) swings and burns right */
+const bem = src.match(/\/\* BLADE-ENDS-BEGIN \*\/([\s\S]*?)\/\* BLADE-ENDS-END \*\//);
+assert.ok(bem, 'BLADE-ENDS markers not found in ' + HTML);
+const ART = new Function(bem[1] + '; return SM_ENDS_ART;')();
+const bladeFiles = readdirSync('assets/sword-parts/blades').filter(f => f.endsWith('.webp')).map(f => f.replace(/\.webp$/, '')).sort();
+eq('R42: a row for every blade picture, none for a missing one', Object.keys(ART).sort(), bladeFiles);
+eq('R42: each tip lies up and right of its tang, about 45 deg (the art convention)', Object.keys(ART).filter(f => { const [ax, ay, bx, by] = ART[f], d = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
+  return !(bx > ax && by < ay && d > -60 && d < -30); }), []);
+eq('R42: the flame Longsword as measured (277 px at the swing size)', [ART.flame_longsword_blade, Math.round(Math.hypot(ART.flame_longsword_blade[2] - ART.flame_longsword_blade[0], ART.flame_longsword_blade[3] - ART.flame_longsword_blade[1]) * 317)], [[0.2919, 0.7059, 0.9064, 0.0833], 277]);
+eq('R42: SM_ENDS starts filled from the table', src.includes('Object.keys(SM_ENDS_ART).forEach(f=>{ const a=SM_ENDS_ART[f]; SM_ENDS[f]={ tang:{ x:a[0], y:a[1] }, tip:{ x:a[2], y:a[3] }, art:Math.atan2(a[3]-a[1], a[2]-a[0])*180/Math.PI }; });'), true);
+
+/* R43 (owner, 2026-10-30): the canvas cleared whole, whatever the pixel ratio */
+eq('R43: each frame clears the whole canvas in its own pixels', src.includes("g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(FX.d, 0, 0, FX.d, 0, 0);"), true);
+eq('R43: drawn at the pixel ratio held to 1-2', src.includes('d=Math.min(2, Math.max(1, window.devicePixelRatio||1));'), true);
+
+/* R44 (owner, 2026-10-30): the forge's blade burns too, while held, when it carries fire */
+eq('R44: the forge blade gets the effect when its metal carries fire', src.includes('fx:fxFor(melt)') && /function smBladeGrab\(e\)\{[\s\S]{0,900}smFxOn\(b\);/.test(src), true);
+eq('R44: every held frame it burns', /function smBladeTick\(dt\)\{[\s\S]{0,900}smBladePaint\(\); if\(SM_BL\.fx\) fxSwing\(SM_BL, dt\);/.test(src) && /function tick\(now\)\{[\s\S]{0,4000}if\(SM_BL\) SM_BL\.t=now; smBladeTick\(dt\);/.test(src), true);
+eq('R44: it stops when let go or quenched', /function smBladeUp\(e\)\{[^\n]*smFxOff\(\); smBladeDrop\(\);/.test(src) && /function smBladeQuench\(\)\{[\s\S]{0,300}tutDipDone\(\); smFxOff\(\);/.test(src), true);
+eq('R44: one effect for both swings - the picture width and the place in the frame', /function fxSwing\(s, dt\)\{[\s\S]{0,400}o=s\.off\|\|\{ x:0, y:0 \};[\s\S]{0,200}\*\(s\.W\|\|SMELT\.swingW\), px=s\.px\+o\.x, py=s\.py\+o\.y,/.test(src), true);
+eq('R44: the glow lies over the held blade', src.includes('#smBladeGlow { position: absolute; z-index: 41;') && /function smFxPaint\(b\)\{[^\n]*\['left','top','width','transform','transformOrigin'\]/.test(src), true);
+eq('R44: the loop runs while the forge blade burns', src.includes('(SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)'), true);
+
+/* R45 (owner, 2026-10-30): the base swords (balanced, durable) slash white, no particles */
+eq('R45: the base traits (R46: and swift)', X.FX_PLAIN_TRAITS, ['balanced', 'durable', 'swift']);
+const fw = ids => ({ traits: ids.map(k => ({ tid: k })) }), fm = ids => ({ traits: ids.map(k => ({ t: { id: k } })) });
+eq('R45: fire burns, even with a base trait', [X.fxFor(fw(['fire'])) === X.SWING_FX.fire, X.fxFor(fm(['durable', 'fire'])) === X.SWING_FX.fire], [true, true]);
+eq('R45: balanced, durable or none slash white', [fw(['balanced']), fw(['durable']), fm(['balanced', 'durable']), fw([]), {}].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true, true, true]);
+eq('R45: any other trait has no effect yet (R47: gale has its own)', [X.fxFor(fw(['water'])), X.fxFor(fm(['balanced', 'ice'])), X.fxFor(null)], [null, null, null]);
+eq('R45: the white slash has no glow and no embers', [X.SWING_FX.plain.glow, X.SWING_FX.plain.embers], [undefined, undefined]);
+eq('R45: embers and the glow only when the values have them', /function fxSwing\(s, dt\)\{[\s\S]{0,900}if\(s\.glow && F\.glow\)[\s\S]{0,200}if\(F\.embers\)\{/.test(src) && src.includes('if(SW_SWING.fx && SW_SWING.fx.glow){') && src.includes('if(!SM_BL.fx || !SM_BL.fx.glow) return;'), true);
+eq('R45: each slash piece and ember keeps its own values', src.includes('fxEmberStep(p.F, p, dt)') && src.includes('b.F.ribbon.stops.forEach(') && src.includes(', t:s.t, F:F });'), true);
+
+/* R46 (owner, 2026-10-30): the swift sword slashes white too */
+eq('R46: swift slashes white, alone or with a base trait', [fw(['swift']), fm(['swift', 'balanced']), fw(['durable', 'swift'])].map(w => X.fxFor(w) === X.SWING_FX.plain), [true, true, true]);
+eq('R46: fire with swift burns', X.fxFor(fw(['swift', 'fire'])) === X.SWING_FX.fire, true);
+
+/* R47 (owner, 2026-10-30): the gale sword - the same slash, swirling cyan winds instead of particles */
+const FG = X.SWING_FX.gale;
+eq('R47: gale gets the winds, alone or mixed; fire still first', [fw(['gale']), fm(['swift', 'gale']), fw(['water', 'gale'])].map(w => X.fxFor(w) === FG).concat(X.fxFor(fw(['gale', 'fire'])) === X.SWING_FX.fire), [true, true, true, true]);
+eq('R47: the same slash as the base swords; no glow, no embers', [JSON.stringify(FG.ribbon) === JSON.stringify(X.SWING_FX.plain.ribbon), FG.glow, FG.embers], [true, undefined, undefined]);
+eq('R48 D1: the swirl shows when still, gone from 900 px/s', [X.fxBySpeed([FG.wind.orbit.alpha, 0], 0, FG.wind.speed), X.fxBySpeed([FG.wind.orbit.alpha, 0], 450, FG.wind.speed), X.fxBySpeed([FG.wind.orbit.alpha, 0], 2000, FG.wind.speed)], [0.85, 0.425, 0]);
+eq('R48 D2: the trail points - along the blade and to its side', X.fxWindPts({ px: 0, py: 0, sn: 0, cs: 1, len: 100 }, [[0.5, 0], [1, 10], [-0.1, -9]]), [{ x: 0, y: 50 }, { x: 10, y: 100 }, { x: -9, y: -10 }]);
+eq('R48 D2: each trail piece kept 0.2 s', X.fxTrailKeep([{ t: 0, F: FG }, { t: 100, F: FG }, { t: 250, F: FG }], 300).map(q => q.t), [100, 250]);
+eq('R48: no rings left', /g\.ellipse\(cx, cy, D\.rx/.test(src) || src.includes('W.ph+=fxBySpeed(F.wind.spin'), false);
+eq('R48 D2: each frame the trail points are kept; the loop runs while they last', src.includes('FX.wtr.push({ t:s.t, p:fxWindPts(W, F.wind.trail.at), F:F });') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);
+/* R51 (owner, 2026-10-30): the trails thick, like the slash - one tapered band each */
+const fr = (x, y, t) => ({ p: [{ x, y }], t });
+eq('R51: a trail broken by a pause (over 60 ms) or a jump (over gap px); points under 0.5 px merged; a lone point is no band', X.fxTrailRuns([fr(0, 0, 0), fr(10, 0, 16), fr(10.2, 0, 32), fr(20, 0, 48), fr(30, 0, 200), fr(40, 0, 216), fr(400, 0, 232)], 0, 140).map(r => r.map(q => q.x)), [[0, 10.2, 20], [30, 40]]);
+eq('R51: a still sword leaves no band', X.fxTrailRuns([fr(5, 5, 0), fr(5, 5, 16), fr(5.1, 5, 32)], 0, 140), []);
+eq('R51: the band - full width at the sword, narrowing with age to nothing', X.fxTrailPoly([{ x: 0, y: 0, t: 0 }, { x: 10, y: 0, t: 100 }, { x: 20, y: 0, t: 200 }], 16, 200, 0.2), [{ x: 0, y: 0 }, { x: 10, y: 4 }, { x: 20, y: 8 }, { x: 20, y: -8 }, { x: 10, y: -4 }, { x: 0, y: 0 }]);
+eq('R51: filled in one piece, a soft edge band under the core', src.includes("[[T.width*1.6, C.edge, .35], [T.width, C.core, 1]].forEach(q=>{ const P=fxTrailPoly(run, q[0], now, T.keep);") && src.includes('g.closePath(); g.fill();'), true);
+eq('R49 E: gusts made - 2 a second when still, plus 0.01 per px/s', [X.fxSpawn(FG, 0, 1, 0, 'gusts'), X.fxSpawn(FG, 1000, 0.1, 0.2, 'gusts').n], [{ n: 2, carry: 0 }, 1]);
+eq('R40 B: embers still made by default', X.fxSpawn(X.SWING_FX.fire, 0, 1, 0), { n: 14, carry: 0 });
+const gu = X.fxGust(FG, { x: 10, y: 20, vx: 100, vy: -50 }, { a: 0.5, b: 0.5, c: 0.5, d: 0.5, e: 0 });
+eq('R47 E: a new gust - its point, 0.35 of its velocity, mid life, size and sweep', Object.assign({}, gu, { life: r3(gu.life), r: r3(gu.r), sweep: r3(gu.sweep), vx: r3(gu.vx), vy: r3(gu.vy) }), { x: 10, y: 20, vx: 35, vy: -17.5, age: 0, life: 0.625, r: 31, sweep: 3.75, a0: 0 });   /* R49: r 18-44 */
+const g2 = Object.assign({}, gu), live = X.fxGustStep(FG, g2, 0.1);
+eq('R47 E: it slows, does not rise, turns and ages', [live, r3(g2.vx) < 35, r3(g2.vy) > -17.5, r3(g2.a0), r3(g2.age)], [true, true, true, 0.7, 0.1]);
+eq('R47 E: it goes at the end of its life', X.fxGustStep(FG, Object.assign({}, gu, { age: 0.62 }), 0.01), false);
+const gp0 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0 }), 4), gp1 = X.fxGustPath(Object.assign({}, gu, { x: 0, y: 0, a0: 0, age: gu.life }), 4);
+eq('R47 E: an open spiral, growing from 40% to its full radius', [gp0.length, r3(Math.hypot(gp0[4].x, gp0[4].y)), r3(Math.hypot(gp1[4].x, gp1[4].y)), r3(Math.hypot(gp1[0].x, gp1[0].y))], [5, 12.4, 31, 9.3]);
+eq('R47 E: fades in over 15%, then out; thins to 40%', [X.fxGustLook(0).a, X.fxGustLook(0.15).a > 0.8, X.fxGustLook(1).a, r3(X.fxGustLook(1).s)], [0, true, 0, 0.4]);
+eq('R47: the winds follow the held sword and stop with it; gusts keep their values', src.includes('if(F.wind){') && src.includes('(W.s===SW_SWING || (W.s===SM_BL && W.s.live))') && src.includes('FX.gu=FX.gu.filter(p=>fxGustStep(p.F, p, dt));') && src.includes('if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length ||'), true);   /* R48: and the trails */
+eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one helper for the swirl, the trails and the curls)', src.includes("function fxStroke2(g, C, w, a, path){ [[w*2.2, C.edge, .35], [w, C.core, 1]].forEach(") && (src.match(/fxStroke2\(g, /g) || []).length, 3);   /* the helper and its 2 uses (R51: the trails are filled bands) */
+
+/* R58 (owner, 2026-10-30): the trait window's celebration burst. Record: specs/2026-10-30-trait-discovery-burst.md */
+const acm = src.match(/\/\* ACQFX-PURE-BEGIN \*\/([\s\S]*?)\/\* ACQFX-PURE-END \*\//);
+assert.ok(acm, 'ACQFX-PURE markers not found in ' + HTML);
+const Q = new Function(acm[1] + '; return { ACQ_FX, acqWave, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
+eq('R58: the values (record: Values)', QF, { count: 70, speed: [380, 820], drag: 1.8, fall: 260, life: [0.7, 1.3], size: [5, 10], spin: 12, mix: [0.5, 0.85],
+  ring: { r: 320, time: 0.55, width: 6 }, tint: { Weak: [210, 210, 210], Fine: [90, 170, 255], Epic: [190, 120, 255] }, gold: [255, 214, 90], white: [255, 250, 232],
+  big: { Epic: { n: 1.6, sp: 1.35, ring: 1.3 } }, after: { delay: 0.35, n: 0.45, sp: 0.6, ring: 0.6 } });   /* R59 */
+const qp = Q.acqParticle(QF, 100, 50, 120, 80, 'Epic', 0, { a: 0, b: 0.25, c: 0.25, d: 0.5, e: 0.5 });
+eq('R58: particle 0 - on the box edge (120 px right of the centre), straight right at mid speed, a spark, the tier colour, mid life and size', [qp.x, qp.y, r3(qp.vx), r3(qp.vy), qp.kind, qp.col, r3(qp.life), r3(qp.size), qp.age], [220, 50, 600, 0, 'spark', [190, 120, 255], 1, 7.5, 0]);
+const qq = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 35, { a: 0, b: 0.75, c: 0.6, d: 0, e: 0 }), q2 = Q.acqParticle(QF, 0, 0, 120, 80, 'Fine', 17.5 / 1, { a: 0, b: 0, c: 0, d: 0, e: 0 });
+eq('R58: particle 35 - half way round (the left edge), confetti, gold, the shortest life; a quarter round - the bottom edge', [r3(qq.x), r3(qq.y), r3(qq.vx), r3(qq.vy), qq.kind, qq.col, qq.life, r3(q2.x), r3(q2.y)], [-120, 0, -380, 0, 'confetti', [255, 214, 90], 0.7, 0, 80]);
+eq('R58: the rest white', Q.acqParticle(QF, 0, 0, 120, 80, 'Weak', 1, { a: 0, b: 0, c: 0.9, d: 0, e: 0 }).col, [255, 250, 232]);
+const qs = Object.assign({}, qp), qlive = Q.acqStep(QF, qs, 0.1);
+eq('R58: a step - it slows, falls, moves, ages', [qlive, r3(qs.vx) < 600, r3(qs.vy) > 0, qs.x > 220, r3(qs.age)], [true, true, true, true, 0.1]);
+eq('R58: gone at the end of its life', Q.acqStep(QF, Object.assign({}, qp, { age: 0.99 }), 0.02), false);
+eq('R58: opacity - in over 8%, then 1 - k^2', [Q.acqLook(0), Q.acqLook(0.08), r3(Q.acqLook(0.5)), Q.acqLook(1)], [0, 0.9936, 0.75, 0]);
+eq('R58: the ring - grows to 320 px easing out, fading', [Q.acqRing(QF, 0).r, r3(Q.acqRing(QF, 0.275).r), Q.acqRing(QF, 0.55).r, Q.acqRing(QF, 0).a, Q.acqRing(QF, 0.55).a], [0, 240, 320, 1, 0]);
+eq('R58: the window bursts as it opens; the canvas behind its box, taps through', src.includes("document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }") && src.includes('#acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }') && src.includes('#sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }'), true);
+/* R59 (owner, 2026-10-30): "make the burst bigger for epic tier, and have a smaller burst after the main" */
+const wv = (tr, s) => { const w = Q.acqWave(QF, tr, s); return [w.n, r3(w.sp), r3(w.ring)]; };
+eq('R59: the bursts - Weak and Fine 70 / 1 / 320, Epic 112 / 1.35 / 416', [wv('Weak', false), wv('Fine', false), wv('Epic', false)], [[70, 1, 320], [70, 1, 320], [112, 1.35, 416]]);
+eq('R59: the second burst - 32 / 0.6 / 192, Epic 50 / 0.81 / 249.6', [wv('Fine', true), wv('Epic', true)], [[32, 0.6, 192], [50, 0.81, 249.6]]);
+const we = Q.acqWave(QF, 'Epic', false), pe = Q.acqParticle(QF, 0, 0, 120, 80, 'Epic', 28, { a: 0, b: 0, c: 0, d: 0.5, e: 0 }, we);
+eq('R59: a burst spreads its own count round the window and scales its speed (Epic particle 28 of 112: straight down at 600 x 1.35)', [r3(pe.x), r3(pe.y), r3(pe.vx), r3(pe.vy)], [0, 80, 0, 810]);
+eq('R59: the ring at its own size', [r3(Q.acqRing(QF, 0.275, 416).r), Q.acqRing(QF, 0.55, 192).r], [312, 192]);
+eq('R59: the second burst comes after the delay, counted in the frames', src.includes('ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;') && src.includes('if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }') && src.includes('if(ACQ.ps.length || ACQ.rings.length || ACQ.next)'), true);
 console.log('[smelter] GREEN / ' + n + ' checks');
