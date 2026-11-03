@@ -860,3 +860,7 @@ yours and come on top.
   three places (D70a, D71, reaching Fire). Now: (1) Garric's ring is not lit when the iron is already in, and (2) every sword
   made (the hammer's, and the craft book's) takes the ring down, whatever lit it. Checked in the browser (iron in before the
   hands-off: ring stayed; now it does not). Asserted by the FTUE test (written first).
+- **R63 (2026-11-03, owner): the trait window bigger.** Owner, with a picture of "New trait discovered - Balanced": "make this
+  popup bigger. increase text size as well." The box and all its text x1.5 (max 480 px wide; heading 24 px, symbol 84 px, tier
+  20 px, count 16 px, continue 18 px). Record: `specs/2026-10-30-trait-discovery-burst.md` (R63). Asserted by the smelter test
+  (written first).
