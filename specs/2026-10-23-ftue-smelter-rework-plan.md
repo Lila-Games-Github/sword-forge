@@ -868,3 +868,6 @@ yours and come on top.
   round the gate: "make this a circle highlight, and more intense. right now it is barely visible." A pulsing ring with a
   strong glow (130% of the gate's width) and a ripple ring, in place of the rounded box. Record:
   `specs/2026-10-21-smelter-version-loop.md` (R64). Asserted by the smelter test (written first).
+- **R65 (2026-11-03, owner): the shape window wider, its text bigger.** Owner: "can we also make this wider, currently it covers
+  only 1/3rd of the screen. make it wider, increase the text size." Two thirds of the frame (max 720 px), five shapes a row,
+  text x1.5. Record: `specs/2026-10-21-smelter-version-loop.md` (R65). Asserted by the smelter test (written first).

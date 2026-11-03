@@ -874,6 +874,17 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r66: the recipe book borrows this picker; the book is a later .sf-modal at the same z-index, so the
    picker has to be lifted or it opens BEHIND the open book */
 #sfShapeModal { z-index: 1010; }
+/* R65 (owner, 2026-11-03): "make it wider, increase the text size" - two thirds of the frame, five shapes a row, text x1.5 */
+#sfShapeModal .sf-modal-box { max-width: 720px; width: 67%; padding: 22px 26px; }
+#sfShapeModal .sf-modal-h { font-size: 24px; }
+#sfShapeModal .sf-modal-sub { font-size: 16px; margin-bottom: 16px; }
+#sfShapeModal .sf-shape-grid { gap: 12px; }
+#sfShapeModal .sf-shape-grid .sf-shape { flex: 0 0 calc(20% - 9.6px); padding: 14px 4px; gap: 7px; }
+#sfShapeModal .sf-shape .ic { font-size: 40px; }
+#sfShapeModal .sf-shape span { font-size: 15px; }
+#sfShapeModal .sf-shape .sf-buy { font-size: 14px; padding: 4px 10px; }
+#sfShapeModal .sf-shape-cancel { margin-top: 16px; }
+#sfShapeModal .sf-shape-cancel .paperBtn.red { flex: 0 0 30%; }
 .sf-shape-cancel { display: none; margin: 10px 0 0; justify-content: center; }
 .sf-shape-cancel.on { display: flex; }
 .sf-shape-cancel .paperBtn.red { flex: 0 0 44%; }

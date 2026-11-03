@@ -223,3 +223,18 @@ barely visible." While the gate is ready (the sword on a trait, `#furnaceGate.re
 | Ripple | - | a second 3 px ring growing to 1.6x and fading out, every 1.2 s |
 
 The rings take no taps (the gate under them does).
+
+## R65: the shape window wider, its text bigger (2026-11-03)
+
+Owner, with a picture of "Choose a Blade Shape": "can we also make this wider, currently it covers only 1/3rd of the screen.
+make it wider, increase the text size."
+
+| Part | Was | Now |
+|---|---|---|
+| Window | max 320 px wide (a third of the 1080 px frame) | max 720 px, 67% of the frame; padding 22 x 26 px |
+| Shapes a row | 4 (10 shapes in 3 rows) | 5 (10 shapes in 2 rows), 12 px apart |
+| Heading | 16 px | 24 px |
+| Sub-line | 11 px | 16 px |
+| Shape icon / name | 26 px / 10 px | 40 px / 15 px |
+| BUY | 10 px | 14 px |
+| Cancel | 44% of the row | 30% (the row is wider) |
