@@ -7458,7 +7458,7 @@ function craftDetails(){ const st=document.getElementById('cwStage'), open=!st.c
 let CW_LESSON=null;
 /* R67 (owner, 2026-11-03): "make sure, players can't close the sword crafted window for d17a-b" - while D17b (the hammer row)
    and D17a (the arrow) are up, CLOSE does nothing and shows dimmed; from D17c it closes as before */
-function cwNoClose(){ return CW_LESSON==='hammer' || CW_LESSON==='arrow'; }
+function cwNoClose(){ return CW_LESSON==='hammer' || CW_LESSON==='arrow' || CW_LESSON==='hp-row'; }   /* R68: and D69d (the damaged sword), until its OK lights CLOSE */
 function cwLit(sel){ document.querySelectorAll('#sfCraftModal .tut-lit-ctl').forEach(e=>e.classList.remove('tut-lit-ctl'));
     { const m=document.getElementById('sfCraftModal'); if(m) m.classList.toggle('cw-noclose', cwNoClose()); }   /* R67 */
     const e=sel ? document.querySelector(sel) : null; if(e) e.classList.add('tut-lit-ctl'); }

@@ -883,3 +883,6 @@ yours and come on top.
   (D17a), CLOSE does nothing (`cwNoClose`, checked first in `closeCraft`) and shows dimmed (`#sfCraftModal.cw-noclose`,
   set by `cwLit` at each lesson step). From D17c (the ores, after the arrow is tapped) it closes as before; CLOSE is the
   window's only way out. Asserted by the FTUE test (written first).
+- **R68 (2026-11-03, owner): and not during D69d.** Owner: "fix d67 d as well" (there is no D67d; D69d is the other line said
+  over the crafted window, the damaged fire sword's). While D69d is up (`CW_LESSON` 'hp-row'), CLOSE does nothing and shows
+  dimmed, as in R67; its OK lights CLOSE ('close'), which then closes. Asserted by the FTUE test (written first).
