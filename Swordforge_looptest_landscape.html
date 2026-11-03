@@ -1042,6 +1042,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cw-stage.open .cw-main { transform: translateX(-40%); }
 /* 2026-10-10: the lesson's rows keep a steady orange edge under the pulse, so no frame of it reads as unlit */
 #sfCraftModal .cw-box.tut-lit-ctl, #sfCraftModal .cw-drow.tut-lit-ctl, #sfCraftModal .cw-tab.tut-lit-ctl, #sfCraftModal .cw-close.tut-lit-ctl { border-color: #ff9a1f; }
+#sfCraftModal.cw-noclose .cw-close { opacity: .45; filter: grayscale(.7); cursor: default; }   /* R67: CLOSE is off during D17b / D17a */
 #sfSkillModal .st-node.tut-lit-ctl { outline: 4px solid #ff9a1f; outline-offset: 2px; }   /* 2026-10-10: Day 3's pickaxe node */
 .cw-stage.open .cw-paper { transform: translateX(56%); padding-left: 16px; }   /* out: no room needed for the card behind it */
 .sf-continue { text-align: center; font-size: 12px; font-weight: bold; color: #7a5a2b; cursor: pointer; padding: 8px 0 2px; margin-top: 10px; border-top: 1px solid #cbb98f; letter-spacing: .5px; }
@@ -7455,7 +7456,11 @@ function craftDetails(){ const st=document.getElementById('cwStage'), open=!st.c
    D17b (the hammer row) comes first; closing it lights the arrow with D17a; opening the paper brings D17c (the ores);
    closing D17c lights CLOSE. */
 let CW_LESSON=null;
+/* R67 (owner, 2026-11-03): "make sure, players can't close the sword crafted window for d17a-b" - while D17b (the hammer row)
+   and D17a (the arrow) are up, CLOSE does nothing and shows dimmed; from D17c it closes as before */
+function cwNoClose(){ return CW_LESSON==='hammer' || CW_LESSON==='arrow'; }
 function cwLit(sel){ document.querySelectorAll('#sfCraftModal .tut-lit-ctl').forEach(e=>e.classList.remove('tut-lit-ctl'));
+    { const m=document.getElementById('sfCraftModal'); if(m) m.classList.toggle('cw-noclose', cwNoClose()); }   /* R67 */
     const e=sel ? document.querySelector(sel) : null; if(e) e.classList.add('tut-lit-ctl'); }
 function cwLessonSay(){ const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb) sb.classList.add('say-over-modal'); }
 function cwLessonStart(){ if(FTUE_ST.cwSeen || FTUE_ST.done) return; FTUE_ST.cwSeen=true; CW_LESSON='hammer';
@@ -7491,6 +7496,7 @@ function showCraft(w, n, after){
     cwLessonStart();
 }
 function closeCraft(){
+    if(cwNoClose()) return;   /* R67: not during D17b / D17a */
     cwLessonEnd();
     document.querySelectorAll('.say-over-modal').forEach(e=>e.classList.remove('say-over-modal'));   /* r215 */
     const modal=document.getElementById('sfCraftModal'), art=document.getElementById('sfCraftArt');

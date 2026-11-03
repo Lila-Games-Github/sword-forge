@@ -878,3 +878,8 @@ yours and come on top.
   each side, at most its own 315 px; 293 px in the 1080 x 600 frame), centred under his head within that space; its tail is on
   the top edge, pointing up at his head (`.tail-up`, `--tailX`). Closing the window gives the bubble back its own width.
   Applies to every line said over the window (D17b, D17a, D17c, D69d). Asserted by the FTUE test (written first).
+- **R67 (2026-11-03, owner): the crafted window cannot be closed during D17b and D17a.** Owner: "make sure, players can't
+  close the sword crafted window for d17a-b". While the first crafted window's lesson is on its hammer row (D17b) or its arrow
+  (D17a), CLOSE does nothing (`cwNoClose`, checked first in `closeCraft`) and shows dimmed (`#sfCraftModal.cw-noclose`,
+  set by `cwLit` at each lesson step). From D17c (the ores, after the arrow is tapped) it closes as before; CLOSE is the
+  window's only way out. Asserted by the FTUE test (written first).
