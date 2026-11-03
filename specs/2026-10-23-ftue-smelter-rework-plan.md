@@ -871,3 +871,10 @@ yours and come on top.
 - **R65 (2026-11-03, owner): the shape window wider, its text bigger.** Owner: "can we also make this wider, currently it covers
   only 1/3rd of the screen. make it wider, increase the text size." Two thirds of the frame (max 720 px), five shapes a row,
   text x1.5. Record: `specs/2026-10-21-smelter-version-loop.md` (R65). Asserted by the smelter test (written first).
+- **R66 (2026-11-03, owner): the crafted window's lines under the dragon.** Owner, with a picture of D17b over the "Sword
+  crafted!" window: "make the dialogues appear below the dragon, change the location of the dialogue bubble tail accordingly.
+  make sure the bubble does not overlap the sword crafted wndow." While that window is open (`cwOpen`), the bench bubble is
+  placed by `cwSayLayout`: 14 px under the dragon's picture, as wide as the space left of the window allows (6 px clear on
+  each side, at most its own 315 px; 293 px in the 1080 x 600 frame), centred under his head within that space; its tail is on
+  the top edge, pointing up at his head (`.tail-up`, `--tailX`). Closing the window gives the bubble back its own width.
+  Applies to every line said over the window (D17b, D17a, D17c, D69d). Asserted by the FTUE test (written first).

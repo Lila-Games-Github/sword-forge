@@ -589,6 +589,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     border-width: 11px 15px 11px 0; border-top-color: transparent; border-right-color: #6a5636; }
 #dragonSay.tail-left .tail::after { content: ''; left: 3px; top: -8px; bottom: auto;
     border-width: 8px 11px 8px 0; border-top-color: transparent; border-right-color: #f3e7c6; }
+/* R66: the top tail - the bubble under the dragon (the crafted window), pointing UP at him, --tailX along its top edge */
+#dragonSay.tail-up .tail { left: var(--tailX, 40px); top: -16px; bottom: auto;
+    border-width: 0 12px 16px 12px; border-top-color: transparent; border-bottom-color: #6a5636; }
+#dragonSay.tail-up .tail::after { content: ''; left: -9px; top: 4px; bottom: auto;
+    border-width: 0 9px 13px 9px; border-top-color: transparent; border-bottom-color: #f3e7c6; }
 #dragonFire { position: absolute; z-index: 7; width: 130px; pointer-events: none; -webkit-user-drag: none; display: none; filter: drop-shadow(0 0 6px rgba(255,140,30,.85)); }
 #forgeResult { position: absolute; left: 50%; top: 44%; transform: translate(-50%,-50%); z-index: 30; display: none; text-align: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; color: #ffe08a; background: rgba(20,14,7,0.94); border: 2px solid #c8a84b; border-radius: 12px; padding: 14px 22px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
 #forgeResult.show { display: block; animation: resultPop .45s ease-out; }
@@ -11072,9 +11077,22 @@ function sayWhere(){
     if(['sfBookModal','sfShapeModal','sfTraitModal','sfCraftModal','sfRewardModal'].some(id=>{ const m=document.getElementById(id); return m && m.classList.contains('show'); })) return 'bench';
     return onScreenDragon() ? 'screen' : 'bench';
 }
+/* R66 (owner, 2026-11-03): "make the dialogues appear below the dragon, change the location of the dialogue bubble tail accordingly.
+   make sure the bubble does not overlap the sword crafted window" - while that window is open the bench line sits 14 px under the
+   dragon, as wide as the space left of the window allows (6 px clear each side, at most its own 315 px), its tail up at his head */
+function cwOpen(){ const m=document.getElementById('sfCraftModal'); return !!(m && m.classList.contains('show')); }
+function cwSayLayout(){ const box=document.getElementById('dragonSay'), m=document.querySelector('#cwStage .cw-main'), f=document.getElementById('frame'), b=benchEl(),
+        d=document.querySelector('#dragon img') || document.getElementById('dragon');
+    if(!box || !m || !f || !b || !d) return; const mr=m.getBoundingClientRect(), fr=f.getBoundingClientRect(), dr=d.getBoundingClientRect(), host=b.getBoundingClientRect();
+    const w=Math.min(315, mr.left-fr.left-12); box.style.width=w+'px'; const h=box.offsetHeight||83, headX=dr.left+dr.width*0.62;
+    const x=Math.max(fr.left+6, Math.min(mr.left-6-w, headX-w/2)), y=Math.min(fr.bottom-h-42, dr.bottom+14);
+    box.classList.remove('above','tail-left'); box.classList.add('tail-up'); box.style.setProperty('--tailX', Math.max(14, Math.min(w-38, headX-x-12)).toFixed(0)+'px');
+    box.style.left=(x-host.left).toFixed(0)+'px'; box.style.top=(y-host.top).toFixed(0)+'px'; }
 function sayLayout(){
     { const w=sayWhere(); if(w==='sharp' || w==='design') return; }   /* r103/r116: placed by CSS */
+    { const db=document.getElementById('dragonSay'); if(db && db.classList.contains('tail-up') && !cwOpen()){ db.classList.remove('tail-up'); db.style.width=''; } }   /* R66: back to its own size */
     if(rwOpen()){ rwSayLayout(); return; }   /* R53 (owner): over the reward window, under it and beside the dragon on screen */
+    if(cwOpen()){ cwSayLayout(); return; }   /* R66 (owner): under the dragon while the sword crafted window is open */
     const onScreen=onScreenDragon();
     const box=document.getElementById(onScreen?'screenDragonSay':'dragonSay'), b=onScreen?document.getElementById('screenLayer'):benchEl(), f=document.getElementById('frame');
     if(!box||!b||!f) return;
