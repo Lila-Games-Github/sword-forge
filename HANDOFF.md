@@ -4,7 +4,29 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-10-23): the smelter loop is the main game
+## Current state (2026-11-03): the smelter-loop FTUE is merged and live
+
+- **PR #28 merged (2026-11-02, merge commit `36d4c97`)** carried R0-R62 of `sword-forge/ftue-smelter-rework`; the Pages
+  deploy succeeded, so https://lila-games-github.github.io/sword-forge/ serves it. Start new work on a new branch from `main`.
+- **The whole game in one document: `GDD.md`** (repo root, 2026-11-03), written from the build and the dated records.
+  `specs/game-design.md` §6-§8 were rewritten to the landscape game the same day, so it no longer describes V1.
+- **R34-R62 (2026-10-29 to 10-30), on top of the bullets below:** the smelter's lit states (R34-R35); a GAME jump after
+  PART 6 (R36-R37); the rotary market (R38-R39, `specs/2026-10-29-rotary-market.md`); swing effects - fire embers and
+  slash, the white slash for balanced, durable and swift, the gale winds (R40-R51, `specs/2026-10-30-fire-swing-fx.md`);
+  D15 waits for full heat (R52); the reward window higher, the dragon visible over it (R53); only a line's X closes it, on
+  every screen (R54-R57); the player's reply before the dragon speaks (R56, `FTUE.replies`); the trait-discovery burst
+  (R58-R59, `specs/2026-10-30-trait-discovery-burst.md`); replies wait for the customer's line (R60); sword names, tiers,
+  "sharpened" and "customized" bold and coloured in dialogues (R61, `specs/2026-10-30-dialogue-sword-names.md`); the
+  tutorial trait ring goes out once the sword is made (R62).
+- **Stand-in art in the tutorial's swords (checked 2026-11-02):** the fire Katana wears the balanced Katana blade; Durable
+  swords wear the balanced blade and parts; the Katana, Dagger and Claymore borrow the Longsword, Shortsword and Broadsword
+  mid-blades in the minigame. Missing: `flame_katana_blade`, `gale_katana_blade`, `flame_claymore_blade`, a Durable set,
+  `balanced_katana/dagger/claymore_midblade`.
+- **Known, not fixed (owner said ignore, 2026-11-02):** a 2026-11-02 review listed 10 items (D15 can pause mid-hammering;
+  `cs-replying` is cleared only by the reply's own tap; R62 leaves `tutHole`'s dim; replies hang on `TYPE_DONE`; and
+  smaller ones). They are recorded here only so the next session does not rediscover them as new.
+
+## Earlier state (2026-10-23): the smelter loop is the main game
 
 - **The main game's crafting loop changed (owner, 2026-10-23).** `Swordforge_looptest_landscape.html` now carries the
   smelter loop (it was `Swordforge_looptest_landscape_smelterversion.html`, PR #26): the bellows handle moves the sword,
@@ -337,7 +359,9 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 - `INDEX.md`'s "WHERE CANON LIVES NOW" table is correct for the build; the per-section split lower down
   is superseded.
 - `docs/wiki/` describes `index.html`/`swordforgeV2.html`. The 10 audit orphans are these pages.
-- **`specs/game-design.md`** is named the mechanics SSOT by CLAUDE.md, but its header still names the
-  portrait build canon. Mechanics are recorded in the dated specs instead; say so in the commit.
-- `specs/README.md` and `README.md` still name older builds in their bodies, under dated banners.
-- `plan.md`'s "Next up" is V1/V2 scope.
+- **`specs/game-design.md`** (rewritten 2026-11-03) and **`GDD.md`** (new, 2026-11-03) describe the current build in full;
+  the dated specs still win on any conflict. A mechanic change updates its dated record, `game-design.md` and `GDD.md`.
+- `README.md`, `specs/README.md` and `ONBOARDING.md` were brought to the current build on 2026-11-03.
+- The tutorial script's play-order section was checked line by line against `DIALOGUE` on 2026-11-03 (every text matches)
+  and brought to R62 (the R56 replies, R17's D17b-first order, R18, R52, R57). Its build history below stays as written.
+- `plan.md`'s "Next up" is V1/V2 scope; the current list is its smelter-loop section.

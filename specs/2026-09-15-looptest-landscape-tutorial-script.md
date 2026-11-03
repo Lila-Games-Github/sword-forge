@@ -36,24 +36,27 @@ Placeholder art; the shape is what matters:
 - a **tail** on the bubble's lower-left corner pointing down and left, at the dragon's head;
 - anchored to the dragon element, so it follows the dragon when dragged and at any frame size;
 - body text dark (`#4a3623`): the parchment is pale, the same trap r55 hit on the counter;
-- click anywhere on the bubble to advance.
+- only its button moves it on: OK to the next line, X to close; a tap on the bubble only finishes the typing (R55, R57).
 - **the line types in (R32, owner, 2026-10-29: "the customer have a nice dialogue text appearing from left to right, do the
   same for dragon's dialogues."):** a word at a time at the customer's pace (`TYPE_MS`, 70 ms a word), in all four of
   the dragon's bubbles (`SAY_BOXES`). Every word is laid out from the start and shown in turn (`.sw` / `.sw.on`), so
-  the bubble has its full size at once and nothing beside it moves. A tap while it types shows the rest; the next tap
+  the bubble has its full size at once and nothing beside it moves. A tap while it types shows the rest; its OK
   advances, as the customer's line does. Closing a line stops its typing (`sayHide`).
 
 Pointer arrows come from `tutArrow(from, to, opt)` and the pulsing highlight from `tutGlow(sel, on)`;
 both are cleared by `tutDone()`.
 
-Lines live in the `DIALOGUE` map. `SAY_SEQ` is the run the bubble walks: a click advances it and
+Lines live in the `DIALOGUE` map. `SAY_SEQ` is the run the bubble walks: its OK advances it and
 the last line closes it. `say(id)` shows one line on its own; `sayHide()` clears it.
 
 ---
 
 ---
 
-## The script in play order (R8, the smelter loop)
+## The script in play order (R8, the smelter loop; brought to R62 on 2026-11-03)
+
+Checked against the build on 2026-11-03: every line's text matches `DIALOGUE`. Since R56 the player taps a reply
+(`FTUE.replies`) between a customer's order and the dragon's answer; those replies are named in the "When" of the dragon's line.
 
 Each entry: the id, who speaks, the line; under it, when it appears. "Only if" marks a line that does not always play;
 "branch" marks one of two answers. GC = a gameplay customer, TC = a tutorial customer.
@@ -93,7 +96,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after D13.*
 
 11. **D15** Dragon: "It is hot enough."
-   *When: the metal is hot enough to work; the game pauses under the dark screen until its OK.*
+   *When: the metal reaches full heat (`FTUE.hotLine` 0.98, R52); the game pauses under the dark screen until its OK.*
 
 12. **D15a** Dragon: "Pick up your hammer, line up the ring on the hammer with the glowing mark, then tap the hammer."
    *When: after D15.*
@@ -104,14 +107,14 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 14. **D17** Dragon: "Pick up the blade by its handle and dip it in the bucket to finish."
    *When: the blade is shaped: the minigame closes and the hot blade lies on the anvil; an arrow to the bucket. It closes with the dip.*
 
-15. **D17a** Dragon: "Tap the arrow to see more details."
-   *When: the first "Sword crafted!" window.*
+15. **D17b** Dragon: "The hammer icon shows how well you hammered your blade. Higher percentage means more money."
+   *When: the first "Sword crafted!" window, its hammer row lit (R17).*
 
-16. **D17b** Dragon: "The hammer icon shows how well you hammered your blade. Higher percentage means more money."
-   *When: the details arrow is tapped.*
+16. **D17a** Dragon: "Tap the arrow to see more details."
+   *When: after D17b.*
 
 17. **D17c** Dragon: "This shows how much ore you used for the sword."
-   *When: after D17b; then CLOSE lights.*
+   *When: the details arrow is tapped; then CLOSE lights.*
 
 18. **D18** Dragon: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!"
    *When: the crafted window is closed.*
@@ -177,7 +180,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; one of the random customer requests, naming the order.*
 
 37. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it."
-   *When: after GC1's request; its lit OK starts the craft guide (no market trip).*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC1's request; its lit OK starts the craft guide (no market trip).*
 
 38. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
    *When: only if a GC1-GC3 craft uses too much or too little of an ore; with a "Retry" button.*
@@ -210,7 +213,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 48. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
-   *When: after GC2's request; its lit OK starts the craft guide.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC2's request; its lit OK starts the craft guide.*
 
 49. **D28c** Dragon: "Here it is. Watch this!"
    *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
@@ -228,7 +231,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 54. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
-   *When: after GC3's request; its lit OK starts the craft guide.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC3's request; its lit OK starts the craft guide.*
 
 55. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
@@ -250,7 +253,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell.*
 
 2. **D31** Dragon: "So many customers. No tea break for us. Back to the forge we go."
-   *When: after TC2's line; points to the forge.*
+   *When: after the player's reply "I'll craft you a good one." (R56) to TC2's line; points to the forge.*
 
 3. **D32** Dragon: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-"
    *When: raw Iron and Manganese are in the smelter and the route misses Balanced.*
@@ -336,7 +339,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: branch "new": the next tap on her line.*
 
 30. **D64** Dragon: "Hmm, we are out of ores. But there is a cave just nearby. We should go there."
-   *When: after TC3's request; out of ore.*
+   *When: after the player's reply "Yes, I can craft a fire sword." (R56) to TC3's request; out of ore.*
 
 31. **D65** Dragon: "I see a pickaxe. How lucky! Pick it up and drag it to the ores."
    *When: the player arrives in the cave.*
@@ -399,7 +402,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the hammer minigame opens.*
 
 50. **D69d** Dragon: "The sword was damaged because of the Hazard zones. It will sell for a little less."
-   *When: only if the sword lost health: on the crafted window, and again when its details open.*
+   *When: only if the sword lost health: on the crafted window, its Health row lit (R17); then CLOSE lights.*
 
 51. **D85** Dragon: "Okay, back to the counter!"
    *When: the crafted window is closed.*
@@ -437,7 +440,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 6. **D92b** Dragon: "The Durable trait is one of the basic traits. It should be in the visible part of the map."
-   *When: after GC4's request.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC4's request.*
 
 7. **D92c** Dragon: "The traits you discover in the hidden part of the map are elemental."
    *When: after D92b; closing it opens the map window.*
@@ -469,7 +472,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 16. **D92h** Dragon: "A fire Longsword! I'll buy this blueprint for you too."
-   *When: after GC5's request.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC5's request.*
 
 17. **D92a** Dragon: "Remember the fire route? The craft book can help."
    *When: after D92h; its lit OK starts the map route.*
@@ -495,7 +498,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 24. **D92i** Dragon: "And a fire Broadsword. My treat, one more time!"
-   *When: after GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
 
 25. **D28c** Dragon: "Here it is. Watch this!"
    *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Broadsword's lock.*
@@ -515,7 +518,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 30. **D92j** Dragon: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!"
-   *When: after GC7's request.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to GC7's request.*
 
 31. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the fire Katana's price; the top-up, then its BUY blinks.*
@@ -534,7 +537,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell.*
 
 2. **D92l** Dragon: "Okay, time to learn how to craft the best tier sword!"
-   *When: after TC4's line; points to the forge.*
+   *When: after the player's reply "One Epic durable sword. I'll do my best." (R56) to TC4's line; points to the forge.*
 
 3. **D97** Dragon: "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!"
    *When: the sword is at the end of the route; the ladle lights up; closing it opens the tiers window.*
@@ -551,7 +554,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell.*
 
 7. **D93a** Dragon: "Gale? We have never made that. Let's try copper and see where the path goes."
-   *When: after TC5's line.*
+   *When: after the player's reply "Not yet, but I can craft one." (R56) to TC5's line.*
 
 8. **D95** Dragon: "Grind two copper and add it to the smelter."
    *When: the player arrives at the forge.*
@@ -670,7 +673,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: continues D111.*
 
 5. **D111b** Dragon: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend."
-   *When: after Bram's line.*
+   *When: after the player's reply "Yes, a sharper swift dagger. Leave it to me." (R56) to Bram's line.*
 
 6. **D48** Dragon: "I found this sharpening wheel. I'll show you how to use it."
    *When: after D111b; closing it opens the sharpening wheel reward.*
@@ -681,8 +684,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 8. **D113** Dragon: "Find it in your inventory and drag it to the anvil."
    *When: the player arrives at the forge.*
 
-9. **D44** Dragon: "Take the hot metal to the anvil."
-   *When: the swift metal is out of the bag, hot at the gate; an arrow to the anvil.*
+9. ~~**D44**~~ (not said here since R18)
+   *R18: the swift ingot dropped on the anvil lands there and opens the shape window; no line.*
 
 10. **D28c** Dragon: "Here it is. Watch this!"
    *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
@@ -740,7 +743,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the bell; a random request.*
 
 27. **D113a** Dragon: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!"
-   *When: after the request.*
+   *When: after the player's reply "Yes, I can craft one." (R56) to the request.*
 
 28. **D28c** Dragon: "Here it is. Watch this!"
    *When: the shape window opens; over it, as the dragon's coins fly to the Longsword's lock.*

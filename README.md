@@ -22,6 +22,7 @@ trait (its tier: Weak, Fine, Epic). On a trait the **smelter gate** glows: a tap
 The metal on the **anvil** opens the shape window (blueprints can be bought there), then the **hammering minigame**. The shaped
 blade lies hot on the anvil; picked up by its handle it swings, and dipped into the **bucket** it is quenched and the sword is
 made. Then sell it at the counter. A guided tutorial (the FTUE, six parts over three days) teaches all of it.
+The whole design is in [`GDD.md`](GDD.md).
 
 ## Project layout
 
@@ -31,6 +32,7 @@ made. Then sell it at the counter. A guided tutorial (the FTUE, six parts over t
 | `Swordforge_looptest_landscape_hammerloop.html` | The previous main build (the hammer / mug / dragon-pull loop), reference only. |
 | `swordforgeV2.html`, `v1.html`, `Swordforge_new_looptest.html` | Older builds, historical. |
 | `index.html` | A redirect to the game. |
+| `GDD.md` | The whole game in one document (design, systems, values, tutorial, UI). |
 | `specs/` | Design records, dated; `INDEX.md` lists which are canon. The loop: `specs/2026-10-21-smelter-version-loop.md` (the crafting loop) and `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it). |
 | `tooling/*/` | Test suites (`node tooling/<name>/<name>.test.mjs`) asserting the recorded values. |
 | `HANDOFF.md` | Current state and what is next. Read first. |

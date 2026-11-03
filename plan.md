@@ -130,11 +130,17 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
       the anvil opens the shaping, the blade hangs from its handle and is quenched in the bucket. Record:
       `specs/2026-10-21-smelter-version-loop.md`.
 - [x] **Made the main game** (owner, 2026-10-23); the old loop kept as `Swordforge_looptest_landscape_hammerloop.html`.
-- [x] **The FTUE reworked to it** (R0-R11, branch `sword-forge/ftue-smelter-rework`): `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- [x] **The FTUE reworked to it** (R0-R62, branch `sword-forge/ftue-smelter-rework`): `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+      **Merged** as PR #28 (2026-11-02, `36d4c97`) and live.
+- [x] R24 rotated iron and manganese paths; R25-R39 the craft frame, the rail, the counter's new look, the rotary market;
+      R40-R51 swing effects; R52-R62 dialogue flow (replies, X-only close), the trait burst, coloured sword names.
+- [x] `game-design.md` §6-§8 rewritten to the landscape game, and one whole-game document, `GDD.md` (2026-11-03).
 - [ ] **Play Parts 2-6 continuously** (each part was checked on its own; Part 1 was played through).
 - [ ] **Play it on a phone**: the bellows, the ladle and the blade dip by finger.
 - [ ] Remove the unused forge hammer and forge mug (hidden by CSS) and their wiring.
-- [ ] `game-design.md` §6-§8 still describe the older build: rewrite to the landscape game's economy, customers and screens.
+- [ ] Stand-in art: `flame_katana_blade`, `gale_katana_blade`, `flame_claymore_blade`, a Durable blade and part set, and the
+      `balanced_katana/dagger/claymore_midblade` minigame art (see `HANDOFF.md`).
+- [ ] The 2026-11-02 review's 10 open items (listed in `HANDOFF.md`), set aside by the owner.
 
 ## 🐉 Landscape loop-test — guided tutorial (active, 2026-09-18)
 The live line of work is `Swordforge_looptest_landscape.html`. Script SSOT:
