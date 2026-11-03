@@ -886,3 +886,11 @@ yours and come on top.
 - **R68 (2026-11-03, owner): and not during D69d.** Owner: "fix d67 d as well" (there is no D67d; D69d is the other line said
   over the crafted window, the damaged fire sword's). While D69d is up (`CW_LESSON` 'hp-row'), CLOSE does nothing and shows
   dimmed, as in R67; its OK lights CLOSE ('close'), which then closes. Asserted by the FTUE test (written first).
+- **R69 (2026-11-03, owner): the craft frame hidden until D42.** Owner, with pictures of the counter's shelf (craft book and
+  ring) and the forge's craft frame (pips, X, inkpot, craft book, ring): "hide this entire craft window on all screens for
+  initial stage. it only appears when d42 is shown." Both stay hidden (`#frame.no-craft-frame`) until D42 ("... Tap the inkpot
+  to record the craft.", Part 2, TC2) is first said; then they show for good (`FTUE_ST.craftFrame`, saved). Once TC2's 5 craft-book pages
+  are earned (just after D42: a PART jump past TC2 or an older save; the PART buttons start at the end of the part before, so
+  PART 3 is part 2 at TC3's bell), after the tutorial and in free play they show anyway (`craftFrameShown`). Every line said
+  and every frame check it. Nothing before
+  D42 points at either (the record step is the first). Asserted by the FTUE test (written first).

@@ -1350,6 +1350,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* R25: the ring is the toggle now; its glow is with the inkpot's and the book's (after .tut-blink) */
 #hud.collapsed #bladePanel { transform: translateY(calc(var(--cf-shut) * -1%)); }
 #bladePanel.dragging, #cntShelf.dragging { transition: none; }   /* R31: held, the frame follows the finger */
+#frame.no-craft-frame #hud, #frame.no-craft-frame #cntShelf { display: none !important; }   /* R69: hidden until D42 */
 /* r34 — map pan arrows. The pad covers the LEFT SECTION only (frame minus the rail), so the arrows sit
    on that section's edges exactly as the wireframe places them, and follow --rail-w if it changes. */
 /* r43 — placeholder screens. Above the forge's own content, below the rail (the plates leave the rail's
@@ -3324,7 +3325,15 @@ function mkBuyFace(st, pr){ const lock='<span class="mk-lk">\u{1F512}</span>';
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, craftFrame:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+/* R69 (owner, 2026-11-03): "hide this entire craft window on all screens for initial stage. it only appears when d42 is shown." - the
+   forge's craft frame (#hud) and the counter's shelf with the craft book (#cntShelf) stay hidden until D42 is first said
+   (FTUE_ST.craftFrame, saved); once TC2's 5 pages are earned (just after D42: a PART jump past TC2, an older save), after the
+   tutorial and in free play they show. Every line said checks it, as does every frame */
+function craftFrameShown(){ return !!(FTUE_ST.craftFrame || FTUE_ST.done || SM_FREE || FTUE_ST.pages>0); }
+let CRAFT_FRAME_ON=null;
+function craftFrameUi(){ const on=craftFrameShown(); if(on===CRAFT_FRAME_ON) return; CRAFT_FRAME_ON=on;
+    const f=document.getElementById('frame'); if(f) f.classList.toggle('no-craft-frame', !on); }
 function recipeCap(){ return FTUE.recipePages + (FTUE_ST.pages||0); }
 function recipeFull(){ return Object.keys(RECIPES).length >= recipeCap(); }
 function ftueBookToastQuiet(){ return !SM_FREE && !FTUE_ST.done && FTUE_ST.part<=FTUE.bookToastQuietPart; }   /* R12 */
@@ -8461,6 +8470,7 @@ function tick(now){
     if(TUT_PAUSE){ lastT=now; requestAnimationFrame(tick); return; }   /* r85: the whole loop holds */
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
     custSpotSync();   /* r221 */
+    craftFrameUi();   /* R69 */
     if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
     tutDarkSync();   /* r271/r272 */
@@ -11246,6 +11256,7 @@ function say(id){
     /* r288: a listed line has none anywhere in a run (D23 repeats behind a stale run). r115/r174/r184/r196 */
     const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');
     sayGoIcon(go, goKind, id);   /* R57 (owner): the X on every screen (R22 took it off the counter and the cave) */
+    if(id==='D42' && !FTUE_ST.craftFrame) FTUE_ST.craftFrame=true; craftFrameUi();   /* R69: the craft frame appears with D42 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
     if(id==='D17a' && CW_LESSON) sayGoIcon(go,'none');
