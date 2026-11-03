@@ -3325,7 +3325,7 @@ function mkBuyFace(st, pr){ const lock='<span class="mk-lk">\u{1F512}</span>';
 /* The run's own state. shapes: 'trait:Shape' keys earned from blueprints. grind: the grindstone is
    on the bench (the GPC2 reward). grindUse: it may be used (from TC2 on). decor: decor ids in the
    bag. placed: decor on a screen, { id, screen, x, y } with x/y the centre in % of the screen. */
-function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, craftFrame:false, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
+function ftueFresh(){ return { part:1, gpc:0, shapes:{}, market:false, sharp:false, waiting:[], laterOn:false, wq:'', cwSeen:false, grind:false, grindUse:false, decor:[], placed:[], pages:0, desk:false, dd:{}, swiftFree:false, craftFrame:false, exits:{}, done:false }; }   /* r201: pages = extra recipe pages earned; desk = the design desk is open. r203: dd = extra parts earned, per skin */
 /* R69 (owner, 2026-11-03): "hide this entire craft window on all screens for initial stage. it only appears when d42 is shown." - the
    forge's craft frame (#hud) and the counter's shelf with the craft book (#cntShelf) stay hidden until D42 is first said
    (FTUE_ST.craftFrame, saved); once TC2's 5 pages are earned (just after D42: a PART jump past TC2, an older save), after the
@@ -6247,14 +6247,27 @@ function goScreen(name){
     setTimeout(()=>tutScreenArrived(name), 0);   /* r103 */
 }
 // an arrow with nowhere to go is hidden rather than left dead, so the way back is never ambiguous
+/* R70 (owner, 2026-11-03): "hide and disable these navigate to other screen arrows till the first time they are introduced by the
+   tutorial." An arrow is a step from one screen to another; it is known once the tutorial has lit it (tutExit), and so is its way
+   back (FTUE_ST.exits, saved). A PART jump or an older save knows the screens it has already been taken to: the counter once Bram
+   is served, the cave and the bedroom from Part 3, the basement once sharpening or the desk is unlocked. The shop: after the
+   tutorial. After the tutorial and in free play every arrow shows. An unknown arrow is hidden and does nothing. */
+function exitSeen(s){ return s==='forge' || (s==='customer' && (FTUE_ST.part>=2 || TUT_BRAM_SOLD)) || ((s==='cave' || s==='bedroom') && FTUE_ST.part>=3)
+    || (s==='basement' && !!(FTUE_ST.sharp || FTUE_ST.desk)); }
+function exitKnown(from, to){ return !!(FTUE_ST.done || SM_FREE || (FTUE_ST.exits||{})[from+'>'+to] || (exitSeen(from) && exitSeen(to))); }
+function exitIntro(el){ const dir={ panUp:'up', panDown:'down', panLeft:'left', panRight:'right' }[el && el.id], to=dir && (SCREENS[SF_SCREEN]||{})[dir]; if(!to) return;
+    const x=FTUE_ST.exits || (FTUE_ST.exits={}); x[SF_SCREEN+'>'+to]=true; x[to+'>'+SF_SCREEN]=true; updateScreenArrows(); }
+let EXITS_KEY='';
+function exitsUi(){ const e=SCREENS[SF_SCREEN]||{}, k=SF_SCREEN+['up','down','left','right'].map(d=>e[d] && exitKnown(SF_SCREEN, e[d]) ? 1 : 0).join('');
+    if(k!==EXITS_KEY){ EXITS_KEY=k; updateScreenArrows(); } }
 function updateScreenArrows(){
     const exits=SCREENS[SF_SCREEN]||{};
     [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{
-        const b=document.getElementById(id); if(b) b.classList.toggle('dead', !exits[dir]); });
+        const b=document.getElementById(id); if(b) b.classList.toggle('dead', !exits[dir] || !exitKnown(SF_SCREEN, exits[dir])); });   /* R70: and not yet introduced */
 }
 function screenStep(dir){
     if(document.querySelector('.sf-modal.show')) return;   // never navigate out from under a modal
-    const to=(SCREENS[SF_SCREEN]||{})[dir]; if(to) goScreen(to);
+    const to=(SCREENS[SF_SCREEN]||{})[dir]; if(to && exitKnown(SF_SCREEN, to)) goScreen(to);   /* R70: not before the tutorial shows the way */
 }
 function wirePan(){ wireRacks(); wireDesign(); wireSharpen();
     [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{
@@ -8471,6 +8484,7 @@ function tick(now){
     const dt = lastT ? Math.min(0.05,(now-lastT)/1000) : 0; lastT=now;
     custSpotSync();   /* r221 */
     craftFrameUi();   /* R69 */
+    exitsUi();   /* R70 */
     if(melt && melt.stage==='onAnvil' && orbEl.classList.contains('hot')!==(melt.heat>0)) updateOrbLook();   /* r261 */
     if(TUT_HOLE){ if(TUT_STAGE!=='p3-book') tutHole(null); else tutHoleLayout(); }   /* r245 */
     tutDarkSync();   /* r271/r272 */
@@ -9113,7 +9127,7 @@ let TUT_ARROW=null;
 /* r120/r121: blink ONE control, or none. Any control, not just an exit. */
 function tutExit(sel){
     document.querySelectorAll('.tut-blink').forEach(b=>b.classList.remove('tut-blink'));
-    const el = sel && tutEl(sel); if(el) el.classList.add('tut-blink');
+    const el = sel && tutEl(sel); if(el){ exitIntro(el); el.classList.add('tut-blink'); }   /* R70: a lit screen arrow is introduced */
 }
 /* ---- r152: the arrow means DRAG, and nothing else. ----
    A tap or a hold is a pointer at one thing, so it gets the blinking glow instead; an arrow is a

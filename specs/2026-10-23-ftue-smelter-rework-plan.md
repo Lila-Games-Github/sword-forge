@@ -894,3 +894,11 @@ yours and come on top.
   PART 3 is part 2 at TC3's bell), after the tutorial and in free play they show anyway (`craftFrameShown`). Every line said
   and every frame check it. Nothing before
   D42 points at either (the record step is the first). Asserted by the FTUE test (written first).
+- **R70 (2026-11-03, owner): the screen arrows hidden until the tutorial introduces them.** Owner, with a picture of the left
+  arrow: "hide and disable these navigate to other screen arrows till the first time they are introduced by the tutorial." An
+  arrow is a step between two screens (`SCREENS`). It is known once the tutorial lights it (`tutExit`, which every
+  `tutExitTo` uses), together with its way back (`FTUE_ST.exits`, saved). Until then it is hidden (`.dead`) and neither a tap
+  nor an arrow key moves (`screenStep`). A PART jump or an older save knows the screens it has already been taken to
+  (`exitSeen`): the counter once Bram is served (or from Part 2), the cave and the bedroom from Part 3, the basement once
+  sharpening or the desk is unlocked; the shop only after the tutorial. After the tutorial and in free play every arrow shows.
+  The code's own screen changes (`goScreen`) are not limited. Asserted by the FTUE test (written first).
