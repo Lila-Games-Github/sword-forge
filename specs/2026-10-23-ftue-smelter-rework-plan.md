@@ -864,3 +864,7 @@ yours and come on top.
   popup bigger. increase text size as well." The box and all its text x1.5 (max 480 px wide; heading 24 px, symbol 84 px, tier
   20 px, count 16 px, continue 18 px). Record: `specs/2026-10-30-trait-discovery-burst.md` (R63). Asserted by the smelter test
   (written first).
+- **R64 (2026-11-03, owner): the gate's ready highlight is a circle, and stronger.** Owner, with a picture of the faint box
+  round the gate: "make this a circle highlight, and more intense. right now it is barely visible." A pulsing ring with a
+  strong glow (130% of the gate's width) and a ripple ring, in place of the rounded box. Record:
+  `specs/2026-10-21-smelter-version-loop.md` (R64). Asserted by the smelter test (written first).
