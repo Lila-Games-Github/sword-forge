@@ -1034,3 +1034,7 @@ yours and come on top.
   over the rail and the arrows, a window over the map, the dragon and his line lifted). While either is up no ore leaves the bag
   (`tutOresHeld`, as D72), and the dark covers the inventory anyway. D35 ("Drag one iron to the grindstone ...") is said clear
   and frees the ores. Asserted by the FTUE test (written first).
+- **R88 (2026-11-05, owner): D92e's X lit.** Owner, with a picture of D92e ("Let's see if we can find some in the cave.") at the
+  counter: "highlight the x button". D92e joins `SAY_GO_GLOW`. Its closing sends the player to the cave (`ftueDurableToCave`
+  lights the way); with R75 the way's arrow waits for the lit X, so the two do not glow together. Asserted by the FTUE test
+  (written first).

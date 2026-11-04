@@ -1667,4 +1667,6 @@ eq('R86: an arrow first closes a line whose closing moves the tutorial on (its X
 { const s7 = src.replace(/\r\n/g, '\n'), T = new Function(s7.match(/const SAY_DARK_CUT=[\s\S]*?\};/)[0] + '; return SAY_DARK_CUT;')();
 eq('R87: D32c and D33 on the cut dim with the map window; D35 clear', [!!T.D32c, !!T.D33, !!T.D35, T.D32c[0].sel, T.D33[0].sel], [true, true, false, '#map-wrap', '#map-wrap']);
 eq('R87: no ore leaves the bag while D32c or D33 is up', s7.includes("function tutOresHeld(){ return (TUT_STAGE==='fire-mang' && SAY_ON==='D72') || SAY_ON==='D32c' || SAY_ON==='D33'; }   /* R73 (owner): D72 only - D72a points at the wheel. R87: and TC2's D32c, D33 (D35 frees them) */"), true); }
+/* R88 (owner, 2026-11-05): D92e's X lit */
+eq('R88: D92e glows', src.replace(/\r\n/g, '\n').includes("                    D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1,   /* r196. 2026-10-10. r247: D130 */\n                    D92e:1 };   /* R88 (owner, 2026-11-05): \"highlight the x button\" - D92e, the Durable order's way to the cave */\n"), true);
 console.log('[ftue] GREEN / ' + n + ' checks');
