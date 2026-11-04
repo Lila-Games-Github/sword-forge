@@ -79,6 +79,8 @@ for fine and weak. use colors for those as well. Same for 'sharpened' and 'custo
 | D107a | balanced sword, weak |
 | D107b | weak |
 | D107c | gale katana, fire claymore |
+| D107cb | gale katana (R83) |
+| D107cd | fire claymore (R83) |
 | D111 | swift dagger |
 | D113a | gale Longsword |
 | D128 | Balanced sword, Epic, customized, sharpened |

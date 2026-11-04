@@ -1,29 +1,31 @@
-# Sword Forge — Game Design (SSOT)
+# Sword Forge - Game Design (SSOT)
 
-**Single source of truth for game mechanics.** This describes the game *as actually implemented*. When code and this doc disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
+**Single source of truth for game mechanics.** This describes the game *as actually implemented*. When code and this doc
+disagree, treat it as a bug in one of them and reconcile. Update this doc in the same change as any mechanic change.
 
-> **Which build this describes (updated 2026-10-23).** The game under development is
-> **`Swordforge_looptest_landscape.html`**. Since 2026-10-23 it carries the **smelter crafting loop** (the bellows move the
-> sword, the smelter gate takes the trait, a ladle aligns the tier, the anvil opens the shaping, the blade is quenched in the
-> bucket). **§2-§5 describe that loop as built.** **§6-§8 still describe the older `index.html` / V1 game** (metals, the day
-> of 7 customers, the old minigames) and have not been rewritten; for the current economy, customers, market, quests and
-> tutorial use the dated records, which win over this file: `specs/2026-10-21-smelter-version-loop.md` (the loop, its values
-> and tests), `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it),
-> `specs/2026-10-07-ftue-v3-rework.md` (the FTUE, the market, blueprints, the ore chain; the market window since R38:
-> `specs/2026-10-29-rotary-market.md`), `specs/2026-10-01-hammer-hit-points.md`
-> (the minigame), `specs/2026-10-01-hazard-integrity.md` (hazards), and `HANDOFF.md`.
+> **Which build this describes (rewritten 2026-11-03).** The game is **`Swordforge_looptest_landscape.html`** (the
+> smelter crafting loop and the six-part FTUE, as merged in PR #28, R0-R62). **Every section describes that build**; values
+> were read from the code on 2026-11-03. The dated records hold the full detail and the reasons, and win on any conflict:
+> `specs/2026-10-21-smelter-version-loop.md` (the loop), `specs/2026-10-07-ftue-v3-rework.md` (the FTUE, market, blueprints,
+> ore chain), `specs/2026-10-23-ftue-smelter-rework-plan.md` (R0-R62), `specs/2026-10-29-rotary-market.md`,
+> `specs/2026-10-01-hammer-hit-points.md`, `specs/2026-10-01-hazard-integrity.md`, `specs/2026-10-06-skill-tree-trade-ore.md`,
+> `specs/2026-10-30-*.md` (effects, dialogue colours). The whole game in one narrative document: `GDD.md` (repo root).
 
-> The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The build has drifted from it; this spec reflects current reality, not original intent.
+> The original design vision is archived at `archive/Sword_Grid_Game_GDD.md`. The V1 game this file used to describe in
+> §6-§8 (metals, the 50x50 grid, 7 customers a day, the heat minigame) is in `v1.html` and this file's git history.
 
 ---
 
 ## 1. Overview
 
-You play a blacksmith who explores a dark 50×50 grid to discover magical traits, forges custom weapons from those traits, and sells them to customers (actively) or through a passive shopfront.
+You play a blacksmith, guided by a small dragon, who reopens an abandoned forge. Ores dropped into the smelter draw a route
+across a fog-covered trait map; the bellows move a sword marker along it; the smelter gate takes the trait the marker rests
+on, at a tier set by how well it is lined up. The hot metal is shaped on the anvil in a hammering minigame, quenched in a
+bucket, optionally decorated and sharpened, and sold at the counter or from the shop. Mobile, landscape, one HTML file.
 
 ## 2. Core loop (the main build, smelter loop)
 
-1. **Ores** - from the starting bag, the dragon's rewards and the cave (`FTUE.oreStart`, `FTUE.oreChain`).
+1. **Ores** - from the starting bag, the dragon's rewards and the cave (`FTUE.oreStart`, `FTUE.oreChain`, §7).
 2. **Grind (optional)** - an ore on the **grindstone**, turned by its handle, reaches further on the map (§3).
 3. **Smelt** - each ore dropped into the **smelter** adds a segment to the active sword's **route** on the map.
 4. **Pump** - dragging the **bellows** handle up and down moves the sword along the route (§3).
@@ -31,11 +33,12 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
    trait's centre: the tier (§4).
 6. **Take the trait** - on a trait the **smelter gate** glows; a tap takes the trait and releases the hot metal. For another
    trait, put the metal back into the smelter, pump on, open the gate again (§4).
-7. **Shape** - the hot metal dropped on the **anvil** opens the **shape window** (owned shapes, and blueprints to buy), then the
+7. **Shape** - the hot metal dropped on the **anvil**, then a tap on it, opens the **shape window** (owned shapes, and blueprints to buy), then the
    **hammering minigame** (§5).
 8. **Quench** - the shaped blade lies hot on the anvil; picked up by its handle it hangs and swings; dipped (or dropped) into
    the **bucket** it is quenched and the sword is made (§5).
-9. **Sell** - at the counter to customers' orders, or from the shop; then craft again.
+9. **Finish (optional)** - the **design desk** and the **sharpening wheel** in the basement (§5); each adds 7g.
+10. **Sell** - at the counter to a customer, or from a shop rack (§6); then craft again.
 
 ## 3. The map, routes and travel
 
@@ -43,163 +46,242 @@ You play a blacksmith who explores a dark 50×50 grid to discover magical traits
 
 - **World:** an SVG board **2800 x 1960** units (`WORLD_W`, `WORLD_H`), seen through a zoom / pan window: `INIT_W` **1100**,
   `MIN_W` **360**, `MAX_W` **2800**. The sword starts at **(1400, 1030)** (`START`).
-- **Fog:** cleared for good in circles of `REVEAL_R` **120** as the sword travels, plus `INIT_REVEAL` **430** around the start.
+- **Fog:** cleared for good in circles of `REVEAL_R` **120** as the sword travels (the Vision skill widens it, §6), plus
+  `INIT_REVEAL` **430** around the start.
 - **Traits:** 25, placed from the owner's map (`TRAIT_POS`); each is a `?` until taken. The map's trait icons open a small trait
   card (`specs/2026-10-06-map-trait-links.md`).
 - **Hazards:** zones that cost the blade health while the sword moves through them (`HAZARD_DPS` **26**/s over a blade of
-  `BLADE_HP_MAX` **100**, shown as a fill inside the sword marker). Health lowers the price (`HAZ.floor` 0.5 at 0 health); 3+
-  zones crossed drop every trait one tier, 5+ two (`HAZ.steps`). Record: `specs/2026-10-01-hazard-integrity.md`.
-- **Books:** XP pickups collected by travelling near them; XP levels the player and gives skill points (the skill tree).
+  `BLADE_HP_MAX` **100**, shown as a fill inside the sword marker; at 0 the blade shatters). Health lowers the price
+  (`HAZ.floor` 0.5 at 0 health); 3+ zones crossed drop every trait one tier, 5+ two (`HAZ.steps`; the first 2 are free).
+  Record: `specs/2026-10-01-hazard-integrity.md`.
+- **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 
 ### Ores and routes
 
-- **7 ores:** Iron, Manganese, Copper, Aluminium, Nickel, Tin, Zinc (`ORES`), each with its own fixed path shape and length.
-  Since 2026-10-28 (R24) iron's path is turned 30 deg anticlockwise and manganese's 30 deg clockwise (`ORES` `rot`); Balanced
-  and Fire sit at the new ends (`FTUE.balancedAt`, `FTUE.fireAt`). Record: specs/2026-10-28-rotated-ore-paths-test.md.
-  Each ore dropped into the smelter appends its path from the current route end (the **X**); ores stack.
+- **7 ores:** Iron, Manganese, Copper, Aluminium, Nickel, Tin, Zinc (`ORES`), each with its own fixed path shape and length
+  (200, 258, 144, 250, 215, 185, 230 world units). Since 2026-10-28 (R24) iron's path is turned 30 deg anticlockwise and
+  manganese's 30 deg clockwise (`ORES` `rot`); Balanced and Fire sit at the new ends (`FTUE.balancedAt`, `FTUE.fireAt`).
+  Record: `specs/2026-10-28-rotated-ore-paths-test.md`. Each ore dropped into the smelter appends its path from the current
+  route end (the **X**); ores stack.
 - **Raw vs ground:** a raw ore reaches **50%** of its path; on the grindstone two full turns of the handle (`GRIND_TURNS` **2**)
   grind it fully, **100%** (`tPct = 0.5 + 0.5 x grind`).
-- **Back to the bag:** an ore on the grindstone dropped on the inventory goes back to the bag, whole; its grinding is
-  lost (R21, 2026-10-28; until then an ore on the wheel was committed, r101).
+- **Back to the bag:** an ore on the grindstone dropped on the inventory goes back to the bag, whole; its grinding is lost (R21).
 - **Route drawing:** the placed route is **dark brown**; while an ore is held its preview is a fainter **red** (solid to its
   reach, dotted for what grinding would add). The route behind the sword is erased as it travels.
+- **Known routes (tutorial):** Balanced 2 iron + 2 manganese raw (Epic); Fire 2 iron + 1 manganese, then manganese, then a
+  ground iron; Durable 2 nickel; Swift 2 fully ground copper; Gale further along copper.
 
 ### Travel: the bellows
 
 - Dragging the bellows handle (`#bellowHot`) moves the sword, and only while the handle moves: a full stroke (closed to raised,
   `SMELT.rangePx` **40** px) is `SMELT.strokeSec` **0.2** s of full-speed travel (`SWORD_SPEED` 0.5 of a segment a second;
   routes of 5+ fully ground irons run at x2, `ROUTE_FAST`). The travel glides out frame by frame (`SMELT.easeSec` **0.15**). The
-  handle springs back closed when released (`SMELT.springMs` **250**); the spring moves nothing. Heat no longer sets the speed.
+  handle springs back closed when released (`SMELT.springMs` **250**); the spring moves nothing. Heat does not set the speed.
+- **The smelter's look** follows the work: its crown lights as the bellows pump and cools after (R34-R35, `furnaceLook`); the
+  gate layer glows while the sword is on a trait.
 - Record: `specs/2026-10-21-smelter-version-loop.md` (s1-s3).
 
 ## 4. Traits: alignment and taking them
 
 - **Alignment sets the tier** (`tierFromDist`, the sword's distance to the trait's centre): **<= `ALIGN_EPIC` 9 Epic**,
-  **<= `ALIGN_FINE` 20 Fine**, **<= `ALIGN_MAX` 34 Weak**; beyond 34 the sword is not on the trait.
-- **The ladle (tier alignment):** behind the smelter (`assets/forge/ladle_base`, `ladle_head`). Dragging its bowl tilts it
-  (0-`ladleMax` **45** deg); past `ladleDead` **4** deg it pulls the sword, its route and the X straight toward the map's centre,
-  up to `ladlePull` **24** map px/s at full tilt, linearly by the tilt. Released, it tips back and the pull stops. Only while the
-  metal is in the smelter. Record: `specs/2026-10-21-smelter-version-loop.md` (s4).
+  **<= `ALIGN_FINE` 20 Fine**, **< `ALIGN_MAX` 34 Weak**; beyond 34 the sword is not on the trait.
+- **The ladle (tier alignment):** behind the smelter (`assets/forge/ladle_base`, `ladle_head`), shown from Part 4 (R29).
+  Dragging its bowl tilts it (0-`ladleMax` **45** deg); past `ladleDead` **4** deg it pulls the sword, its route and the X
+  straight toward the map's centre, up to `ladlePull` **24** map px/s at full tilt, linearly by the tilt. Released, it tips back
+  and the pull stops. Only while the metal is in the smelter. Record: `specs/2026-10-21-smelter-version-loop.md` (s4).
 - **The gate takes the trait:** it glows while the sword is on a trait (`smGateSync`). A tap takes the trait at its tier, reveals
-  its symbol on the map for good, records it in the craft book, opens the trait window, and puts the hot metal at the gate.
-  Off a trait the gate refuses. A trait already on the metal is only re-rolled up in tier, never added twice.
+  its symbol on the map for good, records it in the craft book, opens the trait window (first discovery only, R12, with a
+  celebration burst, R58-R59), and puts the hot metal at the gate. Off a trait the gate refuses. A trait already on the metal is
+  only re-rolled up in tier, never added twice.
 - **More traits:** drag the hot metal back into the smelter, add ore if needed, pump and open the gate again. The blade's
-  traits show as pips in the blade panel (a tier-N trait fills N slots).
-- **Craft book:** each trait's page records the route that reached it (ores, grinds, tier, hammer grade); **CRAFT 1** makes the
-  page's sword straight away from its ores (no smelter, no minigame).
+  traits show as pips in the craft frame (5 slots; a tier-N trait fills N).
+- **Craft book:** each trait set's page records the route that reached it (ores, grinds, tier, hammer grade); **CRAFT 1** makes
+  the page's sword straight away from its ores (no smelter, no minigame; §8).
 
 ## 5. Forging the blade
 
-- **The anvil opens the shaping:** the hot metal dropped on the anvil (with at least one trait) opens the **shape window**: owned
-  shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks). A tap on the metal reopens it.
+- **The anvil opens the shaping:** the hot metal lies on the anvil (with at least one trait); a tap on it opens the **shape window** (R82): owned
+  shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens
+  it. A stored metal (ingot) dropped on the anvil lands there with the heat it was stored with (R18).
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on
-  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into a band - **Masterwork** (x1.3), **Good**
-  (x1.0), **Crude** (x0.8). Record: `specs/2026-10-01-hammer-hit-points.md`. **No mug:** `SMELT.shapedHold` **700** ms after the
-  last strike the minigame closes and the finished blade lies on the anvil, glowing hot.
-- **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, found from
-  each blade picture's pixels) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 1.2), swinging as it
-  is moved. Dipped into the bucket's water from above, or released over the bucket, it is quenched (the glow fades, steam and
-  mist) and the sword is made; released elsewhere it goes back on the anvil. Record: `specs/2026-10-21-smelter-version-loop.md`
-  (s5, s6).
+  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into a band - **Masterwork** (accuracy >= 0.85,
+  x1.3), **Good** (>= 0.60, x1.0), **Crude** (x0.8). Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
+  `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
+  strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
+- **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per
+  blade picture in `SM_ENDS_ART`) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 1.2). Dipped
+  into the bucket's water from above, or released over the bucket, it is quenched (the glow fades, smoke and mist) and the
+  sword is made; released elsewhere it goes back on the anvil. Record: `specs/2026-10-21-smelter-version-loop.md` (s5, s6).
 - **Dragged swords swing:** a sword dragged out of the Swords tab on any screen (or off the counter or the table) hangs from
-  its grip and swings like the blade on the anvil, the same physics at the same size (`SMELT.swingW` 317 px). Record:
-  `specs/2026-10-21-smelter-version-loop.md` (s7).
+  its grip and swings like the blade on the anvil (`SMELT.swingW` 317 px; s7).
+- **Swing effects** (R40-R51, `SWING_FX`, `fxFor`, record `specs/2026-10-30-fire-swing-fx.md`): a fire sword glows and throws
+  embers with an orange slash at the tip; balanced, durable and swift swords leave a white slash; a gale sword leaves the slash,
+  wind streaks that swirl round it when still and trail it when moving, and cyan wind curls. Other traits have none yet. Shown
+  on dragged swords and on the blade held at the forge.
 - **The made sword** goes to the Swords tab with its shape, traits and tiers, hammer grade, health and hazards crossed; the
-  "Sword crafted!" window shows it. Decoration (the design desk) and sharpening (the basement wheel) are later, optional steps.
+  "Sword crafted!" window shows it (the first one teaches its rows, D17b-D17a-D17c).
+- **Design desk** (basement, unlocked in Part 6): the sword's trait set of grips, guards and pommels (`DD_SETS`: balanced,
+  flame, swift, gale, ice, water; Durable and the other traits use balanced). `FTUE.startParts` 3 of each, plus Garric's 6
+  bonus balanced parts at grade 3. DONE marks the sword designed (+7g). The parts chosen do not change the price.
+- **Sharpening wheel** (basement, unlocked in Part 5): drag the sword along the spinning stone; sharpness 0-100 (`SH_GAIN`
+  0.055 per px); the green band is 80-90.1 (capped at 90.1 during the lesson). DONE stores it; >= 80 adds +7g.
 
-## 6. Economy (the older `index.html` build - not rewritten; see the banner at the top)
+## 6. Economy
 
-### Smelter
-- Generates metals passively on a **10-second tick** (only after the tutorial; generation is locked during it). Base **1 metal per tick** (1 metal / 10 s).
-- **Only unlocked metals are generated** — the 4 cardinals (steel/iron/magnesium/bronze) always, plus any diagonal metal that's been bought (50g). Locked diagonals do not accumulate until unlocked.
-- **Lowest-first priority:** each metal generated is added to the **lowest-count metal** in the pool (ties broken randomly) as long as any pooled metal is **below 5**; once every pooled metal is at 5+, the metal is chosen uniformly at random. So a depleted metal is topped back up to 5 before generation spreads out.
-- Upgrade for **50 Gold** per tier → **+1 metal per tick** each, infinitely.
+### Sword price
 
-### NPC customers (active selling)
-- Requests are scripted then randomized:
-  - **Request #1:** "any weapon" — any sword works; pays at least **15g**.
-  - **Request #2:** scripted **Flame** 🔥 trait request. (During the tutorial, this customer is held back until the player dismisses the post-sale dialogue, then summoned manually.)
-  - **Request #3:** scripted **ice-dragon** customer — asks indirectly for a sword "weak to heat" (resolves to the **Flame** 🔥 trait); the tutorial uses this customer to teach crafting from a recorded composition via the Recorded Compositions **Craft** button.
-  - **Request #4+:** random trait (from the 8 closest-to-center traits while `requestCount ≤ 10`, then from all 24). **10% chance** to also demand a specific shape. **Customer #4 never requests Flame** (it's excluded from that one customer's pool) so the record-reminder box (below) points the player at a genuinely new trait.
-  - **Record reminder (post-tutorial):** the **first time the player completes a heating minigame after the tutorial ends** (i.e. heating customer #4's fresh, non-Flame trait), a one-off box appears — *"Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve."* — followed by a **hand pointer to the Record Composition button** (clears when they open the record box). Shown **once per session** (`hasShownRecordReminder`); if the heat surfaced a "New Trait Discovered!" box, the reminder waits until that box is dismissed. (`triggerRecordReminder`.)
-  - **Day 2 opener (Bram returns):** the first customer of **Day 2** is **Bram** (portrait `BramD2.png`), back with a **three-beat story** told one line at a time — *"Thanks to your sword, I was able to defeat the bandits! I fought so hard, the sword broke."* → *"But my talent was spotted and I got recruited as a soldier!"* → *"Can you get me something that won't break so easy-eh?"* Each of the first two beats shows a **Continue ▶** button (after a short read gap) to advance; the **final beat** carries his request and the usual two response options. His request is a **Durable 🛡️ sword** — but his dialogue never names the trait, so the player must **infer** that *"something that won't break so easy"* means the **Durable** trait. (`presentCustomerDialogueSequence`; detected via `currentDay === 2 && customersToday === 0`; `requestedTrait` = the `durable` base trait.)
+- **Trait value** (`traitValue`, stamped when a trait is placed): `clamp(5, 100, round(distance from the map centre (1400, 980)
+  / 12))`. Starter traits: swift 16, heavy 21, balanced 24, flexible 24, durable 25; fire 48; gale 41; the outer traits up to
+  100 (fury, magma).
+- **Raw value** (`swordValue`): the sum over the sword's traits of trait value + `QUALITY_BONUS` (Weak 0, Fine 10, Epic 20);
+  a sword with no traits is worth 5. The shape does not count.
+- **Price** (`swordBase`, `swordPriceParts`): `floor(raw value x popularity x forging band x health x Trade skill x
+  reputation)`, min 1, then **+7g** if sharpened (>= 80) and **+7g** if designed.
+  - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
+    tier) to a 20-point bar (`POP_CAP`) that carries over into the next level.
+  - Forging band: x1.3 / x1.0 / x0.8 (§5). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
+  - Reputation: +1 per counter sale; above 10 every price is x1.2 (below 0 x0.8; nothing lowers it in this build).
+  - Example: an Epic Balanced, Good forging, full health, popularity 1, no skills: 24 + 20 = 44g; designed and sharpened, 58g.
+- A sale at the counter also gives `XP_SELL` 5 xp per sword.
 
-  **Scripted story customers** (portraits in `assets/customer/`; detected by `currentDay`/`customersToday`):
-  - **June** — **Day 1's final customer (#7)** (portrait `June.png`): *"Give me the sharpest blade you have! I must END the monsters who took my husband away from me!"* Accepts a **Sharp 🔪 sword of any shape** (`requestedTrait` = `sharp`).
-  - **Roland** — **Day 2's 3rd customer** (portrait `Roland.png`): *"Do you have something that looks Noble? I need it for a very important performance."* Accepts a **Noble 👑 sword of any shape** (`requestedTrait` = `noble`). Alongside the usual two responses he offers a **third option — *"I don't make swords for cosplay."*** (`#btnCosplay`, shown only for Roland via `showCosplayOption`); picking it makes Roland retort *"Ah, just give me one! A real sword is best suited for… extreme performances anyways."* and then re-shows the normal responses (the Noble request stands). (`onCosplayClick`.)
-- **Dialogue reveal & responses:** the customer's request line is revealed **word by word** (typewriter, ~110ms/word; tapping the speech bubble skips to the full line). The line types out when the Counter screen first becomes visible for that customer (or immediately if a new customer arrives while you're already on the Counter). Only **after the full line has appeared** do the player's **two response options** fade in:
-  - **"I have something for you."** → runs **Search Inventory** (below). Auto-disabled when nothing in the Vault matches the request, so it doubles as a "do I have it?" cue.
-  - **"I don't have what you need."** → runs **Refuse** (below).
-  The options are hidden while the line is still typing and while a customer is leaving (post-sale/refuse). **Multi-beat customers** (e.g. Bram on Day 2) reveal each leading beat with a **Continue ▶** button after a short read gap (`DIALOGUE_GAP_MS`); the response options appear only once the **final** beat has typed out (`customerLineQueue`/`advanceCustomerDialogue`).
-- **Payout** = `max(1, reputation-adjusted value + craftsmanship bonus − hazard penalty)`:
-  - **Base value** modified by Reputation: Rep < 0 → **×0.8** (min 1g); Rep > 10 → **×1.2**.
-  - **+ craftsmanship bonus** (`sword.craftBonus`, flat, *after* the reputation multiplier): **+1 gold per successful hammer hit** (up to 6) **+ a sharpen-accuracy bonus** (**+3** for finishing at **95–105%**, **+2** for **90–95%** or **105–110%**, **+0** if over-honed past 110%).
-  - **− hazard penalty** (`sword.hazardLoss`, flat): 4 gold per hazard tile landed on while building the blade (see §1).
-  - Both are baked onto the sword at forge time (`completeForge`) and shown as a green **"+x craft"** / red **"−x hazard"** next to the value on the **forge-result board** and the **Vault sword-detail (sell) screen**. The **customer sale dialogue shows only the final net total** (e.g. value 31 + 9 craft − 4 hazard → *"Here's your 36 gold."*) — no per-component breakdown in the dialogue. The same net (value + craft − hazard, min 1g) is paid when a sword sells passively in the Shop.
-  - **First-sale starter stock:** completing the sale to **customer #1** tops every *usable* metal (the 4 cardinals + any unlocked diagonal) up to **at least 5** (`topUpMetalsAfterFirstSale`), so the player isn't stranded at 0 after the tutorial forge.
-- **Sale:** +1 Reputation. **Refuse:** −1 Reputation, new customer after ~1.2s. The **"I don't have what you need."** (Refuse) option is **disabled for the first three (scripted) customers** (`requestCount ≤ 3`) so the tutorial flow can't be broken; it enables from customer #4 on.
-- **Post-sale feedback + response gate:** on a successful sale the customer reacts with a short line before the gold, e.g. *"Oh! Hot! Here's your 25 gold."* The line is chosen by **prioritizing the trait the customer asked for** (`requestedTrait`), then the sword's first trait, then a random **generic** line (also used for trait-less swords). Each of the 24 traits has its own line (`traitFeedback`), plus 5 generic lines (`genericFeedback`); the scripted **ice-dragon** (tutorial customer #3) keeps its bespoke "You can craft such a powerful sword?" line. **The sold customer then waits at the counter** — instead of auto-departing — until the player taps a single **response button** (rotating between *"Thank you" / "Glad you liked it" / "Take care"*, `saleResponses`). Tapping it summons the next customer (the tutorial advances to its next scripted step; otherwise a random request). **Refuse is unchanged** (no response button; the next customer auto-arrives after ~1.2s).
-- **Search Inventory** (the **"I have something for you."** option) finds the sword in the Vault that matches the customer's request and **opens the Inventory modal straight to that sword's detail view** (highlighted), so the **Sell** button is right there to complete the sale. *(A separate one-tap "Craft & Sell" button was removed; craft from a recorded composition via the Recorded Compositions modal's **Craft** button instead, then Sell.)*
+### Customers and orders
 
-### Day system
-- The counter runs in **days**. Exactly **7 customers visit per day** (`CUSTOMERS_PER_DAY`); each handled customer counts — **a sale or a refusal both count** (`customersToday`). Once 7 have been handled, **no more customers arrive** until the player ends the day (`maybeSummonNextCustomer` → `onDayFull`): the counter is **cleared completely** — no customer portrait and no dialogue box (both hidden until the next day's first customer, which un-hides them via `setCustomerImage`/`showCustomerLine`).
-- **End Day button** (`#btnEndDay`, `requestEndDay`) sits next to the **📦 Available Metals** header on the Forge screen. It's **disabled on day 1 until all 7 are served**; from **day 2 on it's enabled after 3** customers (`EARLY_END_MIN`). Clicking it opens a Yes/No confirm (`#endDayModal`): **ending early** (fewer than 7 served) asks *"Are you sure you want to end the day so soon?"*; **after all 7** it asks *"End the day and go to bed?"*.
-- **Day 1 guide:** the moment all 7 are served on day 1, a one-off box — *"Good work! Let's end the day here and go to bed!"* — appears, then a **hand pointer to the End Day button** (since it's on the Forge screen, the pointer first nudges the player there from the counter). Shown once (`shownDay1EndBox`).
-- **Confirming Yes** runs a **black fade-out → fade-in transition** (`#dayTransition`, `runDayTransition`) that shows **"Day N"** for the new day at the midpoint, then advances the day, resets the per-day count, and summons the new day's first customer. At the day rollover, **every unlocked metal is restocked by `+DAY_METAL_BONUS` (7)** (`availableMetals[m] += 7`; locked diagonals are skipped, matching the smelter's unlocked-only rule). Otherwise ending a day only advances the day and resets the customer count — Gold, Vault, Reputation, Shop, Blueprints, and the smelter all persist.
-- **Day counter:** a **"Day N"** badge (`#day-text` / `#day-text-2`) sits to the **left of the gold/reputation pill** on both the Counter and Forge screens.
+- **The bell** brings one customer at a time (no timer). During the tutorial the stage decides who comes (the scripted
+  customers and each part's gameplay customers, §7). After it, `nextCustomer`: a random portrait from 7 (`CUST_POOL`); 80%
+  ask for a trait already discovered (`CUST_DISCOVERED`), 20% for one not yet found, in one of 4 lines (`CUST_ASKS`, "Do you
+  have a <Trait> sword?").
+- **Orders:** tutorial orders name a trait and may name a shape, a tier, or several items (`orderMatches` checks the trait,
+  the shape and the best tier). A sword that does not match is refused with a toast. Several-sword orders are handed over one
+  at a time; the last one pays for all (r267).
+- **SELL** pays the price (above), REP +1, popularity and 5 xp. The customer thanks the player with a line chosen by the sword's
+  best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s.
+- **COME LATER** puts the customer on the waiting list (`FTUE_ST.waiting`); the ledger calls them back. In the tutorial only the
+  Part 4 two-sword customer can wait. **DENY** is a placeholder (no action), hidden until the tutorial ends.
+- **The player's reply** (R56, `FTUE.replies`): in the tutorial, after an order line the player taps a reply ("Yes, I can craft
+  one.") before the dragon speaks; replies show only once the customer's line has finished typing (R60).
+
+### Market and blueprints
+
+- **Shapes:** the Shortsword is free for every trait; the base shapes (`FTUE.shapes`): balanced, fire, durable - Shortsword,
+  Longsword, Broadsword; gale - Shortsword, Longsword, Rapier; swift - Shortsword, Longsword, Dagger. The market adds Katana,
+  Cutlass, Machete, Saber, Scimitar, Claymore and the leftover of Dagger / Rapier (`MARKET.extra`). The 20 other traits use
+  balanced's list.
+- **Price** (`marketPrice`): `50 x (trait index + step index + 1)`; Shortsword is free. Trait order: balanced, fire, swift,
+  gale, durable, then the map's other 20. Step order: the trait's other base shapes, then Katana ... Claymore, then the
+  leftover. Examples: Balanced Longsword 50, Katana 150, Claymore 400, Dagger 450; Fire Katana 200; Gale Katana 300; Fire
+  Claymore 450; the last trait's shapes 1250-1650.
+- **Buying:** in the rotary market window on the counter (R38, `MK_ROT`, record `specs/2026-10-29-rotary-market.md`) or from
+  the shape window. States: free, owned, "Play more to unlock" (market not open), unknown trait, too poor, BUY. In the tutorial
+  only the open order's (or a waiting customer's) blueprints can be bought, and the dragon pays for some (D28c). Only owned
+  shapes can be forged.
+
+### Progression: exp, levels and skills
+
+- **XP:** 100 per level, each level 1 skill point. Sources: crafting 5, selling 5, a cave seam worked out 5, map books
+  (small 50, large 75, great tomes 100-200), quests 20.
+- **Skill tree** (`SKILLS`, 12 node slots, 8 used; record `specs/2026-10-06-skill-tree-trade-ore.md`): Trade (+5% price a
+  rank, 20 ranks), Extract (5% a rank: a seam gives +3-4 ore, 5 ranks), Pickaxe (swing 10% faster a rank, 5), Bounty (+1 ore
+  per seam a rank, 10), Bulk Craft (craft-book crafts use 10% less ore a rank, 7 ranks at 7 points each), Master (more books in
+  the fog, then great tomes, 10), Vision (+5% sight, 20), Restore Ore (10% a rank: an ore back when a blade shatters, 3).
+  RESET TALENT refunds all. There is no ore buying or selling.
 
 ### Quests
-- A **quest tracker** lives in the **top-left corner of the Counter screen**, shown collapsed as a single **📋 emoji button** (`#questToggle`); tapping it expands a panel (`#questPanel`) listing each quest with its **progress** and its **reward** (🪙 **+20g**, `QUEST_REWARD`). Completing a quest awards the gold once, pops a *"✅ Quest complete …"* toast, and marks the row done (✅ + strike-through, "Reward claimed"). Each quest is **one-off** and does not re-award (`bumpQuest`/`renderQuests`; `quests[]`).
-- **The five quests:**
-  - **Craft 5 Epic swords** — counts each forged sword whose overall quality (`swordQuality`) is **Epic** (manual or Auto-Craft).
-  - **Survive a day without turning any customer away** — completes when a day ends (`runDayTransition`) with **zero refusals that day** (`refusalsToday === 0`; a refusal via the Refuse button breaks it for the current day). The counter resets each day.
-  - **Discover 3 new traits** — +1 each time a **never-before-heated** trait is fused (the same event that fires the "New Trait Discovered!" box).
-  - **Update 3 recorded compositions** — +1 each time an **existing** recorded composition is **updated** via the record modal's *Update* (replace) action (not "Keep Both", which records a new entry).
-  - **Open the shop front** — completes when the shop is unlocked (`unlockShop`).
-- Quest state is **session-only** (no persistence yet — resets on reload, like other run state).
 
-### Passive shopfront
-- **Unlock:** 500 Gold. (A "Shop Available!" tip box appears once the player first reaches 500 gold; dismissing it starts a hand-pointer guide — pointing to the left arrow until they reach the Shop screen, then to the **Unlock Shop** button — which clears when the shop is unlocked. The guide only runs once the main tutorial is over, so its hands don't clash.)
-- **Post-unlock "stock the shop" guide:** the moment the shop is unlocked, a one-off guide runs (`shopSellPhase`): a box — *"Craft a flame sword and add it to your shop for sale."* — then a hand points the player to the counter and the recorded flame composition's **Craft** button (metals are topped up so it's affordable), then to the crafted sword's **To Shop** button. Once a sword is sent to the shop it guides them to the Shop screen and shows two boxes — *"This is where you display your best swords and possibly earn even more gold!"* then *"Or if you have too many swords lying in your inventory, better send them to the shop for sale."* — after which the guide ends. Skipped entirely if no flame composition is recorded.
-- Move swords from Vault into the Shop. Each shop card shows the **composited sword image laid flat/horizontal** (`vaultPartsHtml` rotated −135°, `.shop-sword-img`) above its tier/traits/price. Every **10 seconds**, each shop sword has an independent **5% chance** to sell for its full value (value + craft bonus − hazard loss, min 1). Does not affect Reputation. On a sale, a small green **popup on the Shop screen** announces it and the **gold gained** (`showShopSalePopup` / `#shop-sale-popup`), alongside the existing green pulse on the gold pill.
-- **Ledger** (`📒 Ledger` button on the Shop screen → `#ledgerModal`): an expandable window with **scrollable day tabs** across the top (most-recent day first, labelled *Day N*); tapping a tab lists every sword sold **that day via the passive shop** — its image (laid flat), shape, traits, and the gold it fetched, plus a day total. Only the **5 most recent days** with sales are kept; older days are dropped (`shopLedger`, capped at `LEDGER_MAX_DAYS`; `recordLedgerSale`/`renderLedger`).
+- 14 one-step quests, 20g and 20 xp each, paid when CLAIM is pressed (`QUESTS`): craft a sword and sell a sword (already done
+  when the list arrives, Part 1), then buy a blueprint, update a craft-book page, gather ores, craft a fire sword, sleep, craft
+  a durable sword, buy a fire blueprint, an Epic with the ladle, sell a weak sword, craft a swift sword, craft a gale sword,
+  sharpen a sword.
 
-### Recorded Compositions (blueprints)
-- The **Record Composition** button saves the current active traits + used-metal composition as a named entry. If the active blade is empty (e.g. right after forging) but a sword was just forged, the button instead reads **Record Last Composition** and saves that last forged sword's traits + composition — so you can still record after forging without re-heating.
-- **Confirmation box (`#recordModal`):** recording never saves silently — it opens a box first. A composition is **keyed by its trait set**:
-  - **New trait set** → the box shows *what trait(s)* are being saved and *how many metals* were used, with a **Record** button (or Cancel).
-  - **A trait set already recorded** → the box (titled *Update Composition*, prompting *"Replace the old record or keep both?"*) shows a **before/after comparison** of the metal counts (Recorded vs New) and offers two actions (plus Cancel): **Update** (replace the existing entry in place) or **Keep Both** (`keepBothRecord` — save the new one as a **separate** entry, so two compositions can share the same trait set with different metal recipes). If the metals are unchanged the box notes "These are identical" and **Keep Both is hidden** (nothing distinct to keep). (`saveRecipe` → `openRecordModal`/`confirmRecord`/`keepBothRecord`/`closeRecordModal`.)
-- **Recorded Compositions** (Counter screen): a **📜 Recorded Compositions** button opens a **modal** (its own box with an internal scroll). The modal shows a grid of trait-icon tiles; **tapping a tile drills in** to a detail view (Tier, Traits, Value, **Composition**) with a **⚡ Craft** button (Auto-Craft — see below) and a **🗑️ Delete** button (delete is hidden during the tutorial to avoid breaking the guided craft step), plus a **← Back** to the grid. Craft closes the modal and runs the forge pipeline.
-- **Auto-Craft** (the **⚡ Craft** button): if you hold enough raw metals, craft a recorded composition. It runs the **full forge pipeline**: a **heat mini-game** (using the composition's **last-acquired trait's** heat config/timer) → shape select → hammer → quench (skipped when that last-acquired trait is `flame`) → design → sharpen, then outputs to the Vault. Unlike a manual forge there is no HP cap, and the single heat + hammer + sharpen performance sets **one uniform quality across all the composition's traits** (see §4) — quality now comes from live performance, not a stored value. Cancelling the heat aborts the craft (no metals spent).
+### Shop and decor
 
-## 7. Map travel (reset) (the older build)
+- **Shopfront:** 500g (`SHOP_COST`), with rack 1; racks 2 and 3 cost 200g and 300g; 5 swords a rack. Every 30 s each racked sword
+  has a 5% chance to sell for 80% of its price (`SHOP_TICK`, `SHOP_CHANCE`, `SHOP_CUT`): gold only, no REP, popularity or xp.
+- **Ledger** (the scroll on the counter): the day's sales with their gold (shop sales marked), and the waiting list.
+- **Decor:** the banner (Garric's reward) is placed with BUILD on the counter, shop or bedroom. Decor is cosmetic.
 
-- Reset the 50×50 grid at any time.
-- **Retained:** Gold, available metals, Reputation, Vault, Shop contents, Blueprints, Smelter upgrades, metal unlocks.
-- **Cleared/reset:** map layout, fog of war, active forge, player position (back to center).
+## 7. Days, the cave and the tutorial
 
-> Note: the map seed is fixed (`1337`), so the layout is currently deterministic across resets. If reset is meant to produce *new* trait layouts (per original GDD), the seed needs to vary.
+### Days
 
-## 8. UI / UX (the older build)
+- **Bed:** in the bedroom, "Go to bed?" YES fades to "Day n", adds a day to the calendar and puts 5 fresh seams in the cave.
+  Nothing else changes with the day (no costs, no customer or market refresh). The day shows only on the bedroom calendar.
 
-- **Three swipeable screens:** Shop (0) · Customers (1) · Forge/Map (2). Game opens on the Forge screen.
-- **Counter (Customers) screen:** two stacked top-left corner tabs — a **📋 quest tracker** (see §6 *Quests*) and, below it, a **📖 Diary** (mutually exclusive panels). The Diary is a **paged book** (◀ ▶ arrows) of the named story customers — **Bram, June, Roland**. Each page is **locked (identity hidden behind a 🔒 placeholder) until the player sells a sword to that specific customer**; once unlocked it shows the customer's portrait, a short storyline note, and a running **list of swords crafted for them** (`diaryCustomers`/`diaryGiven`; sales tagged via `currentCustomerId`; a page unlocks when `diaryGiven[id]` is non-empty; `renderDiary`/`diaryFlip`). a slim gold/reputation pill at the top; the customer rendered as an **image** anchored bottom-left that **slides in from the left** on each new customer: **Bram** (`assets/customer/Bram.png`) is the tutorial's very first customer (Day 1 opener) and returns as `BramD2.png` for **Day 2's opener**; every other customer draws a **random portrait** from the human pool (`man1`–`man4`, `woman1`–`woman3`), never repeating the previous portrait back-to-back (`customerPool`/`setCustomerImage`); the request speech bubble (tail pointing to the customer) whose text is **revealed word by word** (see §6), with the player's two **response options** — **"I have something for you."** (Search Inventory) and **"I don't have what you need."** (Refuse) — stacked beside it, fading in only once the line has finished typing (Refuse is disabled for the first three customers — see §6); after a sale those two options are replaced by a single **response button** (*"Thank you" / "Glad you liked it" / "Take care"*) that the player taps to send the customer off and bring the next (see §6); and, at the bottom, two buttons — **🛡️ Inventory** and **📜 Recorded Compositions** — that each open their **own modal** (a fixed-height box with an internal scroll, so the screen itself no longer grows). Each modal is a **tile grid → tap a tile → drill-in detail view** (with a ← Back): the **Inventory** modal's tiles show the **composited sword image** (blade + fittings, with the quality overlay in the detail) and the detail carries **Sell** + **To Shop**; the **Recorded Compositions** modal's tiles show the trait icon(s) and the detail carries **⚡ Craft** + **🗑️ Delete**. Background: `Screen1bg.png`.
-- **Forge screen:** status panel — health bar (no numeric text), then a row with an **ℹ️ tutorial-review button** (left) and the **gold/reputation pill** (mirrors screen 1's `💰 Gold | ⭐ Rep`), then a **"Blade Traits:"** line listing the heated traits (or "None"). The ℹ️ button re-opens past tutorial dialogue boxes (in their own frames) with ◀ Prev / Next ▶ / Close, and stays available after the tutorial. Then a draggable/zoomable 50×50 viewport (drag to pan; mouse-wheel zoom is centered on the cursor; a **📷 free-camera toggle** at the viewport's bottom-right (highlighted gold when active) — when active, moving the sword no longer recentres the view; turning it off snaps back to the sword), 3×3 movement grid, action buttons (Heat, Forge, Record Composition, 🗺️ Chart). ("Record Composition" saves a recorded composition — see §6.)
-  - **Grid tiles:** the spawn cell (25,25) shows `tile_centre` and the 8 cells around it show `tile_centre2` (home base); cells the active sword **lands on** show a `tile_path` trail. Dashes only mark the endpoint, so jumped-over cells stay blank; the trail never overwrites hazard, trait, or the home tiles. The trail resets with the active blade — after a forge or on death (`pathCells`, `markPath`/`clearPath`).
-- **Onboarding:** 4-scene animated intro (ember particles) → multi-step tutorial (select metals → reach a trait → heat → forge → go to counter → sell a sword → a 2nd Flame-trait customer arrives → back to the forge → open the chart (a text label + pulsing glow over the minimap alternates every 3s between the player marker — "Your location" — and the Flame icon — "Flame trait" — until the chart is closed, so the player sees where to head) → learn the Purify-dash slider (two illustrated dialogue boxes: a tap-vs-hold art frame, then an avoid-impure-tiles art frame) → head west toward the Flame trait (when its ❓ mark is revealed by the fog, a persistent top-of-screen banner — "See the trait mark ❓… add some iron to go down to it." — appears and stays until the player reaches it) → reach the Flame trait, where a bouncing arrow points to the Heat button → heat it → prompt to "Record Composition" (the **Forge button is greyed out from when the Flame is heated until the composition is recorded**, so the player can't accidentally forge first) → record it (a **confirmation box** shows the trait + metals being saved; confirm to record — see §6) → a bouncing arrow points to the now-enabled Forge button to craft the sword → forge it (choose the blade shape, hammer the ingot into form, quench it in water, design the fittings, then sharpen it on the grindstone — see §5) → prompt to go sell it at the counter → sell the flame sword to the 2nd customer → a 3rd customer (off to fight an ice dragon, "weak to heat") arrives, a tutorial box teaches opening **Recorded Compositions** and tapping **Craft** to forge a flame sword from the recorded composition (which re-runs the heat + hammer mini-games — see §6), then giving it to the customer, who is delighted, then a closing "help customers find the perfect sword" tip as the 4th (non-Flame) customer arrives; then, the first time the player finishes a heating minigame after the tutorial (heating that 4th customer's new trait), a one-off record-reminder box — "Remember to record the composition of each new trait you discover, and keep updating the old ones as you improve." — with a hand pointer to the Record Composition button (see §6)), plus a contextual "Shop Available!" tip the first time the player reaches 500 gold (enough to unlock the Shop), which then hand-guides them to the Shop screen and the Unlock Shop button (see §6). **Any tutorial box tied to a customer** (the sell-a-sword prompt, the "another customer" prompt, the Auto-Craft lesson, and the closing tip) is gated to appear **only after that customer's word-by-word line has fully typed out plus a ~2s read pause**, so a tutorial box never overlaps the customer's speech. During the intro, a **"Skip Intro" button** (fixed bottom-right) jumps straight into the game (`launchCoreGame`). A **"Skip Tutorial"** button (in the collapsible cheat box, shown only while the tutorial is running) ends the flow immediately and unlocks everything (metals, passive generation, Record Composition, Chart, the Purify slider). The three cheat buttons live in a **small collapsible box** floating **just above the game frame's top-right** (`#cheatBox` inside a `#frame-shell` wrapper, so it clears the game window / health bar and works on desktop and mobile): a **🛠 toggle** (`toggleCheats`) expands a **horizontal row** of **"+100 Metals"** (adds 100 of every metal), **"+100 Gold"**, **"Skip Stage"** (skips whichever forge minigame is open — heat/shape/hammer/quench/design/sharpen — and proceeds to the next stage), and — **while the tutorial is running** — **"Skip Tutorial"**. The box appears once the game starts (`launchCoreGame`) and stays available for the session, collapsed by default. ⚠️ The Skip Intro button and all three cheats currently ship to players.
-- **Feedback:** red flash on damage, orange flash on heat success, green gold-pulse on passive shop sales, "reached a trait" / "trait acquired" toasts. Spending a metal (a move/dash) **flings an ore chunk** (`assets/forge/Metal.png`) from the pressed metal button into the bucket in an arc, and the bucket wobbles as it lands (`tossMetalToBucket`; fires only on an actual spend, so a cancelled Purify hold throws nothing). The **first time** a given trait is heated (per session) shows a celebratory **"New Trait Discovered!"** box with the trait's icon and name — including during the tutorial (it layers above the tutorial dialogue); repeat heats of an already-known trait just show the "trait acquired" toast. Warnings/errors (not enough gold, duplicate composition, wrong sword for a customer, etc.) use a **styled parchment popup** (`gameAlert`, matching the dialogue-frame look) instead of the browser's native `alert()`. The **Heat** button pulses with a glow while standing on a trait; the **Forge** button is disabled until a trait is heated, then pulses with a glow (and during the guided flame step it is re-disabled from the heat until the composition is recorded, so the player records before forging).
-- **Tutorial hand pointers:** at each guided step a bouncing 👆/👇/👈/👉 hand points to the element to use next — the Steel & Magnesium metal buttons (until the 4 steel + 1 magnesium recipe is added), Heat, Forge, the left/right screen arrows, Search Inventory, the Chart button, Magnesium again (until the Flame trait is revealed on the map), Record Composition, and — for the 3rd (ice-dragon) customer — the selected composition's **Auto-Craft** button then **Search Inventory**. Each hand clears once its action is taken. Data-driven via a `hand` field on the relevant `tutorialFlow` gate steps.
-- **Minimap (Chart modal):** a live canvas minimap of the full 50×50 grid (fully revealed — no fog) — uniform tan ground (hazards are **not** shown), every trait drawn as its emoji icon at its location, and the player marked by the same sword icon used on the grid map (`assets/map/tile_sword.png`) with a pulsing blue glow. Supports **zoom** (scroll / pinch / on-screen +/− buttons, 1×–6×) and **pan** (drag), clamped to the map. **Tapping a trait icon** shows a small label with that trait's name below it. During the tutorial's chart step, a **text label + pulsing glow** (no hand pointer) highlights the target and alternates every 3 seconds between the player marker ("Your location", its own blue glow) and the Flame icon ("Flame trait", an amber glow ring), tracking zoom/pan, until the chart is closed. (Replaces the old static `Minimap.png`, now unused.)
+### The cave and ores
+
+- **Seams:** on a normal day 5 seams (iron, copper, manganese, aluminium, nickel), each `NODE_YIELD` 7 + Bounty ranks, 1 ore
+  a swing; tin and zinc have none. Drag the pickaxe onto a seam and it swings by itself.
+- **Tutorial caves:** the first (Part 2) 3 iron + 2 manganese; Day 2 `FTUE.day2Cave` (2 nickel); Day 3 `FTUE.day3Cave`
+  (nickel 9, iron 20, manganese 20, copper 17, aluminium 15), 2-3 ore a swing. Day 3 gathering waits for a Pickaxe point (R23).
+- **Ore chain:** in the tutorial the dragon gives exactly the next sword's ores after each sale (`FTUE.oreChain`); the bag
+  starts with 2 iron + 2 manganese (`FTUE.oreStart`).
+
+### The tutorial (FTUE)
+
+Six parts over three days; every value in the `FTUE` object; record `specs/2026-10-07-ftue-v3-rework.md`, reworked to the
+loop in `specs/2026-10-23-ftue-smelter-rework-plan.md`; every line in play order in
+`specs/2026-09-15-looptest-landscape-tutorial-script.md`.
+
+| Part | Day | Tutorial customer | Gameplay customers | Teaches |
+|---|---|---|---|---|
+| 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon buys the blueprints), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market |
+| 2 | 1 | TC2 ("a good one"), TC3 the adventurer (fire) | none | grinding, recording a craft, the cave, hazards, a second trait route |
+| 3 | 2 | none | durable Shortsword; fire Longsword, Broadsword, Katana | the map window, nickel, the craft book (CRAFT 1) |
+| 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword; gale Katana + fire Claymore (COME LATER) | the ladle and tiers, storing a metal, a Weak stop, the waiting list |
+| 5 | 2 | Bram returns (swift Dagger) | gale Longsword | sharpening, the diary |
+| 6 | 2-3 | Garric (TC6, graded) | none | the design desk, decor (the banner), the skill tree; D140 ends the FTUE |
+
+Garric grades his balanced sword: grade 3 = Epic, designed and sharpened (10g, the 6 bonus parts, the banner); grade 1 = Weak,
+plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FTUE_ST.done`) free play opens everything.
+
+## 8. UI / UX
+
+- **Frame:** a fixed 1080 x 600 landscape frame (map on top, bench below, the rail on the right), fitted to the phone by the
+  viewport width; full screen on the first tap; a "Turn your phone sideways" gate in portrait (`specs/2026-09-21-mobile-viewport-fit.md`).
+- **Screens** (`SCREENS`): forge (centre); bedroom above (bed, calendar, pet the dragon); basement below (design desk,
+  sharpening wheel, work zone); customer counter to the left (portrait, SELL / DENY / COME LATER, the shelf with the craft book,
+  the bell, the ledger scroll, the rotary market); shop left of the counter (3 racks); cave to the right (seams, pickaxe).
+  Arrows and arrow keys move between them; an arrow that leads nowhere is hidden.
+- **Forge:** the smelter (bellows, gate, ladle), grindstone, anvil, bucket, the dragon, and the craft frame (blade pips, X,
+  inkpot to record, craft book, pulley ring that opens and shuts it, R25-R31). The map pans and zooms.
+- **Rail:** the skill tree button (level, points, xp bar), gold, reputation, popularity, the inventory, the diary and quest
+  basket, the gear menu.
+- **Inventory:** tabs Ingredients (ores), Ingots (stored metals), Swords, Decor; each tab appears when first used (R33); 15 cells
+  shown, growing in rows of 3. Drag targets: ore to grindstone or smelter, metal to the rail (stored), ingot to the anvil, sword
+  to the work zone, counter or a rack.
+- **Craft book** (`RECIPES`): a page per trait set (more pages as `#2`, `#3`), capped at `FTUE.recipePages` 3 + rewarded pages.
+  The first discovery records itself; after that the inkpot updates a page or records a new one. A page shows the traits, tier,
+  description, sword art, ores, process and shapes, with CRAFT 1, CONTINUE FROM HERE, ERASE and a default design.
+- **Windows:** trait discovered (first find, with the burst), sword crafted, reward (the dragon shown over it, his line below,
+  R53), shape, market, skill tree, quests, diary, ledger and waiting list, end of day, Garric's confirm, the menu.
+- **Dialogue:** the dragon's lines type word by word (R32) in a bubble by him (the bench on the forge, the screen bubble
+  elsewhere, an icon bubble in the basement windows). OK goes on, X closes; a tap on the bubble only finishes the typing - only
+  its button moves it on (R57). Customers' lines type in the counter box or the named panel; the player answers with reply
+  buttons. Sword names, tiers, "sharpened" and "customized" are bold and coloured (`DLG_HL`, R61). Pointers: a drag arrow, a
+  glow or blink on the control, drag gestures, a dark screen with cut-outs, and a ring on a map trait (`tutSpot`, which a
+  finished sword clears, R62).
+- **Effects:** swing effects (§5), the trait burst, the smelter's lit states, quench smoke and mist, the bell's swing, hearts
+  when the dragon is petted, toasts. No audio.
+- **Save:** manual, from the gear menu (SAVE / LOAD GAME / NEW GAME), `localStorage` `swordforge.save.v1` version 9. It keeps
+  gold, swords, ingots, ores, recipes, skills, quests, the map's fog and traits, and `FTUE_ST`, but not the tutorial stage
+  (`TUT_STAGE`) or the dialogue; there is no autosave and no continue on boot.
+- **Intro:** four pictures (`FTUE.intro`: The Fall, Exile, A New Hearth, The Anvil Awaits), tap to go on, SKIP; then D1.
+- **Test aids that ship:** SKIP HAMMER and PART 1-6 / GAME (bottom left, outside the frame), the map's fog button, +1000 gold in
+  the settings, `?freeplay` (tutorial done, 20 of each ore, 500g), `?nointro`.
 
 ## 9. Known discrepancies & open questions
 
-- ~~Heat quality is Epic-only~~ — **resolved:** quality is now Weak/Fine/Epic, set by the heat timer and capped by blade HP (see §4).
-- Map seed is fixed (see §7) — should reset randomize the layout?
-- Dagger shape from original GDD is absent (see §5).
-- Metals expanded 4 → 8 vs the original GDD.
-- **§6-§8 are the older build (2026-10-23):** the landscape build has its own counter, market, quests, shop, cave, basement and
-  FTUE (the dated records listed at the top); a rewrite of §6-§8 to it is still to do.
-- **The old loop** (hammer travel, the mug, the dragon's pull) is kept for reference in
-  `Swordforge_looptest_landscape_hammerloop.html`; the portrait `Swordforge_new_looptest.html` is on an even older loop.
-- ~~Hazards decorative~~ — **resolved for landscape (2026-08-18):** hazards now damage the active blade (§3). **Portrait is unchanged** and still has decorative hazards, so the two loop-test builds now diverge on map, fog, traits and hazards.
-- **Loop-test builds diverged (2026-08-18):** the landscape build owns the reworked map/traits/hazards; `Swordforge_new_looptest.html` (portrait) was deliberately left on the old behaviour. `TRAITS`/`ORE_TRAIT`/`ORES` are still duplicated verbatim in both files — a trait rework has to touch both, or portrait should be retired.
+- **Free-play customers take any sword:** only tutorial orders are checked (`orderMatches`); a free-play customer who asks for
+  a trait pays full price for any sword.
+- **Reputation only rises**, so from the 11th sale every price is x1.2.
+- **Days are cosmetic** beyond the cave's seams.
+- **Trait values from older positions:** Fire's value is fixed at its pre-R24 position (48) and Balanced keeps its old value.
+- **Save gaps:** `TUT_STAGE` and the dialogue are not saved, so a reload mid-part loses the tutorial position.
+- **Dead calls:** `bumpQuest` for discover3 / epic5 / openShop (no such quests); `ftueBulkStep` points at a `#cbCraft5` that
+  does not exist (no current order has qty > 1).
+- **Stand-in art:** the fire Katana wears the balanced Katana blade, Durable swords the balanced blade and parts; Katana,
+  Dagger and Claymore borrow mid-blades in the minigame.
+- **Naming:** the FTUE record's GC9 is Part 4's two-sword waiting order; a config comment calls Part 5's gale Longsword GC9.
+- **Left in the file, unused:** the old forge hammer and mug (hidden by CSS). The old loop is kept in
+  `Swordforge_looptest_landscape_hammerloop.html`; the portrait `Swordforge_new_looptest.html` is on an older loop and never
+  edited.
+- **Review items set aside (2026-11-02):** see `HANDOFF.md`.

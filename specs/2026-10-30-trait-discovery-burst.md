@@ -62,3 +62,17 @@ Owner: "make the burst bigger for epic tier, and have a smaller burst after the 
   250 px for Epic. Its particles and ring follow the same rules as the first's.
 - One rule gives each burst's size (`acqWave(F, tier, second)`: count, speed scale, ring radius); the particles of a burst
   are spread evenly round the window by that burst's own count.
+
+## R63: the window bigger (2026-11-03)
+
+Owner, with a picture of the window: "make this popup bigger. increase text size as well." Everything x1.5 (the burst keeps its
+values; it starts on the box's edge, so it follows the bigger box):
+
+| Part | Was | Now |
+|---|---|---|
+| Box | max 320 px wide, 16 px padding | max 480 px, 24 px padding |
+| Heading ("New trait discovered - Name") | 16 px | 24 px |
+| Trait symbol | 56 px | 84 px |
+| Tier ("Epic tier") | 13 px | 20 px |
+| Trait count | 11 px | 16 px |
+| continue | 12 px | 18 px |

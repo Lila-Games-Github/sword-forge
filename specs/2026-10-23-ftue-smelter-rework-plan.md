@@ -860,3 +860,187 @@ yours and come on top.
   three places (D70a, D71, reaching Fire). Now: (1) Garric's ring is not lit when the iron is already in, and (2) every sword
   made (the hammer's, and the craft book's) takes the ring down, whatever lit it. Checked in the browser (iron in before the
   hands-off: ring stayed; now it does not). Asserted by the FTUE test (written first).
+- **R63 (2026-11-03, owner): the trait window bigger.** Owner, with a picture of "New trait discovered - Balanced": "make this
+  popup bigger. increase text size as well." The box and all its text x1.5 (max 480 px wide; heading 24 px, symbol 84 px, tier
+  20 px, count 16 px, continue 18 px). Record: `specs/2026-10-30-trait-discovery-burst.md` (R63). Asserted by the smelter test
+  (written first).
+- **R64 (2026-11-03, owner): the gate's ready highlight is a circle, and stronger.** Owner, with a picture of the faint box
+  round the gate: "make this a circle highlight, and more intense. right now it is barely visible." A pulsing ring with a
+  strong glow (130% of the gate's width) and a ripple ring, in place of the rounded box. Record:
+  `specs/2026-10-21-smelter-version-loop.md` (R64). Asserted by the smelter test (written first).
+- **R65 (2026-11-03, owner): the shape window wider, its text bigger.** Owner: "can we also make this wider, currently it covers
+  only 1/3rd of the screen. make it wider, increase the text size." Two thirds of the frame (max 720 px), five shapes a row,
+  text x1.5. Record: `specs/2026-10-21-smelter-version-loop.md` (R65). Asserted by the smelter test (written first).
+- **R66 (2026-11-03, owner): the crafted window's lines under the dragon.** Owner, with a picture of D17b over the "Sword
+  crafted!" window: "make the dialogues appear below the dragon, change the location of the dialogue bubble tail accordingly.
+  make sure the bubble does not overlap the sword crafted wndow." While that window is open (`cwOpen`), the bench bubble is
+  placed by `cwSayLayout`: 14 px under the dragon's picture, as wide as the space left of the window allows (6 px clear on
+  each side, at most its own 315 px; 293 px in the 1080 x 600 frame), centred under his head within that space; its tail is on
+  the top edge, pointing up at his head (`.tail-up`, `--tailX`). Closing the window gives the bubble back its own width.
+  Applies to every line said over the window (D17b, D17a, D17c, D69d). Asserted by the FTUE test (written first).
+- **R67 (2026-11-03, owner): the crafted window cannot be closed during D17b and D17a.** Owner: "make sure, players can't
+  close the sword crafted window for d17a-b". While the first crafted window's lesson is on its hammer row (D17b) or its arrow
+  (D17a), CLOSE does nothing (`cwNoClose`, checked first in `closeCraft`) and shows dimmed (`#sfCraftModal.cw-noclose`,
+  set by `cwLit` at each lesson step). From D17c (the ores, after the arrow is tapped) it closes as before; CLOSE is the
+  window's only way out. Asserted by the FTUE test (written first).
+- **R68 (2026-11-03, owner): and not during D69d.** Owner: "fix d67 d as well" (there is no D67d; D69d is the other line said
+  over the crafted window, the damaged fire sword's). While D69d is up (`CW_LESSON` 'hp-row'), CLOSE does nothing and shows
+  dimmed, as in R67; its OK lights CLOSE ('close'), which then closes. Asserted by the FTUE test (written first).
+- **R69 (2026-11-03, owner): the craft frame hidden until D42.** Owner, with pictures of the counter's shelf (craft book and
+  ring) and the forge's craft frame (pips, X, inkpot, craft book, ring): "hide this entire craft window on all screens for
+  initial stage. it only appears when d42 is shown." Both stay hidden (`#frame.no-craft-frame`) until D42 ("... Tap the inkpot
+  to record the craft.", Part 2, TC2) is first said; then they show for good (`FTUE_ST.craftFrame`, saved). Once TC2's 5 craft-book pages
+  are earned (just after D42: a PART jump past TC2 or an older save; the PART buttons start at the end of the part before, so
+  PART 3 is part 2 at TC3's bell), after the tutorial and in free play they show anyway (`craftFrameShown`). Every line said
+  and every frame check it. Nothing before
+  D42 points at either (the record step is the first). Asserted by the FTUE test (written first).
+- **R70 (2026-11-03, owner): the screen arrows hidden until the tutorial introduces them.** Owner, with a picture of the left
+  arrow: "hide and disable these navigate to other screen arrows till the first time they are introduced by the tutorial." An
+  arrow is a step between two screens (`SCREENS`). It is known once the tutorial lights it (`tutExit`, which every
+  `tutExitTo` uses), together with its way back (`FTUE_ST.exits`, saved). Until then it is hidden (`.dead`) and neither a tap
+  nor an arrow key moves (`screenStep`). A PART jump or an older save knows the screens it has already been taken to
+  (`exitSeen`): the counter once Bram is served (or from Part 2), the cave and the bedroom from Part 3, the basement once
+  sharpening or the desk is unlocked; the shop only after the tutorial. After the tutorial and in free play every arrow shows.
+  The code's own screen changes (`goScreen`) are not limited. Asserted by the FTUE test (written first).
+- **R71 (2026-11-04, owner): D69a-D69c dark over the inventory too, the map clear.** Owner: "d69a-b-c hide black overlay should
+  be on the inventory panel as well. but map should be visible." The hazard beat (`tutHazardStep`: D69a, D69b, D69c, the
+  game paused) was said on `tutPause`'s dim (`#tutDim`, z 45), which covered the map and left the rail (z 45, later in the
+  page) and the arrows (z 50) bright. Its lines now use the cut dim (`#tutHole`, z 60) with a window over the map
+  (`SAY_DARK_CUT`), the dragon and his line lifted over it as for D1/D2; `#tutDim` stays off for them. Closing D69c lifts
+  both (`sayHide`, `tutPause(false)`). Asserted by the FTUE test (written first).
+- **R72 (2026-11-04, owner): D71 and D72 dark except the map, D71's X lit.** Owner, with a picture of D71 ("We need to go
+  further. Let's add one more ore."): "black overlay for the entire screen except the dragon diaogue and the map, highlight
+  the x on dialogue here. black overlay is removed at d72a". D71 and D72 join `SAY_DARK_CUT` (R71: the cut dim with a window
+  over the map, the dragon and his line lifted); D71's X glows (`SAY_GO_GLOW`). D71's X brings D72 at once
+  (`tutFireReheated`), so the dark carries on; D72a is not in the list, so it is said clear. Asserted by the FTUE test
+  (written first).
+- **R73 (2026-11-04, owner): D72a brings the manganese-to-grindstone arrow.** Owner: "d72a i want the arrow guide from
+  manganese to grinder back". R21 held the ores while D72 *and* D72a were up (the owner had asked for D72), so the arrow came
+  only after D72a's X. Now only D72 holds them (`tutOresHeld`); as D72a ("But the manganese can avoid it.") comes up, the
+  arrow from the manganese slot to the grindstone comes with it (`tutWheelArrow`), and the manganese can be taken at once
+  (iron stays refused, R24). D72a's X still clears the fork paths (`tutForkDone`), and grinding the manganese first clears
+  them too (`tutFireGround`). The stage `fire-mang` now keeps a live pointer (`TUT_TICK_STAGES`, a branch in
+  `tutNudgeApply`): nothing while D72 is up; the arrow until the manganese is on the wheel; then the turn hint
+  (found in the browser: the arrow stayed pointing from the empty slot). Asserted by the FTUE test (written first).
+- **R74 (2026-11-04, owner): no bellows gesture under the hazard lines; their button lit.** Owner, with a picture of D69a over
+  the dark with the bellows' up-down gesture still showing: "remove the arrow on the bellow here, since the black overlay
+  covers it, it is not interactible, so no guide is needed. and highlight the x on dialogue instead". While a line on the cut
+  dim (`SAY_DARK_CUT`: D69a-D69c, D71, D72) is up, `#frame.say-cut` hides the drag gesture (`#tutDrag`) and the drag arrow
+  (`#tutArrow`); closing the line brings them back. D69a, D69b and D69c's button glows (`SAY_GO_GLOW`: OK on D69a and D69b,
+  the X on D69c; D71's X already did, R72). Asserted by the FTUE test (written first).
+- **R75 (2026-11-04, owner): one highlight at a time; Day 2's morning lights the line, then the arrow.** Owner, with a picture
+  of D89 ("Good morning! ...") and the left arrow lit beside it: "the highlight should only be on dragon's dialogue here, the
+  arrow to go to customer counter will be highlighted in d92. there shouldn't be two highlights on the screen at a time".
+  Arriving on the forge at stage `d2-counter` lit the arrow at once (r203's "from the cave" rule in `tutDay2Screen`). Now a
+  screen arrow asked for (`tutExit`) while a dragon line with a lit button is up (`sayGlowUp`) waits: it shows, unlit, and
+  lights when no lit line is up (`tutExitLater`, from `say` and `sayHide`), if the player is still on that screen and
+  nothing else blinks. D89's and D92's OK glow (`SAY_GO_GLOW`), so the morning is D89's OK, D92's OK, then the arrow (R20).
+  Asserted by the FTUE test (written first).
+- **R76 (2026-11-04, owner): no gate ring during D97; the gate lights at D98.** Owner, with a picture of the ladle and the
+  gate's ring (R64) during D97: "remove the highlight from the smelted gate for d97. show the highlight on the gate in d98".
+  TC4's ladle lesson runs in one stage, `p4-pull` (D97, the tiers window, the tilt), until the ladle parks the sword on
+  Durable (`tutDurableAligned`: D98, stage `p4-quench`, `tutGatePointer`). While `p4-pull` is on, `#frame.gate-hush`
+  (kept by `smGateSync`, every frame) stops the ready gate's ring from drawing; the gate itself still works. At D98 the
+  ring and D98's own pointer come back. Asserted by the FTUE test (written first).
+- **R77 (2026-11-04, owner): and none during D97a.** Owner, with a picture of D97a ("Remember? Tilt the ladle to pull the
+  sword onto the trait.", TC5's swift run) and the gate's ring: "same here, remove the highlight on the smelter gate for
+  this." Its stage `d2-pull` (D97a until the ladle parks the sword on Swift: `tutSwiftAligned`, D98) joins `p4-pull` in
+  `smGateSync`'s `gate-hush` rule. The gale park (`d2-gale-work`) is unchanged. Asserted by the FTUE test (written first).
+- **R78 (2026-11-04, owner): the gate's ring is a guide only (supersedes R76-R77's step list).** Owner, with a picture of D74
+  ("Pump the bellows.", the gale run) and the ring on: "yes, hide it for the gale park too. the circle on the smelter gate is
+  supposed to show up only as a guide, so it should show when players are meant to click on the smelter gate." During the
+  tutorial the ready gate's ring (R64) draws only while the tutorial points at the gate - the gate carries its blink or glow,
+  set by `tutGatePointer` (D10, D75, the D98 parks, D107b) or the idle pointer (`tutLoopPointer`'s gate step). After the
+  tutorial (`tutOver`) and in free play it shows whenever the gate is ready, as before. `gateGuided` decides; `smGateSync`
+  keeps `#frame.gate-hush` every frame. The ladle lessons (D97, D97a), the gale park and the pumping lines therefore show no
+  ring until the pointer comes. Asserted by the FTUE test (written first).
+- **R79 (2026-11-04, owner): "Let's go sharpen the sword!" with the arrow to the basement.** Owner: "during bram's second
+  visit, when the arrow to go to the basement is shown, have the dragon say 'Let's go sharpen the sword!'". In Part 5 the
+  crafted swift Dagger leads to `tutBasementStep`, which lit the down arrow with no line (D48 had come with the wheel's
+  reward window). New line **D48a** "Let's go sharpen the sword!" (beside D48; 201 dialogue keys) is said there, with the
+  arrow. Its X is not lit, so the arrow lights with it (R75). Script SSOT: Part 5, the step before the basement. Asserted by
+  the FTUE test (written first).
+- **R80 (2026-11-04, owner): the ledger appears only when the waiting customer's swords can be made; D107f says so.** Owner, with
+  a picture of the ledger scroll: "bring up the ledger only when players can craft for customer gc9. have the dragon say
+  something 'You can now craft both the swords your previous customer requested. Click on the Ledger.'" Since R39 the ledger
+  showed from the first COME LATER (its toast named it) and from Part 5. Now it shows (`cntShown`) only once the waiting
+  customer's guide starts - D107f, when the gold covers both blueprints (`wqStep('see')` sets `FTUE_ST.seenLedger`) - and
+  after the tutorial. D107f now reads "You can now craft both the swords your previous customer requested. Tap on the Ledger." ("Tap" for the owner's "Click", the game's rule). The COME LATER toast is
+  "They will wait." (it named a ledger not yet shown), and the PART 5-6 jumps no longer mark it seen. The market is unchanged.
+  Script SSOT updated. Asserted by the FTUE test (written first).
+- **R81 (2026-11-04, owner): no false refill when Garric comes.** Owner, with a picture of the reward window (5 Copper, 1 Iron)
+  and D28l "Careful! Here, try again." at Garric's arrival: "the careful here try again shows up whenever I call in garric.
+  why? fix it." Cause: the refill (`ftueRefillTick`, r293) gives what the bag lacks for the open order, measured against the
+  last ore reward (`FTUE_ST.oreRound`). The waiting customer's guide gives GC9's ores with D107g (`ftueOreReward('gc9')`)
+  whenever the gold reaches both blueprints - often in Part 5 or 6, after Garric's own round (p5g0, 2 iron + 2 manganese). That
+  overwrote the round with GC9's ores (copper 5, iron 3, manganese 2), which the two waiting swords then use up; at Garric's
+  order the bag (his 2 + 2) fell short of the wrong round, so the dragon "refilled" it. GC9's order is not refilled (r293), so
+  its reward no longer touches the round. Reproduced in the browser (PART 6, the gc9 reward, Garric: the window and D28l) and
+  gone after the fix. A save made after the bad round keeps it until the next chain reward. Asserted by the FTUE test (written
+  first).
+- **R82 (2026-11-05, owner): the shape window opens on a tap on the metal, not on the drop.** Owner: "on placing the metal on the
+  anvil, the shape selection is poping up instantly. It is supposed to come up when we click on the metal, only." Since s5 the
+  drop on the anvil opened the window at once (`placeOnAnvil`); a tap on the metal on the anvil (pointerup with no move) only
+  reopened it. Now the drop only lays the metal on the anvil; the tap opens the window. In the tutorial the metal then glows as
+  the next tap: right after any drop (the first sword, D44, D77, a stored ingot such as Bram's Dagger), in the guided crafts'
+  pointer (`tutLoopPointer`), and as the first sword's `anvil` step is found done (`TUT_SKIP`, which no longer says D12
+  early: D12 still comes over the window when the tap opens it, `openShapeSelect`). Free play: no pointer; the idle hint
+  glows the metal as before. Records: `specs/2026-10-21-smelter-version-loop.md` (R82), `specs/game-design.md` §2 and §5,
+  `GDD.md`. Asserted by the smelter and FTUE tests (written first).
+- **R83 (2026-11-05, owner): the come-later customer's market walk.** Owner: "when showing the gale katana and fire claymore in
+  the market, guide the player to open the gale katana page first, dragon says 'let's find the blueprint.' when players reach
+  the page, have the dragon's dialogues on the right side on the screen, saying 'The gale katana blueprint costs (value here)"
+  guide them to buy it. when players buy that dragon says 'let's see the other one now', guide to go to the fire claymore in
+  the market and dragon says 'Another (value here) for the fire claymore.' highlight the close button." Until now the market
+  showed both pages by itself (r253, R38: Gale Katana, then Fire Claymore after `MK_ROT.laterMs`, Close lit). Now
+  (`FTUE_LATER`): the market opens with **D107ca** "Let's find the blueprint." and the Gale tag blinking (off the wheel's face:
+  the visible tag nearest it, whose tap turns the wheel closer); tapping Gale opens the Katana page directly (not its
+  Shortsword and three swipes); **D107cb** "The gale katana blueprint costs {p}g." (the market price, 300) with BUY lit (short of
+  gold: D28h and the dragon's coins first, as the orders' lesson does); bought: **D107cc** "Let's see the other one now." and the
+  Fire tag blinks; tapping Fire opens the Claymore page; **D107cd** "Another {p}g for the fire claymore." (450) with Close lit
+  (BUY not lit); closing: D107d and COME LATER as before. The lines are in the market's own strip (`sayOver`, the top right),
+  which now fills `{values}`. Closed early, the walk resumes when the market is reopened. `MK_ROT.laterMs` is no longer used.
+  205 dialogue keys. Script SSOT updated. Asserted by the FTUE test (written first).
+- **R84 (2026-11-05, owner): the market's dragon line looks like his bubbles.** Owner, with a picture of the market strip ("Let's
+  find the blueprint."): "make this dialogue look the same as the rest of the dragon's dialogues." The strip (`.mk-say`, R38: a
+  thin cream bar, Georgia 12 px, the name inline) now has `#dragonSay`'s look - 315 px wide, parchment `#f3e7c6`, a 2 px
+  `#6a5636` border, 11 px corners, the drop shadow, DRAGON on its own line (Cinzel 9 px), the text 17 px - and its lines type in
+  word by word (`sayType`, R32). It keeps its place top right, off the paper; it has no OK or X, as the market's lines move on
+  with the walk. Coloured sword names (R61) carry over. Asserted by the FTUE test (written first).
+- **R85 (2026-11-05, owner): "Tap the metal to select a shape." once the metal is on the anvil.** Owner, with a picture of the
+  first sword's metal on the anvil and D6 ("Nice! Let's take this hot metal to the anvil.") still up: "once the metal is placed on
+  the anvil the dragon dialogue should be to 'tap the metal to select shape.' check the rest of the tutorial as well." New line
+  **D6a** "Tap the metal to select a shape." (beside D6; "a shape" for the grammar; 206 keys). Since R82 the drop lays the metal on the anvil and glows it;
+  that same step (`placeOnAnvil`) now says D6a on every guided drop in the tutorial - the first sword (after D6), TC2's second
+  sword (after D44), the fire sword (after D77), Bram's stored swift metal (after D113), the guided order crafts - but not in
+  Garric's solo craft (`TUT_SOLO`, the dragon stepped back), and not again if it is already up. The tap that opens the shape
+  window closes it (`openShapeSelect`, as D44 and D77; D12 still comes over the first sword's window). Script SSOT updated.
+  Asserted by the FTUE test (written first).
+- **R86 (2026-11-05, owner): walking away from a line no longer loses its next step.** Owner: "a bug, when i go to the forge
+  screen without closing D28g the guides to craft the sword is gone. make sure this kinds thing does not happen. check if this
+  happens anywhere else and fix it too." Cause: an order's lines start the craft guide when their last line closes (r300,
+  `SAY_THEN`); walked away from, D28g stayed up on the forge and the stage stayed `p1-gpc`, with no guide (reproduced). The same
+  hold sits on every line in `SAY_AFTER` (its closing moves the tutorial on): D92 (the way to the counter), D92c, D92e, D92g
+  (Durable's map and cave trip), D72a, D97, D119a, D130, D130b, D26, D32b, D57, D67a, D117 and the banner lines. Now
+  `screenStep` (an arrow tapped, an arrow key) first runs `sayLeave`: if the line up has such a step and is the last of its run (its OK or X
+  closes it; D28g shows an OK), it is closed as that button would close it (`sayNext`), so the step runs on the new screen. A line
+  with more to come, or one without a button, stays as it is (nothing unread is skipped); a screen change made by the game itself (`goScreen`) is not affected.
+  Checked in the browser (D28g: the craft guide at the forge; D92e: the walk to the cave). Asserted by the FTUE test (written
+  first).
+- **R87 (2026-11-05, owner): D32c and D33 dark except the map and the line; no ores until D35.** Owner: "put a black overlay
+  everywhere except the map and dialogue for d32c and d33. i want to make sure players cant use the ore before they read the
+  dialogue till d35". TC2's regrind lesson: D32c ("I put your ores back. Let's try again.", r296: the full dark) and D33 ("We can
+  travel further on the map if we grind the ores ...", with its what-if path on the map) join `SAY_DARK_CUT` (R71: the cut dim
+  over the rail and the arrows, a window over the map, the dragon and his line lifted). While either is up no ore leaves the bag
+  (`tutOresHeld`, as D72), and the dark covers the inventory anyway. D35 ("Drag one iron to the grindstone ...") is said clear
+  and frees the ores. Asserted by the FTUE test (written first).
+- **R88 (2026-11-05, owner): D92e's X lit.** Owner, with a picture of D92e ("Let's see if we can find some in the cave.") at the
+  counter: "highlight the x button". D92e joins `SAY_GO_GLOW`. Its closing sends the player to the cave (`ftueDurableToCave`
+  lights the way); with R75 the way's arrow waits for the lit X, so the two do not glow together. Asserted by the FTUE test
+  (written first).
+- **R89 (2026-11-05, owner): COME LATER enabled from D107d.** Owner, with a picture of the come-later customer's request (D107c)
+  and COME LATER already live: "enable the come later button on and after d107d". While that customer (`lesson:'later'`, not
+  yet waiting) is at the counter, COME LATER is shown greyed and takes no tap (`laterWait`, the class `later-wait`, the look of
+  a disabled counter button), and `comeLater` refuses, through the request and the market walk (R83). When D107d is said
+  ("I am not buying ..."), the customer's `laterOk` turns it on (and D107d's step lights it, r253). Other customers' COME LATER
+  is unchanged. Asserted by the FTUE test (written first).

@@ -208,3 +208,39 @@ x2). Hazard damage keeps its per-distance rate (the bellows pass the same equiva
   dropped on the counter it is placed, the ghost and the loop gone. The counter's sword dragged to the inventory in 0.8 s
   swings within about 120 deg and settles; dropped, it is back in the bag. A fast flick (600 px in 0.33 s) spins it over
   the top, as the anvil's blade would. On the shop screen the drag swings the same. No console errors.
+
+## R64: the gate's ready highlight, a circle (2026-11-03)
+
+Owner, with a picture of the gate's faint rounded box: "make this a circle highlight, and more intense. right now it is
+barely visible." While the gate is ready (the sword on a trait, `#furnaceGate.ready`):
+
+| Part | Was | Now |
+|---|---|---|
+| Shape | the gate's rounded box (62 x 70 px), a 2 px inner line and a 16 px glow | a ring, 130% of the gate's width (about 80 px), centred on it |
+| Ring | - | 4 px, rgb(255,222,120) |
+| Glow | 16 px, 0.7 opacity | 24 px spread 10 outside at 0.95, 20 px spread 7 inside at 0.8 |
+| Pulse | the opacity 0.55 to 1, 0.95 s | size 0.94 to 1.08 and opacity 0.8 to 1, 0.95 s |
+| Ripple | - | a second 3 px ring growing to 1.6x and fading out, every 1.2 s |
+
+The rings take no taps (the gate under them does).
+
+## R65: the shape window wider, its text bigger (2026-11-03)
+
+Owner, with a picture of "Choose a Blade Shape": "can we also make this wider, currently it covers only 1/3rd of the screen.
+make it wider, increase the text size."
+
+| Part | Was | Now |
+|---|---|---|
+| Window | max 320 px wide (a third of the 1080 px frame) | max 720 px, 67% of the frame; padding 22 x 26 px |
+| Shapes a row | 4 (10 shapes in 3 rows) | 5 (10 shapes in 2 rows), 12 px apart |
+| Heading | 16 px | 24 px |
+| Sub-line | 11 px | 16 px |
+| Shape icon / name | 26 px / 10 px | 40 px / 15 px |
+| BUY | 10 px | 14 px |
+| Cancel | 44% of the row | 30% (the row is wider) |
+
+## R82: the shape window on a tap (2026-11-05)
+
+Owner: "on placing the metal on the anvil, the shape selection is poping up instantly. It is supposed to come up when we click on
+the metal, only." The hot metal dropped on the anvil lies there; a tap on it (no drag) opens the shape window. Dragging it back to
+the smelter works as before. In the tutorial the metal glows as the next tap.

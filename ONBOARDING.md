@@ -1,114 +1,73 @@
-# Sword Forge — Onboarding / Handoff
+# Sword Forge - Onboarding
 
-> ⚠️ **Current state (2026-10-23): read this first; everything below it describes older builds.** The game is
-> **`Swordforge_looptest_landscape.html`**, which since 2026-10-23 carries the **smelter crafting loop** (bellows, gate, ladle,
-> anvil, bucket) and the six-part FTUE reworked to it. Read in this order: `CLAUDE.md` (conventions, test suites, how to
-> verify), `HANDOFF.md` (state, what is next, gotchas), `INDEX.md` (which docs are canon), then `specs/2026-10-21-smelter-version-loop.md` (the crafting loop) and `specs/2026-10-23-ftue-smelter-rework-plan.md` (the tutorial's rework to it). The sections
-> below (`index.html`, the 50x50 grid, metals, the heat minigame) are V1/V2 history.
-
-> ⚠️ **Canon update (2026-09-18) — read this before the banners below.** The build under active
-> development is **`Swordforge_looptest_landscape.html`** (landscape loop-test, guided tutorial
-> D1–D43). `swordforgeV2.html` and `index.html` are earlier builds; `Swordforge_new_looptest.html`
-> (portrait) is deliberately never edited. See `HANDOFF.md` for current state and the open questions.
-> Screenshots of the game **do** work (they fail only while the app window is minimised) — the
-> "do not depend on screenshots" note below is outdated.
-
-You're picking up **Sword Forge**, a 2D grid-based blacksmith crafting game. This doc gives a zero-context agent everything needed to be productive. Read `specs/game-design.md` next — it's the mechanics SSOT.
-
-> ⚠️ **Canon update (2026-08-10):** the canonical build is now **`swordforgeV2.html`** (V2 — path-map furnace build + guided tutorial); `index.html` is V1, kept for historical reference and still serving as the deployed Pages entry point until V2 is promoted. The sections below describe V1 systems — most concepts carry over, but verify against V2 before relying on specifics.
+Zero-context handoff for a new contributor or agent. Rewritten 2026-11-03 for the game as merged in PR #28 (R0-R62). The
+V1 / V2 version of this file is in git history.
 
 ## 1. What it is
-- A browser game: explore a fog-of-war grid to find magical traits, heat them onto your blade (a timed minigame that sets quality), forge custom swords, and sell them to customers — or list them in a passive shop.
-- **The entire game is ONE file: `index.html`** — all HTML, CSS, and JavaScript. No build step, bundler, framework, or dependencies. Vanilla JS, global mutable state, direct DOM manipulation. (~3,100 lines.)
-- **No persistence yet** — nothing is saved; every reload restarts from the intro/tutorial. This is the biggest functional gap.
-- Live build: https://lila-games-github.github.io/sword-forge/
 
-## 2. Run & verify
-- **Run:** open `index.html` in a browser — no server needed.
-- **Verify changes:** use the Claude Preview tools. `.claude/launch.json` defines a Node static server (`.claude/serve.js`, port 5678) started via `preview_start` (config name `sword-forge`). ⚠️ `launch.json` hard-codes the node path `C:\Program Files\nodejs\node.exe` — adjust it if node lives elsewhere on your machine. Drive the game with the preview/browser tools — call functions directly, read the DOM / `getBoundingClientRect` / computed styles / canvas pixels — and check the console for errors after every change. (Exact tool names vary by environment; in this one they're the `mcp__Claude_Browser__*` set: `javascript_tool` to run JS in the page, `read_console_messages` for errors, `resize_window` for the viewport, `preview_start` + `navigate` to serve/load.)
-- ⚠️ **The screenshot tool times out on this game** — a continuous ember/`requestAnimationFrame` loop keeps the page from ever going idle. Do not depend on screenshots; verify functionally via the JS-eval tool and measurements. (To judge art/layout, composite or measure with `getBoundingClientRect`; to check rendered text position use a `Range` over the text node, not the element rect — flex containers report the region, not the glyphs.)
-- ⚠️ In the headless preview the viewport may report width 0 — resize to mobile (375×812) before measuring horizontal layout.
-- ⚠️ The preview/static server can **drop between turns** (a `navigate` fails, or the tab reverts to a `file://` origin) — just restart it (`preview_start`) and re-`navigate`; it comes back on the same port.
-- ⚠️ **Measuring the map grid?** The 50×50 grid's untracked layout width is ~1080px but it's visually scaled by a CSS transform and clipped by `#viewport` (`overflow:hidden`), so `getBoundingClientRect`/`scrollWidth` on the grid or wrapper looks like "overflow" when the page doesn't actually scroll. Check `document.body.scrollWidth` for real horizontal overflow, and measure your own elements' rects, not the grid's.
-- ⚠️ **The game boots into a 4-scene intro, and `#mobile-wrapper` starts `display:none`.** To reach gameplay in a headless eval, run `launchCoreGame()` — it hides the intro, shows the wrapper, and calls `initializeMainGame()`, which **already** generates the layout (`generateLayout`), builds the grid (`initDOMGrid`), starts the smelter/shop loops, and kicks off the tutorial. Then call `skipTutorial()` to end the guided flow and unlock everything for sandbox testing. (`launchCoreGame` is guarded to run once.) **Do not** re-call `generateLayout()`/`initDOMGrid()` afterward unless you deliberately want to **rebuild** the board — doing so re-seeds `boardData` and rebuilds every cell, wiping fog/path/player state.
-- ⚠️ `Date.now()`/`Math.random()` are fine in the game. `confirmDesign()` runs its callback on a **50ms `setTimeout`**, and the heat/pulley/customer flows use timeouts — split evals across calls when testing forge/quick-craft/heat/customer results.
+- A mobile (landscape) blacksmith crafting game in **one self-contained HTML file**:
+  **`Swordforge_looptest_landscape.html`** (~11,400 lines of markup, CSS and terse vanilla JS; no build step, no dependencies).
+- Ores in the smelter draw a route on a fog-covered trait map; the bellows move the sword; the gate takes the trait; the ladle
+  sets the tier; the anvil opens the hammering minigame; the blade is quenched in the bucket; swords sell at the counter or the
+  shop. A six-part tutorial (FTUE), led by a small dragon, teaches it over three in-game days.
+- **The whole game in one document: `GDD.md`.** Mechanics with values: `specs/game-design.md`.
+- Live: https://lila-games-github.github.io/sword-forge/ (the root redirects to the game).
 
-## 3. Deploy
-- Push to `main` → GitHub Pages auto-deploys via `.github/workflows/deploy.yml` (~1–2 min). Then hard-refresh (Ctrl+Shift+R) — Pages and the browser cache the old build.
-- ⚠️ **Push auth quirk:** the remote is HTTPS with Git Credential Manager. `git push` sometimes hangs on a GUI credential prompt that headless shells can't answer; it usually succeeds on a retry, and the commit lands regardless. Reads (`git fetch`/`ls-remote`) work fine.
+## 2. Read in this order
 
-## 4. Critical working rules
-- **ASK BEFORE EXECUTING.** The owner's standing rule (stated in chat, broader than the checked-in `CLAUDE.md` rule of "commit/push only when asked"): confirm before any state-changing action (editing files, running commands, committing, pushing, deploying). Brainstorming / planning / read-only investigation is exempt. Commits — and especially pushes, which auto-deploy to the live site — need an explicit go-ahead.
-- **Keep it single-file.** Don't split `index.html` or add tooling unless asked.
-- **Match the existing style** — terse, semicolon-dense vanilla JS, many statements per line, globals. Don't refactor to a framework.
-- **Update `specs/game-design.md` in the SAME change** as any mechanic/number/system change. It's the SSOT.
-- **Proofread all player-facing copy** for grammar/spelling (standing owner preference).
-- **Verify before pushing** — reload the preview, exercise the affected code by running JS in the page (`javascript_tool` in the current environment), and confirm the console (`read_console_messages`) is clean.
+1. `CLAUDE.md` - conventions, the eight test suites, how to verify.
+2. `HANDOFF.md` - current state, what is next, gotchas, open owner questions.
+3. `GDD.md` - the game, end to end.
+4. `INDEX.md` - which docs are canon; the dated records in `specs/` hold each system's values and the reasons.
 
-## 5. Where things live
-- `index.html` — the game. Always edit this.
-- `specs/game-design.md` — single source of truth for mechanics. **Read this first.**
-- `specs/README.md` — SSOT policy.
-- `README.md` — short public-facing overview.
-- `CLAUDE.md` — working conventions (overlaps with this doc).
-- `plan.md` — done / next-up / known-issues tracker.
-- `archive/Sword_Grid_Game_GDD.md` — original design vision; **historical only**, superseded by `specs/`.
-- `assets/` — `backgrounds/` (incl. `forge_bg.png` for the quench scene), `ui/` (buttons + `dialogue-frame*.png` tutorial/dialogue art), `forge/` (pulley/bucket/bellow + `water_bucket.png` for the quench + `Metal.png` ore chunk flung into the bucket on a spend), `sword-parts/blades|grips|guards|pommels/` (base `balanced_*` + trait skins `flame_*`/`ice_*`/`water_*`) plus `sword-parts/overlays/` (`crack.png`, `sparkle.png` quality overlays), `hammer/` (`ingot.png` + `balanced_<shape>_midblade.png` for the hammering mini-game), `map/` (tiles incl. `tile_sword.png`, `tile_move.png`, `tile_centre/centre2/path.png`), `customer/` (portraits), `unused/`.
+## 3. Run, test, deploy
 
-## 6. Architecture (all in `index.html`)
-Global mutable state near the top of the `<script>`; functions below. Key systems and entry points:
+- **Run:** `preview_start` with the `.claude/launch.json` config `sword-forge` (Node static server, port **5679**), then
+  navigate to `http://localhost:5679/Swordforge_looptest_landscape.html`. `?freeplay` skips the tutorial; `?nointro` skips the
+  intro. The PART 1-6 and GAME buttons (bottom left, outside the frame) or `ftuePart(n)` start a new game at a part.
+- **Test:** `node tooling/<suite>/<suite>.test.mjs` for ftue, smelter, market, map, skills, hazard, hammer and mobile-fit. The
+  current counts are in `CLAUDE.md` and `HANDOFF.md`. A recorded value changes in its spec and its test together, test first.
+- **Verify in the browser** as a player would: drive taps through `document.elementFromPoint(x,y)`, and check visibility with
+  `offsetParent` and a hit test, not `textContent`. A hidden preview pane freezes `requestAnimationFrame`; drive frames by hand.
+- **Deploy:** a push to `main` deploys GitHub Pages (`.github/workflows/deploy.yml`). Work on a branch
+  `sword-forge/<2-5-kebab-keywords>` and merge by PR; commit, push and merge only when the owner asks.
 
-- **Grid & movement:** 50×50 fog-of-war grid (`domCells`, `boardData`, `exploredCells`, `discoveredTraits`, `pathCells`), seeded RNG (seed `1337`, `generateLayout`), DOM built by `initDOMGrid`, cells by `renderCell`. **Grid tiles:** spawn = `tile_centre`, its 8 neighbours = `tile_centre2`; the active sword's landings show a `tile_path` trail (`markPath` at each landing — dashes mark only the endpoint, so jumped cells stay blank; never over hazard/trait/home; `clearPath` on forge/death). Player starts centre (25,25). `move(dx, dy, consumeMetal, applyHazard)` is the single movement chokepoint (dashes loop it). Cardinals = metals (steel=up, iron=down, magnesium=left, bronze=right); 4 diagonals unlock for 50g. **Hazards (💥) only damage on the cell the sword LANDS on** — crossing over a hazard mid-dash is harmless (`applyHazardAtCurrent()`; dash steps call `move(...,applyHazard=false)`). **Purify-dash slider** (`handleMovementClick`→`startInlinePurify`/`updatePurifyLoop`/`resolvePurifyMinigame`): hold a direction → release zone gives a 1/2/3-block dash for 1 metal; live `tile_move` path preview; cancel via centre button / slide-off / right-click. `purifyEnabled` gates it (off during the early tutorial). **Death (0 HP)** → `handleDeath()` shatters the active blade (clears active traits + used metals), restores HP to 100, and resets the player to centre; gold/vault/etc. are kept.
-- **Grid camera:** `centerCameraOnPlayer()` follows the player unless `cameraUnlocked` (the 📷 free-camera toggle, `toggleCameraLock`). Drag-to-pan + cursor-centred wheel zoom on `#viewport`; wrapped in `.viewport-wrap` so the camera button stays fixed.
-- **Traits & heating:** 24 traits at fixed coords (`traitCoordinates`, `baseTraits`). **Heat** button → `initiateHeatSequence` → `handlePulleyClick` → bellows (`handleBellowClick`, **tap +16 or hold** via `bellowHeld` + `BELLOW_HOLD_RATE`) → stabilize in the green band. **Per-trait band variants** live in `heatConfigs` (over `DEFAULT_HEAT`); the loop `updateInteractiveHeatLoop` + `updateHeatBands`/`heatGradient`/`clampBand`/`initHeatDynamics` handle moving/random/staged/hidden bands. **A per-trait countdown** (`heatTimers`, ⏱ readout below the heat slider, shown once heating starts; tutorial gets a safe 45s) sets quality: stabilize in time → `resolveInteractiveHeatMinigame('Epic')`; timer runs out → `resolveInteractiveHeatMinigame('Fine')` (trait still fuses). First heat of a trait shows a **"New Trait Discovered!"** box (`knownTraitIds`, `showNewTraitModal`). Tutorial heats force `DEFAULT_HEAT`.
-- **Quality:** tiers `QUALITY_ORDER = ['Weak','Fine','Epic']`, bonus `QUALITY_BONUS` (+0/+10/+20 to a trait's distance base value; traits store `baseValue`). Four-stage chain: **heat sets Epic/Fine → HP cap** (`healthQualityCap()`: ≥80 Epic, 40–79 Fine, <40 Weak, manual only) **→ hammer penalty** (`dropTiers`, −1 tier per 2 misses via `hammerPenaltyTiers`) **→ sharpen over-hone** (`sharpenTiersFor`, −1 tier per 10% past 110%; stored on `forgeCtx.sharpenTiers`). Hammer + sharpen drops are combined into `tiers` in `completeForge` (per-trait for manual; one uniform quality for Auto-Craft, no HP cap). `projectedForgeQuality()` drives the Design Desk preview overlay (pre-sharpen — an over-hone can still lower it). `swordQuality(sword)` = highest-tier trait → **quality overlay**: `crack.png` on Weak, `sparkle.png` on Epic, layered in `showForgeResult` + `updateDesignPreview`.
-- **Forging (4-part pipeline):** `forgeSword` (manual) / `quickCraft` (Auto-Craft) build `forgeCtx` and run: **Part 1 shape select** (`openShapeModal`/`renderShapeGrid`/`confirmShape`; `#shapeModal`; 10 shapes, `bladeUnlocked`, 7 unlock at 50g via `unlockForgeShape`) → **Part 2 hammer** (`openHammerModal`/`spawnHammerTarget`/`resolveHammerTarget`/`advanceHammerStage`; `#hammerModal`; `HAMMER_POINTS`, ingot→mid→final art in `assets/hammer/`; misses tracked in `forgeCtx.hammerMisses`) → **Part 2.5 quench** (`openCoolModal`/`dipBlade`/`finishQuench`; `#coolModal`; feel-only cooling beat — tap to dip 3s; `forge_bg.png` + `water_bucket.png`; **skipped when the last-acquired trait is `flame`**) → **Part 3 design fittings** (`openForgeDesign`; `#designModal` minus the Blade tab; `partsFor`/`designPartSrc`/`traitSkins`; the confirm button is now **Sharpen**) → **Part 4 sharpen** (`openSharpenModal`/`sharpenGrind`/`finishSharpen`; `#sharpenModal`; slide the horizontal fully-assembled sword (blade + fittings) across a front-facing grindstone — `grindstone.png` + jittered `grindstone_spin.png` on `sharpen_bg.png`, wheel spins after 2s and runs until Finish — via drag / ◀▶ hold-buttons / ←→ keys, filling a 0→~120% bar; finish in the **90–110%** keen window for no penalty, **>110% over-hones** → `forgeCtx.sharpenTiers` = −1 tier/10% over; `SHARP_MIN/MAX/BAR_MAX/RATE`) → `confirmDesign` (stores `forgeCtx.design`, opens sharpen) → `finishSharpen` → `completeForge` (folds `sharpenTiers` into the tier drop) → `showForgeResult` → Vault. **Auto-Craft** first runs a **detached heat** (`startDetachedHeat` → `resolveInteractiveHeatMinigame` branches on `heatOutcomeCb`) using the composition's last-acquired trait. `traitSkins`: **Flame** (3 shapes), **Ice**/**Water** (Longsword only). Cancel any step → `cancelForge`.
-- **Recorded Compositions:** `saveRecipe` (**Record Composition** / **Record Last Composition**) opens a **confirmation box** (`#recordModal`, `openRecordModal`/`confirmRecord`/`closeRecordModal`, `pendingRecord`): a composition is keyed by trait set — a new set shows trait + metals (**Record**), an existing set shows a **before/after metal comparison** and **Update**s that entry in place (no duplicates). `savedBlueprints` array; `quickCraft` = the **⚡ Craft** button (Auto-Craft). Viewed via the **📜 Recorded Compositions** button on the Counter → `openCompositionsModal` (`#compositionsModal`): `renderBlueprints` draws a trait-icon **tile grid**, `selectBlueprint(i)` drills into a **detail view** (Tier/Traits/Value/Composition + ⚡ Craft + Delete + ← Back via `showCompositionGrid`), `deleteBlueprint` returns to the grid. `quickCraft` closes the list modals before running. (`findValidBlueprintIndex` is defined but currently unused/dead code.)
-- **Economy & customers:** smelter (`startMetalGenerator`, gated by `tutorialMetalLock`), customers (`setRandomRequest` — scripted #1 any / #2 Flame / #3 ice-dragon, random #4+). The request line is **revealed word-by-word** (`presentCustomerDialogue`/`beginCustomerTyping`; tap bubble to skip). After the line finishes, two **response options** fade in: **"I have something for you."** (`searchInventory`) and **"I don't have what you need."** (`refuseCustomer`, disabled for `requestCount ≤ 3`). On a **sale** (`sellSword` → `showSaleFeedback`) the customer reacts with a per-trait/generic line (`traitFeedback`/`genericFeedback`) and **waits** behind a single response button ("Thank you"/"Glad you liked it"/"Take care"); tapping it (`onSaleResponseClick`) summons the next customer. Refuse still auto-advances. Passive shop (`startShopLoop`); **shop unlock costs 500g**.
-- **Shop guides (post-tutorial):** at 500 gold a "Shop Available!" tip appears (`checkShopTutorial`) → a hand guide to the Unlock button (`shopGuideActive`/`updateShopGuideHand`); after unlocking, a "stock the shop" guide (`shopSellPhase`) walks the player through Auto-Crafting a flame sword and sending it To Shop, then explains the shop. Only runs once the main tutorial is over.
-- **Tutorial:** data-driven `tutorialFlow` array (`playTutorialStep`). Steps are dialogues (`text`/`title`/`frame`), `action`s (`highlight`/`delay`/`afterCustomer`), or `waitAction` gates; gates carry a `hand` spec (`showHands`). `afterCustomer` steps + the `afterCustomer` flag on text steps defer a box until the customer's line finishes typing + a read pause, so tutorial boxes never overlap customer speech. First-craft locked to 4 steel + 1 magnesium (`tutorialMetalLock`) until the first forge. Every dialogue box is recorded to `dialogueHistory`; the **ℹ️ info button** (below the Forge-screen health bar, `updateTutorialInfoBtn`) re-opens them in their own frames via `#tutorialReviewModal` (`openTutorialReview`/`reviewNav`/`renderReview`) and stays available after the tutorial ends.
-- **Screens & UI:** 3 swipeable screens (`slideScreen`): Shop (0), Customers (1), Forge/Map (2). The Forge screen's status panel shows a **gold/reputation pill** (`#gold-text-2`, mirrors screen 1) above the Blade Traits line. **Inventory (Vault)** and **Recorded Compositions** are **modals** opened from Counter-screen buttons (`openInventoryModal`/`#inventoryModal`, `openCompositionsModal`/`#compositionsModal`) — each a fixed-height box with its own scroll, rendered as a **tile grid → drill-in detail** (`renderVault`/`showVaultDetail`/`showVaultGrid`; `renderBlueprints`/`selectBlueprint`/`showCompositionGrid`). Inventory tiles show the composited sword image (`vaultPartsHtml`); `searchInventory` opens the vault straight to the matching sword's detail. **Minimap** (`renderMinimap`): live canvas, zoom/pan, trait emoji icons, player as `tile_sword.png`. All warnings use `gameAlert` (parchment popup). Dialogue boxes use `.dialogue-frame` (default + illustrated `frame2`/`frame9`/`frame10`, whose text is absolutely positioned/centred over baked diagrams).
-- **Dev/cheat buttons:** **Skip Intro** (`launchCoreGame`, intro-only) is still a fixed bottom-right `.corner-btn`. The rest live in a **collapsible 🛠 box** (`#cheatBox` inside `#frame-shell`, floating just above the game frame's top-right, collapsed by default, `toggleCheats`): **+100 Metals** (`addCheatMetals`), **+100 Gold** (`addCheatGold`), **Skip Stage** (`cheatSkipStage` — skips the open forge minigame → next stage), and **Skip Tutorial** (`skipTutorial`, only while the tutorial runs). ⚠️ All ship to players.
+## 4. Working rules
 
-## 7. Current state & recent work
-Core loop complete with a full guided tutorial and heavy polish. **Recent sessions (2026-07-21 → 07-24)** added a large batch, all **committed and pushed to `main` / deployed** (through commit `057d96d`):
-- **Named story customers** via a multi-beat dialogue engine (`presentCustomerDialogueSequence`/`customerLineQueue`, tagged by `currentCustomerId`): **Bram** opens Day 1 and **returns Day 2** (`BramD2`) with a 3-beat **Continue ▶** story, wanting a **Durable** sword (trait inferred, never named); **June** is Day 1's final customer (#7), wanting **Sharp**; **Roland** is Day 2's #3, wanting **Noble** with an extra *"I don't make swords for cosplay"* response → retort (`onCosplayClick`/`showCosplayOption`). Plus new portraits (`man3/4`, `woman2/3`) drawn from a **no-repeat random pool**.
-- **Quests** (📋) and a locked **Diary** (📖) as **collapsible panels** top-left of the counter (mutually exclusive). Quests = 5 one-off goals worth **+20g** each (`quests`/`bumpQuest`). Diary = paged story pages for Bram/June/Roland, **each locked (🔒) until you sell to that customer** (`diaryCustomers`/`diaryGiven`/`renderDiary`).
-- **Craftsmanship gold bonus** — **+1 per hammer hit** + a sharpen-accuracy bonus (**+3** at 95–105%, **+2** at 90–95%/105–110%), stamped as `craftBonus`, shown as a green **+x**, added to the sale total.
-- **Hazard rework** (`hitHazard`) — landing on 💥 costs **−25 HP** + **−4 gold**, shows a **warning dialogue box**, and the per-blade gold lost (`hazardGoldLost`) is stamped on the sword (`hazardLoss`) and shown as a red **−x**; the sale total = `value + craftBonus − hazardLoss` (min 1). Also a **+7 daily metal restock** and a 5-metal top-up after the first sale.
-- **Minigame reworks** — hammer targets **⅓-size**, ring **~0.65s**, a green **"Perfect!"** arcs off each hit (`spawnPerfectText`); sharpen replaced ◀▶ with a **joystick** (`#sharpen-knob`), **full-width blade travel** (`SHARP_TRAVEL`), and a **gold 95–105% band** on the meter (`.sharpen-goldzone`, 50% opacity). **Forge Close/pause-resume** — every stage's button is **Close** and pauses the pipeline (`closeForge`/`resumeForge`); clicking Forge resumes where you left off.
-- **Counter/shop polish** — the day-full counter now **clears** (no portrait/dialogue, `onDayFull`); a green **passive-sale popup** on screen 0 (`showShopSalePopup`); shop cards show the **composited sword laid flat**; a **📒 Ledger** logs passive sales by day, keeping the **5 most recent days** (`shopLedger`/`recordLedgerSale`/`renderLedger`); a **"&lt;shape&gt; unlocked"** popup on blade unlock (`showNewShapeModal`).
-- **Cheats collapsed** into a small **🛠 box** floating just above the game frame's top-right (`#cheatBox` in `#frame-shell`) — +100 Metals / +100 Gold / Skip Stage, plus **Skip Tutorial** during the tutorial — collapsed by default and **working on mobile** (was a fixed corner stack that landed in the mobile letterbox / overlapped the health bar).
+- Keep it single-file; match the terse, semicolon-dense idiom; no frameworks.
+- Commit each feature as soon as it is done; stage named files only (the owner drops art into the tree).
+- Player-facing text says "tap", never "click"; dialogue uses straight quotes. No em-dashes anywhere.
+- New dialogue ids go beside their neighbours (D28a, D99a ...), never at the end, except a new final line.
+- Update the mechanic's dated record, `specs/game-design.md` and `GDD.md` with the code; doc-changing commits update `INDEX.md`.
 
-**This closeout** additionally refreshes `plan.md` + this doc and adds a **`file://` graceful fallback** to the chalk-map prototype (`research/map_test.html`) so it degrades to draw-only instead of blanking when opened directly. (For the pre-07-21 history — day system, sharpen/quench pipeline, heat-timer/HP quality, overlays — see `plan.md`.)
+## 5. Where things live in the build
 
-## 8. Next up / known gaps (see `plan.md`)
-- **Save/load** — nothing persists across reload (biggest functional gap). Now covers a lot: gold/vault/metals/compositions/upgrades/tutorial progress **+ day state** (`currentDay`, `customersToday`, `refusalsToday`) **+ quests + diary (`diaryGiven`) + shop ledger (`shopLedger`) + per-sword `craftBonus`/`hazardLoss`**.
-- **Balance pass** — heat timers were recently halved (first pass); the per-trait heat *difficulty* (Dark hidden, Cursed jumps, Lightning two-strike) is still first-pass. Play-test the timer + quality feel.
-- **Audio** — none yet (anvil hits, discovery ding, sale chime).
-- **Customer variety** — mostly done (Bram/June/Roland + Diary + 7-portrait pool). Still open: **later-day story progression for June & Roland** (only their first appearance exists).
-- ⚠️ **Cheats ship to players** — now in a collapsed 🛠 box (+ `Skip Intro`); gate behind a `?cheats` flag / key combo or remove before a real release.
-- Open questions (`specs/game-design.md §9`): map seed fixed (`1337`) — should reset randomize?; original GDD's **Dagger** shape absent (10 vs 11).
-- Housekeeping (all **committed but unreferenced** — safe to delete): `assets/sword-parts/pommels/sparkle.png` (a stray duplicate; the real sparkle overlay is `overlays/sparkle.png`), `assets/ui/Chart_background.png` (grep count 0), and the `assets/unused/` folder. (Run `git status` for the current working-tree state.)
+| System | Where (names to search for) |
+|---|---|
+| Tutorial config, every recorded value | the `FTUE` object between `FTUE-CONFIG-BEGIN` / `-END` |
+| Dialogue | `DIALOGUE` (D1-D140, 200 ids), `SAY_SEQ`, `say`, `sayQueue`, `sayTap`, `TUT_STAGE`, `FTUE_ST` |
+| Customer lines and replies | `custLine`, `typeLine`, `typeAfter` / `typeAlso`, `custReply`, `FTUE.replies` |
+| The crafting loop | `SMELT`, `addSegment`, `smGlide` (bellows), `smLadleTick`, `smGateSync`, `placeOnAnvil`, `smBladeQuench` |
+| Map, traits, hazards | `TRAITS`, `TRAIT_POS`, `ORES`, `tierFromDist`, `HAZ`, `HAZARD_DPS` |
+| Hammer minigame | `HM_HITS`, `openHammer`, `hmQualOf`, `finishBlade` |
+| Price and selling | `swordValue`, `swordBase`, `swordPriceParts`, `sellCounter`, `orderMatches` |
+| Market | `MARKET`, `marketPrice`, `MK_ROT` (the rotary window) |
+| Skills, quests, xp | `SKILLS`, `gainExp`, `QUESTS`, `bumpQuest` |
+| Screens | `SCREENS`, `goScreen`, `SCREEN_ART`, `SCREEN_PROPS`, `SCREEN_HOTS` |
+| Effects | `SWING_FX` / `fxFor`, `ACQ_FX` / `acqBurst`, `furnaceLook` |
+| Save | `saveBlob`, `applyState`, key `swordforge.save.v1` (manual SAVE in the gear menu) |
+| Tutorial pointers | `tutArrow`, `tutExit`, `tutGlow`, `tutDark`, `tutHole`, `tutSpotOn` |
 
-## 9. Active exploration — chalk-map redesign (prototype only, NOT in `index.html`)
-The most recent work is **not** in the shipped game — it's a **standalone prototype** exploring a redesign of
-the exploration half. Instead of the metal-fuelled 50×50 grid, the smith **draws chalk lines on a chart** to
-discover traits, paced by a **day/night reset** (one chalk = a daily distance budget; an **End Day** button
-ends the day). Planned systems: **ores gathered from caves** → smelted (heating minigame) into **ingots**;
-**green dots = XP** (5% → a sword-part design); the **3 purple dots around each trait** must be gathered to
-unlock it; **dark zones = hazard** (HP-depletion → the smith rests 10s in place, no reset); a **main chart of
-24 traits** + **24 per-trait shape charts**; and an **XP skill tree** (TBD).
-- **Prototype:** `research/map_test.html` — self-contained, **canvas-based** (Pointer Events, offscreen fog
-  composited under a zoom/pan camera, pixel-mask hazard detection, colour-cluster marker detection from the
-  baked-in art). Art: `research/map_test.png` (1890² chart), `research/chalk.png`.
-- **Full design notes, current tuning, and open questions:** `research/chalk-map-design.md` — **read this**
-  before touching the redesign.
-- **Caveats:** **serve it over http** (local server or the live URL) — `getImageData` taints under `file://`, so a direct-open now falls back to **draw-only** (map renders, drawing works, but no traits/hazards) with a "run via a server" toast (`try/catch` in `init()`, `isHazard` guarded on `pix`). `requestAnimationFrame` is throttled in a headless/background tab (~1 fps) so movement can't be driven via automation — test feel in a real tab/phone.
-- **Nothing here is ported to `index.html`.** Open decisions before a port: the ore→ingot material system
-  (replacing the 8 metals; migrating recorded compositions) and the skill-tree nodes.
-- (`research/` also holds an older `potioncraft.html`/`potioncraft.md` crafting-minigame exploration —
-  unrelated to the chalk-map work.)
+## 6. Other files
 
-## First task suggestion
-Read `specs/game-design.md` end-to-end, open the preview (`preview_start` → `launchCoreGame()` → `skipTutorial()`), and use the **+100 Gold / +100 Metals** buttons to sandbox: forge a few swords, take hazard damage, and watch a heat time out to see the Weak/Fine/Epic quality + crack/sparkle overlays before changing anything.
+- `Swordforge_looptest_landscape_hammerloop.html` (the previous loop) and `Swordforge_looptest_landscape_pathtest.html`:
+  reference only. `swordforgeV2.html`, `v1.html`, `Swordforge_new_looptest.html`: older builds, historical, never edited.
+- `index.html`: a 20-line redirect to the game.
+- `assets/`: art by folder (see `CLAUDE.md`); each `.png` has a `.webp` beside it that the game loads.
+- `tooling/`: the test suites and helpers. `research/`, `archive/`, `story/`: experiments, the original vision, story pages.
+- `docs/wiki/`: an older code wiki describing V1 / V2; treat it as stale for this build.
+
+## 7. State and next steps
+
+See `HANDOFF.md` ("Current state", "Next steps"). In short: the FTUE on the smelter loop is merged and live; nobody has yet
+played Parts 2-6 straight through or played on a phone; stand-in art and a set of review items are listed there.
