@@ -6779,8 +6779,8 @@ function furnaceArtSync(dt){ if(melt && melt.stage==='smelting') melt.glow=furna
         const ms=(n==='top' && melt && melt.stage==='smelting') ? 0 : FURNACE_ART.fadeMs;   /* R35: in the smelter the crown is set each frame */
         el.style.transition=ms ? 'opacity '+ms+'ms ease-out' : 'none'; el.style.opacity=n==='top' ? l.top.toFixed(3) : l[n]; }); }
 /* R76 (owner, 2026-11-04): "remove the highlight from the smelted gate for d97. show the highlight on the gate in d98" - while TC4's
-   ladle lesson aligns the sword (p4-pull: D97 until D98) the ready gate's ring is not drawn; the gate still opens */
-function smGateSync(){ { const f=document.getElementById('frame'), h=TUT_STAGE==='p4-pull'; if(f && f.classList.contains('gate-hush')!==h) f.classList.toggle('gate-hush', h); }
+   ladle lesson aligns the sword (p4-pull: D97 until D98) the ready gate's ring is not drawn; the gate still opens. R77: and TC5's swift pull (d2-pull: D97a) */
+function smGateSync(){ { const f=document.getElementById('frame'), h=(TUT_STAGE==='p4-pull' || TUT_STAGE==='d2-pull'); if(f && f.classList.contains('gate-hush')!==h) f.classList.toggle('gate-hush', h); }
     const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */

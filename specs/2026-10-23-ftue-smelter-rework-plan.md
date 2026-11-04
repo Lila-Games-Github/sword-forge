@@ -942,3 +942,7 @@ yours and come on top.
   Durable (`tutDurableAligned`: D98, stage `p4-quench`, `tutGatePointer`). While `p4-pull` is on, `#frame.gate-hush`
   (kept by `smGateSync`, every frame) stops the ready gate's ring from drawing; the gate itself still works. At D98 the
   ring and D98's own pointer come back. Asserted by the FTUE test (written first).
+- **R77 (2026-11-04, owner): and none during D97a.** Owner, with a picture of D97a ("Remember? Tilt the ladle to pull the
+  sword onto the trait.", TC5's swift run) and the gate's ring: "same here, remove the highlight on the smelter gate for
+  this." Its stage `d2-pull` (D97a until the ladle parks the sword on Swift: `tutSwiftAligned`, D98) joins `p4-pull` in
+  `smGateSync`'s `gate-hush` rule. The gale park (`d2-gale-work`) is unchanged. Asserted by the FTUE test (written first).
