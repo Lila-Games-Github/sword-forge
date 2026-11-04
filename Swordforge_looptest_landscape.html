@@ -6803,7 +6803,8 @@ function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the
    we click on the metal, only." - the metal lies on the anvil; a tap on it opens the shape window (pointerup, no move). In the tutorial
    the metal glows as the next tap */
 function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Tap the metal</b> to pick a <b>shape</b>.');
-    if(melt.traits && melt.traits.length && !tutOver()) setTimeout(()=>{ if(melt && melt.stage==='onAnvil' && !document.querySelector('.sf-modal.show')) tutArrow(null, '#orb'); }, 0); }
+    if(melt.traits && melt.traits.length && !tutOver()) setTimeout(()=>{ if(melt && melt.stage==='onAnvil' && !document.querySelector('.sf-modal.show')){ tutArrow(null, '#orb');
+        if(!TUT_SOLO && SAY_ON!=='D6a') sayQueue('D6a'); } }, 0); }   /* R85 (owner): "Tap the metal to select a shape." - every guided drop, not Garric's solo craft */
 function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
 function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }   /* r225 (owner): purple Epic, blue Fine, dark grey Weak - yellow did not read on the beige windows */
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
@@ -7630,7 +7631,7 @@ function openShapeSelect(){
     SHAPE_FROM_TUT = (TUT_STAGE==='shape' || TUT_STAGE==='shape2');   /* r144: remember, so Cancel can put the pointer back */
     if(TUT_STAGE==='shape'){ TUT_HM_FIRST=true; tutDone(); }   /* r290: the first sword's minigame is the one D13 is for */
     if(TUT_STAGE==='shape2'){ tutArrow(null,null); tutUnglow(); }   /* r102: the flag, not the stage, carries the run */
-    if(SAY_ON==='D44' || SAY_ON==='D77') sayHide(); if(TUT_ARROW && TUT_ARROW.from==='#orb') tutArrow(null,null);   /* R3/R4: "take the metal to the anvil" is done */
+    if(SAY_ON==='D44' || SAY_ON==='D77' || SAY_ON==='D6a') sayHide(); if(TUT_ARROW && TUT_ARROW.from==='#orb') tutArrow(null,null);   /* R3/R4: "take the metal to the anvil" is done */
     shapeGrid();   /* r199 */
     document.getElementById('sfShapeModal').classList.add('show');
     document.getElementById('shapeCancel').classList.add('on');   /* r144: always offered */
@@ -8954,6 +8955,7 @@ const DIALOGUE = {
     D3: "Add 2 Iron and 2 Manganese to the smelter. Note the path it creates on the trait map.",
     D4: "Drag the bellows handle up and down.",   /* R1 (smelter loop) */
     D6: "Nice! Let's take this hot metal to the anvil.",
+    D6a: "Tap the metal to select a shape.",   /* R85 (owner, 2026-11-05): the metal is on the anvil; its tap opens the shape window (R82) */
     D8: "Look, the sword icon moves on the trait map with each pump. Keep pumping till we reach the '?'.",   /* R1: D5 and D7 are gone (the gate opens on a trait; the bellows move the sword) */
     D9: "Pumping the bellows also lets you collect experience points scattered all over the map. Collect them to level up.",   /* R2 (smelter loop) */
     D10: "We reached a '?' trait! Tap the smelter gate to take the trait.",   /* R1: the gate (was the mug) */   /* r282 (owner): D11 joined it */

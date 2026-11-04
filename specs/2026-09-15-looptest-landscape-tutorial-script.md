@@ -86,6 +86,10 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 7. **D6** Dragon: "Nice! Let's take this hot metal to the anvil."
    *When: the trait window is closed; an arrow from the metal at the gate to the anvil.*
 
+7a. **D6a** Dragon: "Tap the metal to select a shape."
+   *When: the metal is placed on the anvil; it glows; its tap opens the shape window (R82, R85). The same line follows every guided
+   drop on the anvil in the tutorial (after D44, D77, D113, the order crafts), not Garric's solo craft.*
+
 8. **D12** Dragon: "Pick the shape of the sword blade."
    *When: the metal is on the anvil; over the shape window it opens.*
 

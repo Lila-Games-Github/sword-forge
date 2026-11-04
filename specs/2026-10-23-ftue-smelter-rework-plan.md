@@ -1007,3 +1007,12 @@ yours and come on top.
   `#6a5636` border, 11 px corners, the drop shadow, DRAGON on its own line (Cinzel 9 px), the text 17 px - and its lines type in
   word by word (`sayType`, R32). It keeps its place top right, off the paper; it has no OK or X, as the market's lines move on
   with the walk. Coloured sword names (R61) carry over. Asserted by the FTUE test (written first).
+- **R85 (2026-11-05, owner): "Tap the metal to select a shape." once the metal is on the anvil.** Owner, with a picture of the
+  first sword's metal on the anvil and D6 ("Nice! Let's take this hot metal to the anvil.") still up: "once the metal is placed on
+  the anvil the dragon dialogue should be to 'tap the metal to select shape.' check the rest of the tutorial as well." New line
+  **D6a** "Tap the metal to select a shape." (beside D6; "a shape" for the grammar; 206 keys). Since R82 the drop lays the metal on the anvil and glows it;
+  that same step (`placeOnAnvil`) now says D6a on every guided drop in the tutorial - the first sword (after D6), TC2's second
+  sword (after D44), the fire sword (after D77), Bram's stored swift metal (after D113), the guided order crafts - but not in
+  Garric's solo craft (`TUT_SOLO`, the dragon stepped back), and not again if it is already up. The tap that opens the shape
+  window closes it (`openShapeSelect`, as D44 and D77; D12 still comes over the first sword's window). Script SSOT updated.
+  Asserted by the FTUE test (written first).
