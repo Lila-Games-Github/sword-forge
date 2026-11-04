@@ -954,3 +954,9 @@ yours and come on top.
   tutorial (`tutOver`) and in free play it shows whenever the gate is ready, as before. `gateGuided` decides; `smGateSync`
   keeps `#frame.gate-hush` every frame. The ladle lessons (D97, D97a), the gale park and the pumping lines therefore show no
   ring until the pointer comes. Asserted by the FTUE test (written first).
+- **R79 (2026-11-04, owner): "Let's go sharpen the sword!" with the arrow to the basement.** Owner: "during bram's second
+  visit, when the arrow to go to the basement is shown, have the dragon say 'Let's go sharpen the sword!'". In Part 5 the
+  crafted swift Dagger leads to `tutBasementStep`, which lit the down arrow with no line (D48 had come with the wheel's
+  reward window). New line **D48a** "Let's go sharpen the sword!" (beside D48; 201 dialogue keys) is said there, with the
+  arrow. Its X is not lit, so the arrow lights with it (R75). Script SSOT: Part 5, the step before the basement. Asserted by
+  the FTUE test (written first).

@@ -8982,6 +8982,7 @@ const DIALOGUE = {
     D46: "Tell me where to FIRE, and hammer the blade.",
     D47: "Dip the blade in the bucket to finish crafting.",   /* R3: on the anvil, with the dip pointer */
     D48: "I found this sharpening wheel. I'll show you how to use it.",   /* v3 part 5 (owner): with its reward window, at Bram's ask */
+    D48a: "Let's go sharpen the sword!",   /* R79 (owner, 2026-11-04): Bram's second visit, with the arrow to the basement */
     D49: "Drag and drop the sword from the inventory onto the table.",
     D50: "Tap on the sharpening wheel.",
     D51: "The wheel works! Hold the handle of the sword and move it back and forth across the rotating wheel.",
@@ -9440,6 +9441,7 @@ function tutBasementStep(){
     TUT_SHARP_RUN=true; TUT_STAGE='to-basement';
     if(FTUE_ST.part!==5){ if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');   /* v3: in part 5, D48 came with the wheel's window */
         SAY_I=SAY_SEQ.indexOf('D48'); say('D48'); }
+    else sayQueue('D48a');   /* R79 (owner): "have the dragon say 'Let's go sharpen the sword!'" as the way down lights */
     tutExit('#panDown');
 }
 /* every arrival in the run, in one place: goScreen calls it after the screen is built */

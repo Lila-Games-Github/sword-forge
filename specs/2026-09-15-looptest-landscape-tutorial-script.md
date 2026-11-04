@@ -690,6 +690,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 10. **D28c** Dragon: "Here it is. Watch this!"
    *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
 
+10a. **D48a** Dragon: "Let's go sharpen the sword!"
+   *When: the Dagger is made; the arrow to the basement lights with it (R79).*
+
 #### The basement
 
 11. **D49** Dragon: "Drag and drop the sword from the inventory onto the table."
