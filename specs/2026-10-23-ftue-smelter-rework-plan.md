@@ -1027,3 +1027,10 @@ yours and come on top.
   with more to come, or one without a button, stays as it is (nothing unread is skipped); a screen change made by the game itself (`goScreen`) is not affected.
   Checked in the browser (D28g: the craft guide at the forge; D92e: the walk to the cave). Asserted by the FTUE test (written
   first).
+- **R87 (2026-11-05, owner): D32c and D33 dark except the map and the line; no ores until D35.** Owner: "put a black overlay
+  everywhere except the map and dialogue for d32c and d33. i want to make sure players cant use the ore before they read the
+  dialogue till d35". TC2's regrind lesson: D32c ("I put your ores back. Let's try again.", r296: the full dark) and D33 ("We can
+  travel further on the map if we grind the ores ...", with its what-if path on the map) join `SAY_DARK_CUT` (R71: the cut dim
+  over the rail and the arrows, a window over the map, the dragon and his line lifted). While either is up no ore leaves the bag
+  (`tutOresHeld`, as D72), and the dark covers the inventory anyway. D35 ("Drag one iron to the grindstone ...") is said clear
+  and frees the ores. Asserted by the FTUE test (written first).
