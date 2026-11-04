@@ -936,3 +936,9 @@ yours and come on top.
   lights when no lit line is up (`tutExitLater`, from `say` and `sayHide`), if the player is still on that screen and
   nothing else blinks. D89's and D92's OK glow (`SAY_GO_GLOW`), so the morning is D89's OK, D92's OK, then the arrow (R20).
   Asserted by the FTUE test (written first).
+- **R76 (2026-11-04, owner): no gate ring during D97; the gate lights at D98.** Owner, with a picture of the ladle and the
+  gate's ring (R64) during D97: "remove the highlight from the smelted gate for d97. show the highlight on the gate in d98".
+  TC4's ladle lesson runs in one stage, `p4-pull` (D97, the tiers window, the tilt), until the ladle parks the sword on
+  Durable (`tutDurableAligned`: D98, stage `p4-quench`, `tutGatePointer`). While `p4-pull` is on, `#frame.gate-hush`
+  (kept by `smGateSync`, every frame) stops the ready gate's ring from drawing; the gate itself still works. At D98 the
+  ring and D98's own pointer come back. Asserted by the FTUE test (written first).

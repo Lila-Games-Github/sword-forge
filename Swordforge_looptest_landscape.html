@@ -413,6 +413,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #furnaceGate.ready::after { border: 3px solid rgba(255,214,110,.9); animation: gateRipple 1.2s ease-out infinite; }
 @keyframes gatePulse { 0%,100% { transform: translate(-50%,-50%) scale(.94); opacity: .8; } 50% { transform: translate(-50%,-50%) scale(1.08); opacity: 1; } }
 @keyframes gateRipple { 0% { transform: translate(-50%,-50%) scale(1); opacity: .9; } 100% { transform: translate(-50%,-50%) scale(1.6); opacity: 0; } }
+#frame.gate-hush #furnaceGate.ready::before, #frame.gate-hush #furnaceGate.ready::after { display: none; }   /* R76: not during D97's ladle lesson */
 .bellowtop.pumping { animation: pump .28s ease-in-out infinite; transform-origin: 20% 74%; }
 @keyframes pump { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
 /* r75 — the dragon's speech bubble. Placeholder art; the tail and the anchoring are the point.
@@ -6777,7 +6778,10 @@ function furnaceArtSync(dt){ if(melt && melt.stage==='smelting') melt.glow=furna
     ['top','gateOff','gateOn'].forEach(n=>{ const el=document.getElementById('fo-'+n); if(!el) return;
         const ms=(n==='top' && melt && melt.stage==='smelting') ? 0 : FURNACE_ART.fadeMs;   /* R35: in the smelter the crown is set each frame */
         el.style.transition=ms ? 'opacity '+ms+'ms ease-out' : 'none'; el.style.opacity=n==='top' ? l.top.toFixed(3) : l[n]; }); }
-function smGateSync(){ const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
+/* R76 (owner, 2026-11-04): "remove the highlight from the smelted gate for d97. show the highlight on the gate in d98" - while TC4's
+   ladle lesson aligns the sword (p4-pull: D97 until D98) the ready gate's ring is not drawn; the gate still opens */
+function smGateSync(){ { const f=document.getElementById('frame'), h=TUT_STAGE==='p4-pull'; if(f && f.classList.contains('gate-hush')!==h) f.classList.toggle('gate-hush', h); }
+    const on=!!(melt && melt.stage==='smelting' && melt.reachedTrait); if(on===gateReady) return;
     gateReady=on; const g=document.getElementById('furnaceGate'); if(g) g.classList.toggle('ready', on); }
 /* smelter version: the gate opens only on a trait; it takes the trait and releases the hot metal (tryAcquire) */
 function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!melt.reachedTrait){ toast('Move the sword onto a <b>trait</b> first: drag the <b>bellows</b> up and down'); return; }
