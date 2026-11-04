@@ -709,16 +709,16 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
 eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
-eq('say() syncs after its hooks, and leaves a stage dim alone', src.includes("if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');") && /function say\(id\)\{[\s\S]*?tutDarkSync\(\);[^\n]*\n\s*sayLayout\(\);/.test(src), true);
+eq('say() syncs after its hooks, and leaves a stage dim alone', src.includes("if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);") && /function say\(id\)\{[\s\S]*?tutDarkSync\(\);[^\n]*\n\s*sayLayout\(\);/.test(src), true);
 eq('closing a line keeps a stage dim', /function sayHide\(\)\{[\s\S]{0,1400}if\(!STAGE_DARK\[TUT_STAGE\]\) tutDark\(false\);/.test(src), true);
 eq('the frame loop syncs it', src.includes("    tutDarkSync();   /* r271/r272 */"), true);
 eq('the cut is an even-odd path of rectangles', /function tutDarkLayout\(\)\{[\s\S]{0,900}path\(evenodd, '/.test(src), true);
-eq('a pause in a dark stage uses the stage\'s dim, not #tutDim', src.includes("if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE]);"), true);
+eq('a pause in a dark stage uses the stage\'s dim, not #tutDim', src.includes("if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE] && !SAY_DARK_CUT[SAY_ON]);"), true);   /* R71: and a line's own */
 /* r270 (owner, 2026-10-16): D1 and D2 are read on a dark screen - the r245 dim with no hole; only the dragon and his
    line (with its glowing OK) show above it */
 eq('SAY_DARK is D1, D2 and D32c (r296)', (src.match(/const SAY_DARK=(\[[^\]]*\]);/) || [])[1], "['D1','D2','D32c']");
 eq('D32c\'s OK is lit (r296)', /const SAY_GO_GLOW=\{[^}]*D32c:1/.test(src), true);
-eq('say() darkens for those lines on the forge bubble, and clears for any other', src.includes("tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');"), true);
+eq('say() darkens for those lines on the forge bubble, and clears for any other', src.includes("tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);"), true);   /* R71: and the lines with their own window */
 eq('sayHide() lifts it', /function sayHide\(\)\{[\s\S]{0,1400}tutDark\(false\);/.test(src), true);
 eq('the dragon rises over the dim with his line', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }'), true);
 eq('tutDark leaves a live trait hole alone', src.includes("function tutDark(on, cut, lift){ if(TUT_HOLE) return;"), true);
@@ -1605,4 +1605,9 @@ eq('R70: every frame keeps the arrows in step', s0.includes("    craftFrameUi();
 const EX = new Function('FTUE_ST', 'SM_FREE', 'TUT_BRAM_SOLD', s0.match(/function exitSeen[\s\S]*?\n(?=function exitIntro)/)[0] + '; return exitKnown;');
 const k = (st, a, b, sold) => EX(Object.assign({ part: 1, exits: {}, done: false }, st), false, !!sold)(a, b);
 eq('R70: a new game knows nothing; a lit step and its way back; Bram served opens the counter; the shop waits for the end', [k({}, 'forge', 'customer'), k({ exits: { 'forge>customer': true, 'customer>forge': true } }, 'customer', 'forge'), k({}, 'forge', 'customer', true), k({ part: 3 }, 'forge', 'cave'), k({ part: 3 }, 'customer', 'shop'), k({ part: 5, sharp: true }, 'forge', 'basement'), k({ done: true }, 'customer', 'shop')], [false, true, true, true, false, true, true]); }
+/* R71 (owner, 2026-11-04): "d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible." */
+{ const s1 = src.replace(/\r\n/g, '\n');
+eq('R71: D69a-c on the cut dim, a window over the map', [s1.includes("const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */\n/* R71 (owner, 2026-11-04): \"d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible.\" - the\n   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on\n   tutPause's #tutDim (under the rail, over the map) */\nconst SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ] };\n"), s1.includes("    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */\n")], [true, true]);
+eq('R71: the pause dim stays off under them', s1.includes("    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE] && !SAY_DARK_CUT[SAY_ON]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead. R71: and a line's own */\n"), true);
+eq('R71: the cut dim is over the rail and the arrows', [+(s1.match(/#tutHole \{ position: absolute; inset: 0; z-index: (\d+);/) || [])[1] > 50, +(s1.match(/#frame\.landscape > #rail \{ z-index: (\d+); \}/) || [])[1]], [true, 45]); }
 console.log('[ftue] GREEN / ' + n + ' checks');

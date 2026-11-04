@@ -3663,6 +3663,10 @@ function tutHole(t){ TUT_HOLE=t||null; const d=document.getElementById('tutHole'
     const sb=document.getElementById('dragonSay'); if(sb) sb.classList.toggle('hole-say', !!TUT_HOLE); }
 /* r270 (owner): D1 and D2 are read on a dark screen. The r245 dim with no hole; only the dragon and his line show */
 const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */
+/* R71 (owner, 2026-11-04): "d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible." - the
+   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on
+   tutPause's #tutDim (under the rail, over the map) */
+const SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ] };
 /* R16 (owner, 2026-10-27): D13 in the first minigame - only the minigame's dragon and the line show */
 const HM_SAY_DARK=['D13'];
 function hmDarkSync(){ const m=document.getElementById('sfHammerModal'); if(m) m.classList.toggle('hm-dark', m.classList.contains('show') && HM_SAY_DARK.includes(SAY_ON)); }
@@ -9310,7 +9314,7 @@ function tutPause(on){ TUT_PAUSE=!!on;
     const d=document.getElementById('tutDim');
     const hm=document.getElementById('sfHammerModal');
     const inHm=!!(hm && hm.classList.contains('show'));   /* r173 */
-    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead */
+    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE] && !SAY_DARK_CUT[SAY_ON]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead. R71: and a line's own */
     tutLit(!!on);
 }
 /* r173: whichever bubble is currently speaking gets the ring and rises over the dim. Four boxes
@@ -11257,7 +11261,7 @@ function say(id){
         const o=document.getElementById(SAY_BOXES[k][0]); if(o) o.classList.remove('show'); });
     SAY_ON=id; SAY_LAST=id; sayType(t, sayFill(line)); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
-    if(!STAGE_DARK[TUT_STAGE]) tutDark(SAY_DARK.includes(id) && B[0]==='dragonSay');   /* r270. r271/r272: a dark stage keeps its own */
+    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */
     hmDarkSync();   /* R16 */
     /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
        the end, so the next tap closes instead of walking the run from wherever it had been left. */

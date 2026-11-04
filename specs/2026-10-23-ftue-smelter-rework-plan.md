@@ -902,3 +902,9 @@ yours and come on top.
   (`exitSeen`): the counter once Bram is served (or from Part 2), the cave and the bedroom from Part 3, the basement once
   sharpening or the desk is unlocked; the shop only after the tutorial. After the tutorial and in free play every arrow shows.
   The code's own screen changes (`goScreen`) are not limited. Asserted by the FTUE test (written first).
+- **R71 (2026-11-04, owner): D69a-D69c dark over the inventory too, the map clear.** Owner: "d69a-b-c hide black overlay should
+  be on the inventory panel as well. but map should be visible." The hazard beat (`tutHazardStep`: D69a, D69b, D69c, the
+  game paused) was said on `tutPause`'s dim (`#tutDim`, z 45), which covered the map and left the rail (z 45, later in the
+  page) and the arrows (z 50) bright. Its lines now use the cut dim (`#tutHole`, z 60) with a window over the map
+  (`SAY_DARK_CUT`), the dragon and his line lifted over it as for D1/D2; `#tutDim` stays off for them. Closing D69c lifts
+  both (`sayHide`, `tutPause(false)`). Asserted by the FTUE test (written first).
