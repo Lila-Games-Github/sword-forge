@@ -908,3 +908,9 @@ yours and come on top.
   page) and the arrows (z 50) bright. Its lines now use the cut dim (`#tutHole`, z 60) with a window over the map
   (`SAY_DARK_CUT`), the dragon and his line lifted over it as for D1/D2; `#tutDim` stays off for them. Closing D69c lifts
   both (`sayHide`, `tutPause(false)`). Asserted by the FTUE test (written first).
+- **R72 (2026-11-04, owner): D71 and D72 dark except the map, D71's X lit.** Owner, with a picture of D71 ("We need to go
+  further. Let's add one more ore."): "black overlay for the entire screen except the dragon diaogue and the map, highlight
+  the x on dialogue here. black overlay is removed at d72a". D71 and D72 join `SAY_DARK_CUT` (R71: the cut dim with a window
+  over the map, the dragon and his line lifted); D71's X glows (`SAY_GO_GLOW`). D71's X brings D72 at once
+  (`tutFireReheated`), so the dark carries on; D72a is not in the list, so it is said clear. Asserted by the FTUE test
+  (written first).
