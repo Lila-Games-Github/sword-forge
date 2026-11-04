@@ -378,7 +378,7 @@ eq('synced every frame and as the line is said', /tutDarkSync\(\);[^\n]*\n\s*hmD
 eq('the ore comes back whole (raw), the orb and its preview go, the Ingredients tab shows it',
   src.includes("function unprepOre(){ if(!prep) return false; gainOre(prep.ore,1); prep=null; hidePreviewPaths(); orbEl.style.display='none'; oreImgEl.style.opacity=1; sphereEl.style.opacity=0; invTab(0); return true; }"), true);
 eq('dropped on the inventory: a metal is stored, an ore on the grindstone goes back', src.includes("if(e && moved && overRail(e) && (stashIngot() || unprepOre())) return;"), true);
-eq('no ore pickup while D72 or D72a compares the paths', src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && (SAY_ON==='D72' || SAY_ON==='D72a'); }")
+eq('no ore pickup while D72 compares the paths (R73: D72a points at the wheel)', src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && SAY_ON==='D72'; }")
   && /function startOreDrag\(oreId,e\)\{ if\(tutOresHeld\(\)\) return;/.test(src), true);
 
 /* R23 (owner, 2026-10-28): Day 3 - no gathering until the pickaxe skill is upgraded */
@@ -1027,7 +1027,7 @@ eq('D72a follows D72', (() => { const ks = [...src.matchAll(/\n\s*(D\d+[a-z]?): 
 eq('no grind cap any more', !src.includes('GRIND_FIRE_CAP'), true);
 eq('R24: manganese only (it avoids the hazard), fully ground', src.includes("if(TUT_STAGE==='fire-mang') return segs.filter(g=>g.ore==='manganese').length<2 ? 'manganese' : false;") && src.includes("if(want && want.split('/').indexOf(oreId)<0)")
   && /function fullGrindOnly\(\)\{[\s\S]{0,300}TUT_STAGE==='fire-mang' \|\| TUT_STAGE==='fire-iron'; \}/.test(src), true);
-eq('after the reheat: both lines, and each draws its path', src.includes("sayQueue('D72','D72a'); tutForkPath('iron');") && src.includes("if(id==='D72a' && TUT_STAGE==='fire-mang') tutForkPath('manganese');"), true);
+eq('after the reheat: both lines, and each draws its path', src.includes("sayQueue('D72','D72a'); tutForkPath('iron');") && src.includes("if(id==='D72a' && TUT_STAGE==='fire-mang'){ tutForkPath('manganese');"), true);   /* R73: and the wheel arrow with it */
 eq('the choice paths are dashed, apart from the red route (found in the browser: iron blended into it)',
   src.includes("el.setAttribute('stroke', id==='iron' ? '#8e1a10' : '#2f9e4f'); el.setAttribute('stroke-dasharray','14 9'); el.setAttribute('stroke-width','5');"), true);
 eq('the fog opens over the choice, so the hazard is seen (found in the browser: both paths ran into the fog)',
@@ -1614,4 +1614,8 @@ eq('R71: the cut dim is over the rail and the arrows', [+(s1.match(/#tutHole \{ 
 { const s2 = src.replace(/\r\n/g, '\n'), T = new Function(s2.match(/const SAY_DARK_CUT=[\s\S]*?\};/)[0] + '; return SAY_DARK_CUT;')();
 eq('R72: D71 and D72 on the cut dim with the map window; D72a clear', [!!T.D71, !!T.D72, !!T.D72a, T.D71[0].sel, T.D72[0].sel], [true, true, false, '#map-wrap', '#map-wrap']);
 eq('R72: D71\'s X glows', s2.includes("D57:1, D70:1, D71:1,"), true); }
+/* R73 (owner, 2026-11-04): "d72a i want the arrow guide from manganese to grinder back" */
+eq('R73: the ores are held during D72 only', [src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && SAY_ON==='D72'; }   /* R73 (owner): D72 only - D72a points at the wheel */"), src.includes("function tutOresHeld(){ return TUT_STAGE==='fire-mang' && (SAY_ON==='D72' || SAY_ON==='D72a'); }")], [true, false]);
+eq('R73: D72a brings the manganese-to-grindstone arrow', src.replace(/\r\n/g, '\n').includes("    if(id==='D72a' && TUT_STAGE==='fire-mang'){ tutForkPath('manganese'); setTimeout(()=>{ if(SAY_ON==='D72a' && !prep) tutWheelArrow('Manganese'); }, 0); }   /* 2026-10-13: beside iron's. R73 (owner, 2026-11-04): \"d72a i want the arrow guide from manganese to grinder back\" - with the line */\n"), true);
+eq('R73: on the wheel the arrow gives way to the turn, every frame', [src.replace(/\r\n/g, '\n').includes("    /* R73 (owner): the fork - nothing while D72 holds the ores; then the manganese to the wheel, the turn; ground, D73 points at the smelter itself */\n    if(TUT_STAGE==='fire-mang'){\n        if(SAY_ON==='D72' || TUT_SAIDENOUGH || (prep && prep.grind>=0.999)) return;\n        if(onWheel){ tutArrow(null,null); tutSpinOn('#grindHot'); return; }\n        tutWheelArrow('Manganese'); return; }\n    /* v3 part 3: GC4's Durable craft - nickel to the wheel, turn, smelter, twice; then the heat run and the quench */\n    if(TUT_STAGE==='p3-dur-grind'){\n"), src.includes("const TUT_TICK_STAGES=['record','record-close','fire-heat1','fire-heat2','fire-iron','fire-mang',")], [true, true]);
 console.log('[ftue] GREEN / ' + n + ' checks');

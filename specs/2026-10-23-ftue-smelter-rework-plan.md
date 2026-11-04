@@ -914,3 +914,11 @@ yours and come on top.
   over the map, the dragon and his line lifted); D71's X glows (`SAY_GO_GLOW`). D71's X brings D72 at once
   (`tutFireReheated`), so the dark carries on; D72a is not in the list, so it is said clear. Asserted by the FTUE test
   (written first).
+- **R73 (2026-11-04, owner): D72a brings the manganese-to-grindstone arrow.** Owner: "d72a i want the arrow guide from
+  manganese to grinder back". R21 held the ores while D72 *and* D72a were up (the owner had asked for D72), so the arrow came
+  only after D72a's X. Now only D72 holds them (`tutOresHeld`); as D72a ("But the manganese can avoid it.") comes up, the
+  arrow from the manganese slot to the grindstone comes with it (`tutWheelArrow`), and the manganese can be taken at once
+  (iron stays refused, R24). D72a's X still clears the fork paths (`tutForkDone`), and grinding the manganese first clears
+  them too (`tutFireGround`). The stage `fire-mang` now keeps a live pointer (`TUT_TICK_STAGES`, a branch in
+  `tutNudgeApply`): nothing while D72 is up; the arrow until the manganese is on the wheel; then the turn hint
+  (found in the browser: the arrow stayed pointing from the empty slot). Asserted by the FTUE test (written first).
