@@ -6280,9 +6280,14 @@ function updateScreenArrows(){
     [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{
         const b=document.getElementById(id); if(b) b.classList.toggle('dead', !exits[dir] || !exitKnown(SF_SCREEN, exits[dir])); });   /* R70: and not yet introduced */
 }
+/* R86 (owner, 2026-11-05): "when i go to the forge screen without closing D28g the guides to craft the sword is gone. make sure this kinds
+   thing does not happen." A line whose closing moves the tutorial on (SAY_AFTER, SAY_THEN: D28g starts the craft guide) is closed, as its
+   X would, when the player walks to another screen while it is up, so its next step runs there. Only the last line of its run (its OK
+   or X closes it); a line with more to come, or one without a button, is left alone */
+function sayLeave(){ const id=SAY_ON; if(!id || SAY_GO_KIND==='none' || !(SAY_I<0 || SAY_I>=SAY_SEQ.length-1) || !(SAY_AFTER[id] || (SAY_THEN && SAY_THEN.id===id))) return; sayTypeStop(true); sayNext(); }
 function screenStep(dir){
     if(document.querySelector('.sf-modal.show')) return;   // never navigate out from under a modal
-    const to=(SCREENS[SF_SCREEN]||{})[dir]; if(to && exitKnown(SF_SCREEN, to)) goScreen(to);   /* R70: not before the tutorial shows the way */
+    const to=(SCREENS[SF_SCREEN]||{})[dir]; if(to && exitKnown(SF_SCREEN, to)){ sayLeave(); goScreen(to); }   /* R70: not before the tutorial shows the way. R86: a closing line's next step first */
 }
 function wirePan(){ wireRacks(); wireDesign(); wireSharpen();
     [['panUp','up'],['panDown','down'],['panLeft','left'],['panRight','right']].forEach(([id,dir])=>{

@@ -1016,3 +1016,14 @@ yours and come on top.
   Garric's solo craft (`TUT_SOLO`, the dragon stepped back), and not again if it is already up. The tap that opens the shape
   window closes it (`openShapeSelect`, as D44 and D77; D12 still comes over the first sword's window). Script SSOT updated.
   Asserted by the FTUE test (written first).
+- **R86 (2026-11-05, owner): walking away from a line no longer loses its next step.** Owner: "a bug, when i go to the forge
+  screen without closing D28g the guides to craft the sword is gone. make sure this kinds thing does not happen. check if this
+  happens anywhere else and fix it too." Cause: an order's lines start the craft guide when their last line closes (r300,
+  `SAY_THEN`); walked away from, D28g stayed up on the forge and the stage stayed `p1-gpc`, with no guide (reproduced). The same
+  hold sits on every line in `SAY_AFTER` (its closing moves the tutorial on): D92 (the way to the counter), D92c, D92e, D92g
+  (Durable's map and cave trip), D72a, D97, D119a, D130, D130b, D26, D32b, D57, D67a, D117 and the banner lines. Now
+  `screenStep` (an arrow tapped, an arrow key) first runs `sayLeave`: if the line up has such a step and is the last of its run (its OK or X
+  closes it; D28g shows an OK), it is closed as that button would close it (`sayNext`), so the step runs on the new screen. A line
+  with more to come, or one without a button, stays as it is (nothing unread is skipped); a screen change made by the game itself (`goScreen`) is not affected.
+  Checked in the browser (D28g: the craft guide at the forge; D92e: the walk to the cave). Asserted by the FTUE test (written
+  first).
