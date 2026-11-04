@@ -946,3 +946,11 @@ yours and come on top.
   sword onto the trait.", TC5's swift run) and the gate's ring: "same here, remove the highlight on the smelter gate for
   this." Its stage `d2-pull` (D97a until the ladle parks the sword on Swift: `tutSwiftAligned`, D98) joins `p4-pull` in
   `smGateSync`'s `gate-hush` rule. The gale park (`d2-gale-work`) is unchanged. Asserted by the FTUE test (written first).
+- **R78 (2026-11-04, owner): the gate's ring is a guide only (supersedes R76-R77's step list).** Owner, with a picture of D74
+  ("Pump the bellows.", the gale run) and the ring on: "yes, hide it for the gale park too. the circle on the smelter gate is
+  supposed to show up only as a guide, so it should show when players are meant to click on the smelter gate." During the
+  tutorial the ready gate's ring (R64) draws only while the tutorial points at the gate - the gate carries its blink or glow,
+  set by `tutGatePointer` (D10, D75, the D98 parks, D107b) or the idle pointer (`tutLoopPointer`'s gate step). After the
+  tutorial (`tutOver`) and in free play it shows whenever the gate is ready, as before. `gateGuided` decides; `smGateSync`
+  keeps `#frame.gate-hush` every frame. The ladle lessons (D97, D97a), the gale park and the pumping lines therefore show no
+  ring until the pointer comes. Asserted by the FTUE test (written first).
