@@ -928,3 +928,11 @@ yours and come on top.
   dim (`SAY_DARK_CUT`: D69a-D69c, D71, D72) is up, `#frame.say-cut` hides the drag gesture (`#tutDrag`) and the drag arrow
   (`#tutArrow`); closing the line brings them back. D69a, D69b and D69c's button glows (`SAY_GO_GLOW`: OK on D69a and D69b,
   the X on D69c; D71's X already did, R72). Asserted by the FTUE test (written first).
+- **R75 (2026-11-04, owner): one highlight at a time; Day 2's morning lights the line, then the arrow.** Owner, with a picture
+  of D89 ("Good morning! ...") and the left arrow lit beside it: "the highlight should only be on dragon's dialogue here, the
+  arrow to go to customer counter will be highlighted in d92. there shouldn't be two highlights on the screen at a time".
+  Arriving on the forge at stage `d2-counter` lit the arrow at once (r203's "from the cave" rule in `tutDay2Screen`). Now a
+  screen arrow asked for (`tutExit`) while a dragon line with a lit button is up (`sayGlowUp`) waits: it shows, unlit, and
+  lights when no lit line is up (`tutExitLater`, from `say` and `sayHide`), if the player is still on that screen and
+  nothing else blinks. D89's and D92's OK glow (`SAY_GO_GLOW`), so the morning is D89's OK, D92's OK, then the arrow (R20).
+  Asserted by the FTUE test (written first).

@@ -9133,9 +9133,14 @@ let TUT_ARROW=null;
 /* r120: blink ONE exit, or none. Hung off the same clearing paths the arrow already had, so every
    place that put the pointer away puts this away too. */
 /* r120/r121: blink ONE control, or none. Any control, not just an exit. */
-function tutExit(sel){
+/* R75 (owner, 2026-11-04): "there shouldn't be two highlights on the screen at a time" - a screen arrow asked for while a dragon
+   line with a lit button is up waits (it shows, unlit) and lights when that line goes, if the player is still on that screen */
+let TUT_EXIT_LATER=null;
+function sayGlowUp(){ return !!(SAY_ON && SAY_GO_GLOW[SAY_ON] && SAY_GO_KIND!=='none' && ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].some(id=>{ const b=document.getElementById(id); return b && b.classList.contains('show'); })); }
+function tutExitLater(){ const p=TUT_EXIT_LATER; if(!p || sayGlowUp()) return; TUT_EXIT_LATER=null; if(p.screen===SF_SCREEN && !document.querySelector('.tut-blink')) p.el.classList.add('tut-blink'); }
+function tutExit(sel){ TUT_EXIT_LATER=null;
     document.querySelectorAll('.tut-blink').forEach(b=>b.classList.remove('tut-blink'));
-    const el = sel && tutEl(sel); if(el){ exitIntro(el); el.classList.add('tut-blink'); }   /* R70: a lit screen arrow is introduced */
+    const el = sel && tutEl(sel); if(el){ exitIntro(el); if(/^pan/.test(el.id||'') && sayGlowUp()){ TUT_EXIT_LATER={ el:el, screen:SF_SCREEN }; return; } el.classList.add('tut-blink'); }   /* R70: a lit screen arrow is introduced. R75: not beside a lit line */
 }
 /* ---- r152: the arrow means DRAG, and nothing else. ----
    A tap or a hold is a pointer at one thing, so it gets the blinking glow instead; an arrow is a
@@ -11226,7 +11231,7 @@ function sayChoose(list, optional){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D69a:1, D69b:1, D69c:1, D70:1, D71:1,
+const SAY_GO_GLOW={ D89:1, D92:1, D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D69a:1, D69b:1, D69c:1, D70:1, D71:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
                     D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
@@ -11284,6 +11289,7 @@ function say(id){
     /* r288: a listed line has none anywhere in a run (D23 repeats behind a stale run). r115/r174/r184/r196 */
     const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');
     sayGoIcon(go, goKind, id);   /* R57 (owner): the X on every screen (R22 took it off the counter and the cave) */
+    setTimeout(tutExitLater, 0);   /* R75: a waiting arrow lights once no lit line is up */
     if(id==='D42' && !FTUE_ST.craftFrame) FTUE_ST.craftFrame=true; craftFrameUi();   /* R69: the craft frame appears with D42 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
@@ -11329,6 +11335,7 @@ function sayHide(){
     SAY_ON=null; sayChoose(null);   /* r115 */
     if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
     { const fr=document.getElementById('frame'); if(fr) fr.classList.remove('say-cut'); }   /* R74 */
+    setTimeout(tutExitLater, 0);   /* R75 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
