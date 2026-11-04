@@ -7202,6 +7202,7 @@ function closeMarket(){
     if(m && m.step==='done') ftueMarketDone(m);   /* v3 (owner): GC1-GC3 are guided through the craft */   /* v3 part 5: Bram's run goes on */
     else if(m && m.step==='buy'){ m.step='ask'; tutExit('#marketBtn'); }   /* closed before buying: back to MARKET */
     if(FTUE_LATER==='close'){ FTUE_LATER=null; ftueLaterCells(false); tutExit(null); sayQueue('D107d'); setTimeout(()=>tutExit('#csPanel .cs-later'), 0); }   /* r253 */
+    else if(FTUE_LATER==='find' || FTUE_LATER==='buy' || FTUE_LATER==='find2'){ FTUE_LATER = FTUE_LATER==='find2' ? 'mk2' : 'mk'; FTUE_LATER_TAG=null; ftueLaterCells(false); tutExit('#marketBtn'); }   /* R83: closed early - MARKET again */
 }
 /* R38: the rotary market (specs/2026-10-29-rotary-market.md). MK.page = the page shown (mkPages index); MK.rot = the
    wheel's turn in tags (unbounded; the trait under the selected slot is MARKET.traits[mkWrap(round(rot))]). */
@@ -7224,7 +7225,7 @@ function mkWheelDraw(){ const W=document.getElementById('mkWheel'); if(!W) retur
         t.textContent=known ? TRAIT_BY[k].name : '?'; t.style.background=c[0]; t.style.borderColor=c[1];   /* D14: a '?' for a trait not found yet */
         t.style.left=((p.x-B.x0)/B.w*100).toFixed(2)+'%'; t.style.top=((p.y-B.y0)/B.h*100).toFixed(2)+'%';
         t.style.transform='translate(-50%,-50%) scaleY('+p.sy.toFixed(3)+')'; t.style.opacity=p.op.toFixed(3);
-        t.style.visibility=p.op>0 ? '' : 'hidden'; t.style.zIndex=Math.round(100-Math.abs(d)*10); }); }
+        t.style.visibility=p.op>0 ? '' : 'hidden'; t.style.zIndex=Math.round(100-Math.abs(d)*10); }); ftueLaterSync(); }   /* R83 */
 /* the wheel turns to a tag; the state is set by the caller, this only moves the art (a timer lands it if rAF is frozen) */
 function mkSpinTo(target){ const from=MK.rot, tok=++MK.anim, dur=Math.min(1400, 260+90*Math.abs(target-from)), t0=performance.now();
     const step=now=>{ if(tok!==MK.anim) return; const u=Math.min(1, (now-t0)/dur), e=1-Math.pow(1-u, 3);
@@ -7258,7 +7259,7 @@ function mkSetPage(i, dir, noSpin){ const N=mkPages().length, n=MARKET.traits.le
     if(old){ old.classList.add('old'); old.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
         old.animate([{ transform:old.style.transform||'translateY(0)', opacity:1 }, { transform:'translateY('+(dir>0 ? -55 : dir<0 ? 55 : 0)+'%)', opacity:0 }], { duration:260, easing:'ease-in', fill:'forwards' });
         setTimeout(()=>old.remove(), 300); }
-    const pg=mkPageEl(); if(!pg) return null; mkFill(pg);
+    const pg=mkPageEl(); if(!pg) return null; mkFill(pg); setTimeout(ftueLaterSync, 0);   /* R83 */
     pg.animate([{ transform:'translateY('+(dir>0 ? 40 : dir<0 ? -40 : 0)+'%)', opacity:0 }, { transform:'translateY(0)', opacity:1 }], { duration:300, easing:'ease-out' });
     const t=MARKET.traits.indexOf(mkCur().trait), cur=mkWrap(Math.round(MK.rot), n);
     if(!noSpin && cur!==t) mkSpinTo(Math.round(MK.rot)+mkRingDelta(cur, t, n));
@@ -7282,7 +7283,8 @@ function mkPtrUp(e){ const kind=MK_DRAG.on; if(!kind || e.pointerId!==MK_DRAG.id
         else target=mkFling(MK.rot, -v*1000/mkTagGap());
         const k=MARKET.traits[mkWrap(target, n)], dir=Math.sign(target-MK.rot)||1;
         mkSpinTo(target);
-        if(mkCur().trait!==k) mkSetPage(mkFirstPage(k), dir, true);   /* the pages show the new trait's first blueprint */
+        const lt=ftueLaterTarget(), lp=(lt && lt.split(':')[0]===k) ? mkPageOf(k, lt.split(':')[1]) : -1;   /* R83: the lesson's tag opens its blueprint */
+        if(lp>=0) mkSetPage(lp, dir, true); else if(mkCur().trait!==k) mkSetPage(mkFirstPage(k), dir, true);   /* the pages show the new trait's first blueprint */
         return; }
     const pg=mkCurPg(), h=document.getElementById('mkPaper').getBoundingClientRect().height, dir=MK_DRAG.moved ? mkTurn(dy, h, v) : 0;
     if(dir) mkSetPage(MK.page+dir, dir);
@@ -7301,7 +7303,7 @@ function sayOver(id){
     const box=document.getElementById('mkSay'), open=document.getElementById('sfMarketModal').classList.contains('show');
     if(!box || !open){ sayQueue(id); return; }
     sayHide(); if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
-    dlgFill(box.querySelector('p'), DIALOGUE[id]); box.hidden=false; }
+    dlgFill(box.querySelector('p'), sayFill(DIALOGUE[id])); box.hidden=false; }   /* R83: with its {values} */
 function mkSayOff(){ const box=document.getElementById('mkSay'); if(box) box.hidden=true; }
 /* the end of a market step: the order's next beat (closeMarket, or the skip below) */
 function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide(); if(f) setTimeout(f, 0);
@@ -7309,18 +7311,35 @@ function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide
     if(m.o && m.o.guide) ftueBookGo(m.o); }   /* v3 (owner): GC1-GC3 are guided through the craft. v3 part 5: Bram's run goes on */
 /* owner, 2026-10-13: the player already owns the ordered blueprint - no trip to the market (it looped: buy, close, ask) */
 function ftueMarketOwned(){ const m=FTUE_MK; return !!(m && m.step==='shape' && FTUE_ST.shapes[m.o.trait+':'+m.o.shape]); }   /* r300: 'shape' */
-/* r253 (owner): the come-later customer's guide. MARKET lights after the request; in the market both blueprints are
-   scrolled into view and lit, with Close lit; closing it gives D107d and lights COME LATER. R38: one page at a time -
-   Gale Katana lit, then Fire Claymore lit with the close button (ftueLaterShow). FTUE_LATER: 'mk' -> 'close'
-   -> null. Its own flag, so FTUE_MK (the orders' market lesson) is untouched; COME LATER at any point ends it. */
-let FTUE_LATER=null;
+/* r253 (owner): the come-later customer's guide. MARKET lights after the request; closing the market gives D107d and lights COME
+   LATER. Its own flag, so FTUE_MK (the orders' market lesson) is untouched; COME LATER at any point ends it.
+   R83 (owner, 2026-11-05): in the market the player walks it - 'mk' -> find (D107ca: the Gale tag blinks; tapped, it opens the
+   Katana page) -> buy (D107cb with the price, BUY lit; short of gold, D28h and the dragon's coins first) -> find2 (bought: D107cc,
+   the Fire tag blinks; it opens the Claymore page) -> close (D107cd with the price, Close lit) -> D107d. A tag off the wheel's
+   face: the visible one nearest it blinks, and its tap turns the wheel closer. Closed early: 'mk' (or 'mk2' once the Katana is
+   bought) and MARKET lights again. One highlight at a time. */
+let FTUE_LATER=null, FTUE_LATER_TAG=null;
 const FTUE_LATER_KEYS=['gale:Katana','fire:Claymore'];
 function ftueLaterCells(on){ const b=document.getElementById('mkBuy'); if(b) b.classList.toggle('tut-glow', !!on); }
-function ftueLaterShow(){ MK_LOCK=true; mkShow(FTUE_LATER_KEYS[0]); ftueLaterCells(true);
-    const next=()=>{ if(FTUE_LATER!=='close') return; mkShow(FTUE_LATER_KEYS[1]); ftueLaterCells(true); MK_LOCK=false; tutExit('#mkClose'); };
-    setTimeout(next, MK_ROT.laterMs); }
+function ftueLaterTarget(){ return FTUE_LATER==='find' ? FTUE_LATER_KEYS[0] : FTUE_LATER==='find2' ? FTUE_LATER_KEYS[1] : null; }
+function ftueLaterTag(){ const k=ftueLaterTarget(); if(!k) return null; const n=MARKET.traits.length, i=MARKET.traits.indexOf(k.split(':')[0]), r=Math.round(MK.rot),
+        d=mkWrap(i-r+n/2, n)-n/2, seen=j=>{ const t=document.querySelector('#mkWheel .mk-tag[data-i="'+mkWrap(j, n)+'"]'); return (t && t.style.visibility!=='hidden' && +t.style.opacity>0.3) ? t : null; };
+    for(let o=d; o!==0; o-=Math.sign(o)){ const t=seen(r+o); if(t) return t; }
+    return seen(r); }
+function ftueLaterSync(){ const k=ftueLaterTarget(); if(!k || !document.getElementById('sfMarketModal').classList.contains('show')) return; const p=mkCur();
+    if(p && p.trait+':'+p.shape===k){ ftueLaterAt(); return; }
+    const t=ftueLaterTag(); if(t && t!==FTUE_LATER_TAG){ FTUE_LATER_TAG=t; tutExit(t); } }
+function ftueLaterAt(){ FTUE_LATER_TAG=null; tutExit(null);
+    if(FTUE_LATER==='find'){ FTUE_LATER='buy'; MK_LOCK=true; const pr=marketPrice('gale','Katana'); SAY_VARS.p=pr;
+        const lit=()=>{ if(FTUE_LATER!=='buy') return; sayOver('D107cb'); ftueLaterCells(true); };
+        if(GOLD>=pr){ lit(); return; }
+        sayOver(FTUE.marketShort); setTimeout(()=>{ const g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, pr); updateHud(); renderMarket(); lit(); }; if(g) coinFly(dragonEl(), g, go); else go(); }, 900); return; }
+    if(FTUE_LATER==='find2'){ FTUE_LATER='close'; MK_LOCK=true; SAY_VARS.p=marketPrice('fire','Claymore'); ftueLaterCells(false); sayOver('D107cd'); tutExit('#mkClose'); } }
+function ftueLaterBought(k, sh){ if(FTUE_LATER!=='buy' || k+':'+sh!==FTUE_LATER_KEYS[0]) return false;
+    FTUE_LATER='find2'; MK_LOCK=false; ftueLaterCells(false); sayOver('D107cc'); setTimeout(ftueLaterSync, 0); return true; }
 function ftueMarketOpened(){
-    if(FTUE_LATER==='mk'){ FTUE_LATER='close'; tutExit(null); ftueLaterShow(); return; }
+    if(FTUE_LATER==='mk' || FTUE_LATER==='mk2'){ FTUE_LATER = FTUE_LATER==='mk' ? 'find' : 'find2'; FTUE_LATER_TAG=null; tutExit(null);   /* R83 */
+        sayOver(FTUE_LATER==='find' ? 'D107ca' : 'D107cc'); setTimeout(ftueLaterSync, 0); return; }
     const m=FTUE_MK; if(!m || m.step!=='ask') return;
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
@@ -7337,7 +7356,7 @@ function ftueMarketTopUp(){
     const m=FTUE_MK, g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, marketPrice(m.o.trait, m.o.shape)); updateHud(); renderMarket(); mkShow(m.o.trait+':'+m.o.shape);
         if(m && m.step==='buy') tutExit(mkCellOf(m.o)); };
     if(g) coinFly(dragonEl(), g, go); else go(); }
-function ftueMarketBought(k, sh){
+function ftueMarketBought(k, sh){ if(ftueLaterBought(k, sh)) return;   /* R83 */
     const m=FTUE_MK; if(!m || (m.step!=='buy' && m.step!=='shape') || k!==m.o.trait || sh!==m.o.shape) return;
     FTUE_MK=null; if(m.o.market.done) sayOver(m.o.market.done); }   /* r300: bought in the market anyway - the lesson ends (no second craft guide) */
 /* the player buys */
@@ -9084,6 +9103,10 @@ const DIALOGUE = {
     D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",   /* v3 part 4: GC8 (owner) */
     D107b: "Stop now! This alignment will give us a weak trait tier.",
     D107c: "Do you know gale makes fire stronger? I want a gale katana so I can make my partner's flame grow more fierce. I would also want a fire claymore for my partner.",   /* owner, 2026-10-09: the waiting customer */
+    D107ca: "Let's find the blueprint.",   /* R83 (owner, 2026-11-05): the come-later market walk; {p} = the blueprint's price */
+    D107cb: "The gale katana blueprint costs {p}g.",
+    D107cc: "Let's see the other one now.",
+    D107cd: "Another {p}g for the fire claymore.",
     D107d: "I am not buying the blueprint for those! Ask the customer to come back later when you are richer. Humph!",
     D107e: "Why are you asking them to come later when you can craft for them? Don't be lazy! I need my meat!",   /* COME LATER in the tutorial, after the lesson */
     D107f: "You can now craft both the swords your previous customer requested. Tap on the Ledger.",   /* R80 (owner, 2026-11-04) */

@@ -632,6 +632,18 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 31. **D107c** GC9: "Do you know gale makes fire stronger? I want a gale katana so I can make my partner's flame grow more fierce. I would also want a fire claymore for my partner."
    *When: the bell; MARKET lights.*
 
+31a. **D107ca** Dragon: "Let's find the blueprint."
+   *When: the market opens (R83); the Gale tag blinks; its tap opens the Katana page.*
+
+31b. **D107cb** Dragon: "The gale katana blueprint costs {p}g."
+   *When: the Gale Katana page; {p} its price (300); BUY lit (D28h first if the gold is short).*
+
+31c. **D107cc** Dragon: "Let's see the other one now."
+   *When: the Katana is bought; the Fire tag blinks; its tap opens the Claymore page.*
+
+31d. **D107cd** Dragon: "Another {p}g for the fire claymore."
+   *When: the Fire Claymore page; {p} its price (450); Close lit.*
+
 32. **D107d** Dragon: "I am not buying the blueprint for those! Ask the customer to come back later when you are richer. Humph!"
    *When: the market is closed (not enough gold for both blueprints); COME LATER lights.*
 

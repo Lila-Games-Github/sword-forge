@@ -987,3 +987,17 @@ yours and come on top.
   early: D12 still comes over the window when the tap opens it, `openShapeSelect`). Free play: no pointer; the idle hint
   glows the metal as before. Records: `specs/2026-10-21-smelter-version-loop.md` (R82), `specs/game-design.md` §2 and §5,
   `GDD.md`. Asserted by the smelter and FTUE tests (written first).
+- **R83 (2026-11-05, owner): the come-later customer's market walk.** Owner: "when showing the gale katana and fire claymore in
+  the market, guide the player to open the gale katana page first, dragon says 'let's find the blueprint.' when players reach
+  the page, have the dragon's dialogues on the right side on the screen, saying 'The gale katana blueprint costs (value here)"
+  guide them to buy it. when players buy that dragon says 'let's see the other one now', guide to go to the fire claymore in
+  the market and dragon says 'Another (value here) for the fire claymore.' highlight the close button." Until now the market
+  showed both pages by itself (r253, R38: Gale Katana, then Fire Claymore after `MK_ROT.laterMs`, Close lit). Now
+  (`FTUE_LATER`): the market opens with **D107ca** "Let's find the blueprint." and the Gale tag blinking (off the wheel's face:
+  the visible tag nearest it, whose tap turns the wheel closer); tapping Gale opens the Katana page directly (not its
+  Shortsword and three swipes); **D107cb** "The gale katana blueprint costs {p}g." (the market price, 300) with BUY lit (short of
+  gold: D28h and the dragon's coins first, as the orders' lesson does); bought: **D107cc** "Let's see the other one now." and the
+  Fire tag blinks; tapping Fire opens the Claymore page; **D107cd** "Another {p}g for the fire claymore." (450) with Close lit
+  (BUY not lit); closing: D107d and COME LATER as before. The lines are in the market's own strip (`sayOver`, the top right),
+  which now fills `{values}`. Closed early, the walk resumes when the market is reopened. `MK_ROT.laterMs` is no longer used.
+  205 dialogue keys. Script SSOT updated. Asserted by the FTUE test (written first).
