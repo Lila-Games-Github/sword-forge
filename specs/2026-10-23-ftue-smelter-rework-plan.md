@@ -1038,3 +1038,9 @@ yours and come on top.
   counter: "highlight the x button". D92e joins `SAY_GO_GLOW`. Its closing sends the player to the cave (`ftueDurableToCave`
   lights the way); with R75 the way's arrow waits for the lit X, so the two do not glow together. Asserted by the FTUE test
   (written first).
+- **R89 (2026-11-05, owner): COME LATER enabled from D107d.** Owner, with a picture of the come-later customer's request (D107c)
+  and COME LATER already live: "enable the come later button on and after d107d". While that customer (`lesson:'later'`, not
+  yet waiting) is at the counter, COME LATER is shown greyed and takes no tap (`laterWait`, the class `later-wait`, the look of
+  a disabled counter button), and `comeLater` refuses, through the request and the market walk (R83). When D107d is said
+  ("I am not buying ..."), the customer's `laterOk` turns it on (and D107d's step lights it, r253). Other customers' COME LATER
+  is unchanged. Asserted by the FTUE test (written first).

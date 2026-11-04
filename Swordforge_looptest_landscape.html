@@ -1522,6 +1522,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cs-later { left: 68.80%; width: 10.00%;   /* clear of SELL (ends 68.71%) and of the rail (79%) */ aspect-ratio: 213 / 97; font-size: 9px; color: #3f2c12; white-space: nowrap;
     background-image: url('assets/ui/Paper_button_wide.webp'); }
 .cs-later.ftue-off { display: none !important; }
+.cs-later.later-wait { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }   /* R89: as a disabled button, until D107d */
 .cs-btn:disabled { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }   /* r146: was .cs-deny only, so SELL never had a disabled look */
 /* The sword on display: same lay-flat trick as the racks, in a box the prop layer positions. NOT
    clipped - it is sized to the drawn LENGTH, so its guard reaches past the box's height on purpose. */
@@ -6014,8 +6015,12 @@ function buildLedger(){
    waiting customer (lesson:'later') and for anyone called back; for the rest the dragon refuses (D107e). ---- */
 function waitLabel(it){ return '1X '+TRAIT_BY[it.trait].name+' '+it.shape; }
 function waitLines(e){ return (e.items && e.items.length) ? e.items.map(it=>it.shape ? waitLabel(it) : '1X '+TRAIT_BY[it.trait].name+' sword') : ['A customer']; }
+/* R89 (owner, 2026-11-05): "enable the come later button on and after d107d" - the come-later customer's COME LATER is off (greyed,
+   no tap) until the dragon has said D107d; other customers' is as before */
+function laterWait(){ const c=CUSTOMER; return !!(c && c.lesson==='later' && !c.waiting && !c.laterOk && !FTUE_ST.done); }
+function laterLockUi(){ const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('later-wait', laterWait()); }
 function comeLater(){
-    const c=CUSTOMER; if(!c) return;
+    const c=CUSTOMER; if(!c || laterWait()) return;   /* R89 */
     if(!FTUE_ST.done && !c.waiting && c.lesson!=='later'){ sayQueue('D107e'); return; }
     if(c.held && c.held.length){ INV.swords.push(...c.held); c.held=[]; c.doneIdx=[]; if(INV_TAB===2) buildShelf(); }   /* r267: swords handed over, unpaid, come back */
     FTUE_ST.waiting.push({ portrait:c.portrait, tid:c.tid||null, shape:c.shape||null, tier:c.tier||null, name:c.name||null, ftue:!!c.ftue,
@@ -10741,6 +10746,7 @@ function counterBoxes(){
                           || (TUT_GARRIC_STATE && TUT_GARRIC_STATE!=='asked'));   /* r130 */
     { const de=document.querySelector('#csPanel .cs-deny'); if(de) de.classList.toggle('ftue-off', !FTUE_ST.done); }   /* r228 */
     { const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('ftue-off', !(FTUE_ST.laterOn || FTUE_ST.done)); }   /* 2026-10-09 */
+    laterLockUi();   /* R89 */
     if(quiet) document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{ b.style.display='none'; });
     counterLayout();   /* r149 */
     return { here:here, introOn:introOn, quiet:quiet };
@@ -10753,6 +10759,7 @@ function counterUi(){
     document.querySelectorAll('#csPanel > .cs-btn').forEach(b=>{
         b.style.display = here ? '' : 'none'; if(here) b.disabled=false; });
     sellLabel();   /* r103 */
+    laterLockUi();   /* R89 */
 }
 /* R56 (owner, 2026-10-30): "I want to put a pause between the customer's dialogues and the dragon dialogues" - once the
    customer's line has landed the player's reply (FTUE.replies[key]) comes up lit under it; its tap brings the dragon (fn).
@@ -11339,6 +11346,7 @@ function say(id){
     const goKind=(SAY_CHOICES || SAY_NO_X[id]) ? 'none' : ((SAY_I>=0 && SAY_I>=SAY_SEQ.length-1 && !SAY_GO_MORE[id]) ? 'close' : 'next');
     sayGoIcon(go, goKind, id);   /* R57 (owner): the X on every screen (R22 took it off the counter and the cave) */
     setTimeout(tutExitLater, 0);   /* R75: a waiting arrow lights once no lit line is up */
+    if(id==='D107d' && CUSTOMER && CUSTOMER.lesson==='later'){ CUSTOMER.laterOk=true; laterLockUi(); }   /* R89: COME LATER from D107d on */
     if(id==='D42' && !FTUE_ST.craftFrame) FTUE_ST.craftFrame=true; craftFrameUi();   /* R69: the craft frame appears with D42 */
     if(id==='D3' && TUT_STAGE===null) tutOreStep();       /* r81: the arrow goes up with the line */
     if(id==='D10' && TUT_STAGE==='quench') tutGatePointer();   /* r106: point as soon as it is explained. R1: at the gate (was the mug) */
