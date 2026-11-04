@@ -505,6 +505,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #tutDrag { position: absolute; z-index: 70; display: none; pointer-events: none; overflow: visible; width: 40px; height: 64px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.75)); }
 #tutDrag.on { display: block; }
+/* R74 (owner, 2026-11-04): "remove the arrow on the bellow here, since the black overlay covers it, it is not interactible, so no guide
+   is needed. and highlight the x on dialogue instead" - under a line on the cut dim (SAY_DARK_CUT) the stations are covered */
+#frame.say-cut #tutDrag, #frame.say-cut #tutArrow { display: none !important; }
 #tutDrag.up { animation: tutDragUp 1.2s ease-in-out infinite; }
 #tutDrag.updown { animation: tutDragBob 0.6s ease-in-out infinite alternate; }
 #tutDrag .g-down { display: none; } #tutDrag.updown .g-down { display: inline; }
@@ -11223,7 +11226,7 @@ function sayChoose(list, optional){
 /* r184: lines whose only next step is to read on. The button that does it is lit, so there is
    never a question of where to click. D8 and D9 are here too - they pause the world, and the
    button shows an X there because each is the last line of its own run. */
-const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D70:1, D71:1,
+const SAY_GO_GLOW={ D1:1, D2:1, D32c:1, D28b:1, D28e:1, D28g:1, D92a:1, D92i:1, D92j:1, D111b:1, D113a:1, D8:1, D9:1, D13:1, D15:1, D19:1, D32:1, D33:1, D38:1, D57:1, D69a:1, D69b:1, D69c:1, D70:1, D71:1,
                     D89:1, D90:1, D100:1, D116:1, D117:1,   /* r188 */
                     D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D119a:1 };   /* r196. 2026-10-10. r247: D130 */
 /* r196: ids whose RUN ends but whose BEAT does not - the icon stays a continue, because something
@@ -11268,6 +11271,7 @@ function say(id){
     SAY_ON=id; SAY_LAST=id; sayType(t, sayFill(line)); box.classList.add('show');   /* r104 */
     if(where==='screen') updateTutorialCounterUi();   /* owner, 2026-10-09: and the dragon who says it */
     if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */
+    { const fr=document.getElementById('frame'); if(fr) fr.classList.toggle('say-cut', !STAGE_DARK[TUT_STAGE] && !!SAY_DARK_CUT[id] && B[0]==='dragonSay'); }   /* R74: no gesture or drag arrow under it */
     hmDarkSync();   /* R16 */
     /* r106: the cursor follows whatever is actually on screen. An off-sequence line parks it past
        the end, so the next tap closes instead of walking the run from wherever it had been left. */
@@ -11324,6 +11328,7 @@ function sayHide(){
     if(SAY_THEN && SAY_ON===SAY_THEN.id){ const f=SAY_THEN.fn; SAY_THEN=null; setTimeout(f, 0); }   /* r300: an order's lines closed - the craft guide */
     SAY_ON=null; sayChoose(null);   /* r115 */
     if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
+    { const fr=document.getElementById('frame'); if(fr) fr.classList.remove('say-cut'); }   /* R74 */
     ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top

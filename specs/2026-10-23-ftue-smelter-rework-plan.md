@@ -922,3 +922,9 @@ yours and come on top.
   them too (`tutFireGround`). The stage `fire-mang` now keeps a live pointer (`TUT_TICK_STAGES`, a branch in
   `tutNudgeApply`): nothing while D72 is up; the arrow until the manganese is on the wheel; then the turn hint
   (found in the browser: the arrow stayed pointing from the empty slot). Asserted by the FTUE test (written first).
+- **R74 (2026-11-04, owner): no bellows gesture under the hazard lines; their button lit.** Owner, with a picture of D69a over
+  the dark with the bellows' up-down gesture still showing: "remove the arrow on the bellow here, since the black overlay
+  covers it, it is not interactible, so no guide is needed. and highlight the x on dialogue instead". While a line on the cut
+  dim (`SAY_DARK_CUT`: D69a-D69c, D71, D72) is up, `#frame.say-cut` hides the drag gesture (`#tutDrag`) and the drag arrow
+  (`#tutArrow`); closing the line brings them back. D69a, D69b and D69c's button glows (`SAY_GO_GLOW`: OK on D69a and D69b,
+  the X on D69c; D71's X already did, R72). Asserted by the FTUE test (written first).
