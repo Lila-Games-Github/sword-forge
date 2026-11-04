@@ -968,3 +968,13 @@ yours and come on top.
   after the tutorial. D107f now reads "You can now craft both the swords your previous customer requested. Tap on the Ledger." ("Tap" for the owner's "Click", the game's rule). The COME LATER toast is
   "They will wait." (it named a ledger not yet shown), and the PART 5-6 jumps no longer mark it seen. The market is unchanged.
   Script SSOT updated. Asserted by the FTUE test (written first).
+- **R81 (2026-11-04, owner): no false refill when Garric comes.** Owner, with a picture of the reward window (5 Copper, 1 Iron)
+  and D28l "Careful! Here, try again." at Garric's arrival: "the careful here try again shows up whenever I call in garric.
+  why? fix it." Cause: the refill (`ftueRefillTick`, r293) gives what the bag lacks for the open order, measured against the
+  last ore reward (`FTUE_ST.oreRound`). The waiting customer's guide gives GC9's ores with D107g (`ftueOreReward('gc9')`)
+  whenever the gold reaches both blueprints - often in Part 5 or 6, after Garric's own round (p5g0, 2 iron + 2 manganese). That
+  overwrote the round with GC9's ores (copper 5, iron 3, manganese 2), which the two waiting swords then use up; at Garric's
+  order the bag (his 2 + 2) fell short of the wrong round, so the dragon "refilled" it. GC9's order is not refilled (r293), so
+  its reward no longer touches the round. Reproduced in the browser (PART 6, the gc9 reward, Garric: the window and D28l) and
+  gone after the fix. A save made after the bad round keeps it until the next chain reward. Asserted by the FTUE test (written
+  first).

@@ -3456,7 +3456,10 @@ function ftueSwordKey(f){ if(FTUE_ST.done) return null; f=f||{};
     if(c && c.ftue && !c.waiting) return 'p'+FTUE_ST.part+'g'+FTUE_ST.gpc;
     return null; }
 function ftueOreReward(key, then){ const e=key && FTUE.oreChain[key]; if(!e){ if(key) FTUE_ST.oreRound=null; if(then) then(); return; }   /* r293: no row, no round to refill */
-    const give=ftueOreGive(e.give); FTUE_ST.oreRound=give;   /* r293: the refill reads the round */
+    const give=ftueOreGive(e.give); if(key!=='gc9') FTUE_ST.oreRound=give;   /* r293: the refill reads the round. R81 (owner, 2026-11-04): "the careful here try
+       again shows up whenever I call in garric. why? fix it." - the waiting customer's ores (D107g) come whenever the gold allows, often after
+       Garric's (p5g0); taking the round then made the refill compare the bag with GC9's ores at Garric's order. GC9 is not refilled (r293), so
+       its reward leaves the round alone */
     ftueOreWindow(give, e, then); }
 /* r294 (owner): the noted sword's reward, given after its sale - each sale calls this at its natural pause */
 function ftueOreSold(then){ if(CUST_BYE){ setTimeout(()=>ftueOreSold(then), 250); return; }   /* r295 (owner): once the customer has gone */
