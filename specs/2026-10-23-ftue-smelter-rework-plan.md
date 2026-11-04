@@ -1001,3 +1001,9 @@ yours and come on top.
   (BUY not lit); closing: D107d and COME LATER as before. The lines are in the market's own strip (`sayOver`, the top right),
   which now fills `{values}`. Closed early, the walk resumes when the market is reopened. `MK_ROT.laterMs` is no longer used.
   205 dialogue keys. Script SSOT updated. Asserted by the FTUE test (written first).
+- **R84 (2026-11-05, owner): the market's dragon line looks like his bubbles.** Owner, with a picture of the market strip ("Let's
+  find the blueprint."): "make this dialogue look the same as the rest of the dragon's dialogues." The strip (`.mk-say`, R38: a
+  thin cream bar, Georgia 12 px, the name inline) now has `#dragonSay`'s look - 315 px wide, parchment `#f3e7c6`, a 2 px
+  `#6a5636` border, 11 px corners, the drop shadow, DRAGON on its own line (Cinzel 9 px), the text 17 px - and its lines type in
+  word by word (`sayType`, R32). It keeps its place top right, off the paper; it has no OK or X, as the market's lines move on
+  with the walk. Coloured sword names (R61) carry over. Asserted by the FTUE test (written first).

@@ -868,11 +868,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     font: 700 1.5cqw/1 'Cinzel', serif; color: #ffe08a; white-space: nowrap; }
 /* v3: the dragon speaks INSIDE the market window - on the counter screen his bubble lives in #screenLayer,
    whose stacking context keeps it under any modal, whatever its own z-index. R38: top right, off the paper */
-.mk-say { position: absolute; left: 62.5%; top: 9%; width: 34%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px;
-    background: #fff7e2; border: 2px solid #c99a3a; font-family: Georgia, serif; font-size: 12px; color: #2a1d0c; }
+/* R84 (owner, 2026-11-05): "make this dialogue look the same as the rest of the dragon's dialogues" - #dragonSay's box, name and text */
+.mk-say { position: absolute; left: 62.5%; top: 9%; width: 315px; box-sizing: border-box; display: block; padding: 11px 15px 14px;
+    background: #f3e7c6; border: 2px solid #6a5636; border-radius: 11px; box-shadow: 0 10px 22px rgba(0,0,0,.55); animation: sayIn .22s ease-out; }
 .mk-say[hidden] { display: none; }
-.mk-say .who { font: 900 9px/1 'Cinzel', serif; color: #8a5a1c; letter-spacing: .6px; }
-.mk-say p { margin: 0; }
+.mk-say .who { display: block; font-family: 'Cinzel', serif; font-weight: 900; font-size: 9px; letter-spacing: .7px; color: #8a6a34; margin-bottom: 5px; }
+.mk-say p { margin: 0; font-size: 17px; line-height: 1.4; color: #4a3623; }
+.mk-say .sw { opacity: 0; transition: opacity .12s; } .mk-say .sw.on { opacity: 1; }   /* typed in, as the bubbles are (R32) */
 /* v3 D10: the dragon's coins fly over everything, the market window included */
 .coin-fly { position: absolute; z-index: 1100; font-size: 22px; line-height: 1; pointer-events: none;
     transform: translate(-50%,-50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
@@ -7303,7 +7305,7 @@ function sayOver(id){
     const box=document.getElementById('mkSay'), open=document.getElementById('sfMarketModal').classList.contains('show');
     if(!box || !open){ sayQueue(id); return; }
     sayHide(); if(SAY_SEQ.indexOf(id)<0) SAY_SEQ.push(id);
-    dlgFill(box.querySelector('p'), sayFill(DIALOGUE[id])); box.hidden=false; }   /* R83: with its {values} */
+    box.hidden=false; sayType(box.querySelector('p'), sayFill(DIALOGUE[id])); }   /* R83: with its {values}. R84: typed in, like the bubbles */
 function mkSayOff(){ const box=document.getElementById('mkSay'); if(box) box.hidden=true; }
 /* the end of a market step: the order's next beat (closeMarket, or the skip below) */
 function ftueMarketDone(m){ const f=m.then; FTUE_MK=null; tutExit(null); sayHide(); if(f) setTimeout(f, 0);
