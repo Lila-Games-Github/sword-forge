@@ -3957,7 +3957,7 @@ function ftuePart(n){
                 benchClear(); })();
             for(let i=95;i<=109;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D99a');
             FTUE_ST.part=4; FTUE_ST.gpc=2; FTUE_ST.dd.gale=2;   /* v3: TC4, TC5 and GC8 served; no gale blueprints */
-            FTUE_ST.laterOn=true; FTUE_ST.seenMarket=true; FTUE_ST.seenLedger=true; FTUE_ST.waiting=[ { portrait:'assets/customer/woman3.webp', tid:'gale', shape:'Katana', tier:null, name:'Gale', ftue:true,
+            FTUE_ST.laterOn=true; FTUE_ST.seenMarket=true; FTUE_ST.waiting=[ { portrait:'assets/customer/woman3.webp', tid:'gale', shape:'Katana', tier:null, name:'Gale', ftue:true,
                 items:[ { trait:'gale', shape:'Katana' }, { trait:'fire', shape:'Claymore' } ] } ];   /* 2026-10-09: the waiting customer. R39: the market and the ledger already named */
             TUT_SAW_TIERS=true;
             ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820; exp=640; TUT_STAGE='d2-praise'; }   /* v3: GC9's copper */
@@ -6018,8 +6018,8 @@ function comeLater(){
     CUSTOMER=null; tutExit(null); sayHide(); tutArrow(null,null);
     (()=>{ const p=document.querySelector('#csPanel .cs-dlg p'); if(p) p.textContent=''; })();
     refreshCounter(); counterUi(); buildScreenProps('customer');
-    FTUE_ST.seenLedger=true; marketBtnUi();
-    toast('They will wait. Call them back from the <b>ledger</b>.');   /* R39: the ledger appears as it is named */
+    marketBtnUi();
+    toast('They will wait.');   /* R80: the ledger appears with D107f, not here */
     if(lesson) ftueGpcSold();   /* the part goes on: the bell brings Bram */
 }
 let WAIT_I=-1;
@@ -6039,7 +6039,8 @@ function wqHave(){ const pool=INV.swords.slice(); return wqOrder().every(it=>{ c
 function wqFree(){ if(SAY_ON || document.querySelector('.sf-modal.show')) return false; const P=FTUE.parts[FTUE_ST.part];
     if(CUSTOMER || CUST_BYE) return false;   /* R19 (owner): nobody at the counter - p<n>-gpc is a customer standing there; a goodbye is a sale's coins still flying */
     return !!(FTUE_ST.done || TUT_STAGE==null || /^p\d-(gpc|bell)$/.test(TUT_STAGE) || (P && TUT_STAGE===P.after)); }
-function wqStep(step, id){ FTUE_ST.wq=step; sayQueue(id); if(SF_SCREEN!=='customer'){ tutExitTo('customer'); WQ_EXIT=true; } wqLit(); }
+/* R80 (owner, 2026-11-04): "bring up the ledger only when players can craft for customer gc9" - it appears with D107f */
+function wqStep(step, id){ FTUE_ST.wq=step; if(step==='see'){ FTUE_ST.seenLedger=true; marketBtnUi(); } sayQueue(id); if(SF_SCREEN!=='customer'){ tutExitTo('customer'); WQ_EXIT=true; } wqLit(); }
 /* what is lit: the LEDGER button while the ledger is shut, the request while it is open, YES (call only) when asked */
 function wqLit(){
     const on=(FTUE_ST.wq==='see' || FTUE_ST.wq==='call') && !!wqEntry();
@@ -7179,7 +7180,7 @@ function marketCtx(trait, shape){ return { open:marketOpen(), known:traitKnown(t
    want a greyed out market, hide it completely". The market from the come-later lesson, which lights it (part 4); the ledger from the
    first COME LATER, whose toast names it. Each stays once seen (FTUE_ST.seenMarket / seenLedger, saved); both from part 5 and after
    the tutorial. Record: specs/2026-10-28-forge-screen-new-look.md (R39) */
-function cntShown(k){ return !!(FTUE_ST.done || FTUE_ST.part>=5 || FTUE_ST[k==='market' ? 'seenMarket' : 'seenLedger']); }
+function cntShown(k){ return !!(FTUE_ST.done || (k==='market' ? (FTUE_ST.part>=5 || FTUE_ST.seenMarket) : FTUE_ST.seenLedger)); }   /* R80: the ledger only from D107f */
 function cntPropsUi(){ [['market','#marketBtn'],['ledger','#screenUi .sc-btn[title="Ledger"]']].forEach(([k,sel])=>{ const el=document.querySelector(sel); if(!el) return;
     const on=cntShown(k), was=!el.classList.contains('cnt-hidden'); el.classList.toggle('cnt-hidden', !on);
     if(on && !was){ el.classList.remove('tab-new'); void el.offsetWidth; el.classList.add('tab-new'); } }); }   /* it pops in */
@@ -9079,7 +9080,7 @@ const DIALOGUE = {
     D107c: "Do you know gale makes fire stronger? I want a gale katana so I can make my partner's flame grow more fierce. I would also want a fire claymore for my partner.",   /* owner, 2026-10-09: the waiting customer */
     D107d: "I am not buying the blueprint for those! Ask the customer to come back later when you are richer. Humph!",
     D107e: "Why are you asking them to come later when you can craft for them? Don't be lazy! I need my meat!",   /* COME LATER in the tutorial, after the lesson */
-    D107f: "You can now buy both the blueprints that other guy requested. See the request in the ledger.",   /* owner, 2026-10-14: the waiting customer's guide */
+    D107f: "You can now craft both the swords your previous customer requested. Tap on the Ledger.",   /* R80 (owner, 2026-11-04) */
     D107g: "Craft both the swords.",
     D107h: "Now tap on the waiting list in the ledger to call them back.",
     D108: "Thanks, this will do.",

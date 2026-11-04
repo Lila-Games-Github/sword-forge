@@ -960,3 +960,11 @@ yours and come on top.
   reward window). New line **D48a** "Let's go sharpen the sword!" (beside D48; 201 dialogue keys) is said there, with the
   arrow. Its X is not lit, so the arrow lights with it (R75). Script SSOT: Part 5, the step before the basement. Asserted by
   the FTUE test (written first).
+- **R80 (2026-11-04, owner): the ledger appears only when the waiting customer's swords can be made; D107f says so.** Owner, with
+  a picture of the ledger scroll: "bring up the ledger only when players can craft for customer gc9. have the dragon say
+  something 'You can now craft both the swords your previous customer requested. Click on the Ledger.'" Since R39 the ledger
+  showed from the first COME LATER (its toast named it) and from Part 5. Now it shows (`cntShown`) only once the waiting
+  customer's guide starts - D107f, when the gold covers both blueprints (`wqStep('see')` sets `FTUE_ST.seenLedger`) - and
+  after the tutorial. D107f now reads "You can now craft both the swords your previous customer requested. Tap on the Ledger." ("Tap" for the owner's "Click", the game's rule). The COME LATER toast is
+  "They will wait." (it named a ledger not yet shown), and the PART 5-6 jumps no longer mark it seen. The market is unchanged.
+  Script SSOT updated. Asserted by the FTUE test (written first).

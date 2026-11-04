@@ -1095,7 +1095,7 @@ eq('"Shapes unlocked" lists what the shape picker allows for the trait', src.inc
   && !src.includes('CB_SHAPES'), true);
 /* owner, 2026-10-14: the waiting customer's guide - can afford both blueprints -> see the request in the ledger -> craft
    both -> call them back. Its own saved state (FTUE_ST.wq), so the tutorial's stages are untouched; it speaks only at a free moment */
-eq('D107f text', line('D107f'), 'You can now buy both the blueprints that other guy requested. See the request in the ledger.');
+eq('D107f text (R80)', line('D107f'), "You can now craft both the swords your previous customer requested. Tap on the Ledger.");
 eq('D107g text', line('D107g'), 'Craft both the swords.');
 eq('D107h text', line('D107h'), 'Now tap on the waiting list in the ledger to call them back.');
 for (const [k, prev] of [['D107f', 'D107e'], ['D107g', 'D107f'], ['D107h', 'D107g']]) eq(k + ' follows ' + prev, (() => { const ks = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]); return ks[ks.indexOf(k) - 1]; })(), prev);
@@ -1460,14 +1460,14 @@ const cntShownT = cntSrc ? new Function('FTUE_ST', cntSrc + '; return cntShown;'
 const cntCase = (st) => cntShownT ? ['market', 'ledger'].map(k => cntShownT(Object.assign({ part: 1, done: false }, st))(k)) : null;
 eq('R39: a new game - neither', cntCase({}), [false, false]);
 eq('R39: part 4, the come-later lesson lit the market - the market only', cntCase({ part: 4, seenMarket: true }), [true, false]);
-eq('R39: then COME LATER - both', cntCase({ part: 4, seenMarket: true, seenLedger: true }), [true, true]);
-eq('R39: from part 5 (older saves, the jumps) - both', cntCase({ part: 5 }), [true, true]);
+eq('R80: COME LATER no longer shows the ledger; D107f does', [cntCase({ part: 4, seenMarket: true }), cntCase({ part: 4, seenMarket: true, seenLedger: true })], [[true, false], [true, true]]);
+eq('R80: from part 5 the market; the ledger still waits for D107f', cntCase({ part: 5 }), [true, false]);
 eq('R39: after the tutorial (GAME, free play) - both', cntCase({ part: 6, done: true }), [true, true]);
-eq('R39: PART 5 on (past the come-later lesson) sets both marks', src.includes("FTUE_ST.laterOn=true; FTUE_ST.seenMarket=true; FTUE_ST.seenLedger=true; FTUE_ST.waiting=["), true);
+eq('R39: PART 5 on (past the come-later lesson) sets both marks', src.includes("FTUE_ST.laterOn=true; FTUE_ST.seenMarket=true; FTUE_ST.waiting=["), true);
 eq('R39: hidden completely, no greyed market', src.includes('#screenUi .cnt-hidden { display: none; }') && !src.includes('mk-closed'), true);
 eq('R39: checked whenever the counter is built (marketBtnUi)', src.includes('function marketBtnUi(){ cntPropsUi(); }'), true);
 eq('R39: the market appears when the come-later lesson points at it', src.includes("typeAfter(()=>{ FTUE_ST.seenMarket=true; marketBtnUi(); tutExit('#marketBtn'); }); }"), true);
-eq('R39: the ledger appears with the first COME LATER, whose toast names it', /FTUE_ST\.seenLedger=true; marketBtnUi\(\);\s*toast\('They will wait\. Call them back from the <b>ledger<\/b>\.'\);/.test(src), true);
+eq('R80: COME LATER does not name or show the ledger', src.replace(/\r\n/g, '\n').includes("    marketBtnUi();\n    toast('They will wait.');   /* R80: the ledger appears with D107f, not here */\n"), true);
 /* R33 (owner, 2026-10-29): the inventory tabs appear as they are first used */
 eq('R33: the rule - ores always; metal, swords and decor once used; kept once seen; all after the tutorial', src.replace(/\r\n/g, '\n').includes("/* R33 (owner, 2026-10-29): \"I want each of these tabs to appear as they are introduced/used for the first time.\" Ores always;\n   metal once a metal is stored (the first is D99, TC5's gale order, part 4), swords once a sword is made, decor once a piece is\n   owned (Garric's banner). Each stays once seen (FTUE_ST.tab*, saved); all four once the tutorial is over. Older saves without\n   the marks: swords from part 2 (or Bram's sale), metal from part 5 */\nfunction invTabShown(i){ if(i===0 || FTUE_ST.done) return true;\n    if(i===1) return !!(FTUE_ST.tabIngots || INV.ingots.length || FTUE_ST.part>=5);\n    if(i===2) return !!(FTUE_ST.tabSwords || INV.swords.length || TUT_BRAM_SOLD || FTUE_ST.part>=2);\n    return !!(FTUE_ST.tabDecor || (FTUE_ST.decor||[]).length || (FTUE_ST.placed||[]).length); }\nfunction invTabsUi(){ if(INV.ingots.length) FTUE_ST.tabIngots=true; if(INV.swords.length) FTUE_ST.tabSwords=true;\n    if((FTUE_ST.decor||[]).length) FTUE_ST.tabDecor=true;\n    [...document.querySelectorAll('#matTabs .matTab')].forEach((t,k)=>{ const on=invTabShown(k), was=!t.classList.contains('tab-hidden');\n        t.classList.toggle('tab-hidden', !on);\n        if(on && !was){ t.classList.remove('tab-new'); void t.offsetWidth; t.classList.add('tab-new'); } });   /* it pops in */\n    if(!invTabShown(INV_TAB)) invTab(0); }"), true);
 eq('R33: a tab not there yet keeps its slot and pops in when it appears', src.replace(/\r\n/g, '\n').includes(".matTab.tab-hidden { visibility: hidden; pointer-events: none; }   /* R33: not there yet - it keeps its slot, so nothing shifts when it appears */\n.matTab.tab-new { animation: tabNew .5s ease-out; }\n@keyframes tabNew { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }"), true);
@@ -1640,4 +1640,6 @@ eq('R78: the gate pointer marks the gate', s8.includes("function tutGatePointer(
 { const s9 = src.replace(/\r\n/g, '\n');
 eq('R79: D48a on the line after D48', s9.indexOf("    D48a: \"Let's go sharpen the sword!\",   /* R79 (owner, 2026-11-04): Bram's second visit, with the arrow to the basement */\n") > 0 && s9.indexOf("    D48a: \"Let's go sharpen the sword!\",   /* R79 (owner, 2026-11-04): Bram's second visit, with the arrow to the basement */\n") === s9.indexOf('\n', s9.indexOf("    D48: \"I found this sharpening wheel. I'll show you how to use it.\",")) + 1, true);
 eq('R79: said in Part 5 as the arrow down lights', s9.includes("    if(FTUE_ST.part!==5){ if(SAY_SEQ.indexOf('D48')<0) SAY_SEQ.push('D48');   /* v3: in part 5, D48 came with the wheel's window */\n        SAY_I=SAY_SEQ.indexOf('D48'); say('D48'); }\n    else sayQueue('D48a');   /* R79 (owner): \"have the dragon say 'Let's go sharpen the sword!'\" as the way down lights */\n    tutExit('#panDown');\n"), true); }
+/* R80 (owner, 2026-11-04): the ledger appears with D107f */
+eq('R80: D107f (the guide\'s first step) brings the ledger', src.replace(/\r\n/g, '\n').includes("/* R80 (owner, 2026-11-04): \"bring up the ledger only when players can craft for customer gc9\" - it appears with D107f */\nfunction wqStep(step, id){ FTUE_ST.wq=step; if(step==='see'){ FTUE_ST.seenLedger=true; marketBtnUi(); } sayQueue(id);"), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -638,7 +638,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 33. **D107e** Dragon: "Why are you asking them to come later when you can craft for them? Don't be lazy! I need my meat!"
    *When: only if COME LATER is tapped on another tutorial customer.*
 
-34. **D107f** Dragon: "You can now buy both the blueprints that other guy requested. See the request in the ledger."
+34. **D107f** Dragon: "You can now craft both the swords your previous customer requested. Tap on the Ledger."
    *When: later, at a free moment, once the gold covers both blueprints (may land in Part 5 or 6).*
 
 35. **D107g** Dragon: "Craft both the swords."
