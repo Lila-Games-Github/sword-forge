@@ -1189,7 +1189,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
   const E = {   /* stage: [done, next] - the record of what "already done" means */
     'ore':            ["ftueOreIn('iron')>=2 && ftueOreIn('manganese')>=2", 'tutCheckOre()'],
     'bellows':        ['!!melt && !!melt.reachedTrait', 'tutTravelOnTrait()'],   /* R1: pumped onto the trait already */
-    'anvil':          ["!!melt && melt.stage==='onAnvil'", 'tutAnvilShape()'],   /* R1: the metal is on the anvil already */
+    'anvil':          ["!!melt && melt.stage==='onAnvil'", "tutArrow(null, '#orb')"],   /* R1: the metal is on the anvil already. R82: it glows, the tap opens the window */
     'tc2-raw':        ["segs.some(g=>g.ore==='iron') && segs.some(g=>g.ore==='manganese')", 'tutTc2RawCheck()'],
     'regrind-iron':   ["tutGroundIn('iron')", "tutSmeltCheck('iron', 1)"],
     'regrind-mang':   ["tutGroundIn('manganese')", "tutSmeltCheck('manganese', 1)"],
@@ -1644,4 +1644,8 @@ eq('R79: said in Part 5 as the arrow down lights', s9.includes("    if(FTUE_ST.p
 eq('R80: D107f (the guide\'s first step) brings the ledger', src.replace(/\r\n/g, '\n').includes("/* R80 (owner, 2026-11-04): \"bring up the ledger only when players can craft for customer gc9\" - it appears with D107f */\nfunction wqStep(step, id){ FTUE_ST.wq=step; if(step==='see'){ FTUE_ST.seenLedger=true; marketBtnUi(); } sayQueue(id);"), true);
 /* R81 (owner, 2026-11-04): the waiting customer's reward leaves the refill's round alone */
 eq('R81: gc9 does not take the round', src.replace(/\r\n/g, '\n').includes("    const give=ftueOreGive(e.give); if(key!=='gc9') FTUE_ST.oreRound=give;   /* r293: the refill reads the round. R81 (owner, 2026-11-04): \"the careful here try\n       again shows up whenever I call in garric. why? fix it.\" - the waiting customer's ores (D107g) come whenever the gold allows, often after\n       Garric's (p5g0); taking the round then made the refill compare the bag with GC9's ores at Garric's order. GC9 is not refilled (r293), so\n       its reward leaves the round alone */\n"), true);
+/* R82 (owner, 2026-11-05): the shape window on a tap on the metal; the tutorial glows the metal */
+{ const s2 = src.replace(/\r\n/g, '\n');
+eq('R82: the guided crafts point at the metal on the anvil', s2.includes("    if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack', { tfx:0.5, tfy:0.30, bow:0.18, back:24 }); return true; }\n    if(melt.stage==='onAnvil' && melt.traits && melt.traits.length && !document.querySelector('.sf-modal.show')){ tutArrow(null, '#orb'); return true; }   /* R82: tap the metal */\n    tutArrow(null,null); return true;\n}\n"), true);
+eq('R82: the first sword\'s anvil step glows the metal; D12 waits for the window', [s2.includes("    'anvil':          { done:()=>!!melt && melt.stage==='onAnvil', next:()=>tutArrow(null, '#orb') },   /* R1: the metal is on the anvil already. R82: it glows; its tap opens the window, with D12 over it */\n"), s2.includes("if(TUT_STAGE==='anvil'){ TUT_STAGE='shape'; ftueSaySh('D12'); }")], [true, true]); }
 console.log('[ftue] GREEN / ' + n + ' checks');

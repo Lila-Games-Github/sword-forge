@@ -33,7 +33,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
    trait's centre: the tier (§4).
 6. **Take the trait** - on a trait the **smelter gate** glows; a tap takes the trait and releases the hot metal. For another
    trait, put the metal back into the smelter, pump on, open the gate again (§4).
-7. **Shape** - the hot metal dropped on the **anvil** opens the **shape window** (owned shapes, and blueprints to buy), then the
+7. **Shape** - the hot metal dropped on the **anvil**, then a tap on it, opens the **shape window** (owned shapes, and blueprints to buy), then the
    **hammering minigame** (§5).
 8. **Quench** - the shaped blade lies hot on the anvil; picked up by its handle it hangs and swings; dipped (or dropped) into
    the **bucket** it is quenched and the sword is made (§5).
@@ -100,7 +100,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 
 ## 5. Forging the blade
 
-- **The anvil opens the shaping:** the hot metal dropped on the anvil (with at least one trait) opens the **shape window**: owned
+- **The anvil opens the shaping:** the hot metal lies on the anvil (with at least one trait); a tap on it opens the **shape window** (R82): owned
   shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens
   it. A stored metal (ingot) dropped on the anvil lands there with the heat it was stored with (R18).
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on

@@ -38,7 +38,7 @@ bucket by its handle.
 4. **Pump the bellows** - the sword moves along the route only while the handle moves.
 5. **Align with the ladle (optional)** - pulls the sword toward the map's centre to sit on a trait's centre (the tier).
 6. **Open the gate** - on a trait, a tap takes it. Back into the smelter for another trait, or on.
-7. **Shape** - the hot metal on the anvil: pick a shape (buy its blueprint if needed), then the hammering minigame.
+7. **Shape** - the hot metal on the anvil, then a tap on it: pick a shape (buy its blueprint if needed), then the hammering minigame.
 8. **Quench** - pick the hot blade up by its handle and dip it in the bucket. The sword is made.
 9. **Finish (optional)** - decorate it at the design desk, sharpen it on the wheel (each +7g).
 10. **Sell** - at the counter to the customer's order, or leave it on a shop rack.
@@ -72,7 +72,7 @@ The diary (from Bram) has a Travel Log, "People I met" and character sheets, set
 | **Gate** | Tap | Takes the trait under the sword; refuses off a trait |
 | **Ladle** | Drag the bowl to tilt | 0-45 deg; past 4 deg pulls the sword to the map centre, up to 24 px/s; from Part 4 |
 | **Grindstone** | Hold the handle to turn the wheel | 2 full turns grind an ore fully; unlocked in Part 2 |
-| **Anvil** | Drop the hot metal on it | Opens the shape window, then the minigame |
+| **Anvil** | Drop the hot metal on it, then tap it | Opens the shape window, then the minigame |
 | **Bucket** | Dip the hanging blade | Quenches it; the sword is made |
 | **Craft frame** | Tap the ring or drag it down | Blade pips (5 slots), X to cancel, inkpot to record, the craft book |
 | **The map** | Pan and zoom | The top 80% of the screen; fog clears where the sword travels |

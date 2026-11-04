@@ -6797,8 +6797,11 @@ function openGate(){ if(!melt||melt.stage!=='smelting') return; if(!melt.reached
 function smGateFx(){ const g=document.getElementById('furnaceGate'); if(!g) return; const r=benchRect(g);
     fxBurst(r.L+(r.R-r.L)*0.6, r.T+(r.B-r.T)*0.6, { n:16, kind:'ember', ang:-Math.PI/2, spread:1.6, dist:46, size:5, dur:700 }); }
 function reinsert(){ ensureMelt(); orbEl.style.display='none'; hint('Back in the smelter. Add more ore if you like, drag the <b>bellows</b> to move the sword, then tap the gate on a trait.'); }
-function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('Pick a <b>shape</b> to hammer. Closed it? <b>Tap the metal</b> to pick again.');
-    if(melt.traits && melt.traits.length) setTimeout(openShapeSelect, 0); }   /* smelter version: the anvil opens the shaping */
+/* R82 (owner, 2026-11-05): "on placing the metal on the anvil, the shape selection is poping up instantly. It is supposed to come up when
+   we click on the metal, only." - the metal lies on the anvil; a tap on it opens the shape window (pointerup, no move). In the tutorial
+   the metal glows as the next tap */
+function placeOnAnvil(){ melt.stage='onAnvil'; orbEl.style.display='block'; updateOrbLook(); const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y); hint('<b>Tap the metal</b> to pick a <b>shape</b>.');
+    if(melt.traits && melt.traits.length && !tutOver()) setTimeout(()=>{ if(melt && melt.stage==='onAnvil' && !document.querySelector('.sf-modal.show')) tutArrow(null, '#orb'); }, 0); }
 function tierFromDist(d){ return d<=ALIGN_EPIC?'Epic':(d<=ALIGN_FINE?'Fine':'Weak'); }
 function tierColor(t){ return t==='Epic'?'#8e44d9':(t==='Fine'?'#2b7fd8':'#4d4d4d'); }   /* r225 (owner): purple Epic, blue Fine, dark grey Weak - yellow did not read on the beige windows */
 function highlightTrait(t,tier){ const r=document.getElementById('alignRing'); if(!r) return; r.setAttribute('cx',t.x); r.setAttribute('cy',t.y); r.setAttribute('stroke',tierColor(tier)); r.style.display=''; }
@@ -9294,7 +9297,7 @@ const TUT_SKIP={
     /* the first craft */
     'ore':            { done:()=>ftueOreIn('iron')>=2 && ftueOreIn('manganese')>=2, next:()=>tutCheckOre() },
     'bellows':        { done:()=>!!melt && !!melt.reachedTrait, next:()=>tutTravelOnTrait() },   /* R1: pumped onto the trait already */
-    'anvil':          { done:()=>!!melt && melt.stage==='onAnvil', next:()=>tutAnvilShape() },   /* R1: the metal is on the anvil already */
+    'anvil':          { done:()=>!!melt && melt.stage==='onAnvil', next:()=>tutArrow(null, '#orb') },   /* R1: the metal is on the anvil already. R82: it glows; its tap opens the window, with D12 over it */
     /* TC2's raw ores, then the grindstone run */
     'tc2-raw':        { done:()=>segs.some(g=>g.ore==='iron') && segs.some(g=>g.ore==='manganese'), next:()=>tutTc2RawCheck() },
     'regrind-grind':  { done:()=>(!!prep && prep.grind>=0.999) || tutGroundIn('iron'),
@@ -9411,8 +9414,6 @@ function tutShapeStep(){
     tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); tutGlow('#stAnvil .anvil', true);
 }
 /* the metal is on the anvil but the shape window is shut (cancelled, or put there early): D12, tap the metal */
-function tutAnvilShape(){ TUT_STAGE='shape'; tutArrow(null,null); tutUnglow();
-    if(SAY_SEQ.indexOf('D12')<0) SAY_SEQ.push('D12'); SAY_I=SAY_SEQ.indexOf('D12'); say('D12'); tutGlow('#orb', true); }
 /* ---- r88: the hammering minigame's own lines ---- */
 let TUT_HMHOT=false, TUT_HMCOLD=false, TUT_SAIDMUG=false, TUT_HM_FIRST=false;   /* r290: TUT_HM_FIRST - the first sword's shape is picked, its minigame is next */
 /* r102: the second hammering run teaches nothing up front - it only speaks when the player stalls,
@@ -10915,6 +10916,7 @@ function tutLoopPointer(want, atEnd){ if(!melt) return false;   /* R4: want = th
         else tutArrow(null, '#bellowtop', { tfx:0.44, tfy:0.42, ox:78, oy:-116, bow:0.18, back:20 }); return true; }
     if(melt.stage==='hot'){ tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }); return true; }
     if(melt.stage==='shaped'){ if(SM_BL) tutArrow(null,null); else tutArrow('#smBlade', '#bucketBack', { tfx:0.5, tfy:0.30, bow:0.18, back:24 }); return true; }
+    if(melt.stage==='onAnvil' && melt.traits && melt.traits.length && !document.querySelector('.sf-modal.show')){ tutArrow(null, '#orb'); return true; }   /* R82: tap the metal */
     tutArrow(null,null); return true;
 }
 function tutNudgeApply(){

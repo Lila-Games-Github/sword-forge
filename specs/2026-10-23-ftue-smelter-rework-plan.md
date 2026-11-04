@@ -978,3 +978,12 @@ yours and come on top.
   its reward no longer touches the round. Reproduced in the browser (PART 6, the gc9 reward, Garric: the window and D28l) and
   gone after the fix. A save made after the bad round keeps it until the next chain reward. Asserted by the FTUE test (written
   first).
+- **R82 (2026-11-05, owner): the shape window opens on a tap on the metal, not on the drop.** Owner: "on placing the metal on the
+  anvil, the shape selection is poping up instantly. It is supposed to come up when we click on the metal, only." Since s5 the
+  drop on the anvil opened the window at once (`placeOnAnvil`); a tap on the metal on the anvil (pointerup with no move) only
+  reopened it. Now the drop only lays the metal on the anvil; the tap opens the window. In the tutorial the metal then glows as
+  the next tap: right after any drop (the first sword, D44, D77, a stored ingot such as Bram's Dagger), in the guided crafts'
+  pointer (`tutLoopPointer`), and as the first sword's `anvil` step is found done (`TUT_SKIP`, which no longer says D12
+  early: D12 still comes over the window when the tap opens it, `openShapeSelect`). Free play: no pointer; the idle hint
+  glows the metal as before. Records: `specs/2026-10-21-smelter-version-loop.md` (R82), `specs/game-design.md` §2 and §5,
+  `GDD.md`. Asserted by the smelter and FTUE tests (written first).

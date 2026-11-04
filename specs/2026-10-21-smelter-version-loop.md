@@ -238,3 +238,9 @@ make it wider, increase the text size."
 | Shape icon / name | 26 px / 10 px | 40 px / 15 px |
 | BUY | 10 px | 14 px |
 | Cancel | 44% of the row | 30% (the row is wider) |
+
+## R82: the shape window on a tap (2026-11-05)
+
+Owner: "on placing the metal on the anvil, the shape selection is poping up instantly. It is supposed to come up when we click on
+the metal, only." The hot metal dropped on the anvil lies there; a tap on it (no drag) opens the shape window. Dragging it back to
+the smelter works as before. In the tutorial the metal glows as the next tap.
