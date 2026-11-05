@@ -28,8 +28,8 @@ and the pure functions (between the `HAMMER-PURE` markers) against this record.
 
 ## Values not set by the owner (Claude's proposal, owner to confirm)
 
-- **Price multipliers:** Masterwork **x1.3**, Good **x1.0**, Crude **x0.8**, applied to the base
-  price (`swordBase`), before the sharpening and design bonuses.
+- ~~**Price multipliers:** Masterwork **x1.3**, Good **x1.0**, Crude **x0.8**~~ - **superseded by R92** ("Price by accuracy",
+  the end of this record): the price now follows the accuracy percent; the band names stay as labels only.
 - Swords made **without the minigame** (recipe crafts, old saves) count as **Good** (x1.0).
 - **Accuracy of one strike** = `1 - d / D`, where `d` is the distance between the centres and `D` is
   the diameter: 100% when the centres meet, 0% when the circles only touch. A strike counts on a
@@ -124,3 +124,26 @@ to the hammer, 352 of them over the old metal pad; a real press there moves the 
 the head strikes; a press on the orb breathes and releasing stops it; a press in the old pad's box but off the metal is
 not taken; at the mid-blade, 385 of 385 blade pixels are taken and 0 of 6,096 points beyond the slack; the dragon's
 head and the mug still take their own taps; no console errors.
+
+## Price by accuracy (owner, 2026-11-05), R92
+
+Owner: "I want to change this system so each percentage increase will increase the price value." Then, with a drawn curve
+(flat at first, steeper and steeper): "i want it to be more like this"; "i want the multiplier to be different for each
+percentage from 80-100%"; "below 80, follow the curve i mentioned"; "1.3 max is okay"; "go according to the table above,
+so that every percent adds gold".
+
+- The forging multiplier comes from the sword's **accuracy percent** `p` = `Math.round(w.forge*100)` (the average of the
+  counted strikes, rounded as the strike popups round it), not from the band. `hmAccMul(acc)`, values in `HM_HITS.price`.
+- **0-80%: the curve.** `lo + (knee - lo) * (e^(k*p/80) - 1) / (e^k - 1)` with `lo` **0.8** (0%), `knee` **1.0** (80%),
+  `k` **4**. Examples: 40% x0.824, 60% x0.871, 70% x0.920, 75% x0.955, 79% x0.990.
+- **81-100%: one row a percent** (`HM_HITS.price.top`, row i is 81+i %). Each step is bigger than the last, +0.010 at 81%
+  to +0.020 at 100%, so 80% to 100% climbs x1.0 to **x1.3** (the maximum):
+  81 1.010, 82 1.021, 83 1.032, 84 1.043, 85 1.055, 86 1.068, 87 1.081, 88 1.095, 89 1.109, 90 1.124, 91 1.139, 92 1.155,
+  93 1.171, 94 1.188, 95 1.205, 96 1.223, 97 1.242, 98 1.261, 99 1.280, 100 1.300.
+- **Every percent from 80% adds gold** to a sword whose base (before the multiplier) is **100g or more**. Under 100g some
+  percents add nothing: prices are whole gold, rounded down, and x1.3 at most leaves a 50g sword only 15g for 20 steps.
+- **No accuracy, x1.0** (the same as 80%): SKIP HAMMER, a craft-book page with no saved hammering, old saves.
+- The band names (Masterwork 85%+, Good 60%+, Crude) stay as **labels** on the crafted window and the craft-book pages; they
+  no longer set the price (`HM_HITS.bands` keeps `name` and `min`, no `mul`). The crafted window's hammer row shows the gold
+  against a sword with no accuracy.
+- Asserted by `tooling/hammer/hammer.test.mjs` (written first).

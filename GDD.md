@@ -143,8 +143,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
 - The dragon heats the metal while the player holds on it. At full heat the minigame says so (D15, in the tutorial).
 - The player drags the hammer and taps to strike **hit points**: one point on the metal sphere for 3 strikes, then 3 random
   points on the mid-blade. An aim ring under the hammer head shows the band each strike would get (yellow, blue, red).
-- The 6 strikes' accuracy averages into a **forging band**: **Masterwork** (>= 85%, price x1.3), **Good** (>= 60%, x1.0),
-  **Crude** (x0.8). 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
+- The 6 strikes' accuracy averages into one **accuracy percent**, which sets the price (R92): a steep curve from x0.8 at 0%
+  to x1.0 at 80%, then one step a percent, each bigger than the last, to x1.3 at 100% (on a 100g base every percent from 80%
+  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
 - Stages drawn: metal sphere, a mid-blade, the sword's own blade. A glow on the blade shows its heat.
 
 ### Quench
@@ -180,7 +181,7 @@ Any sword dragged in the game hangs from its grip and swings. By trait:
 ```
 price = floor( trait values + tier bonuses     (5 for a sword with no trait)
                x popularity  (1.10 ^ (level - 1))
-               x forging band (1.3 / 1.0 / 0.8)
+               x forging accuracy (0.8 .. 1.3, R92)
                x health      (0.5 + 0.5 x health/100)
                x Trade skill (1 + 0.05 x rank)
                x reputation  (1.2 above 10, 0.8 below 0) )      min 1

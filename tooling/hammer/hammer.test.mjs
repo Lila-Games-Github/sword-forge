@@ -15,7 +15,7 @@ const cfg = src.match(/\/\* HAMMER-HITS-BEGIN \*\/([\s\S]*?)\/\* HAMMER-HITS-END
 assert.ok(cfg, 'HAMMER-HITS markers not found in ' + HTML);
 const pure = src.match(/\/\* HAMMER-PURE-BEGIN \*\/([\s\S]*?)\/\* HAMMER-PURE-END \*\//);
 assert.ok(pure, 'HAMMER-PURE markers not found in ' + HTML);
-const M = new Function(cfg[1] + pure[1] + '; return { HM_HITS, hmGrade, hmBand, hmPlacePoints, hmHeatColor };')();
+const M = new Function(cfg[1] + pure[1] + '; return { HM_HITS, hmGrade, hmBand, hmPlacePoints, hmHeatColor, hmAccMul: typeof hmAccMul === "function" ? hmAccMul : () => NaN };')();
 const { HM_HITS } = M;
 
 let n = 0;
@@ -25,10 +25,10 @@ function eq(label, got, want) { assert.deepStrictEqual(got, want, label); n++; c
 eq('orbStrikes', HM_HITS.orbStrikes, 3);
 eq('midPoints', HM_HITS.midPoints, 3);
 eq('size (diameter, % of stage width)', HM_HITS.size, 5);
-eq('bands', HM_HITS.bands, [
-  { name: 'Masterwork', min: 0.85, mul: 1.3 },
-  { name: 'Good',       min: 0.60, mul: 1.0 },
-  { name: 'Crude',      min: 0,    mul: 0.8 } ]);
+eq('bands (R92: labels only, no price)', HM_HITS.bands, [
+  { name: 'Masterwork', min: 0.85 },
+  { name: 'Good',       min: 0.60 },
+  { name: 'Crude',      min: 0 } ]);
 eq('skip quality', HM_HITS.skip, 'Good');
 eq('unforged quality', HM_HITS.unforged, 'Good');
 eq('inset (fraction of the radius that must be on metal)', HM_HITS.inset, 0.6);
@@ -110,4 +110,20 @@ eq('one handler on the scene routes every press (capture)', /function wireHmTouc
 eq('the hammer is hit on its own alpha, through its live transform', /function hmOnHammer\(x,y\)\{[\s\S]{0,500}hmLocalUV\(h,x,y\)[\s\S]{0,200}hmMaskHit\(/.test(src) && /function hmLocalUV\(el, x, y\)\{[\s\S]{0,700}getComputedStyle\(el\)[\s\S]{0,300}\.inverse\(\)/.test(src), true);
 eq('the metal: the orb circle, then the blades\' alpha, each while it shows', /function hmOnWork\(x,y\)\{[\s\S]{0,300}hmOrb[\s\S]{0,500}\['hmRough','hmFinal'\][\s\S]{0,400}hmMaskHit\(/.test(src), true);
 eq('the old box pads take no presses', ['#hmAimPad {', '#hmGrip {', '#hmStrikePad {'].every(s => { const i = src.indexOf(s); return i >= 0 && /pointer-events: none;/.test(src.slice(i, src.indexOf('}', i))); }), true);
+/* R92 (owner, 2026-11-05): the price follows the accuracy percent - the curve to 80%, then a row a percent to x1.3 */
+eq('R92: HM_HITS.price is the recorded curve and table', HM_HITS.price, { lo: 0.8, knee: 1.0, k: 4, top: [
+  1.010, 1.021, 1.032, 1.043, 1.055, 1.068, 1.081, 1.095, 1.109, 1.124, 1.139, 1.155, 1.171, 1.188, 1.205, 1.223, 1.242, 1.261, 1.280, 1.300] });
+{ const mul = M.hmAccMul, r3 = x => +x.toFixed(3);
+  eq('R92: the curve\'s ends and examples (0, 40, 60, 70, 75, 79, 80%)', [0, .4, .6, .7, .75, .79, .8].map(a => r3(mul(a))), [0.8, 0.824, 0.871, 0.92, 0.955, 0.99, 1]);
+  eq('R92: 81-100% read the table', [.81, .85, .9, .95, .99, 1].map(mul), [1.010, 1.055, 1.124, 1.205, 1.280, 1.300]);
+  eq('R92: the percent is rounded as the popups round it', [mul(0.805), mul(0.8049), mul(0.996)], [1.010, 1, 1.300]);
+  eq('R92: clamped to 0-100%', [mul(-0.2), mul(1.4)], [0.8, 1.3]);
+  const P = [...Array(101).keys()];
+  eq('R92: every percent raises the multiplier', P.slice(1).filter(p => !(mul(p / 100) > mul((p - 1) / 100))), []);
+  eq('R92: each step from 80% is bigger than the last', P.slice(82).filter(p => !(r3(mul(p / 100) - mul((p - 1) / 100)) >= r3(mul((p - 1) / 100) - mul((p - 2) / 100)))), []);
+  eq('R92: from 80%, every percent adds gold on a 100g base (and on 150g, 237g)', [100, 150, 237].map(b => P.slice(81).filter(p => !(Math.floor(b * mul(p / 100)) > Math.floor(b * mul((p - 1) / 100))))), [[], [], []]); }
+{ const s2 = src.replace(/\r\n/g, '\n'), i = s2.indexOf('function hmForgeMul('), body = i < 0 ? '' : s2.slice(i, s2.indexOf('\n', i));
+  const fm = new Function('hmAccMul', body + '; return hmForgeMul;')(M.hmAccMul);
+  eq('R92: hmForgeMul - the accuracy when there is one, else x1.0 (skip, unforged pages, old saves)',
+    [fm({ forge: 0.9, quality: 'Good' }), fm({ forge: 0, quality: 'Crude' }), fm({ quality: 'Masterwork' }), fm({ forge: null }), fm(null)], [1.124, 0.8, 1, 1, 1]); }
 console.log('[hammer] GREEN / ' + n + ' checks');

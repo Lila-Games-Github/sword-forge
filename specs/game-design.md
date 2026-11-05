@@ -104,8 +104,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens
   it. A stored metal (ingot) dropped on the anvil lands there with the heat it was stored with (R18).
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on
-  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into a band - **Masterwork** (accuracy >= 0.85,
-  x1.3), **Good** (>= 0.60, x1.0), **Crude** (x0.8). Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
+  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into an accuracy percent that sets the price (R92, `hmAccMul`, `HM_HITS.price`): 0-80% a
+  curve `0.8 + 0.2 x (e^(4p/80) - 1)/(e^4 - 1)`, 81-100% a row a percent (1.010 ... 1.300, each step bigger). Band names as
+  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
   `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
   strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
 - **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per
@@ -139,7 +140,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   reputation)`, min 1, then **+7g** if sharpened (>= 80) and **+7g** if designed.
   - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
     tier) to a 20-point bar (`POP_CAP`) that carries over into the next level.
-  - Forging band: x1.3 / x1.0 / x0.8 (§5). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
+  - Forging accuracy: x0.8 (0%) to x1.0 (80%) to x1.3 (100%), every percent its own value; no accuracy x1.0 (§5, R92). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
   - Reputation: +1 per counter sale; above 10 every price is x1.2 (below 0 x0.8; nothing lowers it in this build).
   - Example: an Epic Balanced, Good forging, full health, popularity 1, no skills: 24 + 20 = 44g; designed and sharpened, 58g.
 - A sale at the counter also gives `XP_SELL` 5 xp per sword.

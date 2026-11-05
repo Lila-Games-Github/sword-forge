@@ -8,11 +8,11 @@ continuation prompt printed at close time.
 
 - **PR #29 merged (2026-11-05)** carried R63-R89 (branch `sword-forge/gdd-ftue-guide-fixes`, now merged); the Pages deploy
   succeeded. Each step's record is in `specs/2026-10-23-ftue-smelter-rework-plan.md` (one bullet per R, owner's words quoted).
-  206 dialogue keys, last key D140. Tests GREEN: FTUE 969 (R90-R91), smelter 145, market 84, hazard 37, hammer 47, skills 18, map 17,
+  206 dialogue keys, last key D140. Tests GREEN: FTUE 969 (R90-R91), smelter 145, market 84, hazard 37, hammer 56, skills 18, map 17,
   mobile-fit 21.
 - **R90 (2026-11-05, branch `sword-forge/dragon-toasts-r90`), ON TRIAL:** the toasts are said by the dragon
   (`specs/2026-11-05-dragon-toasts.md`); 30 cut by the owner's ticks in `toast-checklist.md`. If the owner does not like it,
-  set `DTOAST.on` to `false` (every toast comes back as before) or revert the R90 commit. R91: coins fly from the gold counter to the buy button when a blueprint is bought. Next record id: R92.
+  set `DTOAST.on` to `false` (every toast comes back as before) or revert the R90 commit. R91: coins fly from the gold counter to the buy button when a blueprint is bought. R92: the forging price follows the accuracy percent (`HM_HITS.price`, the hammer record's last section). Next record id: R93.
 - **What R63-R89 changed, in groups:**
   - Windows: the trait window bigger (R63); the gate's ready ring a pulsing circle (R64); the shape window wider (R65); the
     crafted window's lines under the dragon, tail up (R66), and that window cannot be closed during D17a, D17b, D69d (R67-R68).
@@ -302,8 +302,7 @@ dialogue-key count / last key when a line is added), then **commit that one feat
 3. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` but not `TUT_STAGE`. Not
    built; ask the owner before building.
 4. **Art still to come:** see the "art" list, `specs/2026-10-07-ftue-v3-art-list.md`.
-5. Older owner questions (from 2026-10-01, still open): the r209 forging price multipliers (x1.3 / x1.0 /
-   x0.8, `HM_HITS.bands`); Garric's gift as 6 balanced parts; whether the PART 1-6 buttons stay public;
+5. Older owner questions (from 2026-10-01, still open; the forging price multipliers were settled by R92): Garric's gift as 6 balanced parts; whether the PART 1-6 buttons stay public;
    D67a wording; 4 empty skill nodes (yellow 1-3, green 7).
 
 ## How to verify current state
@@ -325,7 +324,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 206 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 969 checks; the smelter test GREEN at 145 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 969 checks; the smelter test GREEN at 145 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 56; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

@@ -7559,7 +7559,7 @@ function oreTally(list){ const t={}; (list||[]).forEach(o=>{ t[o]=(t[o]||0)+1; }
    the heart and its %; the hammer row beside it shows the gold the forging band made or cost against an unforged sword */
 function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);
     return (lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }
-function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged }));
+function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged, forge:null }));
     return (d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }
 /* owner, 2026-10-09: "Epic Balanced Shortsword"; several traits: "Epic Fire, Fine Swift Longsword" */
 function craftName(w){
@@ -7806,7 +7806,11 @@ const HM_HITS = {
        HM_FORGE.workMin (0.35), below which a strike does not count. Blended between stops every frame. */
     heat: [ { h:1.00, c:[255,224,58] }, { h:0.70, c:[255,140,26] }, { h:0.45, c:[232,50,30] }, { h:0.35, c:[200,205,212] } ],
     ring:       { x:55, y:46.5 },   /* the aim ring with the hammer at rest, % of the stage (owner: clear of the head) */
-    bands: [ { name:'Masterwork', min:0.85, mul:1.3 }, { name:'Good', min:0.60, mul:1.0 }, { name:'Crude', min:0, mul:0.8 } ],
+    bands: [ { name:'Masterwork', min:0.85 }, { name:'Good', min:0.60 }, { name:'Crude', min:0 } ],   /* R92: labels only - the price follows `price` */
+    /* R92 (owner, 2026-11-05): "each percentage increase will increase the price value". 0-80% the owner's curve, lo (0%) to
+       knee (80%), steepness k; 81-100% one row a percent (top[i] is 81+i %), each step bigger than the last, to x1.3 */
+    price: { lo:0.8, knee:1.0, k:4, top:[1.010, 1.021, 1.032, 1.043, 1.055, 1.068, 1.081, 1.095, 1.109, 1.124,
+                                          1.139, 1.155, 1.171, 1.188, 1.205, 1.223, 1.242, 1.261, 1.280, 1.300] },
     touch:    { hammer:6, metal:8 },   /* r277: slack around the art (screen px) that still counts as a press on it */
     skip:     'Good',   /* SKIP HAMMER */
     unforged: 'Good'    /* swords that never saw the minigame: recipe crafts, old saves */
@@ -7822,6 +7826,10 @@ function hmHeatColor(h){ const S=HM_HITS.heat;
         if(h<=a.h && h>=b.h){ const t=(a.h-h)/(a.h-b.h); return a.c.map((v,k)=>Math.round(v+(b.c[k]-v)*t)); } }
     return S[S.length-1].c.slice(); }
 function hmBand(avg){ const B=HM_HITS.bands; return B.find(b=>avg>=b.min) || B[B.length-1]; }
+/* R92: the price multiplier for an average accuracy (0..1), by whole percent as the popups show it */
+function hmAccMul(acc){ const P=HM_HITS.price, p=Math.max(0, Math.min(100, Math.round(acc*100)));
+    if(p>80) return P.top[p-81];
+    return P.lo + (P.knee-P.lo)*(Math.exp(P.k*p/80)-1)/(Math.exp(P.k)-1); }
 /* n points in image space (0..1), each solid at its centre and on a circle of inset*r around it, at
    least gap diameters apart. A narrow blade can be boxed in by a bad first pick, so a set that will not
    fit starts again (20 times); only then are the missing points placed without the spacing. */
@@ -7861,7 +7869,7 @@ function hmIsMetal(m){
     return (u,v)=>{ const X=Math.floor(u*m.w), Y=Math.floor(v*m.h); return X>=0 && Y>=0 && X<m.w && Y<m.h && m.a[Y*m.w+X]===1; }; }
 let hmPts=[], hmScores=[], hmShow=0, hmHx=0, hmHy=0, HM_QUAL=null, HM_PAINT=null, hmSwingWant=false;
 const HM_TAP_PX=8;   /* a press that moves less than this is a tap (a strike), not a drag */
-function hmForgeMul(w){ const n=(w && w.quality) || HM_HITS.unforged, b=HM_HITS.bands.find(x=>x.name===n); return b ? b.mul : 1; }
+function hmForgeMul(w){ return (w && w.forge!=null) ? hmAccMul(w.forge) : 1; }   /* R92: the accuracy; none (skip, unforged pages, old saves) x1.0 */
 /* stage 0: one point on the orb. stage 1: random points on the mid-blade, rotated with it. */
 function hmSetPoints(stage){
     const R=HM_RIG, H=HM_HITS, AR=1877/1025;

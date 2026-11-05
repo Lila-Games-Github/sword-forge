@@ -1058,3 +1058,10 @@ yours and come on top.
   calls the quest claim's own `flyCoins` (5 coins, 650 ms, 70 ms apart) and `goldPop("-<price>g")`; `marketBuy` aims at the
   page's BUY, `shapeBuy` at the tapped shape, both before their window is rebuilt. The gold is spent at once; the coins only
   show it. The dragon's own purchases (`marketGift`) keep their coins from him. Asserted by the FTUE test (written first).
+- **R92 (owner, 2026-11-05): the forging price follows the accuracy percent.** "I want to change this system so each percentage
+  increase will increase the price value", with a drawn steep curve, then "different for each percentage from 80-100%", "below
+  80, follow the curve i mentioned", "1.3 max is okay", "so that every percent adds gold". `hmAccMul` (in the HAMMER-PURE block)
+  turns the rounded accuracy percent into the multiplier: 0-80% the curve x0.8 to x1.0 (k 4), 81-100% a row a percent in
+  `HM_HITS.price.top`, +0.010 to +0.020 a step, to x1.3; `hmForgeMul` uses it when the sword has an accuracy, else x1.0. The
+  bands are labels only (no `mul`). The crafted window's hammer row compares against no accuracy (`forge:null`). Record: the
+  hammer record's "Price by accuracy" section. Asserted by the hammer test (written first; GREEN at 56).
