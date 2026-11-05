@@ -26,8 +26,9 @@ continuation prompt printed at close time.
     until D107d (R89).
 - **Open from this session (ask the owner, do not decide):**
   - **D107d contradicts R83.** R83 walks the player to BUY the gale Katana; D107d then says "I am not buying the blueprint for
-    those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording.
-  - `MK_ROT.laterMs` is unused since R83 (still in the table and its test).
+    those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording. To change
+    it: the `DIALOGUE` entry D107d in the build, its line in the tutorial script SSOT, and any FTUE check that quotes it.
+  - `MK_ROT.laterMs` is unused since R83 (still in the table and its test). Ask the owner before removing it.
   - R89: `.cs-later.later-wait` has `pointer-events:none`, but `comeLater`'s own guard is what makes the refusal hold;
     keep both.
   - R66: the tail-up bubble is 293 px wide in the 1080 x 600 frame; not seen on a phone.
@@ -269,10 +270,18 @@ continuation prompt printed at close time.
 
 **Next session's focus (owner, 2026-11-05): polish, fix bugs, and a few changes.** As since 2026-10-14: The owner drives the work beat
 by beat from play-testing; expect fresh reports. For each: reproduce, write the test first, fix, check in
-the browser, add the change's record (a bullet just above "## Cross-part issues") and its one-line entry
-(the end of "## Log") to the tracker, update the counts in CLAUDE.md and here (test checks; and the
-dialogue-key count / last key when a line is added), then **commit that one feature**. Mechanics are recorded
-in the dated specs, not `specs/game-design.md` (see "Documentation drift").
+the browser, add the change's record to the tracker, update the counts in CLAUDE.md and here (test checks; and the
+dialogue-key count / last key when a line is added), then **commit that one feature**.
+- **The tracker is `specs/2026-10-23-ftue-smelter-rework-plan.md`** ("## Build log"; R0-R89 are there). The next change is
+  **R90**: append one bullet at the end of the file, in the R89 form (owner's words quoted, what changed, "Asserted by the FTUE
+  test (written first)"). A patch adds its check at the end of `tooling/ftue/ftue.test.mjs`, just before its
+  `console.log('[ftue] GREEN` line. (The older tracker, `specs/2026-10-07-ftue-v3-rework.md` with "## Cross-part issues" and
+  "## Log", is history.)
+- A changed tutorial line also goes in the script SSOT, `specs/2026-09-15-looptest-landscape-tutorial-script.md`. A changed
+  mechanic or value also goes in `GDD.md` and `specs/game-design.md` (see "Documentation drift").
+- Work on a new branch from `main`, named `sword-forge/<2-5-kebab-keywords>` (e.g. `sword-forge/ftue-polish-r90`).
+- The four `assets/backgrounds/Gemini_Generated_Image_*.png` are the owner's untracked files: never stage them (stage named
+  files only, never `git add -A`).
 
 1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end. Ask the owner for the
    next report; also ask the D107d question above (Current state, "Open from this session").
@@ -297,6 +306,7 @@ in the dated specs, not `specs/game-design.md` (see "Documentation drift").
 git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
 node tooling/ftue/ftue.test.mjs
+node tooling/smelter/smelter.test.mjs
 node tooling/hammer/hammer.test.mjs
 node tooling/hazard/hazard.test.mjs
 node tooling/market/market.test.mjs
@@ -328,7 +338,7 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   lines with the Write/Edit tools.
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here (seven):** `tooling/ftue`, `tooling/market`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
+- **Tests that run here (eight):** `tooling/ftue`, `tooling/smelter`, `tooling/market`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.
