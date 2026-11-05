@@ -4,7 +4,38 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-11-03): the smelter-loop FTUE is merged and live
+## Current state (2026-11-05): FTUE guide fixes R63-R89 merged and live
+
+- **PR #29 merged (2026-11-05)** carried R63-R89 (branch `sword-forge/gdd-ftue-guide-fixes`, now merged); the Pages deploy
+  succeeded. Each step's record is in `specs/2026-10-23-ftue-smelter-rework-plan.md` (one bullet per R, owner's words quoted).
+  206 dialogue keys, last key D140. Tests GREEN: FTUE 951, smelter 145, market 84, hazard 37, hammer 47, skills 18, map 17,
+  mobile-fit 21.
+- **What R63-R89 changed, in groups:**
+  - Windows: the trait window bigger (R63); the gate's ready ring a pulsing circle (R64); the shape window wider (R65); the
+    crafted window's lines under the dragon, tail up (R66), and that window cannot be closed during D17a, D17b, D69d (R67-R68).
+  - What the player sees early: the craft frame (HUD and shelf) hidden until D42 (R69); each screen arrow hidden until the
+    tutorial introduces it (R70, `FTUE_ST.exits`); the ledger only once the waiting customer's swords can be made (R80).
+  - Dark lines: `SAY_DARK_CUT` dims everything but the map and the line for D69a-c, D71, D72, D32c, D33 (R71-R72, R87); no ore
+    leaves the bag during D72, D32c, D33 (`tutOresHeld`, R73, R87); no gesture under a cut dim (R74).
+  - One highlight at a time (R75: a screen arrow waits for a lit line's X; R88 adds D92e); the gate ring shows only when the
+    guide points at the gate (R76-R78, `gateGuided`).
+  - New lines: D48a "Let's go sharpen the sword!" (R79), D6a "Tap the metal to select a shape." (R85), D107ca-D107cd, the
+    come-later market walk (R83, `FTUE_LATER`); the market strip now looks like the dragon's bubble (R84).
+  - Bugs: no false refill when Garric comes (R81); the shape window opens on a tap on the metal, not on the drop (R82); an arrow
+    tap with a hook line open closes that line first, so its next step is not lost (R86, `sayLeave`); COME LATER greyed
+    until D107d (R89).
+- **Open from this session (ask the owner, do not decide):**
+  - **D107d contradicts R83.** R83 walks the player to BUY the gale Katana; D107d then says "I am not buying the blueprint for
+    those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording. To change
+    it: the `DIALOGUE` entry D107d in the build, its line in the tutorial script SSOT, any FTUE check that quotes it, and the come-later
+    paragraph of `specs/2026-10-29-rotary-market.md` (it still describes the pre-R83 auto-advance with `laterMs`).
+  - `MK_ROT.laterMs` is unused since R83 (still in the table and its test). Ask the owner before removing it.
+  - R89: `.cs-later.later-wait` has `pointer-events:none`, but `comeLater`'s own guard is what makes the refusal hold;
+    keep both.
+  - R66: the tail-up bubble is 293 px wide in the 1080 x 600 frame; not seen on a phone.
+  - Not done: a continuous play of Parts 2-6, and any play on a phone.
+
+## Earlier state (2026-11-03): the smelter-loop FTUE is merged and live
 
 - **PR #28 merged (2026-11-02, merge commit `36d4c97`)** carried R0-R62 of `sword-forge/ftue-smelter-rework`; the Pages
   deploy succeeded, so https://lila-games-github.github.io/sword-forge/ serves it. Start new work on a new branch from `main`.
@@ -238,14 +269,25 @@ continuation prompt printed at close time.
 
 ## Next steps
 
-**Next session's focus (owner, 2026-10-14): keep fixing and polishing.** The owner drives the work beat
+**Next session's focus (owner, 2026-11-05): polish, fix bugs, and a few changes.** As since 2026-10-14: The owner drives the work beat
 by beat from play-testing; expect fresh reports. For each: reproduce, write the test first, fix, check in
-the browser, add the change's record (a bullet just above "## Cross-part issues") and its one-line entry
-(the end of "## Log") to the tracker, update the counts in CLAUDE.md and here (test checks; and the
-dialogue-key count / last key when a line is added), then **commit that one feature**. Mechanics are recorded
-in the dated specs, not `specs/game-design.md` (see "Documentation drift").
+the browser, add the change's record to the tracker, update the counts in CLAUDE.md and here (test checks; and the
+dialogue-key count / last key when a line is added), then **commit that one feature**.
+- **The tracker is `specs/2026-10-23-ftue-smelter-rework-plan.md`** ("## Build log"; R0-R89 are there). The next change is
+  **R90**: append one bullet at the end of the file, in the R89 form (owner's words quoted, what changed, "Asserted by the FTUE
+  test (written first)"). A patch adds its check at the end of `tooling/ftue/ftue.test.mjs`, just before its
+  `console.log('[ftue] GREEN` line. (The older tracker, `specs/2026-10-07-ftue-v3-rework.md` with "## Cross-part issues" and
+  "## Log", is history.)
+- A changed tutorial line also goes in the script SSOT, `specs/2026-09-15-looptest-landscape-tutorial-script.md`. A changed
+  mechanic or value also goes in `GDD.md` and `specs/game-design.md` (see "Documentation drift").
+- If the handoff PR (#30) is still open, ask the owner to merge it first: R90+ commits change HANDOFF.md and CLAUDE.md
+  counts, so a branch from an older `main` conflicts with it. Run `git checkout main && git pull` (local `main` may be far behind).
+- Work on a new branch from `main`, named `sword-forge/<2-5-kebab-keywords>` (e.g. `sword-forge/ftue-polish-r90`).
+- The four `assets/backgrounds/Gemini_Generated_Image_*.png` are the owner's untracked files: never stage them (stage named
+  files only, never `git add -A`).
 
-1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end.
+1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end. Ask the owner for the
+   next report; also ask the D107d question above (Current state, "Open from this session").
 2. **Owner items still open (ask, do not decide):**
    - 24 of the 25 craft-book sword descriptions (`SWORD_DESC`) are placeholders; balanced is the owner's.
    - Craft-book headings: the owner asked for "Crafting process" / "Shapes unlocked"; the updated wireframe
@@ -267,6 +309,7 @@ in the dated specs, not `specs/game-design.md` (see "Documentation drift").
 git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
 node tooling/ftue/ftue.test.mjs
+node tooling/smelter/smelter.test.mjs
 node tooling/hammer/hammer.test.mjs
 node tooling/hazard/hazard.test.mjs
 node tooling/market/market.test.mjs
@@ -298,7 +341,7 @@ the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
   lines with the Write/Edit tools.
 - **The verify commands are bash** (Git Bash is present). On PowerShell use
   `.claude/hooks/verify-living-docs.ps1`.
-- **Tests that run here (seven):** `tooling/ftue`, `tooling/market`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
+- **Tests that run here (eight):** `tooling/ftue`, `tooling/smelter`, `tooling/market`, `tooling/hammer`, `tooling/hazard`, `tooling/skills`, `tooling/map` and `tooling/mobile-fit`.
   `tooling/anchor-match` and the `docs/wiki/` search script need Python, which is not installed.
   (`tooling/asset-diet` is a manifest generator and converter page, not a test.)
 - **GitHub Issues is empty**, although `CLAUDE.md` routes work through it. Every open item lives here.

@@ -135,6 +135,10 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
 - [x] R24 rotated iron and manganese paths; R25-R39 the craft frame, the rail, the counter's new look, the rotary market;
       R40-R51 swing effects; R52-R62 dialogue flow (replies, X-only close), the trait burst, coloured sword names.
 - [x] `game-design.md` §6-§8 rewritten to the landscape game, and one whole-game document, `GDD.md` (2026-11-03).
+- [x] R63-R89 (2026-11-03 to 11-05, PR #29): bigger windows, the craft frame and screen arrows hidden until introduced, cut-out
+      dark lines, one highlight at a time, the gate ring as a guide only, the come-later market walk, and bug fixes (R81, R82,
+      R86). Records: `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- [ ] D107d's wording after the R83 walk (the player has bought the Katana, the line says "I am not buying ..."): owner to decide.
 - [ ] **Play Parts 2-6 continuously** (each part was checked on its own; Part 1 was played through).
 - [ ] **Play it on a phone**: the bellows, the ladle and the blade dip by finger.
 - [ ] Remove the unused forge hammer and forge mug (hidden by CSS) and their wiring.
