@@ -4,7 +4,36 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-11-03): the smelter-loop FTUE is merged and live
+## Current state (2026-11-05): FTUE guide fixes R63-R89 merged and live
+
+- **PR #29 merged (2026-11-05)** carried R63-R89 (branch `sword-forge/gdd-ftue-guide-fixes`, now merged); the Pages deploy
+  succeeded. Each step's record is in `specs/2026-10-23-ftue-smelter-rework-plan.md` (one bullet per R, owner's words quoted).
+  206 dialogue keys, last key D140. Tests GREEN: FTUE 951, smelter 145, market 84, hazard 37, hammer 47, skills 18, map 17,
+  mobile-fit 21.
+- **What R63-R89 changed, in groups:**
+  - Windows: the trait window bigger (R63); the gate's ready ring a pulsing circle (R64); the shape window wider (R65); the
+    crafted window's lines under the dragon, tail up (R66), and that window cannot be closed during D17a, D17b, D69d (R67-R68).
+  - What the player sees early: the craft frame (HUD and shelf) hidden until D42 (R69); each screen arrow hidden until the
+    tutorial introduces it (R70, `FTUE_ST.exits`); the ledger only once the waiting customer's swords can be made (R80).
+  - Dark lines: `SAY_DARK_CUT` dims everything but the map and the line for D69a-c, D71, D72, D32c, D33 (R71-R72, R87); no ore
+    leaves the bag during D72, D32c, D33 (`tutOresHeld`, R73, R87); no gesture under a cut dim (R74).
+  - One highlight at a time (R75: a screen arrow waits for a lit line's X; R88 adds D92e); the gate ring shows only when the
+    guide points at the gate (R76-R78, `gateGuided`).
+  - New lines: D48a "Let's go sharpen the sword!" (R79), D6a "Tap the metal to select a shape." (R85), D107ca-D107cd, the
+    come-later market walk (R83, `FTUE_LATER`); the market strip now looks like the dragon's bubble (R84).
+  - Bugs: no false refill when Garric comes (R81); the shape window opens on a tap on the metal, not on the drop (R82); an arrow
+    tap with a hook line open closes that line first, so its next step is not lost (R86, `sayLeave`); COME LATER greyed
+    until D107d (R89).
+- **Open from this session (ask the owner, do not decide):**
+  - **D107d contradicts R83.** R83 walks the player to BUY the gale Katana; D107d then says "I am not buying the blueprint for
+    those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording.
+  - `MK_ROT.laterMs` is unused since R83 (still in the table and its test).
+  - R89: `.cs-later.later-wait` has `pointer-events:none`, but `comeLater`'s own guard is what makes the refusal hold;
+    keep both.
+  - R66: the tail-up bubble is 293 px wide in the 1080 x 600 frame; not seen on a phone.
+  - Not done: a continuous play of Parts 2-6, and any play on a phone.
+
+## Earlier state (2026-11-03): the smelter-loop FTUE is merged and live
 
 - **PR #28 merged (2026-11-02, merge commit `36d4c97`)** carried R0-R62 of `sword-forge/ftue-smelter-rework`; the Pages
   deploy succeeded, so https://lila-games-github.github.io/sword-forge/ serves it. Start new work on a new branch from `main`.
@@ -238,14 +267,15 @@ continuation prompt printed at close time.
 
 ## Next steps
 
-**Next session's focus (owner, 2026-10-14): keep fixing and polishing.** The owner drives the work beat
+**Next session's focus (owner, 2026-11-05): polish, fix bugs, and a few changes.** As since 2026-10-14: The owner drives the work beat
 by beat from play-testing; expect fresh reports. For each: reproduce, write the test first, fix, check in
 the browser, add the change's record (a bullet just above "## Cross-part issues") and its one-line entry
 (the end of "## Log") to the tracker, update the counts in CLAUDE.md and here (test checks; and the
 dialogue-key count / last key when a line is added), then **commit that one feature**. Mechanics are recorded
 in the dated specs, not `specs/game-design.md` (see "Documentation drift").
 
-1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end.
+1. **Owner play-test of the whole v3 FTUE on the live build** - none has been done end to end. Ask the owner for the
+   next report; also ask the D107d question above (Current state, "Open from this session").
 2. **Owner items still open (ask, do not decide):**
    - 24 of the 25 craft-book sword descriptions (`SWORD_DESC`) are placeholders; balanced is the owner's.
    - Craft-book headings: the owner asked for "Crafting process" / "Shapes unlocked"; the updated wireframe

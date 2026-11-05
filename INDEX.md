@@ -1,6 +1,6 @@
 # INDEX
 
-> **2026-11-03:** the game is `Swordforge_looptest_landscape.html`, on the smelter crafting loop (PR #28, R0-R62). The whole
+> **2026-11-05:** the game is `Swordforge_looptest_landscape.html`, on the smelter crafting loop (PR #28, R0-R62; PR #29, R63-R89). The whole
 > game is in [GDD.md](GDD.md); `HANDOFF.md` has the current state; the table below is current.
 
 Chronological catalog of every doc in this repo. `canon` = current source of truth;
@@ -78,3 +78,4 @@ Chronological catalog of every doc in this repo. `canon` = current source of tru
 - **2026-11-03** - [GDD.md](GDD.md) - **canon**: the whole game in one document (vision, loop, systems with values, economy, progression, the six-part tutorial, story, screens, dialogue, art status, open questions), written from the build and the dated records. Supersedes [research/sword-forge-gdd.html](research/sword-forge-gdd.html) (v0.3, 2026-08-12) as the GDD.
 - **2026-11-03** - [specs/game-design.md](specs/game-design.md) - §1 and §6-§9 rewritten to the landscape game (economy, customers, market, skills, quests, shop, days, cave, the FTUE table, UI, save, test aids); §2-§5 gain the finishing steps and swing effects. No section describes V1 any more.
 - **2026-11-03** - docs brought to R62: ONBOARDING.md (rewritten), README.md, specs/README.md, HANDOFF.md (current state, drift), plan.md (smelter-loop section), CLAUDE.md (GDD.md named), and the tutorial script's play-order section (checked against `DIALOGUE`; R56 replies, R17, R18, R52, R57).
+- **2026-11-05** - session close: HANDOFF.md (current state R63-R89, open items), plan.md, LEARNINGS.md (four lessons), CLAUDE.md (hidden pane freezes Web Animations too). R63-R89 records are in [specs/2026-10-23-ftue-smelter-rework-plan.md](specs/2026-10-23-ftue-smelter-rework-plan.md).

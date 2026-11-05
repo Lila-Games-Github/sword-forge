@@ -198,3 +198,13 @@ Two smaller ones from the same rounds:
 - **2026-10-23 - a glowing control invites the tap the guide did not plan.** The gate glows on any trait, so at TC5's swift
   route end the player tapped it before the ladle and the craft lock refused with the order's line. The owner's rule is "only
   what the tutorial demands", not "only what the customer asked": the lock follows the tutorial's step.
+- **2026-11-05 - a hidden preview pane freezes Web Animations too, not only `requestAnimationFrame`.** The market's opening
+  animation stayed at frame 0, so BUY sat outside the market paper and `elementFromPoint` missed it. Run
+  `document.getAnimations().forEach(a=>a.finish())` before measuring or tapping.
+- **2026-11-05 - `git checkout` can write the build with CRLF (`core.autocrlf=true`), and FTUE checks that match a literal
+  `\n` then fail.** Check with Node (count `\r\n`) and rewrite the working copy as LF; do not change the test.
+- **2026-11-05 - many FTUE checks match exact source strings.** Code inserted next to a tested line breaks an old check that has
+  nothing to do with the change. Insert new code away from tested anchors, or update the old check in the same step.
+- **2026-11-05 - a synthetic drag of the metal must be sent to `orbEl`.** Its pointer listeners sit on that element with pointer
+  capture; events sent through `elementFromPoint` to a covering element never move it. Taps still go through
+  `elementFromPoint`.
