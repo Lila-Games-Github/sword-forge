@@ -348,6 +348,11 @@ end of day, the gear menu (resume, save, new game, load, settings).
   and down, ring down), a dark screen with the needed controls cut out, and a pulsing ring on the map trait to aim for (it goes
   out once the sword is made).
 - **Rules for lines:** straight quotes only; "tap", never "click".
+- **Toasts are the dragon's (R90, on trial):** a game message (for example "No Iron left") is said by the dragon for 4 s, then
+  goes. With a line up it takes that line's place, and the line comes back as it was; with no line, it shows in his bubble
+  where he is visible, or in an icon bubble at the bottom centre (as in the sharpening window) where he is not. A tap closes
+  it; a new line replaces it at once. 30 old toasts are gone; the shop-rack sale and the PART buttons keep the old top toast.
+  Record: `specs/2026-11-05-dragon-toasts.md` (`DTOAST.on=false` reverts it).
 
 ## 12. Art and audio
 

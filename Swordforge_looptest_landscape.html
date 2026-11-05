@@ -1823,6 +1823,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
    puts his lower edge on 95.9%, level with both buttons. */
 #shSayWrap { left: 50%; top: auto; bottom: 10.2%; transform: translateX(-50%); }   /* r174: +36px for the go button, which now sits level with the two buttons */
 #ddSayWrap { left: 2.2%; top: 3.4%; z-index: 12; }
+/* R90 (owner, 2026-11-05): where the dragon is not visible a toast is his line in this box, placed as in the sharpening window */
+#dtSay { left: 50%; top: auto; bottom: 10.2%; transform: translateX(-50%); z-index: 1150; }
+.dt-flash p { animation: sayIn .22s ease-out; }
 #shMeter { position: absolute; left: 21.92%; top: 3.20%; width: 56.16%; height: 4.57%;
     background: linear-gradient(180deg,#8d3a2c,#63251d); border: 2px solid #241a0c; border-radius: 5px;
     box-shadow: inset 0 1px 0 rgba(255,200,170,.25); }
@@ -2320,6 +2323,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     </svg>
     <div id="dayCard"><span></span></div>
     <div id="sfToast"></div>
+    <div id="dtSay" class="tut-iconsay" onclick="dtTap(event)"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="dtSayText"></p><span class="go say-go" id="dtSayGo"></span></div></div>
     <div id="panPad">
         <button id="panUp"    type="button" title="Pan up"    aria-label="Pan up">▲</button>
         <button id="panDown"  type="button" title="Pan down"  aria-label="Pan down">▼</button>
@@ -2684,7 +2688,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="toast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="toast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="toast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="toast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="toast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="toast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="toast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="plainToast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>
 
 <script>
 // ============================================================
@@ -3779,7 +3783,7 @@ function orderHandedOver(c){
     COUNTER=null; tutSellLit(false); refreshCounter(); counterUi();
     const next=(c.items && c.items.length>1) ? orderOwed(c)[0] : null;
     custLine(null, next ? 'Thank you. Now the '+orderLabel(TRAIT_BY[next.trait].name, next.shape)+', please.' : 'Good. '+orderLeft(c)+' more, please.');
-    toast('Handed over. You are paid when the whole order is sold.');
+    toastCut('Handed over. You are paid when the whole order is sold.');
     if(c.qty>1) setTimeout(ftueBulkStep, 0);
 }
 /* r201: TC2's sword is done. Sharpening moved to part 5, so straight to the counter to sell it.
@@ -3840,7 +3844,7 @@ function ftueRetryAsk(){
 function ftueRetry(){
     sayHide();
     segs.forEach(g=>gainOre(g.ore,1));   /* NOT refundOre(): that is the Restore Ore talent */
-    resetRun(); buildShelf(); toast('The ores are back in your inventory');
+    resetRun(); buildShelf(); toastCut('The ores are back in your inventory');
 }
 function ftueCheckMix(){
     if(!ftueGpcCraft()) return;
@@ -3883,7 +3887,7 @@ function setBuild(on){
     BUILD_ON=!!on;
     const layer=document.getElementById('screenLayer'); if(layer) layer.classList.toggle('build-on', BUILD_ON);
     if(INV_TAB===3) buildShelf();
-    toast(BUILD_ON ? 'Build mode <b>ON</b>: drag decor onto the counter, shop or bedroom' : 'Build mode <b>OFF</b>');
+    toastCut(BUILD_ON ? 'Build mode <b>ON</b>: drag decor onto the counter, shop or bedroom' : 'Build mode <b>OFF</b>');
     ftueDecorStep();   /* r200 */
 }
 function overRail(ev){ const r=document.getElementById('rail'); if(!r) return false; const b=r.getBoundingClientRect();
@@ -3904,13 +3908,13 @@ function startDecorDrag(id, e, idx){
         const L=lay.getBoundingClientRect();
         const inside = lay.classList.contains('on') && ev.clientX>=L.left && ev.clientX<=L.right && ev.clientY>=L.top && ev.clientY<=L.bottom;
         if(overRail(ev)){
-            if(idx!=null){ FTUE_ST.placed.splice(idx,1); FTUE_ST.decor.push(id); toast('Back in your inventory'); } }
+            if(idx!=null){ FTUE_ST.placed.splice(idx,1); FTUE_ST.decor.push(id); toastCut('Back in your inventory'); } }
         else if(inside && DECOR_SCREENS.indexOf(SF_SCREEN)>=0){
             const x=+((ev.clientX-L.left)/L.width*100).toFixed(2), y=+((ev.clientY-L.top)/L.height*100).toFixed(2);
             if(idx!=null){ FTUE_ST.placed[idx].x=x; FTUE_ST.placed[idx].y=y; }
             else { const k=FTUE_ST.decor.indexOf(id); if(k>=0) FTUE_ST.decor.splice(k,1);
                 FTUE_ST.placed.push({ id:id, screen:SF_SCREEN, x:x, y:y }); } }
-        else if(idx==null) toast('Decor goes on the <b>counter</b>, <b>shop</b> or <b>bedroom</b>');
+        else if(idx==null) toastCut('Decor goes on the <b>counter</b>, <b>shop</b> or <b>bedroom</b>');
         renderDecor(); if(INV_TAB===3) buildShelf(); else ftueDecorStep(); };   /* r200 */
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
@@ -4167,7 +4171,7 @@ function gainExp(n, why){
 function levelUpFx(gained){
     const b=document.getElementById('skillBtn');
     if(b){ b.classList.remove('levelled'); void b.offsetWidth; b.classList.add('levelled'); }
-    setTimeout(()=>toast('\u2b50 <b>Level '+LEVEL+'</b> \u2014 +'+gained+' talent point'+(gained>1?'s':''), 2600), 400);
+    setTimeout(()=>toastCut('\u2b50 <b>Level '+LEVEL+'</b> \u2014 +'+gained+' talent point'+(gained>1?'s':''), 2600), 400);
 }
 function updateXpHud(){
     const lv=document.getElementById('skillLv'), fill=document.getElementById('skillXpFill');
@@ -4271,11 +4275,11 @@ function buySkill(id){
     if(id==='pick') stopStriking();   /* r218: the next swing restarts at the new speed */
     if(id==='master'){ const n=masterSpawn(r+1); extra = n? ' \u2014 '+n+(r+1>5?' great tomes':' books')+' hidden in the fog' : ''; }
     buildSkillNodes(); updateXpHud();
-    toast('\u2b50 <b>'+sk.name+'</b> rank '+(r+1)+'/'+sk.max+' \u2014 '+sk.desc(r+1)+extra, 2600);
+    toastCut('\u2b50 <b>'+sk.name+'</b> rank '+(r+1)+'/'+sk.max+' \u2014 '+sk.desc(r+1)+extra, 2600);
 }
 function resetTalent(){
     let back=0; SKILLS.forEach(sk=>{ back += rank(sk.id)*sk.cost; SKILL_RANK[sk.id]=0; });
-    if(!back){ toast('No talent points spent yet'); return; }
+    if(!back){ toastCut('No talent points spent yet'); return; }
     TALENT += back; buildSkillNodes(); updateXpHud();
     toast('Refunded <b>'+back+'</b> talent point'+(back>1?'s':'')+' \u2014 books already scattered stay put', 2600);
 }
@@ -4596,16 +4600,16 @@ function sellCounter(){
     if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
     gainExp(XP_SELL*(held.length+1),'sell');              // r73: counter sales only - the racks pay gold alone. r267: one XP_SELL a sword
     const popAll=(POP_GAIN[tier]||0)+heldPop;
-    if(refused) toast('He took it and paid <b>nothing</b>');   /* r132 */
-    else toast((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
+    if(refused) toastCut('He took it and paid <b>nothing</b>');   /* r132 */
+    else toastCut((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
     const paidAll=pay+heldG;   /* r268: the coins fly from SELL to the gold panel, as a quest claim's do; the count catches up when they land */
     if(paidAll>0){ setGoldShown(goldWas); flyCoins(sellR, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+paidAll+'g'); }); }
-    if(levelled) setTimeout(()=>toast('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
+    if(levelled) setTimeout(()=>toastCut('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
 }
 function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
     COUNTER=sw; refreshCounter();
-    toast('&#9876;&#65039; ' + sw.shape + ' on the counter &mdash; ' + swordPrice(sw) + 'g');
+    toastCut('&#9876;&#65039; ' + sw.shape + ' on the counter &mdash; ' + swordPrice(sw) + 'g');
     /* r159: the drag has been done, so the pointer asking for it goes. Every scripted sale draws
        the same sword-to-counter arrow (sell2, sell3, bram2-sell2, d2-gale-sell2), and only Bram's
        branch below used to retire it - the rest leaned on noteAction() wiping the arrow on the
@@ -4623,7 +4627,7 @@ function tutSellLit(on){
     });
 }
 function takeCounter(){ if(!COUNTER || (TUT_BRAM_STATE && TUT_BRAM_STATE!=='done')) return; tutSellLit(false);   /* r184. r238: 'done' lasts all game, so only Bram's live scene holds the sword */ INV.swords.push(COUNTER); COUNTER=null; refreshCounter(); invTab(2);
-    toast('Back in your inventory'); }
+    toastCut('Back in your inventory'); }
 function refreshCounter(){ if(SF_SCREEN==='customer') buildScreenProps('customer'); if(INV_TAB===2) buildShelf(); sellLabel(); }   /* r103 */
 
 // ---- r61: the sword on the basement workstation table ----------------------------------------------
@@ -4666,7 +4670,40 @@ function showZone(on,hot){ const z=document.getElementById('workZone'); if(!z) r
     z.style.width=(r.right-r.left)+'px'; z.style.height=(r.bottom-r.top)+'px';
     z.classList.add('on'); z.classList.toggle('hot', !!hot); }
 let TOAST_T=null;
-function toast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) return;
+/* R90 (owner, 2026-11-05): "I want the remaining toasts to be part of dragon's dialogues instead, not a separate toast" - on
+   trial. toast() is said by the dragon for DTOAST.ms; toastCut() is one the owner ticked to delete; plainToast() is the old
+   toast, kept for the shop-rack sale and the PART buttons. DTOAST.on=false brings every toast back as it was (the revert).
+   Record: specs/2026-11-05-dragon-toasts.md */
+const DTOAST={ on:true, ms:4000 };
+function toast(msg,ms){ if(!DTOAST.on){ plainToast(msg,ms); return; } dtShow(msg); }
+function toastCut(msg,ms){ if(!DTOAST.on) plainToast(msg,ms); }
+function dtText(s){ return String(s).replace(/&#(\d+);/g,(m,n)=>String.fromCodePoint(+n)).replace(/\s*(\u2014|&mdash;)\s*/g,': ').replace(/[\p{Extended_Pictographic}️]/gu,'').trim(); }
+let DT=null;   /* the toast showing: { mode:'swap'|'bubble'|'icon', box, p, go, t, and what a swap keeps } */
+/* the dragon a line would point at; visible = his box is not empty and his centre is not under a window */
+function dtDragonEl(){ const hm=document.getElementById('sfHammerModal'); if(hm && hm.classList.contains('show')) return document.getElementById('hmHead');
+    if(onScreenDragon()) return (SF_SCREEN==='bedroom' && document.querySelector("#screenHots [data-act='dragon']")) || document.getElementById('screenDragon');
+    return document.getElementById('dragon'); }
+function dtSeen(el){ if(!el) return false; const r=el.getBoundingClientRect(); if(r.width<2 || r.height<2) return false;
+    return [[0.5,0.5],[0.6,0.3],[0.4,0.7]].some(([fx,fy])=>{ const h=document.elementFromPoint(r.left+r.width*fx, r.top+r.height*fy); return !!h && (h===el || el.contains(h)); }); }
+function dtShow(msg){ dtEnd();
+    const where=sayWhere(), B=SAY_BOXES[where], box=document.getElementById(B[0]), p=document.getElementById(B[1]), go=document.getElementById(B[2]);
+    let mode='icon';
+    if(SAY_ON && box && p && go && box.classList.contains('show') && box.getBoundingClientRect().width>2) mode='swap';   /* a line is up: take its place */
+    else if(!SAY_ON && box && p && go && (where==='sharp' || where==='design' || dtSeen(dtDragonEl()))) mode='bubble';   /* he is there: his bubble */
+    const d = mode==='icon' ? { mode, box:document.getElementById('dtSay'), p:document.getElementById('dtSayText'), go:document.getElementById('dtSayGo') } : { mode, box, p, go };
+    if(!d.box || !d.p || !d.go) return;
+    if(mode==='swap'){ sayTypeStop(true); const ch=document.getElementById('sayChoices');
+        d.html=d.p.innerHTML; d.goHtml=d.go.innerHTML; d.goCls=d.go.className; d.goTitle=d.go.title; d.ch=ch?ch.style.display:''; if(ch) ch.style.display='none'; }
+    d.p.innerHTML=dtText(msg); d.go.className='go say-go'; d.go.title='Close'; d.go.innerHTML=SAY_GO_CLOSE;
+    d.box.classList.remove('dt-flash'); void d.box.offsetWidth; d.box.classList.add('show','dt-flash');
+    DT=d; if(mode!=='icon') sayLayout();
+    DT.t=setTimeout(dtEnd, DTOAST.ms); }
+function dtEnd(){ if(!DT) return; const d=DT; DT=null; clearTimeout(d.t); d.box.classList.remove('dt-flash');
+    if(d.mode==='swap'){ d.p.innerHTML=d.html; d.go.innerHTML=d.goHtml; d.go.className=d.goCls; d.go.title=d.goTitle;
+        const ch=document.getElementById('sayChoices'); if(ch) ch.style.display=d.ch; sayLayout(); }   /* the line comes back as it was */
+    else if(d.mode==='icon' || !SAY_ON) d.box.classList.remove('show'); }
+function dtTap(e){ if(e) e.stopPropagation(); dtEnd(); }
+function plainToast(msg,ms){ const t=document.getElementById('sfToast'); if(!t) return;
     t.innerHTML=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
     if(typeof sayLayout==='function') sayLayout();   /* r154: synchronous - the class is already applied, so the toast has its box, and rAF is throttled in a hidden tab */
     clearTimeout(TOAST_T); TOAST_T=setTimeout(()=>{ t.classList.remove('show');
@@ -4680,11 +4717,11 @@ function refreshWork(){ if(SF_SCREEN==='basement') buildScreenProps('basement');
 function placeWork(sw){
     if(WORK) INV.swords.push(WORK);                     // owner's call: a second sword SWAPS
     WORK=sw; refreshWork();
-    toast('&#9876;&#65039; ' + sw.shape + ' on the workstation');
+    toastCut('&#9876;&#65039; ' + sw.shape + ' on the workstation');
     tutWorkPlaced();   /* r103 */
 }
 function takeWork(){ if(!WORK) return; INV.swords.push(WORK); WORK=null; refreshWork(); invTab(2);
-    toast('Back in your inventory'); tutWorkTaken(); }   /* r103 */
+    toastCut('Back in your inventory'); tutWorkTaken(); }   /* r103 */
 function requireWork(){ if(WORK) return true; toast('Put a sword on the workstation table first'); return false; }
 // r62: the table's sword drags back to the rail. A tap with no movement still takes it back.
 function wireWorkDrag(el, kind){
@@ -4792,7 +4829,7 @@ function fxFrame(now){ const F=FX.F, g=FX.g, c=FX.cv; if(!F || !g || !c.isConnec
     if(FX.em.length || FX.gu.length || FX.wtr.length || FX.rib.length || (SW_SWING && SW_SWING.fx) || (SM_BL && SM_BL.fx && SM_BL.live)) FX.raf=requestAnimationFrame(fxFrame); else { FX.raf=0; FX.t=0; } }
 function startSwordDrag(w,e){
     const onShop = SF_SCREEN==='shop';                      // r70: three rack targets instead of one zone
-    if(!zoneRect() && !onShop){ toast('Take a sword to the <b>workstation</b>, the <b>counter</b> or the <b>shop racks</b>'); return; }
+    if(!zoneRect() && !onShop){ toastCut('Take a sword to the <b>workstation</b>, the <b>counter</b> or the <b>shop racks</b>'); return; }
     e.preventDefault();
     const frame=document.getElementById('frame'), fr=frame.getBoundingClientRect();
     const ghost=document.createElement('div'); ghost.className='sw-ghost';
@@ -4806,7 +4843,7 @@ function startSwordDrag(w,e){
         swSwingStop(); ghost.remove(); if(onShop) rackHot(-1); else showZone(false);
         const take=()=>{ const i=INV.swords.indexOf(w); if(i>=0) INV.swords.splice(i,1); };
         if(onShop){ const ri=rackAt(ev); if(ri>=0){ take(); placeOnRack(ri,w); } }
-        else if(overTable(ev)){ if(counterShut()){ toast('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };
+        else if(overTable(ev)){ if(counterShut()){ toastCut('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
@@ -5009,7 +5046,7 @@ function mineNode(n,el){
     /* r218: Ore Extraction Upgrade - a seam rolls once, on its first swing; scripted seams never do */
     if(!n.script && !n.rolled){ n.rolled=true;
         if(Math.random() < extractChance(rank('extract'))){ const b=extractBonus(Math.random()); n.left+=b;
-            toast('⛏️ A rich seam: <b>+'+b+' '+oreName(n.metal)+'</b>', 2200); } }
+            toastCut('⛏️ A rich seam: <b>+'+b+' '+oreName(n.metal)+'</b>', 2200); } }
     const take = n.per ? Math.min(n.left, n.per[0]+Math.floor(Math.random()*(n.per[1]-n.per[0]+1))) : 1;   /* r203 */
     n.left-=take; gainOre(n.metal,take); bumpQuest('gatherOres');   /* 2026-10-09 */ setTimeout(tutMined, 0); setTimeout(tutDay2Mined, 0);   /* r111/r122 */
     if(INV_TAB===0) buildShelf();                         // the count moves NOW, not when the ore lands
@@ -5177,7 +5214,7 @@ function shopTick(){
     if(SF_SCREEN==='shop') buildShopLocks();
     if(document.getElementById('sfRackModal').classList.contains('show')) buildRacks();
     if(document.getElementById('sfLedgerModal').classList.contains('show')) buildLedger();
-    toast('\ud83c\udfea '+(n>1? n+' swords sold' : 'Sword sold')+' \u2014 <b>+'+total+'g</b>');
+    plainToast('\ud83c\udfea '+(n>1? n+' swords sold' : 'Sword sold')+' \u2014 <b>+'+total+'g</b>');
 }
 function flashGold(){ const e=document.getElementById('goldVal'); if(!e) return;
     e.classList.remove('gained'); void e.offsetWidth; e.classList.add('gained'); }
@@ -5232,10 +5269,10 @@ function rackHot(i){ rackImgs().forEach(im=>im.classList.toggle('rack-hot', (im.
 function placeOnRack(i,w){
     if(RACKS[i].length>=RACK_CAP){ INV.swords.push(w); toast('Rack '+(i+1)+' is full'); return; }
     RACKS[i].push(w); buildRackSwords(); if(INV_TAB===2) buildShelf();
-    toast('&#9876;&#65039; '+w.shape+' on rack '+(i+1)+' \u2014 '+RACKS[i].length+'/'+RACK_CAP);
+    toastCut('&#9876;&#65039; '+w.shape+' on rack '+(i+1)+' \u2014 '+RACKS[i].length+'/'+RACK_CAP);
 }
 function takeFromRack(i,si){ const w=(RACKS[i]||[]).splice(si,1)[0]; if(!w) return;
-    INV.swords.push(w); buildRackSwords(); buildRacks(); invTab(2); toast('Back in your inventory'); }
+    INV.swords.push(w); buildRackSwords(); buildRacks(); invTab(2); toastCut('Back in your inventory'); }
 function buildScreenHots(name){
     const box=document.getElementById('screenHots'); if(!box) return;
     box.innerHTML='';
@@ -5719,7 +5756,7 @@ function applyState(o){
 }
 function menuSave(){
     try{ localStorage.setItem(SAVE_KEY, JSON.stringify(saveBlob()));
-        disarmMenu(); mnNote('Saved.'); toast('Game saved'); }
+        disarmMenu(); mnNote('Saved.'); toastCut('Game saved'); }
     catch(e){ mnNote('Could not save &mdash; browser storage is blocked here.'); }
 }
 function menuLoad(){
@@ -5727,11 +5764,11 @@ function menuLoad(){
     if(hasProgress() && !armMenu('mnLoad','LOAD &mdash; SURE?','This replaces your current progress.')) return;
     let o=null; try{ o=JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){}
     if(!o || o.v!==SAVE_V){ mnNote('That save was written by an older build.'); disarmMenu(); return; }
-    applyState(o); closeMenu(); toast('Game loaded');
+    applyState(o); closeMenu(); toastCut('Game loaded');
 }
 function menuNew(){
     if(hasProgress() && !armMenu('mnNew','START OVER?','This clears everything not saved.')) return;
-    newGame(); closeMenu(); toast('New game');
+    newGame(); closeMenu(); toastCut('New game');
 }
 function newGame(){
     introClose();   /* r302: a new game or a PART jump does not replay the intro */
@@ -5778,7 +5815,7 @@ function bumpQuest(id,n){
     q.progress=Math.min(q.goal, q.progress + (n==null?1:n));
     /* r200: a finished quest no longer pays by itself - the player claims it in the list */
     if(q.progress>=q.goal){ q.done=true; questBtnUi();
-        setTimeout(()=>toast('\ud83d\udcdc Quest complete: claim your reward in the quest list', 2800), 250); }
+        setTimeout(()=>toastCut('\ud83d\udcdc Quest complete: claim your reward in the quest list', 2800), 250); }
     if(document.getElementById('sfQuestModal').classList.contains('show')) buildQuests();
 }
 function questPay(q){ return { g:(q.gold!=null? q.gold : QUEST_REWARD), x:(q.xp!=null? q.xp : XP_QUEST) }; }   /* r199: a quest may carry its own pay */
@@ -7111,7 +7148,7 @@ function renderRecipe(){
     if(r){ const k=ftueTraitKey(list.map(a=>a.tid)); marketShapes(k).filter(sh=>ftueShapeOpen(k, sh)).forEach(sh=>{ const e=document.createElement('span'); e.textContent=sh; sb.appendChild(e); }); }
 }
 function cbErase(){ if(!CB_SEL) return; const n=recipeName(CB_SEL);
-    delete RECIPES[CB_SEL]; CB_SEL=null; renderRecipe(); toast('Erased the <b>'+n+'</b> recipe'); }
+    delete RECIPES[CB_SEL]; CB_SEL=null; renderRecipe(); toastCut('Erased the <b>'+n+'</b> recipe'); }
 function cbDesign(){ closeBook(); DD_FORCE_DEFAULT=true; openDesign(); }   // the gear edits the DEFAULT look, not the table's sword
 // CRAFT 1 / 5 — ask for a shape, spend the recipe's ore per sword, drop finished blades in the inventory
 let SHAPE_CB=null;
@@ -7385,7 +7422,7 @@ function marketBuy(k, sh){
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
     if(st!=='buy') return;
     GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket(); mkStampIn(k, sh);   /* R38: PURCHASED */
-    toast('Bought the <b>'+nm+'</b> blueprint');
+    toastCut('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');   /* 2026-10-09 */
     ftueMarketBought(k, sh);   /* v3 part 1 */
 }
@@ -7416,7 +7453,7 @@ function marketGift(trait, shape, done){
     renderMarket(); document.getElementById('sfMarketModal').classList.add('show');
     const cell=mkShow(key);   /* R38: its page up, the coins fly to its buy button */
     const finish=()=>{ FTUE_ST.shapes[key]=true; renderMarket(); mkStampIn(trait, shape);
-        toast('The dragon bought the <b>'+TRAIT_BY[trait].name+' '+shape+'</b> blueprint'); if(done) done(); };
+        toastCut('The dragon bought the <b>'+TRAIT_BY[trait].name+' '+shape+'</b> blueprint'); if(done) done(); };
     if(!cell){ finish(); return; }
     coinFly(dragonEl(), cell, finish);
 }
@@ -7682,7 +7719,7 @@ function ftueShapeOpened(){ const m=FTUE_MK; if(!m || (m.step!=='shape' && m.ste
     if(o.market.by==='dragon'){ m.step='gift'; ftueSaySh(FTUE.marketWatch);
         setTimeout(()=>{ const b=btn();
             coinFly(dragonEl(), b || document.getElementById('sfShapeModal'), ()=>{ FTUE_ST.shapes[key]=true; shapeGrid();
-                toast('The dragon bought the <b>'+TRAIT_BY[o.trait].name+' '+o.shape+'</b> blueprint'); ftueShapeDone(m); }); }, 900);
+                toastCut('The dragon bought the <b>'+TRAIT_BY[o.trait].name+' '+o.shape+'</b> blueprint'); ftueShapeDone(m); }); }, 900);
         return; }
     m.step='buy';
     if(GOLD<marketPrice(o.trait, o.shape)){ ftueSaySh(FTUE.marketShort);
@@ -7709,7 +7746,7 @@ function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
     if(st!=='buy') return;
     GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud();
-    toast('Bought the <b>'+nm+'</b> blueprint');
+    toastCut('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');
     shapeGrid(); ftueShapeBought(k, sh); }   /* r300 */
 /* Opening the picker consumes the tutorial's shape beat - 'shape' runs tutDone(), 'shape2' drops its
@@ -8045,7 +8082,7 @@ function cheatUi(){
    the metal and its traits are still sitting on the anvil - so closing the panel is the whole job. */
 function hmCancel(){
     document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
-    toast('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
+    toastCut('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
 }
 function wireHmMug(){
     const m=document.getElementById('hmMug'), sc=document.getElementById('hmScene');
@@ -11324,6 +11361,7 @@ function sayType(el, text){ sayTypeStop(false); el.textContent='';
     const words=[...el.querySelectorAll('.sw')]; let i=0; SAY_TYPE_EL=el;
     SAY_TYPE_T=setInterval(()=>{ if(i>=words.length){ sayTypeStop(false); return; } words[i++].classList.add('on'); }, TYPE_MS); }
 function say(id){
+    dtEnd();   /* R90 (owner): a new line replaces a showing toast at once */
     const where=sayWhere(), B=SAY_BOXES[where];
     const box=document.getElementById(B[0]), t=document.getElementById(B[1]);
     const line=DIALOGUE[id]; if(!box||!t||!line) return;
@@ -11376,6 +11414,7 @@ function say(id){
 /* r92: drop 'above' with 'show'. The class raises the bubble to z-index 1100 so it can sit over the
    hammer panel; left on after that panel closes, the bubble floats over every later modal. */
 function sayHide(){
+    if(DT && DT.mode==='swap') dtEnd();   /* R90 */
     /* r194: the window follows D97 whichever way it goes. r190 hooked only the player DISMISSING it,
        and r188 had already given D97 a second exit - it hides itself the moment the dragon reaches
        the anvil, which is precisely what the line tells the player to do. So on the natural path the
@@ -11393,7 +11432,7 @@ function sayHide(){
     if(!STAGE_DARK[TUT_STAGE]) tutDark(false);   /* r270. r271/r272: closing a line leaves a dark stage dark */
     { const fr=document.getElementById('frame'); if(fr) fr.classList.remove('say-cut'); }   /* R74 */
     setTimeout(tutExitLater, 0);   /* R75 */
-    ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box) box.classList.remove('show','above'); }); }   /* r103 */
+    ['dragonSay','screenDragonSay','shSayWrap','ddSayWrap'].forEach(id=>{ const box=document.getElementById(id); if(box && !(DT && DT.box===box)) box.classList.remove('show','above'); }); }   /* R90: not a box showing a toast */   /* r103 */
 // clicking the bubble walks the run, then closes on the last line
 // r78: bring the last line back without re-running the sequence from the top
 /* r87: the dragon is a guide while the script still has something to say, and a pet afterwards. The
@@ -11448,7 +11487,7 @@ const SM_FREE=location.search.indexOf('freeplay')>=0;   /* R0: the free-play tes
 function sayStart(){ if(SM_FREE){ smFreePlay(); return; } if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 /* R55/R57 (owner, 2026-10-30): "only the x button should close the dialogues, on all the screens" - a tap on the bubble only shows
    the rest of a typing line; only its button moves it on (OK: the next line, X: close); a line with none waits for the action */
-function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }
+function sayTap(e){ if(DT){ dtEnd(); return; } if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }
 function sayNext(){
     if(SAY_TYPE_T){ sayTypeStop(true); return; }   /* R32: a tap while the line types shows the rest */
     if(SAY_CHOICES && !SAY_CHOICES_OPT) return;   /* r115: answer the question first. r189: unless it is only an offer */

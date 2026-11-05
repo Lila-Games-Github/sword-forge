@@ -528,7 +528,7 @@ eq('a line over a window clears the shape window too (z 1010)', src.includes('.s
 /* r298 (owner, 2026-10-21): the first sword goes on the counter only once the tutorial asks (D23) */
 eq('D23 opens the counter for the first sword', /function bramGiveStep\(\)\{ TUT_BRAM_GIVE_OK=true; say\('D23'\);/.test(src), true);
 eq('until then a drop on the counter is refused and the sword stays in the bag', src.includes("function counterShut(){ return SF_SCREEN==='customer' && !FTUE_ST.done && FTUE_ST.part===1 && !TUT_BRAM_SOLD && !TUT_BRAM_GIVE_OK; }")
-  && src.includes("else if(overTable(ev)){ if(counterShut()){ toast('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };"), true);
+  && src.includes("else if(overTable(ev)){ if(counterShut()){ toastCut('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };"), true);
 eq('a new game shuts it again', /function tutReset\(\)\{[\s\S]{0,300}TUT_BRAM_GIVE_OK=false;/.test(src), true);
 /* r297 (owner, 2026-10-21): Day 2 morning - D89's OK is lit first; only after it (D92) does the arrow to the counter blink */
 eq('the morning no longer blinks the arrow with D89', /function tutDay2Morning\(\)\{[\s\S]{0,700}TUT_STAGE='d2-counter'; tutExit\(null\);\s*sayQueue\('D89','D92'\);[^\n]*\n\s*\}/.test(src), true);
@@ -1501,7 +1501,7 @@ eq('R35: synced every frame, after the gate; the crown is set directly in the sm
 eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity=(h/100*0.9)"), true);
 
 /* R36 (owner, 2026-10-29): "add a 'game' section in the console helper after part 6, that is after the tutorial" */
-eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="toast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>'), true);
+eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>'), true);
 const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);
 eq('R36: ftuePart(7) is built (8 and up are not)', !!fp && fp[0].includes("if(n>7) return 'Part '+n+' is not built yet';"), true);
 eq('R36: Garric served at his best grade - his rewards applied', !!fp && fp[0].includes('FTUE.garricRewards[3].forEach(ftueRewardApply);'), true);
@@ -1523,7 +1523,7 @@ eq('R53: a copy of the dragon over the dark, in his place, with the window', src
 eq('R54: D119a shows its X at the counter (R57: every line does; no exception list)', !src.includes('SAY_X_KEEP'), true);
 eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src), true);
 /* R55 (owner, 2026-10-30): "the dialogues should only close when clicking the x, otherwise no" */
-eq('R57: a tap on the bubble - only the rest of a typing line; only its button (OK, X) moves it on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
+eq('R57: a tap on the bubble - only the rest of a typing line; only its button (OK, X) moves it on', src.includes("function sayTap(e){ if(DT){ dtEnd(); return; } if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
 eq('R55: the shown button is kept', src.includes('SAY_GO_KIND=kind;'), true);
 eq('R55: all four bubbles take the tap through it', (src.match(/onclick="sayTap\(event\)"/g) || []).length === 4 && !src.includes('onclick="sayNext()"'), true);
 /* R56 (owner, 2026-10-30): the player replies to the customer before the dragon speaks (13 places, approved) */
@@ -1673,4 +1673,45 @@ eq('R88: D92e glows', src.replace(/\r\n/g, '\n').includes("                    D
 { const s9 = src.replace(/\r\n/g, '\n');
 eq('R89: the come-later customer\'s COME LATER is off until D107d', [s9.includes("/* R89 (owner, 2026-11-05): \"enable the come later button on and after d107d\" - the come-later customer's COME LATER is off (greyed,\n   no tap) until the dragon has said D107d; other customers' is as before */\nfunction laterWait(){ const c=CUSTOMER; return !!(c && c.lesson==='later' && !c.waiting && !c.laterOk && !FTUE_ST.done); }\nfunction laterLockUi(){ const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('later-wait', laterWait()); }\nfunction comeLater(){\n    const c=CUSTOMER; if(!c || laterWait()) return;   /* R89 */\n"), s9.includes(".cs-later.ftue-off { display: none !important; }\n.cs-later.later-wait { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }   /* R89: as a disabled button, until D107d */\n")], [true, true]);
 eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    if(id==='D107d' && CUSTOMER && CUSTOMER.lesson==='later'){ CUSTOMER.laterOk=true; laterLockUi(); }   /* R89: COME LATER from D107d on */\n    if(id==='D42' && !FTUE_ST.craftFrame) FTUE_ST.craftFrame=true; craftFrameUi();"), s9.includes("    { const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('ftue-off', !(FTUE_ST.laterOn || FTUE_ST.done)); }   /* 2026-10-09 */\n    laterLockUi();   /* R89 */\n"), s9.includes("    sellLabel();   /* r103 */\n    laterLockUi();   /* R89 */\n")], [true, true, true]); }
+/* R90 (owner, 2026-11-05): the toasts become the dragon's lines (record: specs/2026-11-05-dragon-toasts.md) */
+{ const s0 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s0.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s0.indexOf('{', i);
+    for (; j < s0.length; j++) { if (s0[j] === '{') d++; else if (s0[j] === '}' && --d === 0) break; } return s0.slice(i, j + 1); };
+  const dm = s0.match(/const DTOAST=(\{[^}]*\});/);
+  eq('R90: DTOAST is the recorded value (on, 4 s)', dm && new Function('return ' + dm[1])(), { on: true, ms: 4000 });
+  /* the owner's 30 ticks: each fragment is the start of a toastCut() argument, with how many calls carry it */
+  const CUT = [
+    ["'Handed over. You are paid when the whole order is sold.'", 1], ["'He took it and paid <b>nothing</b>'", 1],
+    ["(held.length ? 'Sold '", 1], ["'&#11088; Popularity level '", 1], ["'&#9876;&#65039; ' + sw.shape + ' on the counter", 1],
+    ["'Back in your inventory'", 4], ["'Not yet. The dragon will tell you when.'", 1], ["'&#9876;&#65039; ' + sw.shape + ' on the workstation'", 1],
+    ["'Take a sword to the <b>workstation</b>", 1], ["'&#9876;&#65039; '+w.shape+' on rack '", 1], ["BUILD_ON ? 'Build mode <b>ON</b>", 1],
+    ["'Decor goes on the <b>counter</b>", 1], ["'The ores are back in your inventory'", 1], ["'Shaping cancelled", 1],
+    ["'Erased the <b>'", 1], ["'Bought the <b>'+nm+'</b> blueprint'", 2], ["'The dragon bought the <b>'", 2],
+    ["'⛏️ A rich seam", 1], ["'\\u2b50 <b>Level '", 1], ["'\\u2b50 <b>'+sk.name+'</b> rank '", 1], ["'No talent points spent yet'", 1],
+    ["'\\ud83d\\udcdc Quest complete", 1], ["'Game saved'", 1], ["'Game loaded'", 1], ["'New game'", 1] ];
+  eq('R90: 30 toasts cut (toastCut), the owner\'s ticks', (s0.match(/toastCut\((?!\)|msg)/g) || []).length, 30);
+  eq('R90: each ticked toast is a toastCut, as many times as recorded', CUT.map(([f, k]) => s0.split('toastCut(' + f).length - 1), CUT.map(([, k]) => k));
+  eq('R90: no ticked toast is still a toast()', CUT.filter(([f]) => s0.includes(' toast(' + f) || s0.includes('>toast(' + f) || s0.includes('(toast(' + f) || s0.includes(';toast(' + f)).map(([f]) => f), []);
+  eq('R90: the PART 1-6 and GAME buttons keep the plain toast', (s0.match(/onclick="plainToast\(ftuePart\(\d\)\)"/g) || []).length, 7);
+  eq('R90: the shop-rack sale keeps the plain toast', s0.includes("plainToast('\\ud83c\\udfea '+(n>1? n+' swords sold' : 'Sword sold')"), true);
+  eq('R90: plainToast is the old toast (top centre, #sfToast)', /function plainToast\(msg,ms\)\{ const t=document\.getElementById\('sfToast'\)/.test(s0), true);
+  const route = on => { const log = []; const L = new Function('DTOAST', 'plainToast', 'dtShow', fn('toast') + fn('toastCut') + '; return { toast, toastCut };')(
+      { on, ms: 4000 }, (m, ms) => log.push(['plain', m]), m => log.push(['dragon', m])); L.toast('A'); L.toastCut('B'); return log; };
+  eq('R90: on, toast() is the dragon\'s and toastCut() says nothing', route(true), [['dragon', 'A']]);
+  eq('R90: off, both are the old toast (the revert)', route(false), [['plain', 'A'], ['plain', 'B']]);
+  const dtText = new Function(fn('dtText') + '; return dtText;')();
+  eq('R90: dtText - em-dashes become colons, emoji go, bold stays', [
+      dtText('Not enough ore for <b>Fire</b> \u2014 needs Iron x2'), dtText('Rack 2 costs <b>50g</b>'),
+      dtText('&#128214; <b>Fire</b> recorded in the craft book'), dtText('♻️ Recovered <b>2</b> ore from the wreck'),
+      dtText('Record this craft first \u2014 tap the <b>inkpot</b>'), dtText('a &mdash; b') ],
+    [ 'Not enough ore for <b>Fire</b>: needs Iron x2', 'Rack 2 costs <b>50g</b>', '<b>Fire</b> recorded in the craft book',
+      'Recovered <b>2</b> ore from the wreck', 'Record this craft first: tap the <b>inkpot</b>', 'a: b' ]);
+  eq('R90: #dtSay is built like the sharpening window\'s box (icon, DRAGON, a go button)',
+    s0.includes('<div id="dtSay" class="tut-iconsay" onclick="dtTap(event)"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="dtSayText"></p><span class="go say-go" id="dtSayGo"></span></div></div>'), true);
+  eq('R90: #dtSay sits where the sharpening window\'s does, over every window', /#dtSay \{ left: 50%; top: auto; bottom: 10\.2%; transform: translateX\(-50%\); z-index: 1150; \}/.test(s0), true);
+  eq('R90: a new line ends the toast at once; closing a line ends only a toast in its place', [/function say\(id\)\{\n    dtEnd\(\);/.test(s0),
+      /function sayHide\(\)\{\n    if\(DT && DT\.mode==='swap'\) dtEnd\(\);/.test(s0), s0.includes("if(box && !(DT && DT.box===box)) box.classList.remove('show','above'); }); }")], [true, true, true]);
+  eq('R90: a tap on a box showing a toast closes the toast, not the line', s0.includes('function sayTap(e){ if(DT){ dtEnd(); return; } '), true);
+  eq('R90: the toast runs DTOAST.ms', /DT\.t=setTimeout\(dtEnd, DTOAST\.ms\)/.test(s0), true);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

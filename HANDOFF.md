@@ -8,8 +8,11 @@ continuation prompt printed at close time.
 
 - **PR #29 merged (2026-11-05)** carried R63-R89 (branch `sword-forge/gdd-ftue-guide-fixes`, now merged); the Pages deploy
   succeeded. Each step's record is in `specs/2026-10-23-ftue-smelter-rework-plan.md` (one bullet per R, owner's words quoted).
-  206 dialogue keys, last key D140. Tests GREEN: FTUE 951, smelter 145, market 84, hazard 37, hammer 47, skills 18, map 17,
+  206 dialogue keys, last key D140. Tests GREEN: FTUE 966 (R90), smelter 145, market 84, hazard 37, hammer 47, skills 18, map 17,
   mobile-fit 21.
+- **R90 (2026-11-05, branch `sword-forge/dragon-toasts-r90`), ON TRIAL:** the toasts are said by the dragon
+  (`specs/2026-11-05-dragon-toasts.md`); 30 cut by the owner's ticks in `toast-checklist.md`. If the owner does not like it,
+  set `DTOAST.on` to `false` (every toast comes back as before) or revert the R90 commit. Next record id: R91.
 - **What R63-R89 changed, in groups:**
   - Windows: the trait window bigger (R63); the gate's ready ring a pulsing circle (R64); the shape window wider (R65); the
     crafted window's lines under the dragon, tail up (R66), and that window cannot be closed during D17a, D17b, D69d (R67-R68).
@@ -322,7 +325,7 @@ Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so us
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 206 dialogue keys, `lastLine()`
 `"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 951 checks; the smelter test GREEN at 145 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the FTUE test prints GREEN at 966 checks; the smelter test GREEN at 145 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 47; the hazard test GREEN at 37; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

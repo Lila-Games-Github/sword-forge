@@ -1044,3 +1044,11 @@ yours and come on top.
   a disabled counter button), and `comeLater` refuses, through the request and the market walk (R83). When D107d is said
   ("I am not buying ..."), the customer's `laterOk` turns it on (and D107d's step lights it, r253). Other customers' COME LATER
   is unchanged. Asserted by the FTUE test (written first).
+- **R90 (owner, 2026-11-05): the toasts are the dragon's lines (on trial).** "except the sword sale from shop racks, and test
+  aids, I want the remaining toasts to be part of dragon's dialogues instead, not a separate toast. I have marked all the ones
+  I want deleted." From the owner's ticks in `toast-checklist.md`: 30 toasts are cut (`toastCut`); the shop-rack sale and the
+  PART 1-6 / GAME buttons keep the old top toast (`plainToast`); every other `toast()` is said by the dragon for 4 s
+  (`DTOAST`). With a line up it takes the line's place and the line comes back as it was; with no line it uses his bubble
+  where he is visible, else `#dtSay`, the sharpening window's icon bubble at its place (bottom centre). A tap closes it, a
+  new line replaces it at once; em-dashes become colons and emoji go. `DTOAST.on=false` brings every toast back as before.
+  Record: `specs/2026-11-05-dragon-toasts.md`. Asserted by the FTUE test (written first).

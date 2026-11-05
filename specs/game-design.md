@@ -261,6 +261,10 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   finished sword clears, R62).
 - **Effects:** swing effects (§5), the trait burst, the smelter's lit states, quench smoke and mist, the bell's swing, hearts
   when the dragon is petted, toasts. No audio.
+- **Toasts (R90, on trial):** said by the dragon for 4 s (`DTOAST`): in a line's place (the line returns as it was), in his
+  bubble, or where he is not visible in an icon bubble at the sharpening window's place. Tap closes; a new line replaces it.
+  30 are cut (`toastCut`); the shop-rack sale and the PART buttons keep the old top toast (`plainToast`). Record:
+  `specs/2026-11-05-dragon-toasts.md`.
 - **Save:** manual, from the gear menu (SAVE / LOAD GAME / NEW GAME), `localStorage` `swordforge.save.v1` version 9. It keeps
   gold, swords, ingots, ores, recipes, skills, quests, the map's fog and traits, and `FTUE_ST`, but not the tutorial stage
   (`TUT_STAGE`) or the dialogue; there is no autosave and no continue on boot.
