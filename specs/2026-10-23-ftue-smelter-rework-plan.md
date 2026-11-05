@@ -1052,3 +1052,9 @@ yours and come on top.
   where he is visible, else `#dtSay`, the sharpening window's icon bubble at its place (bottom centre). A tap closes it, a
   new line replaces it at once; em-dashes become colons and emoji go. `DTOAST.on=false` brings every toast back as before.
   Record: `specs/2026-11-05-dragon-toasts.md`. Asserted by the FTUE test (written first).
+- **R91 (owner, 2026-11-05): coins fly when a blueprint is bought.** "I want the coins to fly from inventory panel to the gold
+  buttons, when buying any blueprint. on market, or shape select Ui, both. it should look same as the coins effect when claiming
+  gold from quest." Read as: from the gold counter (top of the inventory panel) to the buy button that was tapped. `buyCoins`
+  calls the quest claim's own `flyCoins` (5 coins, 650 ms, 70 ms apart) and `goldPop("-<price>g")`; `marketBuy` aims at the
+  page's BUY, `shapeBuy` at the tapped shape, both before their window is rebuilt. The gold is spent at once; the coins only
+  show it. The dragon's own purchases (`marketGift`) keep their coins from him. Asserted by the FTUE test (written first).

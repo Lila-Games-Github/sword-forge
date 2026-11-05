@@ -1714,4 +1714,22 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R90: a tap on a box showing a toast closes the toast, not the line', s0.includes('function sayTap(e){ if(DT){ dtEnd(); return; } '), true);
   eq('R90: the toast runs DTOAST.ms', /DT\.t=setTimeout\(dtEnd, DTOAST\.ms\)/.test(s0), true);
 }
+/* R91 (owner, 2026-11-05): buying a blueprint flies the quest claim's coins from the gold counter to the buy button */
+{ const s1 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s1.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s1.indexOf('{', i);
+    for (; j < s1.length; j++) { if (s1[j] === '{') d++; else if (s1[j] === '}' && --d === 0) break; } return s1.slice(i, j + 1); };
+  const log = [], gv = { getBoundingClientRect: () => ({ left: 10, top: 20, width: 30, height: 40 }) }, btn = { id: 'buy' };
+  const buyCoins = new Function('document', 'flyCoins', 'goldPop', fn('buyCoins') + '; return buyCoins;')(
+    { getElementById: id => id === 'goldVal' ? gv : null }, (from, to) => log.push(['fly', from, to]), t => log.push(['pop', t]));
+  buyCoins(btn, 250);
+  eq('R91: buyCoins - the quest claim\'s coins (flyCoins) from the gold counter to the button, and the counter pops the price',
+    log, [['fly', { left: 10, top: 20, width: 30, height: 40 }, btn], ['pop', '-250g']]);
+  const mb = fn('marketBuy'), sb = fn('shapeBuy');
+  eq('R91: the market\'s buy flies them to its BUY, before the page is rebuilt',
+    [mb.includes("buyCoins(mkCurPg() && mkCurPg().querySelector('.mk-buy'), marketPrice(k, sh));"),
+     mb.indexOf("if(st!=='buy') return;") < mb.indexOf('buyCoins(') && mb.indexOf('buyCoins(') < mb.indexOf('renderMarket();')], [true, true]);
+  eq('R91: the shape window\'s buy flies them to the shape, before the grid is rebuilt',
+    [sb.includes("buyCoins(document.querySelector(\"#sfShapeModal .sf-shape[data-shape='\"+sh+\"']\"), marketPrice(k, sh));"),
+     sb.indexOf("if(st!=='buy') return;") < sb.indexOf('buyCoins(') && sb.indexOf('buyCoins(') < sb.indexOf('shapeGrid();')], [true, true]);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

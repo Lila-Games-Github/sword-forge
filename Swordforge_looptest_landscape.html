@@ -5848,6 +5848,9 @@ function flyCoins(fromRect, toEl, done){
         setTimeout(()=>c.remove(), COIN_MS+i*COIN_GAP+40); }
     setTimeout(()=>{ if(done) done(); }, COIN_MS+(COIN_N-1)*COIN_GAP);
 }
+/* R91 (owner, 2026-11-05): "I want the coins to fly from inventory panel to the gold buttons, when buying any blueprint" - the
+   quest claim's coins, the other way: from the gold counter to the buy button. The gold is spent at once; the coins only show it */
+function buyCoins(toEl, g){ const gv=document.getElementById('goldVal'); flyCoins(gv ? gv.getBoundingClientRect() : null, toEl); goldPop('-'+g+'g'); }
 function setGoldShown(v){ const g=document.getElementById('goldVal'); if(g) g.textContent=v; }   /* r268: the HUD shows v until the coins land */
 function goldPop(text){
     const g=document.getElementById('goldVal'); if(!g) return; const r=g.getBoundingClientRect();
@@ -7421,6 +7424,7 @@ function marketBuy(k, sh){
     if(st==='unknown'){ toast('Discover this trait first'); return; }
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
     if(st!=='buy') return;
+    buyCoins(mkCurPg() && mkCurPg().querySelector('.mk-buy'), marketPrice(k, sh));   /* R91: before the page is rebuilt */
     GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud(); renderMarket(); mkStampIn(k, sh);   /* R38: PURCHASED */
     toastCut('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');   /* 2026-10-09 */
@@ -7745,6 +7749,7 @@ function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_
     if(st==='unknown'){ toast('Discover this trait first'); return; }
     if(st==='poor'){ toast('Not enough gold: the <b>'+nm+'</b> blueprint is '+marketPrice(k, sh)+'g'); return; }
     if(st!=='buy') return;
+    buyCoins(document.querySelector("#sfShapeModal .sf-shape[data-shape='"+sh+"']"), marketPrice(k, sh));   /* R91: before the grid is rebuilt */
     GOLD-=marketPrice(k, sh); FTUE_ST.shapes[k+':'+sh]=true; updateHud();
     toastCut('Bought the <b>'+nm+'</b> blueprint');
     bumpQuest('buyBlueprint'); if(k==='fire') bumpQuest('buyFire');

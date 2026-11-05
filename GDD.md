@@ -210,7 +210,9 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 
 A rotary wheel of traits on the counter; one blueprint page at a time, with its description and price. A page
 is free, owned, closed ("Play more to unlock"), unknown (trait not found), too dear, or BUY. Blueprints can also be bought in
-the shape window. In the tutorial only the current order's blueprints can be bought, and the dragon pays for some.
+the shape window. In the tutorial only the current order's blueprints can be bought, and the dragon pays for some. Buying
+one (in either place) flies coins from the gold counter to the buy button, the same coins as a quest claim, and the counter
+shows "-<price>g" (R91).
 
 ### The shop
 
