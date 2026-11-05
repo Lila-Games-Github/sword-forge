@@ -27,7 +27,8 @@ continuation prompt printed at close time.
 - **Open from this session (ask the owner, do not decide):**
   - **D107d contradicts R83.** R83 walks the player to BUY the gale Katana; D107d then says "I am not buying the blueprint for
     those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording. To change
-    it: the `DIALOGUE` entry D107d in the build, its line in the tutorial script SSOT, and any FTUE check that quotes it.
+    it: the `DIALOGUE` entry D107d in the build, its line in the tutorial script SSOT, any FTUE check that quotes it, and the come-later
+    paragraph of `specs/2026-10-29-rotary-market.md` (it still describes the pre-R83 auto-advance with `laterMs`).
   - `MK_ROT.laterMs` is unused since R83 (still in the table and its test). Ask the owner before removing it.
   - R89: `.cs-later.later-wait` has `pointer-events:none`, but `comeLater`'s own guard is what makes the refusal hold;
     keep both.
@@ -279,6 +280,8 @@ dialogue-key count / last key when a line is added), then **commit that one feat
   "## Log", is history.)
 - A changed tutorial line also goes in the script SSOT, `specs/2026-09-15-looptest-landscape-tutorial-script.md`. A changed
   mechanic or value also goes in `GDD.md` and `specs/game-design.md` (see "Documentation drift").
+- If the handoff PR (#30) is still open, ask the owner to merge it first: R90+ commits change HANDOFF.md and CLAUDE.md
+  counts, so a branch from an older `main` conflicts with it. Run `git checkout main && git pull` (local `main` may be far behind).
 - Work on a new branch from `main`, named `sword-forge/<2-5-kebab-keywords>` (e.g. `sword-forge/ftue-polish-r90`).
 - The four `assets/backgrounds/Gemini_Generated_Image_*.png` are the owner's untracked files: never stage them (stage named
   files only, never `git add -A`).
