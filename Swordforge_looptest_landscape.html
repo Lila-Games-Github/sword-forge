@@ -2842,7 +2842,7 @@ const FTUE = {
 /* SMELT-PURE-BEGIN */
 const SMELT={ rangePx:40, lift:12, strokeSec:0.2, springMs:250, easeSec:0.15, flush:0.002, bladeW:2, shapedHold:700, freeOres:20, freeGold:500,
     ladleMax:45, ladleDead:4, ladlePull:24, ladleHead:{ x:-22.2, y:4.9, w:57.3 }, ladleBase:{ x:2.8, y:26.7, w:26.5 }, ladlePivot:{ x:66.7, y:90.6 },   /* s4: the ladle (tier alignment) */
-    bladeG:2600, bladeCom:0.5, bladeDamp:1.2, bladeFollow:700, bladeGrab:24, bladeDropPx:70, bladeDropMs:320,   /* s5: the blade's pendulum */
+    bladeG:2600, bladeCom:0.5, bladeDamp:2.5, bladeFollow:700, bladeGrab:24, bladeDropPx:70, bladeDropMs:320,   /* s5: the blade's pendulum. R98 (owner, 2026-11-10): "lower the swinging a bit" - bladeDamp 1.2 -> 2.5 */
     waterX0:0.23, waterX1:0.80, waterY0:0.30,   /* s6: the water in the bucket picture (fractions of its box) */
     swingW:317 };   /* s7: a dragged sword's width while held (the anvil blade's box), so it swings the same */   /* s2 (owner): strokeSec 0.5 -> 0.2; the handle springs back. s3: the glide, a bigger blade */
 /* the bellows handle at pos (0 closed .. 1 raised) dragged dyPx (down is positive): its new place, and how far it really moved */

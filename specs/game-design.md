@@ -112,7 +112,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
   strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
 - **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per
-  blade picture in `SM_ENDS_ART`) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 1.2). Dipped
+  blade picture in `SM_ENDS_ART`) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 2.5 since R98, was 1.2). Dipped
   into the bucket's water from above, or released over the bucket, it is quenched (the glow fades, smoke and mist) and the
   sword is made; released elsewhere it goes back on the anvil. Record: `specs/2026-10-21-smelter-version-loop.md` (s5, s6).
 - **Dragged swords swing:** a sword dragged out of the Swords tab on any screen (or off the counter or the table) hangs from

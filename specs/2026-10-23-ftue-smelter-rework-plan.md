@@ -1109,3 +1109,9 @@ yours and come on top.
   (it is on main too); fixed with `.mn-grid[hidden] { display: none; }`. Checked in the browser with real taps: PART 2 and
   PART 3 jumps offer none, PART 4 and GAME both; after the tutorial shows the five parts it is offered; the menu shows 6
   buttons, SETTINGS 4. Asserted by the FTUE test (written first; GREEN at 997).
+- **R98 (owner, 2026-11-10): the sword swings less.** "the sword swings around a bit too much. can we lower the swinging a
+  bit?" The hanging blade (on the anvil, and any sword being dragged) is a damped pendulum; `SMELT.bladeDamp` 1.2 -> 2.5 /s.
+  Simulated with the build's own `smFollow` / `smPendStep` for a 300 px sideways drag in 0.25 s: the biggest swing 74 -> 61
+  degrees, still within 2 degrees after 2.9 s (was over 6 s). Following the finger more slowly (`bladeFollow`) was tried and
+  barely helped (69 degrees, still over 6 s), so it stays 700. Record: the smelter loop record's s5 values. Asserted by the
+  smelter test (written first; GREEN at 146).
