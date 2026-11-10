@@ -468,7 +468,7 @@ eq('TC4 pull parks on Durable', src.includes("if(TUT_STAGE==='p4-pull') return '
 eq('TC5 swift step: the reminder, not the lesson', /function tutDay2Pull\(\)\{[\s\S]{0,300}sayQueue\('D97a'\)/.test(src), true);
 eq('GC8: the sword parks in the Weak band', /function tutWeakStop\(\)\{[\s\S]{0,900}FTUE\.weakStop/.test(src), true);
 eq('the sale checks the tier', src.includes("if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }"), true);
-eq('TC4 sold: the bell brings TC5', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='d2-bell'/.test(src), true);
+eq('TC4 sold: the bell brings GC8 (R95; was TC5)', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='p4-bell';/.test(src), true);
 /* v3 part 5 (D39-D43): Bram's swift Dagger (the dragon buys it), the sharpening wheel, the diary; GC9 gale Longsword */
 eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', shape: 'Longsword', qty: 1, market: { by: 'dragon', ask: 'D113a', done: null } } ]);
 eq('part 5 rewards (D42: the diary is Bram\'s own window; GC9 none)', FTUE.parts[5].rewards, { tc: [], gpc1: [] });
@@ -593,13 +593,13 @@ eq('oreChain is the recorded table', FTUE.oreChain, {
   p3g1:     { give: 'page:fire', say: 'D18a' },
   p3g2:     { give: 'page:fire', say: 'D18a' },
   p3g3:     { give: { nickel: 2 }, say: 'D18a' },
-  tc4:      { give: { copper: 2 }, say: 'D18a' },
+  tc4:      { give: { iron: 1, manganese: 1 }, say: 'D18a' },
+  p4g0:     { give: { copper: 2 }, say: 'D18a' },
   tc5swift: { give: { copper: 5 }, say: 'D18a' },
-  tc5:      { give: { iron: 1, manganese: 1 }, say: 'D18a' },
   bram2:    { give: 'page:gale', say: 'D18a' },
   p5g0:     { give: { iron: 2, manganese: 2 }, say: 'D18a' },
   gc9:      { give: ['page:gale', 'page:fire'], say: 'D107g', keep: true } });
-eq('no reward after TC2, TC3, GC8 or Garric (caves, the stored ingot, the end)', ['tc2', 'tc3', 'p4g0', 'garric'].some(k => FTUE.oreChain[k]), false);
+eq('no reward after TC2, TC3, TC5 or Garric (caves, the waiting customer and the stored ingot, the end)', ['tc2', 'tc3', 'tc5', 'garric'].some(k => FTUE.oreChain[k]), false);
 eq('D18a text, beside D18', line('D18a') === "Here's a reward from me." && keyList[keyList.indexOf('D18a') - 1] === 'D18', true);
 eq('D28j text, beside D28i', line('D28j') === 'I am running out of my reward stock. I only have 1 iron and 1 manganese.' && keyList[keyList.indexOf('D28j') - 1] === 'D28i', true);
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
@@ -1407,7 +1407,7 @@ eq('R29: the ladle and its drag area are not seen, and take no touch, while lock
 eq('R29: unlocked from part 4 (TC4\'s arrival opens it) or once the tutorial is over', src.includes("function ftueLadleUi(){ const on=FTUE_ST.done || FTUE_ST.part>=4; ['ladle','ladleHot'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.toggle('ftue-lock', !on); }); }"), true);
 eq('R29: refreshed with the grindstone (load, new game, PART jumps, free play, start)', src.includes("function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); ftueLadleUi(); }"), true);
 eq('R29: and the moment TC4 arrives', /function tutTc4Arrive\(\)\{[\s\S]{0,200}FTUE_ST\.part=4; FTUE_ST\.gpc=0; ftueLadleUi\(\);/.test(src)
-  && src.includes("FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */"), true);
+  && src.includes("FTUE_ST.part=4; ftueLadleUi();   /* r203. R95: GC8 comes before TC5, so its count stays */"), true);
 
 /* R30 (owner, 2026-10-29): the customer counter's new look - the shelf, the swinging bell, the scroll ledger, the rotary market
    (specs/2026-10-28-forge-screen-new-look.md) */
@@ -1756,5 +1756,14 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R94: the first ore straight into the smelter starts it, before the metal exists', ad.includes('craftStartView(); ensureMelt(); spendOre(oreId);'), true);
   eq('R94: CONTINUE FROM HERE and a stored ingot back on the anvil recentre too',
     [fn('cbContinue').includes('drawRoute(); moveX(); craftView();'), fn('restoreIngot').includes('drawRoute(); moveX(); craftView();')], [true, true]);
+}
+/* R95 (owner, 2026-11-10): GC8 right after TC4 - part 4 is TC4, GC8, TC5, the waiting customer */
+{ const s5 = src.replace(/\r\n/g, '\n');
+  eq('R95: part 4 keeps its two gameplay customers in order (GC8, then the waiting customer)', FTUE.parts[4].gpc.map(o => o.lesson), ['weak', 'later']);
+  eq('R95: TC5 comes after one of part 4\'s gameplay customers', FTUE.parts[4].tc5After, 1);
+  eq('R95: a sale that reaches tc5After rings for TC5', s5.includes("    const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;\n    TUT_STAGE = P.tc5After===FTUE_ST.gpc ? 'd2-bell' : more ? 'p'+FTUE_ST.part+'-gpc' : P.after;"), true);
+  eq('R95: and shows the bell for TC5', s5.includes("    if(TUT_STAGE==='d2-bell') bellShow(true);   /* R95: TC5's bell */"), true);
+  eq('R95: TC5\'s arrival keeps the count (the next bell brings the waiting customer)', /function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.part=4; ftueLadleUi\(\);/.test(s5) && !/function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.gpc=0/.test(s5), true);
+  eq('R95: TC4\'s sale rings for GC8', s5.includes("TUT_STAGE='p4-bell';   /* R95: GC8 comes next (was TC5) */"), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

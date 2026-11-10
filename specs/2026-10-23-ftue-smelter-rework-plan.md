@@ -1079,3 +1079,12 @@ yours and come on top.
   view at its edges, `ensureSwordVisible`). Measured: centred on the start at the default zoom, the fire trait is 43 units off
   the left edge and gale 73 off the top, so a tutorial ring on them can scroll out of view when the craft starts (asked the
   owner). Asserted by the FTUE test (written first).
+- **R95 (owner, 2026-11-10): GC8 right after TC4.** "can we move gc8 after tc4, without any difficulties?" / "Yes, do it".
+  Part 4 is now TC4, GC8 (the Weak balanced Longsword), TC5 (gale), the waiting customer. `FTUE.parts[4].tc5After` 1:
+  `ftueGpcSold` rings for TC5 (`d2-bell`, bell shown) after one of part 4's gameplay customers; `ftueTc4Sold` rings for GC8
+  (`p4-bell`); TC5's sale rings for the waiting customer (`p4-bell`, unchanged); `tutDay2Customer` (TC5's arrival) no longer
+  resets `FTUE_ST.gpc`. Ore chain: `tc4` 1 iron + 1 manganese (for GC8), new `p4g0` 2 copper (for TC5), `tc5` removed (the
+  waiting customer needs no craft). No line changes. Record: the FTUE record's ore-chain table and its 2026-11-10 log line.
+  Checked in the browser by driving the hand-offs (each sale function, then the bell): TC4 (`woman2`), GC8, TC5 (`man2`), then
+  the waiting customer; the ores given were 1 iron + 1 manganese after TC4, 2 copper after GC8, none after TC5. Asserted by the
+  FTUE test (written first; GREEN at 983).

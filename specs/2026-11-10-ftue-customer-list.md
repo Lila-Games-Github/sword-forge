@@ -1,7 +1,7 @@
 # FTUE customer list (2026-11-10)
 
 Every customer in the tutorial, in play order: who, what they ask for, and what the player gets.
-Build: `Swordforge_looptest_landscape.html` (after R94).
+Build: `Swordforge_looptest_landscape.html` (after R95: GC8 now comes right after TC4).
 
 Sources: the `FTUE` object in the build (`parts`, `oreChain`, `garricRewards`), the build's `ftueReward(...)` calls and
 `DIALOGUE` lines, and the part flows in `specs/2026-10-07-ftue-v3-rework.md`. Where those disagree, the build wins.
@@ -23,9 +23,9 @@ numbers follow the FTUE record. **Pay**: every customer pays the sword's sale pr
 | 3 | **GC5** | Fire Longsword (guided from the fire icon on the map). | The dragon buys the fire Longsword blueprint (D92h). | page:fire |
 | 3 | **GC6** | Fire Broadsword (guided from the craft book). | The dragon buys the fire Broadsword blueprint (D92i). | page:fire |
 | 3 | **GC7** | Fire Katana. | None. The player buys the fire Katana blueprint (top-up if short). | 2 nickel |
-| 4 | **TC4** (`woman2`) | "A durable sword. Make sure it is EPIC!" (D92k), any shape. | None. | 2 copper |
-| 4 | **TC5** (`man2`) | "Do you have a sword with the Gale trait?" (D93): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | 1 iron + 1 manganese |
-| 4 | **GC8** (the servant) | A **Weak** balanced Longsword (D107a). | None. | None (the next sword is the stored swift ingot) |
+| 4 | **TC4** (`woman2`) | "A durable sword. Make sure it is EPIC!" (D92k), any shape. | None. | 1 iron + 1 manganese |
+| 4 | **GC8** (the servant; since R95 right after TC4) | A **Weak** balanced Longsword (D107a). | None. | 2 copper |
+| 4 | **TC5** (`man2`) | "Do you have a sword with the Gale trait?" (D93): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | None (the waiting customer needs no craft; then Bram's sword is the stored swift ingot) |
 | 4 | **Waiting customer** | Gale Katana **and** fire Claymore (D107c). The dragon will not buy the blueprints (D107d); the player taps COME LATER and the order goes to the ledger. | None at the time. When the player has 750g or more, the dragon guides them back to the order (D107f) and gives its ores (D107g). The market walk (R83) has the player buy the gale Katana. | page:gale + page:fire (given with D107g) |
 | 5 | **Bram returns** (`BramD2`) | A swift Dagger, sharper than the last (D111, D111a). | The dragon buys the swift Dagger blueprint (D111b). Reward window: **the sharpening wheel** (D48). Bram's gift: **the diary** (D114-D117). | page:gale |
 | 5 | **GC9** | Gale Longsword. | The dragon buys the gale Longsword blueprint (D113a). | 2 iron + 2 manganese |

@@ -2754,7 +2754,8 @@ const FTUE = {
         4: { gpc:[ { trait:'balanced', shape:'Longsword', tier:'Weak', qty:1, lesson:'weak' },
                    /* owner, 2026-10-09: two swords, two blueprints the player cannot afford - sent to the waiting list */
                    { trait:'gale', shape:'Katana', qty:1, items:[ { trait:'gale', shape:'Katana' }, { trait:'fire', shape:'Claymore' } ], lesson:'later' } ],
-             after:'d2-praise', rewards:{ tc:[], gpc1:[], gpc2:[] } },
+             after:'d2-praise', rewards:{ tc:[], gpc1:[], gpc2:[] },
+             tc5After:1 },   /* R95 (owner, 2026-11-10): TC4, GC8, then TC5 (the bell after one gameplay customer), then the waiting customer */
         /* r205: Bram's own reward is the diary (his gift window), so the TC list is empty */
         /* v3 part 5: after Bram, GC9 - a gale Longsword the dragon buys (D113a). Bram's own reward is the diary. */
         5: { gpc:[ { trait:'gale', shape:'Longsword', qty:1, market:{ by:'dragon', ask:'D113a', done:null } } ], after:'g-bell',
@@ -2794,9 +2795,9 @@ const FTUE = {
         p3g1:     { give:'page:fire', say:'D18a' },
         p3g2:     { give:'page:fire', say:'D18a' },
         p3g3:     { give:{ nickel:2 }, say:'D18a' },
-        tc4:      { give:{ copper:2 }, say:'D18a' },
+        tc4:      { give:{ iron:1, manganese:1 }, say:'D18a' },   /* R95: GC8 comes after TC4 */
+        p4g0:     { give:{ copper:2 }, say:'D18a' },              /* R95: after GC8, TC5's copper (TC5 itself gives nothing now) */
         tc5swift: { give:{ copper:5 }, say:'D18a' },
-        tc5:      { give:{ iron:1, manganese:1 }, say:'D18a' },
         bram2:    { give:'page:gale', say:'D18a' },
         p5g0:     { give:{ iron:2, manganese:2 }, say:'D18a' },
         gc9:      { give:['page:gale','page:fire'], say:'D107g', keep:true } },
@@ -3602,7 +3603,7 @@ function tutDurableAligned(){
 }
 function ftueTc4Sold(){
     CUSTOMER=null; refreshCounter(); counterUi(); tutArrow(null,null); tutExit(null);
-    TUT_STAGE='d2-bell';   /* TC5's gale order comes next */
+    TUT_STAGE='p4-bell';   /* R95: GC8 comes next (was TC5) */
     setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);   /* r294 */
 }
 /* GC8: 1 iron + 1 manganese, ground; the hammer parks the sword in the Weak band */
@@ -3836,7 +3837,8 @@ function ftueToCounter(){
 function ftueGpcSold(){
     FTUE_ST.gpc++;
     const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;
-    TUT_STAGE = more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC */
+    TUT_STAGE = P.tc5After===FTUE_ST.gpc ? 'd2-bell' : more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC. R95: part 4's TC5 comes between its gameplay customers */
+    if(TUT_STAGE==='d2-bell') bellShow(true);   /* R95: TC5's bell */
     tutArrow(null,null); tutExit(null);
     setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);   /* r294: then the ore reward */
 }
@@ -9770,7 +9772,7 @@ function tutDay2Customer(){
     if(TUT_STAGE!=='d2-bell') return;
     TUT_STAGE='d2-ask'; tutExit(null); sayHide();
     CUSTOMER={ portrait:'assets/customer/man2.webp', tid:'gale', shape:'Shortsword', name:'Gale' };   /* v3 D33 */
-    FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */
+    FTUE_ST.part=4; ftueLadleUi();   /* r203. R95: GC8 comes before TC5, so its count stays */
     buildScreenProps('customer'); counterUi();
     /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
        cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */

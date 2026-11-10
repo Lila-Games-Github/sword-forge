@@ -283,7 +283,7 @@ sale the dragon gives exactly the next sword's ores ("the ore chain").
 | **1** | 1 | **Bram** (TC1), then 3 orders: balanced Longsword, Broadsword, Katana | The whole loop on one sword (2 iron + 2 manganese). The crafted window. The counter and a sale. The quest list. The bell. Blueprints: the dragon buys two, the player the third. |
 | **2** | 1 | **TC2** ("a good one"); **the adventurer** (TC3, fire) | Raw ores fall short: the grindstone, grinding, recording a craft with the inkpot, 5 more pages. Then the cave, hazards, a two-ore fork to reach Fire, a damaged blade. Bed. |
 | **3** | 2 | Orders: durable Shortsword; fire Longsword, Broadsword, Katana | The basic-vs-elemental map window, nickel from the cave, Durable. The trait card and CRAFT 1 from the map and the craft book. |
-| **4** | 2 | **TC4** (Epic durable), **TC5** (gale); orders: a Weak balanced Longsword, a gale Katana + fire Claymore | The ladle and the three tiers. Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
+| **4** | 2 | **TC4** (Epic durable), then an order for a Weak balanced Longsword (R95), then **TC5** (gale), then an order for a gale Katana + fire Claymore | The ladle and the three tiers. Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
 | **5** | 2 | **Bram** returns (swift Dagger, sharper); an order for a gale Longsword | The stored swift ingot. The sharpening wheel. The diary. |
 | **6** | 2-3 | **Garric** (TC6) | The design desk; a solo craft graded by Garric; the banner and build mode; bed; Day 3: the cave waits for a Pickaxe point, the skill tree. D140 ends the tutorial. |
 

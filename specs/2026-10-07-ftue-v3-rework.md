@@ -2174,10 +2174,10 @@ GC9's ores keep their own moments).
 | GC5 | p3g1 | page:fire | D18a | GC6 |
 | GC6 | p3g2 | page:fire | D18a | GC7 |
 | GC7 | p3g3 | 2 Nickel | D18a | TC4 |
-| TC4 | tc4 | 2 Copper | D18a | TC5's swift ingot |
+| TC4 | tc4 | 1 Iron, 1 Manganese (R95; was 2 Copper) | D18a | GC8 |
+| GC8 | p4g0 | 2 Copper (R95; was nothing) | D18a | TC5's swift ingot |
 | TC5's swift ingot stored | tc5swift | 5 Copper | D18a | TC5's gale sword |
-| TC5 | tc5 | 1 Iron, 1 Manganese | D18a | GC8 |
-| GC8 | p4g0 | nothing | - | Bram's Dagger: the stored swift ingot |
+| TC5 | tc5 | nothing (R95; was 1 Iron, 1 Manganese) | - | the waiting customer (no craft), then Bram's Dagger: the stored swift ingot |
 | Bram's Dagger | bram2 | page:gale | D18a | the part 5 gale Longsword |
 | The gale Longsword | p5g0 | 2 Iron, 2 Manganese | D18a | Garric |
 | Garric | garric | nothing | - | (the end) |
@@ -2542,3 +2542,9 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r301 Shortsword lit for the first sword; unaffordable BUY greyed; only the ordered blueprint can be bought (D28m).
 - 2026-10-21: r302 the intro: four pictures with the old portrait intro's texts before D1 (tap to move on, SKIP).
 - 2026-10-28: R24 the rotated iron and manganese paths (manganese, then a ground iron; Balanced and Fire moved).
+- 2026-11-10: R95 GC8 (the Weak balanced Longsword) moved to right after TC4 (owner: "can we move gc8 after tc4, without any
+  difficulties?" / "Yes, do it"). Part 4 is now TC4, GC8, TC5, the waiting customer. `FTUE.parts[4].tc5After` 1: after one of
+  part 4's gameplay customers (GC8) the bell brings TC5 (`d2-bell`); TC4's sale rings for GC8 (`p4-bell`); TC5's sale rings
+  for the waiting customer (`p4-bell`, as before). TC5's arrival no longer resets the gameplay count. Ore chain: tc4 1 Iron +
+  1 Manganese, p4g0 2 Copper, tc5 nothing (table above). No line changes. Tracker: R95 in
+  `specs/2026-10-23-ftue-smelter-rework-plan.md`.
