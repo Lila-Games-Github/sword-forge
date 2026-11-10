@@ -183,7 +183,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 36. **Customer (GC1):** "Do you have a Balanced Longsword?"
    *When: the bell; one of the random customer requests, naming the order.*
 
-37. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it."
+37. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll give you the gold for the shape when you pick it."
    *When: after the player's reply "Yes, I can craft one." (R56) to GC1's request; its lit OK starts the craft guide (no market trip).*
 
 38. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
@@ -202,10 +202,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
 
 43. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+43a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 44. **D28d** Dragon: "There, my treat! Now pick the Longsword."
-   *When: the Longsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Longsword (R96); then it blinks to be picked.*
 
 45. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
@@ -220,10 +223,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after the player's reply "Yes, I can craft one." (R56) to GC2's request; its lit OK starts the craft guide.*
 
 49. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+49a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 50. **D28f** Dragon: "Done! Pick the Broadsword."
-   *When: the Broadsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Broadsword (R96); then it blinks to be picked.*
 
 51. **Customer (GC2):** a random thank-you
    *When: after the sale.*
@@ -240,7 +246,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 55. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
 
-56. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
+56. **D28i** Dragon: "Well done! Now pick the Katana."
    *When: the player buys the Katana in the shape window; then it blinks to be picked.*
 
 57. **Customer (GC3):** a random thank-you
@@ -488,7 +494,10 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: on the forge, dark except the fire trait; the trait opens its card, then CRAFT 1.*
 
 20. **D28c** Dragon: "Here it is. Watch this!"
-   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Longsword's lock (then it blinks).*
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+20a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 21. **Customer (GC5):** a random thank-you
    *When: after the sale.*
@@ -505,10 +514,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: after the player's reply "Yes, I can craft one." (R56) to GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
 
 25. **D28c** Dragon: "Here it is. Watch this!"
-   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Broadsword's lock.*
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+25a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 26. **D28f** Dragon: "Done! Pick the Broadsword."
-   *When: the Broadsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Broadsword (R96); then it blinks to be picked.*
 
 27. **Customer (GC6):** a random thank-you
    *When: after the sale.*
@@ -704,9 +716,12 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *R18: the swift ingot dropped on the anvil lands there and opens the shape window; no line.*
 
 10. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
+   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
 
-10a. **D48a** Dragon: "Let's go sharpen the sword!"
+10a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
+
+10b. **D48a** Dragon: "Let's go sharpen the sword!"
    *When: the Dagger is made; the arrow to the basement lights with it (R79).*
 
 #### The basement
@@ -761,11 +776,14 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 26. **Customer:** "Do you have a Gale Longsword?"
    *When: the bell; a random request.*
 
-27. **D113a** Dragon: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!"
+27. **D113a** Dragon: "A gale Longsword? Fine, I'll pay for this one too. Don't get used to it!"
    *When: after the player's reply "Yes, I can craft one." (R56) to the request.*
 
 28. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens; over it, as the dragon's coins fly to the Longsword's lock.*
+   *When: the shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+28a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 29. **Customer:** a random thank-you
    *When: after the sale.*

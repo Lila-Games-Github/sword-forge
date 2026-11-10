@@ -2548,3 +2548,10 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   for the waiting customer (`p4-bell`, as before). TC5's arrival no longer resets the gameplay count. Ore chain: tc4 1 Iron +
   1 Manganese, p4g0 2 Copper, tc5 nothing (table above). No line changes. Tracker: R95 in
   `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- 2026-11-10: R96 the dragon no longer buys a blueprint for the player (owner: "Instead of the dragon directly buying the
+  blueprint for the player, i want him to deposit the gold in the player's inventory and have the players buy the blueprint. We
+  should have the same effect of the gold coins flying from dragon to the inventory"). For every by:'dragon' order (GC1, GC2,
+  GC5, GC6, Bram's Dagger, GC9 in the record's numbering): D28c, his coins fly to the gold counter (the D28h top-up's effect),
+  the gold rises by the price (+<price>g on the counter), D28ca "There's the gold. Now tap the blueprint to buy it." and the
+  BUY is lit; the player's purchase (R91's coins) then gives the done line. R13 (no BUY, a tap buys nothing) now holds only
+  while his coins are in the air. Lines: D28ca new; D28b, D28i, D113a reworded. Tracker: R96.

@@ -1088,3 +1088,14 @@ yours and come on top.
   Checked in the browser by driving the hand-offs (each sale function, then the bell): TC4 (`woman2`), GC8, TC5 (`man2`), then
   the waiting customer; the ores given were 1 iron + 1 manganese after TC4, 2 copper after GC8, none after TC5. Asserted by the
   FTUE test (written first; GREEN at 983).
+- **R96 (owner, 2026-11-10): the dragon gives the gold; the player buys the blueprint.** "Instead of the dragon directly buying
+  the blueprint for the player, i want him to deposit the gold in the player's inventory and have the players buy the blueprint.
+  We should have the same effect of the gold coins flying from dragon to the inventory." For every `by:'dragon'` order (GC1,
+  GC2, GC5, GC6, Bram's Dagger, GC9): D28c, then `ftueDeposit` flies his coins to the gold counter (`coinFly`, the D28h top-up's
+  effect; the market's own gold readout there), adds the price with "+<price>g", and hands the purchase to the player (step
+  `buy`): D28ca "There's the gold. Now tap the blueprint to buy it." and the BUY lit. The purchase (R91's coins) gives the done
+  line. While his coins fly the grid hides BUY and a tap buys nothing (`ftueDragonPays` = step `gift`; R13). `marketGift` and
+  its two cut toasts are gone (R90 now has 28 `toastCut` calls). Lines: D28ca new; D28b ("I'll give you the gold for the shape"),
+  D28i ("Well done! Now pick the Katana."), D113a ("I'll pay for this one too") reworded. Checked in the browser: GC1 in the
+  shape window (0g, coins, 50g with "+50g", D28ca, a real tap: owned, 0g, "-50g", D28d) and GC2 in the market (100g, then
+  "Done! Pick the Broadsword."). Asserted by the FTUE and market tests (written first; FTUE GREEN at 989).

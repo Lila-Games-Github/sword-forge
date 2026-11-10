@@ -175,7 +175,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   Claymore 450; the last trait's shapes 1250-1650.
 - **Buying:** in the rotary market window on the counter (R38, `MK_ROT`, record `specs/2026-10-29-rotary-market.md`) or from
   the shape window. States: free, owned, "Play more to unlock" (market not open), unknown trait, too poor, BUY. In the tutorial
-  only the open order's (or a waiting customer's) blueprints can be bought, and the dragon pays for some (D28c). Only owned
+  only the open order's (or a waiting customer's) blueprints can be bought, and the dragon pays for some (D28c): his coins fly to the gold counter, the gold rises by the price, D28ca, and the player
+  buys it (R96, `ftueDeposit`; until R96 he unlocked it himself). Only owned
   shapes can be forged. A purchase (market or shape window) flies the quest claim's coins (`flyCoins`: 5 coins, 650 ms,
   70 ms apart) from the gold counter to the buy button, and the counter pops "-<price>g"; the gold is spent at once (R91,
   `buyCoins`).
@@ -229,7 +230,7 @@ loop in `specs/2026-10-23-ftue-smelter-rework-plan.md`; every line in play order
 
 | Part | Day | Tutorial customer | Gameplay customers | Teaches |
 |---|---|---|---|---|
-| 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon buys the blueprints), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market |
+| 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon gives the gold, the player buys, R96), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market |
 | 2 | 1 | TC2 ("a good one"), TC3 the adventurer (fire) | none | grinding, recording a craft, the cave, hazards, a second trait route |
 | 3 | 2 | none | durable Shortsword; fire Longsword, Broadsword, Katana | the map window, nickel, the craft book (CRAFT 1) |
 | 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword (between TC4 and TC5, R95); gale Katana + fire Claymore (COME LATER, after TC5) | the ladle and tiers, storing a metal, a Weak stop, the waiting list |

@@ -91,7 +91,7 @@ eq('MARKET on the customer counter: the rotary (R30)', /r\.id='marketBtn';[^\n]*
 eq('SKILL TREE shows a tree (D9; R26: the owner\'s tree art)', src.includes('<img class="sk-art" src="assets/ui/icon_skilltree.webp" alt="">'), true);
 eq('closed market toast (D6)', src.includes("toast('Play more to unlock')"), true);
 eq('the sale checks the order', src.includes('if(ftueC && !orderMatches(ftueC, COUNTER)){'), true);
-eq('the dragon buys with coins (D10)', src.includes('function marketGift(trait, shape, done){'), true);
+eq('the dragon pays with coins (D10; R96: they fly to the gold counter and the player buys)', src.includes('function ftueDeposit(m, toEl, then){') && !src.includes('function marketGift('), true);
 eq('no CRAFT 5 (D50)', src.includes('id="cbCraft5"'), false);
 eq('the shape picker lists the market column', /function shapeGrid\(\)\{[\s\S]{0,300}marketShapes\(k\)/.test(src), true);
 

@@ -336,8 +336,8 @@ eq('ftueBookToastQuiet reads it (free play and a finished FTUE keep the toast)',
 eq('the gate toasts a new page only when not quiet', src.includes("if(isNew && !ftueBookToastQuiet()) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);"), true);
 eq('the trait window opens on a first discovery only; a re-take goes straight on', src.includes('if(firstFind){ showAcquire(bt,tier,melt.traits.length,true); TUT_ACQ_LINE=sayNew; } else tutShapeStep();'), true);
 /* R13 (owner, 2026-10-26): a blueprint the dragon buys for the open order cannot be bought by the player */
-eq('ftueDragonPays: the open order\'s blueprint, when the dragon buys it',
-  src.includes("function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.o.market && m.o.market.by==='dragon' && m.o.trait===k && m.o.shape===sh); }"), true);
+eq('ftueDragonPays: the open order\'s blueprint, while the dragon\'s coins are in the air (R96: then the player buys it)',
+  src.includes("function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.step==='gift' && m.o.trait===k && m.o.shape===sh); }"), true);
 eq('the shape window shows no BUY on it', src.includes("const open=ftueShapeOpen(k, sh), gift=!open && ftueDragonPays(k, sh), b=document.createElement('button');")
   && src.includes("<span>'+sh+'</span>'+(open || gift ? '' : '<b class=\"sf-buy'"), true);
 eq('a tap on it buys nothing (the shape window)', /function shapeBuy\(k, sh\)\{[^\n]*\n\s*if\(ftueDragonPays\(k, sh\)\) return;/.test(src), true);
@@ -389,18 +389,20 @@ eq('and no seam gives ore', /function mineNode\(n,el\)\{\s*if\(!PICK_OUT \|\| n\
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
-  D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
+  D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll give you the gold for the shape when you pick it.",   /* r300. R96 */
   D28c: 'Here it is. Watch this!',
+  D28ca: "There's the gold. Now tap the blueprint to buy it.",   /* R96 */
   D28d: 'There, my treat! Now pick the Longsword.',   /* r300 */
   D28e: "A Broadsword this time. I'll pay for the shape again.",   /* r300 */
   D28f: 'Done! Pick the Broadsword.',   /* r300 */
   D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",
   D28h: "Oh, you don't have enough. Don't worry, I'll help.",
-  D28i: 'Your first blueprint! Now pick the Katana.' };   /* r300 */
+  D28i: 'Well done! Now pick the Katana.' };   /* r300. R96: the Longsword is the player's first purchase now */
 for (const [k, v] of Object.entries(V3P1)) eq(k + ' text', line(k), v);
 /* every script block must parse: a text check cannot see a broken quote (v3 part 2 shipped one, caught here) */
 [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m, i) => { let ok = true; try { new Function(m[1]); } catch (e) { ok = e.message; } eq('script block ' + i + ' parses', ok, true); });
 const keyList = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
+eq('D28ca sits between D28c and D28d (R96)', (() => { const a = src.indexOf('\n    D28c: "'), b = src.indexOf('\n    D28ca: "'), c = src.indexOf('\n    D28d: "'); return a > 0 && a < b && b < c; })(), true);
 for (const [k, prev] of [['D28c','D28b'],['D28d','D28c'],['D28e','D28d'],['D28f','D28e'],['D28g','D28f'],['D28h','D28g'],['D28i','D28h']])
   eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('Bram: no reward window, straight to the quest list',
@@ -444,7 +446,7 @@ eq('the Durable lesson: map window after D92c', src.includes('D92c:function(){ f
   && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts2\.webp'/.test(src), true);   /* r254: its own art */
 eq('the Durable craft takes ground nickel only', src.includes("if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;"), true);
 eq('the Durable and Weak walks reach their screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0 || String(TUT_STAGE).indexOf('p4-weak-')===0){ tutDay2Screen(name); return; }"), true);
-eq('a market step without a done line says nothing', src.includes('if(o.market.done) sayOver(o.market.done);'), true);
+eq('a market step without a done line says nothing (R96: said once the player has bought it)', src.includes('FTUE_MK=null; if(m.o.market.done) sayOver(m.o.market.done); }'), true);
 /* v3 part 4 (D33-D38): TC4 Epic Durable with the pull lesson, TC5 gale, GC8 Weak balanced Longsword */
 /* owner, 2026-10-09: after GC8, the customer who is sent to the waiting list (two swords, two blueprints) */
 eq('part 4 gpc', FTUE.parts[4].gpc, [ { trait: 'balanced', shape: 'Longsword', tier: 'Weak', qty: 1, lesson: 'weak' },
@@ -477,7 +479,7 @@ const V3P5 = {
   D48:  "I found this sharpening wheel. I'll show you how to use it.",
   D111: 'I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift dagger for me?',
   D111b: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend.",
-  D113a: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!" };
+  D113a: "A gale Longsword? Fine, I'll pay for this one too. Don't get used to it!" };   /* R96 */
 for (const [k, v] of Object.entries(V3P5)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D111b','D111a'],['D113a','D113']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('the sharpening wheel is locked until given (D40)', src.includes("if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; }"), true);
@@ -518,7 +520,7 @@ eq('an order line has a lit OK again, and closing the order\'s last line starts 
   && src.includes("if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };") && /function sayHide\(\)\{[\s\S]{0,1600}if\(SAY_THEN && SAY_ON===SAY_THEN\.id\)\{ const f=SAY_THEN\.fn; SAY_THEN=null; setTimeout\(f, 0\); \}/.test(src), true);
 eq('the craft guide is the old market ending without the market', src.includes("function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }"), true);
 eq('the shape window runs the purchase for the order\'s trait', /function openShapeSelect\(\)\{[\s\S]{0,1300}ftueShapeOpened\(\);/.test(src) && /function ftueShapeOpened\(\)\{[\s\S]{0,300}if\(k!==o\.trait\) return;/.test(src), true);
-eq('the dragon pays: D28c, coins to the shape, unlocked, then the done line and the shape', /function ftueShapeOpened\(\)\{[\s\S]{0,900}ftueSaySh\(FTUE\.marketWatch\);[\s\S]{0,400}coinFly\(dragonEl\(\), [\s\S]{0,200}FTUE_ST\.shapes\[key\]=true; shapeGrid\(\);[\s\S]{0,200}ftueShapeDone\(m\);/.test(src), true);
+eq('the dragon pays (R96): D28c, his coins to the gold counter, then D28ca and the BUY lit; the player\'s purchase gives the done line', src.replace(/\r\n/g, '\n').includes("    if(o.market.by==='dragon'){ m.step='gift'; shapeGrid(); ftueSaySh(FTUE.marketWatch);   /* no BUY while his coins fly */\n        setTimeout(()=>ftueDeposit(m, document.getElementById('goldVal'), ()=>{ shapeGrid(); ftueSaySh('D28ca'); tutExit(btn); }), 900);\n        return; }"), true);
 eq('the player buys: BUY pointed at; short of gold, D28h and the top-up first', /function ftueShapeOpened\(\)\{[\s\S]{0,2000}m\.step='buy';[\s\S]{0,300}ftueSaySh\(FTUE\.marketShort\);/.test(src) && /function shapeBuy\(k, sh\)\{[\s\S]{0,900}ftueShapeBought\(k, sh\);/.test(src), true);
 eq('a purchase ends the lesson and points at the shape', /function ftueShapeDone\(m\)\{ FTUE_MK=null;[\s\S]{0,400}tutExit\(/.test(src), true);
 eq('a market purchase of the ordered blueprint also ends it, with no second craft guide', /function ftueMarketBought\(k, sh\)\{[\s\S]{0,200}FTUE_MK=null;/.test(src), true);
@@ -649,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -1686,10 +1688,10 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
     ["'Back in your inventory'", 4], ["'Not yet. The dragon will tell you when.'", 1], ["'&#9876;&#65039; ' + sw.shape + ' on the workstation'", 1],
     ["'Take a sword to the <b>workstation</b>", 1], ["'&#9876;&#65039; '+w.shape+' on rack '", 1], ["BUILD_ON ? 'Build mode <b>ON</b>", 1],
     ["'Decor goes on the <b>counter</b>", 1], ["'The ores are back in your inventory'", 1], ["'Shaping cancelled", 1],
-    ["'Erased the <b>'", 1], ["'Bought the <b>'+nm+'</b> blueprint'", 2], ["'The dragon bought the <b>'", 2],
+    ["'Erased the <b>'", 1], ["'Bought the <b>'+nm+'</b> blueprint'", 2],   /* R96: "The dragon bought..." (2) went with his buying */
     ["'⛏️ A rich seam", 1], ["'\\u2b50 <b>Level '", 1], ["'\\u2b50 <b>'+sk.name+'</b> rank '", 1], ["'No talent points spent yet'", 1],
     ["'\\ud83d\\udcdc Quest complete", 1], ["'Game saved'", 1], ["'Game loaded'", 1], ["'New game'", 1] ];
-  eq('R90: 30 toasts cut (toastCut), the owner\'s ticks', (s0.match(/toastCut\((?!\)|msg)/g) || []).length, 30);
+  eq('R90: the owner\'s 30 ticks, 28 calls left since R96 (the dragon no longer buys a blueprint)', (s0.match(/toastCut\((?!\)|msg)/g) || []).length, 28);
   eq('R90: each ticked toast is a toastCut, as many times as recorded', CUT.map(([f, k]) => s0.split('toastCut(' + f).length - 1), CUT.map(([, k]) => k));
   eq('R90: no ticked toast is still a toast()', CUT.filter(([f]) => s0.includes(' toast(' + f) || s0.includes('>toast(' + f) || s0.includes('(toast(' + f) || s0.includes(';toast(' + f)).map(([f]) => f), []);
   eq('R90: the PART 1-6 and GAME buttons keep the plain toast', (s0.match(/onclick="plainToast\(ftuePart\(\d\)\)"/g) || []).length, 7);
@@ -1765,5 +1767,20 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R95: and shows the bell for TC5', s5.includes("    if(TUT_STAGE==='d2-bell') bellShow(true);   /* R95: TC5's bell */"), true);
   eq('R95: TC5\'s arrival keeps the count (the next bell brings the waiting customer)', /function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.part=4; ftueLadleUi\(\);/.test(s5) && !/function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.gpc=0/.test(s5), true);
   eq('R95: TC4\'s sale rings for GC8', s5.includes("TUT_STAGE='p4-bell';   /* R95: GC8 comes next (was TC5) */"), true);
+}
+/* R96 (owner, 2026-11-10): the dragon deposits the blueprint's price (his coins fly to the gold counter); the player buys */
+{ const s6 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s6.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s6.indexOf('{', i);
+    for (; j < s6.length; j++) { if (s6[j] === '{') d++; else if (s6[j] === '}' && --d === 0) break; } return s6.slice(i, j + 1); };
+  const log = [], S = { GOLD: 40 }, to = { id: 'goldVal' }, m = { o: { trait: 'balanced', shape: 'Longsword' }, step: 'gift' };
+  const dep = new Function('S', 'log', 'let GOLD=S.GOLD; const marketPrice=()=>50, dragonEl=()=>"dragon", updateHud=()=>{ S.GOLD=GOLD; log.push(["hud", GOLD]); }, goldPop=t=>log.push(["pop", t]); function coinFly(a, b, then){ log.push(["fly", a, b && b.id]); then(); } '
+    + fn('ftueDeposit') + '; return ftueDeposit;')(S, log);
+  dep(m, to, () => log.push(['then', m.step]));
+  eq('R96: ftueDeposit - the dragon\'s coins to the counter, then the gold rises by the price, "+50g", and the purchase is the player\'s',
+    [log, S.GOLD], [[['fly', 'dragon', 'goldVal'], ['hud', 90], ['pop', '+50g'], ['then', 'buy']], 90]);
+  eq('R96: the market\'s lesson deposits too (its own gold readout), then D28ca and the lit BUY',
+    s6.includes("        m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);\n        setTimeout(()=>ftueDeposit(m, document.getElementById('mkGold') || document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);"), true);
+  eq('R96: the dragon no longer unlocks a blueprint himself (marketGift gone)', s6.includes('function marketGift('), false);
+  eq('R96: D28ca is said over the shape window and closed by the purchase (no X)', /const SAY_NO_X=\{[^}]*D28ca:1/.test(s6), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

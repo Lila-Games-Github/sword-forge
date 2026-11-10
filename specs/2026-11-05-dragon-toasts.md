@@ -59,7 +59,7 @@ Racks: "... on rack ...", "Back in your inventory" (rack). Decor: "Build mode ON
 Craft book: "Erased the ... recipe". Market: "Bought the ... blueprint" (market and shape window), "The dragon bought
 the ... blueprint" (market and shape window). Mining: "A rich seam: ...". Level and skills: "Level ... +... talent
 point(s)", "... rank .../...", "No talent points spent yet". Quests: "Quest complete...". Menu: "Game saved", "Game
-loaded", "New game". 30 calls.
+loaded", "New game". 30 calls (28 since R96: the two "The dragon bought..." toasts went with his buying).
 
 ## Revert
 

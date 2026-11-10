@@ -7404,7 +7404,7 @@ function ftueMarketOpened(){
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
         m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);
-        setTimeout(()=>marketGift(o.trait, o.shape, ()=>{ m.step='done'; if(o.market.done) sayOver(o.market.done); tutExit('#mkClose'); }), 900);
+        setTimeout(()=>ftueDeposit(m, document.getElementById('mkGold') || document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);
         return; }
     m.step='buy'; m.mk=true;   /* R38: the page stays put (mkLocked) */
     mkShow(o.trait+':'+o.shape);
@@ -7457,15 +7457,6 @@ function coinFly(fromEl, toEl, then){
                   { duration:MARKET.coinMs, delay:i*90, easing:'ease-in-out', fill:'forwards' });
         setTimeout(()=>c.remove(), MARKET.coinMs+i*90+60); }
     setTimeout(()=>{ if(then) then(); }, MARKET.coinMs+(MARKET.coins-1)*90+80);
-}
-function marketGift(trait, shape, done){
-    const key=trait+':'+shape;
-    renderMarket(); document.getElementById('sfMarketModal').classList.add('show');
-    const cell=mkShow(key);   /* R38: its page up, the coins fly to its buy button */
-    const finish=()=>{ FTUE_ST.shapes[key]=true; renderMarket(); mkStampIn(trait, shape);
-        toastCut('The dragon bought the <b>'+TRAIT_BY[trait].name+' '+shape+'</b> blueprint'); if(done) done(); };
-    if(!cell){ finish(); return; }
-    coinFly(dragonEl(), cell, finish);
 }
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
@@ -7726,10 +7717,8 @@ function ftueShapeOpened(){ const m=FTUE_MK; if(!m || (m.step!=='shape' && m.ste
     const key=o.trait+':'+o.shape, btn=ftueShapeBtn(o);
     if(FTUE_ST.shapes[key]){ FTUE_MK=null; return; }
     if(m.step==='buy'){ tutExit(btn); return; }   /* reopened after a cancel */
-    if(o.market.by==='dragon'){ m.step='gift'; ftueSaySh(FTUE.marketWatch);
-        setTimeout(()=>{ const b=btn();
-            coinFly(dragonEl(), b || document.getElementById('sfShapeModal'), ()=>{ FTUE_ST.shapes[key]=true; shapeGrid();
-                toastCut('The dragon bought the <b>'+TRAIT_BY[o.trait].name+' '+o.shape+'</b> blueprint'); ftueShapeDone(m); }); }, 900);
+    if(o.market.by==='dragon'){ m.step='gift'; shapeGrid(); ftueSaySh(FTUE.marketWatch);   /* no BUY while his coins fly */
+        setTimeout(()=>ftueDeposit(m, document.getElementById('goldVal'), ()=>{ shapeGrid(); ftueSaySh('D28ca'); tutExit(btn); }), 900);
         return; }
     m.step='buy';
     if(GOLD<marketPrice(o.trait, o.shape)){ ftueSaySh(FTUE.marketShort);
@@ -7746,7 +7735,12 @@ function ftueBlueprintOk(k, sh){ if(FTUE_ST.done) return true;
     if(o && (o.items ? o.items.some(hit) : hit(o))) return true;
     return (FTUE_ST.waiting||[]).some(e=>(e.items||[]).some(hit)); }
 /* R13 (owner, 2026-10-26): the blueprint the dragon buys for the open order is his to buy - no BUY, and a tap buys nothing */
-function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.o.market && m.o.market.by==='dragon' && m.o.trait===k && m.o.shape===sh); }
+function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.step==='gift' && m.o.trait===k && m.o.shape===sh); }   /* R96: only while his coins fly */
+/* R96 (owner, 2026-11-10): "Instead of the dragon directly buying the blueprint for the player, i want him to deposit the gold in the
+   player's inventory and have the players buy the blueprint" - his coins fly to the gold counter (the D28h top-up's effect), the
+   gold rises by the price, and the purchase is the player's (step 'buy') */
+function ftueDeposit(m, toEl, then){ const o=m.o, pr=marketPrice(o.trait, o.shape);
+    coinFly(dragonEl(), toEl, ()=>{ GOLD+=pr; updateHud(); goldPop('+'+pr+'g'); m.step='buy'; if(then) then(); }); }
 /* r299 (owner, 2026-10-21): buy a blueprint from the shape window - the market's price, checks, gold and quests */
 function shapeBuy(k, sh){ const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
     if(ftueDragonPays(k, sh)) return;   /* R13 */
@@ -9053,14 +9047,15 @@ const DIALOGUE = {
     D26: "Phew! That was a lot of hard work.",
     D27: "I found a bell for you. You can ring it to signal to the next customer that you are available.",
     D28a: "Use 2 iron and 2 manganese for the balanced sword.",
-    D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 (owner): bought at the shape window */   /* r213; v3 part 1 */
+    D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll give you the gold for the shape when you pick it.",   /* R96 */   /* r300 (owner): bought at the shape window */   /* r213; v3 part 1 */
     D28c: "Here it is. Watch this!",   /* v3: the dragon pays (FTUE.marketWatch) */
+    D28ca: "There's the gold. Now tap the blueprint to buy it.",   /* R96 (owner, 2026-11-10): his coins have landed on the gold; the player buys */
     D28d: "There, my treat! Now pick the Longsword.",   /* r300 */
     D28e: "A Broadsword this time. I'll pay for the shape again.",   /* r300 */
     D28f: "Done! Pick the Broadsword.",   /* r300 */
     D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",   /* owner's words */
     D28h: "Oh, you don't have enough. Don't worry, I'll help.",   /* owner's words; FTUE.marketShort */
-    D28i: "Your first blueprint! Now pick the Katana.",   /* r300 */
+    D28i: "Well done! Now pick the Katana.",   /* r300. R96: the Longsword is the player's first purchase now */
     D28j: "I am running out of my reward stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3 */
     D28k: "The customer asked for a {o}. Let's focus on that.",   /* r292 (owner): the craft lock; {o} = the order */
     D28l: "Careful! Here, try again.",   /* r293 (owner): the refill, over the reward window */
@@ -9196,7 +9191,7 @@ const DIALOGUE = {
     D111b: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend.",   /* v3 part 5 */
     D112: "We can use the metal infused with the swift trait we crafted earlier. Let's go.",
     D113: "Find it in your inventory and drag it to the anvil.",
-    D113a: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!",   /* v3 part 5: GC9 */
+    D113a: "A gale Longsword? Fine, I'll pay for this one too. Don't get used to it!",   /* R96 */   /* v3 part 5: GC9 */
     D114: "Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you.",
     D115: "Bram gave you a diary! Open it!",
     D116: "It has a list of so many towns! I wonder if we can go on an adventure later.",
@@ -11359,7 +11354,7 @@ const SAY_GO_MORE={ D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g
 /* r288 (owner): lines that pause the game for themselves alone - their OK lifts the pause before the next line
    (D15: the minigame holds while it is read; D15a, the strike, needs the live game) */
 const SAY_PAUSE_ONE={ D15:1 };
-const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28d:1, D28f:1, D28h:1, D28i:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
+const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28ca:1, D28d:1, D28f:1, D28h:1, D28i:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 let SAY_GO_KIND=null;   /* R55: the shown line's button: 'close' (the X), 'next' (OK) or 'none' */
