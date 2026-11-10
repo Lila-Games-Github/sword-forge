@@ -1071,3 +1071,11 @@ yours and come on top.
   breath's 3 px and 12 px), with no animation (`qsReadyArt` is gone); `#questBtn::after` lays `rgba(90,230,110,.3)` over the
   basket, masked by its own art (`assets/ui/questbasket.webp`, `RAIL_ART.quest`), shown only with `qs-ready`. A tutorial blink
   (`tut-blink`) still animates over it. Asserted by the FTUE test (written first).
+- **R94 (owner, 2026-11-10): the map recentres on the sword when a craft starts.** "I want the map view to recenter to the
+  active sword, whenever a sword crafting process is started." `craftView` puts the sword (`marker`) in the middle of the map
+  window and keeps the zoom. `craftStartView` calls it for a NEW craft only (no `melt`, no `segs`, no `prep`): the first ore
+  on the grindstone (`startPrep`) or straight into the smelter (`addOreDirect`); later ores leave the player's panning alone.
+  CONTINUE FROM HERE (`cbContinue`) and a stored ingot back on the anvil (`restoreIngot`) recentre too (they only nudged the
+  view at its edges, `ensureSwordVisible`). Measured: centred on the start at the default zoom, the fire trait is 43 units off
+  the left edge and gale 73 off the top, so a tutorial ring on them can scroll out of view when the craft starts (asked the
+  owner). Asserted by the FTUE test (written first).

@@ -45,7 +45,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 ### The map
 
 - **World:** an SVG board **2800 x 1960** units (`WORLD_W`, `WORLD_H`), seen through a zoom / pan window: `INIT_W` **1100**,
-  `MIN_W` **360**, `MAX_W` **2800**. The sword starts at **(1400, 1030)** (`START`).
+  `MIN_W` **360**, `MAX_W` **2800**. The sword starts at **(1400, 1030)** (`START`). A craft's start recentres the window on
+  the sword, zoom kept (R94, `craftView`): the first ore of a new craft on the grindstone or in the smelter
+  (`craftStartView`: no metal, no segment, no ore on the wheel), CONTINUE FROM HERE, and a stored ingot back on the anvil.
 - **Fog:** cleared for good in circles of `REVEAL_R` **120** as the sword travels (the Vision skill widens it, §6), plus
   `INIT_REVEAL` **430** around the start.
 - **Traits:** 25, placed from the owner's map (`TRAIT_POS`); each is a `?` until taken. The map's trait icons open a small trait

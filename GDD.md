@@ -84,6 +84,8 @@ The dragon sits on the bench; his speech bubble points at him.
 ### Map, fog, traits
 
 - A 2800 x 1960 world, viewed through a zoom window (1100 wide at start, 360-2800). The sword starts just below the centre.
+  When a craft starts (its first ore on the grindstone or in the smelter, CONTINUE FROM HERE, or a stored ingot back on the
+  anvil), the map recentres on the sword, at the player's zoom (R94).
 - **Fog** covers it; the sword clears circles of 120 as it travels (the Vision skill widens them), and 430 around the start.
 - **25 traits**, hand-placed from the owner's map. A trait is a `?` until taken; then its symbol shows for good and a tap on it
   opens its trait card (craft from it in one tap).

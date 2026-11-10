@@ -1740,4 +1740,21 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
      s3.includes('#rail > #questBtn.qs-ready::after { opacity: 1; }')], [true, true]);
   eq('R93: the mask is the basket the rail shows', /quest:\{[^}]*art:'assets\/ui\/questbasket\.webp'/.test(s3), true);
 }
+/* R94 (owner, 2026-11-10): the map recentres on the sword when a craft starts */
+{ const s4 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s4.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s4.indexOf('{', i);
+    for (; j < s4.length; j++) { if (s4[j] === '{') d++; else if (s4[j] === '}' && --d === 0) break; } return s4.slice(i, j + 1); };
+  const st = { view: { x: 0, y: 0, w: 1000 }, calls: 0 };
+  const L = new Function('S', 'let view=S.view, aspect=0.6, marker={ x:1400, y:1030 }, melt=S.melt, segs=S.segs, prep=S.prep; function setView(){ S.calls++; S.view=view; } '
+    + fn('craftView') + fn('craftStartView') + '; return { craftView, craftStartView };');
+  const run = (melt, segs, prep) => { const S = { view: { x: 10, y: 20, w: 1000 }, calls: 0, melt, segs, prep }; L(S).craftStartView(); return [S.view.x, S.view.y, S.view.w, S.calls]; };
+  eq('R94: craftView puts the sword in the middle of the map, zoom kept', run(null, [], null), [900, 730, 1000, 1]);
+  eq('R94: only a NEW craft recentres (not with metal in, segments laid or an ore on the wheel)',
+    [run({}, [], null)[3], run(null, [{}], null)[3], run(null, [], { ore: 'iron' })[3]], [0, 0, 0]);
+  const sp = fn('startPrep'), ad = fn('addOreDirect');
+  eq('R94: the first ore on the grindstone starts it, before the ore is taken', sp.includes('craftStartView(); spendOre(oreId); prep={ore:oreId,grind:0};'), true);
+  eq('R94: the first ore straight into the smelter starts it, before the metal exists', ad.includes('craftStartView(); ensureMelt(); spendOre(oreId);'), true);
+  eq('R94: CONTINUE FROM HERE and a stored ingot back on the anvil recentre too',
+    [fn('cbContinue').includes('drawRoute(); moveX(); craftView();'), fn('restoreIngot').includes('drawRoute(); moveX(); craftView();')], [true, true]);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

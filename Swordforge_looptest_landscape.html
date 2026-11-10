@@ -6767,7 +6767,7 @@ function ensureMelt(){ const gate=document.getElementById('furnaceGate'); if(!me
 function startPrep(oreId){ if(!oreLeft(oreId)) return; if(ftueGrindBlock()) return;   /* r199 */ if(ftueFirstSpent(oreId)) return;   /* r201: capped, silently */
     { const want=fireOreWanted();   /* r111 */
       if(want===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
-      if(want && want.split('/').indexOf(oreId)<0){ toast('Not that one: this craft wants <b>'+want.split('/').map(oreName).join('</b> or <b>')+'</b> next'); return; } } spendOre(oreId); prep={ore:oreId,grind:0}; if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r201: grey it now the ore is in the mortar */ oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
+      if(want && want.split('/').indexOf(oreId)<0){ toast('Not that one: this craft wants <b>'+want.split('/').map(oreName).join('</b> or <b>')+'</b> next'); return; } } craftStartView(); spendOre(oreId); prep={ore:oreId,grind:0}; if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r201: grey it now the ore is in the mortar */ oreImgEl.src=oreImg(oreId); orbEl.classList.remove('hot'); orbEl.style.display='block'; updateOrbLook(); placeOrbInMortar(); drawPrepPreview(); hint('<b>Hold the wheel</b> to grind this ore (extends its path), or drag it to the <b>furnace</b>.'); }
 /* r111: the fire craft runs in two halves. 'fire-grind' takes 2 iron + 1 manganese, all ground FULL.
    owner, 2026-10-13: 'fire-mang' takes one more ore, ALSO full - iron or manganese, the player's choice. Both
    end on fire (FTUE.fireAt), Fine, as D76 says; iron's path crosses the moved speck (HAZ.move), manganese's does
@@ -6823,7 +6823,7 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(fireOreWanted()!==null && !rawOnly()){ toast('Not straight in: grind it first'); return; }   /* r111/r125 */
     if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
     if(ftueFirstCap(oreId)) return;   /* r199 */
-    ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
+    craftStartView(); ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
 /* R34 (owner, 2026-10-29): the smelter's lit states. anchor_furnace is the lit furnace (the pour running); three layers on its
    canvas lie over it: the crown cold (#fo-top), the gate cold (#fo-gateOff), the gate glowing (#fo-gateOn). Off with no metal,
@@ -7203,7 +7203,7 @@ function cbContinue(){
            traits:recipeTraits(r).map(a=>({ t:TRAIT_BY[a.tid], tier:a.tier, val:traitMapValue(a.tid) })) };
     segs=[]; r.ores.forEach((o,i)=>addSegment(o, (r.grinds[i]-0.5)*2));   // addSegment re-derives tPct from grind
     sword={ seg:Math.max(0,segs.length-1), frac: segs.length? segs[segs.length-1].tPct : 0 };
-    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); ensureSwordVisible();
+    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); craftView();   /* R94 */
     orbEl.style.display='block'; updateOrbLook();
     const c=stationCenter(stAnvil,0.5,0.15); placeOrb(c.x,c.y);
     updateGauges(); updateHpPill(); setTimeout(updateSfTraits,0);
@@ -8505,6 +8505,11 @@ function stopBreath(){ dragonBreathing=false; fireEl.style.display='none'; }
 function hammerStriking(){ return hammerEl && hammerEl.classList.contains('striking'); }
 
 // --- camera follow ---
+/* R94 (owner, 2026-11-10): "I want the map view to recenter to the active sword, whenever a sword crafting process is started" -
+   the sword in the middle of the map, the zoom kept. A new craft is the first ore on the grindstone or in the smelter (no metal, no
+   segment, no ore on the wheel yet); CONTINUE FROM HERE and a stored ingot back on the anvil start one again */
+function craftView(){ view.x=marker.x-view.w/2; view.y=marker.y-view.w*aspect/2; setView(); }
+function craftStartView(){ if(melt || segs.length || prep) return; craftView(); }
 function ensureSwordVisible(){ const mx=0.18,myTop=0.14,myBot=0.62,vw=view.w,vh=vw*aspect; let nx=view.x,ny=view.y; if(marker.x<view.x+vw*mx) nx=marker.x-vw*mx; else if(marker.x>view.x+vw*(1-mx)) nx=marker.x-vw*(1-mx); if(marker.y<view.y+vh*myTop) ny=marker.y-vh*myTop; else if(marker.y>view.y+vh*myBot) ny=marker.y-vh*myBot; if(nx!==view.x||ny!==view.y){ view.x=nx; view.y=ny; setView(); } }
 
 // --- sword travel across the stacked route ---
@@ -8717,7 +8722,7 @@ function restoreIngot(id){
            traits:g.traits.map(t=>({t:TRAIT_BY[t.tid], tier:t.tier})) };
     segs=g.segs.map(x=>({...x, origin:{...x.origin}}));
     sword={seg:g.sword.seg, frac:g.sword.frac}; pull=g.pull?{x:g.pull.x, y:g.pull.y}:{x:0,y:0};   /* r197 */
-    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); ensureSwordVisible();
+    const p=swordPoint(); setSword(p.x,p.y); reveal(p.x,p.y,'sword'); drawRoute(); moveX(); craftView();   /* R94 */
     orbEl.style.display='block'; placeOnAnvil();
     updateGauges(); updateHpPill(); setTimeout(updateSfTraits,0); invTab(1);
 }
