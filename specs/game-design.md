@@ -272,6 +272,9 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   bubble, or where he is not visible in an icon bubble at the sharpening window's place. Tap closes; a new line replaces it.
   30 are cut (`toastCut`); the shop-rack sale and the PART buttons keep the old top toast (`plainToast`). Record:
   `specs/2026-11-05-dragon-toasts.md`.
+- **Gear menu, SETTINGS (R97):** MAP: FIVE PARTS (`MAP_parts.webp`) and MAP: TRAITS (`MAP_parts2.webp`) reopen the tutorial's
+  map windows (`MENU_MAPS`), each offered once shown (`FTUE_ST.seenParts` / `seenParts2`; part 3+ / 4+ for older saves), both
+  after the tutorial and in free play; then the +1000 gold cheat and BACK.
 - **Save:** manual, from the gear menu (SAVE / LOAD GAME / NEW GAME), `localStorage` `swordforge.save.v1` version 9. It keeps
   gold, swords, ingots, ores, recipes, skills, quests, the map's fog and traits, and `FTUE_ST`, but not the tutorial stage
   (`TUT_STAGE`) or the dialogue; there is no autosave and no continue on boot.

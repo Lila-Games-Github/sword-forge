@@ -340,7 +340,8 @@ Arrows at the screen edges (and the arrow keys) move between screens; an arrow t
 
 Trait discovered (first find only, with a celebration burst, bigger for Epic, a second smaller burst after), sword crafted,
 reward (the dragon shown over its dark, his line under it), shape, market, skill tree, quests, diary, ledger and waiting list,
-end of day, the gear menu (resume, save, new game, load, settings).
+end of day, the gear menu (resume, save, new game, load, settings). SETTINGS also reopens the tutorial's two map windows
+(MAP: FIVE PARTS, MAP: TRAITS), each once the tutorial has shown it, and both after it (R97).
 
 ## 11. Dialogue and guidance
 

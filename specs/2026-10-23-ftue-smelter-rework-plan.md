@@ -1099,3 +1099,13 @@ yours and come on top.
   D28i ("Well done! Now pick the Katana."), D113a ("I'll pay for this one too") reworded. Checked in the browser: GC1 in the
   shape window (0g, coins, 50g with "+50g", D28ca, a real tap: owned, 0g, "-50g", D28d) and GC2 in the market (100g, then
   "Done! Pick the Broadsword."). Asserted by the FTUE and market tests (written first; FTUE GREEN at 989).
+- **R97 (owner, 2026-11-10): the tutorial's map windows in SETTINGS.** "the minimaps that are shown during the tutorial
+  (MAP_parts.png and MAP_parts2.png), add them to the settings so players can access it later as well." The gear menu's
+  SETTINGS page lists MAP: FIVE PARTS and MAP: TRAITS (`MENU_MAPS`); a tap opens the tutorial's own picture window
+  (`openIllus`, the same caption) over the menu, and closing it returns to SETTINGS. Each is offered once the tutorial has shown
+  it (`FTUE_ST.seenParts`, set by `openParts` for TC3; `seenParts2`, set by `ftueDurableMap` for GC4; for a save made before
+  R97, part 3+ / part 4+), and both after the tutorial and in free play; the PART 4+ jumps set both flags. Found while checking:
+  `.mn-grid { display: grid }` beat the `hidden` attribute, so the SETTINGS page had always shown under the main menu page
+  (it is on main too); fixed with `.mn-grid[hidden] { display: none; }`. Checked in the browser with real taps: PART 2 and
+  PART 3 jumps offer none, PART 4 and GAME both; after the tutorial shows the five parts it is offered; the menu shows 6
+  buttons, SETTINGS 4. Asserted by the FTUE test (written first; GREEN at 997).

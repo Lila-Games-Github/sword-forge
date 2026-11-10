@@ -1783,4 +1783,26 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R96: the dragon no longer unlocks a blueprint himself (marketGift gone)', s6.includes('function marketGift('), false);
   eq('R96: D28ca is said over the shape window and closed by the purchase (no X)', /const SAY_NO_X=\{[^}]*D28ca:1/.test(s6), true);
 }
+/* R97 (owner, 2026-11-10): the tutorial's two map windows can be opened again from SETTINGS */
+{ const s7 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s7.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s7.indexOf('{', i);
+    for (; j < s7.length; j++) { if (s7[j] === '{') d++; else if (s7[j] === '}' && --d === 0) break; } return s7.slice(i, j + 1); };
+  const mm = s7.match(/const MENU_MAPS=(\[[\s\S]*?\]);/);
+  const MAPS = mm && new Function('FTUE_ST', 'return ' + mm[1]);
+  eq('R97: MENU_MAPS - the five-parts window and the basic-vs-elemental window, with the tutorial\'s own captions',
+    MAPS && MAPS({}).map(m => [m.id, m.src, m.alt]), [
+      ['mnMap1', 'assets/ui/MAP_parts.webp', 'The map, divided into five parts'],
+      ['mnMap2', 'assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part'] ]);
+  const seen = st => MAPS(st).map(m => !!m.seen());
+  eq('R97: each is offered once the tutorial has shown it (its flag, or a later part for older saves)',
+    [seen({ part: 2 }), seen({ part: 2, seenParts: true }), seen({ part: 3 }), seen({ part: 3, seenParts2: true }), seen({ part: 4 })],
+    [[false, false], [true, false], [true, false], [true, true], [true, true]]);
+  eq('R97: both are offered after the tutorial and in free play', /function menuMapsUi\(\)\{ MENU_MAPS\.forEach\(m=>\{ const b=document\.getElementById\(m\.id\); if\(b\) b\.style\.display=\(FTUE_ST\.done \|\| SM_FREE \|\| m\.seen\(\)\) \? '' : 'none'; \}\); \}/.test(s7), true);
+  eq('R97: SETTINGS lists them, refreshed as it opens', s7.includes('<button class="mn-btn" id="mnMap1" type="button" onclick="menuMap(0)">MAP: FIVE PARTS</button>')
+    && s7.includes('<button class="mn-btn" id="mnMap2" type="button" onclick="menuMap(1)">MAP: TRAITS</button>') && /function menuSettings\(\)\{[^}]*menuMapsUi\(\);/.test(s7), true);
+  eq('R97: a tap opens the same picture window, over the menu, with nothing after it', fn('menuMap') === "function menuMap(i){ const m=MENU_MAPS[i]; if(m) openIllus(m.src, m.alt); }", true);
+  eq('R97: a hidden menu page stays hidden (.mn-grid\'s display:grid had beaten [hidden], so SETTINGS always showed under the menu)', s7.includes('.mn-grid[hidden] { display: none; }'), true);
+  eq('R97: the PART 4+ jumps have seen both (TC3\'s five parts, GC4\'s traits window)', s7.includes("        if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */\n            FTUE_ST.seenParts=true; FTUE_ST.seenParts2=true;   /* R97: both map windows are behind (SETTINGS offers them) */"), true);
+  eq('R97: the tutorial marks each as seen when it shows it', [/function openParts\(\)\{[^\n]*FTUE_ST\.seenParts=true;/.test(s7), /function ftueDurableMap\(\)\{[^\n]*\n\s*FTUE_ST\.seenParts2=true;/.test(s7)], [true, true]);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -1325,6 +1325,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     display: flex; flex-direction: column; align-items: center; padding: 16px 26px 18px; gap: 8px; }
 .mn-h { margin: 0; font-family: 'Cinzel', serif; font-weight: 900; font-size: 15px; color: #5a4224; letter-spacing: 1px; }
 .mn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; width: 100%; margin-top: auto; margin-bottom: auto; }
+.mn-grid[hidden] { display: none; }   /* R97: display:grid beat the hidden attribute, so SETTINGS always showed under the menu */
 .mn-btn { border: 0; padding: 0; cursor: pointer; aspect-ratio: 143 / 51;
     background: url('assets/ui/Paper_button_wide.webp') center / 100% 100% no-repeat;
     display: flex; align-items: center; justify-content: center;
@@ -2169,6 +2170,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <button class="mn-btn" type="button" onclick="menuTodo('Quit')">QUIT</button>
             </div>
             <div class="mn-grid" id="mnSet" hidden>
+                <button class="mn-btn" id="mnMap1" type="button" onclick="menuMap(0)">MAP: FIVE PARTS</button>
+                <button class="mn-btn" id="mnMap2" type="button" onclick="menuMap(1)">MAP: TRAITS</button>
                 <button class="mn-btn" type="button" onclick="cheatGold()">+1000 GOLD</button>
                 <button class="mn-btn" type="button" onclick="menuMain()">BACK</button>
             </div>
@@ -3567,6 +3570,7 @@ function ftueDecorStep(){
 function nickelIn(){ return segs.filter(g=>g.ore==='nickel').length; }
 function ftueDurableStart(){ TUT_STAGE='p3-dur-ask'; sayQueue('D92b','D92c'); }
 function ftueDurableMap(){ if(TUT_STAGE!=='p3-dur-ask') return;
+    FTUE_ST.seenParts2=true;   /* R97: and in SETTINGS from now on */
     openIllus('assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part', ()=>sayQueue('D92d','D92e')); }
 function ftueDurableToCave(){ if(TUT_STAGE!=='p3-dur-ask') return;
     TUT_STAGE='p3-dur-cave'; tutExitTo('cave'); }
@@ -3953,6 +3957,7 @@ function ftuePart(n){
             ORE_COUNT.iron=0; ORE_COUNT.manganese=0; FTUE_ST.oreRound=null; GOLD=280; exp=260; TUT_STAGE='bell2'; }
         if(n>=4) TUT_SAIDHAZ=true;   /* r216: parts 2-3 start before the fire sword, so its hazard lines are still to come */
         if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */
+            FTUE_ST.seenParts=true; FTUE_ST.seenParts2=true;   /* R97: both map windows are behind (SETTINGS offers them) */
             const ft=traits.find(t=>t.trait && t.trait.id==='fire');
             if(ft){ ft.discovered=true; ft.txtEl.textContent=ft.trait.symbol; ft.txtEl.removeAttribute('font-weight'); reveal(ft.x,ft.y,'tr'+ft.trait.id); }
             RECIPES.fire={ key:'fire', traits:[{ tid:'fire', tier:'Fine' }], ores:['iron','iron','manganese','manganese','iron'], grinds:[1,1,1,1,1], at:Date.now() };   /* R24 */
@@ -5646,7 +5651,15 @@ function closeMenu(){ disarmMenu(); document.getElementById('sfMenuModal').class
 function mnNote(t){ const e=document.getElementById('mnNote'); if(e) e.innerHTML=t||''; }
 function menuTodo(what){ mnNote('<b>'+what+'</b> is not built yet.'); }
 // r71: SETTINGS holds the cheats for now. Real settings still have nowhere to live.
-function menuSettings(){ disarmMenu();
+/* R97 (owner, 2026-11-10): "the minimaps that are shown during the tutorial ... add them to the settings so players can access it
+   later as well" - each is offered once the tutorial has shown it (its flag; a later part for a save made before R97), and both
+   after the tutorial and in free play. A tap opens the tutorial's picture window over the menu; closing it returns there. */
+const MENU_MAPS=[
+    { id:'mnMap1', src:'assets/ui/MAP_parts.webp',  alt:'The map, divided into five parts', seen:()=>!!(FTUE_ST.seenParts || FTUE_ST.part>=3) },
+    { id:'mnMap2', src:'assets/ui/MAP_parts2.webp', alt:'The map: basic traits in the visible part, elemental ones in the hidden part', seen:()=>!!(FTUE_ST.seenParts2 || FTUE_ST.part>=4) } ];
+function menuMapsUi(){ MENU_MAPS.forEach(m=>{ const b=document.getElementById(m.id); if(b) b.style.display=(FTUE_ST.done || SM_FREE || m.seen()) ? '' : 'none'; }); }
+function menuMap(i){ const m=MENU_MAPS[i]; if(m) openIllus(m.src, m.alt); }
+function menuSettings(){ disarmMenu(); menuMapsUi();
     document.getElementById('mnMain').hidden=true; document.getElementById('mnSet').hidden=false;
     mnNote('Cheats \u2014 for testing.'); }
 function menuMain(){ document.getElementById('mnSet').hidden=true;
@@ -10161,7 +10174,7 @@ let TUT_SAW_TIERS=false;
    BOTH exits a line can have - the player dismissing it, and the game retiring it (r194 learned that
    the hard way with D97). Each entry is responsible for being once-only. */
 let TUT_SAW_PARTS=false;
-function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true;
+function openParts(){ if(TUT_SAW_PARTS) return; TUT_SAW_PARTS=true; FTUE_ST.seenParts=true;   /* R97: and in SETTINGS from now on */
     openIllus('assets/ui/MAP_parts.webp', 'The map, divided into five parts', tutFireParts); }
 const SAY_AFTER={ D97:function(){ openTiers(); },
                   D72a:function(){ if(TUT_STAGE==='fire-mang') tutForkDone(); },   /* 2026-10-13 */
