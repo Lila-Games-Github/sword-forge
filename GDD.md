@@ -251,7 +251,8 @@ Four more node slots are empty. RESET TALENT refunds every point.
 
 14 one-step quests, 20g and 20 exp each, claimed from the quest basket: craft a sword, sell a sword (both done when the list
 arrives), buy a blueprint, update a craft-book page, gather ores, craft a fire sword, sleep, craft a durable sword, buy a fire
-blueprint, make an Epic with the ladle, sell a Weak sword, craft a swift sword, craft a gale sword, sharpen a sword.
+blueprint, make an Epic with the ladle, sell a Weak sword, craft a swift sword, craft a gale sword, sharpen a sword. While a
+finished quest waits to be claimed, the basket has a still green glow and a faint green tint on its art (R93).
 
 ### Days
 

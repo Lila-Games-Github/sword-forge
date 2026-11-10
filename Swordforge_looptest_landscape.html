@@ -1300,8 +1300,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #rail > #diaryBtn, #rail > #questBtn { position: absolute; z-index: 6; padding: 0; margin: 0; border: none; background: none; cursor: pointer; }
 #rail > #diaryBtn img, #rail > #questBtn img { display: block; width: 100%; height: auto; pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.6)); }
 #rail > #diaryBtn:active, #rail > #questBtn:active { transform: scale(.96); }
-#questBtn.qs-ready { animation: qsReadyArt 1.2s ease-in-out infinite; }
-@keyframes qsReadyArt { 0%,100% { filter: drop-shadow(0 0 3px rgba(90,220,110,.6)); } 50% { filter: drop-shadow(0 0 12px rgba(90,230,110,1)); } }
+/* R93 (owner, 2026-11-10): "Instead I want it to remain static, and put a faint green overlay on the bucket image as well" - the
+   glow holds still, and a faint green tint in the basket's own shape (its art as a mask) lies over it */
+#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }
+#rail > #questBtn::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);
+    -webkit-mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; }
+#rail > #questBtn.qs-ready::after { opacity: 1; }
 /* R26 (owner, 2026-10-28): "the day shows up somewhere in the bedroom wall. like a calendar decor on the wall" - a placeholder
    paper calendar, placed by RAIL_ART.cal; only in the bedroom */
 #calendar { display: none; position: absolute; z-index: 2; flex-direction: column; background: #f4ead2; border: 2px solid #3a2a16;

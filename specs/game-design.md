@@ -193,7 +193,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - 14 one-step quests, 20g and 20 xp each, paid when CLAIM is pressed (`QUESTS`): craft a sword and sell a sword (already done
   when the list arrives, Part 1), then buy a blueprint, update a craft-book page, gather ores, craft a fire sword, sleep, craft
   a durable sword, buy a fire blueprint, an Epic with the ladle, sell a weak sword, craft a swift sword, craft a gale sword,
-  sharpen a sword.
+  sharpen a sword. Something to claim (`qs-ready`): the basket's glow is still (`drop-shadow(0 0 9px rgba(90,230,110,.9))`) and a
+  faint green tint (`rgba(90,230,110,.3)`, masked to the basket's art) lies on it (R93; it breathed before).
 
 ### Shop and decor
 

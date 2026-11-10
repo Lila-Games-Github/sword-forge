@@ -1732,4 +1732,12 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
     [sb.includes("buyCoins(document.querySelector(\"#sfShapeModal .sf-shape[data-shape='\"+sh+\"']\"), marketPrice(k, sh));"),
      sb.indexOf("if(st!=='buy') return;") < sb.indexOf('buyCoins(') && sb.indexOf('buyCoins(') < sb.indexOf('shapeGrid();')], [true, true]);
 }
+/* R93 (owner, 2026-11-10): the quest basket's claim glow is static, and a faint green tint lies on the basket itself */
+{ const s3 = src.replace(/\r\n/g, '\n');
+  eq('R93: the glow is still (no breathing animation)', [s3.includes('#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }'), s3.includes('qsReadyArt')], [true, false]);
+  eq('R93: the tint is the basket\'s own shape (its art as a mask), faint green, only while something waits',
+    [s3.includes("#rail > #questBtn::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);\n    -webkit-mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; }"),
+     s3.includes('#rail > #questBtn.qs-ready::after { opacity: 1; }')], [true, true]);
+  eq('R93: the mask is the basket the rail shows', /quest:\{[^}]*art:'assets\/ui\/questbasket\.webp'/.test(s3), true);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

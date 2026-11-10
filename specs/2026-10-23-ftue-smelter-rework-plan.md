@@ -1065,3 +1065,9 @@ yours and come on top.
   `HM_HITS.price.top`, +0.010 to +0.020 a step, to x1.3; `hmForgeMul` uses it when the sword has an accuracy, else x1.0. The
   bands are labels only (no `mul`). The crafted window's hammer row compares against no accuracy (`forge:null`). Record: the
   hammer record's "Price by accuracy" section. Asserted by the hammer test (written first; GREEN at 56).
+- **R93 (owner, 2026-11-10): the quest basket's claim glow is still, with a green tint.** "currently the quest bucket had a green
+  glow that fades in and out whenever a quest is available. Instead I want it to remain static, and put a faint green overlay on
+  the bucket image as well." `#questBtn.qs-ready` keeps one glow, `drop-shadow(0 0 9px rgba(90,230,110,.9))` (between the old
+  breath's 3 px and 12 px), with no animation (`qsReadyArt` is gone); `#questBtn::after` lays `rgba(90,230,110,.3)` over the
+  basket, masked by its own art (`assets/ui/questbasket.webp`, `RAIL_ART.quest`), shown only with `qs-ready`. A tutorial blink
+  (`tut-blink`) still animates over it. Asserted by the FTUE test (written first).
