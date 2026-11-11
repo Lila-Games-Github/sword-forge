@@ -2562,3 +2562,5 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-11-11: R100 the record lesson's compare window: while it is open for D43, the dragon and his line sit over its dark
   (`compLift`); in the tutorial it has no Record new (Cancel and Update); D43 is "You can compare the old one with the new one.
   Tap update to replace the old one." Tracker: R100.
+- 2026-11-11: R102 after Update in the record lesson, D43a "The recipe is saved. Now tap the ring to close the craft window."
+  replaces D43 while the ring blinks (D43 was left asking about Update); the ring gives D44. Tracker: R102.

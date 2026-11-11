@@ -1143,3 +1143,10 @@ yours and come on top.
   `rgba(90,230,110,.3)` masked to the paper box art (`Small_paperbox_dark.webp`); the thin inset line is gone. On the light
   paper the tint reads stronger than on the darker basket. Checked in the browser (glow and tint follow the torn edges).
   Asserted by the FTUE test (written first; GREEN at 1011).
+- **R102 (owner, 2026-11-11): no tint on the New box; the line after Update matches the step.** "remove the tint on the new box.
+  also, see this image, the dialogue does not match the action that needs to be performed. player is supposed to close the craft
+  window here". The New box keeps R101's glow, without the tint (`.comp-slot.is-new::after` gone). After Update the stage is
+  `record-close` (the ring blinks) but D43 stayed up; `tutHudStep` now says the new D43a "The recipe is saved. Now tap the ring
+  to close the craft window." (no X, in `SAY_NO_X`) as it lights the ring; a window already shut still goes straight to D44.
+  Wording is Claude's, owner to confirm. Checked in the browser with real taps (inkpot, Update, ring): D43, then D43a with the
+  ring blinking, then the window shut and D44. Asserted by the FTUE test (written first; GREEN at 1014). Dialogue keys 209.

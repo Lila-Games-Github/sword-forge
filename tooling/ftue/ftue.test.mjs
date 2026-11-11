@@ -651,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -1825,8 +1825,15 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
 /* R101 (owner, 2026-11-11): the compare window's New box wears the quest basket's look (R93) */
 { const s1 = src.replace(/\r\n/g, '\n');
   eq('R101: the New box glows like the basket (also while hovered; the box\'s hover clears filters)', s1.includes('.comp-slot.is-new, .comp-slot.is-new:hover { position: relative; filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }'), true);
-  eq('R101: and has the basket\'s faint tint, in the paper box\'s own shape', s1.includes(".comp-slot.is-new::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: rgba(90,230,110,.3);\n    -webkit-mask: url(assets/ui/Small_paperbox_dark.webp) center / 100% 100% no-repeat; mask: url(assets/ui/Small_paperbox_dark.webp) center / 100% 100% no-repeat; }"), true);
+  eq('R102: no tint on the New box (the glow stays)', s1.includes('.comp-slot.is-new::after'), false);
   eq('R101: the thin inset line is gone', s1.includes('.comp-slot.is-new { box-shadow: inset 0 0 0 2px rgba(108,140,72,.55)'), false);
   eq('R101: the same numbers as the basket', s1.includes('#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }') && s1.includes('pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);'), true);
+}
+/* R102 (owner, 2026-11-11): after Update, the line asks for what comes next - closing the craft window */
+{ const s2 = src.replace(/\r\n/g, '\n');
+  eq('R102: D43a text', line('D43a'), 'The recipe is saved. Now tap the ring to close the craft window.');
+  eq('R102: D43a sits between D43 and D44', (() => { const a = s2.indexOf('\n    D43: "'), b = s2.indexOf('\n    D43a: "'), c = s2.indexOf('\n    D44: "'); return a > 0 && a < b && b < c; })(), true);
+  eq('R102: with the craft window open after the recording, D43a replaces D43 as the ring lights; shut already, D44 at once',
+    s2.includes("    if(h && h.classList.contains('collapsed')){ tutHudClosed(); return; }   /* already shut: nothing to ask */\n    if(SAY_SEQ.indexOf('D43a')<0) SAY_SEQ.push('D43a');\n    SAY_I=SAY_SEQ.indexOf('D43a'); say('D43a');   /* R102 */\n    tutExit('#hudToggle');"), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -306,6 +306,10 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the compare window opens. R100: the dragon and this line are over the window's dark (the dragon over the craft
    book shelf too, only here); in the tutorial the window has no Record new (Cancel and Update).*
 
+14a. **D43a** Dragon: "The recipe is saved. Now tap the ring to close the craft window."
+   *When: Update is tapped and the craft window is still open (R102); the ring blinks. No X: the ring's tap closes the window
+   and gives D44.*
+
 15. **D44** Dragon: "Take the hot metal to the anvil."
    *When: the recipe is recorded and the blade panel closed; an arrow from the metal at the gate to the anvil (it closes on the anvil).*
 
