@@ -270,7 +270,8 @@ swings by itself. Tin and zinc have no seam yet.
 ### The craft book
 
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
-  shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one.
+  shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
+only Update is offered, R100).
 - **CRAFT 1** makes the page's sword from its ores straight away (no smelter, no minigame; the page's forging grade).
 - Pages: 3 to start, +5 from TC2's reward.
 

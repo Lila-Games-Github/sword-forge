@@ -1127,3 +1127,13 @@ yours and come on top.
   under D38 the bellows and the gate are covered by the dim; the X gives D38a and lifts it; pumping with D38a open reaches
   Balanced and D41; the gate then gives D42 (stage `record`). Script SSOT: D38's note and the new 11a entry. Asserted by the
   FTUE test (written first; GREEN at 1002). Dialogue keys 208 (also R96's D28ca, counted late).
+- **R100 (owner, 2026-11-11): the compare window in the record lesson.** "for this part i want the dragon and dragon's
+  dialogues to be visible, not hidden behind the black overlay. i know the dragon is actually behind the craft book window, and i
+  want him to stay that way, except for this part. also, remove the record new option, keep only update for tutorial."
+  Owner's choices (defaults): keep Cancel; hide Record new for the whole tutorial; reword D43. `compLift(true)` (with D43 in
+  `tutCompStep`) lifts `#dragon` (`.over-modal`, z 1011) and his line (`say-over-modal`, `FOCUS_OVER`) over the window's
+  backdrop; `closeComp` drops both (D43 stays, in its own place). `openComp` hides `#compNewBtn` until `FTUE_ST.done` or free
+  play. D43: "You can compare the old one with the new one. Tap update to replace the old one." Checked in the browser with real
+  taps (the ring, the inkpot, Update) in TC2's second craft: D43 and the dragon over the dark, Cancel and Update only; Update
+  saves the page and moves on (`record-close`), the dragon back at z 30; after the tutorial Record new is back. Found while
+  checking and fixed: the line kept its lift after the window closed. Asserted by the FTUE test (written first; GREEN at 1007).

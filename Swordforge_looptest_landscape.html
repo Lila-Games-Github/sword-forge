@@ -359,6 +359,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* dragon — free-roaming, bottom-left, draggable */
 #dragon { position: absolute; z-index: 30; cursor: grab; touch-action: none; }   /* r11b: dragon layered above everything (owner feedback) */
+#dragon.over-modal { z-index: 1011; }   /* R100: over the record lesson's compare window, only there (compLift) */
 #dragon:active { cursor: grabbing; }
 #dragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
 
@@ -7525,6 +7526,7 @@ function compFill(el,head,rec){
 }
 function openComp(){
     document.getElementById('sfCompModal').classList.add('show'); tutCompStep();
+    { const nb=document.getElementById('compNewBtn'); if(nb) nb.style.display=(FTUE_ST.done || SM_FREE) ? '' : 'none'; }   /* R100 */
     const go=document.getElementById('compGo'), s=compSubject();
     if(!s){ document.getElementById('compH').textContent='Update Composition';
         compFill(document.getElementById('compOld'),'Recorded',null);
@@ -7536,7 +7538,13 @@ function openComp(){
     compFill(document.getElementById('compNew'), s.live?'New':'Last crafted', s);
     go.textContent = multi ? 'Record' : 'Update'; go.disabled=false;
 }
-function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); }
+function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); compLift(false); }
+/* R100 (owner, 2026-11-11): "for this part i want the dragon and dragon's dialogues to be visible, not hidden behind the black
+   overlay. i know the dragon is actually behind the craft book window, and i want him to stay that way, except for this part" -
+   while the record lesson's compare window is open (D43) the dragon and his line sit over its dark */
+function compLift(on){ const d=document.getElementById('dragon'); if(d) d.classList.toggle('over-modal', !!on);
+    const sb=document.getElementById('dragonSay'); if(on && sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; }
+    else if(!on && sb && FOCUS_OVER===sb){ sb.classList.remove('say-over-modal'); FOCUS_OVER=null; } }   /* the window closed: D43 stays, back in its place */
 /* r100: keep BOTH. RECIPES is keyed by the trait set, so a second page for the same traits needs a key
    of its own - the name still resolves, because it is read off the record's own trait list. */
 function recordNewComp(){
@@ -9088,7 +9096,7 @@ const DIALOGUE = {
     D38a: "Now drag the bellows handle up and down to reach the balanced trait.",   /* R99 (owner, 2026-11-11): after D38 is closed; the sword on Balanced replaces it with D41 */
     D41: "We are on the balanced trait. Open the gate!",   /* R3 (smelter loop): D39, D40 (the heat lesson) are gone */
     D42: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft.",   /* R27 (owner, 2026-10-28): the inkpot is the record button */
-    D43: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both.",
+    D43: "You can compare the old one with the new one. Tap update to replace the old one.",   /* R100 (owner, 2026-11-11): no Record new in the tutorial */
     D44: "Take the hot metal to the anvil.",   /* R3 */
     D45: "You remember what to do, right? Go ahead, I'm ready!",
     D46: "Tell me where to FIRE, and hammer the blade.",
@@ -10912,7 +10920,7 @@ function tutCompStep(){
     if(TUT_STAGE!=='record') return;
     tutArrow(null,null);
     if(SAY_SEQ.indexOf('D43')<0) SAY_SEQ.push('D43');
-    SAY_I=SAY_SEQ.indexOf('D43'); say('D43');
+    SAY_I=SAY_SEQ.indexOf('D43'); say('D43'); compLift(true);
 }
 /* r102: recording no longer ends the guide - D44 sends the player to the shape picker, and the
    second hammering run is guided by idle prompts only (D46/D47). */

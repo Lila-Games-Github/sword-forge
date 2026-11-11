@@ -256,7 +256,8 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   shown, growing in rows of 3. Drag targets: ore to grindstone or smelter, metal to the rail (stored), ingot to the anvil, sword
   to the work zone, counter or a rack.
 - **Craft book** (`RECIPES`): a page per trait set (more pages as `#2`, `#3`), capped at `FTUE.recipePages` 3 + rewarded pages.
-  The first discovery records itself; after that the inkpot updates a page or records a new one. A page shows the traits, tier,
+  The first discovery records itself; after that the inkpot updates a page or records a new one (in the tutorial the compare
+  window has no Record new, R100). A page shows the traits, tier,
   description, sword art, ores, process and shapes, with CRAFT 1, CONTINUE FROM HERE, ERASE and a default design.
 - **Windows:** trait discovered (first find, with the burst), sword crafted, reward (the dragon shown over it, his line below,
   R53), shape, market, skill tree, quests, diary, ledger and waiting list, end of day, Garric's confirm, the menu.

@@ -1813,4 +1813,13 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R99: closing D38 in TC2\'s craft says D38a (the bellows arrow is the stage\'s own)', s9.includes("D38:function(){ if(TUT_STAGE==='regrind-heat') sayQueue('D38a'); },   /* R99 */"), true);
   eq('R99: the sword on Balanced replaces D38a with D41', /function tutGateStep\(\)\{[\s\S]{0,200}if\(TUT_STAGE==='regrind-heat'\)\{[\s\S]{0,200}say\('D41'\)/.test(s9), true);
 }
+/* R100 (owner, 2026-11-11): the compare window in the record lesson - the dragon and D43 over its dark; no Record new in the tutorial */
+{ const s0 = src.replace(/\r\n/g, '\n');
+  eq('R100: D43 no longer mentions Record new', line('D43'), 'You can compare the old one with the new one. Tap update to replace the old one.');
+  eq('R100: in the tutorial the window has no Record new (after it, and in free play, it has)', s0.includes("    { const nb=document.getElementById('compNewBtn'); if(nb) nb.style.display=(FTUE_ST.done || SM_FREE) ? '' : 'none'; }   /* R100 */"), true);
+  eq('R100: compLift - the dragon over the window\'s dark, and his line with him (sayHide drops the line\'s lift)',
+    s0.includes("function compLift(on){ const d=document.getElementById('dragon'); if(d) d.classList.toggle('over-modal', !!on);\n    const sb=document.getElementById('dragonSay'); if(on && sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; }\n    else if(!on && sb && FOCUS_OVER===sb){ sb.classList.remove('say-over-modal'); FOCUS_OVER=null; } }   /* the window closed: D43 stays, back in its place */"), true);
+  eq('R100: lifted only for D43 in the record lesson, dropped when the window closes', [/function tutCompStep\(\)\{[\s\S]{0,250}say\('D43'\); compLift\(true\);/.test(s0), s0.includes("function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); compLift(false); }")], [true, true]);
+  eq('R100: the lift is over the window (z 1000), the line\'s own 1011', s0.includes('#dragon.over-modal { z-index: 1011; }'), true);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

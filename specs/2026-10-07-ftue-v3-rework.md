@@ -2559,3 +2559,6 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   gate wait until it is closed; closing it says D38a "Now drag the bellows handle up and down to reach the balanced trait."
   (no X); the sword on Balanced replaces it with D41, then the gate gives the record lesson (D42). Before, pumping and tapping
   the gate under an open D38 skipped the record lesson. Tracker: R99.
+- 2026-11-11: R100 the record lesson's compare window: while it is open for D43, the dragon and his line sit over its dark
+  (`compLift`); in the tutorial it has no Record new (Cancel and Update); D43 is "You can compare the old one with the new one.
+  Tap update to replace the old one." Tracker: R100.
