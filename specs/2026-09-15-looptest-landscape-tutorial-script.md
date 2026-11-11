@@ -319,7 +319,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the sword is on Balanced; the gate lights up.*
 
 13. **D42** Dragon: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft."
-   *When: the gate gives Balanced and its window is closed.*
+   *When: the gate gives Balanced and its window is closed. R111: the record step is on the dark (only the map and the craft frame lit) until the inkpot is tapped, even if D42 is closed.*
 
 14. **D43** Dragon: "You can compare the old one with the new one. Tap update to replace the old one."
    *When: the compare window opens. R100: the dragon and this line are over the window's dark (the dragon over the craft

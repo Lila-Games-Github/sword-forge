@@ -707,7 +707,8 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
     anvil:   { lift: ['#stAnvil', '#orb'] },
     strike:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
     quench:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
-    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] } }); }   /* R1: the smelter loop - no gate (on heat) or hammer steps */
+    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
+    record:  { cut: [{ sel: '#map-wrap' }], lift: ['#hud'] } }); }   /* R1: the smelter loop - no gate (on heat) or hammer steps. R111: TC2's record step */
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
 eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
@@ -1820,7 +1821,7 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R100: compLift - the dragon over the window\'s dark, and his line with him (sayHide drops the line\'s lift)',
     s0.includes("function compLift(on){ const d=document.getElementById('dragon'); if(d) d.classList.toggle('over-modal', !!on);\n    const sb=document.getElementById('dragonSay'); if(on && sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; }\n    else if(!on && sb && FOCUS_OVER===sb){ sb.classList.remove('say-over-modal'); FOCUS_OVER=null; } }   /* the window closed: D43 stays, back in its place */"), true);
   eq('R100: lifted only for D43 in the record lesson, dropped when the window closes', [/function tutCompStep\(\)\{[\s\S]{0,250}say\('D43'\); compLift\(true\);/.test(s0), s0.includes("function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); compLift(false); }")], [true, true]);
-  eq('R100: the lift is over the window (z 1000), the line\'s own 1011', s0.includes('#dragon.over-modal { z-index: 1011; }'), true);
+  eq('R100: the lift is over the window (z 1000), the line\'s own 1011', s0.includes('#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }'), true);
 }
 /* R101 (owner, 2026-11-11): the compare window's New box wears the quest basket's look (R93) */
 { const s1 = src.replace(/\r\n/g, '\n');
@@ -1994,4 +1995,7 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
     /function newGame\(\)\{[\s\S]{0,300}document\.querySelectorAll\('\.sf-modal\.show'\)\.forEach\(m=>m\.classList\.remove\('show'\)\); RW_THEN=null; rwDragonHide\(\); SAY_THEN=null;/.test(s9), true);
   eq('R109: a new game clears the scripted customers (TC3, Bram\'s return, Garric)', /function tutReset\(\)\{[\s\S]{0,400}TUT_FIRE_STATE=null; TUT_FIRE_RUN=false; TUT_BRAM2_STATE=null; TUT_GARRIC_STATE=null;/.test(s9), true);
 }
+/* R111 (owner, 2026-11-11): TC2's record step on the dark - the metal could go from the gate to the anvil past D42 */
+eq('R111: the craft frame lifted over the dark and the lit dragon (its ring and inkpot are the way on)', src.includes('#frame.landscape > #hud.dark-lit { z-index: 62; }'), true);
+eq('R111: under the record dark the dragon still rises over the compare window (R100): over-modal beats dark-lit', src.includes('#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }'), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

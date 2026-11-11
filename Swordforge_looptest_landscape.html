@@ -363,7 +363,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 /* dragon — free-roaming, bottom-left, draggable */
 #dragon { position: absolute; z-index: 30; cursor: grab; touch-action: none; }   /* r11b: dragon layered above everything (owner feedback) */
-#dragon.over-modal { z-index: 1011; }
+#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }   /* R111: and under a stage dark (dark-lit, 61, came later and won) */
 #sfBookModal.cb-look button:not(.cb-close) { pointer-events: none; opacity: .5; }   /* R105: GC2's look at the book - only CLOSE */   /* R100: over the record lesson's compare window, only there (compLift) */
 #dragon:active { cursor: grabbing; }
 #dragon .cap { bottom: -4px; background: rgba(20,15,8,0.68); padding: 2px 7px; border-radius: 7px; border: 1px solid #6a5636; }
@@ -457,6 +457,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #frame.landscape #orb.dark-lit { z-index: 63; }
 #frame.landscape #bucketBack.dark-lit { z-index: 61 !important; }   /* r275: the bucket and the mug carry an inline z-index */
 #frame.landscape #mug.dark-lit { z-index: 64 !important; }
+#frame.landscape > #hud.dark-lit { z-index: 62; }   /* R111: the craft frame over the dark and the lit dragon (61): its ring and inkpot are the way on */
 .dark-lit.dragging { z-index: 64 !important; }   /* r274: mid-drag it stays over the dim - .dragging alone (35 !important) put it under */
 /* r224 (owner): the first book's "+N" is held on screen, lit above the dim, while D9 is read. HTML,
    not the map's SVG text, because the map sits under #tutDim. */
@@ -3792,7 +3793,7 @@ function hmDarkSync(){ const m=document.getElementById('sfHammerModal'); if(m) m
    r272 (owner): every step of the first sword up to the hammering, one table: stage -> what is lifted (and any window).
    strike (D8, the first strike) cuts a window over the map, so the moving sword icon is what shows; tutPause leaves
    its own #tutDim off in a dark stage. */
-const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, strike:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] }, quench:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] }, travel:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] } };   /* R1 (smelter loop): pumping, D8 and the gate show the map and the smelter */
+const STAGE_DARK={ ore:{ cut:[ { sel:'#matPanel' }, { sel:'#map-wrap', fog:true } ], lift:['#stSmelt'] }, bellows:{ lift:['#stSmelt'] }, anvil:{ lift:['#stAnvil','#orb'] }, strike:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] }, quench:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] }, travel:{ cut:[ { sel:'#map-wrap' } ], lift:['#stSmelt'] }, record:{ cut:[ { sel:'#map-wrap' } ], lift:['#hud'] } };   /* R1 (smelter loop): pumping, D8 and the gate show the map and the smelter. R111 (owner, 2026-11-11): TC2's record step (D42) - the map and the craft frame, until the inkpot is tapped: the metal went from the gate to the anvil past it */
 let TUT_DARK_CUT=null, TUT_DARK_ST=null;
 /* r273 (owner): the ore step shows the path, the active sword and the map's highlight too. A fog window (fog:true) is a
    window in the main dim with a second dim (#tutHoleMap) over it, holed softly where the fog is: one radial gradient per

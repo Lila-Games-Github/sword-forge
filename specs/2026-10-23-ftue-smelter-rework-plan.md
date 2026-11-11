@@ -1237,3 +1237,14 @@ yours and come on top.
   and goes back down when the book opens. Checked in the browser (the GC2 jump, then the gate's book lesson): the dark with the map
   and the frame lit, the anvil and the inventory under it; the book takes the tap; D28o with the new words, the dark gone; CLOSE goes
   on to the anvil step. Asserted by the FTUE test (written first; GREEN at 1064).
+- **R111 (owner, 2026-11-11): TC2's record step on the dark.** "for tc2, the guide to open the craft window and update the recipe
+  can be skipped if I directly place the metal from the gate to the anvil. to solve this, black overlay everything except the
+  map." The record stage (`record`, D42 "... Tap the inkpot to record the craft.") gets a stage dark (`STAGE_DARK.record`), so it
+  holds until the inkpot is tapped even if D42 is closed with its X: a window over the map, and the craft frame lifted over the
+  dark (`#hud.dark-lit`, z 62, over the lit dragon) because its ring and inkpot are the way on. The metal at the gate, the anvil and
+  the inventory are under the dark. Found while checking and fixed: under the stage dark the dragon's lift (`dark-lit`, 61) came
+  later than R100's `#dragon.over-modal` (1011) and won, so he fell under the compare window at D43; `over-modal` now beats it.
+  Checked in the browser (the TC2 jump, the record step started): the dark with the map and the ring lit, the anvil, bellows and
+  inventory under it; D42 closed with its X, the dark stays; the ring opens the frame, the inkpot opens the compare window with the
+  dragon and D43 over it; once recorded (stage `record-close`, D43a) the dark is gone. Asserted by the FTUE test (written first;
+  GREEN at 1066).
