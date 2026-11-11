@@ -284,7 +284,8 @@ sale the dragon gives exactly the next sword's ores ("the ore chain").
 
 | Part | Day | Who | What the player learns |
 |---|---|---|---|
-| **1** | 1 | **Bram** (TC1), then 3 orders: balanced Longsword, Broadsword, Katana | The whole loop on one sword (2 iron + 2 manganese). The crafted window. The counter and a sale. The quest list. The bell. Blueprints: the player buys all three; for the first two the dragon gives the gold first (R96). |
+| **1** | 1 | **Bram** (TC1), then 3 orders: balanced Longsword, Broadsword, Katana | The whole loop on one sword (2 iron + 2 manganese). The crafted window. The counter and a sale. The quest list. The bell. Blueprints: the player buys all three; for the first two the dragon gives the gold first (R96). At GC2's gate the craft book:
+the craft frame appears, the player opens the book and closes it (R105). |
 | **2** | 1 | **TC2** ("a good one"); **the adventurer** (TC3, fire) | Raw ores fall short: the grindstone, grinding, recording a craft with the inkpot, 5 more pages. Then the cave, hazards, a two-ore fork to reach Fire, a damaged blade. Bed. |
 | **3** | 2 | Orders: durable Shortsword; fire Longsword, Broadsword, Katana | The basic-vs-elemental map window, nickel from the cave, Durable. The trait card and CRAFT 1 from the map and the craft book. |
 | **4** | 2 | **TC4** (Epic durable), then an order for a Weak balanced Longsword (R95), then **TC5** (gale), then an order for a gale Katana + fire Claymore | The ladle and the three tiers. Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |

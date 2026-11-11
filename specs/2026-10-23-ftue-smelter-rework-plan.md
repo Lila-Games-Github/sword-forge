@@ -1169,3 +1169,14 @@ yours and come on top.
   `tutDurableAligned` and `resetRun`) gives the saved view back. No route, trait, price or pull speed changes. Checked in the
   browser: 3x, both spots on clear map; the ladle's 16.6 units (about 50 on screen) end 5.4 from Durable (Epic), D98, and the
   view comes back exactly. Asserted by the FTUE test (written first; GREEN at 1019).
+- **R105 (owner, 2026-11-11): GC2 meets the craft book.** "i want to introduce the craft book somewhere before tc2. so when
+  we do the update recipe for tc2, players know where the record is going. It should be something like 'every trait you
+  discover on the map is recorded in the recipe book'. can we do it for gc2? it should appear right after opening the gate."
+  Then "show the craft book, also guide players to open and see it. then guide to close as well, then continue". At GC2's
+  gate (`ftueGcGated`, used by the gate's hook and by the `p1-craft-heat` catch-up, which ran first) `ftueBookIntro` shows
+  the craft frame open (`FTUE_ST.craftFrame`, so R69's frame now appears at GC2, not D42), says D28n and lights `#recipeBtn`;
+  `ftueBookOpened` says D28o over the book, lights CLOSE and locks ERASE, CONTINUE and CRAFT (`.cb-look`); `ftueBookClosed` goes
+  on to the anvil (`ftueGcQuenched`). Once (`FTUE_ST.bookSeen`); the PART 2+ jumps have seen it. Wording is Claude's (owner to
+  confirm); the game's name "craft book" is used. Found while checking and fixed: the per-frame catch-up skipped the lesson;
+  the book's other buttons were live. Checked in the browser with real taps (bellows, gate, book, CLOSE). Asserted by the FTUE
+  test (written first; GREEN at 1027). Dialogue keys 211.

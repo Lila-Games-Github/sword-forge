@@ -651,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -890,7 +890,7 @@ eq('those stages tick', /const TUT_TICK_STAGES=\[[^\]]*'p1-craft-shape','p1-craf
 eq('the guide notices the blade being held', /function tutNudgeSig\(\)\{[\s\S]{0,700}SM_BL\?1:0/.test(src), true);
 eq('the gate: the craft lock (another trait, D28k) and the GC retry (2 + 2, D28a) before it opens', /function openGate\(\)\{[\s\S]{0,400}FTUE_POUR_SAID=false; if\(!ftuePourOk\(\)\) return; if\(!ftueGateOk\(\)\) return;[\s\S]{0,200}tryAcquire\(\);/.test(src), true);
 eq('after the gate: the metal to the anvil (the pointer), not a glow on it', src.includes("function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); tutNudge(true); }"), true);
-eq('after the quench: the metal glows', src.includes("if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();"), true);
+eq('after the quench: the metal glows (R105: GC2 meets the craft book first)', src.includes("if(TUT_STAGE==='p1-craft-heat') ftueGcGated();"), true);
 /* owner, 2026-10-08: in the whole game, the shape the customer asked for is highlighted in the shape window */
 eq('the requested shape is highlighted, any customer', /function shapeGrid\(\)\{[\s\S]{0,1600}const req=custShapeFor\(k\)===sh;[\s\S]{0,200}if\(req\) b\.classList\.add\('sf-req'\)/.test(src), true);
 eq('custShapeFor: the waiting customer\'s shape, for their trait', src.includes("function custShapeFor(k){ return (CUSTOMER && CUSTOMER.shape && (CUSTOMER.tid||CUSTOMER.want)===k) ? CUSTOMER.shape : null; }"), true);
@@ -1195,7 +1195,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
     'tc2-raw':        ["segs.some(g=>g.ore==='iron') && segs.some(g=>g.ore==='manganese')", 'tutTc2RawCheck()'],
     'regrind-iron':   ["tutGroundIn('iron')", "tutSmeltCheck('iron', 1)"],
     'regrind-mang':   ["tutGroundIn('manganese')", "tutSmeltCheck('manganese', 1)"],
-    'p1-craft-heat':  ['!!melt && melt.traits.length>0', 'ftueGcQuenched()'],
+    'p1-craft-heat':  ['!!melt && melt.traits.length>0', 'ftueGcGated()'],   /* R105: GC2's book lesson first */
     'p1-craft-shape': ['tutHmOpen()', 'tutHmStep()'],
     'p3-dur-mine':    ['!CAVE_NODES.some(n=>n.left>0)', 'tutDay2Mined()'],
     'p3-dur-grind':   ['nickelIn()>=2', 'ftueDurableSmelted()'],
@@ -1848,5 +1848,23 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   a.off(); eq('R104: the player\'s view comes back, once', [a.v(), a.saved()], [{ x: 100, y: 200, w: 1100 }, null]);
   const b = mk(500); b.on(); eq('R104: never closer than MIN_W', Math.round(b.v().w), 360);
   eq('R104: on with the pull lesson, off when aligned and on a reset', [/function tutTc4Pull\(\)\{[\s\S]{0,300}ladleZoomOn\(\);/.test(s4), /function tutDurableAligned\(\)\{[\s\S]{0,200}ladleZoomOff\(\);/.test(s4), /function resetRun\(\)\{[^\n]*ladleZoomOff\(\);/.test(s4)], [true, true, true]);
+}
+/* R105 (owner, 2026-11-11): GC2's gate introduces the craft book - shown, opened, closed, then the craft goes on */
+{ const s5 = src.replace(/\r\n/g, '\n');
+  eq('R105: D28n and D28o', [line('D28n'), line('D28o')], ['Every trait you discover on the map is recorded in the craft book. Tap the book to open it.', 'Each page shows a trait and the ores that reached it. Close the book to continue.']);
+  eq('R105: beside D28m', (() => { const a = s5.indexOf('\n    D28m: "'), b = s5.indexOf('\n    D28n: "'), c = s5.indexOf('\n    D28o: "'); return a > 0 && a < b && b < c && c - a < 800; })(), true);
+  eq('R105: GC2 only, once (part 1, its second order)', s5.includes('function ftueBookLesson(){ return FTUE_ST.part===1 && FTUE_ST.gpc===1 && !FTUE_ST.bookSeen; }'), true);
+  eq('R105: at the gate, GC2 gets the book lesson; GC1 and GC3 go straight on (one function for the hook and the per-frame catch-up)',
+    [s5.includes("function ftueGcGated(){ if(ftueBookLesson()) ftueBookIntro(); else ftueGcQuenched(); }"),
+     s5.includes("            if(TUT_STAGE==='p1-craft-heat') ftueGcGated();   /* v3: GC1-GC3. R105: GC2 meets the craft book first */"),
+     s5.includes("    'p1-craft-heat':  { done:()=>!!melt && melt.traits.length>0, next:()=>ftueGcGated() },")], [true, true, true]);
+  eq('R105: the craft frame appears (open) and its book blinks with D28n',
+    s5.includes("function ftueBookIntro(){ TUT_STAGE='p1-book'; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true; craftFrameUi();\n    { const h=document.getElementById('hud'); if(h && h.classList.contains('collapsed')) toggleHud(); }\n    tutArrow(null,null); sayQueue('D28n'); tutExit('#recipeBtn'); }"), true);
+  eq('R105: the book open - D28o over it, CLOSE blinks; closed - the craft goes on (the anvil step)',
+    [s5.includes("function ftueBookOpened(){ if(TUT_STAGE!=='p1-book') return; TUT_STAGE='p1-book-open'; sayQueue('D28o');\n    { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } } tutExit('#sfBookModal .cb-close');\n    document.getElementById('sfBookModal').classList.add('cb-look'); }"),
+     s5.includes("function ftueBookClosed(){ if(TUT_STAGE!=='p1-book-open') return; document.getElementById('sfBookModal').classList.remove('cb-look'); sayHide(); tutExit(null); ftueGcQuenched(); }"),
+     /function openBook\(\)\{[^\n]*ftueBookOpened\(\);/.test(s5), /function closeBook\(\)\{[^\n]*ftueBookClosed\(\);/.test(s5)], [true, true, true, true]);
+  eq('R105: while the lesson shows the book, only CLOSE takes a tap (no ERASE, CONTINUE or CRAFT)', s5.includes('#sfBookModal.cb-look button:not(.cb-close) { pointer-events: none; opacity: .5; }'), true);
+  eq('R105: the PART 2+ jumps have met the book (frame shown)', s5.includes("        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.market=true; FTUE_ST.cwSeen=true; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true;   /* R105 */"), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

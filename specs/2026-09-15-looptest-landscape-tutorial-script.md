@@ -222,6 +222,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 48. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
    *When: after the player's reply "Yes, I can craft one." (R56) to GC2's request; its lit OK starts the craft guide.*
 
+48a. **D28n** Dragon: "Every trait you discover on the map is recorded in the craft book. Tap the book to open it."
+   *When: R105: GC2's gate is opened; the craft frame appears (open, from now on) and its book blinks. No X: the book's tap
+   moves on.*
+
+48b. **D28o** Dragon: "Each page shows a trait and the ores that reached it. Close the book to continue."
+   *When: the craft book is open (R105); said over it, its CLOSE blinks. No X: CLOSE moves on to the anvil step.*
+
 49. **D28c** Dragon: "Here it is. Watch this!"
    *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
 

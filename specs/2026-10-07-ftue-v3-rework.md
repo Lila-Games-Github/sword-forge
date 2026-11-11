@@ -2573,3 +2573,8 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   line's bubble and over the bench; 0.53 keeps the pair in it with a little more room under the bubble than the centre);
   when the sword is aligned (`tutDurableAligned`, or a reset) the view the player had comes back. No route, trait, price or
   pull speed changes. Tracker: R104.
+- 2026-11-11: R105 GC2's gate introduces the craft book before TC2's recipe update: the craft frame appears (open; R69's
+  "hidden until D42" now ends at GC2), D28n "Every trait you discover on the map is recorded in the craft book. Tap the book to
+  open it." with the book blinking; the open book gets D28o "Each page shows a trait and the ores that reached it. Close the
+  book to continue." over it, CLOSE blinking and the other book buttons locked; closing it goes on to the anvil step.
+  Tracker: R105.
