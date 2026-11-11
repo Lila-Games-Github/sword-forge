@@ -100,7 +100,7 @@ it. make the hazard zone thrice as big, i am okay with it taking more damage. al
 active sword shake a bit, and change the color of the health from green to red (red only when it is taking damage, then it
 returns to green." Asked: back to green always, or to the level colour? Owner: "Level colour".
 
-- `HAZ.move[1].scale` **0.75 -> 2.25** (three times as wide and as tall: about 30 -> 90 units across; larger than 50 of the
+- `HAZ.move[1].scale` **0.75 -> 2.25** (three times as wide and as tall: about 30 -> 82 units across, measured; larger than 50 of the
   map's 68 zones, median 66, the largest 798, so D69c's "a small one" still holds).
 - Measured with the build's own routes (`advanceSword`, `partsHit`, `HAZARD_DPS` 26/s): the fire run takes **13.9** health from
   this speck (was 4.3); with iron as the 4th ore it also crosses the fork speck (5.8), **19.7** in all, so the blade ends at about
