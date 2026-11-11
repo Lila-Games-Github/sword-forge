@@ -1176,7 +1176,7 @@ yours and come on top.
   gate (`ftueGcGated`, used by the gate's hook and by the `p1-craft-heat` catch-up, which ran first) `ftueBookIntro` shows
   the craft frame open (`FTUE_ST.craftFrame`, so R69's frame now appears at GC2, not D42), says D28n and lights `#recipeBtn`;
   `ftueBookOpened` says D28o over the book, lights CLOSE and locks ERASE, CONTINUE and CRAFT (`.cb-look`); `ftueBookClosed` goes
-  on to the anvil (`ftueGcQuenched`). Once (`FTUE_ST.bookSeen`); the PART 2+ jumps have seen it. Wording is Claude's (owner to
-  confirm); the game's name "craft book" is used. Found while checking and fixed: the per-frame catch-up skipped the lesson;
+  on to the anvil (`ftueGcQuenched`). Once (`FTUE_ST.bookSeen`); the PART 2+ jumps have seen it. Wording is Claude's; the owner
+  approved it ("Wording is OK", 2026-11-11); the game's name "craft book" is used. Found while checking and fixed: the per-frame catch-up skipped the lesson;
   the book's other buttons were live. Checked in the browser with real taps (bellows, gate, book, CLOSE). Asserted by the FTUE
   test (written first; GREEN at 1027). Dialogue keys 211.
