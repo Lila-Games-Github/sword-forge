@@ -1631,7 +1631,7 @@ eq('R75: checked as each line is said and as it closes', [s5.includes("    sayGo
 eq('R75: D89 and D92 light their OK', s5.includes("const SAY_GO_GLOW={ D89:1, D92:1, D1:1,"), true); }
 /* R76 (owner, 2026-11-04): no gate ring during D97 (p4-pull); it lights at D98 */
 { const s6 = src.replace(/\r\n/g, '\n');
-eq('R76 (now R78): D98 moves on (p4-quench) and points at the gate', src.replace(/\r\n/g, '\n').includes("TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon();\n    sayQueue('D98');\n    setTimeout(tutGatePointer, 0);"), true); }
+eq('R76 (now R78): D98 moves on (p4-quench) and points at the gate', src.replace(/\r\n/g, '\n').includes("TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon(); ladleZoomOff();   /* R104 */\n    sayQueue('D98');\n    setTimeout(tutGatePointer, 0);"), true); }
 /* R77 (owner, 2026-11-04): no gate ring during D97a (d2-pull) either */
 eq('R77 (now R78): the swift park says D98 from d2-pull', /function tutSwiftAligned\(\)\{\r?\n    if\(TUT_STAGE!=='d2-pull'\) return;/.test(src), true);
 /* R78 (owner, 2026-11-04): the gate's ring is a guide only */
@@ -1835,5 +1835,18 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R102: D43a sits between D43 and D44', (() => { const a = s2.indexOf('\n    D43: "'), b = s2.indexOf('\n    D43a: "'), c = s2.indexOf('\n    D44: "'); return a > 0 && a < b && b < c; })(), true);
   eq('R102: with the craft window open after the recording, D43a replaces D43 as the ring lights; shut already, D44 at once',
     s2.includes("    if(h && h.classList.contains('collapsed')){ tutHudClosed(); return; }   /* already shut: nothing to ask */\n    if(SAY_SEQ.indexOf('D43a')<0) SAY_SEQ.push('D43a');\n    SAY_I=SAY_SEQ.indexOf('D43a'); say('D43a');   /* R102 */\n    tutExit('#hudToggle');"), true);
+}
+/* R104 (owner, 2026-11-11): TC4's ladle step zooms the map in on the sword and Durable, then gives the player's view back */
+{ const s4 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s4.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s4.indexOf('{', i);
+    for (; j < s4.length; j++) { if (s4[j] === '{') d++; else if (s4[j] === '}' && --d === 0) break; } return s4.slice(i, j + 1); };
+  eq('R104: FTUE.ladleZoom is the recorded 3, FTUE.ladleFocus the clear part of the map', [FTUE.ladleZoom, FTUE.ladleFocus], [3, { x: 0.5, y: 0.53 }]);
+  const mk = (w) => { const S = { calls: 0 }; const L = new Function('S', 'FTUE', 'let view={ x:100, y:200, w:' + w + ' }, aspect=0.5, MIN_W=360, LADLE_VIEW=null, marker={ x:1581, y:723 }, traits=[ { trait:{ id:"durable" }, x:1577, y:740 } ]; function setView(){ S.calls++; } '
+    + fn('ladleZoomOn') + fn('ladleZoomOff') + '; return { on:ladleZoomOn, off:ladleZoomOff, v:()=>({ ...view }), saved:()=>LADLE_VIEW };')(S, { ladleZoom: 3, ladleFocus: { x: 0.5, y: 0.53 } }); return L; };
+  const a = mk(1100); a.on(); const z = a.v();
+  eq('R104: zoomed 3 times, the middle of the sword and Durable at the focus point', [Math.round(z.w), Math.round(z.x + z.w * 0.5), Math.round(z.y + z.w * 0.5 * 0.53)], [367, 1579, 732]);
+  a.off(); eq('R104: the player\'s view comes back, once', [a.v(), a.saved()], [{ x: 100, y: 200, w: 1100 }, null]);
+  const b = mk(500); b.on(); eq('R104: never closer than MIN_W', Math.round(b.v().w), 360);
+  eq('R104: on with the pull lesson, off when aligned and on a reset', [/function tutTc4Pull\(\)\{[\s\S]{0,300}ladleZoomOn\(\);/.test(s4), /function tutDurableAligned\(\)\{[\s\S]{0,200}ladleZoomOff\(\);/.test(s4), /function resetRun\(\)\{[^\n]*ladleZoomOff\(\);/.test(s4)], [true, true, true]);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

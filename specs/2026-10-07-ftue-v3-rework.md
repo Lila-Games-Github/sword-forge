@@ -2564,3 +2564,12 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   Tap update to replace the old one." Tracker: R100.
 - 2026-11-11: R102 after Update in the record lesson, D43a "The recipe is saved. Now tap the ring to close the craft window."
   replaces D43 while the ring blinks (D43 was left asking about Update); the ring gives D44. Tracker: R102.
+- 2026-11-11: R104 TC4's ladle step zooms in. Owner: the ladle's pull onto Durable "is so small that it is easily missed";
+  measured, the 2 ground nickel route ends 17.4 from Durable and the ladle reaches Epic after 10.25 units (0.43 s at full tilt).
+  Moving Durable inward made the route pass it at Fine mid-trip (12-13 units), a third nickel sent the route 100-195 away, and a
+  longer nickel path changes every nickel route in the game, so the owner chose a zoom: when the pull lesson starts (D97,
+  `tutTc4Pull`) the map zooms in `FTUE.ladleZoom` **3** times (never under `MIN_W`) and puts the middle of the sword and Durable at
+  `FTUE.ladleFocus` **{ x:0.5, y:0.53 }** of the view (measured: the map is clear between 40% and 65% of its height, under the
+  line's bubble and over the bench; 0.53 keeps the pair in it with a little more room under the bubble than the centre);
+  when the sword is aligned (`tutDurableAligned`, or a reset) the view the player had comes back. No route, trait, price or
+  pull speed changes. Tracker: R104.

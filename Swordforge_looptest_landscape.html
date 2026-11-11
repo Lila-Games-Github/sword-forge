@@ -2824,6 +2824,8 @@ const FTUE = {
     balancedAt: { x:1163, y:1036 },
     fireSeenIn: 15,
     day2Swing: [2, 3],
+    ladleZoom: 3,    /* R104 (owner, 2026-11-11): TC4's ladle step zooms the map in this many times on the sword and Durable */
+    ladleFocus: { x:0.5, y:0.53 },   /* R104: where their middle sits in the view - the map is clear from 40% to 65% of its height */
     weakStop:  27,   /* v3 part 4: GC8's sword parks this far from Balanced - the middle of the Weak band (ALIGN_FINE 20 to ALIGN_MAX 34) */
     decor: { banner:{ name:'Shop banner', w:10, h:24, fill:'#8e2b24', img:'assets/Decor/Banner.webp' } },   /* r211: the owner's art; fill stays as the fallback */
     retryLine: 'D28a',
@@ -3602,15 +3604,21 @@ function tutTc4Arrive(){
     custLine(null, DIALOGUE.D92k);
     custReply('tc4', ()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l'); setTimeout(()=>tutExitTo('forge'), 0); });   /* R56: the player's reply first */   /* owner, 2026-10-09: the nickel is in the bag from Day 2's one trip */
 }
+/* R104 (owner, 2026-11-11): the ladle's pull onto Durable "is so small that it is easily missed" (10 units) - the map zooms in on
+   the sword and Durable for the lesson, never closer than MIN_W, and the player's own view comes back once it is aligned */
+let LADLE_VIEW=null;
+function ladleZoomOn(){ const d=traits.find(t=>t.trait && t.trait.id==='durable'); if(!d) return; if(!LADLE_VIEW) LADLE_VIEW={ x:view.x, y:view.y, w:view.w };
+    const cx=(marker.x+d.x)/2, cy=(marker.y+d.y)/2; view.w=Math.max(MIN_W, LADLE_VIEW.w/FTUE.ladleZoom); view.x=cx-view.w*FTUE.ladleFocus.x; view.y=cy-view.w*aspect*FTUE.ladleFocus.y; setView(); }
+function ladleZoomOff(){ if(!LADLE_VIEW) return; view.x=LADLE_VIEW.x; view.y=LADLE_VIEW.y; view.w=LADLE_VIEW.w; LADLE_VIEW=null; setView(); }
 function tutTc4Pull(){
     if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;
-    TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; tutArrow(null,null);
+    TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; tutArrow(null,null); ladleZoomOn();
     sayQueue('D97');   /* its SAY_AFTER opens the tiers window */
     setTimeout(()=>tutArrow(null, '#ladleHead'), 0);   /* R5: tilt the ladle (was: drag the dragon to the anvil) */
 }
 function tutDurableAligned(){
     if(TUT_STAGE!=='p4-pull') return;
-    TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon();
+    TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon(); ladleZoomOff();   /* R104 */
     sayQueue('D98');
     setTimeout(tutGatePointer, 0);   /* R5: the gate takes the trait */
 }
@@ -8510,7 +8518,7 @@ function finishBlade(){ document.getElementById('sfHammerModal').classList.remov
         else tutCounterStep(); });   /* r90/r103/r115/r126/r127 */
     if(fireHurt) setTimeout(()=>cwHurtStart(), 350);   /* r215. owner, 2026-10-10: D69d opens the paper on the Health row */
 }
-function resetRun(){ smBladeHide(); SM_OWED=0;   /* smelter version */ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
+function resetRun(){ smBladeHide(); SM_OWED=0; ladleZoomOff();   /* R104 */   /* smelter version */ if(typeof tutSpotOn==='function') tutSpotOn(null);   /* r113/r114 */
     HAMMER_HOMED=false;   /* r143 */
     TUT_SWIFT_LOCK=false;   /* r124 */
     clearHazardFx(); bellowing=false; (()=>{ const sm=document.getElementById('furnaceSmoke'); if(sm) sm.classList.remove('on'); })(); segs=[]; sword={seg:0,frac:0}; melt=null; (()=>{ const g=document.getElementById('pathBurst'); if(g) g.innerHTML=''; })();   /* r172 */ setTimeout(updateSfTraits,0); prep=null; retreating=false; pull={x:0,y:0}; clearTraitHighlight(); updateHpPill(); setSword(START.x,START.y); pathEl.style.display='none'; xmark.style.display='none'; hidePreviewPaths(); orbEl.style.display='none'; orbEl.classList.remove('hot'); oreImgEl.style.opacity=1; sphereEl.style.opacity=0; document.getElementById('furnaceGate').classList.remove('ready'); document.getElementById('forgeResult').classList.remove('show'); document.getElementById('sfShapeModal').classList.remove('show'); document.getElementById('sfHammerModal').classList.remove('show'); document.getElementById('sfAcquireModal').classList.remove('show'); document.getElementById('sfCompModal').classList.remove('show'); document.getElementById('sfBookModal').classList.remove('show'); document.getElementById('sfSkillModal').classList.remove('show'); document.getElementById('sfEndDayModal').classList.remove('show'); document.getElementById('sfRackModal').classList.remove('show'); document.getElementById('sfLedgerModal').classList.remove('show'); document.getElementById('sfDesignModal').classList.remove('show'); document.getElementById('sfSharpModal').classList.remove('show'); document.getElementById('sfDiaryModal').classList.remove('show'); document.getElementById('sfQuestModal').classList.remove('show'); document.getElementById('sfMenuModal').classList.remove('show'); document.getElementById('sfCraftModal').classList.remove('show'); document.getElementById('sfTierModal').classList.remove('show');   /* r190 */ document.getElementById('sfIllusModal').classList.remove('show');   /* r193 */ if(typeof hmClear==='function') hmClear(); if(mugEl){ homeMug(); mugEl.style.zIndex=MUG_Z; mugEl.classList.remove('pouring'); } hideWater(); updateSfTraits(); gateReady=false; updateGauges(); hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.'); }

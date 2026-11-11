@@ -1160,3 +1160,12 @@ yours and come on top.
   `#sword.hurt #swordHp` is red; out of the zone `updateHpPill`'s level colour returns. Checked in the browser along the fire
   route: red and shaking inside, green and still after (86.1 health). Record: the hazard record's R103 section. Asserted by the
   hazard test (written first; GREEN at 40).
+- **R104 (owner, 2026-11-11): TC4's ladle step zooms in.** "the distance it is supposed to travel is so small that it is easily
+  missed by the players. is it possible to move the trait closer to the centre, and make the path for nickel longer". Measured:
+  the ladle reaches Epic after about 10 units (0.43 s at full tilt). Moving Durable inward made the route pass it at Fine
+  mid-trip, a third nickel sent the route 100-195 away, and a longer nickel path changes every nickel route in the game; the
+  owner chose "Zoom in (safe)". `ladleZoomOn` (in `tutTc4Pull`, with D97) saves the view and zooms `FTUE.ladleZoom` 3x (never
+  under `MIN_W`) with the middle of the sword and Durable at `FTUE.ladleFocus` { x:0.5, y:0.53 }; `ladleZoomOff` (in
+  `tutDurableAligned` and `resetRun`) gives the saved view back. No route, trait, price or pull speed changes. Checked in the
+  browser: 3x, both spots on clear map; the ladle's 16.6 units (about 50 on screen) end 5.4 from Durable (Epic), D98, and the
+  view comes back exactly. Asserted by the FTUE test (written first; GREEN at 1019).
