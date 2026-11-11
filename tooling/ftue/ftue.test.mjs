@@ -289,7 +289,7 @@ eq('both heat runs point with the shared pointer, the gate only on Fire at the r
 /* R5 (2026-10-23): GC4 and TC4's Durable crafts, and the ladle lessons (TC4's D97, TC5's D97a) */
 eq('D97 text (R5)', line('D97'), "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!");
 eq('the Durable heat run: the shared pointer on Durable; TC4 at the route end: the ladle lesson', src.includes("if(TUT_STAGE==='p3-dur-heat'){ if(FTUE_ST.part===4 && melt && melt.stage==='smelting' && swordAtRouteEnd()){ tutTc4Pull(); return; } tutLoopPointer('durable'); return; }"), true);
-eq('D97 points at the ladle, not the dragon', /function tutTc4Pull\(\)\{[\s\S]{0,300}sayQueue\('D97'\);[\s\S]{0,120}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutTc4Pull\(\)\{[\s\S]{0,400}'#dragon'/.test(src), true);
+eq('D97 points at the ladle, not the dragon (R106: once the tiers window is closed)', /function tutTiersClosed\(\)\{[\s\S]{0,300}sayQueue\('D97'\);[\s\S]{0,120}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutTiersClosed\(\)\{[\s\S]{0,400}'#dragon'/.test(src), true);
 eq('D97a too (TC5\'s swift reminder), read while the metal is in the smelter', /function tutDay2Pull\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;[\s\S]{0,300}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutDay2Pull\(\)\{[\s\S]{0,500}'#dragon'/.test(src), true);
 eq('the ladle parks the sword on the lesson\'s trait (the clamp the dragon\'s fire had), then stops', /function smLadleTick\(dt\)\{[\s\S]{0,300}if\(TUT_SWIFT_LOCK\) return;[\s\S]{0,700}const want=tutPullTarget\(\), tg=want && traits\.find\(t=>t\.trait && t\.trait\.id===want\);[\s\S]{0,300}TUT_SWIFT_LOCK=true; setTimeout\(want==='swift' \? tutSwiftAligned : want==='durable' \? tutDurableAligned : tutGaleAligned, 0\);/.test(src), true);
 eq('parked on the trait: D98 and the gate (was the mug)', ['tutDurableAligned', 'tutSwiftAligned', 'tutGaleAligned'].every(f => new RegExp('function ' + f + '\\(\\)\\{[\\s\\S]{0,300}sayQueue\\(\'D98\'\\);[^\\n]*\\n\\s*setTimeout\\(tutGatePointer, 0\\);').test(src)), true);
@@ -559,7 +559,7 @@ eq('the first sword is open only on its craft steps, with the starting bag as it
 eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
   { bellows: 'first', anvil: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
     'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
-    'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
+    'p4-tiers': 'p3-dur-grind', 'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
 eq('the first sword starts again at D3 (its ore step)', /function ftueCraftRewind\(\)\{[\s\S]{0,300}if\(to==='first'\)\{ TUT_STAGE=null; tutPause\(false\); tutArrow\(null,null\); tutUnglow\(\); sayQueue\('D3'\); return; \}/.test(src)
   && src.includes("ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind);"), true);
 eq('a sword with no reward row ends the round (TC2, TC3, GC8, Garric)', /function ftueOreReward\(key, then\)\{ const e=key && FTUE\.oreChain\[key\]; if\(!e\)\{ if\(key\) FTUE_ST\.oreRound=null;/.test(src), true);
@@ -651,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o', 'D96a']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -1840,14 +1840,14 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
 { const s4 = src.replace(/\r\n/g, '\n');
   const fn = name => { const i = s4.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s4.indexOf('{', i);
     for (; j < s4.length; j++) { if (s4[j] === '{') d++; else if (s4[j] === '}' && --d === 0) break; } return s4.slice(i, j + 1); };
-  eq('R104: FTUE.ladleZoom is the recorded 3, FTUE.ladleFocus the clear part of the map', [FTUE.ladleZoom, FTUE.ladleFocus], [3, { x: 0.5, y: 0.53 }]);
-  const mk = (w) => { const S = { calls: 0 }; const L = new Function('S', 'FTUE', 'let view={ x:100, y:200, w:' + w + ' }, aspect=0.5, MIN_W=360, LADLE_VIEW=null, marker={ x:1581, y:723 }, traits=[ { trait:{ id:"durable" }, x:1577, y:740 } ]; function setView(){ S.calls++; } '
-    + fn('ladleZoomOn') + fn('ladleZoomOff') + '; return { on:ladleZoomOn, off:ladleZoomOff, v:()=>({ ...view }), saved:()=>LADLE_VIEW };')(S, { ladleZoom: 3, ladleFocus: { x: 0.5, y: 0.53 } }); return L; };
+  eq('R104/R106: FTUE.ladleZoom 1.5 (R106, was 3), FTUE.ladleFocus the clear part of the map, FTUE.ladleGlideMs 600', [FTUE.ladleZoom, FTUE.ladleFocus, FTUE.ladleGlideMs], [1.5, { x: 0.5, y: 0.53 }, 600]);
+  const mk = (w) => { const S = { calls: 0 }; const L = new Function('S', 'FTUE', 'let view={ x:100, y:200, w:' + w + ' }, aspect=0.5, MIN_W=360, LADLE_VIEW=null, marker={ x:1581, y:723 }, traits=[ { trait:{ id:"durable" }, x:1577, y:740 } ]; function setView(){ S.calls++; } function viewGlide(to, ms){ S.ms=ms; view.x=to.x; view.y=to.y; view.w=to.w; } '
+    + fn('ladleZoomOn') + fn('ladleZoomOff') + '; return { on:ladleZoomOn, off:ladleZoomOff, v:()=>({ ...view }), saved:()=>LADLE_VIEW, ms:()=>S.ms };')(S, { ladleZoom: 1.5, ladleFocus: { x: 0.5, y: 0.53 }, ladleGlideMs: 600 }); return L; };
   const a = mk(1100); a.on(); const z = a.v();
-  eq('R104: zoomed 3 times, the middle of the sword and Durable at the focus point', [Math.round(z.w), Math.round(z.x + z.w * 0.5), Math.round(z.y + z.w * 0.5 * 0.53)], [367, 1579, 732]);
+  eq('R104/R106: zoomed 1.5 times (gliding, 600 ms), the middle of the sword and Durable at the focus point', [Math.round(z.w), Math.round(z.x + z.w * 0.5), Math.round(z.y + z.w * 0.5 * 0.53), a.ms()], [733, 1579, 732, 600]);
   a.off(); eq('R104: the player\'s view comes back, once', [a.v(), a.saved()], [{ x: 100, y: 200, w: 1100 }, null]);
   const b = mk(500); b.on(); eq('R104: never closer than MIN_W', Math.round(b.v().w), 360);
-  eq('R104: on with the pull lesson, off when aligned and on a reset', [/function tutTc4Pull\(\)\{[\s\S]{0,300}ladleZoomOn\(\);/.test(s4), /function tutDurableAligned\(\)\{[\s\S]{0,200}ladleZoomOff\(\);/.test(s4), /function resetRun\(\)\{[^\n]*ladleZoomOff\(\);/.test(s4)], [true, true, true]);
+  eq('R104: on with the pull lesson, off when aligned and on a reset', [/function tutTiersClosed\(\)\{[\s\S]{0,300}ladleZoomOn\(\);/.test(s4), /function tutDurableAligned\(\)\{[\s\S]{0,200}ladleZoomOff\(\);/.test(s4), /function resetRun\(\)\{[^\n]*ladleZoomOff\(\);/.test(s4)], [true, true, true]);
 }
 /* R105 (owner, 2026-11-11): GC2's gate introduces the craft book - shown, opened, closed, then the craft goes on */
 { const s5 = src.replace(/\r\n/g, '\n');
@@ -1866,5 +1866,29 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
      /function openBook\(\)\{[^\n]*ftueBookOpened\(\);/.test(s5), /function closeBook\(\)\{[^\n]*ftueBookClosed\(\);/.test(s5)], [true, true, true, true]);
   eq('R105: while the lesson shows the book, only CLOSE takes a tap (no ERASE, CONTINUE or CRAFT)', s5.includes('#sfBookModal.cb-look button:not(.cb-close) { pointer-events: none; opacity: .5; }'), true);
   eq('R105: the PART 2+ jumps have met the book (frame shown)', s5.includes("        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.market=true; FTUE_ST.cwSeen=true; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true;   /* R105 */"), true);
+}
+/* R106 (owner, 2026-11-11): TC4's route end shows the Alignment for Tiers window with D96a; closing it gives D97; the zoom glides */
+{ const s6 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s6.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s6.indexOf('{', i);
+    for (; j < s6.length; j++) { if (s6[j] === '{') d++; else if (s6[j] === '}' && --d === 0) break; } return s6.slice(i, j + 1); };
+  eq('R106: D96a, between D96 and D97', [line('D96a'), (() => { const a = s6.indexOf('\n    D96: "'), b = s6.indexOf('\n    D96a: "'), c = s6.indexOf('\n    D97: "'); return a > 0 && a < b && b < c; })()], ['Different alignment will give us different trait tiers.', true]);
+  eq('R106: at TC4\'s route end the tiers window opens with D96a over it (not left to D97\'s X any more)',
+    s6.includes("function tutTc4Pull(){\n    if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;\n    TUT_STAGE='p4-tiers'; tutArrow(null,null); TUT_SAW_TIERS=true;\n    { const m=document.getElementById('sfTierModal'); if(m) m.classList.add('show'); }\n    sayQueue('D96a'); { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }\n}"), true);
+  eq('R106: closing the window gives D97, the ladle and the zoom', s6.includes("function tutTiersClosed(){ if(TUT_STAGE!=='p4-tiers') return; sayHide();\n    TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; ladleZoomOn();\n    sayQueue('D97');\n    setTimeout(()=>tutArrow(null, '#ladleHead'), 0);   /* R5: tilt the ladle (was: drag the dragon to the anvil) */\n}")
+    && /function closeTiers\(\)\{[^\n]*tutTiersClosed\(\);/.test(s6), true);
+  /* the glide: ease in-out between the views, the end view set by a timer too (a hidden pane freezes requestAnimationFrame) */
+  const log = []; let rafs = [], timers = [], clock = 0;
+  const G = new Function('S', 'performance', 'requestAnimationFrame', 'setTimeout', 'let view={ x:0, y:0, w:1000 }, VIEW_GLIDE=null; function setView(){ S.push({ ...view }); } ' + fn('viewGlide') + '; return { glide:viewGlide, v:()=>({ ...view }) };')(
+    log, { now: () => clock }, f => rafs.push(f), (f, ms) => timers.push([f, ms]));
+  G.glide({ x: 100, y: 50, w: 500 }, 600);
+  clock = 300; rafs.shift()(300); const mid = G.v();
+  eq('R106: halfway through, halfway there (ease in-out)', [Math.round(mid.x), Math.round(mid.w)], [50, 750]);
+  clock = 600; rafs.shift()(600);
+  eq('R106: at the end, the target view', G.v(), { x: 100, y: 50, w: 500 });
+  const H = new Function('S', 'performance', 'requestAnimationFrame', 'setTimeout', 'let view={ x:0, y:0, w:1000 }, VIEW_GLIDE=null; function setView(){ S.push({ ...view }); } ' + fn('viewGlide') + '; return { glide:viewGlide, v:()=>({ ...view }) };')(
+    [], { now: () => 0 }, () => {}, (f, ms) => timers.push([f, ms]));
+  timers.length = 0; H.glide({ x: 100, y: 50, w: 500 }, 600); timers[0][0]();
+  eq('R106: with no animation frames, the timer still lands the target view', [H.v(), timers[0][1] > 600], [{ x: 100, y: 50, w: 500 }, true]);
+  eq('R106: zooming in and out both glide', [/function ladleZoomOn\(\)\{[\s\S]{0,400}viewGlide\(/.test(s6), /function ladleZoomOff\(\)\{[\s\S]{0,200}viewGlide\(/.test(s6)], [true, true]);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');

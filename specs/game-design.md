@@ -235,7 +235,7 @@ loop in `specs/2026-10-23-ftue-smelter-rework-plan.md`; every line in play order
 | 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon gives the gold, the player buys, R96), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market, the craft book (GC2's gate, R105) |
 | 2 | 1 | TC2 ("a good one"), TC3 the adventurer (fire) | none | grinding, recording a craft, the cave, hazards, a second trait route |
 | 3 | 2 | none | durable Shortsword; fire Longsword, Broadsword, Katana | the map window, nickel, the craft book (CRAFT 1) |
-| 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword (between TC4 and TC5, R95); gale Katana + fire Claymore (COME LATER, after TC5) | the ladle and tiers, storing a metal, a Weak stop, the waiting list |
+| 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword (between TC4 and TC5, R95); gale Katana + fire Claymore (COME LATER, after TC5) | the ladle and tiers (the tiers window at TC4's route end, R106), storing a metal, a Weak stop, the waiting list |
 | 5 | 2 | Bram returns (swift Dagger) | gale Longsword | sharpening, the diary |
 | 6 | 2-3 | Garric (TC6, graded) | none | the design desk, decor (the banner), the skill tree; D140 ends the FTUE |
 

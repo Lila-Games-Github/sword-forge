@@ -571,8 +571,13 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 2. **D92l** Dragon: "Okay, time to learn how to craft the best tier sword!"
    *When: after the player's reply "One Epic durable sword. I'll do my best." (R56) to TC4's line; points to the forge.*
 
+2a. **D96a** Dragon: "Different alignment will give us different trait tiers."
+   *When: R106: the sword is at the end of the route; the Alignment for Tiers window (weak, fine, epic) opens and this is said
+   over it. No X: the window's close moves on to D97.*
+
 3. **D97** Dragon: "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!"
-   *When: the sword is at the end of the route; the ladle lights up; closing it opens the tiers window.*
+   *When: R106: the tiers window is closed (it used to open only if D97 was closed with its X, so tilting the ladle with D97
+   up skipped it); the ladle lights up and the map glides in 1.5x on the sword and Durable (R104).*
 
 4. **D98** Dragon: "Stop! This looks perfect."
    *When: the ladle parks the sword on Durable; the gate lights up.*

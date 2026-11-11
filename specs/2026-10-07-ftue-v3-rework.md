@@ -2578,3 +2578,7 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   open it." with the book blinking; the open book gets D28o "Each page shows a trait and the ores that reached it. Close the
   book to continue." over it, CLOSE blinking and the other book buttons locked; closing it goes on to the anvil step.
   Tracker: R105.
+- 2026-11-11: R106 TC4's route end: the Alignment for Tiers window opens with D96a "Different alignment will give us different
+  trait tiers." over it (since R5 the window opened only when D97 was closed with its X, so a player who tilted the ladle with
+  D97 up never saw it); closing it gives D97 and the ladle. The ladle zoom is now `FTUE.ladleZoom` **1.5** (owner's picture;
+  3 was too much) and glides in and out over `FTUE.ladleGlideMs` **600** ms (ease in-out) instead of a cut. Tracker: R106.

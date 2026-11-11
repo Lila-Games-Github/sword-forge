@@ -1180,3 +1180,15 @@ yours and come on top.
   approved it ("Wording is OK", 2026-11-11); the game's name "craft book" is used. Found while checking and fixed: the per-frame catch-up skipped the lesson;
   the book's other buttons were live. Checked in the browser with real taps (bellows, gate, book, CLOSE). Asserted by the FTUE
   test (written first; GREEN at 1027). Dialogue keys 211.
+- **R106 (owner, 2026-11-11): the tiers window is back at TC4's route end; the ladle zoom is 1.5x and glides.** "i noticed the
+  weak, fine and epic trait alignment images are not shown anymore. when was it removed? I would like to put it back. it should
+  appear right after the sword reaches the end of the path for the durable. dragon dialogue 'different alignment will give us
+  different trait tiers.' also, the zoom is too much ... can we make the zoom in and out smooth, not a sudden cut?" Not removed:
+  since R5 (2026-10-23) the window opened in `SAY_AFTER.D97`, only when D97 was closed with its X; tilting the ladle with D97 up
+  replaced it with D98 and skipped the window. Now `tutTc4Pull` (the route's end) opens it with the new D96a "Different
+  alignment will give us different trait tiers." over it (`p4-tiers`, in `SAY_NO_X` and `CRAFT_REWIND`); its close
+  (`tutTiersClosed`) gives D97, the ladle and the zoom. `FTUE.ladleZoom` 3 -> 1.5 (measured from the owner's picture: its icons
+  are about 1.5 times their unzoomed size) and `viewGlide` eases the view in and out over `FTUE.ladleGlideMs` 600 ms (a timer
+  lands the end view if animation frames are frozen). Checked in the browser with the game loop and real taps: the window with
+  its three pictures and D96a on top; close: D97 and widths 1100 -> 1050 -> 919 -> 780 -> 733 (1.5x); aligned: D98 and back to
+  1100, the view as it was. Asserted by the FTUE test (written first; GREEN at 1034). Dialogue keys 212.
