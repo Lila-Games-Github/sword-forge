@@ -289,7 +289,8 @@ the craft frame appears, the player opens the book and closes it (R105). |
 | **2** | 1 | **TC2** ("a good one"); **the adventurer** (TC3, fire) | Raw ores fall short: the grindstone, grinding, recording a craft with the inkpot, 5 more pages. Then the cave, hazards, a two-ore fork to reach Fire, a damaged blade. Bed. |
 | **3** | 2 | Orders: durable Shortsword; fire Longsword, Broadsword, Katana | The basic-vs-elemental map window, nickel from the cave, Durable. The trait card and CRAFT 1 from the map and the craft book. |
 | **4** | 2 | **TC4** (Epic durable), then an order for a Weak balanced Longsword (R95), then **TC5** (gale), then an order for a gale Katana + fire Claymore | The ladle and the three tiers (at the route's end the Alignment for Tiers window, then the ladle with the map
-zoomed 1.5x, gliding; R104, R106). Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
+zoomed 1.5x, gliding; R104, R106). After TC4's gate, the blade pips: open the craft window, then the Traits and Tiers
+window (1, 2, 3 pips for Weak, Fine, Epic, and five different traits stacked; R107). Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
 | **5** | 2 | **Bram** returns (swift Dagger, sharper); an order for a gale Longsword | The stored swift ingot. The sharpening wheel. The diary. |
 | **6** | 2-3 | **Garric** (TC6) | The design desk; a solo craft graded by Garric; the banner and build mode; bed; Day 3: the cave waits for a Pickaxe point, the skill tree. D140 ends the tutorial. |
 

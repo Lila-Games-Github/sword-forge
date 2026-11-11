@@ -1192,3 +1192,16 @@ yours and come on top.
   lands the end view if animation frames are frozen). Checked in the browser with the game loop and real taps: the window with
   its three pictures and D96a on top; close: D97 and widths 1100 -> 1050 -> 919 -> 780 -> 733 (1.5x); aligned: D98 and back to
   1100, the view as it was. Asserted by the FTUE test (written first; GREEN at 1034). Dialogue keys 212.
+- **R107 (owner, 2026-11-11): TC4's gate teaches the blade pips.** "as soon as we open the gate (tc4) darken everything except
+  the map area. Dragon should say 'open the craft window.' with the guide. As soon as it is opened, I want everything to have a
+  black overlay except this section. A separate window will popup (like the one for trait alignment) showing this 5 point
+  system ... and another one, showing 5 different elements. dragon says 'this here represents the trait and the tier. You can
+  also stack different traits.'" Owner's choices (defaults): one window; the stacked row is Balanced, Durable, Fire, Swift, Gale
+  (Weak); D98a skipped when the craft window is open; ids D98a, D98b. `ftueDurGated` (the gate's hook) runs `ftuePipIntro`
+  once (`FTUE_ST.pipsSeen`) for TC4 (`p4-quench`): D98a on the map's cut dim with the ring blinking; `toggleHud` opening it
+  calls `ftuePipShow`: D98b on the pips' cut dim (`#traitSlots`) over `#sfPipModal` ("Traits and Tiers", no backdrop of its
+  own), its rows from `FTUE.pipRows` drawn like the craft frame's pips (`pipRowsHtml`); `closePips` lifts it, back to
+  `p4-quench` and the anvil arrow (`ftueDurQuenched`). Found while checking and fixed: the lit dragon (dark-lit, 61) covered the
+  ring, so the craft frame is raised to 62 for D98a only (`#frame.landscape > #hud.pip-up`, as specific as R25's rule) and goes
+  back under the dark for D98b, so only the pips show. Checked in the browser with real taps (tiers close, ladle, gate, ring,
+  close). Asserted by the FTUE test (written first; GREEN at 1044). Dialogue keys 214.

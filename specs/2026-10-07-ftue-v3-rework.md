@@ -2582,3 +2582,9 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   trait tiers." over it (since R5 the window opened only when D97 was closed with its X, so a player who tilted the ladle with
   D97 up never saw it); closing it gives D97 and the ladle. The ladle zoom is now `FTUE.ladleZoom` **1.5** (owner's picture;
   3 was too much) and glides in and out over `FTUE.ladleGlideMs` **600** ms (ease in-out) instead of a cut. Tracker: R106.
+- 2026-11-11: R107 TC4's gate teaches the blade pips. After the gate takes Durable: everything but the map dark, D98a "Open the
+  craft window." with the ring blinking (skipped if it is open); open, everything but the 5 pips dark, the Traits and Tiers window
+  (`FTUE.pipRows`: Weak 1 Durable pip, Fine 2, Epic 3, then Balanced, Durable, Fire, Swift, Gale at Weak, one pip each; drawn
+  as the craft frame draws its pips) and D98b "This here represents the trait and the tier. You can also stack different
+  traits." over it; its close lifts the dark and the metal goes to the anvil (`ftueDurQuenched`). Once (`FTUE_ST.pipsSeen`).
+  Tracker: R107.

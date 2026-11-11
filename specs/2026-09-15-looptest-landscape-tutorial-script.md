@@ -582,6 +582,15 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 4. **D98** Dragon: "Stop! This looks perfect."
    *When: the ladle parks the sword on Durable; the gate lights up.*
 
+4a. **D98a** Dragon: "Open the craft window."
+   *When: R107: the gate has taken Durable (Epic); everything but the map is dark and the ring blinks. Skipped when the craft
+   window is already open. No X: opening it moves on.*
+
+4b. **D98b** Dragon: "This here represents the trait and the tier. You can also stack different traits."
+   *When: R107: the craft window is open; everything but its 5 blade pips is dark and the Traits and Tiers window shows pip
+   rows (Weak: 1 Durable pip, Fine: 2, Epic: 3; then Balanced, Durable, Fire, Swift and Gale, one pip each). No X: the
+   window's close lifts the dark, and the metal goes to the anvil as before.*
+
 5. **D18a** Dragon: "Here's a reward from me."
    *When: after TC4's sale (and its reward); over the reward window (2 Copper for TC5's swift ingot).*
 

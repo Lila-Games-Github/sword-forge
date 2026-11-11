@@ -559,7 +559,7 @@ eq('the first sword is open only on its craft steps, with the starting bag as it
 eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
   { bellows: 'first', anvil: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
     'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
-    'p4-tiers': 'p3-dur-grind', 'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
+    'p4-tiers': 'p3-dur-grind', 'p4-pips': 'p3-dur-grind', 'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
 eq('the first sword starts again at D3 (its ore step)', /function ftueCraftRewind\(\)\{[\s\S]{0,300}if\(to==='first'\)\{ TUT_STAGE=null; tutPause\(false\); tutArrow\(null,null\); tutUnglow\(\); sayQueue\('D3'\); return; \}/.test(src)
   && src.includes("ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind);"), true);
 eq('a sword with no reward row ends the round (TC2, TC3, GC8, Garric)', /function ftueOreReward\(key, then\)\{ const e=key && FTUE\.oreChain\[key\]; if\(!e\)\{ if\(key\) FTUE_ST\.oreRound=null;/.test(src), true);
@@ -651,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o', 'D96a']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o', 'D96a', 'D98a', 'D98b']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -1117,7 +1117,7 @@ eq('served: the guide ends (only once it has started - before part 4 nobody wait
 eq('it runs every frame', /function updateHintArrow\(\)\{[\s\S]{0,1200}wqTick\(\);/.test(src), true);
 /* owner, 2026-10-14: the Durable craft's mug pointer stayed after the trait was in (also TC4's, GC8's) */
 eq('after the gate, the guide takes the metal to the anvil (R5)', src.includes("function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0); }")
-  && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();"), true);
+  && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurGated();"), true);   /* R107: TC4's pip lesson first */
 eq('the Durable guide no longer re-points at the mug once Durable is on (R5: after the gate the metal is hot - the shared pointer takes it to the anvil; the old on-the-anvil branch is gone)', !src.includes("if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;"), true);
 /* owner, 2026-10-14: an arrow from the rail while the ore's tab is closed - not needed, the tab's glow is enough */
 eq('no arrow while its inventory tab is closed', src.includes("if(o.tab!=null){ const need=(typeof o.tab==='function') ? o.tab() : o.tab; if(need!=null && INV_TAB!==need){ svg.classList.remove('on'); return; } }")
@@ -1609,7 +1609,7 @@ const k = (st, a, b, sold) => EX(Object.assign({ part: 1, exits: {}, done: false
 eq('R70: a new game knows nothing; a lit step and its way back; Bram served opens the counter; the shop waits for the end', [k({}, 'forge', 'customer'), k({ exits: { 'forge>customer': true, 'customer>forge': true } }, 'customer', 'forge'), k({}, 'forge', 'customer', true), k({ part: 3 }, 'forge', 'cave'), k({ part: 3 }, 'customer', 'shop'), k({ part: 5, sharp: true }, 'forge', 'basement'), k({ done: true }, 'customer', 'shop')], [false, true, true, true, false, true, true]); }
 /* R71 (owner, 2026-11-04): "d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible." */
 { const s1 = src.replace(/\r\n/g, '\n');
-eq('R71: D69a-c on the cut dim, a window over the map', [s1.includes("const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */\n/* R71 (owner, 2026-11-04): \"d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible.\" - the\n   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on\n   tutPause's #tutDim (under the rail, over the map) */\nconst SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ],\n    D71:[ { sel:'#map-wrap' } ], D72:[ { sel:'#map-wrap' } ],   /* R72 (owner): D71 and D72 too; D72a is said clear */\n    D32c:[ { sel:'#map-wrap' } ], D33:[ { sel:'#map-wrap' } ],   /* R87 (owner): TC2's \"try again\" and the what-if path; D35 is said clear */\n    D38:[ { sel:'#map-wrap' } ] };   /* R99 (owner, 2026-11-11): no bellows or gate until D38 is closed - pumping and gating under it skipped the record lesson */\n"), s1.includes("    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */\n")], [true, true]);
+eq('R71: D69a-c on the cut dim, a window over the map', [s1.includes("const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */\n/* R71 (owner, 2026-11-04): \"d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible.\" - the\n   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on\n   tutPause's #tutDim (under the rail, over the map) */\nconst SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ],\n    D71:[ { sel:'#map-wrap' } ], D72:[ { sel:'#map-wrap' } ],   /* R72 (owner): D71 and D72 too; D72a is said clear */\n    D32c:[ { sel:'#map-wrap' } ], D33:[ { sel:'#map-wrap' } ],   /* R87 (owner): TC2's \"try again\" and the what-if path; D35 is said clear */\n    D38:[ { sel:'#map-wrap' } ],   /* R99 (owner, 2026-11-11): no bellows or gate until D38 is closed - pumping and gating under it skipped the record lesson */\n    D98a:[ { sel:'#map-wrap' } ], D98b:[ { sel:'#traitSlots' } ] };   /* R107 (owner, 2026-11-11): TC4's pip lesson - the map, then only the blade pips */\n"), s1.includes("    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */\n")], [true, true]);
 eq('R71: the pause dim stays off under them', s1.includes("    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE] && !SAY_DARK_CUT[SAY_ON]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead. R71: and a line's own */\n"), true);
 eq('R71: the cut dim is over the rail and the arrows', [+(s1.match(/#tutHole \{ position: absolute; inset: 0; z-index: (\d+);/) || [])[1] > 50, +(s1.match(/#frame\.landscape > #rail \{ z-index: (\d+); \}/) || [])[1]], [true, 45]); }
 /* R72 (owner, 2026-11-04): D71 and D72 dark except the map, D71's X lit, clear at D72a */
@@ -1890,5 +1890,34 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   timers.length = 0; H.glide({ x: 100, y: 50, w: 500 }, 600); timers[0][0]();
   eq('R106: with no animation frames, the timer still lands the target view', [H.v(), timers[0][1] > 600], [{ x: 100, y: 50, w: 500 }, true]);
   eq('R106: zooming in and out both glide', [/function ladleZoomOn\(\)\{[\s\S]{0,400}viewGlide\(/.test(s6), /function ladleZoomOff\(\)\{[\s\S]{0,200}viewGlide\(/.test(s6)], [true, true]);
+}
+/* R107 (owner, 2026-11-11): TC4's gate teaches the blade pips - open the craft window, then the Traits and Tiers window */
+{ const s7 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s7.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s7.indexOf('{', i);
+    for (; j < s7.length; j++) { if (s7[j] === '{') d++; else if (s7[j] === '}' && --d === 0) break; } return s7.slice(i, j + 1); };
+  eq('R107: FTUE.pipRows is the recorded window', FTUE.pipRows, [
+    { label: 'Weak', pips: [['durable', 'Weak']] },
+    { label: 'Fine', pips: [['durable', 'Fine'], ['durable', 'Fine']] },
+    { label: 'Epic', pips: [['durable', 'Epic'], ['durable', 'Epic'], ['durable', 'Epic']] },
+    { label: 'Stacked', pips: [['balanced', 'Weak'], ['durable', 'Weak'], ['fire', 'Weak'], ['swift', 'Weak'], ['gale', 'Weak']] } ]);
+  eq('R107: D98a and D98b, between D98 and D99', [line('D98a'), line('D98b'), (() => { const a = s7.indexOf('\n    D98: "'), b = s7.indexOf('\n    D98a: "'), c = s7.indexOf('\n    D98b: "'), d = s7.indexOf('\n    D99: "'); return a > 0 && a < b && b < c && c < d; })()],
+    ['Open the craft window.', 'This here represents the trait and the tier. You can also stack different traits.', true]);
+  const P = new Function('FTUE', 'BLADE_SLOTS', 'TRAIT_BY', fn('tierColor') + fn('pipRowsHtml') + '; return pipRowsHtml;')(
+    { pipRows: [ { label: 'Weak', pips: [['durable', 'Weak']] }, { label: 'Stacked', pips: [['balanced', 'Weak'], ['fire', 'Weak']] } ] }, 5,
+    { durable: { name: 'Durable', symbol: 'D' }, balanced: { name: 'Balanced', symbol: 'B' }, fire: { name: 'Fire', symbol: 'F' } });
+  const html = P();
+  eq('R107: each row is the craft frame\'s 5 pips, filled in the tier\'s colour, the rest empty', [(html.match(/class="pip-row"/g) || []).length, (html.match(/class="tslot filled"/g) || []).length, (html.match(/class="tslot"><\/span>/g) || []).length, html.includes('color:#4d4d4d') , html.includes('<span class="pip-lab">Weak</span>')], [2, 3, 7, true, true]);
+  eq('R107: TC4\'s gate (p4-quench, once) gets the lesson; the other Durable crafts go straight on',
+    [s7.includes("function ftuePipLesson(){ return TUT_STAGE==='p4-quench' && FTUE_ST.part===4 && !FTUE_ST.pipsSeen; }"), s7.includes("function ftueDurGated(){ if(ftuePipLesson()) ftuePipIntro(); else ftueDurQuenched(); }")], [true, true]);
+  eq('R107: D98a with the ring blinking, unless the craft window is open already',
+    s7.includes("function ftuePipIntro(){ TUT_STAGE='p4-pips'; FTUE_ST.pipsSeen=true; tutArrow(null,null); tutUnglow(); document.getElementById('hud').classList.add('pip-up');\n    { const h=document.getElementById('hud'); if(h && !h.classList.contains('collapsed')){ ftuePipShow(); return; } }\n    sayQueue('D98a'); tutExit('#hudToggle'); }"), true);
+  eq('R107: opening the craft window shows the pips window with D98b over it (the dark cut to the pips)',
+    [/function toggleHud\(\)\{[\s\S]{0,500}if\(!nowCollapsed\) ftuePipOpened\(\);/.test(s7), s7.includes("function ftuePipOpened(){ if(TUT_STAGE==='p4-pips' && SAY_ON==='D98a') ftuePipShow(); }"),
+     s7.includes("function ftuePipShow(){ tutExit(null); document.getElementById('hud').classList.remove('pip-up');   /* back under the dark: only the pips show through it */\n    document.getElementById('pipRows').innerHTML=pipRowsHtml(); document.getElementById('sfPipModal').classList.add('show');\n    sayQueue('D98b'); { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } } }")], [true, true, true]);
+  eq('R107: its close lifts the dark and the metal goes to the anvil', s7.includes("function closePips(){ document.getElementById('sfPipModal').classList.remove('show'); document.getElementById('hud').classList.remove('pip-up'); if(TUT_STAGE!=='p4-pips') return; sayHide(); TUT_STAGE='p4-quench'; ftueDurQuenched(); }"), true);
+  eq('R107: the window has no backdrop of its own (the cut dim is the dark, so the pips show)', s7.includes('#sfPipModal { background: transparent; }'), true);
+  eq('R107: through the lesson the craft frame sits over the lit dragon (his dark-lit 61 covered the ring)', [s7.includes('#frame.landscape > #hud.pip-up { z-index: 62; }'),
+    /function ftuePipIntro\(\)\{[^\n]*\n?[^\n]*document\.getElementById\('hud'\)\.classList\.add\('pip-up'\);/.test(s7), /function closePips\(\)\{[^\n]*document\.getElementById\('hud'\)\.classList\.remove\('pip-up'\);/.test(s7)], [true, true, true]);
+  eq('R107: the PART 5+ jumps have had the lesson', /if\(n>=5\)\{[^\n]*\n[^\n]*FTUE_ST\.pipsSeen=true;/.test(s7), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');
