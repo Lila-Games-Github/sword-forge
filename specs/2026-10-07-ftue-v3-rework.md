@@ -2555,3 +2555,7 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   the gold rises by the price (+<price>g on the counter), D28ca "There's the gold. Now tap the blueprint to buy it." and the
   BUY is lit; the player's purchase (R91's coins) then gives the done line. R13 (no BUY, a tap buys nothing) now holds only
   while his coins are in the air. Lines: D28ca new; D28b, D28i, D113a reworded. Tracker: R96.
+- 2026-11-11: R99 TC2's second craft: D38 is said on the cut dim (`SAY_DARK_CUT`, only the map open), so the bellows and the
+  gate wait until it is closed; closing it says D38a "Now drag the bellows handle up and down to reach the balanced trait."
+  (no X); the sword on Balanced replaces it with D41, then the gate gives the record lesson (D42). Before, pumping and tapping
+  the gate under an open D38 skipped the record lesson. Tracker: R99.

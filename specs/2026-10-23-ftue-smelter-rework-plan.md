@@ -1115,3 +1115,15 @@ yours and come on top.
   degrees, still within 2 degrees after 2.9 s (was over 6 s). Following the finger more slowly (`bladeFollow`) was tried and
   barely helped (69 degrees, still over 6 s), so it stays 700. Record: the smelter loop record's s5 values. Asserted by the
   smelter test (written first; GREEN at 146).
+- **R99 (owner, 2026-11-11): the record lesson can no longer be skipped under D38.** "for this part, players can bellow, then
+  open the gate as well. if the dialogues is not closed before bellowing and clicking on the gate, it is possible to finish the
+  entire crafting without going through the 'save recipe' tutorial. which is a big issue. solve it by putting a black overlay
+  everywhere except the map. make sure players close the dialogue first, then remove the black overlay and dragon asks players
+  to continue bellowing." Cause: `regrind-heat` moved on to D41 (and so to the gate's record lesson) only once no line was up
+  (`quiet`), so a craft finished under an open D38 never reached it. Now D38 is in `SAY_DARK_CUT` (only `#map-wrap` open; the
+  bellows and the gate are under the dim); closing it (`SAY_AFTER.D38`) says the new D38a "Now drag the bellows handle up and
+  down to reach the balanced trait." (in `SAY_NO_X`), with the stage's bellows arrow; `regrind-heat` is no longer `quiet` but
+  waits only while D38 is up, so the sword on Balanced replaces D38a with D41. Checked in the browser with real taps and drags:
+  under D38 the bellows and the gate are covered by the dim; the X gives D38a and lifts it; pumping with D38a open reaches
+  Balanced and D41; the gate then gives D42 (stage `record`). Script SSOT: D38's note and the new 11a entry. Asserted by the
+  FTUE test (written first; GREEN at 1002). Dialogue keys 208 (also R96's D28ca, counted late).

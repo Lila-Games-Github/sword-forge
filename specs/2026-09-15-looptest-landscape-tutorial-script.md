@@ -290,7 +290,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the ground Iron is in the smelter.*
 
 11. **D38** Dragon: "Great, the path is going all the way to the balanced trait we discovered last time."
-   *When: the ground Manganese is in the smelter; then the bellows light up.*
+   *When: the ground Manganese is in the smelter. R99: everything but the map and the line is dark (no bellows, no gate)
+   until it is closed.*
+
+11a. **D38a** Dragon: "Now drag the bellows handle up and down to reach the balanced trait."
+   *When: D38 is closed (R99); the bellows light up. No X: the sword reaching Balanced replaces it with D41.*
 
 12. **D41** Dragon: "We are on the balanced trait. Open the gate!"
    *When: the sword is on Balanced; the gate lights up.*
