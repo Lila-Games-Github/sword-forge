@@ -1822,4 +1822,11 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R100: lifted only for D43 in the record lesson, dropped when the window closes', [/function tutCompStep\(\)\{[\s\S]{0,250}say\('D43'\); compLift\(true\);/.test(s0), s0.includes("function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); compLift(false); }")], [true, true]);
   eq('R100: the lift is over the window (z 1000), the line\'s own 1011', s0.includes('#dragon.over-modal { z-index: 1011; }'), true);
 }
+/* R101 (owner, 2026-11-11): the compare window's New box wears the quest basket's look (R93) */
+{ const s1 = src.replace(/\r\n/g, '\n');
+  eq('R101: the New box glows like the basket (also while hovered; the box\'s hover clears filters)', s1.includes('.comp-slot.is-new, .comp-slot.is-new:hover { position: relative; filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }'), true);
+  eq('R101: and has the basket\'s faint tint, in the paper box\'s own shape', s1.includes(".comp-slot.is-new::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: rgba(90,230,110,.3);\n    -webkit-mask: url(assets/ui/Small_paperbox_dark.webp) center / 100% 100% no-repeat; mask: url(assets/ui/Small_paperbox_dark.webp) center / 100% 100% no-repeat; }"), true);
+  eq('R101: the thin inset line is gone', s1.includes('.comp-slot.is-new { box-shadow: inset 0 0 0 2px rgba(108,140,72,.55)'), false);
+  eq('R101: the same numbers as the basket', s1.includes('#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }') && s1.includes('pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);'), true);
+}
 console.log('[ftue] GREEN / ' + n + ' checks');

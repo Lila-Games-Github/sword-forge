@@ -1137,3 +1137,9 @@ yours and come on top.
   taps (the ring, the inkpot, Update) in TC2's second craft: D43 and the dragon over the dark, Cancel and Update only; Update
   saves the page and moves on (`record-close`), the dragon back at z 30; after the tutorial Record new is back. Found while
   checking and fixed: the line kept its lift after the window closed. Asserted by the FTUE test (written first; GREEN at 1007).
+- **R101 (owner, 2026-11-11): the compare window's New box looks like the quest basket.** "the green outline around the new box
+  is too thin and light. use the same visuals as the one for the quest basket for this". R93's numbers: a still glow
+  `drop-shadow(0 0 9px rgba(90,230,110,.9))` (kept on hover, where the box's own rule clears filters) and a faint tint
+  `rgba(90,230,110,.3)` masked to the paper box art (`Small_paperbox_dark.webp`); the thin inset line is gone. On the light
+  paper the tint reads stronger than on the darker basket. Checked in the browser (glow and tint follow the torn edges).
+  Asserted by the FTUE test (written first; GREEN at 1011).
