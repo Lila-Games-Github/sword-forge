@@ -30,7 +30,7 @@ eq('tutorial clearing', HAZ.clear, [{ x: 1154, y: 748, kind: 'island' }, { x: 10
 /* owner, 2026-10-13: the fire run's last ore is a choice - full iron crosses a zone, full manganese goes round it.
    The speck both full paths crossed (#59) moves, its own shape at 75%, onto the stretch only iron takes. */
 /* R24: [0] the fork speck on the iron path D72 shows, [1] D69's speck on the first three ores' path */
-eq('tutorial move', HAZ.move, [{ kind: 'speck', x: 917.83, y: 1003.27, to: { x: 920, y: 1146 }, scale: 0.5625 }, { kind: 'speck', x: 1028.4, y: 1016.22, to: { x: 1054, y: 1158 }, scale: 0.75 }]);
+eq('tutorial move', HAZ.move, [{ kind: 'speck', x: 917.83, y: 1003.27, to: { x: 920, y: 1146 }, scale: 0.5625 }, { kind: 'speck', x: 1028.4, y: 1016.22, to: { x: 1054, y: 1158 }, scale: 2.25 }]);   /* R103 (owner, 2026-11-11): D69's speck three times as big (was 0.75) */
 eq('the move is applied after the map is built (no reshuffle)', /HAZ\.move\.forEach\(c=>\{ const z=hazards\.find\(z=>z\.kind===c\.kind && Math\.hypot\(z\.x-c\.x, z\.y-c\.y\)<=2\);/.test(src), true);
 
 /* price: full health keeps the price, 0 health halves it, unknown health is full */
@@ -80,4 +80,13 @@ eq('craft window row is Health, gold lost in red', src.includes('<div class="cw-
 eq('the row shows the gold lost', src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')"), true);
 eq('gold lost = full-health base minus base', src.includes("const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0"), true);
 eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
+/* R103 (owner, 2026-11-11): in a zone the sword shakes and its health shows red; out of it, the level colour again */
+{ const s3 = src.replace(/\r\n/g, '\n');
+  eq('R103: the zone check marks the sword each frame (hurt in a zone, not out of it)', s3.includes("if(swordEl) swordEl.classList.toggle('hurt', !!inside);"), true);
+  eq('R103: in a zone its parts shake a few units (not the marker, whose translate places it)', s3.includes('#sword.hurt > * { animation: swordShake .12s linear infinite; }')
+    && s3.includes('@keyframes swordShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-2.5px,1px); } 50% { transform: translate(2.5px,-1px); } 75% { transform: translate(-1.5px,-1px); } }')
+    && !/#sword\.hurt \{[^}]*transform/.test(s3), true);
+  eq('R103: in a zone the health fill is red; out of it the level rule\'s colour (green above 60%) returns', s3.includes('#sword.hurt #swordHp { fill: #e2503c; }')
+    && s3.includes("a.setAttribute('fill', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }"), true);
+}
 console.log('[hazard] GREEN / ' + n + ' checks');

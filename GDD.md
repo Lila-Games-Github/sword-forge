@@ -95,7 +95,9 @@ The dragon sits on the bench; his speech bubble points at him.
 - **Trait value** grows with distance from the centre: `round(distance / 12)`, clamped 5-100 (swift 16, balanced 24, durable
   25, gale 41, fire 48, up to 100 for Fury and Magma).
 - **Hazards:** zones that drain the blade's health (26/s of 100) while the sword moves through them; at 0 the blade shatters.
-  Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free).
+  Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free). In a zone
+  the sword shakes and its health shows red; out of it, the health's usual colour again (R103). The fire craft's first zone
+  (D69) is three times its old size (R103).
 - **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200).
 
 ### Ores and routes

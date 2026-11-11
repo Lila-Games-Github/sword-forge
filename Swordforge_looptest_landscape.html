@@ -815,6 +815,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #swordHp { transition: fill .2s linear; }
 #sword.hurt { animation: swordHurt .5s ease-in-out infinite; }
 @keyframes swordHurt { 0%,100% { filter: drop-shadow(0 0 3px #ff3b30); } 50% { filter: drop-shadow(0 0 12px #ff3b30); } }
+/* R103 (owner, 2026-11-11): "while crossing the hazard zone, make the active sword shake a bit, and change the color of the health
+   from green to red (red only when it is taking damage...)" - the parts shake (the marker's own translate places it), and the
+   health fill is red while in a zone; out of it the level colour (updateHpPill) shows again */
+#sword.hurt > * { animation: swordShake .12s linear infinite; }
+@keyframes swordShake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-2.5px,1px); } 50% { transform: translate(2.5px,-1px); } 75% { transform: translate(-1.5px,-1px); } }
+#sword.hurt #swordHp { fill: #e2503c; }
 
 /* ---- shape select + hammer minigame (ported from swordforgeV2) ---- */
 .sf-modal { position: absolute; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); }
@@ -6688,7 +6694,7 @@ const HAZ = {
        shape at 75%, onto the stretch only the full iron path takes (measured: iron 27/201 samples inside, manganese
        14 units clear). Applied after the map is built, so nothing else moves. */
     /* R24 (owner, 2026-10-28): [0] the fork speck, on the 4th ore's iron path (D72 draws it); [1] D69's speck, on the first three ores' manganese leg */
-    move: [ { kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:0.75 } ]
+    move: [ { kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:2.25 } ]   /* R103 (owner, 2026-11-11): [1] three times as big (was 0.75) - too small to see under the sword */
 };
 /* HAZARD-CONFIG-END */
 /* HAZARD-PURE-BEGIN */

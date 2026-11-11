@@ -55,7 +55,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **Hazards:** zones that cost the blade health while the sword moves through them (`HAZARD_DPS` **26**/s over a blade of
   `BLADE_HP_MAX` **100**, shown as a fill inside the sword marker; at 0 the blade shatters). Health lowers the price
   (`HAZ.floor` 0.5 at 0 health); 3+ zones crossed drop every trait one tier, 5+ two (`HAZ.steps`; the first 2 are free).
-  Record: `specs/2026-10-01-hazard-integrity.md`.
+  In a zone the marker's parts shake (`swordShake`) and the health fill is red; out of it the level colour (green above 60%,
+  amber 30-60%, red below 30%) returns. D69's speck in the fire craft is `HAZ.move[1]` at scale 2.25 (R103, was 0.75): the fire
+  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`.
 - **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 
 ### Ores and routes

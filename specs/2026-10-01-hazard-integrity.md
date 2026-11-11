@@ -28,7 +28,7 @@ finished sword did not keep its health, so a 5% blade sold like a perfect one.
 | `free` | 2 | zones a run may cross with no tier loss |
 | `steps` | [3, 5] | 3 or more zones: every trait drops 1 tier; 5 or more: 2 tiers (Weak is the floor) |
 | `clear` | [{ x:1154, y:748, kind:'island' }, { x:1003.22, y:1179.18, kind:'ribbon' }] | tutorial clearing: the zone the part 4 gale route crossed; 2026-10-28 the ribbon the rotated fire run would cross - see below |
-| `move` | [{ kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:0.75 }] | 2026-10-28 (owner): [0] the fork speck, on the iron path D72 shows; [1] D69's speck - see below |
+| `move` | [{ kind:'speck', x:917.83, y:1003.27, to:{ x:920, y:1146 }, scale:0.5625 }, { kind:'speck', x:1028.4, y:1016.22, to:{ x:1054, y:1158 }, scale:2.25 }] | 2026-10-28 (owner): [0] the fork speck, on the iron path D72 shows; [1] D69's speck - see below. R103 (2026-11-11): [1] scale 0.75 -> 2.25 |
 
 - **A zone counts once per run**, by its index, however often the sword re-enters it. Moving
   through it is what counts (`checkHazard` only runs while the sword moves).
@@ -92,3 +92,22 @@ is "Blade health: hazard zones damage the active sword", and the hazard toast sa
 row shows the **gold the damage cost, in red** ("-4g": the base price at full health minus the real base
 price), not a percentage; full health shows "No loss". The tier note stays (", 3 hazards: -1 tier").
 D69d is now "See its health? That hazard scratched it, so it will sell for a little less." (owner approved, 2026-10-06).
+
+## R103 (owner, 2026-11-11): D69's speck three times as big; the sword shakes and its health shows red in a zone
+
+Owner: "while crafting the fire sword, the first hazard zone is too small, so it is not visible when the active sword is on
+it. make the hazard zone thrice as big, i am okay with it taking more damage. also, while crossing the hazard zone, make the
+active sword shake a bit, and change the color of the health from green to red (red only when it is taking damage, then it
+returns to green." Asked: back to green always, or to the level colour? Owner: "Level colour".
+
+- `HAZ.move[1].scale` **0.75 -> 2.25** (three times as wide and as tall: about 30 -> 90 units across; larger than 50 of the
+  map's 68 zones, median 66, the largest 798, so D69c's "a small one" still holds).
+- Measured with the build's own routes (`advanceSword`, `partsHit`, `HAZARD_DPS` 26/s): the fire run takes **13.9** health from
+  this speck (was 4.3); with iron as the 4th ore it also crosses the fork speck (5.8), **19.7** in all, so the blade ends at about
+  80-86 health and cannot shatter; the zones crossed (and so the tier) are unchanged. TC2's ground 1 + 1 and part 1's raw 2 + 2
+  and 1 + 1 routes do not reach it at either size.
+- **Shake:** while the sword is in a zone (`#sword.hurt`, set each frame by the hazard check) its parts shake a few units
+  (`swordShake`, 0.12 s, on the children, so the marker's own `translate` is untouched); the red glow stays.
+- **Health colour:** while in a zone the health fill is red (`#sword.hurt #swordHp`, #e2503c); out of it, its level colour
+  again (green above 60%, amber 30-60%, red below 30%).
+- Asserted by `tooling/hazard/hazard.test.mjs` (written first).

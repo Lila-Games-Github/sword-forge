@@ -1150,3 +1150,13 @@ yours and come on top.
   to close the craft window." (no X, in `SAY_NO_X`) as it lights the ring; a window already shut still goes straight to D44.
   Wording is Claude's; the owner approved it ("Wording is OK", 2026-11-11). Checked in the browser with real taps (inkpot, Update, ring): D43, then D43a with the
   ring blinking, then the window shut and D44. Asserted by the FTUE test (written first; GREEN at 1014). Dialogue keys 209.
+- **R103 (owner, 2026-11-11): the fire craft's first hazard zone 3x; the sword shakes and shows red health in a zone.**
+  "while crafting the fire sword, the first hazard zone is too small, so it is not visible when the active sword is on it. make
+  the hazard zone thrice as big, i am okay with it taking more damage. also, while crossing the hazard zone, make the active
+  sword shake a bit, and change the color of the health from green to red (red only when it is taking damage, then it returns
+  to green." Then "Level colour". `HAZ.move[1].scale` 0.75 -> 2.25 (about 30 -> 82 units across, measured in the browser); the
+  fire run loses 13.9 health there (was 4.3), 19.7 in all with the iron fork, so it cannot shatter and the tier is unchanged;
+  no other tutorial route reaches it. `#sword.hurt > *` shakes (`swordShake`, the marker's translate untouched) and
+  `#sword.hurt #swordHp` is red; out of the zone `updateHpPill`'s level colour returns. Checked in the browser along the fire
+  route: red and shaking inside, green and still after (86.1 health). Record: the hazard record's R103 section. Asserted by the
+  hazard test (written first; GREEN at 40).
