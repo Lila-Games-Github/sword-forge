@@ -116,6 +116,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     background: rgba(20,14,7,.9); border: 1px solid #6a5636; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
 #cheatBar button:disabled { opacity: .35; cursor: default; }
 #cheatBar button:not(:disabled):hover { color: #ffe08a; border-color: #c8a84b; }
+/* R109: the CUSTOMER dropdown, dressed like the buttons */
+#cheatBar select { font: 700 10px/1 'Cinzel', serif; letter-spacing: .6px; color: #d8c79a;
+    background: rgba(20,14,7,.9); border: 1px solid #6a5636; border-radius: 6px; padding: 6px 6px; cursor: pointer; }
+#cheatBar select:hover { color: #ffe08a; border-color: #c8a84b; }
 
 /* ---- phone frame — fixed 9:16 (568×1010); the width=568 viewport scales it to fit any phone ---- */
 /* SKELETON: a CSS grid of named zones (hud / map / bench). Two grid-template-areas — portrait
@@ -2718,7 +2722,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
 </div>
 
-<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="plainToast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>
+<div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="plainToast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button><!-- R109: a jump to every tutorial customer, the same as ftueCust(id) --><select id="cheatCust" title="New game with this tutorial customer at the bell" onchange="if(this.value){ plainToast(ftueCust(this.value)); this.value=''; }"><option value="">CUSTOMER</option></select></div>
 
 <script>
 // ============================================================
@@ -4016,7 +4020,7 @@ function startDecorDrag(id, e, idx){
 }
 
 /* ---- console helper: ftuePart(n) starts a new game at the beginning of part n ---- */
-function ftuePart(n){
+function ftuePart(n, j){   /* R109: j = a CUST_JUMPS row, applied after the part's state */
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
     if(n>7) return 'Part '+n+' is not built yet';   /* R36: 7 is GAME, just after the tutorial */
@@ -4050,7 +4054,7 @@ function ftuePart(n){
             for(let i=59;i<=94;i++) SAY_SEQ.push('D'+i); SAY_SEQ.push('D94b');
             FTUE_ST.part=3; FTUE_ST.gpc=4; FTUE_ST.dd={ balanced:1, flame:2 };   /* v3: part 3's four GCs served */
             FTUE_ST.shapes['fire:Longsword']=true; FTUE_ST.shapes['fire:Broadsword']=true; FTUE_ST.shapes['fire:Katana']=true;
-            { const dt=traits.find(t=>t.trait && t.trait.id==='durable'); if(dt){ dt.discovered=true; dt.txtEl.textContent=dt.trait.symbol; dt.txtEl.removeAttribute('font-weight'); reveal(dt.x,dt.y,'trdurable'); } }
+            { const dt=traits.find(t=>t.trait && t.trait.id==='durable'); if(dt && !(j && j.hide==='durable')){ dt.discovered=true; dt.txtEl.textContent=dt.trait.symbol; dt.txtEl.removeAttribute('font-weight'); reveal(dt.x,dt.y,'trdurable'); } }
             TUT_D2_SPENT=true; pickHome(); CAVE_NODES=[]; buildCave();
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='2'; })();
             ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=520; exp=420; TUT_STAGE='p4-tc4'; }   /* v3: TC4 at the bell, Day 2's cave in the bag */
@@ -4083,6 +4087,7 @@ function ftuePart(n){
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='3'; })();
             FTUE_ST.part=6; FTUE_ST.gpc=0; FTUE_ST.done=true; TUT_SEEN_END=true; TUT_STAGE=null; SAY_SEQ.push('D140'); FTUE_ST.wq='done';   /* R37: no waiting-customer guide (D107f) */
             GOLD=1300; exp=1100; }
+        if(j) custJumpSet(j);
         SAY_I=SAY_SEQ.length;
         LEVEL=levelFromExp(exp); TALENT=LEVEL-1-(n>=7 ? 1 : 0); updateHud(); ftueGrindUi(); buildShelf();
         BELL_ON=true; goScreen('customer'); buildScreenProps('customer'); counterUi();
@@ -4091,6 +4096,43 @@ function ftuePart(n){
     return n===7 ? 'Game: setting up (just after the tutorial, Day 3)' : 'Part '+n+': setting up (TC'+n+' is at the bell)';
 }
 window.ftuePart=ftuePart;
+/* ---- R109 (owner, 2026-11-11): console helper - ftueCust(id) starts a new game with that tutorial customer at the bell: a PART
+   jump (base), then the row's changes. Record: specs/2026-11-11-customer-jumps.md. The state is approximate (a test aid). ---- */
+const CUST_JUMPS=[
+    { id:'TC1', base:1, label:'TC1 Bram' },
+    { id:'GC1', base:2, label:'GC1 balanced Longsword', part:1, gpc:0, stage:'p1-bell', drop:['balanced:Longsword','balanced:Broadsword','balanced:Katana'], st:{ bookSeen:false, craftFrame:false, market:false } },
+    { id:'GC2', base:2, label:'GC2 balanced Broadsword', part:1, gpc:1, stage:'p1-bell', drop:['balanced:Broadsword','balanced:Katana'], st:{ bookSeen:false, craftFrame:false } },
+    { id:'GC3', base:2, label:'GC3 balanced Katana', part:1, gpc:2, stage:'p1-bell', drop:['balanced:Katana'] },
+    { id:'TC2', base:2, label:'TC2 a good one' },
+    { id:'TC3', base:3, label:'TC3 fire Shortsword' },
+    { id:'GC4', base:4, label:'GC4 Durable Shortsword', part:3, gpc:0, stage:'p3-bell', drop:['fire:Longsword','fire:Broadsword','fire:Katana'], st:{ seenParts2:false, dd:{ balanced:1 } }, hide:'durable', cave:true },
+    { id:'GC5', base:4, label:'GC5 fire Longsword', part:3, gpc:1, stage:'p3-bell', drop:['fire:Longsword','fire:Broadsword','fire:Katana'], st:{ dd:{ balanced:1 } } },
+    { id:'GC6', base:4, label:'GC6 fire Broadsword', part:3, gpc:2, stage:'p3-bell', drop:['fire:Broadsword','fire:Katana'], st:{ dd:{ balanced:1, flame:1 } } },
+    { id:'GC7', base:4, label:'GC7 fire Katana', part:3, gpc:3, stage:'p3-bell', drop:['fire:Katana'] },
+    { id:'TC4', base:4, label:'TC4 Epic Durable' },
+    { id:'GC8', base:4, label:'GC8 Weak balanced Longsword', part:4, gpc:0, stage:'p4-bell', st:{ pipsSeen:true }, tiers:true },
+    { id:'TC5', base:4, label:'TC5 gale Shortsword', part:4, gpc:1, stage:'d2-bell', st:{ pipsSeen:true }, tiers:true },
+    { id:'WC', base:5, label:'WC gale Katana and fire Claymore', part:4, gpc:1, stage:'p4-bell', st:{ waiting:[], laterOn:false, seenMarket:false }, gold:300 },
+    { id:'BRAM2', base:5, label:'BRAM2 swift Dagger' },
+    { id:'GC9', base:6, label:'GC9 gale Longsword', part:5, gpc:0, stage:'p5-bell', drop:['gale:Longsword'] },
+    { id:'GARRIC', base:6, label:'GARRIC Balanced, graded' },
+    { id:'GAME', base:7, label:'GAME after the tutorial' } ];   /* R109 end */
+/* a row's changes, after its PART jump has built the state (flag values are copied, never shared with the table) */
+function custJumpSet(j){
+    if(j.part) FTUE_ST.part=j.part; if(j.gpc!=null) FTUE_ST.gpc=j.gpc; if(j.stage) TUT_STAGE=j.stage;
+    (j.drop||[]).forEach(k=>{ delete FTUE_ST.shapes[k]; });
+    Object.keys(j.st||{}).forEach(k=>{ FTUE_ST[k]=JSON.parse(JSON.stringify(j.st[k])); });
+    if(j.tiers) TUT_SAW_TIERS=true;
+    if(j.gold!=null) GOLD=j.gold;
+    if(j.cave){ ftueStockCave(FTUE.day2Cave); pickHome(); }   /* GC4: Day 2's cave is still to be mined */
+    ftueLadleUi(); }
+function ftueCust(id){ const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());
+    if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');
+    const msg=ftuePart(j.base, j); return (j.base===1 || j.base===7) ? msg : j.label+': setting up (at the bell)'; }   /* TC1 and GAME: the PART message */
+window.ftueCust=ftueCust;
+/* the cheat bar's CUSTOMER dropdown lists the table */
+function custJumpUi(){ const sel=document.getElementById('cheatCust'); if(!sel || sel.options.length>1) return;
+    CUST_JUMPS.forEach(r=>{ const o=document.createElement('option'); o.value=r.id; o.textContent=r.label; sel.appendChild(o); }); }
 
 // ============================================================
 //  MAP  — ported from SwordforgeV2 (vector-path board + fog)
@@ -5886,6 +5928,7 @@ function menuNew(){
 }
 function newGame(){
     introClose();   /* r302: a new game or a PART jump does not replay the intro */
+    document.querySelectorAll('.sf-modal.show').forEach(m=>m.classList.remove('show')); RW_THEN=null; rwDragonHide(); SAY_THEN=null;   /* R109: no window or order hook from the last game */
     resetRun(); benchClear(); CRAFT_FLY=[]; CRAFT_FLYING=false;
     INV.ingots=[]; INV.swords=[]; INV_SEQ=1; WORK=null;
     DD_SEL={ grip:'grip1', guard:'guard1', pommel:'pommel1' }; DD_BLADE='balanced_shortsword_blade';
@@ -11308,6 +11351,7 @@ const SAY_OPENING = ['D1','D2','D3'];
 function tutReset(){
     tutDone(); sayHide(); TUT_HM_FIRST=false;   /* r290 */ TUT_BRAM_GIVE_OK=false;   /* r298 */
     TUT_COUNTER_VISITED=false; TUT_BRAM_STATE=null; TUT_BRAM_SOLD=false;
+    TUT_FIRE_STATE=null; TUT_FIRE_RUN=false; TUT_BRAM2_STATE=null; TUT_GARRIC_STATE=null;   /* R109: a new game (a PART or customer jump) drops the last game's scripted customers */
     SD_POS=null;   /* r160 */
     const d=document.getElementById('screenDragon'); if(d){ d.style.display=''; d.style.left=''; d.style.top=''; d.style.bottom=''; d.classList.remove('dragging'); }
     const p=document.getElementById('bramIntro'); if(p) p.classList.remove('show');
@@ -11766,6 +11810,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
     if(location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
     (()=>{ const b=document.getElementById('cheatSkipHm'); if(b) b.addEventListener('click', ()=>{ hmSkip(); cheatUi(); }); cheatUi(); })();   /* r165 */
+    custJumpUi();   /* R109 */
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });

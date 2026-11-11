@@ -1220,3 +1220,10 @@ yours and come on top.
   (1 + 1, then the forge), TC5 (D93a -> 2 Copper), GC5 (D92h, D92a -> the fire page), GC9 (D113a -> 5 Copper), Garric (D130 -> 2 + 2,
   then D130b and the desk window still titled "Reward!"); Bram's sale and the diary go straight on. Asserted by the FTUE test
   (written first; GREEN at 1053). Dialogue keys 216.
+- **R109 (owner, 2026-11-11): a jump to every tutorial customer.** "for console helper, can you make a separate part for each
+  customer?" Proposal accepted with "Dropdown picker". Record: `specs/2026-11-11-customer-jumps.md`. `CUST_JUMPS` (18 rows: TC1,
+  GC1-GC3, TC2, TC3, GC4-GC7, TC4, GC8, TC5, WC, BRAM2, GC9, GARRIC, GAME), each a PART base plus changes (`custJumpSet`: part,
+  order, stage, blueprints dropped, flags, gold, GC4's hidden Durable and stocked cave); `ftueCust(id)` and the CUSTOMER dropdown
+  after GAME (`custJumpUi`). Found while checking and fixed: a new game kept the last game's scripted customers (`tutReset`) and its
+  open windows (`newGame`). Checked in the browser: all 18 from the dropdown, the bell tapped, each brought its own customer.
+  Asserted by the FTUE test (written first; GREEN at 1062); the smelter test's `newGame` window widened to 900 characters.

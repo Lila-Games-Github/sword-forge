@@ -1503,8 +1503,8 @@ eq('R35: synced every frame, after the gate; the crown is set directly in the sm
 eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity=(h/100*0.9)"), true);
 
 /* R36 (owner, 2026-10-29): "add a 'game' section in the console helper after part 6, that is after the tutorial" */
-eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>'), true);
-const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);
+eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button>'), true);
+const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n, j\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);   /* R109: and the row */
 eq('R36: ftuePart(7) is built (8 and up are not)', !!fp && fp[0].includes("if(n>7) return 'Part '+n+' is not built yet';"), true);
 eq('R36: Garric served at his best grade - his rewards applied', !!fp && fp[0].includes('FTUE.garricRewards[3].forEach(ftueRewardApply);'), true);
 eq('R36: Day 3 - its cave in the bag, the Pickaxe Upgrade at rank 1', !!fp && fp[0].includes("Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1;") && fp[0].includes("d.textContent='3'"), true);
@@ -1939,5 +1939,53 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R108: GC8 has no dragon line: its window opens once its order has typed', s8.includes("if(o.lesson==='weak') typeAfter(()=>ftueGpcOres(ftueWeakStart));"), true);
   eq('R108: TC2\'s after D31, TC4\'s after D92l, TC5\'s after D93a', [/custReply\('tc2', \(\)=>\{[\s\S]{0,300}say\('D31'\); SAY_THEN=\{ id:'D31', fn:\(\)=>ftueOreReward\('tc2'\) \};/.test(s8),
     s8.includes("sayQueue('D92l'); SAY_THEN={ id:'D92l', fn:()=>ftueOreReward('tc4') };"), s8.includes("sayQueue('D93a'); SAY_THEN={ id:'D93a', fn:()=>ftueOreReward('tc5') };")], [true, true, true]);
+}
+/* R109 (owner, 2026-11-11): a jump to every tutorial customer - ftueCust(id) and the CUSTOMER dropdown (record:
+   specs/2026-11-11-customer-jumps.md) */
+{ const s9 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s9.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s9.indexOf('{', i);
+    for (; j < s9.length; j++) { if (s9[j] === '{') d++; else if (s9[j] === '}' && --d === 0) break; } return s9.slice(i, j + 1); };
+  const m = s9.match(/const CUST_JUMPS=(\[[\s\S]*?\]);\s*\/\* R109 end \*\//); const T = m ? new Function('return ' + m[1])() : null;
+  eq('R109: CUST_JUMPS is the recorded table', T, [
+    { id: 'TC1', base: 1, label: 'TC1 Bram' },
+    { id: 'GC1', base: 2, label: 'GC1 balanced Longsword', part: 1, gpc: 0, stage: 'p1-bell', drop: ['balanced:Longsword', 'balanced:Broadsword', 'balanced:Katana'], st: { bookSeen: false, craftFrame: false, market: false } },
+    { id: 'GC2', base: 2, label: 'GC2 balanced Broadsword', part: 1, gpc: 1, stage: 'p1-bell', drop: ['balanced:Broadsword', 'balanced:Katana'], st: { bookSeen: false, craftFrame: false } },
+    { id: 'GC3', base: 2, label: 'GC3 balanced Katana', part: 1, gpc: 2, stage: 'p1-bell', drop: ['balanced:Katana'] },
+    { id: 'TC2', base: 2, label: 'TC2 a good one' },
+    { id: 'TC3', base: 3, label: 'TC3 fire Shortsword' },
+    { id: 'GC4', base: 4, label: 'GC4 Durable Shortsword', part: 3, gpc: 0, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { seenParts2: false, dd: { balanced: 1 } }, hide: 'durable', cave: true },
+    { id: 'GC5', base: 4, label: 'GC5 fire Longsword', part: 3, gpc: 1, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { dd: { balanced: 1 } } },
+    { id: 'GC6', base: 4, label: 'GC6 fire Broadsword', part: 3, gpc: 2, stage: 'p3-bell', drop: ['fire:Broadsword', 'fire:Katana'], st: { dd: { balanced: 1, flame: 1 } } },
+    { id: 'GC7', base: 4, label: 'GC7 fire Katana', part: 3, gpc: 3, stage: 'p3-bell', drop: ['fire:Katana'] },
+    { id: 'TC4', base: 4, label: 'TC4 Epic Durable' },
+    { id: 'GC8', base: 4, label: 'GC8 Weak balanced Longsword', part: 4, gpc: 0, stage: 'p4-bell', st: { pipsSeen: true }, tiers: true },
+    { id: 'TC5', base: 4, label: 'TC5 gale Shortsword', part: 4, gpc: 1, stage: 'd2-bell', st: { pipsSeen: true }, tiers: true },
+    { id: 'WC', base: 5, label: 'WC gale Katana and fire Claymore', part: 4, gpc: 1, stage: 'p4-bell', st: { waiting: [], laterOn: false, seenMarket: false }, gold: 300 },
+    { id: 'BRAM2', base: 5, label: 'BRAM2 swift Dagger' },
+    { id: 'GC9', base: 6, label: 'GC9 gale Longsword', part: 5, gpc: 0, stage: 'p5-bell', drop: ['gale:Longsword'] },
+    { id: 'GARRIC', base: 6, label: 'GARRIC Balanced, graded' },
+    { id: 'GAME', base: 7, label: 'GAME after the tutorial' } ]);
+  { const W = new Function('FTUE', 'ftueStockCave', 'pickHome', 'ftueLadleUi', 'let FTUE_ST, TUT_STAGE=null, TUT_SAW_TIERS=false, GOLD=900; ' + fn('custJumpSet')
+      + '; return (st, j) => { FTUE_ST = st; custJumpSet(j); return { st: FTUE_ST, stage: TUT_STAGE, tiers: TUT_SAW_TIERS, gold: GOLD }; };');
+    let caved = null, homed = 0, ladle = 0;
+    const run = W({ day2Cave: { nickel: 2 } }, c => { caved = c; }, () => { homed++; }, () => { ladle++; });
+    const a = run({ part: 2, gpc: 3, shapes: { 'fire:Longsword': true, 'fire:Katana': true, 'balanced:Katana': true }, dd: { balanced: 1, flame: 2 }, seenParts2: true },
+      { part: 3, gpc: 0, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { seenParts2: false, dd: { balanced: 1 } }, cave: true });
+    eq('R109: a row sets the part, order, stage, drops its blueprints, sets its flags, stocks the cave', [a.st.part, a.st.gpc, a.stage, a.st.shapes, a.st.seenParts2, a.st.dd, caved, homed, ladle, a.tiers, a.gold],
+      [3, 0, 'p3-bell', { 'balanced:Katana': true }, false, { balanced: 1 }, { nickel: 2 }, 1, 1, false, 900]);
+    const b = run({ part: 5, gpc: 2, shapes: {}, waiting: [{ x: 1 }] }, { part: 4, gpc: 1, stage: 'p4-bell', st: { waiting: [], laterOn: false }, gold: 300, tiers: true });
+    eq('R109: gold and the tiers flag when a row names them; flag values are copies', [b.gold, b.tiers, b.st.waiting, b.st.laterOn], [300, true, [], false]); }
+  eq('R109: ftuePart takes the row and applies it before the HUD and the bell are drawn', [s9.includes('function ftuePart(n, j){'),
+    /if\(j\) custJumpSet\(j\);\s*\n\s*SAY_I=SAY_SEQ\.length;/.test(s9)], [true, true]);
+  eq('R109: GC4\'s row keeps Durable undiscovered', s9.includes("if(dt && !(j && j.hide==='durable')){"), true);
+  eq('R109: ftueCust finds the row (any case) and calls ftuePart with it; an unknown id names the valid ones', [s9.includes("function ftueCust(id){ const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());"),
+    s9.includes("if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');"), s9.includes('ftuePart(j.base, j);'), s9.includes('window.ftueCust=ftueCust;')], [true, true, true, true]);
+  eq('R109: the CUSTOMER dropdown sits in the cheat bar and lists the table', [/<div id="cheatBar">[\s\S]{0,3000}<select id="cheatCust"/.test(s9),
+    /function custJumpUi\(\)\{[\s\S]{0,400}CUST_JUMPS\.forEach/.test(s9)], [true, true]);
+  /* found while checking R109: a new game (every PART jump) kept the scripted customers' state from the game before - after
+     TC3's arrival, the next jump showed her panel over the bell */
+  eq('R109: a new game closes every open window and drops a pending order hook (an ore window stayed over the next jump\'s bell)',
+    /function newGame\(\)\{[\s\S]{0,300}document\.querySelectorAll\('\.sf-modal\.show'\)\.forEach\(m=>m\.classList\.remove\('show'\)\); RW_THEN=null; rwDragonHide\(\); SAY_THEN=null;/.test(s9), true);
+  eq('R109: a new game clears the scripted customers (TC3, Bram\'s return, Garric)', /function tutReset\(\)\{[\s\S]{0,400}TUT_FIRE_STATE=null; TUT_FIRE_RUN=false; TUT_BRAM2_STATE=null; TUT_GARRIC_STATE=null;/.test(s9), true);
 }
 console.log('[ftue] GREEN / ' + n + ' checks');
