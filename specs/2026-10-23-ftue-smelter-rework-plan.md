@@ -1227,3 +1227,13 @@ yours and come on top.
   after GAME (`custJumpUi`). Found while checking and fixed: a new game kept the last game's scripted customers (`tutReset`) and its
   open windows (`newGame`). Checked in the browser: all 18 from the dropdown, the bell tapped, each brought its own customer.
   Asserted by the FTUE test (written first; GREEN at 1062); the smelter test's `newGame` window widened to 900 characters.
+- **R110 (owner, 2026-11-11): D28n on the dark, D28o reworded.** For D28n (GC2's craft book): "black overlay everything except
+  the map area and the craft window. and change that dialogue to 'Every trait you discover, I will record it. Now close the book
+  and continue crafting.'" (said of D28o, the line over the open book). D28n goes on the cut dim with two windows, the map
+  (`#map-wrap`) and the craft frame (`#hud`, its book blinking); D28o (over the open book) stays clear of it, as before. D28o:
+  "Each page shows a trait and the ores that reached it. Close the book to continue." -> "Every trait you discover, I will record it.
+  Now close the book and continue crafting." (owner's words). Found while checking and fixed: the lit dragon (dark-lit, 61) sat over
+  the craft frame and took the book's tap (as he took the ring's in R107), so the frame is raised to 62 for D28n (`#hud.book-up`)
+  and goes back down when the book opens. Checked in the browser (the GC2 jump, then the gate's book lesson): the dark with the map
+  and the frame lit, the anvil and the inventory under it; the book takes the tap; D28o with the new words, the dark gone; CLOSE goes
+  on to the anvil step. Asserted by the FTUE test (written first; GREEN at 1064).

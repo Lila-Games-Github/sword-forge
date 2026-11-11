@@ -230,9 +230,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 48b. **D28n** Dragon: "Every trait you discover on the map is recorded in the craft book. Tap the book to open it."
    *When: R105: GC2's gate is opened; the craft frame appears (open, from now on) and its book blinks. No X: the book's tap
-   moves on.*
+   moves on. R110: said on the dark, only the map and the craft frame lit (the frame over the dragon).*
 
-48c. **D28o** Dragon: "Each page shows a trait and the ores that reached it. Close the book to continue."
+48c. **D28o** Dragon: "Every trait you discover, I will record it. Now close the book and continue crafting." (R110, owner's words)
    *When: the craft book is open (R105); said over it, its CLOSE blinks. No X: CLOSE moves on to the anvil step.*
 
 49. **D28c** Dragon: "Here it is. Watch this!"

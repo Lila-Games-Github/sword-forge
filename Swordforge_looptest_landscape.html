@@ -989,7 +989,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .tier-box { max-width: 460px; }
 /* R107: the Traits and Tiers window - rows of the craft frame's 5 pips; no backdrop of its own, the cut dim is the dark */
 #sfPipModal { background: transparent; }
-#frame.landscape > #hud.pip-up { z-index: 62; }   /* R107: over the lit dragon (dark-lit, 61), whose head covered the ring (as specific as R25's z 31) */
+#frame.landscape > #hud.pip-up, #frame.landscape > #hud.book-up { z-index: 62; }   /* R107: over the lit dragon (dark-lit, 61), whose head covered the ring (as specific as R25's z 31). R110: and his body the book (D28n) */
 .pip-row { display: flex; align-items: center; gap: 12px; margin: 7px 0; }
 .pip-lab { width: 78px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px; letter-spacing: .6px; text-transform: uppercase; color: #4a3623; }
 .pip-slots { display: grid; grid-template-columns: repeat(5, 36px); gap: 4px; height: 36px; }
@@ -3720,8 +3720,8 @@ function ftueBookLesson(){ return FTUE_ST.part===1 && FTUE_ST.gpc===1 && !FTUE_S
 function ftueGcGated(){ if(ftueBookLesson()) ftueBookIntro(); else ftueGcQuenched(); }   /* the gate's hook and the per-frame catch-up both come here */
 function ftueBookIntro(){ TUT_STAGE='p1-book'; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true; craftFrameUi();
     { const h=document.getElementById('hud'); if(h && h.classList.contains('collapsed')) toggleHud(); }
-    tutArrow(null,null); sayQueue('D28n'); tutExit('#recipeBtn'); }
-function ftueBookOpened(){ if(TUT_STAGE!=='p1-book') return; TUT_STAGE='p1-book-open'; sayQueue('D28o');
+    tutArrow(null,null); document.getElementById('hud').classList.add('book-up'); sayQueue('D28n'); tutExit('#recipeBtn'); }   /* R110: over the lit dragon */
+function ftueBookOpened(){ if(TUT_STAGE!=='p1-book') return; TUT_STAGE='p1-book-open'; document.getElementById('hud').classList.remove('book-up'); sayQueue('D28o');
     { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } } tutExit('#sfBookModal .cb-close');
     document.getElementById('sfBookModal').classList.add('cb-look'); }
 function ftueBookClosed(){ if(TUT_STAGE!=='p1-book-open') return; document.getElementById('sfBookModal').classList.remove('cb-look'); sayHide(); tutExit(null); ftueGcQuenched(); }
@@ -3781,7 +3781,8 @@ const SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ],
     D71:[ { sel:'#map-wrap' } ], D72:[ { sel:'#map-wrap' } ],   /* R72 (owner): D71 and D72 too; D72a is said clear */
     D32c:[ { sel:'#map-wrap' } ], D33:[ { sel:'#map-wrap' } ],   /* R87 (owner): TC2's "try again" and the what-if path; D35 is said clear */
     D38:[ { sel:'#map-wrap' } ],   /* R99 (owner, 2026-11-11): no bellows or gate until D38 is closed - pumping and gating under it skipped the record lesson */
-    D98a:[ { sel:'#map-wrap' } ], D98b:[ { sel:'#traitSlots' } ] };   /* R107 (owner, 2026-11-11): TC4's pip lesson - the map, then only the blade pips */
+    D98a:[ { sel:'#map-wrap' } ], D98b:[ { sel:'#traitSlots' } ],   /* R107 (owner, 2026-11-11): TC4's pip lesson - the map, then only the blade pips */
+    D28n:[ { sel:'#map-wrap' }, { sel:'#hud' } ] };   /* R110 (owner, 2026-11-11): GC2's book lesson - only the map and the craft frame show */
 /* R16 (owner, 2026-10-27): D13 in the first minigame - only the minigame's dragon and the line show */
 const HM_SAY_DARK=['D13'];
 function hmDarkSync(){ const m=document.getElementById('sfHammerModal'); if(m) m.classList.toggle('hm-dark', m.classList.contains('show') && HM_SAY_DARK.includes(SAY_ON)); }
@@ -9222,7 +9223,7 @@ const DIALOGUE = {
     D28l: "Careful! Here, try again.",   /* r293 (owner): the refill, over the reward window */
     D28m: "Let's buy those later. Focus on the customer's request.",   /* r301 (owner): a blueprint the order did not ask for */
     D28n: "Every trait you discover on the map is recorded in the craft book. Tap the book to open it.",   /* R105 (owner, 2026-11-11): GC2's gate meets the craft book */
-    D28o: "Each page shows a trait and the ores that reached it. Close the book to continue.",   /* R105: over the open book */
+    D28o: "Every trait you discover, I will record it. Now close the book and continue crafting.",   /* R105: over the open book. R110 (owner, 2026-11-11): reworded (was "Each page shows a trait and the ores that reached it. Close the book to continue.") */
     D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",   /* v3 part 2 (owner) */
