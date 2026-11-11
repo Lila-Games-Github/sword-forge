@@ -1205,3 +1205,18 @@ yours and come on top.
   ring, so the craft frame is raised to 62 for D98a only (`#frame.landscape > #hud.pip-up`, as specific as R25's rule) and goes
   back under the dark for D98b, so only the pips show. Checked in the browser with real taps (tiers close, ladle, gate, ring,
   close). Asserted by the FTUE test (written first; GREEN at 1044). Dialogue keys 214.
+- **R108 (owner, 2026-11-11): the ores come with the order.** "I want to change the position of this dialogue and 'reward'.
+  Currently it appears after selling. I want it to instead appear after dragon's dialogues (example, after d28b). Dragon's
+  dialogues will now be 'Here are the ores for your next sword.' or 'More ores for you.' or 'I found some ores for you.' and
+  instead of reward the window now reads 'Ores Acquired!'." Proposal confirmed with "Yes, use defaults". Record: "Revised R108" in
+  `specs/2026-10-07-ftue-v3-rework.md` (the new table). `FTUE.oreChain` is keyed by the order it pays for; the window opens when the
+  order's dragon line closes (`SAY_THEN` for D31, D92l, D93a; `ftueOrderGo` -> `ftueGpcOres` for the market orders D28b, D28e, D28g,
+  D92a, D92i, D92j, D113a; `SAY_AFTER.D130` for Garric; GC8 once its order has typed). `ftueOreSold` and `orePending` are gone: the
+  sales go straight on. Title "Ores Acquired!" for ore-only windows (`FTUE.oreTitle`, `#rwTitle`), sub-line "For this order.", lines
+  D18b-D18d (`FTUE.oreLines`, `ftueOreLine`: random, never twice in a row) replace D18a; D28j says "ore stock". TC2's arrival no
+  longer sets the bag (its window gives `FTUE.tc2Ore`); a crafted tutorial sword ends the round so the refill waits for the window;
+  the PART 2, 4 and 6 jumps start with an empty bag. Checked in the browser with real taps: TC2 (D31 -> 1 + 1 with D28j), GC1
+  (D28b -> 2 + 2, D18c), GC2 walking away with D28e up (the window at the forge), TC4 (D92l -> 2 Nickel, the forge arrow kept), GC8
+  (1 + 1, then the forge), TC5 (D93a -> 2 Copper), GC5 (D92h, D92a -> the fire page), GC9 (D113a -> 5 Copper), Garric (D130 -> 2 + 2,
+  then D130b and the desk window still titled "Reward!"); Bram's sale and the diary go straight on. Asserted by the FTUE test
+  (written first; GREEN at 1053). Dialogue keys 216.

@@ -221,8 +221,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   a swing; tin and zinc have none. Drag the pickaxe onto a seam and it swings by itself.
 - **Tutorial caves:** the first (Part 2) 3 iron + 2 manganese; Day 2 `FTUE.day2Cave` (2 nickel); Day 3 `FTUE.day3Cave`
   (nickel 9, iron 20, manganese 20, copper 17, aluminium 15), 2-3 ore a swing. Day 3 gathering waits for a Pickaxe point (R23).
-- **Ore chain:** in the tutorial the dragon gives exactly the next sword's ores after each sale (`FTUE.oreChain`); the bag
-  starts with 2 iron + 2 manganese (`FTUE.oreStart`).
+- **Ore chain:** in the tutorial the dragon gives exactly an order's ores (`FTUE.oreChain`, keyed by the order) in the "Ores
+  Acquired!" window when his line for that order closes, with D18b, D18c or D18d at random (R108; was after the previous
+  sale); the bag starts with 2 iron + 2 manganese (`FTUE.oreStart`).
 
 ### The tutorial (FTUE)
 

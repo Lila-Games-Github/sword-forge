@@ -279,8 +279,9 @@ only Update is offered, R100).
 
 ## 9. The tutorial (FTUE)
 
-Six parts over three in-game days. The dragon leads; each step lights the one control to use. The ores are rationed: after each
-sale the dragon gives exactly the next sword's ores ("the ore chain").
+Six parts over three in-game days. The dragon leads; each step lights the one control to use. The ores are rationed: the dragon gives
+exactly an order's ores ("the ore chain"), in the "Ores Acquired!" window when his line for that order closes (R108; was after
+the previous sale).
 
 | Part | Day | Who | What the player learns |
 |---|---|---|---|

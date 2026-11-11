@@ -2546,7 +2546,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
     <div id="sfRewardModal" class="sf-modal">
         <img id="rwDragon" src="assets/forge/dragon.webp" alt="">
         <div class="sf-modal-box">
-            <h3 class="sf-modal-h">Reward!</h3>
+            <h3 id="rwTitle" class="sf-modal-h">Reward!</h3>
             <div id="rwList" class="rwd-list"></div>
             <div class="rwd-ok"><button class="paperBtn wide" type="button" onclick="closeReward()">OK</button></div>
         </div>
@@ -2809,24 +2809,28 @@ const FTUE = {
                                                                     owner, 2026-10-10 ("not enough ore for Garric"): +7 iron and +7 manganese - his Epic Balanced (2 + 2) + 5 */
     /* owner, 2026-10-10: Day 3's cave (after Garric's night) holds the same as Day 2's, + 15 aluminium; it was normal play */
     day3Cave:  { nickel:9, iron:20, manganese:20, copper:17, aluminium:15 },
-    /* r291 (owner, 2026-10-21): the ore chain. After each tutorial sword (its key) the dragon gives, in the reward window
-       with his line on top, exactly the ores the NEXT sword needs. 'page:<trait>' = that craft-book page's ores. No row:
-       nothing (TC2 and TC3 go to the caves, GC8's next is the stored swift ingot, Garric is the last). gc9 comes with D107g. */
+    /* r291 (owner, 2026-10-21): the ore chain - the dragon gives exactly the ores a tutorial order needs, in the reward window
+       with his line on top. 'page:<trait>' = that craft-book page's ores. R108 (owner, 2026-11-11): keyed by the ORDER it pays
+       for ('p<part>g<order>' for the gameplay customers), given when the dragon's line for that order closes (was: after the
+       previous sale). No row: TC1 (the starting bag), TC3 and GC4 (the caves), the waiting customer, Bram's Dagger (the stored
+       ingot). A row's say wins over a random oreLines line; gc9 comes with D107g at the ledger. */
     oreChain: {
-        first:    { give:{ iron:2, manganese:2 }, say:'D18a' },
-        p1g0:     { give:{ iron:2, manganese:2 }, say:'D18a' },
-        p1g1:     { give:{ iron:2, manganese:2 }, say:'D18a' },
-        p1g2:     { give:{ iron:1, manganese:1 }, say:'D28j' },
-        p3g0:     { give:'page:fire', say:'D18a' },
-        p3g1:     { give:'page:fire', say:'D18a' },
-        p3g2:     { give:'page:fire', say:'D18a' },
-        p3g3:     { give:{ nickel:2 }, say:'D18a' },
-        tc4:      { give:{ iron:1, manganese:1 }, say:'D18a' },   /* R95: GC8 comes after TC4 */
-        p4g0:     { give:{ copper:2 }, say:'D18a' },              /* R95: after GC8, TC5's copper (TC5 itself gives nothing now) */
-        tc5swift: { give:{ copper:5 }, say:'D18a' },
-        bram2:    { give:'page:gale', say:'D18a' },
-        p5g0:     { give:{ iron:2, manganese:2 }, say:'D18a' },
+        p1g0:     { give:{ iron:2, manganese:2 } },   /* GC1, after D28b */
+        p1g1:     { give:{ iron:2, manganese:2 } },   /* GC2, after D28e */
+        p1g2:     { give:{ iron:2, manganese:2 } },   /* GC3, after D28g */
+        tc2:      { give:{ iron:1, manganese:1 }, say:'D28j' },   /* TC2, after D31 (FTUE.tc2Ore) */
+        p3g1:     { give:'page:fire' },   /* GC5, after D92h and D92a */
+        p3g2:     { give:'page:fire' },   /* GC6, after D92i */
+        p3g3:     { give:'page:fire' },   /* GC7, after D92j */
+        tc4:      { give:{ nickel:2 } },   /* TC4, after D92l */
+        p4g0:     { give:{ iron:1, manganese:1 } },   /* GC8, once its order has typed (no dragon line) */
+        tc5:      { give:{ copper:2 } },   /* TC5, after D93a: the swift ingot's copper */
+        tc5swift: { give:{ copper:5 } },   /* the swift ingot stored (tutGaleStart) */
+        p5g0:     { give:'page:gale' },   /* GC9, the gale Longsword, after D113a */
+        garric:   { give:{ iron:2, manganese:2 } },   /* Garric, after D130 (then D130b) */
         gc9:      { give:['page:gale','page:fire'], say:'D107g', keep:true } },
+    oreLines: ['D18b','D18c','D18d'],   /* R108: over the window, at random, never the same one twice in a row */
+    oreTitle: 'Ores Acquired!',         /* R108: the window's title when it holds only ores */
     /* owner, 2026-10-13: fire sits between the two full-ground endings (2 iron + 1 manganese, then full iron OR full
        manganese): 17.1 and 16.0 away, both Fine. Moved after the map is built - TRAIT_POS feeds the seeded placement of
        every hazard and book, and moving it there would reshuffle them. */
@@ -3420,7 +3424,7 @@ function ftueRewardName(r){
     if(r.kind==='unlock' && r.id==='garricParts') return 'Balanced sword parts x6';
     return r.id || r.kind; }
 function ftueRewardSub(r){
-    if(r.kind==='ore') return 'For the next sword.';   /* r291 */
+    if(r.kind==='ore') return 'For this order.';   /* r291. R108: was 'For the next sword.' */
     if(r.kind==='decor') return 'Decor. Place it with BUILD in the Decor tab.';
     if(r.kind==='blueprint') return 'You can now shape a '+TRAIT_BY[r.trait].name+' '+r.shape+'.';
     if(r.kind==='unlock' && r.id==='grindstone') return "It is on the forge bench. Let's use it now.";
@@ -3458,6 +3462,7 @@ function ftueRewardIcon(r){
 function ftueReward(list, then){
     list=list||[]; if(!list.length){ if(then) then(); return; }
     list.forEach(ftueRewardApply);
+    { const ti=document.getElementById('rwTitle'); if(ti) ti.textContent=list.every(r=>r.kind==='ore') ? FTUE.oreTitle : 'Reward!'; }   /* R108 */
     const box=document.getElementById('rwList'); if(box){ box.innerHTML='';
         list.forEach(r=>{ const row=document.createElement('div'); row.className='rwd-row';
             row.innerHTML=ftueRewardIcon(r)+'<span class="rwd-tx"><b>'+ftueRewardName(r)+'</b><span>'+ftueRewardSub(r)+'</span></span>';
@@ -3507,13 +3512,15 @@ function ftueOreReward(key, then){ const e=key && FTUE.oreChain[key]; if(!e){ if
        Garric's (p5g0); taking the round then made the refill compare the bag with GC9's ores at Garric's order. GC9 is not refilled (r293), so
        its reward leaves the round alone */
     ftueOreWindow(give, e, then); }
-/* r294 (owner): the noted sword's reward, given after its sale - each sale calls this at its natural pause */
-function ftueOreSold(then){ if(CUST_BYE){ setTimeout(()=>ftueOreSold(then), 250); return; }   /* r295 (owner): once the customer has gone */
-    const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }
+/* R108 (owner, 2026-11-11): a gameplay order's ores (its key: part and order), when its line closes (ftueOrderGo) or, for GC8, once its order has typed */
+function ftueGpcOres(then){ ftueOreReward('p'+FTUE_ST.part+'g'+FTUE_ST.gpc, then); }
+/* R108: the line over the window, at random from FTUE.oreLines, never the one said last */
+let ORE_LINE_LAST=null;
+function ftueOreLine(){ const L=FTUE.oreLines.filter(k=>k!==ORE_LINE_LAST); ORE_LINE_LAST=L[Math.floor(Math.random()*L.length)]; return ORE_LINE_LAST; }
 /* the reward window for some ores, with the dragon's line (e.say) over it; e.keep leaves the line up after OK */
 function ftueOreWindow(give, e, then){ const list=Object.keys(give).filter(k=>give[k]>0).map(k=>({ kind:'ore', id:k, n:give[k] }));
     if(!list.length){ if(then) then(); return; }
-    const line=e.say;
+    const line=e.say || ftueOreLine();   /* R108: a row's own line, else a random one */
     ftueReward(list, ()=>{ if(line && SAY_ON===line){ if(e.keep) say(line); else sayHide(); } if(then) then(); });   /* r292: a kept line moves back to the screen's own bubble */
     if(line) setTimeout(()=>{ sayQueue(line); const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb) sb.classList.add('say-over-modal'); }, 0); }
 /* ---- r293 (owner, 2026-10-21): the refill. When the bag can no longer make the open order - nothing on the bench, no window,
@@ -3570,7 +3577,7 @@ function ftueAfterBram(){
     if(FTUE_ST.part!==1 || TUT_STAGE==='p1-reward') return;
     /* v3: no reward window - the banner moved to Garric (D11), and its lesson with it. Straight to the quest list. */
     TUT_STAGE='p1-quest'; tutArrow(null,null); tutExit(null);
-    setTimeout(()=>ftueOreSold(()=>sayQueue('D118')), 0);   /* r294: the first sword's ores, after Bram's sale */
+    setTimeout(()=>sayQueue('D118'), 0);   /* R108: GC1's ores come with its order (r294 gave them here) */
 }
 /* r200: hang the banner on the counter screen - ITEMS & DECOR, BUILD on, drag, BUILD off - and only
    then D118. Pointers only (owner). The pointer is worked out from the state every time, because
@@ -3622,7 +3629,7 @@ function tutTc4Arrive(){
     CUSTOMER={ portrait:'assets/customer/woman2.webp', tid:'durable', shape:null, tier:'Epic', name:'Durable', ftue:true, qty:1, got:0, tc4:true };
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D92k);
-    custReply('tc4', ()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l'); setTimeout(()=>tutExitTo('forge'), 0); });   /* R56: the player's reply first */   /* owner, 2026-10-09: the nickel is in the bag from Day 2's one trip */
+    custReply('tc4', ()=>{ TUT_STAGE='p3-dur-back'; sayQueue('D92l'); SAY_THEN={ id:'D92l', fn:()=>ftueOreReward('tc4') }; setTimeout(()=>tutExitTo('forge'), 0); });   /* R108: its 2 Nickel when D92l closes */   /* R56: the player's reply first */   /* owner, 2026-10-09: the nickel is in the bag from Day 2's one trip */
 }
 /* R104 (owner, 2026-11-11): the ladle's pull onto Durable "is so small that it is easily missed" (10 units) - the map zooms in on
    the sword and Durable for the lesson, never closer than MIN_W, and the player's own view comes back once it is aligned */
@@ -3655,7 +3662,7 @@ function tutDurableAligned(){
 function ftueTc4Sold(){
     CUSTOMER=null; refreshCounter(); counterUi(); tutArrow(null,null); tutExit(null);
     TUT_STAGE='p4-bell';   /* R95: GC8 comes next (was TC5) */
-    setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);   /* r294 */
+    setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>{ bellShow(true); ftueToCounter(); }), 700);   /* R108: no ores after the sale */
 }
 /* GC8: 1 iron + 1 manganese, ground; the hammer parks the sword in the Weak band */
 function ftueWeakStart(){ TUT_STAGE='p4-weak-go'; tutExitTo('forge'); }
@@ -3844,7 +3851,7 @@ function ftueGpcArrive(){
     const nudge = o.market ? o.market.ask : (FTUE_ST.part===2 && FTUE_ST.gpc===0) ? 'D58a'
                 : null;
     if(o.lesson==='durable') custReply('order', ftueDurableStart);   /* v3 part 3. R56: the reply first */
-    if(o.lesson==='weak') typeAfter(ftueWeakStart);         /* v3 part 4 */
+    if(o.lesson==='weak') typeAfter(()=>ftueGpcOres(ftueWeakStart));         /* v3 part 4. R108: its ores first (no dragon line) */
     if(o.lesson==='later'){ FTUE_ST.laterOn=true; counterBoxes(); FTUE_LATER='mk';   /* r253: the market first */
         typeAfter(()=>{ FTUE_ST.seenMarket=true; marketBtnUi(); tutExit('#marketBtn'); }); }   /* 2026-10-09: COME LATER appears with them. R39: the market appears as it is lit */
     if(nudge) typeAfter(()=>{ if(ftueMarketOwned()){ FTUE_MK=null; custReplyShow('order', ()=>ftueOrderGo(o)); return; }
@@ -3910,7 +3917,7 @@ function ftueBulkStep(){
 /* r205: D117 is off the screen - the diary is done, and the bell brings part 5's customers */
 function ftueAfterDiary(){
     if(FTUE_ST.part!==5 || TUT_STAGE!=='gift-read') return;
-    TUT_STAGE='p5-bell'; ftueOreSold(()=>{ bellShow(true); ftueToCounter(); });   /* r294: the Dagger's ores, after Bram's scene */
+    TUT_STAGE='p5-bell'; bellShow(true); ftueToCounter();   /* R108: GC9's ores come with its order */
 }
 function ftueBellGlow(){ setTimeout(()=>tutGlow(()=>document.querySelector("#screenProps [data-act='bell']"), true), 0); }
 /* back to the counter from wherever the player went; then the bell glows */
@@ -3923,7 +3930,7 @@ function ftueGpcSold(){
     TUT_STAGE = P.tc5After===FTUE_ST.gpc ? 'd2-bell' : more ? 'p'+FTUE_ST.part+'-gpc' : P.after;   /* P.after is the bell that brings the next TC. R95: part 4's TC5 comes between its gameplay customers */
     if(TUT_STAGE==='d2-bell') bellShow(true);   /* R95: TC5's bell */
     tutArrow(null,null); tutExit(null);
-    setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);   /* r294: then the ore reward */
+    setTimeout(()=>ftueReward(list, ftueToCounter), 700);   /* R108: no ores after the sale */
 }
 /* part 1 GPC swords: 3 of one ore is one too many; fewer than 2 of one is caught at the gate */
 function ftueRetryAsk(){
@@ -4028,7 +4035,7 @@ function ftuePart(n){
         GOLD=60; exp=100;
         FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.market=true; FTUE_ST.cwSeen=true; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true;   /* R105 */   /* v3: the banner is Garric's now; the grindstone comes in TC2's run */
         FTUE_ST.shapes['balanced:Longsword']=true; FTUE_ST.shapes['balanced:Broadsword']=true; FTUE_ST.shapes['balanced:Katana']=true;
-        ORE_COUNT.iron=1; ORE_COUNT.manganese=1; FTUE_ST.oreRound={ iron:1, manganese:1 }; TUT_STAGE='bell'; marketBtnUi();   /* r293: the round too */
+        ORE_COUNT.iron=0; ORE_COUNT.manganese=0; FTUE_ST.oreRound=null; TUT_STAGE='bell'; marketBtnUi();   /* r293: the round too. R108: TC2's 1 + 1 come in its window */
         if(n>=3){   /* the end of part 2: TC2's sword sold, GPC3's five sold, TC3 waiting at the bell */
             RECIPES.balanced={ key:'balanced', traits:[{ tid:'balanced', tier:'Fine' }], ores:['iron','manganese'], grinds:[1,1], at:Date.now() };
             for(let i=29;i<=58;i++) if(i<48 || i>57) SAY_SEQ.push('D'+i);   /* D48-D57 are the sharpening run, moved to part 5 */
@@ -4046,7 +4053,7 @@ function ftuePart(n){
             { const dt=traits.find(t=>t.trait && t.trait.id==='durable'); if(dt){ dt.discovered=true; dt.txtEl.textContent=dt.trait.symbol; dt.txtEl.removeAttribute('font-weight'); reveal(dt.x,dt.y,'trdurable'); } }
             TUT_D2_SPENT=true; pickHome(); CAVE_NODES=[]; buildCave();
             (()=>{ const d=document.getElementById('dayNum'); if(d) d.textContent='2'; })();
-            ORE_COUNT.nickel=2; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound={ nickel:2 }; GOLD=520; exp=420; TUT_STAGE='p4-tc4'; }   /* v3: TC4 at the bell, Day 2's cave in the bag */
+            ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=520; exp=420; TUT_STAGE='p4-tc4'; }   /* v3: TC4 at the bell, Day 2's cave in the bag */
         if(n>=5){   /* the end of part 4: swift ingot stored, gale sword sold to TC4, GPC7-8 served, Bram at the bell */
             FTUE_ST.pipsSeen=true;   /* R107: TC4's pip lesson is behind */
             ['swift','gale'].forEach(id=>{ const t=traits.find(x=>x.trait && x.trait.id===id);
@@ -4068,7 +4075,7 @@ function ftuePart(n){
             for(let i=48;i<=57;i++) SAY_SEQ.push('D'+i);
             RAIL_DIARY=true; railUi();
             FTUE_ST.desk=false; FTUE_ST.part=5; FTUE_ST.gpc=1; FTUE_ST.swiftFree=true; FTUE_ST.dd.swift=1; FTUE_ST.shapes['swift:Dagger']=true; FTUE_ST.shapes['gale:Longsword']=true; FTUE_ST.sharp=true;
-            ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; FTUE_ST.oreRound={ iron:2, manganese:2 }; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
+            ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=1100; exp=860; TUT_STAGE='g-bell'; }
         if(n>=7){   /* R36 (owner, 2026-10-29): just after the tutorial - Garric served at his best grade, Day 3's cave gathered and its
                        Pickaxe point spent, D140 said: the FTUE done */
             FTUE.garricRewards[3].forEach(ftueRewardApply);
@@ -7730,8 +7737,8 @@ function closeCraft(){
     if(show && from && CRAFT_FLY.length) CRAFT_FLYING=true; else { CRAFT_FLY=[]; CRAFT_FLYING=false; }   /* set before the window goes: no frame shows them early */
     if(modal) modal.classList.remove('show');
     if(show && from) flyCraft(from, show.w, show.n);
-    const ok=CRAFT_ORE; CRAFT_ORE=null;   /* r291. r294 (owner): note the sword - its ores come after the sale (ftueOreSold) */
-    if(ok){ if(FTUE.oreChain[ok]) FTUE_ST.orePending=ok; else FTUE_ST.oreRound=null; }
+    const ok=CRAFT_ORE; CRAFT_ORE=null;   /* r291 */
+    if(ok) FTUE_ST.oreRound=null;   /* R108: a made tutorial sword ends the round, so no refill runs before the next order's window */
     if(typeof after==='function') after();
     ftueBulkStep();   /* r201 */
 }
@@ -7818,7 +7825,7 @@ function shapeGrid(){
 /* r300 (owner, 2026-10-21): the tutorial buys at the shape window. FTUE_MK.step: 'shape' (waiting for the window), 'gift' (the dragon
    is paying), 'buy' (the player buys). The order's lines are said first; closing them starts the craft guide (ftueOrderGo). */
 let SAY_THEN=null, FTUE_SHAPE_LINE=null;
-function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }
+function ftueOrderGo(o){ ftueGpcOres(()=>{ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }); }   /* R108: the order's ores first */
 function ftueSaySh(id){ sayQueue(id); FTUE_SHAPE_LINE=id; const sb=document.getElementById(SAY_BOXES[sayWhere()][0]); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }   /* over the window */
 function ftueShapeBtn(o){ return ()=>document.querySelector("#sfShapeModal .sf-shape[data-shape='"+o.shape+"']"); }
 function ftueShapeOpened(){ const m=FTUE_MK; if(!m || (m.step!=='shape' && m.step!=='buy')) return;
@@ -9145,7 +9152,9 @@ const DIALOGUE = {
     D17b: "The hammer icon shows how well you hammered your blade. Higher percentage means more money.",
     D17c: "This shows how much ore you used for the sword.",
     D18: "Wow, what a nice blade! We are the perfect team! Let's go and see what the counter of this forge looks like!",
-    D18a: "Here's a reward from me.",   /* r291 (owner): over the ore reward window, after each tutorial sword */
+    D18b: "Here are the ores for your next sword.",   /* R108 (owner, 2026-11-11): over the Ores Acquired window, one of three at random (FTUE.oreLines; was D18a "Here's a reward from me.") */
+    D18c: "More ores for you.",   /* R108 */
+    D18d: "I found some ores for you.",   /* R108 */
     D19: "Not too bad. We can use it. But you should really consider decorating it later!",
     D20: "Oh, God, save me! I didn't think I would find anyone here. Who are you?",
     D21: "A blacksmith? How lucky! Can you give me a sword, any sword! Assassins are after me.",
@@ -9165,7 +9174,7 @@ const DIALOGUE = {
     D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",   /* owner's words */
     D28h: "Oh, you don't have enough. Don't worry, I'll help.",   /* owner's words; FTUE.marketShort */
     D28i: "Well done! Now pick the Katana.",   /* r300. R96: the Longsword is the player's first purchase now */
-    D28j: "I am running out of my reward stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3 */
+    D28j: "I am running out of my ore stock. I only have 1 iron and 1 manganese.",   /* r291 (owner): after GC3. R108: TC2's, after D31; "ore stock" (was "reward stock") */
     D28k: "The customer asked for a {o}. Let's focus on that.",   /* r292 (owner): the craft lock; {o} = the order */
     D28l: "Careful! Here, try again.",   /* r293 (owner): the refill, over the reward window */
     D28m: "Let's buy those later. Focus on the customer's request.",   /* r301 (owner): a blueprint the order did not ask for */
@@ -9887,7 +9896,7 @@ function tutDay2Customer(){
     buildScreenProps('customer'); counterUi();
     /* r203: the ores were gathered after the skill tree, so TC4 sends the player to the forge, not the
        cave: 'd2-back' is the stage whose forge arrival says D95 (tutDay2Copper) */
-    custReply('tc5', ()=>{ TUT_STAGE='d2-back'; sayQueue('D93a'); setTimeout(()=>tutExit('#panRight'), 0); });   /* R56: the player's reply first */   /* r213: why copper */
+    custReply('tc5', ()=>{ TUT_STAGE='d2-back'; sayQueue('D93a'); SAY_THEN={ id:'D93a', fn:()=>ftueOreReward('tc5') }; setTimeout(()=>tutExit('#panRight'), 0); });   /* R108: its 2 Copper when D93a closes */   /* R56: the player's reply first */   /* r213: why copper */
     custLine(null, DIALOGUE.D93);
 }
 /* the cave is emptied before the walk home */
@@ -10019,7 +10028,7 @@ function tutGaleThanks(){
     /* r204: part 4 - TC4's rewards, D109, then the bell brings GPC7 and GPC8; Bram (part 5) comes
        on the bell after them (FTUE.parts[4].after is this same 'd2-praise' stage) */
     if(FTUE_ST.part===4){
-        ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); }));   /* r294 */
+        ftueReward(FTUE.parts[4].rewards.tc, ()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); });   /* R108: no ores after the sale */
         return; }
     sayQueue('D109');
     setTimeout(tutBram2Arrive, 1200);   /* r127: Bram walks in behind the praise */
@@ -10287,7 +10296,7 @@ const SAY_AFTER={ D97:function(){ openTiers(); },
                   D92:function(){ if(TUT_STAGE==='d2-counter') tutExit('#panLeft'); },   /* R20 (owner): the way to the counter after D92's OK (r297 lit it as D92 came up) */
                   D17c:function(){ if(CW_LESSON==='rows'){ CW_LESSON='close'; cwLit('#sfCraftModal .cw-close'); } },   /* 2026-10-10 */
                   D119a:function(){ if(TUT_STAGE==='p1-dragon'){ TUT_STAGE='p1-dragon-tap'; tutGlow('#screenDragon .crop', true); tutGlow('#dragon .crop', true); } },   /* r255: now tap him */
-                  D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
+                  D130:function(){ if(TUT_STAGE==='g-talk') ftueOreReward('garric', tutGarricDesk); },   /* r247 (owner): no 'on my own' answer - the OK goes on to the desk */
                   D130b:function(){ if(TUT_STAGE==='g-desk') ftueReward([ { kind:'unlock', id:'designDesk' } ], tutGarricHandsOff); },   /* v3 part 6 */
                   D133:function(){ ftueGarricBanner(); }, D136:function(){ ftueGarricBanner(); }, D139:function(){ ftueGarricBanner(); },
                   D48:function(){ if(TUT_STAGE!=='bram2-wheel') return;   /* v3 part 5 */
@@ -11050,13 +11059,13 @@ function tutBellRung(){
     if(TUT_STAGE!=='bell') return;
     TUT_STAGE='bell-done'; tutUnglow(); sayHide(); tutExit(null);
     FTUE_ST.part=2; FTUE_ST.gpc=0;   /* r199: part 2 opens. v3: the grindstone comes later in this run (D13) */
-    ORE_COUNT.iron=FTUE.tc2Ore.iron; ORE_COUNT.manganese=FTUE.tc2Ore.manganese; if(INV_TAB===0) buildShelf();   /* v3 D22 */
+    /* R108: the bag is no longer set here - FTUE.tc2Ore (the 'tc2' row) comes in the window when D31 closes */
     CUSTOMER={ portrait:'assets/customer/man1.webp', tid:null, name:null, want:'balanced' };   /* r221: 'a good one' is a balanced sword (want: for the map ring only) */
     buildScreenProps('customer'); counterUi();
     custLine(null, DIALOGUE.D29);                       /* the customer speaks first, and types */
     custReply('tc2', ()=>{   /* R56: the player's reply, then the dragon */
         if(SAY_SEQ.indexOf('D31')<0) SAY_SEQ.push('D31');   /* r174: D30 deleted */
-        SAY_I=SAY_SEQ.indexOf('D31'); say('D31');
+        SAY_I=SAY_SEQ.indexOf('D31'); say('D31'); SAY_THEN={ id:'D31', fn:()=>ftueOreReward('tc2') };   /* R108 */
     });
 }
 function tutBackToForge(){
@@ -11473,7 +11482,7 @@ const SAY_GO_MORE={ D67a:1, D17b:1, D17c:1, D69d:1, D130:1, D28b:1, D28e:1, D28g
 /* r288 (owner): lines that pause the game for themselves alone - their OK lifts the pause before the next line
    (D15: the minigame holds while it is read; D15a, the strike, needs the live game) */
 const SAY_PAUSE_ONE={ D15:1 };
-const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18a:1, D28j:1, D28l:1, D28c:1, D28ca:1, D28d:1, D28f:1, D28h:1, D28i:1, D38a:1, D43a:1, D28n:1, D28o:1, D96a:1, D98a:1, D98b:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
+const SAY_NO_X={ D3:1, D4:1, D6:1, D10:1, D12:1, D14:1, D15a:1, D17:1, D18:1, D23:1, D24:1, D27:1, D118:1, D18b:1, D18c:1, D18d:1, D28j:1, D28l:1, D28c:1, D28ca:1, D28d:1, D28f:1, D28h:1, D28i:1, D38a:1, D43a:1, D28n:1, D28o:1, D96a:1, D98a:1, D98b:1 };   /* r300: the order lines have an OK again (nothing else moves them on); the shape window lines have none (the pick moves them on) */   /* r291: the reward lines - the window closes them */   /* r289 (owner): every market ask - opening MARKET moves it on */   /* r288: D28b (MARKET moves it on) */   /* r287: D27 (ringing the bell), D118 (the quest list) */   /* r283: D23 (the sword on the counter moves it on). r284: D24 (SELL moves it on) */
 const SAY_GO_NEXT='<span class="go-ok">OK</span>';   /* owner, 2026-10-13: OK, not the double arrow */
 const SAY_GO_CLOSE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg>';
 let SAY_GO_KIND=null;   /* R55: the shown line's button: 'close' (the X), 'next' (OK) or 'none' */

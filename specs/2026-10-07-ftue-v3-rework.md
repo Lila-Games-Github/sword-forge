@@ -2183,6 +2183,40 @@ GC9's ores keep their own moments).
 | Garric | garric | nothing | - | (the end) |
 | D107g, GC9 called on | gc9 | page:gale + page:fire | (D107g itself) | GC9's two swords |
 
+**Revised R108 (owner, 2026-11-11): the ores come with the order, not after the sale.** Owner: "I want it to instead
+appear after dragon's dialogues (example, after d28b). Dragon's dialogues will now be 'Here are the ores for your next
+sword.' or 'More ores for you.' or 'I found some ores for you.' and instead of reward the window now reads 'Ores
+Acquired!'." Defaults accepted ("Yes, use defaults"). The chain is now keyed by the order it pays for; the window opens
+when the dragon's line for that order closes (closed with its button, or by walking away, R86), then the order goes on.
+A sale goes straight on. The window's title is **"Ores Acquired!"** (`FTUE.oreTitle`) when it holds only ores, else
+"Reward!"; an ore's sub-line is "For this order.". The line over it is one of D18b "Here are the ores for your next
+sword.", D18c "More ores for you.", D18d "I found some ores for you." (`FTUE.oreLines`), picked at random, never the
+same one twice in a row; D18a is removed. A row's own `say` wins: TC2's D28j now reads "I am running out of my ore
+stock. I only have 1 iron and 1 manganese." (approved with the defaults), GC9's D107g is unchanged.
+
+| Order | Key | Gives | After the line | Line over the window |
+| --- | --- | --- | --- | --- |
+| GC1 | p1g0 | 2 Iron, 2 Manganese | D28b | random |
+| GC2 | p1g1 | 2 Iron, 2 Manganese | D28e | random |
+| GC3 | p1g2 | 2 Iron, 2 Manganese | D28g | random |
+| TC2 | tc2 | 1 Iron, 1 Manganese (`FTUE.tc2Ore`; TC2's arrival no longer sets the bag) | D31 | D28j |
+| GC5 | p3g1 | page:fire | D92a (after D92h) | random |
+| GC6 | p3g2 | page:fire | D92i | random |
+| GC7 | p3g3 | page:fire | D92j | random |
+| TC4 | tc4 | 2 Nickel | D92l | random |
+| GC8 | p4g0 | 1 Iron, 1 Manganese | none: when the customer's order (D107a) has typed | random |
+| TC5 | tc5 | 2 Copper | D93a | random |
+| TC5's swift ingot stored | tc5swift | 5 Copper | (unchanged: in `tutGaleStart`) | random |
+| GC9 (gale Longsword) | p5g0 | page:gale | D113a | random |
+| Garric | garric | 2 Iron, 2 Manganese | D130 (then D130b and the design desk) | random |
+| the waiting customer, called on | gc9 | page:gale + page:fire | (unchanged: at the ledger) | D107g |
+
+No window: TC1 (the starting bag), TC3 (the cave lesson), GC4 (the Day 2 cave), the waiting customer's arrival, Bram's
+Dagger (the stored swift ingot). A blueprint already owned (a replay) skips the market line, and the window opens after
+the player's reply. A crafted tutorial sword ends the round (`FTUE_ST.oreRound=null`), so the refill (D28l) cannot run
+between a customer's arrival and the order's window; the window sets the round. The PART jumps no longer put the next
+order's ores in the bag (part 2: TC2's 1 + 1, part 4: TC4's 2 Nickel, part 6: Garric's 2 + 2): the window gives them.
+
 The Day 2 cave holds 2 Nickel (`FTUE.day2Cave`); the Day 3 cave is unchanged. TC3's cave keeps 3 Iron + 2 Manganese
 (the last ore is a choice), and the unused one is removed when the fourth ore goes in.
 
@@ -2588,3 +2622,6 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
   as the craft frame draws its pips) and D98b "This here represents the trait and the tier. You can also stack different
   traits." over it; its close lifts the dark and the metal goes to the anvil (`ftueDurQuenched`). Once (`FTUE_ST.pipsSeen`).
   Tracker: R107.
+- 2026-11-11: R108 the ores come with the order (owner): the "Ores Acquired!" window opens when the dragon's line for the
+  order closes (D28b, D28e, D28g, D31, D92a, D92i, D92j, D92l, D93a, D113a, D130; GC8 once its order has typed), with D18b-D18d
+  at random (D18a removed); the sales go straight on. Record: "Revised R108" under "The chain" above. Tracker: R108.

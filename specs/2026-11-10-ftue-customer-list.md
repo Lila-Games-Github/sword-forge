@@ -8,28 +8,29 @@ Sources: the `FTUE` object in the build (`parts`, `oreChain`, `garricRewards`), 
 
 **Terms.** TC = tutorial customer (scripted, own portrait). GC = gameplay customer (random portrait, a real order). The GC
 numbers follow the FTUE record. **Pay**: every customer pays the sword's sale price, except where the table says otherwise.
-**Ores after**: what the dragon gives after the sale ("Here's a reward from me.", D18a), exactly the next sword's ores
-(`FTUE.oreChain`); "page:fire" = the ores of the fire page in the craft book.
+**Ores for this order** (R108, 2026-11-11): what the dragon gives in the "Ores Acquired!" window when his line for the
+order closes (one of D18b-D18d at random), exactly that order's ores (`FTUE.oreChain`); "page:fire" = the ores of the fire
+page in the craft book. Until R108 the ores came after the previous sale.
 
-| Part | Customer | Request | Rewards | Ores after |
+| Part | Customer | Request | Rewards | Ores for this order |
 |---|---|---|---|---|
-| 1 | **TC1 Bram** (`Bram`) | The first sword: balanced (Shortsword). | None. | 2 iron + 2 manganese |
-| 1 | **GC1** | Balanced Longsword. | The dragon gives the Longsword blueprint's price (his coins fly to the gold, D28c, D28ca); the player buys it (R96). | 2 iron + 2 manganese |
-| 1 | **GC2** | Balanced Broadsword. | The dragon gives the Broadsword blueprint's price; the player buys it (D28e, D28f, R96). | 2 iron + 2 manganese |
-| 1 | **GC3** | Balanced Katana. | None. The player buys the Katana blueprint (50g); if the player has less, the dragon tops the gold up to 50g (D28h). | 1 iron + 1 manganese (D28j: "I am running out of my reward stock") |
-| 2 | **TC2** (`man1`) | "Give me a good one": balanced, any shape (D29). | During the craft: **the grindstone** (D32b). At the sale: **+5 craft-book pages**. | None (the next sword's ores come from the cave) |
-| 2 | **TC3 the adventurer** (`woman1`) | A fire Shortsword. | None. Day 1 ends after this sale. | None |
-| 3 | **GC4** | Durable Shortsword (the map window, nickel from the cave). | None. | page:fire |
-| 3 | **GC5** | Fire Longsword (guided from the fire icon on the map). | The dragon gives the fire Longsword blueprint's price; the player buys it (D92h, R96). | page:fire |
-| 3 | **GC6** | Fire Broadsword (guided from the craft book). | The dragon gives the fire Broadsword blueprint's price; the player buys it (D92i, R96). | page:fire |
-| 3 | **GC7** | Fire Katana. | None. The player buys the fire Katana blueprint (top-up if short). | 2 nickel |
-| 4 | **TC4** (`woman2`) | "A durable sword. Make sure it is EPIC!" (D92k), any shape. | None. | 1 iron + 1 manganese |
-| 4 | **GC8** (the servant; since R95 right after TC4) | A **Weak** balanced Longsword (D107a). | None. | 2 copper |
-| 4 | **TC5** (`man2`) | "Do you have a sword with the Gale trait?" (D93): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | None (the waiting customer needs no craft; then Bram's sword is the stored swift ingot) |
-| 4 | **Waiting customer** | Gale Katana **and** fire Claymore (D107c). The dragon will not buy the blueprints (D107d); the player taps COME LATER and the order goes to the ledger. | None at the time. When the player has 750g or more, the dragon guides them back to the order (D107f) and gives its ores (D107g). The market walk (R83) has the player buy the gale Katana. | page:gale + page:fire (given with D107g) |
-| 5 | **Bram returns** (`BramD2`) | A swift Dagger, sharper than the last (D111, D111a). | The dragon gives the swift Dagger blueprint's price; the player buys it (D111b, R96). Reward window: **the sharpening wheel** (D48). Bram's gift: **the diary** (D114-D117). | page:gale |
-| 5 | **GC9** | Gale Longsword. | The dragon gives the gale Longsword blueprint's price; the player buys it (D113a, R96). | 2 iron + 2 manganese |
-| 6 | **TC6 Garric** (`man4`) | "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!" (D128). Graded 1-3. | Before the craft: **the design desk** (D130b). By grade (`FTUE.garricRewards`), always with **the shop banner**: grade 1 (Weak, not customized, not sharpened): he pays **nothing**; grade 2: **10g tip**; grade 3 (Epic, customized and sharpened): **10g tip + his balanced parts** (grips, guards and pommels 5-6). D140 ends the tutorial. | None (the last customer) |
+| 1 | **TC1 Bram** (`Bram`) | The first sword: balanced (Shortsword). | None. | None (the starting bag: 2 iron + 2 manganese) |
+| 1 | **GC1** | Balanced Longsword. | The dragon gives the Longsword blueprint's price (his coins fly to the gold, D28c, D28ca); the player buys it (R96). | 2 iron + 2 manganese (after D28b) |
+| 1 | **GC2** | Balanced Broadsword. | The dragon gives the Broadsword blueprint's price; the player buys it (D28e, D28f, R96). | 2 iron + 2 manganese (after D28e) |
+| 1 | **GC3** | Balanced Katana. | None. The player buys the Katana blueprint (50g); if the player has less, the dragon tops the gold up to 50g (D28h). | 2 iron + 2 manganese (after D28g) |
+| 2 | **TC2** (`man1`) | "Give me a good one": balanced, any shape (D29). | During the craft: **the grindstone** (D32b). At the sale: **+5 craft-book pages**. | 1 iron + 1 manganese (after D31, with D28j "I am running out of my ore stock") |
+| 2 | **TC3 the adventurer** (`woman1`) | A fire Shortsword. | None. Day 1 ends after this sale. | None (the cave lesson) |
+| 3 | **GC4** | Durable Shortsword (the map window, nickel from the cave). | None. | None (the Day 2 cave: 2 nickel) |
+| 3 | **GC5** | Fire Longsword (guided from the fire icon on the map). | The dragon gives the fire Longsword blueprint's price; the player buys it (D92h, R96). | page:fire (after D92h and D92a) |
+| 3 | **GC6** | Fire Broadsword (guided from the craft book). | The dragon gives the fire Broadsword blueprint's price; the player buys it (D92i, R96). | page:fire (after D92i) |
+| 3 | **GC7** | Fire Katana. | None. The player buys the fire Katana blueprint (top-up if short). | page:fire (after D92j) |
+| 4 | **TC4** (`woman2`) | "A durable sword. Make sure it is EPIC!" (D92k), any shape. | None. | 2 nickel (after D92l) |
+| 4 | **GC8** (the servant; since R95 right after TC4) | A **Weak** balanced Longsword (D107a). | None. | 1 iron + 1 manganese (once the order has typed; no dragon line) |
+| 4 | **TC5** (`man2`) | "Do you have a sword with the Gale trait?" (D93): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | 2 copper (after D93a); 5 more when the swift ingot is stored |
+| 4 | **Waiting customer** | Gale Katana **and** fire Claymore (D107c). The dragon will not buy the blueprints (D107d); the player taps COME LATER and the order goes to the ledger. | None at the time. When the player has 750g or more, the dragon guides them back to the order (D107f) and gives its ores (D107g). The market walk (R83) has the player buy the gale Katana. | page:gale + page:fire (with D107g, when called on from the ledger) |
+| 5 | **Bram returns** (`BramD2`) | A swift Dagger, sharper than the last (D111, D111a). | The dragon gives the swift Dagger blueprint's price; the player buys it (D111b, R96). Reward window: **the sharpening wheel** (D48). Bram's gift: **the diary** (D114-D117). | None (the stored swift ingot) |
+| 5 | **GC9** | Gale Longsword. | The dragon gives the gale Longsword blueprint's price; the player buys it (D113a, R96). | page:gale (after D113a) |
+| 6 | **TC6 Garric** (`man4`) | "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!" (D128). Graded 1-3. | Before the craft: **the design desk** (D130b). By grade (`FTUE.garricRewards`), always with **the shop banner**: grade 1 (Weak, not customized, not sharpened): he pays **nothing**; grade 2: **10g tip**; grade 3 (Epic, customized and sharpened): **10g tip + his balanced parts** (grips, guards and pommels 5-6). D140 ends the tutorial. | 2 iron + 2 manganese (after D130, before D130b) |
 
 ## Notes
 
