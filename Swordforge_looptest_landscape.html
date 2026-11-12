@@ -700,6 +700,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-mark.rec.is-on span { font-weight: 900; }
 .cb-label { position: absolute; text-align: center; font: 700 10px/1 'Cinzel', serif; letter-spacing: .6px; color: #7a6034; pointer-events: none; }
 .cb-tier { display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 17px; }
+.cb-tier[hidden] { display: none; }   /* R113: display:flex beat the hidden attribute (as R97) */
 .cb-desc { display: flex; align-items: center; justify-content: center; padding: 8px 9px; box-sizing: border-box;
     text-align: center; font: italic 11px/1.45 Georgia, serif; color: #5c4a33; }
 .cb-ores { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px; padding: 4px; }
@@ -2646,7 +2647,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             </div>
             <button class="cb-gear" type="button" title="Change the default design" onclick="cbDesign()">&#9881;</button>
             <!-- owner, 2026-10-14 (Composition_book_wireframe.png, updated): one Trait Tier box and the sword's description -->
-            <div class="cb-label" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>
+            <div class="cb-label" id="cbTierLab" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>
             <div class="cb-slot cb-tier" id="cbTier" style="left:25.10%; top:17.90%; width:18.20%; height:10.20%;"></div>
             <div class="cb-slot cb-desc" id="cbDesc" style="left:25.10%; top:31.30%; width:18.20%; height:31.30%;"></div>
             <div class="cb-slot cb-ores"   id="cbOres"   style="left:4.18%;  top:77.19%; width:39.39%; height:18.75%;"></div>
@@ -7284,7 +7285,8 @@ function renderRecipe(){
     const tb=document.getElementById('cbTier');
     if(tb){ tb.innerHTML=pips.map(p=>{ const pt=TRAIT_BY[p.tid]; return '<span style="color:'+tierColor(p.tier)+'">'+(pt?pt.symbol:'?')+'</span>'; }).join('');
         tb.style.fontSize = pips.length>4 ? '13px' : '';
-        tb.title = list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', '); }
+        tb.title = list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', ');
+        tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen); { const tl=document.getElementById('cbTierLab'); if(tl) tl.hidden=tb.hidden; } }   /* R113: and its label. (owner, 2026-11-12): the pips show from TC4's pip lesson (R107), or after the FTUE */
     const db=document.getElementById('cbDesc'); if(db) db.textContent = r ? swordDesc(list) : '';
     /* owner, 2026-10-14: the page's own sword - its trait's blade and the default design in that trait's parts */
     { const skin=r ? skinOf({ traits:list }) : 'balanced', dz=ddCoerce(DD_SEL, skin);

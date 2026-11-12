@@ -273,7 +273,7 @@ swings by itself. Tin and zinc have no seam yet.
 
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
   shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
-only Update is offered, R100).
+only Update is offered, R100). Its Trait Tier pips show from TC4's pip lesson on (hidden before, R113).
 - **CRAFT 1** makes the page's sword from its ores straight away (no smelter, no minigame; the page's forging grade).
 - Pages: 3 to start, +5 from TC2's reward.
 

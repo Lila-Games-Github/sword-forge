@@ -1131,7 +1131,7 @@ eq('no sharpening bonus at the sale, no D57', src.includes("if(FTUE_ST.part===5 
 /* owner, 2026-10-14: the crafting process starts with just "Ores" - the ores themselves are in "Ores used" */
 eq('process: Ores, heat, hammer, quench, hammer', src.includes("const steps=['Ores','heat','hammer','quench','hammer'];") && !src.includes("const steps=[names.join(' + '),"), true);
 /* owner, 2026-10-14: the book's middle column (Composition_book_wireframe.png, updated): one Trait Tier box, then a description */
-eq('one tier box, labelled, in place of the five', !src.includes('id="cbPip') && src.includes('<div class="cb-label" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>')
+eq('one tier box, labelled, in place of the five', !src.includes('id="cbPip') && src.includes('<div class="cb-label" id="cbTierLab" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>')
   && src.includes('<div class="cb-slot cb-tier" id="cbTier" style="left:25.10%; top:17.90%; width:18.20%; height:10.20%;"></div>'), true);
 eq('the description box under it', src.includes('<div class="cb-slot cb-desc" id="cbDesc" style="left:25.10%; top:31.30%; width:18.20%; height:31.30%;"></div>'), true);
 { const m = src.match(/const SWORD_DESC = \{([\s\S]*?)\n\};/); const keys = m ? [...m[1].matchAll(/\n\s*([a-z]+):\s*"/g)].map(x => x[1]) : [];
@@ -2002,4 +2002,6 @@ eq('R111: under the record dark the dragon still rises over the compare window (
 eq('R112: the market page greys a blueprint the tutorial refuses (held), its tap still says D28m', [src.includes("held=(st==='buy' || st==='poor') && !gift && !ftueBlueprintOk(p.trait, p.shape);"),
   src.includes("B.dataset.st=gift ? 'gift' : held ? 'held' : st;"), src.includes(".mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'], .mk-buy[data-st='held'] {"),
   src.includes("if((st==='buy' || st==='poor') && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }")], [true, true, true, true]);
+/* R113 (owner, 2026-11-12): the craft book's tier pips show from TC4's pip lesson (or after the FTUE) */
+eq('R113: #cbTier hidden until the pips are taught', src.includes("        tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen); { const tl=document.getElementById('cbTierLab'); if(tl) tl.hidden=tb.hidden; } }   /* R113") && src.includes('<div class="cb-label" id="cbTierLab"') && src.indexOf('function renderRecipe(){') < src.indexOf('tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen);') && src.includes('.cb-tier[hidden] { display: none; }'), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

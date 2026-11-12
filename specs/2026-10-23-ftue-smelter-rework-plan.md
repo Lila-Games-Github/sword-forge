@@ -1259,3 +1259,9 @@ yours and come on top.
   payment): the shape window shows only the Longsword's BUY live, Broadsword, Dagger and Katana greyed; a tap on the Broadsword says
   D28m and buys nothing; the market page shows Longsword "buy", Broadsword and Katana "held" (grey); with the FTUE done the
   Broadsword is "buy" again. Asserted by the FTUE test (written first; GREEN at 1067) and the market test.
+- **R113 (owner, 2026-11-12): the craft book's tier pips from TC4.** "i want this to show in the craft book from tc4" (the page's
+  pip box, `#cbTier`: each trait's tier as pips). Before, it showed from the first recipe. Now it shows once TC4's pip lesson
+  (R107, at TC4's gate, `FTUE_ST.pipsSeen`) has been seen, or the FTUE is done (free play, GAME); before that the box and its
+  "Trait Tier" label (`#cbTierLab`) are hidden. Found while checking: `.cb-tier`'s display:flex beat the hidden attribute (as in R97),
+  so `.cb-tier[hidden]` hides it. Checked in the browser with the customer jumps: GC2 and TC4 (before the lesson) no pips and no
+  label; GC8 and GAME (after) the pips and the label. Asserted by the FTUE test (written first; GREEN at 1068).
