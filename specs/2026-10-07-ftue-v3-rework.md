@@ -2174,14 +2174,48 @@ GC9's ores keep their own moments).
 | GC5 | p3g1 | page:fire | D18a | GC6 |
 | GC6 | p3g2 | page:fire | D18a | GC7 |
 | GC7 | p3g3 | 2 Nickel | D18a | TC4 |
-| TC4 | tc4 | 2 Copper | D18a | TC5's swift ingot |
+| TC4 | tc4 | 1 Iron, 1 Manganese (R95; was 2 Copper) | D18a | GC8 |
+| GC8 | p4g0 | 2 Copper (R95; was nothing) | D18a | TC5's swift ingot |
 | TC5's swift ingot stored | tc5swift | 5 Copper | D18a | TC5's gale sword |
-| TC5 | tc5 | 1 Iron, 1 Manganese | D18a | GC8 |
-| GC8 | p4g0 | nothing | - | Bram's Dagger: the stored swift ingot |
+| TC5 | tc5 | nothing (R95; was 1 Iron, 1 Manganese) | - | the waiting customer (no craft), then Bram's Dagger: the stored swift ingot |
 | Bram's Dagger | bram2 | page:gale | D18a | the part 5 gale Longsword |
 | The gale Longsword | p5g0 | 2 Iron, 2 Manganese | D18a | Garric |
 | Garric | garric | nothing | - | (the end) |
 | D107g, GC9 called on | gc9 | page:gale + page:fire | (D107g itself) | GC9's two swords |
+
+**Revised R108 (owner, 2026-11-11): the ores come with the order, not after the sale.** Owner: "I want it to instead
+appear after dragon's dialogues (example, after d28b). Dragon's dialogues will now be 'Here are the ores for your next
+sword.' or 'More ores for you.' or 'I found some ores for you.' and instead of reward the window now reads 'Ores
+Acquired!'." Defaults accepted ("Yes, use defaults"). The chain is now keyed by the order it pays for; the window opens
+when the dragon's line for that order closes (closed with its button, or by walking away, R86), then the order goes on.
+A sale goes straight on. The window's title is **"Ores Acquired!"** (`FTUE.oreTitle`) when it holds only ores, else
+"Reward!"; an ore's sub-line is "For this order.". The line over it is one of D18b "Here are the ores for your next
+sword.", D18c "More ores for you.", D18d "I found some ores for you." (`FTUE.oreLines`), picked at random, never the
+same one twice in a row; D18a is removed. A row's own `say` wins: TC2's D28j now reads "I am running out of my ore
+stock. I only have 1 iron and 1 manganese." (approved with the defaults), GC9's D107g is unchanged.
+
+| Order | Key | Gives | After the line | Line over the window |
+| --- | --- | --- | --- | --- |
+| GC1 | p1g0 | 2 Iron, 2 Manganese | D28b | random |
+| GC2 | p1g1 | 2 Iron, 2 Manganese | D28e | random |
+| GC3 | p1g2 | 2 Iron, 2 Manganese | D28g | random |
+| TC2 | tc2 | 1 Iron, 1 Manganese (`FTUE.tc2Ore`; TC2's arrival no longer sets the bag) | D31 | D28j |
+| GC5 | p3g1 | page:fire | D92a (after D92h) | random |
+| GC6 | p3g2 | page:fire | D92i | random |
+| GC7 | p3g3 | page:fire | D92j | random |
+| TC4 | tc4 | 2 Nickel | D92l | random |
+| GC8 | p4g0 | 1 Iron, 1 Manganese | none: when the customer's order (D107a) has typed | random |
+| TC5 | tc5 | 2 Copper | D93a | random |
+| TC5's swift ingot stored | tc5swift | 5 Copper | (unchanged: in `tutGaleStart`) | random |
+| GC9 (gale Longsword) | p5g0 | page:gale | D113a | random |
+| Garric | garric | 2 Iron, 2 Manganese | D130 (then D130b and the design desk) | random |
+| the waiting customer, called on | gc9 | page:gale + page:fire | (unchanged: at the ledger) | D107g |
+
+No window: TC1 (the starting bag), TC3 (the cave lesson), GC4 (the Day 2 cave), the waiting customer's arrival, Bram's
+Dagger (the stored swift ingot). A blueprint already owned (a replay) skips the market line, and the window opens after
+the player's reply. A crafted tutorial sword ends the round (`FTUE_ST.oreRound=null`), so the refill (D28l) cannot run
+between a customer's arrival and the order's window; the window sets the round. The PART jumps no longer put the next
+order's ores in the bag (part 2: TC2's 1 + 1, part 4: TC4's 2 Nickel, part 6: Garric's 2 + 2): the window gives them.
 
 The Day 2 cave holds 2 Nickel (`FTUE.day2Cave`); the Day 3 cave is unchanged. TC3's cave keeps 3 Iron + 2 Manganese
 (the last ore is a choice), and the unused one is removed when the fourth ore goes in.
@@ -2542,3 +2576,52 @@ The full list, kept up to date part by part: `specs/2026-10-07-ftue-v3-art-list.
 - 2026-10-21: r301 Shortsword lit for the first sword; unaffordable BUY greyed; only the ordered blueprint can be bought (D28m).
 - 2026-10-21: r302 the intro: four pictures with the old portrait intro's texts before D1 (tap to move on, SKIP).
 - 2026-10-28: R24 the rotated iron and manganese paths (manganese, then a ground iron; Balanced and Fire moved).
+- 2026-11-10: R95 GC8 (the Weak balanced Longsword) moved to right after TC4 (owner: "can we move gc8 after tc4, without any
+  difficulties?" / "Yes, do it"). Part 4 is now TC4, GC8, TC5, the waiting customer. `FTUE.parts[4].tc5After` 1: after one of
+  part 4's gameplay customers (GC8) the bell brings TC5 (`d2-bell`); TC4's sale rings for GC8 (`p4-bell`); TC5's sale rings
+  for the waiting customer (`p4-bell`, as before). TC5's arrival no longer resets the gameplay count. Ore chain: tc4 1 Iron +
+  1 Manganese, p4g0 2 Copper, tc5 nothing (table above). No line changes. Tracker: R95 in
+  `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- 2026-11-10: R96 the dragon no longer buys a blueprint for the player (owner: "Instead of the dragon directly buying the
+  blueprint for the player, i want him to deposit the gold in the player's inventory and have the players buy the blueprint. We
+  should have the same effect of the gold coins flying from dragon to the inventory"). For every by:'dragon' order (GC1, GC2,
+  GC5, GC6, Bram's Dagger, GC9 in the record's numbering): D28c, his coins fly to the gold counter (the D28h top-up's effect),
+  the gold rises by the price (+<price>g on the counter), D28ca "There's the gold. Now tap the blueprint to buy it." and the
+  BUY is lit; the player's purchase (R91's coins) then gives the done line. R13 (no BUY, a tap buys nothing) now holds only
+  while his coins are in the air. Lines: D28ca new; D28b, D28i, D113a reworded. Tracker: R96.
+- 2026-11-11: R99 TC2's second craft: D38 is said on the cut dim (`SAY_DARK_CUT`, only the map open), so the bellows and the
+  gate wait until it is closed; closing it says D38a "Now drag the bellows handle up and down to reach the balanced trait."
+  (no X); the sword on Balanced replaces it with D41, then the gate gives the record lesson (D42). Before, pumping and tapping
+  the gate under an open D38 skipped the record lesson. Tracker: R99.
+- 2026-11-11: R100 the record lesson's compare window: while it is open for D43, the dragon and his line sit over its dark
+  (`compLift`); in the tutorial it has no Record new (Cancel and Update); D43 is "You can compare the old one with the new one.
+  Tap update to replace the old one." Tracker: R100.
+- 2026-11-11: R102 after Update in the record lesson, D43a "The recipe is saved. Now tap the ring to close the craft window."
+  replaces D43 while the ring blinks (D43 was left asking about Update); the ring gives D44. Tracker: R102.
+- 2026-11-11: R104 TC4's ladle step zooms in. Owner: the ladle's pull onto Durable "is so small that it is easily missed";
+  measured, the 2 ground nickel route ends 17.4 from Durable and the ladle reaches Epic after 10.25 units (0.43 s at full tilt).
+  Moving Durable inward made the route pass it at Fine mid-trip (12-13 units), a third nickel sent the route 100-195 away, and a
+  longer nickel path changes every nickel route in the game, so the owner chose a zoom: when the pull lesson starts (D97,
+  `tutTc4Pull`) the map zooms in `FTUE.ladleZoom` **3** times (never under `MIN_W`) and puts the middle of the sword and Durable at
+  `FTUE.ladleFocus` **{ x:0.5, y:0.53 }** of the view (measured: the map is clear between 40% and 65% of its height, under the
+  line's bubble and over the bench; 0.53 keeps the pair in it with a little more room under the bubble than the centre);
+  when the sword is aligned (`tutDurableAligned`, or a reset) the view the player had comes back. No route, trait, price or
+  pull speed changes. Tracker: R104.
+- 2026-11-11: R105 GC2's gate introduces the craft book before TC2's recipe update: the craft frame appears (open; R69's
+  "hidden until D42" now ends at GC2), D28n "Every trait you discover on the map is recorded in the craft book. Tap the book to
+  open it." with the book blinking; the open book gets D28o "Each page shows a trait and the ores that reached it. Close the
+  book to continue." over it, CLOSE blinking and the other book buttons locked; closing it goes on to the anvil step.
+  Tracker: R105.
+- 2026-11-11: R106 TC4's route end: the Alignment for Tiers window opens with D96a "Different alignment will give us different
+  trait tiers." over it (since R5 the window opened only when D97 was closed with its X, so a player who tilted the ladle with
+  D97 up never saw it); closing it gives D97 and the ladle. The ladle zoom is now `FTUE.ladleZoom` **1.5** (owner's picture;
+  3 was too much) and glides in and out over `FTUE.ladleGlideMs` **600** ms (ease in-out) instead of a cut. Tracker: R106.
+- 2026-11-11: R107 TC4's gate teaches the blade pips. After the gate takes Durable: everything but the map dark, D98a "Open the
+  craft window." with the ring blinking (skipped if it is open); open, everything but the 5 pips dark, the Traits and Tiers window
+  (`FTUE.pipRows`: Weak 1 Durable pip, Fine 2, Epic 3, then Balanced, Durable, Fire, Swift, Gale at Weak, one pip each; drawn
+  as the craft frame draws its pips) and D98b "This here represents the trait and the tier. You can also stack different
+  traits." over it; its close lifts the dark and the metal goes to the anvil (`ftueDurQuenched`). Once (`FTUE_ST.pipsSeen`).
+  Tracker: R107.
+- 2026-11-11: R108 the ores come with the order (owner): the "Ores Acquired!" window opens when the dragon's line for the
+  order closes (D28b, D28e, D28g, D31, D92a, D92i, D92j, D92l, D93a, D113a, D130; GC8 once its order has typed), with D18b-D18d
+  at random (D18a removed); the sales go straight on. Record: "Revised R108" under "The chain" above. Tracker: R108.

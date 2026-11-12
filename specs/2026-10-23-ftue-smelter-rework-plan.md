@@ -1044,3 +1044,241 @@ yours and come on top.
   a disabled counter button), and `comeLater` refuses, through the request and the market walk (R83). When D107d is said
   ("I am not buying ..."), the customer's `laterOk` turns it on (and D107d's step lights it, r253). Other customers' COME LATER
   is unchanged. Asserted by the FTUE test (written first).
+- **R90 (owner, 2026-11-05): the toasts are the dragon's lines (on trial).** "except the sword sale from shop racks, and test
+  aids, I want the remaining toasts to be part of dragon's dialogues instead, not a separate toast. I have marked all the ones
+  I want deleted." From the owner's ticks in `toast-checklist.md`: 30 toasts are cut (`toastCut`); the shop-rack sale and the
+  PART 1-6 / GAME buttons keep the old top toast (`plainToast`); every other `toast()` is said by the dragon for 4 s
+  (`DTOAST`). With a line up it takes the line's place and the line comes back as it was; with no line it uses his bubble
+  where he is visible, else `#dtSay`, the sharpening window's icon bubble at its place (bottom centre). A tap closes it, a
+  new line replaces it at once; em-dashes become colons and emoji go. `DTOAST.on=false` brings every toast back as before.
+  Record: `specs/2026-11-05-dragon-toasts.md`. Asserted by the FTUE test (written first).
+- **R91 (owner, 2026-11-05): coins fly when a blueprint is bought.** "I want the coins to fly from inventory panel to the gold
+  buttons, when buying any blueprint. on market, or shape select Ui, both. it should look same as the coins effect when claiming
+  gold from quest." Read as: from the gold counter (top of the inventory panel) to the buy button that was tapped. `buyCoins`
+  calls the quest claim's own `flyCoins` (5 coins, 650 ms, 70 ms apart) and `goldPop("-<price>g")`; `marketBuy` aims at the
+  page's BUY, `shapeBuy` at the tapped shape, both before their window is rebuilt. The gold is spent at once; the coins only
+  show it. The dragon's own purchases (`marketGift`) keep their coins from him. Asserted by the FTUE test (written first).
+- **R92 (owner, 2026-11-05): the forging price follows the accuracy percent.** "I want to change this system so each percentage
+  increase will increase the price value", with a drawn steep curve, then "different for each percentage from 80-100%", "below
+  80, follow the curve i mentioned", "1.3 max is okay", "so that every percent adds gold". `hmAccMul` (in the HAMMER-PURE block)
+  turns the rounded accuracy percent into the multiplier: 0-80% the curve x0.8 to x1.0 (k 4), 81-100% a row a percent in
+  `HM_HITS.price.top`, +0.010 to +0.020 a step, to x1.3; `hmForgeMul` uses it when the sword has an accuracy, else x1.0. The
+  bands are labels only (no `mul`). The crafted window's hammer row compares against no accuracy (`forge:null`). Record: the
+  hammer record's "Price by accuracy" section. Asserted by the hammer test (written first; GREEN at 56).
+- **R93 (owner, 2026-11-10): the quest basket's claim glow is still, with a green tint.** "currently the quest bucket had a green
+  glow that fades in and out whenever a quest is available. Instead I want it to remain static, and put a faint green overlay on
+  the bucket image as well." `#questBtn.qs-ready` keeps one glow, `drop-shadow(0 0 9px rgba(90,230,110,.9))` (between the old
+  breath's 3 px and 12 px), with no animation (`qsReadyArt` is gone); `#questBtn::after` lays `rgba(90,230,110,.3)` over the
+  basket, masked by its own art (`assets/ui/questbasket.webp`, `RAIL_ART.quest`), shown only with `qs-ready`. A tutorial blink
+  (`tut-blink`) still animates over it. Asserted by the FTUE test (written first).
+- **R94 (owner, 2026-11-10): the map recentres on the sword when a craft starts.** "I want the map view to recenter to the
+  active sword, whenever a sword crafting process is started." `craftView` puts the sword (`marker`) in the middle of the map
+  window and keeps the zoom. `craftStartView` calls it for a NEW craft only (no `melt`, no `segs`, no `prep`): the first ore
+  on the grindstone (`startPrep`) or straight into the smelter (`addOreDirect`); later ores leave the player's panning alone.
+  CONTINUE FROM HERE (`cbContinue`) and a stored ingot back on the anvil (`restoreIngot`) recentre too (they only nudged the
+  view at its edges, `ensureSwordVisible`). Measured: centred on the start at the default zoom, the fire trait is 43 units off
+  the left edge and gale 73 off the top, so a tutorial ring on them can scroll out of view when the craft starts (asked the
+  owner). Asserted by the FTUE test (written first).
+- **R95 (owner, 2026-11-10): GC8 right after TC4.** "can we move gc8 after tc4, without any difficulties?" / "Yes, do it".
+  Part 4 is now TC4, GC8 (the Weak balanced Longsword), TC5 (gale), the waiting customer. `FTUE.parts[4].tc5After` 1:
+  `ftueGpcSold` rings for TC5 (`d2-bell`, bell shown) after one of part 4's gameplay customers; `ftueTc4Sold` rings for GC8
+  (`p4-bell`); TC5's sale rings for the waiting customer (`p4-bell`, unchanged); `tutDay2Customer` (TC5's arrival) no longer
+  resets `FTUE_ST.gpc`. Ore chain: `tc4` 1 iron + 1 manganese (for GC8), new `p4g0` 2 copper (for TC5), `tc5` removed (the
+  waiting customer needs no craft). No line changes. Record: the FTUE record's ore-chain table and its 2026-11-10 log line.
+  Checked in the browser by driving the hand-offs (each sale function, then the bell): TC4 (`woman2`), GC8, TC5 (`man2`), then
+  the waiting customer; the ores given were 1 iron + 1 manganese after TC4, 2 copper after GC8, none after TC5. Asserted by the
+  FTUE test (written first; GREEN at 983).
+- **R96 (owner, 2026-11-10): the dragon gives the gold; the player buys the blueprint.** "Instead of the dragon directly buying
+  the blueprint for the player, i want him to deposit the gold in the player's inventory and have the players buy the blueprint.
+  We should have the same effect of the gold coins flying from dragon to the inventory." For every `by:'dragon'` order (GC1,
+  GC2, GC5, GC6, Bram's Dagger, GC9): D28c, then `ftueDeposit` flies his coins to the gold counter (`coinFly`, the D28h top-up's
+  effect; the market's own gold readout there), adds the price with "+<price>g", and hands the purchase to the player (step
+  `buy`): D28ca "There's the gold. Now tap the blueprint to buy it." and the BUY lit. The purchase (R91's coins) gives the done
+  line. While his coins fly the grid hides BUY and a tap buys nothing (`ftueDragonPays` = step `gift`; R13). `marketGift` and
+  its two cut toasts are gone (R90 now has 28 `toastCut` calls). Lines: D28ca new; D28b ("I'll give you the gold for the shape"),
+  D28i ("Well done! Now pick the Katana."), D113a ("I'll pay for this one too") reworded. Checked in the browser: GC1 in the
+  shape window (0g, coins, 50g with "+50g", D28ca, a real tap: owned, 0g, "-50g", D28d) and GC2 in the market (100g, then
+  "Done! Pick the Broadsword."). Asserted by the FTUE and market tests (written first; FTUE GREEN at 989).
+- **R97 (owner, 2026-11-10): the tutorial's map windows in SETTINGS.** "the minimaps that are shown during the tutorial
+  (MAP_parts.png and MAP_parts2.png), add them to the settings so players can access it later as well." The gear menu's
+  SETTINGS page lists MAP: FIVE PARTS and MAP: TRAITS (`MENU_MAPS`); a tap opens the tutorial's own picture window
+  (`openIllus`, the same caption) over the menu, and closing it returns to SETTINGS. Each is offered once the tutorial has shown
+  it (`FTUE_ST.seenParts`, set by `openParts` for TC3; `seenParts2`, set by `ftueDurableMap` for GC4; for a save made before
+  R97, part 3+ / part 4+), and both after the tutorial and in free play; the PART 4+ jumps set both flags. Found while checking:
+  `.mn-grid { display: grid }` beat the `hidden` attribute, so the SETTINGS page had always shown under the main menu page
+  (it is on main too); fixed with `.mn-grid[hidden] { display: none; }`. Checked in the browser with real taps: PART 2 and
+  PART 3 jumps offer none, PART 4 and GAME both; after the tutorial shows the five parts it is offered; the menu shows 6
+  buttons, SETTINGS 4. Asserted by the FTUE test (written first; GREEN at 997).
+- **R98 (owner, 2026-11-10): the sword swings less.** "the sword swings around a bit too much. can we lower the swinging a
+  bit?" The hanging blade (on the anvil, and any sword being dragged) is a damped pendulum; `SMELT.bladeDamp` 1.2 -> 2.5 /s.
+  Simulated with the build's own `smFollow` / `smPendStep` for a 300 px sideways drag in 0.25 s: the biggest swing 74 -> 61
+  degrees, still within 2 degrees after 2.9 s (was over 6 s). Following the finger more slowly (`bladeFollow`) was tried and
+  barely helped (69 degrees, still over 6 s), so it stays 700. Record: the smelter loop record's s5 values. Asserted by the
+  smelter test (written first; GREEN at 146).
+- **R99 (owner, 2026-11-11): the record lesson can no longer be skipped under D38.** "for this part, players can bellow, then
+  open the gate as well. if the dialogues is not closed before bellowing and clicking on the gate, it is possible to finish the
+  entire crafting without going through the 'save recipe' tutorial. which is a big issue. solve it by putting a black overlay
+  everywhere except the map. make sure players close the dialogue first, then remove the black overlay and dragon asks players
+  to continue bellowing." Cause: `regrind-heat` moved on to D41 (and so to the gate's record lesson) only once no line was up
+  (`quiet`), so a craft finished under an open D38 never reached it. Now D38 is in `SAY_DARK_CUT` (only `#map-wrap` open; the
+  bellows and the gate are under the dim); closing it (`SAY_AFTER.D38`) says the new D38a "Now drag the bellows handle up and
+  down to reach the balanced trait." (in `SAY_NO_X`), with the stage's bellows arrow; `regrind-heat` is no longer `quiet` but
+  waits only while D38 is up, so the sword on Balanced replaces D38a with D41. Checked in the browser with real taps and drags:
+  under D38 the bellows and the gate are covered by the dim; the X gives D38a and lifts it; pumping with D38a open reaches
+  Balanced and D41; the gate then gives D42 (stage `record`). Script SSOT: D38's note and the new 11a entry. Asserted by the
+  FTUE test (written first; GREEN at 1002). Dialogue keys 208 (also R96's D28ca, counted late).
+- **R100 (owner, 2026-11-11): the compare window in the record lesson.** "for this part i want the dragon and dragon's
+  dialogues to be visible, not hidden behind the black overlay. i know the dragon is actually behind the craft book window, and i
+  want him to stay that way, except for this part. also, remove the record new option, keep only update for tutorial."
+  Owner's choices (defaults): keep Cancel; hide Record new for the whole tutorial; reword D43. `compLift(true)` (with D43 in
+  `tutCompStep`) lifts `#dragon` (`.over-modal`, z 1011) and his line (`say-over-modal`, `FOCUS_OVER`) over the window's
+  backdrop; `closeComp` drops both (D43 stays, in its own place). `openComp` hides `#compNewBtn` until `FTUE_ST.done` or free
+  play. D43: "You can compare the old one with the new one. Tap update to replace the old one." Checked in the browser with real
+  taps (the ring, the inkpot, Update) in TC2's second craft: D43 and the dragon over the dark, Cancel and Update only; Update
+  saves the page and moves on (`record-close`), the dragon back at z 30; after the tutorial Record new is back. Found while
+  checking and fixed: the line kept its lift after the window closed. Asserted by the FTUE test (written first; GREEN at 1007).
+- **R101 (owner, 2026-11-11): the compare window's New box looks like the quest basket.** "the green outline around the new box
+  is too thin and light. use the same visuals as the one for the quest basket for this". R93's numbers: a still glow
+  `drop-shadow(0 0 9px rgba(90,230,110,.9))` (kept on hover, where the box's own rule clears filters) and a faint tint
+  `rgba(90,230,110,.3)` masked to the paper box art (`Small_paperbox_dark.webp`); the thin inset line is gone. On the light
+  paper the tint reads stronger than on the darker basket. Checked in the browser (glow and tint follow the torn edges).
+  Asserted by the FTUE test (written first; GREEN at 1011).
+- **R102 (owner, 2026-11-11): no tint on the New box; the line after Update matches the step.** "remove the tint on the new box.
+  also, see this image, the dialogue does not match the action that needs to be performed. player is supposed to close the craft
+  window here". The New box keeps R101's glow, without the tint (`.comp-slot.is-new::after` gone). After Update the stage is
+  `record-close` (the ring blinks) but D43 stayed up; `tutHudStep` now says the new D43a "The recipe is saved. Now tap the ring
+  to close the craft window." (no X, in `SAY_NO_X`) as it lights the ring; a window already shut still goes straight to D44.
+  Wording is Claude's; the owner approved it ("Wording is OK", 2026-11-11). Checked in the browser with real taps (inkpot, Update, ring): D43, then D43a with the
+  ring blinking, then the window shut and D44. Asserted by the FTUE test (written first; GREEN at 1014). Dialogue keys 209.
+- **R103 (owner, 2026-11-11): the fire craft's first hazard zone 3x; the sword shakes and shows red health in a zone.**
+  "while crafting the fire sword, the first hazard zone is too small, so it is not visible when the active sword is on it. make
+  the hazard zone thrice as big, i am okay with it taking more damage. also, while crossing the hazard zone, make the active
+  sword shake a bit, and change the color of the health from green to red (red only when it is taking damage, then it returns
+  to green." Then "Level colour". `HAZ.move[1].scale` 0.75 -> 2.25 (about 30 -> 82 units across, measured in the browser); the
+  fire run loses 13.9 health there (was 4.3), 19.7 in all with the iron fork, so it cannot shatter and the tier is unchanged;
+  no other tutorial route reaches it. `#sword.hurt > *` shakes (`swordShake`, the marker's translate untouched) and
+  `#sword.hurt #swordHp` is red; out of the zone `updateHpPill`'s level colour returns. Checked in the browser along the fire
+  route: red and shaking inside, green and still after (86.1 health). Record: the hazard record's R103 section. Asserted by the
+  hazard test (written first; GREEN at 40).
+- **R104 (owner, 2026-11-11): TC4's ladle step zooms in.** "the distance it is supposed to travel is so small that it is easily
+  missed by the players. is it possible to move the trait closer to the centre, and make the path for nickel longer". Measured:
+  the ladle reaches Epic after about 10 units (0.43 s at full tilt). Moving Durable inward made the route pass it at Fine
+  mid-trip, a third nickel sent the route 100-195 away, and a longer nickel path changes every nickel route in the game; the
+  owner chose "Zoom in (safe)". `ladleZoomOn` (in `tutTc4Pull`, with D97) saves the view and zooms `FTUE.ladleZoom` 3x (never
+  under `MIN_W`) with the middle of the sword and Durable at `FTUE.ladleFocus` { x:0.5, y:0.53 }; `ladleZoomOff` (in
+  `tutDurableAligned` and `resetRun`) gives the saved view back. No route, trait, price or pull speed changes. Checked in the
+  browser: 3x, both spots on clear map; the ladle's 16.6 units (about 50 on screen) end 5.4 from Durable (Epic), D98, and the
+  view comes back exactly. Asserted by the FTUE test (written first; GREEN at 1019).
+- **R105 (owner, 2026-11-11): GC2 meets the craft book.** "i want to introduce the craft book somewhere before tc2. so when
+  we do the update recipe for tc2, players know where the record is going. It should be something like 'every trait you
+  discover on the map is recorded in the recipe book'. can we do it for gc2? it should appear right after opening the gate."
+  Then "show the craft book, also guide players to open and see it. then guide to close as well, then continue". At GC2's
+  gate (`ftueGcGated`, used by the gate's hook and by the `p1-craft-heat` catch-up, which ran first) `ftueBookIntro` shows
+  the craft frame open (`FTUE_ST.craftFrame`, so R69's frame now appears at GC2, not D42), says D28n and lights `#recipeBtn`;
+  `ftueBookOpened` says D28o over the book, lights CLOSE and locks ERASE, CONTINUE and CRAFT (`.cb-look`); `ftueBookClosed` goes
+  on to the anvil (`ftueGcQuenched`). Once (`FTUE_ST.bookSeen`); the PART 2+ jumps have seen it. Wording is Claude's; the owner
+  approved it ("Wording is OK", 2026-11-11); the game's name "craft book" is used. Found while checking and fixed: the per-frame catch-up skipped the lesson;
+  the book's other buttons were live. Checked in the browser with real taps (bellows, gate, book, CLOSE). Asserted by the FTUE
+  test (written first; GREEN at 1027). Dialogue keys 211.
+- **R106 (owner, 2026-11-11): the tiers window is back at TC4's route end; the ladle zoom is 1.5x and glides.** "i noticed the
+  weak, fine and epic trait alignment images are not shown anymore. when was it removed? I would like to put it back. it should
+  appear right after the sword reaches the end of the path for the durable. dragon dialogue 'different alignment will give us
+  different trait tiers.' also, the zoom is too much ... can we make the zoom in and out smooth, not a sudden cut?" Not removed:
+  since R5 (2026-10-23) the window opened in `SAY_AFTER.D97`, only when D97 was closed with its X; tilting the ladle with D97 up
+  replaced it with D98 and skipped the window. Now `tutTc4Pull` (the route's end) opens it with the new D96a "Different
+  alignment will give us different trait tiers." over it (`p4-tiers`, in `SAY_NO_X` and `CRAFT_REWIND`); its close
+  (`tutTiersClosed`) gives D97, the ladle and the zoom. `FTUE.ladleZoom` 3 -> 1.5 (measured from the owner's picture: its icons
+  are about 1.5 times their unzoomed size) and `viewGlide` eases the view in and out over `FTUE.ladleGlideMs` 600 ms (a timer
+  lands the end view if animation frames are frozen). Checked in the browser with the game loop and real taps: the window with
+  its three pictures and D96a on top; close: D97 and widths 1100 -> 1050 -> 919 -> 780 -> 733 (1.5x); aligned: D98 and back to
+  1100, the view as it was. Asserted by the FTUE test (written first; GREEN at 1034). Dialogue keys 212.
+- **R107 (owner, 2026-11-11): TC4's gate teaches the blade pips.** "as soon as we open the gate (tc4) darken everything except
+  the map area. Dragon should say 'open the craft window.' with the guide. As soon as it is opened, I want everything to have a
+  black overlay except this section. A separate window will popup (like the one for trait alignment) showing this 5 point
+  system ... and another one, showing 5 different elements. dragon says 'this here represents the trait and the tier. You can
+  also stack different traits.'" Owner's choices (defaults): one window; the stacked row is Balanced, Durable, Fire, Swift, Gale
+  (Weak); D98a skipped when the craft window is open; ids D98a, D98b. `ftueDurGated` (the gate's hook) runs `ftuePipIntro`
+  once (`FTUE_ST.pipsSeen`) for TC4 (`p4-quench`): D98a on the map's cut dim with the ring blinking; `toggleHud` opening it
+  calls `ftuePipShow`: D98b on the pips' cut dim (`#traitSlots`) over `#sfPipModal` ("Traits and Tiers", no backdrop of its
+  own), its rows from `FTUE.pipRows` drawn like the craft frame's pips (`pipRowsHtml`); `closePips` lifts it, back to
+  `p4-quench` and the anvil arrow (`ftueDurQuenched`). Found while checking and fixed: the lit dragon (dark-lit, 61) covered the
+  ring, so the craft frame is raised to 62 for D98a only (`#frame.landscape > #hud.pip-up`, as specific as R25's rule) and goes
+  back under the dark for D98b, so only the pips show. Checked in the browser with real taps (tiers close, ladle, gate, ring,
+  close). Asserted by the FTUE test (written first; GREEN at 1044). Dialogue keys 214.
+- **R108 (owner, 2026-11-11): the ores come with the order.** "I want to change the position of this dialogue and 'reward'.
+  Currently it appears after selling. I want it to instead appear after dragon's dialogues (example, after d28b). Dragon's
+  dialogues will now be 'Here are the ores for your next sword.' or 'More ores for you.' or 'I found some ores for you.' and
+  instead of reward the window now reads 'Ores Acquired!'." Proposal confirmed with "Yes, use defaults". Record: "Revised R108" in
+  `specs/2026-10-07-ftue-v3-rework.md` (the new table). `FTUE.oreChain` is keyed by the order it pays for; the window opens when the
+  order's dragon line closes (`SAY_THEN` for D31, D92l, D93a; `ftueOrderGo` -> `ftueGpcOres` for the market orders D28b, D28e, D28g,
+  D92a, D92i, D92j, D113a; `SAY_AFTER.D130` for Garric; GC8 once its order has typed). `ftueOreSold` and `orePending` are gone: the
+  sales go straight on. Title "Ores Acquired!" for ore-only windows (`FTUE.oreTitle`, `#rwTitle`), sub-line "For this order.", lines
+  D18b-D18d (`FTUE.oreLines`, `ftueOreLine`: random, never twice in a row) replace D18a; D28j says "ore stock". TC2's arrival no
+  longer sets the bag (its window gives `FTUE.tc2Ore`); a crafted tutorial sword ends the round so the refill waits for the window;
+  the PART 2, 4 and 6 jumps start with an empty bag. Checked in the browser with real taps: TC2 (D31 -> 1 + 1 with D28j), GC1
+  (D28b -> 2 + 2, D18c), GC2 walking away with D28e up (the window at the forge), TC4 (D92l -> 2 Nickel, the forge arrow kept), GC8
+  (1 + 1, then the forge), TC5 (D93a -> 2 Copper), GC5 (D92h, D92a -> the fire page), GC9 (D113a -> 5 Copper), Garric (D130 -> 2 + 2,
+  then D130b and the desk window still titled "Reward!"); Bram's sale and the diary go straight on. Asserted by the FTUE test
+  (written first; GREEN at 1053). Dialogue keys 216.
+- **R109 (owner, 2026-11-11): a jump to every tutorial customer.** "for console helper, can you make a separate part for each
+  customer?" Proposal accepted with "Dropdown picker". Record: `specs/2026-11-11-customer-jumps.md`. `CUST_JUMPS` (18 rows: TC1,
+  GC1-GC3, TC2, TC3, GC4-GC7, TC4, GC8, TC5, WC, BRAM2, GC9, GARRIC, GAME), each a PART base plus changes (`custJumpSet`: part,
+  order, stage, blueprints dropped, flags, gold, GC4's hidden Durable and stocked cave); `ftueCust(id)` and the CUSTOMER dropdown
+  after GAME (`custJumpUi`). Found while checking and fixed: a new game kept the last game's scripted customers (`tutReset`) and its
+  open windows (`newGame`). Checked in the browser: all 18 from the dropdown, the bell tapped, each brought its own customer.
+  Asserted by the FTUE test (written first; GREEN at 1062); the smelter test's `newGame` window widened to 900 characters.
+- **R110 (owner, 2026-11-11): D28n on the dark, D28o reworded.** For D28n (GC2's craft book): "black overlay everything except
+  the map area and the craft window. and change that dialogue to 'Every trait you discover, I will record it. Now close the book
+  and continue crafting.'" (said of D28o, the line over the open book). D28n goes on the cut dim with two windows, the map
+  (`#map-wrap`) and the craft frame (`#hud`, its book blinking); D28o (over the open book) stays clear of it, as before. D28o:
+  "Each page shows a trait and the ores that reached it. Close the book to continue." -> "Every trait you discover, I will record it.
+  Now close the book and continue crafting." (owner's words). Found while checking and fixed: the lit dragon (dark-lit, 61) sat over
+  the craft frame and took the book's tap (as he took the ring's in R107), so the frame is raised to 62 for D28n (`#hud.book-up`)
+  and goes back down when the book opens. Checked in the browser (the GC2 jump, then the gate's book lesson): the dark with the map
+  and the frame lit, the anvil and the inventory under it; the book takes the tap; D28o with the new words, the dark gone; CLOSE goes
+  on to the anvil step. Asserted by the FTUE test (written first; GREEN at 1064).
+- **R111 (owner, 2026-11-11): TC2's record step on the dark.** "for tc2, the guide to open the craft window and update the recipe
+  can be skipped if I directly place the metal from the gate to the anvil. to solve this, black overlay everything except the
+  map." The record stage (`record`, D42 "... Tap the inkpot to record the craft.") gets a stage dark (`STAGE_DARK.record`), so it
+  holds until the inkpot is tapped even if D42 is closed with its X: a window over the map, and the craft frame lifted over the
+  dark (`#hud.dark-lit`, z 62, over the lit dragon) because its ring and inkpot are the way on. The metal at the gate, the anvil and
+  the inventory are under the dark. Found while checking and fixed: under the stage dark the dragon's lift (`dark-lit`, 61) came
+  later than R100's `#dragon.over-modal` (1011) and won, so he fell under the compare window at D43; `over-modal` now beats it.
+  Checked in the browser (the TC2 jump, the record step started): the dark with the map and the ring lit, the anvil, bellows and
+  inventory under it; D42 closed with its X, the dark stays; the ring opens the frame, the inkpot opens the compare window with the
+  dragon and D43 over it; once recorded (stage `record-close`, D43a) the dark is gone. Asserted by the FTUE test (written first;
+  GREEN at 1066).
+- **R112 (owner, 2026-11-12): in the tutorial, only the order's blueprint looks buyable.** "for gc1 have the dragon give lesser
+  gold, so players do not buy any other sword. check if similar stuff happens everytime dragon gives gold" Checked: it happens at
+  all six of the dragon's payments (GC1, GC2, GC5, GC6, Bram's Dagger, GC9) and at the player's own buys; by Day 2 the player's own
+  gold covers other blueprints, so less gold could fix GC1 only. Owner's choice: "Grey out the others". Until the FTUE is done, a
+  blueprint `ftueBlueprintOk` refuses (not the open order's, nor the waiting customer's) shows greyed: in the shape window its BUY
+  gets the r301 `poor` look; on the market page its button shows the price on the grey of a locked one (`data-st='held'`). A tap
+  still gives D28m (r301; on the market now also for a held blueprint the gold cannot cover). The dragon still pays the full price.
+  After the FTUE every blueprint is as before. Checked in the browser (the GC1 jump, the order open, 140 gold as after the dragon's
+  payment): the shape window shows only the Longsword's BUY live, Broadsword, Dagger and Katana greyed; a tap on the Broadsword says
+  D28m and buys nothing; the market page shows Longsword "buy", Broadsword and Katana "held" (grey); with the FTUE done the
+  Broadsword is "buy" again. Asserted by the FTUE test (written first; GREEN at 1067) and the market test.
+- **R113 (owner, 2026-11-12): the craft book's tier pips from TC4.** "i want this to show in the craft book from tc4" (the page's
+  pip box, `#cbTier`: each trait's tier as pips). Before, it showed from the first recipe. Now it shows once TC4's pip lesson
+  (R107, at TC4's gate, `FTUE_ST.pipsSeen`) has been seen, or the FTUE is done (free play, GAME); before that the box and its
+  "Trait Tier" label (`#cbTierLab`) are hidden. Found while checking: `.cb-tier`'s display:flex beat the hidden attribute (as in R97),
+  so `.cb-tier[hidden]` hides it. Checked in the browser with the customer jumps: GC2 and TC4 (before the lesson) no pips and no
+  label; GC8 and GAME (after) the pips and the label. Asserted by the FTUE test (written first; GREEN at 1068).
+- **R114 (owner, 2026-11-12): the compare window's slots filled.** "make the texts bigger and the ores as well. they can fill the
+  whole box." (the Update Composition window's RECORDED and NEW boxes, 169 x 133 px at the 1080 frame). Heading (`.cp-h`) 9 -> 14
+  px; pips (`.cp-tr`) 16 -> 26 px, gap 4; ores (`.cp-ores img`) 21 -> 36 px, gap 4, and 22 px when a route has 3 or more ore kinds
+  (`.cp-ores.many`, so the row, or two, still fits); five pips (`.cp-tr.many`, `compPipCount`) 20 px, since a pip emoji is about
+  1.37 times its font size wide; "x2" and "+" (`.cp-ores .x`) 9 -> 14 px; "Not recorded yet" (`.cp-none`) 10 -> 13 px;
+  the slot's gap 6 -> 8. Checked in the browser (169 x 133 slots): TC2's usual window, Recorded 2 iron x2 + 2 manganese x2 and New 1 + 1,
+  fits in one row each at 36 px; an extreme route (5 pips, 4 ore kinds) fits at 20 px pips and 22 px ores, nothing outside the box.
+  Asserted by the FTUE test (written first; GREEN at 1071).
+- **R115 (owner, 2026-11-12): the external tester copy.** "give me the external version for playtest" (the plan accepted on
+  2026-11-11: Option B, frozen until the owner asks). Record: `specs/2026-11-12-external-build.md`. The main build's second script opens
+  with `const DEV=true;`; with it false the cheat bar, SETTINGS +1000 GOLD and the fog eye are removed at start (`devStrip`),
+  `ftuePart`, `ftueCust`, `cheatGold`, `toggleFogCheat` and `hmSkip` do nothing, `window.SF` / `window.SFM` are not set, and
+  `?freeplay` / `?nointro` are ignored. `tooling/external/make-external.mjs` writes `Swordforge_external.html` with the switch off
+  and a generated-file comment; nothing else changes. Checked in the browser: the external copy (opened with `?freeplay&nointro`)
+  plays the intro and then D1, has no cheat bar, fog eye or +1000 GOLD, its console helpers answer "Not available", `SF`/`SFM` are
+  undefined, no console errors; the internal build still has all of them. Asserted by the new external test (written first; GREEN at
+  11); the FTUE and smelter tests' quotes of `ftuePart`, `ftueCust` and `SM_FREE` updated.

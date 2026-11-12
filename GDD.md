@@ -84,6 +84,8 @@ The dragon sits on the bench; his speech bubble points at him.
 ### Map, fog, traits
 
 - A 2800 x 1960 world, viewed through a zoom window (1100 wide at start, 360-2800). The sword starts just below the centre.
+  When a craft starts (its first ore on the grindstone or in the smelter, CONTINUE FROM HERE, or a stored ingot back on the
+  anvil), the map recentres on the sword, at the player's zoom (R94).
 - **Fog** covers it; the sword clears circles of 120 as it travels (the Vision skill widens them), and 430 around the start.
 - **25 traits**, hand-placed from the owner's map. A trait is a `?` until taken; then its symbol shows for good and a tap on it
   opens its trait card (craft from it in one tap).
@@ -93,7 +95,9 @@ The dragon sits on the bench; his speech bubble points at him.
 - **Trait value** grows with distance from the centre: `round(distance / 12)`, clamped 5-100 (swift 16, balanced 24, durable
   25, gale 41, fire 48, up to 100 for Fury and Magma).
 - **Hazards:** zones that drain the blade's health (26/s of 100) while the sword moves through them; at 0 the blade shatters.
-  Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free).
+  Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free). In a zone
+  the sword shakes and its health shows red; out of it, the health's usual colour again (R103). The fire craft's first zone
+  (D69) is three times its old size (R103).
 - **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200).
 
 ### Ores and routes
@@ -143,8 +147,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
 - The dragon heats the metal while the player holds on it. At full heat the minigame says so (D15, in the tutorial).
 - The player drags the hammer and taps to strike **hit points**: one point on the metal sphere for 3 strikes, then 3 random
   points on the mid-blade. An aim ring under the hammer head shows the band each strike would get (yellow, blue, red).
-- The 6 strikes' accuracy averages into a **forging band**: **Masterwork** (>= 85%, price x1.3), **Good** (>= 60%, x1.0),
-  **Crude** (x0.8). 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
+- The 6 strikes' accuracy averages into one **accuracy percent**, which sets the price (R92): a steep curve from x0.8 at 0%
+  to x1.0 at 80%, then one step a percent, each bigger than the last, to x1.3 at 100% (on a 100g base every percent from 80%
+  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
 - Stages drawn: metal sphere, a mid-blade, the sword's own blade. A glow on the blade shows its heat.
 
 ### Quench
@@ -180,7 +185,7 @@ Any sword dragged in the game hangs from its grip and swings. By trait:
 ```
 price = floor( trait values + tier bonuses     (5 for a sword with no trait)
                x popularity  (1.10 ^ (level - 1))
-               x forging band (1.3 / 1.0 / 0.8)
+               x forging accuracy (0.8 .. 1.3, R92)
                x health      (0.5 + 0.5 x health/100)
                x Trade skill (1 + 0.05 x rank)
                x reputation  (1.2 above 10, 0.8 below 0) )      min 1
@@ -210,7 +215,10 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 
 A rotary wheel of traits on the counter; one blueprint page at a time, with its description and price. A page
 is free, owned, closed ("Play more to unlock"), unknown (trait not found), too dear, or BUY. Blueprints can also be bought in
-the shape window. In the tutorial only the current order's blueprints can be bought, and the dragon pays for some.
+the shape window. In the tutorial only the current order's blueprints can be bought (the others show greyed, R112), and the dragon pays for some: his coins fly to the
+gold counter with the price ("+<price>g"), then the player buys it (R96). Buying
+one (in either place) flies coins from the gold counter to the buy button, the same coins as a quest claim, and the counter
+shows "-<price>g" (R91).
 
 ### The shop
 
@@ -248,7 +256,8 @@ Four more node slots are empty. RESET TALENT refunds every point.
 
 14 one-step quests, 20g and 20 exp each, claimed from the quest basket: craft a sword, sell a sword (both done when the list
 arrives), buy a blueprint, update a craft-book page, gather ores, craft a fire sword, sleep, craft a durable sword, buy a fire
-blueprint, make an Epic with the ladle, sell a Weak sword, craft a swift sword, craft a gale sword, sharpen a sword.
+blueprint, make an Epic with the ladle, sell a Weak sword, craft a swift sword, craft a gale sword, sharpen a sword. While a
+finished quest waits to be claimed, the basket has a still green glow and a faint green tint on its art (R93).
 
 ### Days
 
@@ -263,21 +272,26 @@ swings by itself. Tin and zinc have no seam yet.
 ### The craft book
 
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
-  shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one.
+  shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
+only Update is offered, R100). Its Trait Tier pips show from TC4's pip lesson on (hidden before, R113).
 - **CRAFT 1** makes the page's sword from its ores straight away (no smelter, no minigame; the page's forging grade).
 - Pages: 3 to start, +5 from TC2's reward.
 
 ## 9. The tutorial (FTUE)
 
-Six parts over three in-game days. The dragon leads; each step lights the one control to use. The ores are rationed: after each
-sale the dragon gives exactly the next sword's ores ("the ore chain").
+Six parts over three in-game days. The dragon leads; each step lights the one control to use. The ores are rationed: the dragon gives
+exactly an order's ores ("the ore chain"), in the "Ores Acquired!" window when his line for that order closes (R108; was after
+the previous sale).
 
 | Part | Day | Who | What the player learns |
 |---|---|---|---|
-| **1** | 1 | **Bram** (TC1), then 3 orders: balanced Longsword, Broadsword, Katana | The whole loop on one sword (2 iron + 2 manganese). The crafted window. The counter and a sale. The quest list. The bell. Blueprints: the dragon buys two, the player the third. |
-| **2** | 1 | **TC2** ("a good one"); **the adventurer** (TC3, fire) | Raw ores fall short: the grindstone, grinding, recording a craft with the inkpot, 5 more pages. Then the cave, hazards, a two-ore fork to reach Fire, a damaged blade. Bed. |
+| **1** | 1 | **Bram** (TC1), then 3 orders: balanced Longsword, Broadsword, Katana | The whole loop on one sword (2 iron + 2 manganese). The crafted window. The counter and a sale. The quest list. The bell. Blueprints: the player buys all three; for the first two the dragon gives the gold first (R96). At GC2's gate the craft book:
+the craft frame appears, the player opens the book and closes it (R105; D28n on the dark with only the map and the craft frame lit, R110). |
+| **2** | 1 | **TC2** ("a good one"); **the adventurer** (TC3, fire) | Raw ores fall short: the grindstone, grinding, recording a craft with the inkpot (on the dark until it is recorded, R111), 5 more pages. Then the cave, hazards, a two-ore fork to reach Fire, a damaged blade. Bed. |
 | **3** | 2 | Orders: durable Shortsword; fire Longsword, Broadsword, Katana | The basic-vs-elemental map window, nickel from the cave, Durable. The trait card and CRAFT 1 from the map and the craft book. |
-| **4** | 2 | **TC4** (Epic durable), **TC5** (gale); orders: a Weak balanced Longsword, a gale Katana + fire Claymore | The ladle and the three tiers. Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
+| **4** | 2 | **TC4** (Epic durable), then an order for a Weak balanced Longsword (R95), then **TC5** (gale), then an order for a gale Katana + fire Claymore | The ladle and the three tiers (at the route's end the Alignment for Tiers window, then the ladle with the map
+zoomed 1.5x, gliding; R104, R106). After TC4's gate, the blade pips: open the craft window, then the Traits and Tiers
+window (1, 2, 3 pips for Weak, Fine, Epic, and five different traits stacked; R107). Storing a metal (swift, found on the way to Gale). Stopping on Weak on purpose. COME LATER and the waiting list. |
 | **5** | 2 | **Bram** returns (swift Dagger, sharper); an order for a gale Longsword | The stored swift ingot. The sharpening wheel. The diary. |
 | **6** | 2-3 | **Garric** (TC6) | The design desk; a solo craft graded by Garric; the banner and build mode; bed; Day 3: the cave waits for a Pickaxe point, the skill tree. D140 ends the tutorial. |
 
@@ -333,7 +347,8 @@ Arrows at the screen edges (and the arrow keys) move between screens; an arrow t
 
 Trait discovered (first find only, with a celebration burst, bigger for Epic, a second smaller burst after), sword crafted,
 reward (the dragon shown over its dark, his line under it), shape, market, skill tree, quests, diary, ledger and waiting list,
-end of day, the gear menu (resume, save, new game, load, settings).
+end of day, the gear menu (resume, save, new game, load, settings). SETTINGS also reopens the tutorial's two map windows
+(MAP: FIVE PARTS, MAP: TRAITS), each once the tutorial has shown it, and both after it (R97).
 
 ## 11. Dialogue and guidance
 
@@ -348,6 +363,11 @@ end of day, the gear menu (resume, save, new game, load, settings).
   and down, ring down), a dark screen with the needed controls cut out, and a pulsing ring on the map trait to aim for (it goes
   out once the sword is made).
 - **Rules for lines:** straight quotes only; "tap", never "click".
+- **Toasts are the dragon's (R90, on trial):** a game message (for example "No Iron left") is said by the dragon for 4 s, then
+  goes. With a line up it takes that line's place, and the line comes back as it was; with no line, it shows in his bubble
+  where he is visible, or in an icon bubble at the bottom centre (as in the sharpening window) where he is not. A tap closes
+  it; a new line replaces it at once. 30 old toasts are gone; the shop-rack sale and the PART buttons keep the old top toast.
+  Record: `specs/2026-11-05-dragon-toasts.md` (`DTOAST.on=false` reverts it).
 
 ## 12. Art and audio
 
@@ -368,9 +388,10 @@ step. No autosave; the game does not offer to continue on start.
 
 ## 14. Test aids in the build
 
-SKIP HAMMER (grades the forging Good), PART 1-6 and GAME (start a new game at a part, or just after the tutorial), the map's
+SKIP HAMMER (grades the forging Good), PART 1-6 and GAME (start a new game at a part, or just after the tutorial), the CUSTOMER dropdown (a new game at any tutorial customer, R109), the map's
 fog button, +1000 gold in the settings, and the URL options `?freeplay` (tutorial done, 20 of each ore, 500g) and `?nointro`.
-They ship to players today.
+They are in the internal build only: the external tester copy, `Swordforge_external.html`, is generated with all of them off
+(R115, `const DEV=false;`, `specs/2026-11-12-external-build.md`).
 
 ## 15. Technical
 

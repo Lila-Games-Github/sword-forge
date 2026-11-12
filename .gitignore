@@ -27,3 +27,7 @@ research/**/Reviews/sensortower-ios-reviews-raw.json
 ### Agent working files (never part of the build)
 *.bak
 __*.patch
+
+### Reddit playtest outreach (holds Reddit usernames; the repo is public)
+.playwright-mcp/
+research/outreach/

@@ -90,9 +90,11 @@ the pivot point on the handle."
 - **The bucket:** released with the tip over the bucket (its box, `bladeGrab` wider each side, from 60 px above it), the
   blade drops straight down `bladeDropPx` in `bladeDropMs`, fading, then the steam and mist, then the "Sword crafted!"
   window. Released anywhere else, it goes back onto the anvil.
-- **Values:** `bladeG` 2600 px/s2, `bladeCom` 0.5, `bladeDamp` 1.2 /s, `bladeFollow` 700 /s2, `bladeGrab` 24 px,
-  `bladeDropPx` 70, `bladeDropMs` 320. With a 160 px blade (2 anvils wide box) L is about 80 px: a swing of about 1.1 s,
-  its size halving in about 1.2 s.
+- **Values:** `bladeG` 2600 px/s2, `bladeCom` 0.5, `bladeDamp` **2.5** /s (R98, owner 2026-11-10: "lower the swinging a bit";
+  was 1.2), `bladeFollow` 700 /s2, `bladeGrab` 24 px, `bladeDropPx` 70, `bladeDropMs` 320. With a 160 px blade (2 anvils wide
+  box) L is about 80 px: a swing of about 1.1 s, its size halving in about 0.55 s (was 1.2 s). A 300 px sideways drag in
+  0.25 s with a held sword (`swingW` 317) swings it at most 61 degrees (was 74) and it is within 2 degrees after 2.9 s (was
+  over 6 s); the smelter test checks this.
 - **Pure rules:** `smPendStep(th, om, ax, ay, L, dt)`, `smFollow(p, v, target, dt)` (one axis; returns p, v and the
   acceleration a), `smBladeEnds(rgba, w, h)`, `smRot(th, artDeg)` = the picture's rotation in degrees for a swing angle
   th (rad), the art's own tang-to-tip angle being artDeg: (90 - th in degrees) - artDeg.

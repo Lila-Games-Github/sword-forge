@@ -289,7 +289,7 @@ eq('both heat runs point with the shared pointer, the gate only on Fire at the r
 /* R5 (2026-10-23): GC4 and TC4's Durable crafts, and the ladle lessons (TC4's D97, TC5's D97a) */
 eq('D97 text (R5)', line('D97'), "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!");
 eq('the Durable heat run: the shared pointer on Durable; TC4 at the route end: the ladle lesson', src.includes("if(TUT_STAGE==='p3-dur-heat'){ if(FTUE_ST.part===4 && melt && melt.stage==='smelting' && swordAtRouteEnd()){ tutTc4Pull(); return; } tutLoopPointer('durable'); return; }"), true);
-eq('D97 points at the ladle, not the dragon', /function tutTc4Pull\(\)\{[\s\S]{0,300}sayQueue\('D97'\);[\s\S]{0,120}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutTc4Pull\(\)\{[\s\S]{0,400}'#dragon'/.test(src), true);
+eq('D97 points at the ladle, not the dragon (R106: once the tiers window is closed)', /function tutTiersClosed\(\)\{[\s\S]{0,300}sayQueue\('D97'\);[\s\S]{0,120}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutTiersClosed\(\)\{[\s\S]{0,400}'#dragon'/.test(src), true);
 eq('D97a too (TC5\'s swift reminder), read while the metal is in the smelter', /function tutDay2Pull\(\)\{[\s\S]{0,120}if\(!melt \|\| melt\.stage!=='smelting' \|\| !swordAtRouteEnd\(\)\) return;[\s\S]{0,300}tutArrow\(null, '#ladleHead'/.test(src) && !/function tutDay2Pull\(\)\{[\s\S]{0,500}'#dragon'/.test(src), true);
 eq('the ladle parks the sword on the lesson\'s trait (the clamp the dragon\'s fire had), then stops', /function smLadleTick\(dt\)\{[\s\S]{0,300}if\(TUT_SWIFT_LOCK\) return;[\s\S]{0,700}const want=tutPullTarget\(\), tg=want && traits\.find\(t=>t\.trait && t\.trait\.id===want\);[\s\S]{0,300}TUT_SWIFT_LOCK=true; setTimeout\(want==='swift' \? tutSwiftAligned : want==='durable' \? tutDurableAligned : tutGaleAligned, 0\);/.test(src), true);
 eq('parked on the trait: D98 and the gate (was the mug)', ['tutDurableAligned', 'tutSwiftAligned', 'tutGaleAligned'].every(f => new RegExp('function ' + f + '\\(\\)\\{[\\s\\S]{0,300}sayQueue\\(\'D98\'\\);[^\\n]*\\n\\s*setTimeout\\(tutGatePointer, 0\\);').test(src)), true);
@@ -336,8 +336,8 @@ eq('ftueBookToastQuiet reads it (free play and a finished FTUE keep the toast)',
 eq('the gate toasts a new page only when not quiet', src.includes("if(isNew && !ftueBookToastQuiet()) setTimeout(()=>toast('&#128214; <b>'+bt.name+'</b> recorded in the craft book'), 900);"), true);
 eq('the trait window opens on a first discovery only; a re-take goes straight on', src.includes('if(firstFind){ showAcquire(bt,tier,melt.traits.length,true); TUT_ACQ_LINE=sayNew; } else tutShapeStep();'), true);
 /* R13 (owner, 2026-10-26): a blueprint the dragon buys for the open order cannot be bought by the player */
-eq('ftueDragonPays: the open order\'s blueprint, when the dragon buys it',
-  src.includes("function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.o.market && m.o.market.by==='dragon' && m.o.trait===k && m.o.shape===sh); }"), true);
+eq('ftueDragonPays: the open order\'s blueprint, while the dragon\'s coins are in the air (R96: then the player buys it)',
+  src.includes("function ftueDragonPays(k, sh){ const m=FTUE_MK; return !!(m && m.step==='gift' && m.o.trait===k && m.o.shape===sh); }"), true);
 eq('the shape window shows no BUY on it', src.includes("const open=ftueShapeOpen(k, sh), gift=!open && ftueDragonPays(k, sh), b=document.createElement('button');")
   && src.includes("<span>'+sh+'</span>'+(open || gift ? '' : '<b class=\"sf-buy'"), true);
 eq('a tap on it buys nothing (the shape window)', /function shapeBuy\(k, sh\)\{[^\n]*\n\s*if\(ftueDragonPays\(k, sh\)\) return;/.test(src), true);
@@ -389,18 +389,20 @@ eq('and no seam gives ore', /function mineNode\(n,el\)\{\s*if\(!PICK_OUT \|\| n\
 
 /* v3 part 1 lines (D8, D17) */
 const V3P1 = {
-  D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it.",   /* r300 */
+  D28b: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll give you the gold for the shape when you pick it.",   /* r300. R96 */
   D28c: 'Here it is. Watch this!',
+  D28ca: "There's the gold. Now tap the blueprint to buy it.",   /* R96 */
   D28d: 'There, my treat! Now pick the Longsword.',   /* r300 */
   D28e: "A Broadsword this time. I'll pay for the shape again.",   /* r300 */
   D28f: 'Done! Pick the Broadsword.',   /* r300 */
   D28g: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!",
   D28h: "Oh, you don't have enough. Don't worry, I'll help.",
-  D28i: 'Your first blueprint! Now pick the Katana.' };   /* r300 */
+  D28i: 'Well done! Now pick the Katana.' };   /* r300. R96: the Longsword is the player's first purchase now */
 for (const [k, v] of Object.entries(V3P1)) eq(k + ' text', line(k), v);
 /* every script block must parse: a text check cannot see a broken quote (v3 part 2 shipped one, caught here) */
 [...src.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m, i) => { let ok = true; try { new Function(m[1]); } catch (e) { ok = e.message; } eq('script block ' + i + ' parses', ok, true); });
 const keyList = [...src.matchAll(/\n\s*(D\d+[a-z]?): "/g)].map(x => x[1]);
+eq('D28ca sits between D28c and D28d (R96)', (() => { const a = src.indexOf('\n    D28c: "'), b = src.indexOf('\n    D28ca: "'), c = src.indexOf('\n    D28d: "'); return a > 0 && a < b && b < c; })(), true);
 for (const [k, prev] of [['D28c','D28b'],['D28d','D28c'],['D28e','D28d'],['D28f','D28e'],['D28g','D28f'],['D28h','D28g'],['D28i','D28h']])
   eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('Bram: no reward window, straight to the quest list',
@@ -417,7 +419,7 @@ const V3P2 = {
 for (const [k, v] of Object.entries(V3P2)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D32a','D32'],['D32b','D32a'],['D32c','D32b']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('D34 removed ("6 more swords" is not true any more)', line('D34'), null);
-eq('TC2 arrives: ore set to exactly FTUE.tc2Ore', /function tutBellRung\(\)\{[\s\S]{0,700}ORE_COUNT\.iron=FTUE\.tc2Ore\.iron; ORE_COUNT\.manganese=FTUE\.tc2Ore\.manganese;/.test(src), true);
+eq('TC2 arrives: R108: the bag is no longer set (its ores come in the window after D31)', /function tutBellRung\(\)\{[\s\S]{0,700}custReply\('tc2'/.test(src) && !/function tutBellRung\(\)\{[\s\S]{0,700}ORE_COUNT\.iron=FTUE\.tc2Ore\.iron;/.test(src), true);
 eq('the grindstone is no longer on the bench when part 1 ends', src.includes('if(FTUE_ST.part===1 && !more){ FTUE_ST.grind=true;'), false);
 eq('raw ores first: both in, the path misses Balanced', /function tutTc2RawCheck\(\)\{[\s\S]{0,600}Math\.hypot\([^)]*\)>ALIGN_MAX/.test(src), true);
 eq('then the grindstone in the reward window, and the ores back', /function tutTc2Grindstone\(\)\{[\s\S]{0,600}ftueReward\(\[ ?\{ kind:'unlock', id:'grindstone' \} ?\][\s\S]{0,400}gainOre\(/.test(src), true);
@@ -444,7 +446,7 @@ eq('the Durable lesson: map window after D92c', src.includes('D92c:function(){ f
   && /function ftueDurableMap\(\)\{[^}]*openIllus\('assets\/ui\/MAP_parts2\.webp'/.test(src), true);   /* r254: its own art */
 eq('the Durable craft takes ground nickel only', src.includes("if(TUT_STAGE==='p3-dur-grind') return nickelIn()<2 ? 'nickel' : false;"), true);
 eq('the Durable and Weak walks reach their screen handler', src.includes("String(TUT_STAGE).indexOf('p3-dur-')===0 || String(TUT_STAGE).indexOf('p4-weak-')===0){ tutDay2Screen(name); return; }"), true);
-eq('a market step without a done line says nothing', src.includes('if(o.market.done) sayOver(o.market.done);'), true);
+eq('a market step without a done line says nothing (R96: said once the player has bought it)', src.includes('FTUE_MK=null; if(m.o.market.done) sayOver(m.o.market.done); }'), true);
 /* v3 part 4 (D33-D38): TC4 Epic Durable with the pull lesson, TC5 gale, GC8 Weak balanced Longsword */
 /* owner, 2026-10-09: after GC8, the customer who is sent to the waiting list (two swords, two blueprints) */
 eq('part 4 gpc', FTUE.parts[4].gpc, [ { trait: 'balanced', shape: 'Longsword', tier: 'Weak', qty: 1, lesson: 'weak' },
@@ -468,7 +470,7 @@ eq('TC4 pull parks on Durable', src.includes("if(TUT_STAGE==='p4-pull') return '
 eq('TC5 swift step: the reminder, not the lesson', /function tutDay2Pull\(\)\{[\s\S]{0,300}sayQueue\('D97a'\)/.test(src), true);
 eq('GC8: the sword parks in the Weak band', /function tutWeakStop\(\)\{[\s\S]{0,900}FTUE\.weakStop/.test(src), true);
 eq('the sale checks the tier', src.includes("if(ftueC && !orderMatches(ftueC, COUNTER)){ toast('They asked for a <b>'+(ftueC.tier ? ftueC.tier+' ' : '')+orderLabel(ftueC.name, ftueC.shape)+'</b>'); return; }"), true);
-eq('TC4 sold: the bell brings TC5', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='d2-bell'/.test(src), true);
+eq('TC4 sold: the bell brings GC8 (R95; was TC5)', /function ftueTc4Sold\(\)\{[\s\S]{0,300}TUT_STAGE='p4-bell';/.test(src), true);
 /* v3 part 5 (D39-D43): Bram's swift Dagger (the dragon buys it), the sharpening wheel, the diary; GC9 gale Longsword */
 eq('part 5 gpc', FTUE.parts[5].gpc, [ { trait: 'gale', shape: 'Longsword', qty: 1, market: { by: 'dragon', ask: 'D113a', done: null } } ]);
 eq('part 5 rewards (D42: the diary is Bram\'s own window; GC9 none)', FTUE.parts[5].rewards, { tc: [], gpc1: [] });
@@ -477,7 +479,7 @@ const V3P5 = {
   D48:  "I found this sharpening wheel. I'll show you how to use it.",
   D111: 'I have another request. My next mission requires me to cross enemy territory quickly. Can you make a swift dagger for me?',
   D111b: "A dagger? We don't have that blueprint. I'll get it, since he is an old friend.",
-  D113a: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!" };
+  D113a: "A gale Longsword? Fine, I'll pay for this one too. Don't get used to it!" };   /* R96 */
 for (const [k, v] of Object.entries(V3P5)) eq(k + ' text', line(k), v);
 for (const [k, prev] of [['D111b','D111a'],['D113a','D113']]) eq(k + ' follows ' + prev, keyList[keyList.indexOf(k) - 1], prev);
 eq('the sharpening wheel is locked until given (D40)', src.includes("if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; }"), true);
@@ -502,7 +504,7 @@ eq('the trait is gained at once; the hooks, the window and the toast wait for th
    ordered (or waiting) blueprint can be bought - anything else gets D28m, in the shape window and the market */
 eq('D28m text, beside D28l', line('D28m') === "Let's buy those later. Focus on the customer's request." && keyList[keyList.indexOf('D28m') - 1] === 'D28l', true);
 eq('the first sword\'s shape window blinks the Shortsword', /function openShapeSelect\(\)\{[\s\S]{0,1400}if\(TUT_HM_FIRST\) setTimeout\(\(\)=>tutExit\("#sfShapeModal \.sf-shape\[data-shape='Shortsword'\]"\), 0\);/.test(src), true);
-eq('a BUY the gold cannot cover is greyed', src.includes("'<b class=\"sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'\">BUY '+marketPrice(k, sh)+'g</b>'") && src.includes('.sf-shape .sf-buy.poor {'), true);
+eq('a BUY the gold cannot cover is greyed (R112: and one the tutorial refuses)', src.includes("'<b class=\"sf-buy'+(GOLD<marketPrice(k, sh) || !ftueBlueprintOk(k, sh) ? ' poor' : '')+'\">BUY '+marketPrice(k, sh)+'g</b>'") && src.includes('.sf-shape .sf-buy.poor {'), true);
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
     for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
   const mk = (order, waiting, done) => new Function('FTUE_ST', 'ftueOrderOpen', fn('ftueBlueprintOk') + '; return ftueBlueprintOk;')({ done: !!done, waiting: waiting || [] }, () => order);
@@ -512,13 +514,13 @@ eq('a BUY the gold cannot cover is greyed', src.includes("'<b class=\"sf-buy'+(G
   eq('no order, nothing waiting: nothing', mk(null, [])('balanced', 'Longsword'), false);
   eq('after the tutorial: anything', mk(null, [], true)('balanced', 'Longsword'), true); }
 eq('the shape window refuses it with D28m', /function shapeBuy\(k, sh\)\{[\s\S]{0,300}if\(!ftueBlueprintOk\(k, sh\)\)\{ ftueSaySh\('D28m'\); return; \}/.test(src), true);
-eq('so does the market', /function marketBuy\(k, sh\)\{[\s\S]{0,700}if\(st==='buy' && !ftueBlueprintOk\(k, sh\)\)\{ sayOver\('D28m'\); return; \}/.test(src), true);
+eq('so does the market (R112: a held one too, whatever the gold)', /function marketBuy\(k, sh\)\{[\s\S]{0,700}if\(\(st==='buy' \|\| st==='poor'\) && !ftueBlueprintOk\(k, sh\)\)\{ sayOver\('D28m'\); return; \}/.test(src), true);
 /* r300 (owner, 2026-10-21): the tutorial buys at the shape window - no market trip */
 eq('an order line has a lit OK again, and closing the order\'s last line starts the craft guide', ['D28b','D28e','D28g','D92a','D92i','D92j','D111b','D113a'].every(k => new RegExp('const SAY_GO_MORE=\\{[^}]*\\b' + k + ':1').test(src) && new RegExp('const SAY_GO_GLOW=\\{[^}]*\\b' + k + ':1').test(src))
   && src.includes("if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };") && /function sayHide\(\)\{[\s\S]{0,1600}if\(SAY_THEN && SAY_ON===SAY_THEN\.id\)\{ const f=SAY_THEN\.fn; SAY_THEN=null; setTimeout\(f, 0\); \}/.test(src), true);
-eq('the craft guide is the old market ending without the market', src.includes("function ftueOrderGo(o){ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }"), true);
+eq('the craft guide is the old market ending without the market (R108: after the order\'s ores)', src.includes("function ftueOrderGo(o){ ftueGpcOres(()=>{ if(FTUE_ST.part===1) ftueGcCraftGo(); if(o.guide) ftueBookGo(o); }); }"), true);
 eq('the shape window runs the purchase for the order\'s trait', /function openShapeSelect\(\)\{[\s\S]{0,1300}ftueShapeOpened\(\);/.test(src) && /function ftueShapeOpened\(\)\{[\s\S]{0,300}if\(k!==o\.trait\) return;/.test(src), true);
-eq('the dragon pays: D28c, coins to the shape, unlocked, then the done line and the shape', /function ftueShapeOpened\(\)\{[\s\S]{0,900}ftueSaySh\(FTUE\.marketWatch\);[\s\S]{0,400}coinFly\(dragonEl\(\), [\s\S]{0,200}FTUE_ST\.shapes\[key\]=true; shapeGrid\(\);[\s\S]{0,200}ftueShapeDone\(m\);/.test(src), true);
+eq('the dragon pays (R96): D28c, his coins to the gold counter, then D28ca and the BUY lit; the player\'s purchase gives the done line', src.replace(/\r\n/g, '\n').includes("    if(o.market.by==='dragon'){ m.step='gift'; shapeGrid(); ftueSaySh(FTUE.marketWatch);   /* no BUY while his coins fly */\n        setTimeout(()=>ftueDeposit(m, document.getElementById('goldVal'), ()=>{ shapeGrid(); ftueSaySh('D28ca'); tutExit(btn); }), 900);\n        return; }"), true);
 eq('the player buys: BUY pointed at; short of gold, D28h and the top-up first', /function ftueShapeOpened\(\)\{[\s\S]{0,2000}m\.step='buy';[\s\S]{0,300}ftueSaySh\(FTUE\.marketShort\);/.test(src) && /function shapeBuy\(k, sh\)\{[\s\S]{0,900}ftueShapeBought\(k, sh\);/.test(src), true);
 eq('a purchase ends the lesson and points at the shape', /function ftueShapeDone\(m\)\{ FTUE_MK=null;[\s\S]{0,400}tutExit\(/.test(src), true);
 eq('a market purchase of the ordered blueprint also ends it, with no second craft guide', /function ftueMarketBought\(k, sh\)\{[\s\S]{0,200}FTUE_MK=null;/.test(src), true);
@@ -528,7 +530,7 @@ eq('a line over a window clears the shape window too (z 1010)', src.includes('.s
 /* r298 (owner, 2026-10-21): the first sword goes on the counter only once the tutorial asks (D23) */
 eq('D23 opens the counter for the first sword', /function bramGiveStep\(\)\{ TUT_BRAM_GIVE_OK=true; say\('D23'\);/.test(src), true);
 eq('until then a drop on the counter is refused and the sword stays in the bag', src.includes("function counterShut(){ return SF_SCREEN==='customer' && !FTUE_ST.done && FTUE_ST.part===1 && !TUT_BRAM_SOLD && !TUT_BRAM_GIVE_OK; }")
-  && src.includes("else if(overTable(ev)){ if(counterShut()){ toast('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };"), true);
+  && src.includes("else if(overTable(ev)){ if(counterShut()){ toastCut('Not yet. The dragon will tell you when.'); return; } take(); zonePlace(w); } };"), true);
 eq('a new game shuts it again', /function tutReset\(\)\{[\s\S]{0,300}TUT_BRAM_GIVE_OK=false;/.test(src), true);
 /* r297 (owner, 2026-10-21): Day 2 morning - D89's OK is lit first; only after it (D92) does the arrow to the counter blink */
 eq('the morning no longer blinks the arrow with D89', /function tutDay2Morning\(\)\{[\s\S]{0,700}TUT_STAGE='d2-counter'; tutExit\(null\);\s*sayQueue\('D89','D92'\);[^\n]*\n\s*\}/.test(src), true);
@@ -557,7 +559,7 @@ eq('the first sword is open only on its craft steps, with the starting bag as it
 eq('after the refill the guided craft goes back to its first step', (() => { const m = src.match(/const CRAFT_REWIND=(\{[^}]*\});/); return m && new Function('return ' + m[1])(); })(),
   { bellows: 'first', anvil: 'first', strike: 'first', travel: 'first', quench: 'first', acquired: 'first', shape: 'first',
     'p1-craft-heat': 'p1-craft-ore', 'p1-craft-shape': 'p1-craft-ore', 'p3-dur-heat': 'p3-dur-grind', 'p4-pull': 'p3-dur-grind', 'p4-quench': 'p3-dur-grind',
-    'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
+    'p4-tiers': 'p3-dur-grind', 'p4-pips': 'p3-dur-grind', 'p4-weak-heat': 'p4-weak-grind', 'p4-weak-quench': 'p4-weak-grind' });
 eq('the first sword starts again at D3 (its ore step)', /function ftueCraftRewind\(\)\{[\s\S]{0,300}if\(to==='first'\)\{ TUT_STAGE=null; tutPause\(false\); tutArrow\(null,null\); tutUnglow\(\); sayQueue\('D3'\); return; \}/.test(src)
   && src.includes("ftueOreWindow(miss, { say:'D28l' }, ftueCraftRewind);"), true);
 eq('a sword with no reward row ends the round (TC2, TC3, GC8, Garric)', /function ftueOreReward\(key, then\)\{ const e=key && FTUE\.oreChain\[key\]; if\(!e\)\{ if\(key\) FTUE_ST\.oreRound=null;/.test(src), true);
@@ -584,24 +586,24 @@ eq('D28k goes with its window; a kept line (D107g) moves back to the screen bubb
 eq('the mug refuses another trait (TC5\'s swift pour is the lesson)', src.includes("if(mugOverAnvil() && canPourQuench() && ftuePourOk()){") && /function ftuePourOk\(\)\{[\s\S]{0,400}ftueTutTrait\(\)===melt\.reachedTrait\.trait\.id/.test(src), true);
 /* r291 (owner, 2026-10-21): the ore chain - after each tutorial sword the dragon gives exactly the next sword's ores,
    in the reward window with his line on top (record: "The ore chain" in specs/2026-10-07-ftue-v3-rework.md) */
-eq('oreChain is the recorded table', FTUE.oreChain, {
-  first:    { give: { iron: 2, manganese: 2 }, say: 'D18a' },
-  p1g0:     { give: { iron: 2, manganese: 2 }, say: 'D18a' },
-  p1g1:     { give: { iron: 2, manganese: 2 }, say: 'D18a' },
-  p1g2:     { give: { iron: 1, manganese: 1 }, say: 'D28j' },
-  p3g0:     { give: 'page:fire', say: 'D18a' },
-  p3g1:     { give: 'page:fire', say: 'D18a' },
-  p3g2:     { give: 'page:fire', say: 'D18a' },
-  p3g3:     { give: { nickel: 2 }, say: 'D18a' },
-  tc4:      { give: { copper: 2 }, say: 'D18a' },
-  tc5swift: { give: { copper: 5 }, say: 'D18a' },
-  tc5:      { give: { iron: 1, manganese: 1 }, say: 'D18a' },
-  bram2:    { give: 'page:gale', say: 'D18a' },
-  p5g0:     { give: { iron: 2, manganese: 2 }, say: 'D18a' },
+eq('R108: oreChain is the recorded table, keyed by the order it pays for', FTUE.oreChain, {
+  p1g0:     { give: { iron: 2, manganese: 2 } },
+  p1g1:     { give: { iron: 2, manganese: 2 } },
+  p1g2:     { give: { iron: 2, manganese: 2 } },
+  tc2:      { give: { iron: 1, manganese: 1 }, say: 'D28j' },
+  p3g1:     { give: 'page:fire' },
+  p3g2:     { give: 'page:fire' },
+  p3g3:     { give: 'page:fire' },
+  tc4:      { give: { nickel: 2 } },
+  p4g0:     { give: { iron: 1, manganese: 1 } },
+  tc5:      { give: { copper: 2 } },
+  tc5swift: { give: { copper: 5 } },
+  p5g0:     { give: 'page:gale' },
+  garric:   { give: { iron: 2, manganese: 2 } },
   gc9:      { give: ['page:gale', 'page:fire'], say: 'D107g', keep: true } });
-eq('no reward after TC2, TC3, GC8 or Garric (caves, the stored ingot, the end)', ['tc2', 'tc3', 'p4g0', 'garric'].some(k => FTUE.oreChain[k]), false);
-eq('D18a text, beside D18', line('D18a') === "Here's a reward from me." && keyList[keyList.indexOf('D18a') - 1] === 'D18', true);
-eq('D28j text, beside D28i', line('D28j') === 'I am running out of my reward stock. I only have 1 iron and 1 manganese.' && keyList[keyList.indexOf('D28j') - 1] === 'D28i', true);
+eq('R108: no window for TC1 (the starting bag), TC3 and GC4 (the caves), the waiting customer, Bram\'s Dagger (the stored ingot)', ['first', 'tc3', 'p3g0', 'p4g1', 'bram2'].some(k => FTUE.oreChain[k]), false);
+eq('R108: D18a is gone', /\n\s*D18a: "/.test(src) || /'D18a'/.test(src), false);
+eq('D28j text (R108: ore stock), beside D28i', line('D28j') === 'I am running out of my ore stock. I only have 1 iron and 1 manganese.' && keyList[keyList.indexOf('D28j') - 1] === 'D28i', true);
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
     for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
   const L = new Function('RECIPES', 'recipeKey', fn('ftuePageOres') + fn('ftueOreGive') + '; return { ftueOreGive };')(
@@ -609,25 +611,25 @@ eq('D28j text, beside D28i', line('D28j') === 'I am running out of my reward sto
   eq('a page reward is that page\'s ores', L.ftueOreGive('page:fire'), { iron: 2, manganese: 2 });
   eq('several add up', L.ftueOreGive(['page:gale', 'page:fire']), { copper: 5, iron: 2, manganese: 2 });
   eq('a plain one is itself', L.ftueOreGive({ nickel: 2 }), { nickel: 2 }); }
-eq('the ore reward kind: name, line, icon, apply', src.includes("if(r.kind==='ore') return r.n+' '+ORE_BY[r.id].name;") && src.includes("if(r.kind==='ore') return 'For the next sword.';")
+eq('the ore reward kind: name, line, icon, apply', src.includes("if(r.kind==='ore') return r.n+' '+ORE_BY[r.id].name;") && src.includes("if(r.kind==='ore') return 'For this order.';")
   && src.includes("if(r.kind==='ore') return '<img class=\"rwd-ic\" src=\"'+oreImg(r.id)+'\" alt=\"\">';") && src.includes("if(r.kind==='ore'){ gainOre(r.id, r.n); if(INV_TAB===0) buildShelf(); return; }"), true);
 eq('which sword was made: the hammered one', /function finishBlade\(\)\{[\s\S]*?const oreKey=ftueSwordKey\(\{ first:TUT_STAGE==='forge' && !CUSTOMER, second:second, fire:fireSword, gale:galeSword, bram2:bram2Sword, garric:garricSword \}\);[\s\S]*?CRAFT_ORE=oreKey; showCraft\(/.test(src), true);
 eq('and CRAFT 1\'s', /function cbCraft\(n\)\{[\s\S]*?CRAFT_ORE=\(n===1\) \? ftueSwordKey\(\{\}\) : null;[^\n]*\n\s*showCraft\(/.test(src), true);
 /* r294 (owner, 2026-10-21): the ore reward comes after the SALE. The crafted window only notes which sword was made (a sword
    with no row still ends the round); each sale gives it at its natural pause */
-eq('the crafted window notes the sword; the flow goes straight on', /function closeCraft\(\)\{[\s\S]{0,1200}const ok=CRAFT_ORE; CRAFT_ORE=null;[^\n]*\n\s*if\(ok\)\{ if\(FTUE\.oreChain\[ok\]\) FTUE_ST\.orePending=ok; else FTUE_ST\.oreRound=null; \}\s*if\(typeof after==='function'\) after\(\);/.test(src), true);
-eq('ftueOreSold gives the noted sword\'s reward, once, after the customer has gone (r295: their goodbye ends first)', src.includes("function ftueOreSold(then){ if(CUST_BYE){ setTimeout(()=>ftueOreSold(then), 250); return; }") && src.includes("    const k=FTUE_ST.orePending; FTUE_ST.orePending=null; ftueOreReward(k, then); }"), true);
-eq('after Bram leaves (D26), before the quest list', src.includes("setTimeout(()=>ftueOreSold(()=>sayQueue('D118')), 0);"), true);
-eq('after a gameplay customer\'s sale, before the walk back', src.includes("setTimeout(()=>ftueReward(list, ()=>ftueOreSold(ftueToCounter)), 700);"), true);
-eq('after TC4\'s sale', src.includes("setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ bellShow(true); ftueToCounter(); })), 700);"), true);
-eq('after TC5\'s sale, before D109', src.includes("ftueReward(FTUE.parts[4].rewards.tc, ()=>ftueOreSold(()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); }));"), true);
-eq('after Bram\'s Dagger (his gift and the diary), before the bell', /function ftueAfterDiary\(\)\{[\s\S]{0,200}TUT_STAGE='p5-bell'; ftueOreSold\(\(\)=>\{ bellShow\(true\); ftueToCounter\(\); \}\);/.test(src), true);
+eq('R108: a crafted tutorial sword ends the round; the flow goes straight on', /function closeCraft\(\)\{[\s\S]{0,1200}const ok=CRAFT_ORE; CRAFT_ORE=null;[^\n]*\n\s*if\(ok\) FTUE_ST\.oreRound=null;[^\n]*\n\s*if\(typeof after==='function'\) after\(\);/.test(src), true);
+eq('R108: no reward after the sale (ftueOreSold, orePending gone)', /ftueOreSold|orePending/.test(src), false);
+eq('R108: Bram\'s sale goes straight on to the quest list', /function ftueAfterBram\(\)\{[\s\S]{0,400}setTimeout\(\(\)=>sayQueue\('D118'\), 0\);/.test(src), true);
+eq('R108: a gameplay customer\'s sale goes straight on to the walk back', src.includes("setTimeout(()=>ftueReward(list, ftueToCounter), 700);"), true);
+eq('R108: TC4\'s sale goes straight on', src.includes("setTimeout(()=>ftueReward(FTUE.parts[4].rewards.tc, ()=>{ bellShow(true); ftueToCounter(); }), 700);"), true);
+eq('R108: TC5\'s sale goes straight on to D109', src.includes("ftueReward(FTUE.parts[4].rewards.tc, ()=>{ sayQueue('D109'); TUT_STAGE='p4-bell'; bellShow(true); ftueBellGlow(); });"), true);
+eq('R108: after Bram\'s Dagger (his gift and the diary), straight to the bell', /function ftueAfterDiary\(\)\{[\s\S]{0,200}TUT_STAGE='p5-bell'; bellShow\(true\); ftueToCounter\(\);/.test(src), true);
 eq('TC5: 5 Copper once the swift ingot is stored', /function tutGaleStart\(\)\{[\s\S]{0,200}ftueOreReward\('tc5swift', \(\)=>\{ sayQueue\('D100','D101'\);/.test(src), true);
 eq('GC9: the ores come with D107g', src.includes("if(FTUE_ST.wq==='see'){ FTUE_ST.wq='craft'; wqLit(); ftueOreReward('gc9'); }"), true);
 eq('TC3 (R24): the last iron stays in the bag when the manganese is in - it finishes the route', !/function tutFireSmelted2\(\)\{[\s\S]{0,300}ORE_COUNT\.iron=0;/.test(src), true);
 eq('the line sits over the reward window, and goes with it', /function ftueOreReward\(key, then\)\{[\s\S]{0,2000}say-over-modal/.test(src) && /function closeReward\(\)\{[\s\S]{0,300}say-over-modal/.test(src), true);
-eq('PART seeds follow the chain (part 4: 2 Nickel; part 5: empty; part 6: 2 + 2)', src.includes("ORE_COUNT.nickel=2; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound={ nickel:2 }; GOLD=520;")
-  && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820;") && src.includes("ORE_COUNT.iron=2; ORE_COUNT.manganese=2; ORE_COUNT.copper=0; FTUE_ST.oreRound={ iron:2, manganese:2 }; GOLD=1100;"), true);
+eq('R108: PART seeds leave the next order\'s ores to its window (part 2, 4, 6: an empty bag)', src.includes("ORE_COUNT.iron=0; ORE_COUNT.manganese=0; FTUE_ST.oreRound=null; TUT_STAGE='bell';") && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=520;")
+  && src.includes("ORE_COUNT.nickel=0; ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=820;") && src.includes("ORE_COUNT.iron=0; ORE_COUNT.manganese=0; ORE_COUNT.copper=0; FTUE_ST.oreRound=null; GOLD=1100;"), true);
 /* r290 (owner, 2026-10-21): the minigame's D13 run is the first sword's alone. The first sword's shape pick (stage 'shape')
    marks it, since tutDone() then clears the stage; any other craft (GC4, TC4, GC8, the part 5 gale Longsword, Garric's
    solo run) no longer falls through to D13, nor has its stage changed to 'forge' (which cost GC4/TC4/GC8 the counter pointer) */
@@ -649,7 +651,7 @@ eq('the quench says D10 alone', /function tutQuenchStep\(\)\{[\s\S]{0,200}if\(SA
 /* r281 (owner, 2026-10-21): the first sword's lines that the player's own action moves on show no close (x); the ones
    that hold the game (D8, D9, D16) or start something when closed (D19) keep it */
 eq('SAY_NO_X is the recorded list', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/); return m && Object.keys(new Function('return ' + m[1])()); })(),
-  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18a', 'D28j', 'D28l', 'D28c', 'D28d', 'D28f', 'D28h', 'D28i']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
+  ['D3', 'D4', 'D6', 'D10', 'D12', 'D14', 'D15a', 'D17', 'D18', 'D23', 'D24', 'D27', 'D118', 'D18b', 'D18c', 'D18d', 'D28j', 'D28l', 'D28c', 'D28ca', 'D28d', 'D28f', 'D28h', 'D28i', 'D38a', 'D43a', 'D28n', 'D28o', 'D96a', 'D98a', 'D98b']);   /* r300: the order lines have an OK again; the shape window's lines have none */   /* r289: every market ask. r291: the reward lines (the window closes them) */   /* r282: D10 (with D11 in it). r283: D23. r284: D24. r287: D27, D118. r288: D28b */
 eq('the pause and close-to-continue lines are not in it', (() => { const m = src.match(/const SAY_NO_X=(\{[^}]*\});/), L = m ? new Function('return ' + m[1])() : {}; return ['D8', 'D9', 'D16', 'D19'].some(k => L[k]); })(), false);
 eq('a hidden button is gone, not an empty frame (the rule beats #dragonSay .go)', src.includes('.say-go.none, #dragonSay .go.none, #screenDragonSay .go.none, .tut-iconsay .go.none { display: none; }'), true);
 /* r288: a listed line shows no button wherever it sits in the run - D23 repeats, and a stale run behind it turned its button into an OK */
@@ -705,7 +707,8 @@ eq('the fade spans the fog blur (FOG_EDGE)', (src.match(/const FOG_EDGE=(\d+);/)
     anvil:   { lift: ['#stAnvil', '#orb'] },
     strike:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
     quench:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
-    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] } }); }   /* R1: the smelter loop - no gate (on heat) or hammer steps */
+    travel:  { cut: [{ sel: '#map-wrap' }], lift: ['#stSmelt'] },
+    record:  { cut: [{ sel: '#map-wrap' }], lift: ['#hud'] } }); }   /* R1: the smelter loop - no gate (on heat) or hammer steps. R111: TC2's record step */
 eq('lifted: the smelter and anvil, then the hammer, then the metal on top (their own order)', src.includes('#dragon.dark-lit, #frame.landscape #stSmelt.dark-lit, #frame.landscape #stAnvil.dark-lit { z-index: 61; }')
   && src.includes('#frame.landscape #hammerTool.dark-lit { z-index: 62; }') && src.includes('#frame.landscape #orb.dark-lit { z-index: 63; }'), true);
 eq('tutDarkSync follows the stage', src.includes("function tutDarkSync(){ const qf=document.getElementById('quenchFog'), st=(STAGE_DARK[TUT_STAGE] && !(qf && qf.classList.contains('catch'))) ? TUT_STAGE : null;"), true);
@@ -850,7 +853,7 @@ eq('custSpot stops once the trait is crafted', src.includes("const tid0 = (!tutO
   && src.includes("function custTraitMade(tid){ return INV.swords.concat(COUNTER ? [COUNTER] : []).some(w=>(w.traits||[]).some(a=>(a.tid || (a.t && a.t.id))===tid)); }"), true);
 /* r247 (owner, 2026-10-15): no "Let me try to do it on my own." answer - closing D130 (a lit OK) goes on to D130b */
 eq('D130 has no answer button any more', !src.includes('Let me try to do it on my own.') && !src.includes("fn:tutGarricDesk }]"), true);
-eq('closing D130 goes on (lit OK, not a closing X)', src.includes("D130:function(){ if(TUT_STAGE==='g-talk') tutGarricDesk(); },") && /const SAY_GO_MORE=\{[^}]*D130:1/.test(src) && /const SAY_GO_GLOW=\{[\s\S]*?D130:1[\s\S]*?\};/.test(src), true);
+eq('closing D130 goes on (lit OK, not a closing X)', src.includes("D130:function(){ if(TUT_STAGE==='g-talk') ftueOreReward('garric', tutGarricDesk); },") && /const SAY_GO_MORE=\{[^}]*D130:1/.test(src) && /const SAY_GO_GLOW=\{[\s\S]*?D130:1[\s\S]*?\};/.test(src), true);
 eq('after D130, D130b and the design desk window',/D130b:function\(\)\{[^}]*ftueReward\(\[ ?\{ kind:'unlock', id:'designDesk' \} ?\], ?tutGarricHandsOff\)/.test(src), true);
 eq('Garric\'s crafted sword: the design desk lesson (D46)', src.includes('else if(garricSword){ TUT_FIRE_RUN=true; tutFireCustomise(); }'), true);
 eq('its screen steps pass the run gate, and it ends at the counter',
@@ -888,7 +891,7 @@ eq('those stages tick', /const TUT_TICK_STAGES=\[[^\]]*'p1-craft-shape','p1-craf
 eq('the guide notices the blade being held', /function tutNudgeSig\(\)\{[\s\S]{0,700}SM_BL\?1:0/.test(src), true);
 eq('the gate: the craft lock (another trait, D28k) and the GC retry (2 + 2, D28a) before it opens', /function openGate\(\)\{[\s\S]{0,400}FTUE_POUR_SAID=false; if\(!ftuePourOk\(\)\) return; if\(!ftueGateOk\(\)\) return;[\s\S]{0,200}tryAcquire\(\);/.test(src), true);
 eq('after the gate: the metal to the anvil (the pointer), not a glow on it', src.includes("function ftueGcQuenched(){ TUT_STAGE='p1-craft-shape'; tutArrow(null,null); tutUnglow(); tutNudge(true); }"), true);
-eq('after the quench: the metal glows', src.includes("if(TUT_STAGE==='p1-craft-heat') ftueGcQuenched();"), true);
+eq('after the quench: the metal glows (R105: GC2 meets the craft book first)', src.includes("if(TUT_STAGE==='p1-craft-heat') ftueGcGated();"), true);
 /* owner, 2026-10-08: in the whole game, the shape the customer asked for is highlighted in the shape window */
 eq('the requested shape is highlighted, any customer', /function shapeGrid\(\)\{[\s\S]{0,1600}const req=custShapeFor\(k\)===sh;[\s\S]{0,200}if\(req\) b\.classList\.add\('sf-req'\)/.test(src), true);
 eq('custShapeFor: the waiting customer\'s shape, for their trait', src.includes("function custShapeFor(k){ return (CUSTOMER && CUSTOMER.shape && (CUSTOMER.tid||CUSTOMER.want)===k) ? CUSTOMER.shape : null; }"), true);
@@ -966,7 +969,7 @@ eq('the Health gold: the full-health price minus the price (red), else "No loss"
   src.includes("function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);")
   && src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }"), true);
 eq('the hammering gold: the price minus the unforged price (+ green, - red), else "No change"; the band under it',
-  src.includes("function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged }));")
+  src.includes("function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged, forge:null }));")
   && src.includes("return (d>0 ? '<span class=\"cw-up\">+'+d+'g</span>' : d<0 ? '<span class=\"cr-lost\">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }"), true);
 eq('showCraft fills them', src.includes("document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);"), true);
 eq('a lit card row keeps its orange edge', src.includes('#sfCraftModal .cw-box.tut-lit-ctl, #sfCraftModal .cw-drow.tut-lit-ctl'), true);
@@ -1115,7 +1118,7 @@ eq('served: the guide ends (only once it has started - before part 4 nobody wait
 eq('it runs every frame', /function updateHintArrow\(\)\{[\s\S]{0,1200}wqTick\(\);/.test(src), true);
 /* owner, 2026-10-14: the Durable craft's mug pointer stayed after the trait was in (also TC4's, GC8's) */
 eq('after the gate, the guide takes the metal to the anvil (R5)', src.includes("function ftueDurQuenched(){ tutArrow(null,null); tutUnglow(); setTimeout(()=>tutArrow('#orb', '#stAnvil .anvil', { tfx:0.5, tfy:0.20, bow:0.16, back:26 }), 0); }")
-  && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurQuenched();"), true);
+  && src.includes("if(TUT_STAGE==='p3-dur-heat' || TUT_STAGE==='p4-quench' || TUT_STAGE==='p4-weak-quench') ftueDurGated();"), true);   /* R107: TC4's pip lesson first */
 eq('the Durable guide no longer re-points at the mug once Durable is on (R5: after the gate the metal is hot - the shared pointer takes it to the anvil; the old on-the-anvil branch is gone)', !src.includes("if(melt.traits.some(a=>a.t && a.t.id==='durable')) return;"), true);
 /* owner, 2026-10-14: an arrow from the rail while the ore's tab is closed - not needed, the tab's glow is enough */
 eq('no arrow while its inventory tab is closed', src.includes("if(o.tab!=null){ const need=(typeof o.tab==='function') ? o.tab() : o.tab; if(need!=null && INV_TAB!==need){ svg.classList.remove('on'); return; } }")
@@ -1128,7 +1131,7 @@ eq('no sharpening bonus at the sale, no D57', src.includes("if(FTUE_ST.part===5 
 /* owner, 2026-10-14: the crafting process starts with just "Ores" - the ores themselves are in "Ores used" */
 eq('process: Ores, heat, hammer, quench, hammer', src.includes("const steps=['Ores','heat','hammer','quench','hammer'];") && !src.includes("const steps=[names.join(' + '),"), true);
 /* owner, 2026-10-14: the book's middle column (Composition_book_wireframe.png, updated): one Trait Tier box, then a description */
-eq('one tier box, labelled, in place of the five', !src.includes('id="cbPip') && src.includes('<div class="cb-label" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>')
+eq('one tier box, labelled, in place of the five', !src.includes('id="cbPip') && src.includes('<div class="cb-label" id="cbTierLab" style="left:25.10%; top:13.40%; width:18.20%;">Trait Tier</div>')
   && src.includes('<div class="cb-slot cb-tier" id="cbTier" style="left:25.10%; top:17.90%; width:18.20%; height:10.20%;"></div>'), true);
 eq('the description box under it', src.includes('<div class="cb-slot cb-desc" id="cbDesc" style="left:25.10%; top:31.30%; width:18.20%; height:31.30%;"></div>'), true);
 { const m = src.match(/const SWORD_DESC = \{([\s\S]*?)\n\};/); const keys = m ? [...m[1].matchAll(/\n\s*([a-z]+):\s*"/g)].map(x => x[1]) : [];
@@ -1193,7 +1196,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
     'tc2-raw':        ["segs.some(g=>g.ore==='iron') && segs.some(g=>g.ore==='manganese')", 'tutTc2RawCheck()'],
     'regrind-iron':   ["tutGroundIn('iron')", "tutSmeltCheck('iron', 1)"],
     'regrind-mang':   ["tutGroundIn('manganese')", "tutSmeltCheck('manganese', 1)"],
-    'p1-craft-heat':  ['!!melt && melt.traits.length>0', 'ftueGcQuenched()'],
+    'p1-craft-heat':  ['!!melt && melt.traits.length>0', 'ftueGcGated()'],   /* R105: GC2's book lesson first */
     'p1-craft-shape': ['tutHmOpen()', 'tutHmStep()'],
     'p3-dur-mine':    ['!CAVE_NODES.some(n=>n.left>0)', 'tutDay2Mined()'],
     'p3-dur-grind':   ['nickelIn()>=2', 'ftueDurableSmelted()'],
@@ -1203,7 +1206,7 @@ eq('it tries a stage once, then waits for the stage to change', src.includes("fu
     'd2-hammer':      ['tutAtRouteEnd()', 'tutDay2Pull()'],
     'd2-gale-hammer': ['tutAtRouteEnd()', 'tutGaleEnd()'] };
   for (const k in E) eq('skip ' + k, blk.includes("'" + k + "':") && blk.includes('done:()=>' + E[k][0] + ', next:()=>' + E[k][1]), true);
-  eq('the second craft waits for D38 to close, then for the sword on Balanced (R3: gateReady is the trait now)', /'regrind-heat':\s*\{ quiet:true, done:\(\)=>!!melt && \(melt\.stage!=='smelting' \|\| gateReady\), next:\(\)=>tutGateStep\(\) \}/.test(blk), true);
+  eq('the second craft waits for D38 to close, then for the sword on Balanced; R99: D38a does not hold it (no quiet)', /'regrind-heat':\s*\{ done:\(\)=>SAY_ON!=='D38' && !!melt && \(melt\.stage!=='smelting' \|\| gateReady\), next:\(\)=>tutGateStep\(\) \}/.test(blk), true);
   eq('grinding early: ground on the wheel, or already in the smelter', blk.includes("'regrind-grind':") && blk.includes("done:()=>(!!prep && prep.grind>=0.999) || tutGroundIn('iron')"), true);
   eq('the hammer opened early, for every shape step', ['fire-shape', 'd2-gale-shape', 'bram2-shape'].every(k => blk.includes("'" + k + "':   { done:()=>tutHmOpen(), next:()=>tutHmStep() }")), true);
   eq('a pickaxe point spent before the tree lesson counts', blk.includes("'d2-skill':") && blk.includes("done:()=>FTUE_ST.part===6 && rank('pick')>=1 && !TUT_D2_SPENT, next:()=>{ TUT_D2_SPENT=true; }"), true);
@@ -1407,7 +1410,7 @@ eq('R29: the ladle and its drag area are not seen, and take no touch, while lock
 eq('R29: unlocked from part 4 (TC4\'s arrival opens it) or once the tutorial is over', src.includes("function ftueLadleUi(){ const on=FTUE_ST.done || FTUE_ST.part>=4; ['ladle','ladleHot'].forEach(id=>{ const e=document.getElementById(id); if(e) e.classList.toggle('ftue-lock', !on); }); }"), true);
 eq('R29: refreshed with the grindstone (load, new game, PART jumps, free play, start)', src.includes("function ftueGrindUi(){ const m=document.getElementById('stMortar'); if(m) m.classList.toggle('ftue-lock', !FTUE_ST.grind); ftueLadleUi(); }"), true);
 eq('R29: and the moment TC4 arrives', /function tutTc4Arrive\(\)\{[\s\S]{0,200}FTUE_ST\.part=4; FTUE_ST\.gpc=0; ftueLadleUi\(\);/.test(src)
-  && src.includes("FTUE_ST.part=4; FTUE_ST.gpc=0; ftueLadleUi();   /* r203: TC4 opens part 4 */"), true);
+  && src.includes("FTUE_ST.part=4; ftueLadleUi();   /* r203. R95: GC8 comes before TC5, so its count stays */"), true);
 
 /* R30 (owner, 2026-10-29): the customer counter's new look - the shelf, the swinging bell, the scroll ledger, the rotary market
    (specs/2026-10-28-forge-screen-new-look.md) */
@@ -1501,8 +1504,8 @@ eq('R35: synced every frame, after the gate; the crown is set directly in the sm
 eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity=(h/100*0.9)"), true);
 
 /* R36 (owner, 2026-10-29): "add a 'game' section in the console helper after part 6, that is after the tutorial" */
-eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="toast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button></div>'), true);
-const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);
+eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button>'), true);
+const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n, j\)\{[\s\S]*?\nif\(DEV\) window\.ftuePart=ftuePart;/);   /* R109: and the row. R115: only when DEV */
 eq('R36: ftuePart(7) is built (8 and up are not)', !!fp && fp[0].includes("if(n>7) return 'Part '+n+' is not built yet';"), true);
 eq('R36: Garric served at his best grade - his rewards applied', !!fp && fp[0].includes('FTUE.garricRewards[3].forEach(ftueRewardApply);'), true);
 eq('R36: Day 3 - its cave in the bag, the Pickaxe Upgrade at rank 1', !!fp && fp[0].includes("Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1;") && fp[0].includes("d.textContent='3'"), true);
@@ -1523,7 +1526,7 @@ eq('R53: a copy of the dragon over the dark, in his place, with the window', src
 eq('R54: D119a shows its X at the counter (R57: every line does; no exception list)', !src.includes('SAY_X_KEEP'), true);
 eq('R54: and it is lit', /const SAY_GO_GLOW=\{[\s\S]*?D119a:1[\s\S]*?\};/.test(src), true);
 /* R55 (owner, 2026-10-30): "the dialogues should only close when clicking the x, otherwise no" */
-eq('R57: a tap on the bubble - only the rest of a typing line; only its button (OK, X) moves it on', src.includes("function sayTap(e){ if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
+eq('R57: a tap on the bubble - only the rest of a typing line; only its button (OK, X) moves it on', src.includes("function sayTap(e){ if(DT){ dtEnd(); return; } if(SAY_TYPE_T){ sayTypeStop(true); return; } if(!(e && e.target && e.target.closest && e.target.closest('.say-go'))) return; sayNext(); }"), true);
 eq('R55: the shown button is kept', src.includes('SAY_GO_KIND=kind;'), true);
 eq('R55: all four bubbles take the tap through it', (src.match(/onclick="sayTap\(event\)"/g) || []).length === 4 && !src.includes('onclick="sayNext()"'), true);
 /* R56 (owner, 2026-10-30): the player replies to the customer before the dragon speaks (13 places, approved) */
@@ -1607,7 +1610,7 @@ const k = (st, a, b, sold) => EX(Object.assign({ part: 1, exits: {}, done: false
 eq('R70: a new game knows nothing; a lit step and its way back; Bram served opens the counter; the shop waits for the end', [k({}, 'forge', 'customer'), k({ exits: { 'forge>customer': true, 'customer>forge': true } }, 'customer', 'forge'), k({}, 'forge', 'customer', true), k({ part: 3 }, 'forge', 'cave'), k({ part: 3 }, 'customer', 'shop'), k({ part: 5, sharp: true }, 'forge', 'basement'), k({ done: true }, 'customer', 'shop')], [false, true, true, true, false, true, true]); }
 /* R71 (owner, 2026-11-04): "d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible." */
 { const s1 = src.replace(/\r\n/g, '\n');
-eq('R71: D69a-c on the cut dim, a window over the map', [s1.includes("const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */\n/* R71 (owner, 2026-11-04): \"d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible.\" - the\n   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on\n   tutPause's #tutDim (under the rail, over the map) */\nconst SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ],\n    D71:[ { sel:'#map-wrap' } ], D72:[ { sel:'#map-wrap' } ],   /* R72 (owner): D71 and D72 too; D72a is said clear */\n    D32c:[ { sel:'#map-wrap' } ], D33:[ { sel:'#map-wrap' } ] };   /* R87 (owner): TC2's \"try again\" and the what-if path; D35 is said clear */\n"), s1.includes("    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */\n")], [true, true]);
+eq('R71: D69a-c on the cut dim, a window over the map', [s1.includes("const SAY_DARK=['D1','D2','D32c'];   /* r296 (owner): D32c too */\n/* R71 (owner, 2026-11-04): \"d69a-b-c hide black overlay should be on the inventory panel as well. but map should be visible.\" - the\n   hazard beat's lines are said on the cut dim (#tutHole, over the rail and the arrows) with a window over the map, not on\n   tutPause's #tutDim (under the rail, over the map) */\nconst SAY_DARK_CUT={ D69a:[ { sel:'#map-wrap' } ], D69b:[ { sel:'#map-wrap' } ], D69c:[ { sel:'#map-wrap' } ],\n    D71:[ { sel:'#map-wrap' } ], D72:[ { sel:'#map-wrap' } ],   /* R72 (owner): D71 and D72 too; D72a is said clear */\n    D32c:[ { sel:'#map-wrap' } ], D33:[ { sel:'#map-wrap' } ],   /* R87 (owner): TC2's \"try again\" and the what-if path; D35 is said clear */\n    D38:[ { sel:'#map-wrap' } ],   /* R99 (owner, 2026-11-11): no bellows or gate until D38 is closed - pumping and gating under it skipped the record lesson */\n    D98a:[ { sel:'#map-wrap' } ], D98b:[ { sel:'#traitSlots' } ],   /* R107 (owner, 2026-11-11): TC4's pip lesson - the map, then only the blade pips */\n    D28n:[ { sel:'#map-wrap' }, { sel:'#hud' } ] };   /* R110 (owner, 2026-11-11): GC2's book lesson - only the map and the craft frame show */\n"), s1.includes("    if(!STAGE_DARK[TUT_STAGE]) tutDark((SAY_DARK.includes(id) || !!SAY_DARK_CUT[id]) && B[0]==='dragonSay', SAY_DARK_CUT[id]);   /* r270. r271/r272: a dark stage keeps its own. R71: a line with its own window */\n")], [true, true]);
 eq('R71: the pause dim stays off under them', s1.includes("    if(d){ d.classList.toggle('on', !!on && !STAGE_DARK[TUT_STAGE] && !SAY_DARK_CUT[SAY_ON]); d.classList.toggle('deep', !!on && inHm); }   /* r272: a dark stage's own dim instead. R71: and a line's own */\n"), true);
 eq('R71: the cut dim is over the rail and the arrows', [+(s1.match(/#tutHole \{ position: absolute; inset: 0; z-index: (\d+);/) || [])[1] > 50, +(s1.match(/#frame\.landscape > #rail \{ z-index: (\d+); \}/) || [])[1]], [true, 45]); }
 /* R72 (owner, 2026-11-04): D71 and D72 dark except the map, D71's X lit, clear at D72a */
@@ -1629,7 +1632,7 @@ eq('R75: checked as each line is said and as it closes', [s5.includes("    sayGo
 eq('R75: D89 and D92 light their OK', s5.includes("const SAY_GO_GLOW={ D89:1, D92:1, D1:1,"), true); }
 /* R76 (owner, 2026-11-04): no gate ring during D97 (p4-pull); it lights at D98 */
 { const s6 = src.replace(/\r\n/g, '\n');
-eq('R76 (now R78): D98 moves on (p4-quench) and points at the gate', src.replace(/\r\n/g, '\n').includes("TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon();\n    sayQueue('D98');\n    setTimeout(tutGatePointer, 0);"), true); }
+eq('R76 (now R78): D98 moves on (p4-quench) and points at the gate', src.replace(/\r\n/g, '\n').includes("TUT_STAGE='p4-quench'; tutArrow(null,null); tutUnglow(); homeDragon(); ladleZoomOff();   /* R104 */\n    sayQueue('D98');\n    setTimeout(tutGatePointer, 0);"), true); }
 /* R77 (owner, 2026-11-04): no gate ring during D97a (d2-pull) either */
 eq('R77 (now R78): the swift park says D98 from d2-pull', /function tutSwiftAligned\(\)\{\r?\n    if\(TUT_STAGE!=='d2-pull'\) return;/.test(src), true);
 /* R78 (owner, 2026-11-04): the gate's ring is a guide only */
@@ -1673,4 +1676,337 @@ eq('R88: D92e glows', src.replace(/\r\n/g, '\n').includes("                    D
 { const s9 = src.replace(/\r\n/g, '\n');
 eq('R89: the come-later customer\'s COME LATER is off until D107d', [s9.includes("/* R89 (owner, 2026-11-05): \"enable the come later button on and after d107d\" - the come-later customer's COME LATER is off (greyed,\n   no tap) until the dragon has said D107d; other customers' is as before */\nfunction laterWait(){ const c=CUSTOMER; return !!(c && c.lesson==='later' && !c.waiting && !c.laterOk && !FTUE_ST.done); }\nfunction laterLockUi(){ const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('later-wait', laterWait()); }\nfunction comeLater(){\n    const c=CUSTOMER; if(!c || laterWait()) return;   /* R89 */\n"), s9.includes(".cs-later.ftue-off { display: none !important; }\n.cs-later.later-wait { opacity: .42; filter: grayscale(1); cursor: default; pointer-events: none; }   /* R89: as a disabled button, until D107d */\n")], [true, true]);
 eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    if(id==='D107d' && CUSTOMER && CUSTOMER.lesson==='later'){ CUSTOMER.laterOk=true; laterLockUi(); }   /* R89: COME LATER from D107d on */\n    if(id==='D42' && !FTUE_ST.craftFrame) FTUE_ST.craftFrame=true; craftFrameUi();"), s9.includes("    { const le=document.querySelector('#csPanel .cs-later'); if(le) le.classList.toggle('ftue-off', !(FTUE_ST.laterOn || FTUE_ST.done)); }   /* 2026-10-09 */\n    laterLockUi();   /* R89 */\n"), s9.includes("    sellLabel();   /* r103 */\n    laterLockUi();   /* R89 */\n")], [true, true, true]); }
+/* R90 (owner, 2026-11-05): the toasts become the dragon's lines (record: specs/2026-11-05-dragon-toasts.md) */
+{ const s0 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s0.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s0.indexOf('{', i);
+    for (; j < s0.length; j++) { if (s0[j] === '{') d++; else if (s0[j] === '}' && --d === 0) break; } return s0.slice(i, j + 1); };
+  const dm = s0.match(/const DTOAST=(\{[^}]*\});/);
+  eq('R90: DTOAST is the recorded value (on, 4 s)', dm && new Function('return ' + dm[1])(), { on: true, ms: 4000 });
+  /* the owner's 30 ticks: each fragment is the start of a toastCut() argument, with how many calls carry it */
+  const CUT = [
+    ["'Handed over. You are paid when the whole order is sold.'", 1], ["'He took it and paid <b>nothing</b>'", 1],
+    ["(held.length ? 'Sold '", 1], ["'&#11088; Popularity level '", 1], ["'&#9876;&#65039; ' + sw.shape + ' on the counter", 1],
+    ["'Back in your inventory'", 4], ["'Not yet. The dragon will tell you when.'", 1], ["'&#9876;&#65039; ' + sw.shape + ' on the workstation'", 1],
+    ["'Take a sword to the <b>workstation</b>", 1], ["'&#9876;&#65039; '+w.shape+' on rack '", 1], ["BUILD_ON ? 'Build mode <b>ON</b>", 1],
+    ["'Decor goes on the <b>counter</b>", 1], ["'The ores are back in your inventory'", 1], ["'Shaping cancelled", 1],
+    ["'Erased the <b>'", 1], ["'Bought the <b>'+nm+'</b> blueprint'", 2],   /* R96: "The dragon bought..." (2) went with his buying */
+    ["'⛏️ A rich seam", 1], ["'\\u2b50 <b>Level '", 1], ["'\\u2b50 <b>'+sk.name+'</b> rank '", 1], ["'No talent points spent yet'", 1],
+    ["'\\ud83d\\udcdc Quest complete", 1], ["'Game saved'", 1], ["'Game loaded'", 1], ["'New game'", 1] ];
+  eq('R90: the owner\'s 30 ticks, 28 calls left since R96 (the dragon no longer buys a blueprint)', (s0.match(/toastCut\((?!\)|msg)/g) || []).length, 28);
+  eq('R90: each ticked toast is a toastCut, as many times as recorded', CUT.map(([f, k]) => s0.split('toastCut(' + f).length - 1), CUT.map(([, k]) => k));
+  eq('R90: no ticked toast is still a toast()', CUT.filter(([f]) => s0.includes(' toast(' + f) || s0.includes('>toast(' + f) || s0.includes('(toast(' + f) || s0.includes(';toast(' + f)).map(([f]) => f), []);
+  eq('R90: the PART 1-6 and GAME buttons keep the plain toast', (s0.match(/onclick="plainToast\(ftuePart\(\d\)\)"/g) || []).length, 7);
+  eq('R90: the shop-rack sale keeps the plain toast', s0.includes("plainToast('\\ud83c\\udfea '+(n>1? n+' swords sold' : 'Sword sold')"), true);
+  eq('R90: plainToast is the old toast (top centre, #sfToast)', /function plainToast\(msg,ms\)\{ const t=document\.getElementById\('sfToast'\)/.test(s0), true);
+  const route = on => { const log = []; const L = new Function('DTOAST', 'plainToast', 'dtShow', fn('toast') + fn('toastCut') + '; return { toast, toastCut };')(
+      { on, ms: 4000 }, (m, ms) => log.push(['plain', m]), m => log.push(['dragon', m])); L.toast('A'); L.toastCut('B'); return log; };
+  eq('R90: on, toast() is the dragon\'s and toastCut() says nothing', route(true), [['dragon', 'A']]);
+  eq('R90: off, both are the old toast (the revert)', route(false), [['plain', 'A'], ['plain', 'B']]);
+  const dtText = new Function(fn('dtText') + '; return dtText;')();
+  eq('R90: dtText - em-dashes become colons, emoji go, bold stays', [
+      dtText('Not enough ore for <b>Fire</b> \u2014 needs Iron x2'), dtText('Rack 2 costs <b>50g</b>'),
+      dtText('&#128214; <b>Fire</b> recorded in the craft book'), dtText('♻️ Recovered <b>2</b> ore from the wreck'),
+      dtText('Record this craft first \u2014 tap the <b>inkpot</b>'), dtText('a &mdash; b') ],
+    [ 'Not enough ore for <b>Fire</b>: needs Iron x2', 'Rack 2 costs <b>50g</b>', '<b>Fire</b> recorded in the craft book',
+      'Recovered <b>2</b> ore from the wreck', 'Record this craft first: tap the <b>inkpot</b>', 'a: b' ]);
+  eq('R90: #dtSay is built like the sharpening window\'s box (icon, DRAGON, a go button)',
+    s0.includes('<div id="dtSay" class="tut-iconsay" onclick="dtTap(event)"><img src="assets/ui/dragon_icon.webp" alt="Dragon"><div class="bub"><span class="who">DRAGON</span><p id="dtSayText"></p><span class="go say-go" id="dtSayGo"></span></div></div>'), true);
+  eq('R90: #dtSay sits where the sharpening window\'s does, over every window', /#dtSay \{ left: 50%; top: auto; bottom: 10\.2%; transform: translateX\(-50%\); z-index: 1150; \}/.test(s0), true);
+  eq('R90: a new line ends the toast at once; closing a line ends only a toast in its place', [/function say\(id\)\{\n    dtEnd\(\);/.test(s0),
+      /function sayHide\(\)\{\n    if\(DT && DT\.mode==='swap'\) dtEnd\(\);/.test(s0), s0.includes("if(box && !(DT && DT.box===box)) box.classList.remove('show','above'); }); }")], [true, true, true]);
+  eq('R90: a tap on a box showing a toast closes the toast, not the line', s0.includes('function sayTap(e){ if(DT){ dtEnd(); return; } '), true);
+  eq('R90: the toast runs DTOAST.ms', /DT\.t=setTimeout\(dtEnd, DTOAST\.ms\)/.test(s0), true);
+}
+/* R91 (owner, 2026-11-05): buying a blueprint flies the quest claim's coins from the gold counter to the buy button */
+{ const s1 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s1.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s1.indexOf('{', i);
+    for (; j < s1.length; j++) { if (s1[j] === '{') d++; else if (s1[j] === '}' && --d === 0) break; } return s1.slice(i, j + 1); };
+  const log = [], gv = { getBoundingClientRect: () => ({ left: 10, top: 20, width: 30, height: 40 }) }, btn = { id: 'buy' };
+  const buyCoins = new Function('document', 'flyCoins', 'goldPop', fn('buyCoins') + '; return buyCoins;')(
+    { getElementById: id => id === 'goldVal' ? gv : null }, (from, to) => log.push(['fly', from, to]), t => log.push(['pop', t]));
+  buyCoins(btn, 250);
+  eq('R91: buyCoins - the quest claim\'s coins (flyCoins) from the gold counter to the button, and the counter pops the price',
+    log, [['fly', { left: 10, top: 20, width: 30, height: 40 }, btn], ['pop', '-250g']]);
+  const mb = fn('marketBuy'), sb = fn('shapeBuy');
+  eq('R91: the market\'s buy flies them to its BUY, before the page is rebuilt',
+    [mb.includes("buyCoins(mkCurPg() && mkCurPg().querySelector('.mk-buy'), marketPrice(k, sh));"),
+     mb.indexOf("if(st!=='buy') return;") < mb.indexOf('buyCoins(') && mb.indexOf('buyCoins(') < mb.indexOf('renderMarket();')], [true, true]);
+  eq('R91: the shape window\'s buy flies them to the shape, before the grid is rebuilt',
+    [sb.includes("buyCoins(document.querySelector(\"#sfShapeModal .sf-shape[data-shape='\"+sh+\"']\"), marketPrice(k, sh));"),
+     sb.indexOf("if(st!=='buy') return;") < sb.indexOf('buyCoins(') && sb.indexOf('buyCoins(') < sb.indexOf('shapeGrid();')], [true, true]);
+}
+/* R93 (owner, 2026-11-10): the quest basket's claim glow is static, and a faint green tint lies on the basket itself */
+{ const s3 = src.replace(/\r\n/g, '\n');
+  eq('R93: the glow is still (no breathing animation)', [s3.includes('#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }'), s3.includes('qsReadyArt')], [true, false]);
+  eq('R93: the tint is the basket\'s own shape (its art as a mask), faint green, only while something waits',
+    [s3.includes("#rail > #questBtn::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);\n    -webkit-mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; mask: url(assets/ui/questbasket.webp) center / 100% 100% no-repeat; }"),
+     s3.includes('#rail > #questBtn.qs-ready::after { opacity: 1; }')], [true, true]);
+  eq('R93: the mask is the basket the rail shows', /quest:\{[^}]*art:'assets\/ui\/questbasket\.webp'/.test(s3), true);
+}
+/* R94 (owner, 2026-11-10): the map recentres on the sword when a craft starts */
+{ const s4 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s4.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s4.indexOf('{', i);
+    for (; j < s4.length; j++) { if (s4[j] === '{') d++; else if (s4[j] === '}' && --d === 0) break; } return s4.slice(i, j + 1); };
+  const st = { view: { x: 0, y: 0, w: 1000 }, calls: 0 };
+  const L = new Function('S', 'let view=S.view, aspect=0.6, marker={ x:1400, y:1030 }, melt=S.melt, segs=S.segs, prep=S.prep; function setView(){ S.calls++; S.view=view; } '
+    + fn('craftView') + fn('craftStartView') + '; return { craftView, craftStartView };');
+  const run = (melt, segs, prep) => { const S = { view: { x: 10, y: 20, w: 1000 }, calls: 0, melt, segs, prep }; L(S).craftStartView(); return [S.view.x, S.view.y, S.view.w, S.calls]; };
+  eq('R94: craftView puts the sword in the middle of the map, zoom kept', run(null, [], null), [900, 730, 1000, 1]);
+  eq('R94: only a NEW craft recentres (not with metal in, segments laid or an ore on the wheel)',
+    [run({}, [], null)[3], run(null, [{}], null)[3], run(null, [], { ore: 'iron' })[3]], [0, 0, 0]);
+  const sp = fn('startPrep'), ad = fn('addOreDirect');
+  eq('R94: the first ore on the grindstone starts it, before the ore is taken', sp.includes('craftStartView(); spendOre(oreId); prep={ore:oreId,grind:0};'), true);
+  eq('R94: the first ore straight into the smelter starts it, before the metal exists', ad.includes('craftStartView(); ensureMelt(); spendOre(oreId);'), true);
+  eq('R94: CONTINUE FROM HERE and a stored ingot back on the anvil recentre too',
+    [fn('cbContinue').includes('drawRoute(); moveX(); craftView();'), fn('restoreIngot').includes('drawRoute(); moveX(); craftView();')], [true, true]);
+}
+/* R95 (owner, 2026-11-10): GC8 right after TC4 - part 4 is TC4, GC8, TC5, the waiting customer */
+{ const s5 = src.replace(/\r\n/g, '\n');
+  eq('R95: part 4 keeps its two gameplay customers in order (GC8, then the waiting customer)', FTUE.parts[4].gpc.map(o => o.lesson), ['weak', 'later']);
+  eq('R95: TC5 comes after one of part 4\'s gameplay customers', FTUE.parts[4].tc5After, 1);
+  eq('R95: a sale that reaches tc5After rings for TC5', s5.includes("    const P=FTUE.parts[FTUE_ST.part], list=P.rewards['gpc'+FTUE_ST.gpc]||[], more=FTUE_ST.gpc<P.gpc.length;\n    TUT_STAGE = P.tc5After===FTUE_ST.gpc ? 'd2-bell' : more ? 'p'+FTUE_ST.part+'-gpc' : P.after;"), true);
+  eq('R95: and shows the bell for TC5', s5.includes("    if(TUT_STAGE==='d2-bell') bellShow(true);   /* R95: TC5's bell */"), true);
+  eq('R95: TC5\'s arrival keeps the count (the next bell brings the waiting customer)', /function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.part=4; ftueLadleUi\(\);/.test(s5) && !/function tutDay2Customer\(\)\{[\s\S]{0,400}FTUE_ST\.gpc=0/.test(s5), true);
+  eq('R95: TC4\'s sale rings for GC8', s5.includes("TUT_STAGE='p4-bell';   /* R95: GC8 comes next (was TC5) */"), true);
+}
+/* R96 (owner, 2026-11-10): the dragon deposits the blueprint's price (his coins fly to the gold counter); the player buys */
+{ const s6 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s6.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s6.indexOf('{', i);
+    for (; j < s6.length; j++) { if (s6[j] === '{') d++; else if (s6[j] === '}' && --d === 0) break; } return s6.slice(i, j + 1); };
+  const log = [], S = { GOLD: 40 }, to = { id: 'goldVal' }, m = { o: { trait: 'balanced', shape: 'Longsword' }, step: 'gift' };
+  const dep = new Function('S', 'log', 'let GOLD=S.GOLD; const marketPrice=()=>50, dragonEl=()=>"dragon", updateHud=()=>{ S.GOLD=GOLD; log.push(["hud", GOLD]); }, goldPop=t=>log.push(["pop", t]); function coinFly(a, b, then){ log.push(["fly", a, b && b.id]); then(); } '
+    + fn('ftueDeposit') + '; return ftueDeposit;')(S, log);
+  dep(m, to, () => log.push(['then', m.step]));
+  eq('R96: ftueDeposit - the dragon\'s coins to the counter, then the gold rises by the price, "+50g", and the purchase is the player\'s',
+    [log, S.GOLD], [[['fly', 'dragon', 'goldVal'], ['hud', 90], ['pop', '+50g'], ['then', 'buy']], 90]);
+  eq('R96: the market\'s lesson deposits too (its own gold readout), then D28ca and the lit BUY',
+    s6.includes("        m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);\n        setTimeout(()=>ftueDeposit(m, document.getElementById('mkGold') || document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);"), true);
+  eq('R96: the dragon no longer unlocks a blueprint himself (marketGift gone)', s6.includes('function marketGift('), false);
+  eq('R96: D28ca is said over the shape window and closed by the purchase (no X)', /const SAY_NO_X=\{[^}]*D28ca:1/.test(s6), true);
+}
+/* R97 (owner, 2026-11-10): the tutorial's two map windows can be opened again from SETTINGS */
+{ const s7 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s7.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s7.indexOf('{', i);
+    for (; j < s7.length; j++) { if (s7[j] === '{') d++; else if (s7[j] === '}' && --d === 0) break; } return s7.slice(i, j + 1); };
+  const mm = s7.match(/const MENU_MAPS=(\[[\s\S]*?\]);/);
+  const MAPS = mm && new Function('FTUE_ST', 'return ' + mm[1]);
+  eq('R97: MENU_MAPS - the five-parts window and the basic-vs-elemental window, with the tutorial\'s own captions',
+    MAPS && MAPS({}).map(m => [m.id, m.src, m.alt]), [
+      ['mnMap1', 'assets/ui/MAP_parts.webp', 'The map, divided into five parts'],
+      ['mnMap2', 'assets/ui/MAP_parts2.webp', 'The map: basic traits in the visible part, elemental ones in the hidden part'] ]);
+  const seen = st => MAPS(st).map(m => !!m.seen());
+  eq('R97: each is offered once the tutorial has shown it (its flag, or a later part for older saves)',
+    [seen({ part: 2 }), seen({ part: 2, seenParts: true }), seen({ part: 3 }), seen({ part: 3, seenParts2: true }), seen({ part: 4 })],
+    [[false, false], [true, false], [true, false], [true, true], [true, true]]);
+  eq('R97: both are offered after the tutorial and in free play', /function menuMapsUi\(\)\{ MENU_MAPS\.forEach\(m=>\{ const b=document\.getElementById\(m\.id\); if\(b\) b\.style\.display=\(FTUE_ST\.done \|\| SM_FREE \|\| m\.seen\(\)\) \? '' : 'none'; \}\); \}/.test(s7), true);
+  eq('R97: SETTINGS lists them, refreshed as it opens', s7.includes('<button class="mn-btn" id="mnMap1" type="button" onclick="menuMap(0)">MAP: FIVE PARTS</button>')
+    && s7.includes('<button class="mn-btn" id="mnMap2" type="button" onclick="menuMap(1)">MAP: TRAITS</button>') && /function menuSettings\(\)\{[^}]*menuMapsUi\(\);/.test(s7), true);
+  eq('R97: a tap opens the same picture window, over the menu, with nothing after it', fn('menuMap') === "function menuMap(i){ const m=MENU_MAPS[i]; if(m) openIllus(m.src, m.alt); }", true);
+  eq('R97: a hidden menu page stays hidden (.mn-grid\'s display:grid had beaten [hidden], so SETTINGS always showed under the menu)', s7.includes('.mn-grid[hidden] { display: none; }'), true);
+  eq('R97: the PART 4+ jumps have seen both (TC3\'s five parts, GC4\'s traits window)', s7.includes("        if(n>=4){   /* the end of part 3: fire sword sold, night, skill tree, Day 2 cave, GPC4-6 served, TC4 at the bell */\n            FTUE_ST.seenParts=true; FTUE_ST.seenParts2=true;   /* R97: both map windows are behind (SETTINGS offers them) */"), true);
+  eq('R97: the tutorial marks each as seen when it shows it', [/function openParts\(\)\{[^\n]*FTUE_ST\.seenParts=true;/.test(s7), /function ftueDurableMap\(\)\{[^\n]*\n\s*FTUE_ST\.seenParts2=true;/.test(s7)], [true, true]);
+}
+/* R99 (owner, 2026-11-11): TC2's D38 - no bellows or gate until it is closed, so the record lesson cannot be skipped */
+{ const s9 = src.replace(/\r\n/g, '\n'), T = new Function(s9.match(/const SAY_DARK_CUT=[\s\S]*?\};/)[0] + '; return SAY_DARK_CUT;')();
+  eq('R99: D38 on the cut dim, only the map open (the bellows and the gate are under it)', [!!T.D38, T.D38 && T.D38[0].sel, !!T.D38a], [true, '#map-wrap', false]);
+  eq('R99: D38a text', line('D38a'), 'Now drag the bellows handle up and down to reach the balanced trait.');
+  eq('R99: D38a sits between D38 and D41', (() => { const a = s9.indexOf('\n    D38: "'), b = s9.indexOf('\n    D38a: "'), c = s9.indexOf('\n    D41: "'); return a > 0 && a < b && b < c; })(), true);
+  eq('R99: closing D38 in TC2\'s craft says D38a (the bellows arrow is the stage\'s own)', s9.includes("D38:function(){ if(TUT_STAGE==='regrind-heat') sayQueue('D38a'); },   /* R99 */"), true);
+  eq('R99: the sword on Balanced replaces D38a with D41', /function tutGateStep\(\)\{[\s\S]{0,200}if\(TUT_STAGE==='regrind-heat'\)\{[\s\S]{0,200}say\('D41'\)/.test(s9), true);
+}
+/* R100 (owner, 2026-11-11): the compare window in the record lesson - the dragon and D43 over its dark; no Record new in the tutorial */
+{ const s0 = src.replace(/\r\n/g, '\n');
+  eq('R100: D43 no longer mentions Record new', line('D43'), 'You can compare the old one with the new one. Tap update to replace the old one.');
+  eq('R100: in the tutorial the window has no Record new (after it, and in free play, it has)', s0.includes("    { const nb=document.getElementById('compNewBtn'); if(nb) nb.style.display=(FTUE_ST.done || SM_FREE) ? '' : 'none'; }   /* R100 */"), true);
+  eq('R100: compLift - the dragon over the window\'s dark, and his line with him (sayHide drops the line\'s lift)',
+    s0.includes("function compLift(on){ const d=document.getElementById('dragon'); if(d) d.classList.toggle('over-modal', !!on);\n    const sb=document.getElementById('dragonSay'); if(on && sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; }\n    else if(!on && sb && FOCUS_OVER===sb){ sb.classList.remove('say-over-modal'); FOCUS_OVER=null; } }   /* the window closed: D43 stays, back in its place */"), true);
+  eq('R100: lifted only for D43 in the record lesson, dropped when the window closes', [/function tutCompStep\(\)\{[\s\S]{0,250}say\('D43'\); compLift\(true\);/.test(s0), s0.includes("function closeComp(){ document.getElementById('sfCompModal').classList.remove('show'); compLift(false); }")], [true, true]);
+  eq('R100: the lift is over the window (z 1000), the line\'s own 1011', s0.includes('#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }'), true);
+}
+/* R101 (owner, 2026-11-11): the compare window's New box wears the quest basket's look (R93) */
+{ const s1 = src.replace(/\r\n/g, '\n');
+  eq('R101: the New box glows like the basket (also while hovered; the box\'s hover clears filters)', s1.includes('.comp-slot.is-new, .comp-slot.is-new:hover { position: relative; filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }'), true);
+  eq('R102: no tint on the New box (the glow stays)', s1.includes('.comp-slot.is-new::after'), false);
+  eq('R101: the thin inset line is gone', s1.includes('.comp-slot.is-new { box-shadow: inset 0 0 0 2px rgba(108,140,72,.55)'), false);
+  eq('R101: the same numbers as the basket', s1.includes('#questBtn.qs-ready { filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }') && s1.includes('pointer-events: none; opacity: 0; background: rgba(90,230,110,.3);'), true);
+}
+/* R102 (owner, 2026-11-11): after Update, the line asks for what comes next - closing the craft window */
+{ const s2 = src.replace(/\r\n/g, '\n');
+  eq('R102: D43a text', line('D43a'), 'The recipe is saved. Now tap the ring to close the craft window.');
+  eq('R102: D43a sits between D43 and D44', (() => { const a = s2.indexOf('\n    D43: "'), b = s2.indexOf('\n    D43a: "'), c = s2.indexOf('\n    D44: "'); return a > 0 && a < b && b < c; })(), true);
+  eq('R102: with the craft window open after the recording, D43a replaces D43 as the ring lights; shut already, D44 at once',
+    s2.includes("    if(h && h.classList.contains('collapsed')){ tutHudClosed(); return; }   /* already shut: nothing to ask */\n    if(SAY_SEQ.indexOf('D43a')<0) SAY_SEQ.push('D43a');\n    SAY_I=SAY_SEQ.indexOf('D43a'); say('D43a');   /* R102 */\n    tutExit('#hudToggle');"), true);
+}
+/* R104 (owner, 2026-11-11): TC4's ladle step zooms the map in on the sword and Durable, then gives the player's view back */
+{ const s4 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s4.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s4.indexOf('{', i);
+    for (; j < s4.length; j++) { if (s4[j] === '{') d++; else if (s4[j] === '}' && --d === 0) break; } return s4.slice(i, j + 1); };
+  eq('R104/R106: FTUE.ladleZoom 1.5 (R106, was 3), FTUE.ladleFocus the clear part of the map, FTUE.ladleGlideMs 600', [FTUE.ladleZoom, FTUE.ladleFocus, FTUE.ladleGlideMs], [1.5, { x: 0.5, y: 0.53 }, 600]);
+  const mk = (w) => { const S = { calls: 0 }; const L = new Function('S', 'FTUE', 'let view={ x:100, y:200, w:' + w + ' }, aspect=0.5, MIN_W=360, LADLE_VIEW=null, marker={ x:1581, y:723 }, traits=[ { trait:{ id:"durable" }, x:1577, y:740 } ]; function setView(){ S.calls++; } function viewGlide(to, ms){ S.ms=ms; view.x=to.x; view.y=to.y; view.w=to.w; } '
+    + fn('ladleZoomOn') + fn('ladleZoomOff') + '; return { on:ladleZoomOn, off:ladleZoomOff, v:()=>({ ...view }), saved:()=>LADLE_VIEW, ms:()=>S.ms };')(S, { ladleZoom: 1.5, ladleFocus: { x: 0.5, y: 0.53 }, ladleGlideMs: 600 }); return L; };
+  const a = mk(1100); a.on(); const z = a.v();
+  eq('R104/R106: zoomed 1.5 times (gliding, 600 ms), the middle of the sword and Durable at the focus point', [Math.round(z.w), Math.round(z.x + z.w * 0.5), Math.round(z.y + z.w * 0.5 * 0.53), a.ms()], [733, 1579, 732, 600]);
+  a.off(); eq('R104: the player\'s view comes back, once', [a.v(), a.saved()], [{ x: 100, y: 200, w: 1100 }, null]);
+  const b = mk(500); b.on(); eq('R104: never closer than MIN_W', Math.round(b.v().w), 360);
+  eq('R104: on with the pull lesson, off when aligned and on a reset', [/function tutTiersClosed\(\)\{[\s\S]{0,300}ladleZoomOn\(\);/.test(s4), /function tutDurableAligned\(\)\{[\s\S]{0,200}ladleZoomOff\(\);/.test(s4), /function resetRun\(\)\{[^\n]*ladleZoomOff\(\);/.test(s4)], [true, true, true]);
+}
+/* R105 (owner, 2026-11-11): GC2's gate introduces the craft book - shown, opened, closed, then the craft goes on */
+{ const s5 = src.replace(/\r\n/g, '\n');
+  eq('R105: D28n and D28o (R110: D28o reworded by the owner)', [line('D28n'), line('D28o')], ['Every trait you discover on the map is recorded in the craft book. Tap the book to open it.', 'Every trait you discover, I will record it. Now close the book and continue crafting.']);
+  { const T = new Function(s5.match(/const SAY_DARK_CUT=[\s\S]*?\};/)[0] + '; return SAY_DARK_CUT;')();
+    eq('R110: D28n on the cut dim with two windows, the map and the craft frame; D28o (over the open book) clear', [T.D28n, !!T.D28o], [[{ sel: '#map-wrap' }, { sel: '#hud' }], false]); }
+  /* found while checking: the lit dragon (dark-lit, 61) sits over the craft frame and took the book's tap, as it took the ring's in R107 */
+  eq('R110: through D28n the craft frame sits over the lit dragon; the open book takes it back down', [s5.includes('#frame.landscape > #hud.pip-up, #frame.landscape > #hud.book-up { z-index: 62; }'),
+    /function ftueBookIntro\(\)\{[\s\S]{0,400}document\.getElementById\('hud'\)\.classList\.add\('book-up'\);/.test(s5),
+    /function ftueBookOpened\(\)\{[^\n]*document\.getElementById\('hud'\)\.classList\.remove\('book-up'\);/.test(s5)], [true, true, true]);
+  eq('R105: beside D28m', (() => { const a = s5.indexOf('\n    D28m: "'), b = s5.indexOf('\n    D28n: "'), c = s5.indexOf('\n    D28o: "'); return a > 0 && a < b && b < c && c - a < 800; })(), true);
+  eq('R105: GC2 only, once (part 1, its second order)', s5.includes('function ftueBookLesson(){ return FTUE_ST.part===1 && FTUE_ST.gpc===1 && !FTUE_ST.bookSeen; }'), true);
+  eq('R105: at the gate, GC2 gets the book lesson; GC1 and GC3 go straight on (one function for the hook and the per-frame catch-up)',
+    [s5.includes("function ftueGcGated(){ if(ftueBookLesson()) ftueBookIntro(); else ftueGcQuenched(); }"),
+     s5.includes("            if(TUT_STAGE==='p1-craft-heat') ftueGcGated();   /* v3: GC1-GC3. R105: GC2 meets the craft book first */"),
+     s5.includes("    'p1-craft-heat':  { done:()=>!!melt && melt.traits.length>0, next:()=>ftueGcGated() },")], [true, true, true]);
+  eq('R105: the craft frame appears (open) and its book blinks with D28n',
+    s5.includes("function ftueBookIntro(){ TUT_STAGE='p1-book'; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true; craftFrameUi();\n    { const h=document.getElementById('hud'); if(h && h.classList.contains('collapsed')) toggleHud(); }\n    tutArrow(null,null); document.getElementById('hud').classList.add('book-up'); sayQueue('D28n'); tutExit('#recipeBtn'); }   /* R110: over the lit dragon */"), true);
+  eq('R105: the book open - D28o over it, CLOSE blinks; closed - the craft goes on (the anvil step)',
+    [s5.includes("function ftueBookOpened(){ if(TUT_STAGE!=='p1-book') return; TUT_STAGE='p1-book-open'; document.getElementById('hud').classList.remove('book-up'); sayQueue('D28o');\n    { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } } tutExit('#sfBookModal .cb-close');\n    document.getElementById('sfBookModal').classList.add('cb-look'); }"),
+     s5.includes("function ftueBookClosed(){ if(TUT_STAGE!=='p1-book-open') return; document.getElementById('sfBookModal').classList.remove('cb-look'); sayHide(); tutExit(null); ftueGcQuenched(); }"),
+     /function openBook\(\)\{[^\n]*ftueBookOpened\(\);/.test(s5), /function closeBook\(\)\{[^\n]*ftueBookClosed\(\);/.test(s5)], [true, true, true, true]);
+  eq('R105: while the lesson shows the book, only CLOSE takes a tap (no ERASE, CONTINUE or CRAFT)', s5.includes('#sfBookModal.cb-look button:not(.cb-close) { pointer-events: none; opacity: .5; }'), true);
+  eq('R105: the PART 2+ jumps have met the book (frame shown)', s5.includes("        FTUE_ST=ftueFresh(); FTUE_ST.gpc=3; FTUE_ST.market=true; FTUE_ST.cwSeen=true; FTUE_ST.bookSeen=true; FTUE_ST.craftFrame=true;   /* R105 */"), true);
+}
+/* R106 (owner, 2026-11-11): TC4's route end shows the Alignment for Tiers window with D96a; closing it gives D97; the zoom glides */
+{ const s6 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s6.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s6.indexOf('{', i);
+    for (; j < s6.length; j++) { if (s6[j] === '{') d++; else if (s6[j] === '}' && --d === 0) break; } return s6.slice(i, j + 1); };
+  eq('R106: D96a, between D96 and D97', [line('D96a'), (() => { const a = s6.indexOf('\n    D96: "'), b = s6.indexOf('\n    D96a: "'), c = s6.indexOf('\n    D97: "'); return a > 0 && a < b && b < c; })()], ['Different alignment will give us different trait tiers.', true]);
+  eq('R106: at TC4\'s route end the tiers window opens with D96a over it (not left to D97\'s X any more)',
+    s6.includes("function tutTc4Pull(){\n    if(TUT_STAGE!=='p3-dur-heat' || FTUE_ST.part!==4) return;\n    TUT_STAGE='p4-tiers'; tutArrow(null,null); TUT_SAW_TIERS=true;\n    { const m=document.getElementById('sfTierModal'); if(m) m.classList.add('show'); }\n    sayQueue('D96a'); { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } }\n}"), true);
+  eq('R106: closing the window gives D97, the ladle and the zoom', s6.includes("function tutTiersClosed(){ if(TUT_STAGE!=='p4-tiers') return; sayHide();\n    TUT_STAGE='p4-pull'; TUT_SWIFT_LOCK=false; ladleZoomOn();\n    sayQueue('D97');\n    setTimeout(()=>tutArrow(null, '#ladleHead'), 0);   /* R5: tilt the ladle (was: drag the dragon to the anvil) */\n}")
+    && /function closeTiers\(\)\{[^\n]*tutTiersClosed\(\);/.test(s6), true);
+  /* the glide: ease in-out between the views, the end view set by a timer too (a hidden pane freezes requestAnimationFrame) */
+  const log = []; let rafs = [], timers = [], clock = 0;
+  const G = new Function('S', 'performance', 'requestAnimationFrame', 'setTimeout', 'let view={ x:0, y:0, w:1000 }, VIEW_GLIDE=null; function setView(){ S.push({ ...view }); } ' + fn('viewGlide') + '; return { glide:viewGlide, v:()=>({ ...view }) };')(
+    log, { now: () => clock }, f => rafs.push(f), (f, ms) => timers.push([f, ms]));
+  G.glide({ x: 100, y: 50, w: 500 }, 600);
+  clock = 300; rafs.shift()(300); const mid = G.v();
+  eq('R106: halfway through, halfway there (ease in-out)', [Math.round(mid.x), Math.round(mid.w)], [50, 750]);
+  clock = 600; rafs.shift()(600);
+  eq('R106: at the end, the target view', G.v(), { x: 100, y: 50, w: 500 });
+  const H = new Function('S', 'performance', 'requestAnimationFrame', 'setTimeout', 'let view={ x:0, y:0, w:1000 }, VIEW_GLIDE=null; function setView(){ S.push({ ...view }); } ' + fn('viewGlide') + '; return { glide:viewGlide, v:()=>({ ...view }) };')(
+    [], { now: () => 0 }, () => {}, (f, ms) => timers.push([f, ms]));
+  timers.length = 0; H.glide({ x: 100, y: 50, w: 500 }, 600); timers[0][0]();
+  eq('R106: with no animation frames, the timer still lands the target view', [H.v(), timers[0][1] > 600], [{ x: 100, y: 50, w: 500 }, true]);
+  eq('R106: zooming in and out both glide', [/function ladleZoomOn\(\)\{[\s\S]{0,400}viewGlide\(/.test(s6), /function ladleZoomOff\(\)\{[\s\S]{0,200}viewGlide\(/.test(s6)], [true, true]);
+}
+/* R107 (owner, 2026-11-11): TC4's gate teaches the blade pips - open the craft window, then the Traits and Tiers window */
+{ const s7 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s7.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s7.indexOf('{', i);
+    for (; j < s7.length; j++) { if (s7[j] === '{') d++; else if (s7[j] === '}' && --d === 0) break; } return s7.slice(i, j + 1); };
+  eq('R107: FTUE.pipRows is the recorded window', FTUE.pipRows, [
+    { label: 'Weak', pips: [['durable', 'Weak']] },
+    { label: 'Fine', pips: [['durable', 'Fine'], ['durable', 'Fine']] },
+    { label: 'Epic', pips: [['durable', 'Epic'], ['durable', 'Epic'], ['durable', 'Epic']] },
+    { label: 'Stacked', pips: [['balanced', 'Weak'], ['durable', 'Weak'], ['fire', 'Weak'], ['swift', 'Weak'], ['gale', 'Weak']] } ]);
+  eq('R107: D98a and D98b, between D98 and D99', [line('D98a'), line('D98b'), (() => { const a = s7.indexOf('\n    D98: "'), b = s7.indexOf('\n    D98a: "'), c = s7.indexOf('\n    D98b: "'), d = s7.indexOf('\n    D99: "'); return a > 0 && a < b && b < c && c < d; })()],
+    ['Open the craft window.', 'This here represents the trait and the tier. You can also stack different traits.', true]);
+  const P = new Function('FTUE', 'BLADE_SLOTS', 'TRAIT_BY', fn('tierColor') + fn('pipRowsHtml') + '; return pipRowsHtml;')(
+    { pipRows: [ { label: 'Weak', pips: [['durable', 'Weak']] }, { label: 'Stacked', pips: [['balanced', 'Weak'], ['fire', 'Weak']] } ] }, 5,
+    { durable: { name: 'Durable', symbol: 'D' }, balanced: { name: 'Balanced', symbol: 'B' }, fire: { name: 'Fire', symbol: 'F' } });
+  const html = P();
+  eq('R107: each row is the craft frame\'s 5 pips, filled in the tier\'s colour, the rest empty', [(html.match(/class="pip-row"/g) || []).length, (html.match(/class="tslot filled"/g) || []).length, (html.match(/class="tslot"><\/span>/g) || []).length, html.includes('color:#4d4d4d') , html.includes('<span class="pip-lab">Weak</span>')], [2, 3, 7, true, true]);
+  eq('R107: TC4\'s gate (p4-quench, once) gets the lesson; the other Durable crafts go straight on',
+    [s7.includes("function ftuePipLesson(){ return TUT_STAGE==='p4-quench' && FTUE_ST.part===4 && !FTUE_ST.pipsSeen; }"), s7.includes("function ftueDurGated(){ if(ftuePipLesson()) ftuePipIntro(); else ftueDurQuenched(); }")], [true, true]);
+  eq('R107: D98a with the ring blinking, unless the craft window is open already',
+    s7.includes("function ftuePipIntro(){ TUT_STAGE='p4-pips'; FTUE_ST.pipsSeen=true; tutArrow(null,null); tutUnglow(); document.getElementById('hud').classList.add('pip-up');\n    { const h=document.getElementById('hud'); if(h && !h.classList.contains('collapsed')){ ftuePipShow(); return; } }\n    sayQueue('D98a'); tutExit('#hudToggle'); }"), true);
+  eq('R107: opening the craft window shows the pips window with D98b over it (the dark cut to the pips)',
+    [/function toggleHud\(\)\{[\s\S]{0,500}if\(!nowCollapsed\) ftuePipOpened\(\);/.test(s7), s7.includes("function ftuePipOpened(){ if(TUT_STAGE==='p4-pips' && SAY_ON==='D98a') ftuePipShow(); }"),
+     s7.includes("function ftuePipShow(){ tutExit(null); document.getElementById('hud').classList.remove('pip-up');   /* back under the dark: only the pips show through it */\n    document.getElementById('pipRows').innerHTML=pipRowsHtml(); document.getElementById('sfPipModal').classList.add('show');\n    sayQueue('D98b'); { const sb=document.getElementById('dragonSay'); if(sb){ sb.classList.add('say-over-modal'); FOCUS_OVER=sb; } } }")], [true, true, true]);
+  eq('R107: its close lifts the dark and the metal goes to the anvil', s7.includes("function closePips(){ document.getElementById('sfPipModal').classList.remove('show'); document.getElementById('hud').classList.remove('pip-up'); if(TUT_STAGE!=='p4-pips') return; sayHide(); TUT_STAGE='p4-quench'; ftueDurQuenched(); }"), true);
+  eq('R107: the window has no backdrop of its own (the cut dim is the dark, so the pips show)', s7.includes('#sfPipModal { background: transparent; }'), true);
+  eq('R107: through the lesson the craft frame sits over the lit dragon (his dark-lit 61 covered the ring)', [s7.includes('#frame.landscape > #hud.pip-up, #frame.landscape > #hud.book-up { z-index: 62; }'),
+    /function ftuePipIntro\(\)\{[^\n]*\n?[^\n]*document\.getElementById\('hud'\)\.classList\.add\('pip-up'\);/.test(s7), /function closePips\(\)\{[^\n]*document\.getElementById\('hud'\)\.classList\.remove\('pip-up'\);/.test(s7)], [true, true, true]);
+  eq('R107: the PART 5+ jumps have had the lesson', /if\(n>=5\)\{[^\n]*\n[^\n]*FTUE_ST\.pipsSeen=true;/.test(s7), true);
+}
+/* R108 (owner, 2026-11-11): the ores come with the order - the window opens when the dragon's line for the order closes,
+   titled "Ores Acquired!", with one of three random lines (record: "Revised R108" in specs/2026-10-07-ftue-v3-rework.md) */
+{ const s8 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s8.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s8.indexOf('{', i);
+    for (; j < s8.length; j++) { if (s8[j] === '{') d++; else if (s8[j] === '}' && --d === 0) break; } return s8.slice(i, j + 1); };
+  eq('R108: the ore lines and the title', [FTUE.oreLines, FTUE.oreTitle], [['D18b', 'D18c', 'D18d'], 'Ores Acquired!']);
+  eq('R108: D18b-D18d, right after D18', [line('D18b'), line('D18c'), line('D18d'), keyList[keyList.indexOf('D18b') - 1], keyList[keyList.indexOf('D18c') - 1], keyList[keyList.indexOf('D18d') - 1]],
+    ['Here are the ores for your next sword.', 'More ores for you.', 'I found some ores for you.', 'D18', 'D18b', 'D18c']);
+  eq('R108: TC2\'s row is FTUE.tc2Ore', FTUE.oreChain.tc2.give, FTUE.tc2Ore);
+  { const pick = new Function('FTUE', 'let ORE_LINE_LAST=null; ' + fn('ftueOreLine') + '; return ftueOreLine;')({ oreLines: ['D18b', 'D18c', 'D18d'] });
+    const got = []; for (let i = 0; i < 300; i++) got.push(pick());
+    eq('R108: a random line, never the same one twice in a row, all three used', [got.every((k, i) => !i || k !== got[i - 1]), [...new Set(got)].sort()], [true, ['D18b', 'D18c', 'D18d']]); }
+  eq('R108: a row\'s own line wins, else a random one', s8.includes('    const line=e.say || ftueOreLine();'), true);
+  eq('R108: the window\'s title: "Ores Acquired!" for ores only, else "Reward!"', [s8.includes('<h3 id="rwTitle" class="sf-modal-h">Reward!</h3>'),
+    /function ftueReward\(list, then\)\{[\s\S]{0,300}const ti=document\.getElementById\('rwTitle'\); if\(ti\) ti\.textContent=list\.every\(r=>r\.kind==='ore'\) \? FTUE\.oreTitle : 'Reward!';/.test(s8)], [true, true]);
+  eq('R108: a gameplay order\'s ores by its key (part and order)', s8.includes("function ftueGpcOres(then){ ftueOreReward('p'+FTUE_ST.part+'g'+FTUE_ST.gpc, then); }"), true);
+  eq('R108: GC8 has no dragon line: its window opens once its order has typed', s8.includes("if(o.lesson==='weak') typeAfter(()=>ftueGpcOres(ftueWeakStart));"), true);
+  eq('R108: TC2\'s after D31, TC4\'s after D92l, TC5\'s after D93a', [/custReply\('tc2', \(\)=>\{[\s\S]{0,300}say\('D31'\); SAY_THEN=\{ id:'D31', fn:\(\)=>ftueOreReward\('tc2'\) \};/.test(s8),
+    s8.includes("sayQueue('D92l'); SAY_THEN={ id:'D92l', fn:()=>ftueOreReward('tc4') };"), s8.includes("sayQueue('D93a'); SAY_THEN={ id:'D93a', fn:()=>ftueOreReward('tc5') };")], [true, true, true]);
+}
+/* R109 (owner, 2026-11-11): a jump to every tutorial customer - ftueCust(id) and the CUSTOMER dropdown (record:
+   specs/2026-11-11-customer-jumps.md) */
+{ const s9 = src.replace(/\r\n/g, '\n');
+  const fn = name => { const i = s9.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s9.indexOf('{', i);
+    for (; j < s9.length; j++) { if (s9[j] === '{') d++; else if (s9[j] === '}' && --d === 0) break; } return s9.slice(i, j + 1); };
+  const m = s9.match(/const CUST_JUMPS=(\[[\s\S]*?\]);\s*\/\* R109 end \*\//); const T = m ? new Function('return ' + m[1])() : null;
+  eq('R109: CUST_JUMPS is the recorded table', T, [
+    { id: 'TC1', base: 1, label: 'TC1 Bram' },
+    { id: 'GC1', base: 2, label: 'GC1 balanced Longsword', part: 1, gpc: 0, stage: 'p1-bell', drop: ['balanced:Longsword', 'balanced:Broadsword', 'balanced:Katana'], st: { bookSeen: false, craftFrame: false, market: false } },
+    { id: 'GC2', base: 2, label: 'GC2 balanced Broadsword', part: 1, gpc: 1, stage: 'p1-bell', drop: ['balanced:Broadsword', 'balanced:Katana'], st: { bookSeen: false, craftFrame: false } },
+    { id: 'GC3', base: 2, label: 'GC3 balanced Katana', part: 1, gpc: 2, stage: 'p1-bell', drop: ['balanced:Katana'] },
+    { id: 'TC2', base: 2, label: 'TC2 a good one' },
+    { id: 'TC3', base: 3, label: 'TC3 fire Shortsword' },
+    { id: 'GC4', base: 4, label: 'GC4 Durable Shortsword', part: 3, gpc: 0, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { seenParts2: false, dd: { balanced: 1 } }, hide: 'durable', cave: true },
+    { id: 'GC5', base: 4, label: 'GC5 fire Longsword', part: 3, gpc: 1, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { dd: { balanced: 1 } } },
+    { id: 'GC6', base: 4, label: 'GC6 fire Broadsword', part: 3, gpc: 2, stage: 'p3-bell', drop: ['fire:Broadsword', 'fire:Katana'], st: { dd: { balanced: 1, flame: 1 } } },
+    { id: 'GC7', base: 4, label: 'GC7 fire Katana', part: 3, gpc: 3, stage: 'p3-bell', drop: ['fire:Katana'] },
+    { id: 'TC4', base: 4, label: 'TC4 Epic Durable' },
+    { id: 'GC8', base: 4, label: 'GC8 Weak balanced Longsword', part: 4, gpc: 0, stage: 'p4-bell', st: { pipsSeen: true }, tiers: true },
+    { id: 'TC5', base: 4, label: 'TC5 gale Shortsword', part: 4, gpc: 1, stage: 'd2-bell', st: { pipsSeen: true }, tiers: true },
+    { id: 'WC', base: 5, label: 'WC gale Katana and fire Claymore', part: 4, gpc: 1, stage: 'p4-bell', st: { waiting: [], laterOn: false, seenMarket: false }, gold: 300 },
+    { id: 'BRAM2', base: 5, label: 'BRAM2 swift Dagger' },
+    { id: 'GC9', base: 6, label: 'GC9 gale Longsword', part: 5, gpc: 0, stage: 'p5-bell', drop: ['gale:Longsword'] },
+    { id: 'GARRIC', base: 6, label: 'GARRIC Balanced, graded' },
+    { id: 'GAME', base: 7, label: 'GAME after the tutorial' } ]);
+  { const W = new Function('FTUE', 'ftueStockCave', 'pickHome', 'ftueLadleUi', 'let FTUE_ST, TUT_STAGE=null, TUT_SAW_TIERS=false, GOLD=900; ' + fn('custJumpSet')
+      + '; return (st, j) => { FTUE_ST = st; custJumpSet(j); return { st: FTUE_ST, stage: TUT_STAGE, tiers: TUT_SAW_TIERS, gold: GOLD }; };');
+    let caved = null, homed = 0, ladle = 0;
+    const run = W({ day2Cave: { nickel: 2 } }, c => { caved = c; }, () => { homed++; }, () => { ladle++; });
+    const a = run({ part: 2, gpc: 3, shapes: { 'fire:Longsword': true, 'fire:Katana': true, 'balanced:Katana': true }, dd: { balanced: 1, flame: 2 }, seenParts2: true },
+      { part: 3, gpc: 0, stage: 'p3-bell', drop: ['fire:Longsword', 'fire:Broadsword', 'fire:Katana'], st: { seenParts2: false, dd: { balanced: 1 } }, cave: true });
+    eq('R109: a row sets the part, order, stage, drops its blueprints, sets its flags, stocks the cave', [a.st.part, a.st.gpc, a.stage, a.st.shapes, a.st.seenParts2, a.st.dd, caved, homed, ladle, a.tiers, a.gold],
+      [3, 0, 'p3-bell', { 'balanced:Katana': true }, false, { balanced: 1 }, { nickel: 2 }, 1, 1, false, 900]);
+    const b = run({ part: 5, gpc: 2, shapes: {}, waiting: [{ x: 1 }] }, { part: 4, gpc: 1, stage: 'p4-bell', st: { waiting: [], laterOn: false }, gold: 300, tiers: true });
+    eq('R109: gold and the tiers flag when a row names them; flag values are copies', [b.gold, b.tiers, b.st.waiting, b.st.laterOn], [300, true, [], false]); }
+  eq('R109: ftuePart takes the row and applies it before the HUD and the bell are drawn', [s9.includes('function ftuePart(n, j){'),
+    /if\(j\) custJumpSet\(j\);\s*\n\s*SAY_I=SAY_SEQ\.length;/.test(s9)], [true, true]);
+  eq('R109: GC4\'s row keeps Durable undiscovered', s9.includes("if(dt && !(j && j.hide==='durable')){"), true);
+  eq('R109: ftueCust finds the row (any case) and calls ftuePart with it; an unknown id names the valid ones', [s9.includes("function ftueCust(id){ if(!DEV) return 'Not available'; const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());"),
+    s9.includes("if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');"), s9.includes('ftuePart(j.base, j);'), s9.includes('if(DEV) window.ftueCust=ftueCust;')], [true, true, true, true]);
+  eq('R109: the CUSTOMER dropdown sits in the cheat bar and lists the table', [/<div id="cheatBar">[\s\S]{0,3000}<select id="cheatCust"/.test(s9),
+    /function custJumpUi\(\)\{[\s\S]{0,400}CUST_JUMPS\.forEach/.test(s9)], [true, true]);
+  /* found while checking R109: a new game (every PART jump) kept the scripted customers' state from the game before - after
+     TC3's arrival, the next jump showed her panel over the bell */
+  eq('R109: a new game closes every open window and drops a pending order hook (an ore window stayed over the next jump\'s bell)',
+    /function newGame\(\)\{[\s\S]{0,300}document\.querySelectorAll\('\.sf-modal\.show'\)\.forEach\(m=>m\.classList\.remove\('show'\)\); RW_THEN=null; rwDragonHide\(\); SAY_THEN=null;/.test(s9), true);
+  eq('R109: a new game clears the scripted customers (TC3, Bram\'s return, Garric)', /function tutReset\(\)\{[\s\S]{0,400}TUT_FIRE_STATE=null; TUT_FIRE_RUN=false; TUT_BRAM2_STATE=null; TUT_GARRIC_STATE=null;/.test(s9), true);
+}
+/* R111 (owner, 2026-11-11): TC2's record step on the dark - the metal could go from the gate to the anvil past D42 */
+eq('R111: the craft frame lifted over the dark and the lit dragon (its ring and inkpot are the way on)', src.includes('#frame.landscape > #hud.dark-lit { z-index: 62; }'), true);
+eq('R111: under the record dark the dragon still rises over the compare window (R100): over-modal beats dark-lit', src.includes('#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }'), true);
+/* R112 (owner, 2026-11-12): in the tutorial only the order's blueprint looks buyable - the others (refused since r301) are greyed */
+eq('R112: the market page greys a blueprint the tutorial refuses (held), its tap still says D28m', [src.includes("held=(st==='buy' || st==='poor') && !gift && !ftueBlueprintOk(p.trait, p.shape);"),
+  src.includes("B.dataset.st=gift ? 'gift' : held ? 'held' : st;"), src.includes(".mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'], .mk-buy[data-st='held'] {"),
+  src.includes("if((st==='buy' || st==='poor') && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }")], [true, true, true, true]);
+/* R113 (owner, 2026-11-12): the craft book's tier pips show from TC4's pip lesson (or after the FTUE) */
+eq('R113: #cbTier hidden until the pips are taught', src.includes("        tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen); { const tl=document.getElementById('cbTierLab'); if(tl) tl.hidden=tb.hidden; } }   /* R113") && src.includes('<div class="cb-label" id="cbTierLab"') && src.indexOf('function renderRecipe(){') < src.indexOf('tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen);') && src.includes('.cb-tier[hidden] { display: none; }'), true);
+/* R114 (owner, 2026-11-12): the compare window's text, pips and ores fill its boxes */
+eq('R114: the compare slots sized to fill the box', ['.comp-slot { flex-direction: column; gap: 8px;', '.cp-h { font-size: 14px;', '.cp-tr { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; font-size: 26px;',
+  '.cp-ores { display: flex; gap: 4px;', '.cp-ores img { width: 36px; height: 36px;', '.cp-ores.many img { width: 22px; height: 22px; }', '.cp-tr.many { font-size: 20px; }', '.cp-ores .x { font-size: 14px;', '.cp-none { font-size: 13px;'].every(c => src.includes(c)), true);
+eq('R114: five pips use the smaller pips', src.includes("'<span class=\"cp-tr'+(compPipCount(rec.traits||recipeTraits(rec))>4 ? ' many' : '')+'\">'") && src.includes("function compPipCount(list){ return Math.min(BLADE_SLOTS, (list||[]).reduce((n,a)=>n+(TIER_PIPS[a.tier]||1), 0)); }"), true);
+eq('R114: three or more ore kinds use the smaller ores', src.includes("</span><span class=\"cp-ores'+(new Set(rec.ores||[]).size>2 ? ' many' : '')+'\">'+compOreHtml(rec.ores)+'</span>'"), true);
 console.log('[ftue] GREEN / ' + n + ' checks');

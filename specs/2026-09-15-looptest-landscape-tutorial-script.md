@@ -158,8 +158,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 29. **D26** Dragon: "Phew! That was a lot of hard work."
    *When: Bram leaves.*
 
-30. **D18a** Dragon: "Here's a reward from me."
-   *When: D26 is closed; over the reward window (2 Iron, 2 Manganese for GC1).*
+30. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### The quest list, the dragon, the bell
 
@@ -183,8 +183,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 36. **Customer (GC1):** "Do you have a Balanced Longsword?"
    *When: the bell; one of the random customer requests, naming the order.*
 
-37. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll buy the shape for you when you pick it."
+37. **D28b** Dragon: "A balanced Longsword? We need its blueprint. Craft the sword, and I'll give you the gold for the shape when you pick it."
    *When: after the player's reply "Yes, I can craft one." (R56) to GC1's request; its lit OK starts the craft guide (no market trip).*
+
+37a. **Ores Acquired** window: 2 Iron, 2 Manganese (GC1); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D28b is closed (or the player walks away with it up, R86); then the craft guide (R108); its OK goes on.*
 
 38. **D28a** Dragon: "Use 2 iron and 2 manganese for the balanced sword."
    *When: only if a GC1-GC3 craft uses too much or too little of an ore; with a "Retry" button.*
@@ -202,16 +205,19 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: GC1's craft: the first exp book on the route is collected; the game pauses.*
 
 43. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+43a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 44. **D28d** Dragon: "There, my treat! Now pick the Longsword."
-   *When: the Longsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Longsword (R96); then it blinks to be picked.*
 
 45. **Customer (GC1):** "Wow! Looks good. Good job."
    *When: after the sale; a random thank-you by the sword's tier (Epic, Fine, Weak).*
 
-46. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC1's sale; over the reward window (2 Iron, 2 Manganese for GC2).*
+46. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 47. **Customer (GC2):** "Do you have a Balanced Broadsword?"
    *When: the bell; a random request.*
@@ -219,17 +225,30 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 48. **D28e** Dragon: "A Broadsword this time. I'll pay for the shape again."
    *When: after the player's reply "Yes, I can craft one." (R56) to GC2's request; its lit OK starts the craft guide.*
 
+48a. **Ores Acquired** window: 2 Iron, 2 Manganese (GC2); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D28e is closed; then the craft guide (R108); its OK goes on.*
+
+48b. **D28n** Dragon: "Every trait you discover on the map is recorded in the craft book. Tap the book to open it."
+   *When: R105: GC2's gate is opened; the craft frame appears (open, from now on) and its book blinks. No X: the book's tap
+   moves on. R110: said on the dark, only the map and the craft frame lit (the frame over the dragon).*
+
+48c. **D28o** Dragon: "Every trait you discover, I will record it. Now close the book and continue crafting." (R110, owner's words)
+   *When: the craft book is open (R105); said over it, its CLOSE blinks. No X: CLOSE moves on to the anvil step.*
+
 49. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the shape's lock.*
+   *When: the shape window opens (after the quench); over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+49a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 50. **D28f** Dragon: "Done! Pick the Broadsword."
-   *When: the Broadsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Broadsword (R96); then it blinks to be picked.*
 
 51. **Customer (GC2):** a random thank-you
    *When: after the sale.*
 
-52. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC2's sale; over the reward window (2 Iron, 2 Manganese for GC3).*
+52. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 53. **Customer (GC3):** "Do you have a Balanced Katana?"
    *When: the bell; a random request.*
@@ -237,17 +256,20 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 54. **D28g** Dragon: "I helped you a bit. Now you buy your own stuff. I'll buy for you when I feel like it. Humph!"
    *When: after the player's reply "Yes, I can craft one." (R56) to GC3's request; its lit OK starts the craft guide.*
 
+54a. **Ores Acquired** window: 2 Iron, 2 Manganese (GC3); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D28g is closed; then the craft guide (R108); its OK goes on.*
+
 55. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the Katana's price; the dragon tops it up, then the Katana's BUY blinks.*
 
-56. **D28i** Dragon: "Your first blueprint! Now pick the Katana."
+56. **D28i** Dragon: "Well done! Now pick the Katana."
    *When: the player buys the Katana in the shape window; then it blinks to be picked.*
 
 57. **Customer (GC3):** a random thank-you
    *When: after the sale.*
 
-58. **D28j** Dragon: "I am running out of my reward stock. I only have 1 iron and 1 manganese."
-   *When: after GC3's sale; over the reward window (1 Iron, 1 Manganese for TC2); then the bell glows.*
+58. ~~**D28j** after GC3's sale~~
+   *Moved (R108): to TC2, after D31 (Part 2, 2a).*
 
 ### Part 2: grinding, the recipe, and the fire sword
 
@@ -258,6 +280,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 2. **D31** Dragon: "So many customers. No tea break for us. Back to the forge we go."
    *When: after the player's reply "I'll craft you a good one." (R56) to TC2's line; points to the forge.*
+
+2a. **D28j** Dragon: "I am running out of my ore stock. I only have 1 iron and 1 manganese."
+   *When: D31 is closed (R108; was after GC3's sale); over the Ores Acquired window (1 Iron, 1 Manganese for TC2, `FTUE.tc2Ore`; TC2's arrival no longer sets the bag).*
 
 3. **D32** Dragon: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-"
    *When: raw Iron and Manganese are in the smelter and the route misses Balanced.*
@@ -284,16 +309,25 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: the ground Iron is in the smelter.*
 
 11. **D38** Dragon: "Great, the path is going all the way to the balanced trait we discovered last time."
-   *When: the ground Manganese is in the smelter; then the bellows light up.*
+   *When: the ground Manganese is in the smelter. R99: everything but the map and the line is dark (no bellows, no gate)
+   until it is closed.*
+
+11a. **D38a** Dragon: "Now drag the bellows handle up and down to reach the balanced trait."
+   *When: D38 is closed (R99); the bellows light up. No X: the sword reaching Balanced replaces it with D41.*
 
 12. **D41** Dragon: "We are on the balanced trait. Open the gate!"
    *When: the sword is on Balanced; the gate lights up.*
 
 13. **D42** Dragon: "Wait, since we discovered how to craft a 'balanced' sword using fewer ores, we should update our crafting process. It will be helpful later. Tap the inkpot to record the craft."
-   *When: the gate gives Balanced and its window is closed.*
+   *When: the gate gives Balanced and its window is closed. R111: the record step is on the dark (only the map and the craft frame lit) until the inkpot is tapped, even if D42 is closed.*
 
-14. **D43** Dragon: "You can compare the old one with the new one. Tap update to replace the old one, or tap 'record new' to add a new page and keep both."
-   *When: the compare window opens.*
+14. **D43** Dragon: "You can compare the old one with the new one. Tap update to replace the old one."
+   *When: the compare window opens. R100: the dragon and this line are over the window's dark (the dragon over the craft
+   book shelf too, only here); in the tutorial the window has no Record new (Cancel and Update).*
+
+14a. **D43a** Dragon: "The recipe is saved. Now tap the ring to close the craft window."
+   *When: Update is tapped and the craft window is still open (R102); the ring blinks. No X: the ring's tap closes the window
+   and gives D44.*
 
 15. **D44** Dragon: "Take the hot metal to the anvil."
    *When: the recipe is recorded and the blade panel closed; an arrow from the metal at the gate to the anvil (it closes on the anvil).*
@@ -467,8 +501,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 13. **Customer (GC4):** a random thank-you
    *When: after the sale.*
 
-14. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC4's sale; over the reward window (the fire page's ores for GC5).*
+14. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### GC5: fire Longsword, the map route
 
@@ -481,6 +515,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 17. **D92a** Dragon: "Remember the fire route? The craft book can help."
    *When: after D92h; its lit OK starts the map route.*
 
+17a. **Ores Acquired** window: the fire page's ores (GC5); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D92a is closed; then the map route (R108); its OK goes on.*
+
 18. **D92m** Dragon: "Let's go to the forge."
    *When: only if the player is not on the forge.*
 
@@ -488,13 +525,16 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *When: on the forge, dark except the fire trait; the trait opens its card, then CRAFT 1.*
 
 20. **D28c** Dragon: "Here it is. Watch this!"
-   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Longsword's lock (then it blinks).*
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+20a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 21. **Customer (GC5):** a random thank-you
    *When: after the sale.*
 
-22. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC5's sale; over the reward window (the fire page's ores for GC6).*
+22. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### GC6: fire Broadsword, the book route
 
@@ -504,17 +544,23 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 24. **D92i** Dragon: "And a fire Broadsword. My treat, one more time!"
    *When: after the player's reply "Yes, I can craft one." (R56) to GC6's request; its lit OK starts the book route (craft book, fire page, CRAFT 1).*
 
+24a. **Ores Acquired** window: the fire page's ores (GC6); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D92i is closed; then the book route (R108); its OK goes on.*
+
 25. **D28c** Dragon: "Here it is. Watch this!"
-   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the Broadsword's lock.*
+   *When: CRAFT 1's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+25a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 26. **D28f** Dragon: "Done! Pick the Broadsword."
-   *When: the Broadsword is unlocked; then it blinks to be picked.*
+   *When: the player has bought the Broadsword (R96); then it blinks to be picked.*
 
 27. **Customer (GC6):** a random thank-you
    *When: after the sale.*
 
-28. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC6's sale; over the reward window (the fire page's ores for GC7).*
+28. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### GC7: fire Katana, the player buys
 
@@ -524,14 +570,17 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 30. **D92j** Dragon: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!"
    *When: after the player's reply "Yes, I can craft one." (R56) to GC7's request.*
 
+30a. **Ores Acquired** window: the fire page's ores (GC7); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D92j is closed (R108); its OK goes on.*
+
 31. **D28h** Dragon: "Oh, you don't have enough. Don't worry, I'll help."
    *When: the shape window opens, only if the gold is below the fire Katana's price; the top-up, then its BUY blinks.*
 
 32. **Customer (GC7):** a random thank-you
    *When: after the sale.*
 
-33. **D18a** Dragon: "Here's a reward from me."
-   *When: after GC7's sale; over the reward window (2 Nickel for TC4; the next bell brings TC4).*
+33. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 ### Part 4: Epic Durable, the gale sword, Weak, and "come back later"
 
@@ -543,14 +592,31 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 2. **D92l** Dragon: "Okay, time to learn how to craft the best tier sword!"
    *When: after the player's reply "One Epic durable sword. I'll do my best." (R56) to TC4's line; points to the forge.*
 
+2a. **Ores Acquired** window: 2 Nickel (TC4); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D92l is closed (the forge arrow blinks with it) (R108); its OK goes on.*
+
+2b. **D96a** Dragon: "Different alignment will give us different trait tiers."
+   *When: R106: the sword is at the end of the route; the Alignment for Tiers window (weak, fine, epic) opens and this is said
+   over it. No X: the window's close moves on to D97.*
+
 3. **D97** Dragon: "Tilt the ladle beside the smelter. It slowly pulls the sword icon to the centre of the map. Line the sword up with a trait's centre to get an epic tier every time!"
-   *When: the sword is at the end of the route; the ladle lights up; closing it opens the tiers window.*
+   *When: R106: the tiers window is closed (it used to open only if D97 was closed with its X, so tilting the ladle with D97
+   up skipped it); the ladle lights up and the map glides in 1.5x on the sword and Durable (R104).*
 
 4. **D98** Dragon: "Stop! This looks perfect."
    *When: the ladle parks the sword on Durable; the gate lights up.*
 
-5. **D18a** Dragon: "Here's a reward from me."
-   *When: after TC4's sale (and its reward); over the reward window (2 Copper for TC5's swift ingot).*
+4a. **D98a** Dragon: "Open the craft window."
+   *When: R107: the gate has taken Durable (Epic); everything but the map is dark and the ring blinks. Skipped when the craft
+   window is already open. No X: opening it moves on.*
+
+4b. **D98b** Dragon: "This here represents the trait and the tier. You can also stack different traits."
+   *When: R107: the craft window is open; everything but its 5 blade pips is dark and the Traits and Tiers window shows pip
+   rows (Weak: 1 Durable pip, Fine: 2, Epic: 3; then Balanced, Durable, Fire, Swift and Gale, one pip each). No X: the
+   window's close lifts the dark, and the metal goes to the anvil as before.*
+
+5. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### TC5: the gale sword
 
@@ -559,6 +625,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 7. **D93a** Dragon: "Gale? We have never made that. Let's try copper and see where the path goes."
    *When: after the player's reply "Not yet, but I can craft one." (R56) to TC5's line.*
+
+7a. **Ores Acquired** window: 2 Copper (TC5, the swift ingot's); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D93a is closed (R108); its OK goes on.*
 
 8. **D95** Dragon: "Grind two copper and add it to the smelter."
    *When: the player arrives at the forge.*
@@ -578,8 +647,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 13. **D99a** Dragon: "Use it later. We don't need that now."
    *When: only if the swift ingot is taken out of the bag early.*
 
-14. **D18a** Dragon: "Here's a reward from me."
-   *When: the swift ingot is stored; over the reward window (5 Copper for the gale sword).*
+14. **Ores Acquired** window: 5 Copper (for the gale sword); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: the swift ingot is stored (unchanged by R108; was D18a).*
 
 15. **D100** Dragon: "Maybe we need to go further in the same direction for the gale trait. Use more of the same metals to travel further."
    *When: the reward window is closed.*
@@ -614,8 +683,8 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 25. **Player:** "You're welcome."
    *When: reply button.*
 
-26. **D18a** Dragon: "Here's a reward from me."
-   *When: after TC5's reply (and its reward); over the reward window (1 Iron, 1 Manganese for GC8).*
+26. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 27. **D109** Dragon: "Great work!"
    *When: the reward window is closed; the bell lights.*
@@ -624,6 +693,9 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 28. **D107a** GC8: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?"
    *When: the bell.*
+
+28a. **Ores Acquired** window: 1 Iron, 1 Manganese (GC8); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: GC8's request has typed (no dragon line for this order); then the forge (R108); its OK goes on.*
 
 29. **D107b** Dragon: "Stop now! This alignment will give us a weak trait tier."
    *When: the sword parks in the Weak band; the game pauses; then the gate lights up.*
@@ -704,9 +776,12 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
    *R18: the swift ingot dropped on the anvil lands there and opens the shape window; no line.*
 
 10. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the Dagger's lock.*
+   *When: the Dagger's shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
 
-10a. **D48a** Dragon: "Let's go sharpen the sword!"
+10a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
+
+10b. **D48a** Dragon: "Let's go sharpen the sword!"
    *When: the Dagger is made; the arrow to the basement lights with it (R79).*
 
 #### The basement
@@ -753,25 +828,31 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 24. **D117** Dragon: "There are so many blank pages too. I have an idea: you can note down all the important people you come across. That way, you will remember them!"
    *When: after D116.*
 
-25. **D18a** Dragon: "Here's a reward from me."
-   *When: after Bram's scene (the Dagger sold, the gift, the diary); over the reward window (5 Copper for the gale Longsword; then the bell lights).*
+25. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 #### The gale Longsword
 
 26. **Customer:** "Do you have a Gale Longsword?"
    *When: the bell; a random request.*
 
-27. **D113a** Dragon: "A gale Longsword? Fine, I'll buy this one too. Don't get used to it!"
+27. **D113a** Dragon: "A gale Longsword? Fine, I'll pay for this one too. Don't get used to it!"
    *When: after the player's reply "Yes, I can craft one." (R56) to the request.*
 
+27a. **Ores Acquired** window: the gale page's ores (the gale Longsword); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D113a is closed (R108); its OK goes on.*
+
 28. **D28c** Dragon: "Here it is. Watch this!"
-   *When: the shape window opens; over it, as the dragon's coins fly to the Longsword's lock.*
+   *When: the shape window opens; over it, as the dragon's coins fly to the gold counter: he gives the blueprint's price (R96).*
+
+28a. **D28ca** Dragon: "There's the gold. Now tap the blueprint to buy it."
+   *When: the coins have landed; the blueprint's BUY is lit. The player's tap buys it (the coins fly to it, R91) (R96).*
 
 29. **Customer:** a random thank-you
    *When: after the sale.*
 
-30. **D18a** Dragon: "Here's a reward from me."
-   *When: after the gale Longsword's sale; over the reward window (2 Iron, 2 Manganese for Garric; then the bell for Garric).*
+30. ~~**D18a** Dragon: "Here's a reward from me."~~
+   *Removed (R108): no ores after this sale; the next order's ores come when the dragon's line for that order closes.*
 
 ### Part 6: Garric, decorating, judgement, and Day 3
 
@@ -816,8 +897,11 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 13. **D130** Dragon: "Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!"
    *When: after D129.*
 
+13a. **Ores Acquired** window: 2 Iron, 2 Manganese (Garric); over it, one of **D18b** "Here are the ores for your next sword.", **D18c** "More ores for you.", **D18d** "I found some ores for you." (at random, never the same one twice in a row).
+   *When: D130 is closed; then D130b (R108); its OK goes on.*
+
 14. **D130b** Dragon: "He wants a custom designed sword. Let me get a design desk for you."
-   *When: after D130; closing it opens the design desk reward.*
+   *When: after D130 and its Ores Acquired window (R108); closing it opens the design desk reward.*
 
 15. **D130a** Dragon: "How is it going?"
    *When: the first ore of the solo run; with an optional "Let me try again".*

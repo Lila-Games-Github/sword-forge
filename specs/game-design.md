@@ -45,7 +45,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 ### The map
 
 - **World:** an SVG board **2800 x 1960** units (`WORLD_W`, `WORLD_H`), seen through a zoom / pan window: `INIT_W` **1100**,
-  `MIN_W` **360**, `MAX_W` **2800**. The sword starts at **(1400, 1030)** (`START`).
+  `MIN_W` **360**, `MAX_W` **2800**. The sword starts at **(1400, 1030)** (`START`). A craft's start recentres the window on
+  the sword, zoom kept (R94, `craftView`): the first ore of a new craft on the grindstone or in the smelter
+  (`craftStartView`: no metal, no segment, no ore on the wheel), CONTINUE FROM HERE, and a stored ingot back on the anvil.
 - **Fog:** cleared for good in circles of `REVEAL_R` **120** as the sword travels (the Vision skill widens it, §6), plus
   `INIT_REVEAL` **430** around the start.
 - **Traits:** 25, placed from the owner's map (`TRAIT_POS`); each is a `?` until taken. The map's trait icons open a small trait
@@ -53,7 +55,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **Hazards:** zones that cost the blade health while the sword moves through them (`HAZARD_DPS` **26**/s over a blade of
   `BLADE_HP_MAX` **100**, shown as a fill inside the sword marker; at 0 the blade shatters). Health lowers the price
   (`HAZ.floor` 0.5 at 0 health); 3+ zones crossed drop every trait one tier, 5+ two (`HAZ.steps`; the first 2 are free).
-  Record: `specs/2026-10-01-hazard-integrity.md`.
+  In a zone the marker's parts shake (`swordShake`) and the health fill is red; out of it the level colour (green above 60%,
+  amber 30-60%, red below 30%) returns. D69's speck in the fire craft is `HAZ.move[1]` at scale 2.25 (R103, was 0.75): the fire
+  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`.
 - **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 
 ### Ores and routes
@@ -104,12 +108,13 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens
   it. A stored metal (ingot) dropped on the anvil lands there with the heat it was stored with (R18).
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on
-  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into a band - **Masterwork** (accuracy >= 0.85,
-  x1.3), **Good** (>= 0.60, x1.0), **Crude** (x0.8). Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
+  the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into an accuracy percent that sets the price (R92, `hmAccMul`, `HM_HITS.price`): 0-80% a
+  curve `0.8 + 0.2 x (e^(4p/80) - 1)/(e^4 - 1)`, 81-100% a row a percent (1.010 ... 1.300, each step bigger). Band names as
+  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
   `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
   strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
 - **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per
-  blade picture in `SM_ENDS_ART`) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 1.2). Dipped
+  blade picture in `SM_ENDS_ART`) and hangs as a damped pendulum from the finger (`bladeG` 2600, `bladeDamp` 2.5 since R98, was 1.2). Dipped
   into the bucket's water from above, or released over the bucket, it is quenched (the glow fades, smoke and mist) and the
   sword is made; released elsewhere it goes back on the anvil. Record: `specs/2026-10-21-smelter-version-loop.md` (s5, s6).
 - **Dragged swords swing:** a sword dragged out of the Swords tab on any screen (or off the counter or the table) hangs from
@@ -139,7 +144,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   reputation)`, min 1, then **+7g** if sharpened (>= 80) and **+7g** if designed.
   - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
     tier) to a 20-point bar (`POP_CAP`) that carries over into the next level.
-  - Forging band: x1.3 / x1.0 / x0.8 (§5). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
+  - Forging accuracy: x0.8 (0%) to x1.0 (80%) to x1.3 (100%), every percent its own value; no accuracy x1.0 (§5, R92). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
   - Reputation: +1 per counter sale; above 10 every price is x1.2 (below 0 x0.8; nothing lowers it in this build).
   - Example: an Epic Balanced, Good forging, full health, popularity 1, no skills: 24 + 20 = 44g; designed and sharpened, 58g.
 - A sale at the counter also gives `XP_SELL` 5 xp per sword.
@@ -172,8 +177,11 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   Claymore 450; the last trait's shapes 1250-1650.
 - **Buying:** in the rotary market window on the counter (R38, `MK_ROT`, record `specs/2026-10-29-rotary-market.md`) or from
   the shape window. States: free, owned, "Play more to unlock" (market not open), unknown trait, too poor, BUY. In the tutorial
-  only the open order's (or a waiting customer's) blueprints can be bought, and the dragon pays for some (D28c). Only owned
-  shapes can be forged.
+  only the open order's (or a waiting customer's) blueprints can be bought (the others show greyed in the shape window and the market, R112), and the dragon pays for some (D28c): his coins fly to the gold counter, the gold rises by the price, D28ca, and the player
+  buys it (R96, `ftueDeposit`; until R96 he unlocked it himself). Only owned
+  shapes can be forged. A purchase (market or shape window) flies the quest claim's coins (`flyCoins`: 5 coins, 650 ms,
+  70 ms apart) from the gold counter to the buy button, and the counter pops "-<price>g"; the gold is spent at once (R91,
+  `buyCoins`).
 
 ### Progression: exp, levels and skills
 
@@ -190,7 +198,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - 14 one-step quests, 20g and 20 xp each, paid when CLAIM is pressed (`QUESTS`): craft a sword and sell a sword (already done
   when the list arrives, Part 1), then buy a blueprint, update a craft-book page, gather ores, craft a fire sword, sleep, craft
   a durable sword, buy a fire blueprint, an Epic with the ladle, sell a weak sword, craft a swift sword, craft a gale sword,
-  sharpen a sword.
+  sharpen a sword. Something to claim (`qs-ready`): the basket's glow is still (`drop-shadow(0 0 9px rgba(90,230,110,.9))`) and a
+  faint green tint (`rgba(90,230,110,.3)`, masked to the basket's art) lies on it (R93; it breathed before).
 
 ### Shop and decor
 
@@ -212,8 +221,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   a swing; tin and zinc have none. Drag the pickaxe onto a seam and it swings by itself.
 - **Tutorial caves:** the first (Part 2) 3 iron + 2 manganese; Day 2 `FTUE.day2Cave` (2 nickel); Day 3 `FTUE.day3Cave`
   (nickel 9, iron 20, manganese 20, copper 17, aluminium 15), 2-3 ore a swing. Day 3 gathering waits for a Pickaxe point (R23).
-- **Ore chain:** in the tutorial the dragon gives exactly the next sword's ores after each sale (`FTUE.oreChain`); the bag
-  starts with 2 iron + 2 manganese (`FTUE.oreStart`).
+- **Ore chain:** in the tutorial the dragon gives exactly an order's ores (`FTUE.oreChain`, keyed by the order) in the "Ores
+  Acquired!" window when his line for that order closes, with D18b, D18c or D18d at random (R108; was after the previous
+  sale); the bag starts with 2 iron + 2 manganese (`FTUE.oreStart`).
 
 ### The tutorial (FTUE)
 
@@ -223,10 +233,10 @@ loop in `specs/2026-10-23-ftue-smelter-rework-plan.md`; every line in play order
 
 | Part | Day | Tutorial customer | Gameplay customers | Teaches |
 |---|---|---|---|---|
-| 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon buys the blueprints), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market |
+| 1 | 1 | Bram (TC1): the first sword | balanced Longsword, Broadsword (the dragon gives the gold, the player buys, R96), Katana (the player buys) | the whole loop, the counter, quests, the bell, the market, the craft book (GC2's gate, R105) |
 | 2 | 1 | TC2 ("a good one"), TC3 the adventurer (fire) | none | grinding, recording a craft, the cave, hazards, a second trait route |
 | 3 | 2 | none | durable Shortsword; fire Longsword, Broadsword, Katana | the map window, nickel, the craft book (CRAFT 1) |
-| 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword; gale Katana + fire Claymore (COME LATER) | the ladle and tiers, storing a metal, a Weak stop, the waiting list |
+| 4 | 2 | TC4 (Epic durable), TC5 (gale) | Weak balanced Longsword (between TC4 and TC5, R95); gale Katana + fire Claymore (COME LATER, after TC5) | the ladle and tiers (the tiers window at TC4's route end, R106), the blade pips (the Traits and Tiers window after TC4's gate, R107; the craft book's Trait Tier pips show from then on, R113), storing a metal, a Weak stop, the waiting list |
 | 5 | 2 | Bram returns (swift Dagger) | gale Longsword | sharpening, the diary |
 | 6 | 2-3 | Garric (TC6, graded) | none | the design desk, decor (the banner), the skill tree; D140 ends the FTUE |
 
@@ -249,7 +259,8 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   shown, growing in rows of 3. Drag targets: ore to grindstone or smelter, metal to the rail (stored), ingot to the anvil, sword
   to the work zone, counter or a rack.
 - **Craft book** (`RECIPES`): a page per trait set (more pages as `#2`, `#3`), capped at `FTUE.recipePages` 3 + rewarded pages.
-  The first discovery records itself; after that the inkpot updates a page or records a new one. A page shows the traits, tier,
+  The first discovery records itself; after that the inkpot updates a page or records a new one (in the tutorial the compare
+  window has no Record new, R100). A page shows the traits, tier,
   description, sword art, ores, process and shapes, with CRAFT 1, CONTINUE FROM HERE, ERASE and a default design.
 - **Windows:** trait discovered (first find, with the burst), sword crafted, reward (the dragon shown over it, his line below,
   R53), shape, market, skill tree, quests, diary, ledger and waiting list, end of day, Garric's confirm, the menu.
@@ -261,11 +272,18 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   finished sword clears, R62).
 - **Effects:** swing effects (§5), the trait burst, the smelter's lit states, quench smoke and mist, the bell's swing, hearts
   when the dragon is petted, toasts. No audio.
+- **Toasts (R90, on trial):** said by the dragon for 4 s (`DTOAST`): in a line's place (the line returns as it was), in his
+  bubble, or where he is not visible in an icon bubble at the sharpening window's place. Tap closes; a new line replaces it.
+  30 are cut (`toastCut`); the shop-rack sale and the PART buttons keep the old top toast (`plainToast`). Record:
+  `specs/2026-11-05-dragon-toasts.md`.
+- **Gear menu, SETTINGS (R97):** MAP: FIVE PARTS (`MAP_parts.webp`) and MAP: TRAITS (`MAP_parts2.webp`) reopen the tutorial's
+  map windows (`MENU_MAPS`), each offered once shown (`FTUE_ST.seenParts` / `seenParts2`; part 3+ / 4+ for older saves), both
+  after the tutorial and in free play; then the +1000 gold cheat and BACK.
 - **Save:** manual, from the gear menu (SAVE / LOAD GAME / NEW GAME), `localStorage` `swordforge.save.v1` version 9. It keeps
   gold, swords, ingots, ores, recipes, skills, quests, the map's fog and traits, and `FTUE_ST`, but not the tutorial stage
   (`TUT_STAGE`) or the dialogue; there is no autosave and no continue on boot.
 - **Intro:** four pictures (`FTUE.intro`: The Fall, Exile, A New Hearth, The Anvil Awaits), tap to go on, SKIP; then D1.
-- **Test aids that ship:** SKIP HAMMER and PART 1-6 / GAME (bottom left, outside the frame), the map's fog button, +1000 gold in
+- **Test aids (the internal build only since R115; the external tester copy `Swordforge_external.html` has none):** SKIP HAMMER, PART 1-6 / GAME and the CUSTOMER dropdown (R109) (bottom left, outside the frame), the map's fog button, +1000 gold in
   the settings, `?freeplay` (tutorial done, 20 of each ore, 500g), `?nointro`.
 
 ## 9. Known discrepancies & open questions
