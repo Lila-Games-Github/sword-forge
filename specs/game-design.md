@@ -283,7 +283,7 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   gold, swords, ingots, ores, recipes, skills, quests, the map's fog and traits, and `FTUE_ST`, but not the tutorial stage
   (`TUT_STAGE`) or the dialogue; there is no autosave and no continue on boot.
 - **Intro:** four pictures (`FTUE.intro`: The Fall, Exile, A New Hearth, The Anvil Awaits), tap to go on, SKIP; then D1.
-- **Test aids that ship:** SKIP HAMMER, PART 1-6 / GAME and the CUSTOMER dropdown (R109) (bottom left, outside the frame), the map's fog button, +1000 gold in
+- **Test aids (the internal build only since R115; the external tester copy `Swordforge_external.html` has none):** SKIP HAMMER, PART 1-6 / GAME and the CUSTOMER dropdown (R109) (bottom left, outside the frame), the map's fog button, +1000 gold in
   the settings, `?freeplay` (tutorial done, 20 of each ore, 500g), `?nointro`.
 
 ## 9. Known discrepancies & open questions

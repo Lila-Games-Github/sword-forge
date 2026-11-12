@@ -2197,7 +2197,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="mn-grid" id="mnSet" hidden>
                 <button class="mn-btn" id="mnMap1" type="button" onclick="menuMap(0)">MAP: FIVE PARTS</button>
                 <button class="mn-btn" id="mnMap2" type="button" onclick="menuMap(1)">MAP: TRAITS</button>
-                <button class="mn-btn" type="button" onclick="cheatGold()">+1000 GOLD</button>
+                <button class="mn-btn" id="mnGold" type="button" onclick="cheatGold()">+1000 GOLD</button>
                 <button class="mn-btn" type="button" onclick="menuMain()">BACK</button>
             </div>
             <p class="mn-note" id="mnNote"></p>
@@ -2730,6 +2730,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 <div id="cheatBar"><button type="button" id="cheatSkipHm" title="Finish the shaping without striking">SKIP HAMMER</button><!-- r201: the FTUE part jumps, the same as ftuePart(n) in the console --><button type="button" class="cheatPart" onclick="plainToast(ftuePart(1))" title="New game at the start of FTUE part 1">PART 1</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(2))" title="New game at the start of FTUE part 2">PART 2</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(3))" title="New game at the start of FTUE part 3">PART 3</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(4))" title="New game at the start of FTUE part 4">PART 4</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(5))" title="New game at the start of FTUE part 5">PART 5</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(6))" title="New game at the start of FTUE part 6">PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button><!-- R109: a jump to every tutorial customer, the same as ftueCust(id) --><select id="cheatCust" title="New game with this tutorial customer at the bell" onchange="if(this.value){ plainToast(ftueCust(this.value)); this.value=''; }"><option value="">CUSTOMER</option></select></div>
 
 <script>
+/* R115 (owner, 2026-11-12): the cheats and test aids switch. true here; tooling/external/make-external.mjs writes Swordforge_external.html with it false (record: specs/2026-11-12-external-build.md) */
+const DEV=true;
 // ============================================================
 //  FTUE - the tutorial in six parts (r199). Design record: specs/2026-09-29-tutorial-parts-plan.md.
 //  Every recorded value is in FTUE below, and tooling/ftue/ftue.test.mjs asserts it against the
@@ -4027,6 +4029,7 @@ function startDecorDrag(id, e, idx){
 
 /* ---- console helper: ftuePart(n) starts a new game at the beginning of part n ---- */
 function ftuePart(n, j){   /* R109: j = a CUST_JUMPS row, applied after the part's state */
+    if(!DEV) return 'Not available';   /* R115: the external copy */
     n=+n||1;
     if(n===1){ newGame(); return 'Part 1: new game'; }
     if(n>7) return 'Part '+n+' is not built yet';   /* R36: 7 is GAME, just after the tutorial */
@@ -4101,7 +4104,7 @@ function ftuePart(n, j){   /* R109: j = a CUST_JUMPS row, applied after the part
     }, 650);
     return n===7 ? 'Game: setting up (just after the tutorial, Day 3)' : 'Part '+n+': setting up (TC'+n+' is at the bell)';
 }
-window.ftuePart=ftuePart;
+if(DEV) window.ftuePart=ftuePart;   /* R115 */
 /* ---- R109 (owner, 2026-11-11): console helper - ftueCust(id) starts a new game with that tutorial customer at the bell: a PART
    jump (base), then the row's changes. Record: specs/2026-11-11-customer-jumps.md. The state is approximate (a test aid). ---- */
 const CUST_JUMPS=[
@@ -4132,10 +4135,12 @@ function custJumpSet(j){
     if(j.gold!=null) GOLD=j.gold;
     if(j.cave){ ftueStockCave(FTUE.day2Cave); pickHome(); }   /* GC4: Day 2's cave is still to be mined */
     ftueLadleUi(); }
-function ftueCust(id){ const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());
+function ftueCust(id){ if(!DEV) return 'Not available'; const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());
     if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');
     const msg=ftuePart(j.base, j); return (j.base===1 || j.base===7) ? msg : j.label+': setting up (at the bell)'; }   /* TC1 and GAME: the PART message */
-window.ftueCust=ftueCust;
+if(DEV) window.ftueCust=ftueCust;   /* R115 */
+/* R115: the external copy's start - the cheats' controls are removed */
+function devStrip(){ ['cheatBar','mnGold','fogCheat'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); }
 /* the cheat bar's CUSTOMER dropdown lists the table */
 function custJumpUi(){ const sel=document.getElementById('cheatCust'); if(!sel || sel.options.length>1) return;
     CUST_JUMPS.forEach(r=>{ const o=document.createElement('option'); o.value=r.id; o.textContent=r.label; sel.appendChild(o); }); }
@@ -5804,10 +5809,10 @@ function menuMapsUi(){ MENU_MAPS.forEach(m=>{ const b=document.getElementById(m.
 function menuMap(i){ const m=MENU_MAPS[i]; if(m) openIllus(m.src, m.alt); }
 function menuSettings(){ disarmMenu(); menuMapsUi();
     document.getElementById('mnMain').hidden=true; document.getElementById('mnSet').hidden=false;
-    mnNote('Cheats \u2014 for testing.'); }
+    mnNote(DEV ? 'Cheats \u2014 for testing.' : ''); }   /* R115 */
 function menuMain(){ document.getElementById('mnSet').hidden=true;
     document.getElementById('mnMain').hidden=false; mnNote(''); }
-function cheatGold(){ GOLD+=1000; updateHud(); buildShopLocks();
+function cheatGold(){ if(!DEV) return; GOLD+=1000; updateHud(); buildShopLocks();
     mnNote('+1000 gold \u2014 you now have <b>'+GOLD+'g</b>.'); }
 // destructive buttons arm on the first click and fire on the second, so there is no way to wipe a
 // session by mis-tapping. Anything else disarms them.
@@ -6635,7 +6640,7 @@ function spineBBox(pts,pad){ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
 
 // CHEAT (r27): drop a world-sized hole in the fog mask, or take it away again. Kept as its own element so
 // removing it restores the fog WITHOUT wiping the holes the player genuinely earned by travelling.
-function toggleFogCheat(){
+function toggleFogCheat(){ if(!DEV) return false;   /* R115 */
     const ex=document.getElementById('fogCheatHole');
     if(ex){ ex.remove(); return false; }
     const r=document.createElementNS(NS,'rect');
@@ -6752,7 +6757,7 @@ function initMap(){
 
     view={ x:0, y:0, w:INIT_W }; setView();   // first pass establishes `aspect` from the live board box (was stale at 1.4 → clamped y to 0)
     view.x = START.x - view.w/2; view.y = START.y - view.w*aspect*SWORD_SY; setView(); wireZoomPan();
-    window.SF = { traits, hazards, ORES, NEAR_IDS, books, view:()=>view, zoomAt, setSword };
+    if(DEV) window.SF = { traits, hazards, ORES, NEAR_IDS, books, view:()=>view, zoomAt, setSword };
 }
 
 // ============================================================
@@ -8248,7 +8253,7 @@ function hmQuench(){
 /* r165: the cheat. Striking decides nothing about the result - the shape was picked before the
    minigame opened and the traits belong to the melt - so skipping is just the end of it:
    hmProg to full, then the same finishBlade() the quench would have reached. */
-function hmSkip(){
+function hmSkip(){ if(!DEV) return;   /* R115 */
     const m=document.getElementById('sfHammerModal');
     if(!m || !m.classList.contains('show')) return false;
     hmProg=2; hmQuenching=false; tutHm2Clear();
@@ -11684,7 +11689,7 @@ function sayAgain(){
     say(SAY_LAST);
     return true;
 }
-const SM_FREE=location.search.indexOf('freeplay')>=0;   /* R0: the free-play test aid (the main game plays the tutorial) */
+const SM_FREE=DEV && location.search.indexOf('freeplay')>=0;   /* R0: the free-play test aid (the main game plays the tutorial) */
 function sayStart(){ if(SM_FREE){ smFreePlay(); return; } if(!SAY_SEQ.length) return; SAY_I=0; say(SAY_SEQ[0]); }   /* r107 */
 /* R55/R57 (owner, 2026-10-30): "only the x button should close the dialogues, on all the screens" - a tap on the bubble only shows
    the rest of a typing line; only its button moves it on (OK: the next line, X: close); a line with none waits for the action */
@@ -11724,7 +11729,7 @@ function introNext(){ if(INTRO_BUSY) return; const sl=document.querySelectorAll(
 function introClose(){ const el=document.getElementById('sfIntro'); if(el) el.classList.remove('show'); }
 function introEnd(){ if(!introOpen()) return; introClose(); setTimeout(sayStart, 600); }   /* R0: D1 again */
 function wireIntro(){ const el=document.getElementById('sfIntro'); if(!el) return;
-    if(location.search.indexOf('nointro')>=0){ introClose(); return; }   /* a test aid */
+    if(DEV && location.search.indexOf('nointro')>=0){ introClose(); return; }   /* a test aid */
     introBuild(); el.addEventListener('click', e=>{ if(!e.target.closest('#introSkip')) introNext(); });
     document.getElementById('introSkip').addEventListener('click', introEnd); }
 /* smelter version: free play - the tutorial done, every station and the market open, SMELT.freeOres of every ore */
@@ -11777,7 +11782,7 @@ function initMechanics(){ stMortar=document.getElementById('stMortar'); ftueGrin
     startShopLoop();                                      // r72: idles until the shopfront is open
     hint('Drag an <b>ore</b> into the <b>mortar</b> to grind it, or drop ores straight on the <b>furnace</b> — stack several to reach further.');
     requestAnimationFrame(tick);
-    window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
+    if(DEV) window.SFM = { state:()=>({segCount:segs.length, sword:{...sword}, pull:{...pull}, routeEnd:routeEnd(), swordPt:swordPoint(), melt:melt&&{...melt}, prep:prep&&{...prep}, gateReady, bellowing, pestleGrinding, dragonBreathing, retreating}),
         routeEnd, swordOut, startPrep, setGrind:g=>{ if(prep){prep.grind=g; updateOrbLook(); drawPrepPreview();} }, addPrep, addOreDirect,
         setHeat:h=>{ if(melt){melt.heat=h; updateGauges();} }, openGate, placeOnAnvil, reinsert,
         strike:on=>hammerEl.classList.toggle('striking',!!on), breathe:on=>{ on?startBreath():stopBreath(); }, tryAcquire, reset:resetRun,
@@ -11821,6 +11826,7 @@ window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); 
     if(location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
     (()=>{ const b=document.getElementById('cheatSkipHm'); if(b) b.addEventListener('click', ()=>{ hmSkip(); cheatUi(); }); cheatUi(); })();   /* r165 */
     custJumpUi();   /* R109 */
+    if(!DEV) devStrip();   /* R115: the external copy has no cheat bar, +1000 GOLD or fog eye */
     if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
 window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });

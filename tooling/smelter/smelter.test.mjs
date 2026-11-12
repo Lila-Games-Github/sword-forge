@@ -100,7 +100,7 @@ eq('dropped in, it cools too', /function smBladeDrop\(\)\{[\s\S]{0,400}b\.classL
 /* 1. free play - since 2026-10-23 (R0) a test aid: the main game starts the tutorial (D1); ?freeplay starts free play */
 eq('the tutorial starts again (D1 on load, after the intro, on a new game); ?freeplay gives free play instead', /function initMechanics\(\)\{[\s\S]{0,1800}wireIntro\(\); if\(!introOpen\(\)\) setTimeout\(sayStart, 600\);/.test(src)
   && /function introEnd\(\)\{[\s\S]{0,200}setTimeout\(sayStart, 600\);/.test(src) && /function newGame\(\)\{[\s\S]{0,900}setTimeout\(sayStart, 500\);/.test(src)
-  && /function sayStart\(\)\{ if\(SM_FREE\)\{ smFreePlay\(\); return; \}/.test(src) && src.includes("const SM_FREE=location.search.indexOf('freeplay')>=0;"), true);
+  && /function sayStart\(\)\{ if\(SM_FREE\)\{ smFreePlay\(\); return; \}/.test(src) && src.includes("const SM_FREE=DEV && location.search.indexOf('freeplay')>=0;"), true);   /* R115: not in the external copy */
 eq('free play: tutorial done, stations and market open, the ores and gold', /function smFreePlay\(\)\{[\s\S]{0,900}tutDone\(\);[\s\S]{0,300}TUT_SEEN_END=true;[\s\S]{0,300}FTUE_ST\.done=true;[\s\S]{0,400}SMELT\.freeOres[\s\S]{0,200}GOLD=SMELT\.freeGold;/.test(src), true);
 eq('free play is past the tutorial\'s parts (part 1 caps the first sword at 2 iron + 2 manganese and greys the rest)', /function smFreePlay\(\)\{[\s\S]{0,600}FTUE_ST\.part=7; TUT_BRAM_SOLD=true;/.test(src), true);
 eq('the PART buttons are back (R0), SKIP HAMMER stays', !src.includes('.cheatPart { display: none !important; }') && src.includes('id="cheatSkipHm"'), true);

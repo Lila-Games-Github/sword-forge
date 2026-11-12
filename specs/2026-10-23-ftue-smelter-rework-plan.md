@@ -1273,3 +1273,12 @@ yours and come on top.
   the slot's gap 6 -> 8. Checked in the browser (169 x 133 slots): TC2's usual window, Recorded 2 iron x2 + 2 manganese x2 and New 1 + 1,
   fits in one row each at 36 px; an extreme route (5 pips, 4 ore kinds) fits at 20 px pips and 22 px ores, nothing outside the box.
   Asserted by the FTUE test (written first; GREEN at 1071).
+- **R115 (owner, 2026-11-12): the external tester copy.** "give me the external version for playtest" (the plan accepted on
+  2026-11-11: Option B, frozen until the owner asks). Record: `specs/2026-11-12-external-build.md`. The main build's second script opens
+  with `const DEV=true;`; with it false the cheat bar, SETTINGS +1000 GOLD and the fog eye are removed at start (`devStrip`),
+  `ftuePart`, `ftueCust`, `cheatGold`, `toggleFogCheat` and `hmSkip` do nothing, `window.SF` / `window.SFM` are not set, and
+  `?freeplay` / `?nointro` are ignored. `tooling/external/make-external.mjs` writes `Swordforge_external.html` with the switch off
+  and a generated-file comment; nothing else changes. Checked in the browser: the external copy (opened with `?freeplay&nointro`)
+  plays the intro and then D1, has no cheat bar, fog eye or +1000 GOLD, its console helpers answer "Not available", `SF`/`SFM` are
+  undefined, no console errors; the internal build still has all of them. Asserted by the new external test (written first; GREEN at
+  11); the FTUE and smelter tests' quotes of `ftuePart`, `ftueCust` and `SM_FREE` updated.

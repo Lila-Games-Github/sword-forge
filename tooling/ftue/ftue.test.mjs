@@ -1505,7 +1505,7 @@ eq('R34: the old heat glow is no longer driven', !src.includes("fg.style.opacity
 
 /* R36 (owner, 2026-10-29): "add a 'game' section in the console helper after part 6, that is after the tutorial" */
 eq('R36: GAME follows PART 6 in the cheat bar', src.includes('>PART 6</button><button type="button" class="cheatPart" onclick="plainToast(ftuePart(7))" title="New game just after the tutorial (Day 3, Garric served)">GAME</button>'), true);
-const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n, j\)\{[\s\S]*?\nwindow\.ftuePart=ftuePart;/);   /* R109: and the row */
+const fp = src.replace(/\r\n/g, '\n').match(/function ftuePart\(n, j\)\{[\s\S]*?\nif\(DEV\) window\.ftuePart=ftuePart;/);   /* R109: and the row. R115: only when DEV */
 eq('R36: ftuePart(7) is built (8 and up are not)', !!fp && fp[0].includes("if(n>7) return 'Part '+n+' is not built yet';"), true);
 eq('R36: Garric served at his best grade - his rewards applied', !!fp && fp[0].includes('FTUE.garricRewards[3].forEach(ftueRewardApply);'), true);
 eq('R36: Day 3 - its cave in the bag, the Pickaxe Upgrade at rank 1', !!fp && fp[0].includes("Object.keys(FTUE.day3Cave).forEach(k=>{ ORE_COUNT[k]=FTUE.day3Cave[k]; }); SKILL_RANK.pick=1;") && fp[0].includes("d.textContent='3'"), true);
@@ -1985,8 +1985,8 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
   eq('R109: ftuePart takes the row and applies it before the HUD and the bell are drawn', [s9.includes('function ftuePart(n, j){'),
     /if\(j\) custJumpSet\(j\);\s*\n\s*SAY_I=SAY_SEQ\.length;/.test(s9)], [true, true]);
   eq('R109: GC4\'s row keeps Durable undiscovered', s9.includes("if(dt && !(j && j.hide==='durable')){"), true);
-  eq('R109: ftueCust finds the row (any case) and calls ftuePart with it; an unknown id names the valid ones', [s9.includes("function ftueCust(id){ const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());"),
-    s9.includes("if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');"), s9.includes('ftuePart(j.base, j);'), s9.includes('window.ftueCust=ftueCust;')], [true, true, true, true]);
+  eq('R109: ftueCust finds the row (any case) and calls ftuePart with it; an unknown id names the valid ones', [s9.includes("function ftueCust(id){ if(!DEV) return 'Not available'; const j=CUST_JUMPS.find(r=>r.id===String(id||'').toUpperCase());"),
+    s9.includes("if(!j) return 'No customer '+id+'. Try: '+CUST_JUMPS.map(r=>r.id).join(', ');"), s9.includes('ftuePart(j.base, j);'), s9.includes('if(DEV) window.ftueCust=ftueCust;')], [true, true, true, true]);
   eq('R109: the CUSTOMER dropdown sits in the cheat bar and lists the table', [/<div id="cheatBar">[\s\S]{0,3000}<select id="cheatCust"/.test(s9),
     /function custJumpUi\(\)\{[\s\S]{0,400}CUST_JUMPS\.forEach/.test(s9)], [true, true]);
   /* found while checking R109: a new game (every PART jump) kept the scripted customers' state from the game before - after
