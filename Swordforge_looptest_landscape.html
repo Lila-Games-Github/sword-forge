@@ -790,15 +790,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .paperBtn:active { transform: translateY(1px) scale(.99); }
 .comp-slot:focus-visible, .paperBtn:focus-visible { outline: 2px solid #c8a84b; outline-offset: 2px; }
 /* r67: the two slots stopped being labels and now hold heading / traits / ore route */
-.comp-slot { flex-direction: column; gap: 6px; padding: 9px 7px; cursor: default; overflow: hidden; }
+.comp-slot { flex-direction: column; gap: 8px; padding: 9px 7px; cursor: default; overflow: hidden; }
 .comp-slot:hover { filter: none; }
 .comp-slot:active { transform: none; }
-.cp-h { font-size: 9px; letter-spacing: .6px; text-transform: uppercase; color: #6a5636; }
-.cp-tr { display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; font-size: 16px; line-height: 1; }
-.cp-ores { display: flex; gap: 2px; align-items: center; justify-content: center; flex-wrap: wrap; }
-.cp-ores img { width: 21px; height: 21px; object-fit: contain; }
-.cp-ores .x { font-size: 9px; color: #6a5636; font-weight: 400; }
-.cp-none { font-size: 10px; font-weight: 400; color: #8a7350; }
+/* R114 (owner, 2026-11-12): "make the texts bigger and the ores as well. they can fill the whole box" - the slot is 169 x 133 at the 1080 frame */
+.cp-h { font-size: 14px; letter-spacing: .6px; text-transform: uppercase; color: #6a5636; }
+.cp-tr { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; font-size: 26px; line-height: 1; }
+.cp-ores { display: flex; gap: 4px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.cp-ores img { width: 36px; height: 36px; object-fit: contain; }
+.cp-ores.many img { width: 22px; height: 22px; }   /* R114: three or more ore kinds, so the row (or two) still fits */
+.cp-tr.many { font-size: 20px; }   /* R114: five pips (an emoji is about 1.37 times its font size wide) */
+.cp-ores .x { font-size: 14px; color: #6a5636; font-weight: 400; }
+.cp-none { font-size: 13px; font-weight: 400; color: #8a7350; }
 /* R101 (owner, 2026-11-11): "the green outline around the new box is too thin and light. use the same visuals as the one for the
    quest basket" - R93's still glow, in the paper box's own shape. R102 (owner): "remove the tint on the new box" */
 .comp-slot.is-new, .comp-slot.is-new:hover { position: relative; filter: drop-shadow(0 0 9px rgba(90,230,110,.9)); }
@@ -7661,9 +7664,11 @@ function compTraitHtml(list){
     if(over>0) h+='<span class="cp-none">+'+over+'</span>';
     return h;
 }
+/* R114: how many pips a route shows (capped at the blade's slots) */
+function compPipCount(list){ return Math.min(BLADE_SLOTS, (list||[]).reduce((n,a)=>n+(TIER_PIPS[a.tier]||1), 0)); }
 function compFill(el,head,rec){
     el.innerHTML='<span class="cp-h">'+head+'</span>'+(rec
-        ? '<span class="cp-tr">'+compTraitHtml(rec.traits||recipeTraits(rec))+'</span><span class="cp-ores">'+compOreHtml(rec.ores)+'</span>'
+        ? '<span class="cp-tr'+(compPipCount(rec.traits||recipeTraits(rec))>4 ? ' many' : '')+'">'+compTraitHtml(rec.traits||recipeTraits(rec))+'</span><span class="cp-ores'+(new Set(rec.ores||[]).size>2 ? ' many' : '')+'">'+compOreHtml(rec.ores)+'</span>'
         : '<span class="cp-none">Not recorded yet</span>');
 }
 function openComp(){

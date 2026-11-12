@@ -1265,3 +1265,11 @@ yours and come on top.
   "Trait Tier" label (`#cbTierLab`) are hidden. Found while checking: `.cb-tier`'s display:flex beat the hidden attribute (as in R97),
   so `.cb-tier[hidden]` hides it. Checked in the browser with the customer jumps: GC2 and TC4 (before the lesson) no pips and no
   label; GC8 and GAME (after) the pips and the label. Asserted by the FTUE test (written first; GREEN at 1068).
+- **R114 (owner, 2026-11-12): the compare window's slots filled.** "make the texts bigger and the ores as well. they can fill the
+  whole box." (the Update Composition window's RECORDED and NEW boxes, 169 x 133 px at the 1080 frame). Heading (`.cp-h`) 9 -> 14
+  px; pips (`.cp-tr`) 16 -> 26 px, gap 4; ores (`.cp-ores img`) 21 -> 36 px, gap 4, and 22 px when a route has 3 or more ore kinds
+  (`.cp-ores.many`, so the row, or two, still fits); five pips (`.cp-tr.many`, `compPipCount`) 20 px, since a pip emoji is about
+  1.37 times its font size wide; "x2" and "+" (`.cp-ores .x`) 9 -> 14 px; "Not recorded yet" (`.cp-none`) 10 -> 13 px;
+  the slot's gap 6 -> 8. Checked in the browser (169 x 133 slots): TC2's usual window, Recorded 2 iron x2 + 2 manganese x2 and New 1 + 1,
+  fits in one row each at 36 px; an extreme route (5 pips, 4 ore kinds) fits at 20 px pips and 22 px ores, nothing outside the box.
+  Asserted by the FTUE test (written first; GREEN at 1071).

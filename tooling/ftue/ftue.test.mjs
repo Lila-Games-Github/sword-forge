@@ -2004,4 +2004,9 @@ eq('R112: the market page greys a blueprint the tutorial refuses (held), its tap
   src.includes("if((st==='buy' || st==='poor') && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }")], [true, true, true, true]);
 /* R113 (owner, 2026-11-12): the craft book's tier pips show from TC4's pip lesson (or after the FTUE) */
 eq('R113: #cbTier hidden until the pips are taught', src.includes("        tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen); { const tl=document.getElementById('cbTierLab'); if(tl) tl.hidden=tb.hidden; } }   /* R113") && src.includes('<div class="cb-label" id="cbTierLab"') && src.indexOf('function renderRecipe(){') < src.indexOf('tb.hidden=!(FTUE_ST.done || FTUE_ST.pipsSeen);') && src.includes('.cb-tier[hidden] { display: none; }'), true);
+/* R114 (owner, 2026-11-12): the compare window's text, pips and ores fill its boxes */
+eq('R114: the compare slots sized to fill the box', ['.comp-slot { flex-direction: column; gap: 8px;', '.cp-h { font-size: 14px;', '.cp-tr { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; font-size: 26px;',
+  '.cp-ores { display: flex; gap: 4px;', '.cp-ores img { width: 36px; height: 36px;', '.cp-ores.many img { width: 22px; height: 22px; }', '.cp-tr.many { font-size: 20px; }', '.cp-ores .x { font-size: 14px;', '.cp-none { font-size: 13px;'].every(c => src.includes(c)), true);
+eq('R114: five pips use the smaller pips', src.includes("'<span class=\"cp-tr'+(compPipCount(rec.traits||recipeTraits(rec))>4 ? ' many' : '')+'\">'") && src.includes("function compPipCount(list){ return Math.min(BLADE_SLOTS, (list||[]).reduce((n,a)=>n+(TIER_PIPS[a.tier]||1), 0)); }"), true);
+eq('R114: three or more ore kinds use the smaller ores', src.includes("</span><span class=\"cp-ores'+(new Set(rec.ores||[]).size>2 ? ' many' : '')+'\">'+compOreHtml(rec.ores)+'</span>'"), true);
 console.log('[ftue] GREEN / ' + n + ' checks');
