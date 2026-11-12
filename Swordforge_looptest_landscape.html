@@ -865,7 +865,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .mk-buy .mk-pr { display: flex; align-items: center; gap: .4cqw; }
 .mk-buy .mk-lk { font-size: 2.4cqw; line-height: 1; }
 .mk-buy[data-st='poor'] .mk-pr { color: #b03a26; }
-.mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'] { background: #e3ddd0; border-color: #a99f8c; color: #6f6656; }
+.mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'], .mk-buy[data-st='held'] { background: #e3ddd0; border-color: #a99f8c; color: #6f6656; }
 .mk-stamp { position: absolute; left: 74.8%; top: 78.8%; transform: translate(-50%,-50%) rotate(-16deg); padding: .55cqw 1.2cqw;
     background: #5ec46a; border: .3cqw solid #2f8a3c; border-radius: .6cqw; color: #10301a; font: 900 3.1cqw/1 Georgia, 'Times New Roman', serif;
     letter-spacing: .04em; white-space: nowrap; pointer-events: none; box-shadow: 0 .3cqw .8cqw rgba(0,0,0,.3); }
@@ -7461,7 +7461,8 @@ function mkFill(pg){ const p=mkCur(), known=traitKnown(p.trait), st=marketRow(p.
         list=['assets/sword-parts/blades/'+bladeFor(skin, p.shape)+'.webp', ddSrc('guard', set.guard[0]), ddSrc('grip', set.grip[0]), ddSrc('pommel', set.pommel[0])];
     if(pv.dataset.src!==list.join()){ pv.dataset.src=list.join(); pv.innerHTML=list.map(x=>'<img src="'+x+'" alt="">').join(''); }
     pv.classList.toggle('dark', !known);
-    const B=pg.querySelector('.mk-buy'); B.dataset.st=gift ? 'gift' : st;
+    const held=(st==='buy' || st==='poor') && !gift && !ftueBlueprintOk(p.trait, p.shape);   /* R112 (owner, 2026-11-12): in the tutorial only the order's blueprint looks buyable */
+    const B=pg.querySelector('.mk-buy'); B.dataset.st=gift ? 'gift' : held ? 'held' : st;
     B.innerHTML=mkBuyFace(gift ? 'gift' : st, pr);
     B.title=(known ? TRAIT_BY[p.trait].name : '?')+' '+p.shape+(pr ? ' - '+pr+'g' : '');
     const S=pg.querySelector('.mk-stamp'), w=mkStamp(st); S.textContent=w; S.hidden=!w; }
@@ -7577,7 +7578,7 @@ function ftueMarketBought(k, sh){ if(ftueLaterBought(k, sh)) return;   /* R83 */
 function marketBuy(k, sh){
     const st=marketRow(k, sh, marketCtx(k, sh)), nm=TRAIT_BY[k].name+' '+sh;
     if((FTUE_MK && FTUE_MK.step==='gift') || ftueDragonPays(k, sh)) return;   /* the dragon is paying. R13: or will pay for it */
-    if(st==='buy' && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }   /* r301 (owner): only the order's blueprint */
+    if((st==='buy' || st==='poor') && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }   /* r301 (owner): only the order's blueprint */
     if(FTUE_MK && FTUE_MK.step==='buy' && (k!==FTUE_MK.o.trait || sh!==FTUE_MK.o.shape) && st==='buy'){
         toast('Buy the <b>'+orderLabel(TRAIT_BY[FTUE_MK.o.trait].name, FTUE_MK.o.shape)+'</b> blueprint first'); return; }
     if(st==='closed'){ toast('Play more to unlock'); return; }
@@ -7862,7 +7863,7 @@ function shapeGrid(){
     marketShapes(k).forEach(sh=>{   /* v3: every shape the trait has; locked ones say where to get them */
         const open=ftueShapeOpen(k, sh), gift=!open && ftueDragonPays(k, sh), b=document.createElement('button');   /* R13: the dragon's to buy */
         b.type='button'; b.className='sf-shape'+(open?'':' locked'); b.dataset.shape=sh;
-        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open || gift ? '' : '<b class="sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here. r301: greyed if the gold cannot cover it */
+        b.innerHTML='<span class="ic">'+(open? SHAPE_IC[sh]||'⚔️' : '🔒')+'</span><span>'+sh+'</span>'+(open || gift ? '' : '<b class="sf-buy'+(GOLD<marketPrice(k, sh) || !ftueBlueprintOk(k, sh) ? ' poor' : '')+'">BUY '+marketPrice(k, sh)+'g</b>');   /* r299: buy it here. r301: greyed if the gold cannot cover it. R112 (owner): or the tutorial refuses it (not the order's) */
         const req=custShapeFor(k)===sh;   /* owner, 2026-10-08: the shape the customer asked for, in the whole game */
         if(req) b.classList.add('sf-req');
         b.addEventListener('click', ()=>{ if(!ftueShapeOpen(k, sh)){ shapeBuy(k, sh); return; } selectShape(sh); });   /* r299: a locked shape is bought from here */

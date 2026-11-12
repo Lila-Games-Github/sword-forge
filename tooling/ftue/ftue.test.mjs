@@ -504,7 +504,7 @@ eq('the trait is gained at once; the hooks, the window and the toast wait for th
    ordered (or waiting) blueprint can be bought - anything else gets D28m, in the shape window and the market */
 eq('D28m text, beside D28l', line('D28m') === "Let's buy those later. Focus on the customer's request." && keyList[keyList.indexOf('D28m') - 1] === 'D28l', true);
 eq('the first sword\'s shape window blinks the Shortsword', /function openShapeSelect\(\)\{[\s\S]{0,1400}if\(TUT_HM_FIRST\) setTimeout\(\(\)=>tutExit\("#sfShapeModal \.sf-shape\[data-shape='Shortsword'\]"\), 0\);/.test(src), true);
-eq('a BUY the gold cannot cover is greyed', src.includes("'<b class=\"sf-buy'+(GOLD<marketPrice(k, sh) ? ' poor' : '')+'\">BUY '+marketPrice(k, sh)+'g</b>'") && src.includes('.sf-shape .sf-buy.poor {'), true);
+eq('a BUY the gold cannot cover is greyed (R112: and one the tutorial refuses)', src.includes("'<b class=\"sf-buy'+(GOLD<marketPrice(k, sh) || !ftueBlueprintOk(k, sh) ? ' poor' : '')+'\">BUY '+marketPrice(k, sh)+'g</b>'") && src.includes('.sf-shape .sf-buy.poor {'), true);
 { const fn = name => { const i = src.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = src.indexOf('{', i);
     for (; j < src.length; j++) { if (src[j] === '{') d++; else if (src[j] === '}' && --d === 0) break; } return src.slice(i, j + 1); };
   const mk = (order, waiting, done) => new Function('FTUE_ST', 'ftueOrderOpen', fn('ftueBlueprintOk') + '; return ftueBlueprintOk;')({ done: !!done, waiting: waiting || [] }, () => order);
@@ -514,7 +514,7 @@ eq('a BUY the gold cannot cover is greyed', src.includes("'<b class=\"sf-buy'+(G
   eq('no order, nothing waiting: nothing', mk(null, [])('balanced', 'Longsword'), false);
   eq('after the tutorial: anything', mk(null, [], true)('balanced', 'Longsword'), true); }
 eq('the shape window refuses it with D28m', /function shapeBuy\(k, sh\)\{[\s\S]{0,300}if\(!ftueBlueprintOk\(k, sh\)\)\{ ftueSaySh\('D28m'\); return; \}/.test(src), true);
-eq('so does the market', /function marketBuy\(k, sh\)\{[\s\S]{0,700}if\(st==='buy' && !ftueBlueprintOk\(k, sh\)\)\{ sayOver\('D28m'\); return; \}/.test(src), true);
+eq('so does the market (R112: a held one too, whatever the gold)', /function marketBuy\(k, sh\)\{[\s\S]{0,700}if\(\(st==='buy' \|\| st==='poor'\) && !ftueBlueprintOk\(k, sh\)\)\{ sayOver\('D28m'\); return; \}/.test(src), true);
 /* r300 (owner, 2026-10-21): the tutorial buys at the shape window - no market trip */
 eq('an order line has a lit OK again, and closing the order\'s last line starts the craft guide', ['D28b','D28e','D28g','D92a','D92i','D92j','D111b','D113a'].every(k => new RegExp('const SAY_GO_MORE=\\{[^}]*\\b' + k + ':1').test(src) && new RegExp('const SAY_GO_GLOW=\\{[^}]*\\b' + k + ':1').test(src))
   && src.includes("if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };") && /function sayHide\(\)\{[\s\S]{0,1600}if\(SAY_THEN && SAY_ON===SAY_THEN\.id\)\{ const f=SAY_THEN\.fn; SAY_THEN=null; setTimeout\(f, 0\); \}/.test(src), true);
@@ -1998,4 +1998,8 @@ eq('R89: D107d turns it on; both counter refreshes keep it', [s9.includes("    i
 /* R111 (owner, 2026-11-11): TC2's record step on the dark - the metal could go from the gate to the anvil past D42 */
 eq('R111: the craft frame lifted over the dark and the lit dragon (its ring and inkpot are the way on)', src.includes('#frame.landscape > #hud.dark-lit { z-index: 62; }'), true);
 eq('R111: under the record dark the dragon still rises over the compare window (R100): over-modal beats dark-lit', src.includes('#dragon.over-modal, #dragon.over-modal.dark-lit { z-index: 1011; }'), true);
+/* R112 (owner, 2026-11-12): in the tutorial only the order's blueprint looks buyable - the others (refused since r301) are greyed */
+eq('R112: the market page greys a blueprint the tutorial refuses (held), its tap still says D28m', [src.includes("held=(st==='buy' || st==='poor') && !gift && !ftueBlueprintOk(p.trait, p.shape);"),
+  src.includes("B.dataset.st=gift ? 'gift' : held ? 'held' : st;"), src.includes(".mk-buy[data-st='closed'], .mk-buy[data-st='unknown'], .mk-buy[data-st='gift'], .mk-buy[data-st='held'] {"),
+  src.includes("if((st==='buy' || st==='poor') && !ftueBlueprintOk(k, sh)){ sayOver('D28m'); return; }")], [true, true, true, true]);
 console.log('[ftue] GREEN / ' + n + ' checks');

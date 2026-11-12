@@ -1248,3 +1248,14 @@ yours and come on top.
   inventory under it; D42 closed with its X, the dark stays; the ring opens the frame, the inkpot opens the compare window with the
   dragon and D43 over it; once recorded (stage `record-close`, D43a) the dark is gone. Asserted by the FTUE test (written first;
   GREEN at 1066).
+- **R112 (owner, 2026-11-12): in the tutorial, only the order's blueprint looks buyable.** "for gc1 have the dragon give lesser
+  gold, so players do not buy any other sword. check if similar stuff happens everytime dragon gives gold" Checked: it happens at
+  all six of the dragon's payments (GC1, GC2, GC5, GC6, Bram's Dagger, GC9) and at the player's own buys; by Day 2 the player's own
+  gold covers other blueprints, so less gold could fix GC1 only. Owner's choice: "Grey out the others". Until the FTUE is done, a
+  blueprint `ftueBlueprintOk` refuses (not the open order's, nor the waiting customer's) shows greyed: in the shape window its BUY
+  gets the r301 `poor` look; on the market page its button shows the price on the grey of a locked one (`data-st='held'`). A tap
+  still gives D28m (r301; on the market now also for a held blueprint the gold cannot cover). The dragon still pays the full price.
+  After the FTUE every blueprint is as before. Checked in the browser (the GC1 jump, the order open, 140 gold as after the dragon's
+  payment): the shape window shows only the Longsword's BUY live, Broadsword, Dagger and Katana greyed; a tap on the Broadsword says
+  D28m and buys nothing; the market page shows Longsword "buy", Broadsword and Katana "held" (grey); with the FTUE done the
+  Broadsword is "buy" again. Asserted by the FTUE test (written first; GREEN at 1067) and the market test.

@@ -177,7 +177,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   Claymore 450; the last trait's shapes 1250-1650.
 - **Buying:** in the rotary market window on the counter (R38, `MK_ROT`, record `specs/2026-10-29-rotary-market.md`) or from
   the shape window. States: free, owned, "Play more to unlock" (market not open), unknown trait, too poor, BUY. In the tutorial
-  only the open order's (or a waiting customer's) blueprints can be bought, and the dragon pays for some (D28c): his coins fly to the gold counter, the gold rises by the price, D28ca, and the player
+  only the open order's (or a waiting customer's) blueprints can be bought (the others show greyed in the shape window and the market, R112), and the dragon pays for some (D28c): his coins fly to the gold counter, the gold rises by the price, D28ca, and the player
   buys it (R96, `ftueDeposit`; until R96 he unlocked it himself). Only owned
   shapes can be forged. A purchase (market or shape window) flies the quest claim's coins (`flyCoins`: 5 coins, 650 ms,
   70 ms apart) from the gold counter to the buy button, and the counter pops "-<price>g"; the gold is spent at once (R91,
