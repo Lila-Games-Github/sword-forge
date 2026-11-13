@@ -74,7 +74,7 @@ The diary (from Bram) has a Travel Log, "People I met" and character sheets, set
 | **Grindstone** | Hold the handle to turn the wheel | 2 full turns grind an ore fully; unlocked in Part 2 |
 | **Anvil** | Drop the hot metal on it, then tap it | Opens the shape window, then the minigame |
 | **Bucket** | Dip the hanging blade | Quenches it; the sword is made |
-| **Craft frame** | Tap the ring or drag it down | Blade pips (5 slots), X to cancel, inkpot to record, the craft book |
+| **Craft frame** | Tap the ring or drag it down | Blade pips (5 slots); X to cancel the craft, which asks first ("Yes, cancel" / "No"): a cancelled blade is lost with its traits and ores, except what the Restore Ore talent gives back; the inkpot to record; the craft book |
 | **The map** | Pan and zoom | The top 80% of the screen; fog clears where the sword travels |
 
 The dragon sits on the bench; his speech bubble points at him.
@@ -157,7 +157,8 @@ A sword can carry several traits (one each); taking a trait it already has can o
 The hot blade is picked up by its handle (within 24 px of the blade's line) and hangs from the finger as a damped pendulum,
 swinging as it moves. Dipped into the bucket's water (or released over it), it is quenched in smoke and mist and the sword is
 made; released elsewhere it returns to the anvil. The "Sword crafted!" window shows the sword, its coloured name, health,
-forging and gold, with a tab for the ores used.
+forging and gold. An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
+first crafted window of the game teaches itself: the hammer row (D17b), then the arrow (D17a), then the ores (D17c).
 
 ### Swing effects
 
@@ -248,7 +249,7 @@ quests 20.
 | Bulk Craft | 7 (7 points each) | Craft-book crafts use 10% less ore |
 | Master | 10 | More books in the fog (ranks 1-5), great tomes (6-10) |
 | Vision | 20 | +5% sight radius |
-| Restore Ore | 3 | 10% chance per ore to get it back when a blade shatters |
+| Restore Ore | 3 | 10% chance per ore to get it back when a blade shatters or a craft is cancelled |
 
 Four more node slots are empty. RESET TALENT refunds every point.
 
@@ -359,6 +360,9 @@ end of day, the gear menu (resume, save, new game, load, settings). SETTINGS als
 - **Highlighted words:** sword names (a trait word and its shape) are bold in the trait's colour, tiers bold in the tier
   window's colours (Epic purple, Fine blue, Weak grey), "sharpened" and "customized" bold in their own colours. Each of the 25
   traits has a colour readable on the parchment.
+- **Tap the dragon for help:** a tap on the dragon makes him say his last line again, so the current hint comes back (D119a
+  teaches it in Part 1: "If you are not sure what to do, at any point, you can tap on me. I'll help you."). After the tutorial a
+  tap pets him instead (hearts).
 - **Guidance:** a drag arrow for drag steps, a glow or blink on the control to tap, drag-gesture hints (ladle up, bellows up
   and down, ring down), a dark screen with the needed controls cut out, and a pulsing ring on the map trait to aim for (it goes
   out once the sword is made).
