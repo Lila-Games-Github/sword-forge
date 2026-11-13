@@ -275,7 +275,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 #### TC2 and the grindstone
 
-1. **D29** TC2: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one."
+1. **D29** TC2: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one. Any shape is fine." (R118: any shape)
    *When: the bell.*
 
 2. **D31** Dragon: "So many customers. No tea break for us. Back to the forge we go."
@@ -586,7 +586,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 #### TC4: an Epic Durable sword
 
-1. **D92k** TC4: "I want a durable sword. Make sure it is EPIC! I only want the best."
+1. **D92k** TC4: "I want a durable sword. Make sure it is EPIC! I only want the best. Any shape is fine." (R118)
    *When: the bell.*
 
 2. **D92l** Dragon: "Okay, time to learn how to craft the best tier sword!"
@@ -888,7 +888,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 10. **D127** Garric: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool."
    *When: the next tap.*
 
-11. **D128** Garric: "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!"
+11. **D128** Garric: "Craft a Balanced sword and show me! Any shape is fine. Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!" (R118)
    *When: the next tap.*
 
 12. **D129** Dragon: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!"

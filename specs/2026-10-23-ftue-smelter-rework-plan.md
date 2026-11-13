@@ -1294,3 +1294,11 @@ yours and come on top.
   (`drop-shadow(0 0 3px #fff3d4) drop-shadow(0 0 8px rgba(255,170,60,.95))`); dark frame: no filter. Checked in the browser (the GAME jump, the button and the
   Items tab blinking, both paused at the lit frame): the tree glows orange on the orange face. Asserted by the FTUE test (shown
   failing without the rule; GREEN at 1072).
+- **R118 (owner, 2026-11-13): customers who take any shape say so.** "customers who do not want a specific shape, should
+  mention in the dialogue 'any shape is fine.'" Drafts approved ("Yes, build them"). TC2 (D29) and TC4 (D92k) end with "Any shape
+  is fine."; Garric (D128) says it after "Craft a Balanced sword and show me!"; every customer whose order names no shape (the
+  random customers after the tutorial) adds it after the random ask (`CUST_ANY`, `custAsk(name, shape)`, also used by the
+  tutorial's gameplay customers, who all name a shape). Bram (D21, "any sword!") is unchanged. Not changed, raised with the
+  owner: TC3 (D63) and TC5 (D93) need a Shortsword but do not say so. Checked in the browser: TC2's and TC4's lines end with it, D128 holds it,
+  four free-play customers each said a random ask then "Any shape is fine.", GC1 (a Longsword) did not. Asserted by the FTUE test
+  (written first; GREEN at 1074 with R117).

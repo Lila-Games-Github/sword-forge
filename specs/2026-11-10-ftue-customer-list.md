@@ -18,7 +18,7 @@ page in the craft book. Until R108 the ores came after the previous sale.
 | 1 | **GC1** | Balanced Longsword. | The dragon gives the Longsword blueprint's price (his coins fly to the gold, D28c, D28ca); the player buys it (R96). | 2 iron + 2 manganese (after D28b) |
 | 1 | **GC2** | Balanced Broadsword. | The dragon gives the Broadsword blueprint's price; the player buys it (D28e, D28f, R96). | 2 iron + 2 manganese (after D28e) |
 | 1 | **GC3** | Balanced Katana. | None. The player buys the Katana blueprint (50g); if the player has less, the dragon tops the gold up to 50g (D28h). | 2 iron + 2 manganese (after D28g) |
-| 2 | **TC2** (`man1`) | "Give me a good one": balanced, any shape (D29). | During the craft: **the grindstone** (D32b). At the sale: **+5 craft-book pages**. | 1 iron + 1 manganese (after D31, with D28j "I am running out of my ore stock") |
+| 2 | **TC2** (`man1`) | "Give me a good one. Any shape is fine.": balanced, any shape (D29, R118). | During the craft: **the grindstone** (D32b). At the sale: **+5 craft-book pages**. | 1 iron + 1 manganese (after D31, with D28j "I am running out of my ore stock") |
 | 2 | **TC3 the adventurer** (`woman1`) | A fire Shortsword. | None. Day 1 ends after this sale. | None (the cave lesson) |
 | 3 | **GC4** | Durable Shortsword (the map window, nickel from the cave). | None. | None (the Day 2 cave: 2 nickel) |
 | 3 | **GC5** | Fire Longsword (guided from the fire icon on the map). | The dragon gives the fire Longsword blueprint's price; the player buys it (D92h, R96). | page:fire (after D92h and D92a) |
