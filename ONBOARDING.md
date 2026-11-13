@@ -1,6 +1,6 @@
 # Sword Forge - Onboarding
 
-Zero-context handoff for a new contributor or agent. Rewritten 2026-11-03 for the game as merged in PR #28 (R0-R62). The
+Zero-context handoff for a new contributor or agent. Rewritten 2026-11-03 for the game as merged in PR #28 (R0-R62); brought to R115 (PR #31) on 2026-11-13. The
 V1 / V2 version of this file is in git history.
 
 ## 1. What it is
@@ -15,7 +15,7 @@ V1 / V2 version of this file is in git history.
 
 ## 2. Read in this order
 
-1. `CLAUDE.md` - conventions, the eight test suites, how to verify.
+1. `CLAUDE.md` - conventions, the nine test suites, how to verify.
 2. `HANDOFF.md` - current state, what is next, gotchas, open owner questions.
 3. `GDD.md` - the game, end to end.
 4. `INDEX.md` - which docs are canon; the dated records in `specs/` hold each system's values and the reasons.
@@ -24,8 +24,11 @@ V1 / V2 version of this file is in git history.
 
 - **Run:** `preview_start` with the `.claude/launch.json` config `sword-forge` (Node static server, port **5679**), then
   navigate to `http://localhost:5679/Swordforge_looptest_landscape.html`. `?freeplay` skips the tutorial; `?nointro` skips the
-  intro. The PART 1-6 and GAME buttons (bottom left, outside the frame) or `ftuePart(n)` start a new game at a part.
-- **Test:** `node tooling/<suite>/<suite>.test.mjs` for ftue, smelter, market, map, skills, hazard, hammer and mobile-fit. The
+  intro. The PART 1-6 and GAME buttons (bottom left, outside the frame) or `ftuePart(n)` start a new game at a part; the
+  CUSTOMER dropdown or `ftueCust('GC5')` at any tutorial customer. These and every other cheat exist only in the internal build:
+  the testers' copy, `Swordforge_external.html`, is generated with them off (`node tooling/external/make-external.mjs`, only
+  when the owner asks).
+- **Test:** `node tooling/<suite>/<suite>.test.mjs` for external, ftue, smelter, market, map, skills, hazard, hammer and mobile-fit. The
   current counts are in `CLAUDE.md` and `HANDOFF.md`. A recorded value changes in its spec and its test together, test first.
 - **Verify in the browser** as a player would: drive taps through `document.elementFromPoint(x,y)`, and check visibility with
   `offsetParent` and a hit test, not `textContent`. A hidden preview pane freezes `requestAnimationFrame`; drive frames by hand.
