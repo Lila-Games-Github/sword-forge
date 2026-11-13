@@ -137,7 +137,7 @@ const line = id => { const r = src.match(new RegExp('\\n\\s*' + id + ': "([^"]*)
 eq('D28a text', line('D28a'), 'Use 2 iron and 2 manganese for the balanced sword.');
 eq('D99a text', line('D99a'), "Use it later. We don't need that now.");
 /* D111a: see r213 below */
-eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.");
+eq('D29 text',  line('D29'),  "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one. Any shape is fine.");
 eq('D31 text',  line('D31'),  'So many customers. No tea break for us. Back to the forge we go.');
 /* D32 changed in v3 part 2 (see V3P2 below) */
 eq('D33 text',  line('D33'),  'We can travel further on the map if we grind the ores before we put them in the smelter.');
@@ -165,7 +165,7 @@ const R213 = {
   D111a: 'The last one was good, but not very sharp. Can you make this one sharper?',
   D114: 'Exactly what I needed. Thanks. I have a small gift for you. It is not much, but I thought it would be of more use to you.',
   D118: 'I made something for you. To keep you motivated, I put together a small quest list.',
-  D128: 'Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!',
+  D128: 'Craft a Balanced sword and show me! Any shape is fine. Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!',
   D130: 'Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!',
   D132: "Huh... it wasn't good enough.",
   D140: "From now on, ring the bell when you are ready for customers. I'll be here if you need me." };
@@ -458,7 +458,7 @@ eq('TC4 goes to the forge, not the cave', /function tutTc4Arrive\(\)\{[\s\S]{0,8
 eq('no cave refill at Garric\'s order', /function tutGarricOrder\(\)\{[\s\S]{0,300}rollCaveNodes\(\)/.test(src), false);
 eq('GC8 stops in the middle of the Weak band (20-34)', FTUE.weakStop, 27);
 const V3P4 = {
-  D92k: 'I want a durable sword. Make sure it is EPIC! I only want the best.',
+  D92k: 'I want a durable sword. Make sure it is EPIC! I only want the best. Any shape is fine.',
   D92l: 'Okay, time to learn how to craft the best tier sword!',
   D97a: 'Remember? Tilt the ladle to pull the sword onto the trait.',   /* R5 */
   D107a: "My master requests a balanced sword. He is going on a dangerous hunt. But I don't want him to come back. He tortures me every day. Can you give me a weak sword?",
@@ -2012,4 +2012,11 @@ eq('R114: three or more ore kinds use the smaller ores', src.includes("</span><s
 /* R117 (owner, 2026-11-13): the skill tree's picture lights with its face, so its blink reads like the inventory tabs' */
 eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', [src.includes('#skillBtn.tut-blink .sk-art { animation: tutBlinkSkillArt 1.1s ease-in-out infinite; }'),
   src.includes('@keyframes tutBlinkSkillArt {\n    0%,100% { filter: none; }\n    50%     { filter: brightness(1.2) drop-shadow(0 0 3px #fff3d4) drop-shadow(0 0 8px rgba(255,170,60,.95)); }\n}')], [true, true]);
+/* R118 (owner, 2026-11-13): a customer whose order names no shape says "Any shape is fine." */
+{ const s8 = src.replace(/\r\n/g, '\n'); const fn = name => { const i = s8.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s8.indexOf('{', i);
+    for (; j < s8.length; j++) { if (s8[j] === '{') d++; else if (s8[j] === '}' && --d === 0) break; } return s8.slice(i, j + 1); };
+  const A = new Function('CUST_ASKS', 'CUST_ANY', 'orderLabel', fn('custAsk') + '; return custAsk;')([n => 'Do you have a ' + n + '?'], 'Any shape is fine.', (n, sh) => sh ? n + ' ' + sh : n + ' sword');
+  eq('R118: no shape - the ask, then Any shape is fine.; a shape - the ask alone', [A('Fire', null), A('Fire', 'Longsword')], ['Do you have a Fire sword? Any shape is fine.', 'Do you have a Fire Longsword?']);
+  eq('R118: the random customers and the tutorial\'s gameplay customers ask through it', [s8.includes("const CUST_ANY='Any shape is fine.';"), s8.includes('custLine(null, custAsk(tr.name, null));'),
+    s8.includes(': custAsk(tr.name, o.shape));')], [true, true, true]); }
 console.log('[ftue] GREEN / ' + n + ' checks');

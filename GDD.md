@@ -203,10 +203,11 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 - The **bell** calls one customer at a time. The counter has SELL, COME LATER and DENY (DENY is a placeholder), a shelf with the
   craft book, the ledger scroll and the rotary market.
 - **Tutorial customers** (scripted) and **gameplay customers** (each part's orders) name a trait and may name a shape, a tier,
-  or two swords. A sword that does not match is refused. A two-sword order is handed over one sword at a time and paid at the
+  or two swords; an order that names no shape says "Any shape is fine." (R118: TC2, TC4, Garric and every free-play customer). A
+  sword that does not match is refused. A two-sword order is handed over one sword at a time and paid at the
   end.
 - **Free-play customers:** a random face from 7; 80% ask for a trait already found, 20% for one still in the fog ("Do you have a
-  Fire sword?").
+  Fire sword? Any shape is fine.").
 - **A sale** pays the price, reputation +1, popularity, and 5 exp. The customer thanks the player by the sword's tier (5 lines
   each for Epic, Fine, Weak) and leaves after 3 s.
 - **COME LATER** puts a customer on the waiting list; the ledger calls them back when the player is ready.
