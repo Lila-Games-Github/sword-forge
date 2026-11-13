@@ -1311,6 +1311,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r242 (owner): the owner likes the inventory tabs' blink, so every rail button uses it (tutBlinkTab); the text pass follows its curve */
 #skillBtn.tut-blink { animation: tutBlinkTab 1.1s ease-in-out infinite; }
 #skillBtn.tut-blink .sk-lv { animation: tutBlinkSkillTxt 1.1s ease-in-out infinite; }
+/* R117 (owner, 2026-11-13): "barely visible" - the tree picture covers most of the face that turns orange, so it lights with it */
+#skillBtn.tut-blink .sk-art { animation: tutBlinkSkillArt 1.1s ease-in-out infinite; }
+@keyframes tutBlinkSkillArt {
+    0%,100% { filter: none; }
+    50%     { filter: brightness(1.2) drop-shadow(0 0 3px #fff3d4) drop-shadow(0 0 8px rgba(255,170,60,.95)); }
+}
 @keyframes tutBlinkSkillTxt {
     0%,100% { color: #e8cf92; }
     50%     { color: #3a2a10; }
@@ -3873,7 +3879,7 @@ function ftueGpcArrive(){
         if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };   /* r300: closing the order's lines starts the craft guide */
         sayQueue.apply(null, lines); }); });
     custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.lesson==='later' ? DIALOGUE.D107c : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
-                           : CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, o.shape)));
+                           : custAsk(tr.name, o.shape));
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
 }
 /* r267 (owner, 2026-10-16): an order of several swords (GPC3's five, the two-sword request) is sold one sword at a time.
@@ -9239,7 +9245,7 @@ const DIALOGUE = {
     D28m: "Let's buy those later. Focus on the customer's request.",   /* r301 (owner): a blueprint the order did not ask for */
     D28n: "Every trait you discover on the map is recorded in the craft book. Tap the book to open it.",   /* R105 (owner, 2026-11-11): GC2's gate meets the craft book */
     D28o: "Every trait you discover, I will record it. Now close the book and continue crafting.",   /* R105: over the open book. R110 (owner, 2026-11-11): reworded (was "Each page shows a trait and the ores that reached it. Close the book to continue.") */
-    D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one.",
+    D29: "I saw a man walk out of this place. He couldn't stop beaming at his sword. I want to see what kind of swords you are crafting here. Give me a good one. Any shape is fine.",
     D31: "So many customers. No tea break for us. Back to the forge we go.",
     D32: "We can't get the balanced trait with only 1 iron and 1 manganese, unless-",   /* v3 part 2 (owner) */
     D32a: "We grind them!",
@@ -9329,7 +9335,7 @@ const DIALOGUE = {
     D92h: "A fire Longsword! I'll buy this blueprint for you too.",
     D92i: "And a fire Broadsword. My treat, one more time!",
     D92j: "Remember how to buy the blueprint? Buy the fire Katana when you pick the shape!",   /* r300 */
-    D92k: "I want a durable sword. Make sure it is EPIC! I only want the best.",   /* v3 part 4: TC4 (owner) */
+    D92k: "I want a durable sword. Make sure it is EPIC! I only want the best. Any shape is fine.",   /* v3 part 4: TC4 (owner). R118: any shape */
     D92l: "Okay, time to learn how to craft the best tier sword!",
     D92m: "Let's go to the forge.",   /* r245 (owner): GC5's map route, off the forge */
     D92n: "Tap on the trait to open the craft book directly.",   /* r245: on the forge, everything dark but the trait. r246: tap, not click (owner) */
@@ -9392,7 +9398,7 @@ const DIALOGUE = {
     D125: "Once you have a clean and well-stocked shop, you can display your swords and people will keep coming in to buy.",
     D126: "Anyway, I am Garric, the great Forgemaster. Don't worry about paying me. I'm feeling generous today, so consider this a little free wisdom.",
     D127: "But if you want me to keep 'sharing', I'll first need to know you're worth the effort. I'd hate to waste my wisdom on a fool.",
-    D128: "Craft a Balanced sword and show me! Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!",
+    D128: "Craft a Balanced sword and show me! Any shape is fine. Extra gold if it is good, and a reward if it is Epic tier, customized and sharpened!",
     D129: "What a cranky old man. Lecturing us on how to run a business! And what wisdom is he even talking about? All he did was tell us to clean the shop!",
     D130: "Make the best sword you can and show him what we are made of! That will shut him up! Muwahaha!",
     D130a: "How is it going?",   /* r189: he checks in once, on the first ore of the solo run */
@@ -10926,6 +10932,9 @@ const CUST_ASKS=[ n=>'Do you have a '+n+'?',
                   n=>'I want a '+n+'.',
                   n=>'Give me a '+n+', if you have one.',
                   n=>'I hear you make a fine blade. A '+n+', if you can.' ];
+/* R118 (owner, 2026-11-13): an order that names no shape says so */
+const CUST_ANY='Any shape is fine.';
+function custAsk(name, shape){ return CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(name, shape))+(shape ? '' : ' '+CUST_ANY); }
 function bellEl(){ return document.querySelector('#screenProps img[data-act="bell"]'); }
 function bellShow(on){ BELL_ON=!!on; if(SF_SCREEN==='customer') buildScreenProps('customer'); }
 function bellFx(){
@@ -11029,7 +11038,7 @@ function nextCustomer(){
     const who=CUST_POOL[Math.floor(Math.random()*CUST_POOL.length)];
     CUSTOMER={ portrait:'assets/customer/'+who+'.webp', tid:tr.id, name:tr.name };
     buildScreenProps('customer'); counterUi();
-    custLine(null, CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(tr.name, null)));
+    custLine(null, custAsk(tr.name, null));   /* R118 */
     return true;
 }
 function ringBell(){
