@@ -2009,4 +2009,7 @@ eq('R114: the compare slots sized to fill the box', ['.comp-slot { flex-directio
   '.cp-ores { display: flex; gap: 4px;', '.cp-ores img { width: 36px; height: 36px;', '.cp-ores.many img { width: 22px; height: 22px; }', '.cp-tr.many { font-size: 20px; }', '.cp-ores .x { font-size: 14px;', '.cp-none { font-size: 13px;'].every(c => src.includes(c)), true);
 eq('R114: five pips use the smaller pips', src.includes("'<span class=\"cp-tr'+(compPipCount(rec.traits||recipeTraits(rec))>4 ? ' many' : '')+'\">'") && src.includes("function compPipCount(list){ return Math.min(BLADE_SLOTS, (list||[]).reduce((n,a)=>n+(TIER_PIPS[a.tier]||1), 0)); }"), true);
 eq('R114: three or more ore kinds use the smaller ores', src.includes("</span><span class=\"cp-ores'+(new Set(rec.ores||[]).size>2 ? ' many' : '')+'\">'+compOreHtml(rec.ores)+'</span>'"), true);
+/* R117 (owner, 2026-11-13): the skill tree's picture lights with its face, so its blink reads like the inventory tabs' */
+eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', [src.includes('#skillBtn.tut-blink .sk-art { animation: tutBlinkSkillArt 1.1s ease-in-out infinite; }'),
+  src.includes('@keyframes tutBlinkSkillArt {\n    0%,100% { filter: none; }\n    50%     { filter: brightness(1.2) drop-shadow(0 0 3px #fff3d4) drop-shadow(0 0 8px rgba(255,170,60,.95)); }\n}')], [true, true]);
 console.log('[ftue] GREEN / ' + n + ' checks');

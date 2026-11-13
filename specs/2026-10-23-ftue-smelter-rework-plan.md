@@ -1286,3 +1286,11 @@ yours and come on top.
   the external version". `?hammer`, `?wire` and the W key, `?test`, `?labels`, `?clean` and `?bbox` were not gated in R115; each now
   checks `DEV` (record: `specs/2026-11-12-external-build.md`). The arrow keys stay (a player control). `Swordforge_external.html`
   made again on 2026-11-13.
+- **R117 (owner, 2026-11-13): the skill tree's highlight as visible as the inventory tabs'.** "skill tree does not get
+  highlighted well. it is barely visible. use the same highlight as the rest of the tabs on the inventory". It already used the
+  tabs' blink (`tutBlinkTab`, r242), but its tree picture (`.sk-art`, 40 px on a 59 x 64 button) covers most of the face that
+  turns orange, so only a thin edge lit; the tabs' icons are small, so their whole face lights. Now the picture lights with the
+  face, on the same 1.1 s curve (`tutBlinkSkillArt`): at the lit frame `brightness(1.2)` and the tabs' glow colours around it
+  (`drop-shadow(0 0 3px #fff3d4) drop-shadow(0 0 8px rgba(255,170,60,.95))`); dark frame: no filter. Checked in the browser (the GAME jump, the button and the
+  Items tab blinking, both paused at the lit frame): the tree glows orange on the orange face. Asserted by the FTUE test (shown
+  failing without the rule; GREEN at 1072).
