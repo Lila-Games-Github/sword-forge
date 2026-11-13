@@ -1282,3 +1282,7 @@ yours and come on top.
   plays the intro and then D1, has no cheat bar, fog eye or +1000 GOLD, its console helpers answer "Not available", `SF`/`SFM` are
   undefined, no console errors; the internal build still has all of them. Asserted by the new external test (written first; GREEN at
   11); the FTUE and smelter tests' quotes of `ftuePart`, `ftueCust` and `SM_FREE` updated.
+- **R116 (owner, 2026-11-13): the last test aids off in the testers' copy, and a new copy.** "switch off the test aids and make
+  the external version". `?hammer`, `?wire` and the W key, `?test`, `?labels`, `?clean` and `?bbox` were not gated in R115; each now
+  checks `DEV` (record: `specs/2026-11-12-external-build.md`). The arrow keys stay (a player control). `Swordforge_external.html`
+  made again on 2026-11-13.

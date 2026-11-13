@@ -20,8 +20,14 @@ The main build's second script starts with `const DEV=true;`. Every cheat and te
 | `ftuePart(n)`, `ftueCust(id)`, `cheatGold()`, `toggleFogCheat()`, `hmSkip()` | work | do nothing (`ftuePart` and `ftueCust` answer "Not available") |
 | `window.SF`, `window.SFM` (debug handles) | set | not set |
 | `?freeplay` (free play), `?nointro` (skip the intro) | work | ignored |
+| R116: `?hammer` (the minigame straight away), `?wire` and the W key (wireframe boxes), `?test` (layout self-test), `?labels`, `?clean`, `?bbox` (layout aids) | work | ignored |
 
-The tutorial, the game and every other control are the same in both.
+The tutorial, the game and every other control are the same in both. The arrow keys (move between screens) are a player
+control, not a test aid, and stay in both.
+
+**R116 (owner, 2026-11-13):** "switch off the test aids and make the external version". A docs check (2026-11-13) found the six
+layout and art aids above still answering in the R115 copy (a tester pressing W saw the wireframe); they now check `DEV` too,
+and the copy was made again (2026-11-13).
 
 ## The copy
 
