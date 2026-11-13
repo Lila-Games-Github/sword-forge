@@ -27,7 +27,8 @@ control, not a test aid, and stay in both.
 
 **R116 (owner, 2026-11-13):** "switch off the test aids and make the external version". A docs check (2026-11-13) found the six
 layout and art aids above still answering in the R115 copy (a tester pressing W saw the wireframe); they now check `DEV` too,
-and the copy was made again (2026-11-13).
+and the copy was made again (2026-11-13). Made again later the same day, with R117 (the skill tree's blink) and R118 ("Any shape is
+fine."), at the owner's request ("make the external version").
 
 ## The copy
 

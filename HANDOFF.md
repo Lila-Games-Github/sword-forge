@@ -11,7 +11,7 @@ continuation prompt printed at close time.
   succeeded. Start new work on a new branch from `main`. Each step's record: `specs/2026-10-23-ftue-smelter-rework-plan.md`.
 - **Links.** Internal build (all cheats): https://lila-games-github.github.io/sword-forge/Swordforge_looptest_landscape.html
   (the site root redirects here). **Testers' copy (no cheats): https://lila-games-github.github.io/sword-forge/Swordforge_external.html**,
-  generated 2026-11-12, made again 2026-11-13 (R116: the six layout and art aids and the W key off too). It is **frozen**: make it again (`node tooling/external/make-external.mjs`, then its test, a browser
+  generated 2026-11-12, made again 2026-11-13 (R116: the six layout and art aids and the W key off too), and again later on 2026-11-13 with R117-R118. It is **frozen**: make it again (`node tooling/external/make-external.mjs`, then its test, a browser
   check, commit, PR) only when the owner says "make the external version". Any new cheat or test aid must check `DEV`.
 - 216 dialogue keys (R96 D28ca, R99 D38a, R102 D43a, R105 D28n-D28o, R106 D96a, R107 D98a-D98b, R108 D18b-D18d for D18a), last
   key D140. Tests GREEN (nine suites): external 13, FTUE 1074, smelter 146, market 84, hammer 56, hazard 40, skills 18, map 17,
