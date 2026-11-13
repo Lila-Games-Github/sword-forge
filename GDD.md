@@ -393,9 +393,11 @@ step. No autosave; the game does not offer to continue on start.
 ## 14. Test aids in the build
 
 SKIP HAMMER (grades the forging Good), PART 1-6 and GAME (start a new game at a part, or just after the tutorial), the CUSTOMER dropdown (a new game at any tutorial customer, R109), the map's
-fog button, +1000 gold in the settings, and the URL options `?freeplay` (tutorial done, 20 of each ore, 500g) and `?nointro`.
+fog button, +1000 gold in the settings, the URL options `?freeplay` (tutorial done, 20 of each ore, 500g) and `?nointro`, and
+the layout and art aids: `?hammer` (the minigame straight away), `?wire` or the W key (wireframe boxes), `?test` (a layout
+self-test), `?labels`, `?clean` and `?bbox`.
 They are in the internal build only: the external tester copy, `Swordforge_external.html`, is generated with all of them off
-(R115, `const DEV=false;`, `specs/2026-11-12-external-build.md`).
+(R115; R116 added the layout and art aids; `const DEV=false;`, `specs/2026-11-12-external-build.md`).
 
 ## 15. Technical
 

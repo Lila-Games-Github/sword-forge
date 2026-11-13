@@ -11819,17 +11819,18 @@ function runLayoutSelfTest(){
 
 window.addEventListener('load', ()=>{ initMap(); wireHammer(); initMechanics(); wireHmMugAndDragon(); wireHmHammer(); hmLayout(); wirePan();
     if(window.SFM){ window.SFM.setOrientation=setOrientation; window.SFM.applyLayout=applyLayout; window.SFM.runLayoutSelfTest=runLayoutSelfTest; window.SFM.toggleWireframe=toggleWireframe; }
-    if(location.search.indexOf('wire')>=0) toggleWireframe(true);
-    if(location.search.indexOf('test')>=0) runLayoutSelfTest();
-    if(location.search.indexOf('bbox')>=0) console.log('FRAMEBOXES '+JSON.stringify(frameBoxes()));
-    if(location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
-    if(location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
+    /* R116 (owner, 2026-11-13): the layout and art aids (wire, test, bbox, clean, labels, hammer, the W key) only when DEV is on */
+    if(DEV && location.search.indexOf('wire')>=0) toggleWireframe(true);
+    if(DEV && location.search.indexOf('test')>=0) runLayoutSelfTest();
+    if(DEV && location.search.indexOf('bbox')>=0) console.log('FRAMEBOXES '+JSON.stringify(frameBoxes()));
+    if(DEV && location.search.indexOf('clean')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('clean'); }
+    if(DEV && location.search.indexOf('labels')>=0){ const f=document.getElementById('frame'); if(f) f.classList.add('labels'); }   /* r138 */
     (()=>{ const b=document.getElementById('cheatSkipHm'); if(b) b.addEventListener('click', ()=>{ hmSkip(); cheatUi(); }); cheatUi(); })();   /* r165 */
     custJumpUi();   /* R109 */
     if(!DEV) devStrip();   /* R115: the external copy has no cheat bar, +1000 GOLD or fog eye */
-    if(location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
+    if(DEV && location.search.indexOf('hammer')>=0) openHammer();   // r30: open the hammer scene straight away, for reviewing the mockup
 });
-window.addEventListener('keydown', e=>{ if(e.key==='w'||e.key==='W') toggleWireframe(); });
+window.addEventListener('keydown', e=>{ if(DEV && (e.key==='w'||e.key==='W')) toggleWireframe(); });
 window.addEventListener('resize', ()=>{ setView(); layoutScreenProps(); layoutCave(); layoutRackSwords(); layoutShopLocks(); sayLayout(); counterLayout(); tutDrawArrow(); if(SF_SCREEN&&document.getElementById('sfSharpModal').classList.contains('show')) shLayout(); });
 </script>
 </body>

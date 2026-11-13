@@ -23,6 +23,9 @@ eq('the debug handles are set only when DEV is on', [src.includes('if(DEV) windo
 eq('?freeplay and ?nointro only when DEV is on; the settings note too', [src.includes("const SM_FREE=DEV && location.search.indexOf('freeplay')>=0;"),
   src.includes("if(DEV && location.search.indexOf('nointro')>=0){ introClose(); return; }"), src.includes("mnNote(DEV ? 'Cheats \\u2014 for testing.' : ''); }")], [true, true, true]);
 
+eq('R116: the layout and art aids answer only when DEV is on', ['wire', 'test', 'bbox', 'clean', 'labels', 'hammer'].map(q => src.includes("if(DEV && location.search.indexOf('" + q + "')>=0)")), [true, true, true, true, true, true]);
+eq('R116: the W key (wireframe) only when DEV is on; the arrow keys stay', [src.includes("window.addEventListener('keydown', e=>{ if(DEV && (e.key==='w'||e.key==='W')) toggleWireframe(); });"),
+  src.includes("const KEY={ ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };")], [true, true]);
 const out = makeExternal(src, '2026-11-12');
 eq('the copy turns the switch off', [out.split('const DEV=false;').length - 1, out.includes('const DEV=true;')], [1, false]);
 eq('the copy says it is generated, after the doctype', out.startsWith('<!DOCTYPE html>\n<!-- GENERATED 2026-11-12 by tooling/external/make-external.mjs from Swordforge_looptest_landscape.html'), true);
