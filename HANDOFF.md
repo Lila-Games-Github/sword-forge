@@ -4,15 +4,51 @@ Living session-to-session state for Sword Forge. Updated + pushed at each sessio
 Durable narrative here; volatile per-PR state (PR URL, merged SHA, branch) goes in the
 continuation prompt printed at close time.
 
-## Current state (2026-11-05): FTUE guide fixes R63-R89 merged and live
+## Current state (2026-11-13): R90-R115 merged; the external tester copy is live
+
+- **PR #31 merged (2026-11-12, merge commit `b072248`)** carried R90-R115 and the owner's new intro pictures (branch
+  `sword-forge/dragon-toasts-r90`); **PR #32 (2026-11-13, `3937e8b`)** the intro pictures' PNG sources. The Pages deploy
+  succeeded. Start new work on a new branch from `main`. Each step's record: `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- **Links.** Internal build (all cheats): https://lila-games-github.github.io/sword-forge/Swordforge_looptest_landscape.html
+  (the site root redirects here). **Testers' copy (no cheats): https://lila-games-github.github.io/sword-forge/Swordforge_external.html**,
+  generated 2026-11-12. It is **frozen**: make it again (`node tooling/external/make-external.mjs`, then its test, a browser
+  check, commit, PR) only when the owner says "make the external version". Any new cheat or test aid must check `DEV`.
+- 216 dialogue keys (R96 D28ca, R99 D38a, R102 D43a, R105 D28n-D28o, R106 D96a, R107 D98a-D98b, R108 D18b-D18d for D18a), last
+  key D140. Tests GREEN (nine suites): external 11, FTUE 1071, smelter 146, market 84, hammer 56, hazard 40, skills 18, map 17,
+  mobile-fit 21. Next record id: **R116**.
+- **R90 is still ON TRIAL:** the toasts are said by the dragon (`specs/2026-11-05-dragon-toasts.md`; 30 cut by the owner's
+  ticks in `toast-checklist.md`). If the owner does not like it, set `DTOAST.on` to `false` or revert the R90 commit.
+- **What R90-R115 changed, in groups:**
+  - Feel: coins fly to the BUY button (R91); every forging percent from 80 to 100 adds gold (R92, `HM_HITS.price`); the quest
+    basket's still glow (R93); the map recentres on a new craft (R94); less blade swing (R98); a bigger first hazard on the fire
+    run, the sword shakes and its health turns red while hurt (R103).
+  - Tutorial order and economy: GC8 right after TC4 (R95); the dragon deposits blueprint gold and the player buys (R96); the
+    ores come with the order, in the "Ores Acquired!" window after the order's dragon line (R108, D18b-D18d at random); only the
+    order's blueprint looks buyable (R112).
+  - Lessons that could be skipped, now on the dark: D38 (R99), the compare window with the dragon over it (R100-R102, Update only),
+    GC2's craft book (R105, R110), TC4's tiers window and gliding 1.5x ladle zoom (R104, R106), TC4's blade pips (R107), TC2's
+    record step until the inkpot is tapped (R111). The craft book's Trait Tier pips show from TC4's pip lesson (R113); the
+    compare window's text, pips and ores fill its boxes (R114). SETTINGS reopens the two map windows (R97).
+  - Test aids: the CUSTOMER dropdown and `ftueCust(id)`, a jump to each of the 18 tutorial customers (R109,
+    `specs/2026-11-11-customer-jumps.md`); a new game now drops the last game's windows and scripted customers. The external copy
+    (R115, `specs/2026-11-12-external-build.md`): the `DEV` switch removes the cheat bar, +1000 GOLD, the fog eye, the console
+    helpers, `window.SF`/`SFM`, `?freeplay` and `?nointro`.
+  - Art: the owner's four new intro pictures (WebP 1920x1072; the PNG sources are in `assets/backgrounds/`, Gemini names).
+- **Open (ask the owner, do not decide):**
+  - **D107d contradicts R83** (still open, see below).
+  - `MK_ROT.laterMs` is unused since R83 (still open, see below).
+  - **R113:** the pips show from TC4's pip lesson; the owner was asked whether they should show from TC4's arrival instead and
+    did not answer.
+  - **R111:** the owner asked for "everything except the map" dark; the craft frame is lit too, because its ring and inkpot are
+    the way on (the owner was told).
+  - The customer jumps' gold and exp are estimates (as the PART jumps').
+  - Not done: a continuous play of Parts 2-6, any play on a phone, and a real playtest of the external copy.
+
+## Earlier state (2026-11-05): FTUE guide fixes R63-R89 merged and live
 
 - **PR #29 merged (2026-11-05)** carried R63-R89 (branch `sword-forge/gdd-ftue-guide-fixes`, now merged); the Pages deploy
   succeeded. Each step's record is in `specs/2026-10-23-ftue-smelter-rework-plan.md` (one bullet per R, owner's words quoted).
-  216 dialogue keys (R96 D28ca, R99 D38a, R102 D43a, R105 D28n-D28o, R106 D96a, R107 D98a-D98b, R108 D18b-D18d for D18a), last key D140. Tests GREEN: FTUE 1071 (R90-R114), smelter 146, market 84, hazard 40, hammer 56, skills 18, map 17,
-  mobile-fit 21.
-- **R90 (2026-11-05, branch `sword-forge/dragon-toasts-r90`), ON TRIAL:** the toasts are said by the dragon
-  (`specs/2026-11-05-dragon-toasts.md`); 30 cut by the owner's ticks in `toast-checklist.md`. If the owner does not like it,
-  set `DTOAST.on` to `false` (every toast comes back as before) or revert the R90 commit. R91: coins fly from the gold counter to the buy button when a blueprint is bought. R92: the forging price follows the accuracy percent (`HM_HITS.price`, the hammer record's last section). R93: the quest basket's claim glow is still, with a faint green tint on the basket. R94: the map recentres on the sword when a craft starts. R95: GC8 (the Weak balanced Longsword) moved to right after TC4. R96: the dragon gives blueprint gold (coins to the gold counter) and the player buys. R97: SETTINGS reopens the two tutorial map windows; the menu's settings page no longer shows under the main page. R98: the hanging blade swings less (`bladeDamp` 1.2 -> 2.5). R99: TC2's D38 is on the cut dim (no bellows or gate until it is closed), then D38a; the record lesson can no longer be skipped. R100: the record lesson's compare window: the dragon and D43 over its dark, no Record new in the tutorial, D43 reworded. R101: the compare window's New box has the quest basket's glow and tint. R102: no tint on the New box; after Update, D43a asks to close the craft window. R103: the fire craft's first hazard zone is 3x as big; in a zone the sword shakes and its health shows red. R104: TC4's ladle step zooms the map in 3x on the sword and Durable. R105: GC2's gate introduces the craft book (shown, opened, closed); the craft frame shows from GC2. R106: TC4's route end shows the Alignment for Tiers window (D96a); the ladle zoom is 1.5x and glides. R107: after TC4's gate, the blade pip lesson (D98a, D98b, the Traits and Tiers window). R108: the ores come with the order ("Ores Acquired!" after the order's dragon line, D18b-D18d at random). R109: the CUSTOMER dropdown and `ftueCust(id)` jump to any of the 18 tutorial customers (`specs/2026-11-11-customer-jumps.md`); a new game now closes open windows and drops the last game's scripted customers. R110: GC2's D28n on the dark (map and craft frame lit, the frame over the dragon); D28o reworded by the owner. R111: TC2's record step (D42) on the dark until the inkpot is tapped (map and craft frame lit). R112: in the tutorial only the order's blueprint looks buyable (the others greyed in the shape window and the market). R113: the craft book's Trait Tier pips (and label) show from TC4's pip lesson. R114: the compare window's text, pips and ores fill its boxes. R115: the external tester copy, `Swordforge_external.html` (generated 2026-11-12, frozen until the owner asks again; `node tooling/external/make-external.mjs`), cheats off by the `DEV` switch; ninth test suite `tooling/external/external.test.mjs` (11). Next record id: R116 (was: the external tester copy, when the owner asks: see the external build plan).
+  Counts and tests: see the current state above.
 - **What R63-R89 changed, in groups:**
   - Windows: the trait window bigger (R63); the gate's ready ring a pulsing circle (R64); the shape window wider (R65); the
     crafted window's lines under the dragon, tail up (R66), and that window cannot be closed during D17a, D17b, D69d (R67-R68).
@@ -27,7 +63,7 @@ continuation prompt printed at close time.
   - Bugs: no false refill when Garric comes (R81); the shape window opens on a tap on the metal, not on the drop (R82); an arrow
     tap with a hook line open closes that line first, so its next step is not lost (R86, `sayLeave`); COME LATER greyed
     until D107d (R89).
-- **Open from this session (ask the owner, do not decide):**
+- **Open from that session (ask the owner, do not decide):**
   - **D107d contradicts R83.** R83 walks the player to BUY the gale Katana; D107d then says "I am not buying the blueprint for
     those!". With 750g or more the player can also buy the Claymore during the walk. Ask for D107d's new wording. To change
     it: the `DIALOGUE` entry D107d in the build, its line in the tutorial script SSOT, any FTUE check that quotes it, and the come-later
@@ -302,7 +338,7 @@ dialogue-key count / last key when a line is added), then **commit that one feat
 3. **A reload mid-part loses the tutorial position.** The save keeps `FTUE_ST` but not `TUT_STAGE`. Not
    built; ask the owner before building.
 4. **Art still to come:** see the "art" list, `specs/2026-10-07-ftue-v3-art-list.md`.
-5. Older owner questions (from 2026-10-01, still open; the forging price multipliers were settled by R92): Garric's gift as 6 balanced parts; whether the PART 1-6 buttons stay public;
+5. Older owner questions (from 2026-10-01, still open; the forging price multipliers were settled by R92): Garric's gift as 6 balanced parts; (settled by R115: the PART 1-6 buttons and every cheat stay in the internal build only);
    D67a wording; 4 empty skill nodes (yellow 1-3, green 7).
 
 ## How to verify current state
@@ -310,6 +346,7 @@ dialogue-key count / last key when a line is added), then **commit that one feat
 ```bash
 git log --oneline -3
 node -e "const s=require('fs').readFileSync('Swordforge_looptest_landscape.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(m=>new Function(m[1]));console.log('parses OK')"
+node tooling/external/external.test.mjs
 node tooling/ftue/ftue.test.mjs
 node tooling/smelter/smelter.test.mjs
 node tooling/hammer/hammer.test.mjs
@@ -322,9 +359,10 @@ bash .claude/hooks/verify-living-docs.sh --audit
 ```
 Then `preview_start` (name `sword-forge`, port **5679**; `autoPort` is on, so use the port it reports) and navigate explicitly to
 `http://localhost:5679/Swordforge_looptest_landscape.html`. Expect 216 dialogue keys, `lastLine()`
-`"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`).
+`"D140"`, and `ftuePart(3)` to land at TC3's bell (`TUT_STAGE` `bell2`). The testers' copy,
+`http://localhost:5679/Swordforge_external.html`, has `DEV` false: no cheat bar, `ftuePart(3)` answers "Not available".
 
-**Baselines, not regressions:** the FTUE test prints GREEN at 1071 checks; the smelter test GREEN at 146 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 56; the hazard test GREEN at 40; the skills test GREEN at 18; the map test GREEN at 17;
+**Baselines, not regressions:** the external test prints GREEN at 11 checks; the FTUE test GREEN at 1071 checks; the smelter test GREEN at 146 (R40-R44: the fire swing effect, dragged swords and the forge blade; R42: the stored blade ends; R45-R46: the white slash for balanced, durable and swift; R47-R51: the gale winds; R58: the trait window's burst); the market test GREEN at 84 (R38: the rotary market); the hammer test GREEN at 56; the hazard test GREEN at 40; the skills test GREEN at 18; the map test GREEN at 17;
 the mobile-fit test GREEN at **21** cases (its summary line can print only "GREEN /" in some shells);
 the living-docs audit prints **10 `ORPHAN` lines** for `docs/wiki/` and exits 0.
 

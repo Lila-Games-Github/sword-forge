@@ -17,11 +17,12 @@ Single source of truth (SSOT) for Sword Forge's design.
   game as one narrative document: `../GDD.md`.
 - **The crafting loop:** `2026-10-21-smelter-version-loop.md` (the bellows, the gate, the ladle, the anvil, the bucket; values
   and tests). **The tutorial:** `2026-10-07-ftue-v3-rework.md` (the FTUE in six parts), `2026-10-23-ftue-smelter-rework-plan.md`
-  (its rework to the loop, R0-R62), `2026-09-15-looptest-landscape-tutorial-script.md` (every line in play order).
+  (its rework to the loop and every change since, R0-R115), `2026-09-15-looptest-landscape-tutorial-script.md` (every line in play order).
 - **Systems:** `2026-10-01-hammer-hit-points.md` (the minigame), `2026-10-01-hazard-integrity.md` (hazards),
   `2026-10-06-skill-tree-trade-ore.md` (skills), `2026-10-06-map-trait-links.md` (the map's trait card),
   `2026-10-29-rotary-market.md` (the market window), `2026-10-28-forge-screen-new-look.md` (the forge's craft frame),
-  `2026-10-28-rotated-ore-paths-test.md` (the iron and manganese paths).
+  `2026-10-28-rotated-ore-paths-test.md` (the iron and manganese paths). **Test aids:** `2026-11-11-customer-jumps.md` (R109),
+  `2026-11-12-external-build.md` (R115, the testers' copy).
 - **Effects and dialogue:** `2026-10-30-fire-swing-fx.md` (swing effects), `2026-10-30-trait-discovery-burst.md`,
   `2026-10-30-dialogue-sword-names.md` (coloured sword names). The rest are listed in `../INDEX.md`.
 

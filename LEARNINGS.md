@@ -208,3 +208,19 @@ Two smaller ones from the same rounds:
 - **2026-11-05 - a synthetic drag of the metal must be sent to `orbEl`.** Its pointer listeners sit on that element with pointer
   capture; events sent through `elementFromPoint` to a covering element never move it. Taps still go through
   `elementFromPoint`.
+- **2026-11-11 - a class rule with `display` beats the `hidden` attribute.** `.mn-grid{display:grid}` (R97) and `.cb-tier{display:flex}`
+  (R113) kept "hidden" elements on screen. Give each such element its own `[hidden]{display:none}` rule, and check the computed
+  display, not the attribute.
+- **2026-11-11 - two rules of the same specificity: the later one wins.** A stage dark's `#dragon.dark-lit` (z 61) sat later in the
+  CSS than R100's `#dragon.over-modal` (z 1011), so the dragon fell under the compare window (R111). When two lifts can meet,
+  write the combined selector.
+- **2026-11-11 - the lit dragon sits over the craft frame.** Any dark that needs the frame (the ring, the book, the inkpot) must lift
+  the frame above the dragon too (`#hud.pip-up`, `.book-up`, `.dark-lit`, z 62), or his box takes the tap (R107, R110, R111).
+- **2026-11-11 - a new game must drop the last game's state, not only reset its own.** Jumps chained in one page kept TC3's panel
+  over the bell and an ore window open (R109). `tutReset` and `newGame` now clear scripted customers, windows and order hooks.
+- **2026-11-12 - a top-level function declaration is a global.** Not assigning `window.ftuePart` does not hide `ftuePart` from the
+  console; the function itself must check the switch (R115, `if(!DEV) return`).
+- **2026-11-12 - work out prices with the game's own functions.** `swordBase({traits, forge, hp})` and `marketPrice` gave each
+  dragon payment's real gold in one call (R112); `forge` is an accuracy number, not a band name (a band name gave NaN).
+- **2026-11-12 - do not pass regexes or `\n` through `node -e` in Git Bash.** Backslashes are eaten (a test line lost all of them);
+  write the patch as a `.mjs` file in the scratchpad, or use the Edit tool.

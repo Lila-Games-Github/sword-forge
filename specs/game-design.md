@@ -190,7 +190,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **Skill tree** (`SKILLS`, 12 node slots, 8 used; record `specs/2026-10-06-skill-tree-trade-ore.md`): Trade (+5% price a
   rank, 20 ranks), Extract (5% a rank: a seam gives +3-4 ore, 5 ranks), Pickaxe (swing 10% faster a rank, 5), Bounty (+1 ore
   per seam a rank, 10), Bulk Craft (craft-book crafts use 10% less ore a rank, 7 ranks at 7 points each), Master (more books in
-  the fog, then great tomes, 10), Vision (+5% sight, 20), Restore Ore (10% a rank: an ore back when a blade shatters, 3).
+  the fog, then great tomes, 10), Vision (+5% sight, 20), Restore Ore (10% a rank: an ore back when a blade shatters or a craft is cancelled, 3).
   RESET TALENT refunds all. There is no ore buying or selling.
 
 ### Quests

@@ -138,6 +138,12 @@ rest 10s in place, no reset). Planned: a **main chart of 24 traits** + **24 per-
 - [x] R63-R89 (2026-11-03 to 11-05, PR #29): bigger windows, the craft frame and screen arrows hidden until introduced, cut-out
       dark lines, one highlight at a time, the gate ring as a guide only, the come-later market walk, and bug fixes (R81, R82,
       R86). Records: `specs/2026-10-23-ftue-smelter-rework-plan.md`.
+- [x] R90-R115 (2026-11-05 to 11-12, PR #31): dragon toasts (R90, on trial), coins to BUY, forging price per percent, ore
+      windows with the order, lessons on the dark (D38, the compare window, the craft book, the tiers, the pips, the record
+      step), greyed blueprints, the customer jumps (R109), and the external tester copy (R115). New intro art (PR #31, #32).
+- [x] **The external tester copy** live: https://lila-games-github.github.io/sword-forge/Swordforge_external.html (frozen).
+- [ ] Make a new tester copy only when the owner asks ("make the external version").
+- [ ] R90 trial: the owner keeps the dragon toasts or turns them off (`DTOAST.on`).
 - [ ] D107d's wording after the R83 walk (the player has bought the Katana, the line says "I am not buying ..."): owner to decide.
 - [ ] **Play Parts 2-6 continuously** (each part was checked on its own; Part 1 was played through).
 - [ ] **Play it on a phone**: the bellows, the ladle and the blade dip by finger.
