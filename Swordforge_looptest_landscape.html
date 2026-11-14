@@ -883,8 +883,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .mk-close { position: absolute; left: 59.4%; top: 3.9%; width: 3.4cqw; height: 3.4cqw; transform: translate(-50%,-50%); border-radius: 50%; box-sizing: border-box;
     border: .2cqw solid #6a5636; background: #e8dcc0; color: #4a3623; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .mk-close svg { width: 55%; height: 55%; }
-.mk-gold { position: absolute; left: 62.5%; top: 1.6%; padding: .4cqw 1cqw; border-radius: 1cqw; background: rgba(20,14,7,.85); border: .15cqw solid #c8a84b;
-    font: 700 1.5cqw/1 'Cinzel', serif; color: #ffe08a; white-space: nowrap; }
+/* R120 (owner, 2026-11-14): the market has no gold count of its own; while it is the only window open, the rail rises over
+   its backdrop (z 1000) and everything on it but the gold is dimmed as the backdrop would (55% black = brightness .45).
+   The rail takes no taps then, so a tap there still reaches the backdrop (mkOutside). */
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail { z-index: 1001; pointer-events: none; }
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail > :not(#statPanel),
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) #skillBtn,
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) .statPill:not(:first-child) { filter: brightness(.45); }
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail > #statPanel { box-shadow: inset 0 0 0 999px rgba(0,0,0,.55), 0 3px 7px rgba(0,0,0,.55); }   /* its card too, under the pills */
 /* v3: the dragon speaks INSIDE the market window - on the counter screen his bubble lives in #screenLayer,
    whose stacking context keeps it under any modal, whatever its own z-index. R38: top right, off the paper */
 /* R84 (owner, 2026-11-05): "make this dialogue look the same as the rest of the dragon's dialogues" - #dragonSay's box, name and text */
@@ -2573,7 +2579,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="mk-paper" id="mkPaper"><div class="mk-pages" id="mkPage"></div></div>
             <div class="mk-wheel" id="mkWheel"></div>
             <button class="mk-close" id="mkClose" type="button" title="Close" onclick="closeMarket()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg></button>
-            <span class="mk-gold">🪙 <b id="mkGold">0</b></span>
             <div class="mk-say" id="mkSay" hidden><span class="who">DRAGON</span><p></p></div>
         </div>
     </div>
@@ -7494,8 +7499,7 @@ function mkFill(pg){ const p=mkCur(), known=traitKnown(p.trait), st=marketRow(p.
     B.innerHTML=mkBuyFace(gift ? 'gift' : st, pr);
     B.title=(known ? TRAIT_BY[p.trait].name : '?')+' '+p.shape+(pr ? ' - '+pr+'g' : '');
     const S=pg.querySelector('.mk-stamp'), w=mkStamp(st); S.textContent=w; S.hidden=!w; }
-function renderMarket(){ mkWheelBuild(); mkWheelDraw(); const pg=mkPageEl(); if(pg) mkFill(pg);
-    const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD; }
+function renderMarket(){ mkWheelBuild(); mkWheelDraw(); const pg=mkPageEl(); if(pg) mkFill(pg); }   /* R120: the gold is the panel's (updateHud) */
 /* turn to page i: the old page leaves the way the swipe went (dir 1 up, -1 down), the new one comes in; the wheel follows its trait */
 function mkSetPage(i, dir, noSpin){ const N=mkPages().length, n=MARKET.traits.length; i=mkWrap(i, N); if(i===MK.page) return mkPageEl();
     MK.page=i; const old=mkCurPg();
@@ -7576,7 +7580,7 @@ function ftueLaterAt(){ FTUE_LATER_TAG=null; tutExit(null);
     if(FTUE_LATER==='find'){ FTUE_LATER='buy'; MK_LOCK=true; const pr=marketPrice('gale','Katana'); SAY_VARS.p=pr;
         const lit=()=>{ if(FTUE_LATER!=='buy') return; sayOver('D107cb'); ftueLaterCells(true); };
         if(GOLD>=pr){ lit(); return; }
-        sayOver(FTUE.marketShort); setTimeout(()=>{ const g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, pr); updateHud(); renderMarket(); lit(); }; if(g) coinFly(dragonEl(), g, go); else go(); }, 900); return; }
+        sayOver(FTUE.marketShort); setTimeout(()=>{ const g=document.getElementById('goldVal'), go=()=>{ GOLD=Math.max(GOLD, pr); updateHud(); renderMarket(); lit(); }; if(g) coinFly(dragonEl(), g, go); else go(); }, 900); return; }
     if(FTUE_LATER==='find2'){ FTUE_LATER='close'; MK_LOCK=true; SAY_VARS.p=marketPrice('fire','Claymore'); ftueLaterCells(false); sayOver('D107cd'); tutExit('#mkClose'); } }
 function ftueLaterBought(k, sh){ if(FTUE_LATER!=='buy' || k+':'+sh!==FTUE_LATER_KEYS[0]) return false;
     FTUE_LATER='find2'; MK_LOCK=false; ftueLaterCells(false); sayOver('D107cc'); setTimeout(ftueLaterSync, 0); return true; }
@@ -7587,7 +7591,7 @@ function ftueMarketOpened(){
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
         m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);
-        setTimeout(()=>ftueDeposit(m, document.getElementById('mkGold') || document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);
+        setTimeout(()=>ftueDeposit(m, document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);
         return; }
     m.step='buy'; m.mk=true;   /* R38: the page stays put (mkLocked) */
     mkShow(o.trait+':'+o.shape);
@@ -7596,7 +7600,7 @@ function ftueMarketOpened(){
 }
 /* D12: the dragon's coins land on the gold, which comes up to the price */
 function ftueMarketTopUp(){
-    const m=FTUE_MK, g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, marketPrice(m.o.trait, m.o.shape)); updateHud(); renderMarket(); mkShow(m.o.trait+':'+m.o.shape);
+    const m=FTUE_MK, g=document.getElementById('goldVal'), go=()=>{ GOLD=Math.max(GOLD, marketPrice(m.o.trait, m.o.shape)); updateHud(); renderMarket(); mkShow(m.o.trait+':'+m.o.shape);
         if(m && m.step==='buy') tutExit(mkCellOf(m.o)); };
     if(g) coinFly(dragonEl(), g, go); else go(); }
 function ftueMarketBought(k, sh){ if(ftueLaterBought(k, sh)) return;   /* R83 */

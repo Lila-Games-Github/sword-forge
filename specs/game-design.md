@@ -182,7 +182,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   buys it (R96, `ftueDeposit`; until R96 he unlocked it himself). Only owned
   shapes can be forged. A purchase (market or shape window) flies the quest claim's coins (`flyCoins`: 5 coins, 650 ms,
   70 ms apart) from the gold counter to the buy button, and the counter pops "-<price>g"; the gold is spent at once (R91,
-  `buyCoins`).
+  `buyCoins`). The gold counter is the inventory panel's (`#goldVal`): the market has none of its own (R120); while the market
+  is the only window open, the rail rises over its backdrop (z 1001, no taps) with everything but the gold dimmed
+  (brightness .45, the card by an inset shadow), and every dragon coin lands there.
 
 ### Progression: exp, levels and skills
 

@@ -1311,3 +1311,12 @@ yours and come on top.
   "Any shape is fine." (`custStory`). `CUST_ASKS` stays as the fallback for a trait with no line. Two owner words fixed:
   "compliments" to "complements" (GC9), curly quotes to straight (TC5). GC8, the waiting customer, Bram, TC2-TC4 and Garric
   keep their lines.
+- **R120 (owner, 2026-11-14): the market shows the panel's gold, not its own.** "for market, we have a separate gold tab,
+  remove that and make the gold on the inventory panel visible instead". The market's gold count (`.mk-gold`, `#mkGold`) is
+  gone. While the market is the only window open, the rail rises over the market's backdrop (z 1001 over 1000) and takes no
+  taps; everything on it but the gold pill is dimmed as the backdrop would (brightness .45 = 55% black), so the gold reads as
+  lit. The dragon's coins (the top-up, D28h; the gift, D28ca; the marketWatch deposit) land on the panel's gold (`#goldVal`).
+  Record: `specs/2026-10-29-rotary-market.md` (the Gold and Top-up rows). In the browser the card's own cream background
+  stayed bright around the dimmed pills, so it is darkened too (an inset shadow, under the pills). Checked in the browser: the
+  rail at z 1001 with only the gold lit; a tap on the gold still reaches the market (it closed, as before); the top-up's and the
+  gift's coins fly to `#goldVal`; no console errors. FTUE test (written first) GREEN at 1084.

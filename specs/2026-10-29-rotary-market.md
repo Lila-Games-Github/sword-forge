@@ -33,7 +33,7 @@ for now (art later); the tutorial solution of question 13 (below, Tutorial).
 | Background | The modal's black overlay (`rgba(0,0,0,.55)`) over the whole frame, HUD included. |
 | Art | `assets/ui/market_rotary.webp` (from the 1920x1080 png), drawn on a 16:9 stage centred in the frame; every position below is in that art's pixels. |
 | Close | A tap anywhere off the paper and off the wheel. Also a small round close button at the paper's top right corner (an addition: the tutorial needs a target to light; the reference has none). |
-| Gold | A small gold count beside the close button (the dragon's top-up coins land on it, D12). |
+| Gold | R120 (owner, 2026-11-14): none of its own. The inventory panel's gold stays lit over the backdrop (the rest of the rail dimmed); the dragon's top-up coins land on it, D12. Was a small gold count beside the close button. |
 | Dragon | His lines while the window is open show in a strip at the top right, off the paper (as before). |
 
 ## The wheel (the traits)
@@ -103,7 +103,7 @@ Tag colours (fill, border), the reference's four first:
 |---|---|
 | Guided buy (`FTUE_MK.step` 'buy') | The window opens on the ordered blueprint's page (the wheel turned to its trait) and the buy button is lit. |
 | The dragon pays (D10) | Same page; his coins fly to the buy button, then it is stamped PURCHASED. |
-| Top-up (D12) | His coins land on the gold count, then the buy button is lit. |
+| Top-up (D12) | His coins land on the panel's gold count (R120), then the buy button is lit. |
 | Come later (r253) | Gale Katana's page, lit; after `MK_ROT.laterMs` (1600 ms) Fire Claymore's page, lit; then the close button is lit. Closing gives D107d, as before. |
 | Swiping | Locked (wheel and pages) while the dragon pays, during a guided buy and during the come-later show, so the lit button stays on screen. |
 

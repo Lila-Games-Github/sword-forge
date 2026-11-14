@@ -221,7 +221,8 @@ is free, owned, closed ("Play more to unlock"), unknown (trait not found), too d
 the shape window. In the tutorial only the current order's blueprints can be bought (the others show greyed, R112), and the dragon pays for some: his coins fly to the
 gold counter with the price ("+<price>g"), then the player buys it (R96). Buying
 one (in either place) flies coins from the gold counter to the buy button, the same coins as a quest claim, and the counter
-shows "-<price>g" (R91).
+shows "-<price>g" (R91). The market has no gold count of its own: while it is open, the inventory panel's gold stays
+lit over the dark backdrop and the rest of the panel is dimmed (R120).
 
 ### The shop
 
