@@ -126,4 +126,26 @@ eq('R92: HM_HITS.price is the recorded curve and table', HM_HITS.price, { lo: 0.
   const fm = new Function('hmAccMul', body + '; return hmForgeMul;')(M.hmAccMul);
   eq('R92: hmForgeMul - the accuracy when there is one, else x1.0 (skip, unforged pages, old saves)',
     [fm({ forge: 0.9, quality: 'Good' }), fm({ forge: 0, quality: 'Crude' }), fm({ quality: 'Masterwork' }), fm({ forge: null }), fm(null)], [1.124, 0.8, 1, 1, 1]); }
+/* R121 (owner, 2026-11-14): the quick hammer for book crafts - specs/2026-11-14-quick-hammer.md */
+{ const s3 = src.replace(/\r\n/g, '\n'), q = s3.match(/\/\* HAMMER-QUICK-BEGIN \*\/([\s\S]*?)\/\* HAMMER-QUICK-END \*\//);
+  eq('R121: the quick hammer block is in the build', !!q, true);
+  const Q = q ? new Function(q[1] + '; return { HM_QUICK_CFG, hmQuickProg };')() : {};
+  eq('R121: HM_QUICK_CFG (the record)', Q.HM_QUICK_CFG, { orbTaps: 3, midTaps: 3, sway: 4, swayMs: 1800, gap: 170, endMs: 700 });
+  eq('R121: six taps - 3 shape the orb, 3 the mid-blade; never past the blade', [0, 1, 2, 3, 4, 5, 6, 7].map(t => +Q.hmQuickProg(t).toFixed(3)), [0, 0.333, 0.667, 1, 1.333, 1.667, 2, 2]);
+  eq('R121: CRAFT 1 opens the quick hammer after the shape window; the sword (and the ore) only at its end',
+    s3.includes('    SHAPE_CB=(shape)=>{ SHAPE_CB=null; hmQuickOpen(shape, rSkin, ()=>{   /* R121: the quick hammer first */\n        spendTally(need);'), true);
+  eq('R121: the trait card\'s CRAFT 1 goes the same way', s3.includes('function tcCraft1(){ closeTraitCard(); cbCraft(1); }'), true);
+  eq('R121: the page\'s quality, as before', s3.includes("quality:(r.forge ? r.forge.quality : HM_HITS.unforged), forge:(r.forge ? r.forge.acc : null),"), true);
+  eq('R121: no marks, no ring, no swing arrow, no mug, no drag pads in the quick hammer',
+    s3.includes('#sfHammerModal.hm-quick #hmPoints, #sfHammerModal.hm-quick #hmRing, #sfHammerModal.hm-quick #hmSwing, #sfHammerModal.hm-quick #hmGrip,\n#sfHammerModal.hm-quick #hmAimPad, #sfHammerModal.hm-quick #hmStrikePad, #sfHammerModal.hm-quick #hmMug { display: none !important; }'), true);
+  eq('R121: over the craft book it is opened from (as the shape window is)', s3.includes('#sfHammerModal.hm-quick { z-index: 1010; }'), true);
+  eq('R121: a tap anywhere strikes (the scene and the window around it), buttons excepted',
+    [s3.includes("    sc.addEventListener('pointerdown', e=>{ if(HM_QUICK){ if(e.target.closest && e.target.closest('button')) return; e.stopPropagation(); e.preventDefault(); hmQuickTap(); return; }"),
+     s3.includes("    md.addEventListener('pointerdown', e=>{ if(!HM_QUICK || (e.target.closest && e.target.closest('button'))) return; e.preventDefault(); hmQuickTap(); });")], [true, true]);
+  eq('R121: the dragon breathes by himself and sways; the heat stays full; the tutorial\'s minigame hooks stay out',
+    s3.includes("    if(HM_QUICK){ hmQuickSway(ts); hmHeat=1; if(hmShow!==hmProg){ const st=2.5*dt; hmShow = Math.abs(hmProg-hmShow)<=st ? hmProg : hmShow+Math.sign(hmProg-hmShow)*st; } hmRender(); return; }"), true);
+  eq('R121: the blade picture is the recipe\'s', s3.includes('function hmBladeFile(){ if(HM_QUICK) return bladeFor(HM_QUICK.skin, hmShape);   /* R121 */'), true);
+  eq('R121: SKIP HAMMER and Cancel', [s3.includes('function smShaped(){ if(HM_QUICK){ hmQuickEnd(); return; }   /* R121: SKIP HAMMER in the quick hammer */'),
+    s3.includes("function hmCancel(){ if(HM_QUICK){ hmQuickClose(); toast('Crafting cancelled. Nothing was spent.'); return; }   /* R121 */")], [true, true]);
+  eq('R121: the full minigame drops quick mode', s3.includes("function openHammer(){ hmQuickClose(true);   /* R121 */"), true); }
 console.log('[hammer] GREEN / ' + n + ' checks');

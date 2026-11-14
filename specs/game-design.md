@@ -100,7 +100,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **More traits:** drag the hot metal back into the smelter, add ore if needed, pump and open the gate again. The blade's
   traits show as pips in the craft frame (5 slots; a tier-N trait fills N).
 - **Craft book:** each trait set's page records the route that reached it (ores, grinds, tier, hammer grade); **CRAFT 1** makes
-  the page's sword straight away from its ores (no smelter, no minigame; §8).
+  the page's sword from its ores with no smelter (§8), through the quick hammer (R121, `HM_QUICK_CFG`, `specs/2026-11-14-quick-hammer.md`):
+  the shape window, then six ungraded taps anywhere (3 orb, 3 mid-blade) while the dragon breathes by himself (head swaying
+  ±4 degrees), then the crafted window; the page's forging grade, ore spent at the end (Cancel spends nothing).
 
 ## 5. Forging the blade
 

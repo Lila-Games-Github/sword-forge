@@ -1320,3 +1320,13 @@ yours and come on top.
   stayed bright around the dimmed pills, so it is darkened too (an inset shadow, under the pills). Checked in the browser: the
   rail at z 1001 with only the gold lit; a tap on the gold still reaches the market (it closed, as before); the top-up's and the
   gift's coins fly to `#goldVal`; no console errors. FTUE test (written first) GREEN at 1084.
+- **R121 (owner, 2026-11-14): a quick hammer for book crafts.** "when crafting from the craft book, I want the hammering
+  minigame to be there, But this direct craft hammering minigame will be different." CRAFT 1 (the craft book and the trait card)
+  now opens a quick hammer after the shape window: no hit points or aim ring, the dragon breathes by himself with his head
+  swaying, and six taps anywhere (3 orb, 3 mid-blade) shape the blade; then the crafted window as before. The sword keeps the
+  page's recorded quality; ore is spent when the sword is made, so Cancel spends nothing. Owner choices: page quality, both
+  buttons, 3+3. Record: `specs/2026-11-14-quick-hammer.md` (`HM_QUICK_CFG`). Found in the browser: the open craft book covered
+  the hammer (same z, later in the page), so the quick hammer takes z 1010 like the shape window; the cancel toast is a plain
+  toast (R90's count of the owner's ticked toasts). Checked in the browser: free play (fire Longsword, Broadsword) and GC6 in
+  the tutorial; taps on the scene, the HUD strip and the dragon's head all count; the hammer head lands on the metal; Cancel
+  spends nothing; SKIP HAMMER makes the sword; no console errors. Hammer test (written first) GREEN at 69.

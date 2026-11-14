@@ -43,7 +43,7 @@ bucket by its handle.
 9. **Finish (optional)** - decorate it at the design desk, sharpen it on the wheel (each +7g).
 10. **Sell** - at the counter to the customer's order, or leave it on a shop rack.
 
-The unit of play is one sword for one customer. The craft book lets a known sword be made in one tap, so the loop shifts from
+The unit of play is one sword for one customer. The craft book lets a known sword be made in a few taps (the quick hammer, R121), so the loop shifts from
 discovery to supply as the game goes on.
 
 ## 3. Characters and story
@@ -278,7 +278,10 @@ swings by itself. Tin and zinc have no seam yet.
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
   shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
 only Update is offered, R100). Its Trait Tier pips show from TC4's pip lesson on (hidden before, R113).
-- **CRAFT 1** makes the page's sword from its ores straight away (no smelter, no minigame; the page's forging grade).
+- **CRAFT 1** makes the page's sword from its ores with no smelter (the page's forging grade). After the shape window comes the
+  **quick hammer** (R121): no marks or aim ring, the dragon breathes on the metal by himself, his head swaying, and six taps
+  anywhere on the screen (3 on the orb, 3 on the mid-blade) shape the blade, then the crafted window. The taps are not graded;
+  ore is spent at the end, so Cancel costs nothing. The trait card's CRAFT 1 is the same.
 - Pages: 3 to start, +5 from TC2's reward.
 
 ## 9. The tutorial (FTUE)

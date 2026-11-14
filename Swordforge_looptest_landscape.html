@@ -1153,6 +1153,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmHammer { z-index: 4; transform-origin: 92.7% 59.5%;   /* butt of the handle — rotating here swings the HEAD */
     transform: translate(var(--hx,0px), var(--hy,0px)); filter: drop-shadow(0 26px 18px rgba(0,0,0,.5)); animation: hmHover 2.8s ease-in-out infinite; }
 #hmHammer.dragging { animation: none; }
+/* R121 (owner, 2026-11-14): the quick hammer (book crafts) - no marks, no aim, nothing to drag; a tap anywhere strikes */
+#sfHammerModal.hm-quick #hmPoints, #sfHammerModal.hm-quick #hmRing, #sfHammerModal.hm-quick #hmSwing, #sfHammerModal.hm-quick #hmGrip,
+#sfHammerModal.hm-quick #hmAimPad, #sfHammerModal.hm-quick #hmStrikePad, #sfHammerModal.hm-quick #hmMug { display: none !important; }
+#sfHammerModal.hm-quick, #sfHammerModal.hm-quick .hm-scene { cursor: pointer; }
+#sfHammerModal.hm-quick { z-index: 1010; }   /* over the craft book it is opened from, as the shape window is */
 #hmHammer.striking { filter: drop-shadow(0 16px 12px rgba(0,0,0,.6)) drop-shadow(0 0 16px rgba(255,200,90,.95)); }
 #hmHammer.hit { filter: drop-shadow(0 10px 8px rgba(0,0,0,.65)) drop-shadow(0 0 30px rgba(255,235,170,1));
     animation: hmSwing .24s cubic-bezier(.2,.8,.35,1) both; }
@@ -7365,7 +7370,7 @@ function cbCraft(n){
     const rSkin=skinOf({traits:traits});                   /* r91: the batch wears the recipe's trait */
     const need=bulkNeed(ores,n);                           // r74: Bulk Craft discounts the whole batch
     if(!canAffordTally(need)){ toast('Not enough ore for <b>'+n+'</b> \u2014 needs '+tallyText(need)); return; }
-    SHAPE_CB=(shape)=>{ SHAPE_CB=null;
+    SHAPE_CB=(shape)=>{ SHAPE_CB=null; hmQuickOpen(shape, rSkin, ()=>{   /* R121: the quick hammer first */
         spendTally(need);
         for(let i=0;i<n;i++){
             INV.swords.push({ id:INV_SEQ++, shape:shape, blade:bladeFor(rSkin, shape),
@@ -7377,7 +7382,7 @@ function cbCraft(n){
         tutSpotOn(null); invTab(2); renderRecipe();   /* R62: and a sword made from the book */
         CRAFT_ORE=(n===1) ? ftueSwordKey({}) : null;   /* r291: the ore chain */
         showCraft(INV.swords[INV.swords.length-1], n);                 // r90: same window, n blades in flight
-    };
+    }); };
     openShapeSelect();
 }
 function cbContinue(){
@@ -8049,6 +8054,13 @@ function hmMaskHit(m, u, v, r){ const X=u*m.w, Y=v*m.h, s=Math.max(1, r/3);
 /* r277: the hammer is drawn over the metal, so it wins a press that is on both */
 function hmPickTarget(onHammer, onWork){ return onHammer ? 'hammer' : onWork ? 'work' : null; }
 /* HAMMER-PURE-END */
+/* R121 (owner, 2026-11-14): the quick hammer for book crafts. Design record: specs/2026-11-14-quick-hammer.md;
+   tooling/hammer/hammer.test.mjs reads this block out of this file. */
+/* HAMMER-QUICK-BEGIN */
+const HM_QUICK_CFG = { orbTaps:3, midTaps:3, sway:4, swayMs:1800, gap:170, endMs:700 };
+/* shape progress after t taps, on hmProg's scale (0 orb, 1 mid-blade, 2 blade) */
+function hmQuickProg(t){ const C=HM_QUICK_CFG; return t<=C.orbTaps ? t/C.orbTaps : Math.min(2, 1+(t-C.orbTaps)/C.midTaps); }
+/* HAMMER-QUICK-END */
 /* the mid-blade's alpha, read once per image, so points land on metal and not on transparent canvas */
 const HM_MASKS={};
 function hmMask(src){
@@ -8160,6 +8172,35 @@ function hmSwingOn(on){
     svg.classList.add('on');
 }
 function hmClear(){ hmBreath(false); hmStop(); hmSwingOn(false); tutGlow('#hmOrb', false); }   /* r181 */
+/* R121: the quick hammer. HM_QUICK = { skin, done, taps, t0, a0, end, hx, hy } while it is open: the recipe's blade set, what
+   makes the sword, the taps so far, the sway's start and centre angle, the hammer's own offset to give back */
+let HM_QUICK=null;
+function hmQuickOpen(shape, skin, done){
+    const m=document.getElementById('sfHammerModal'); hmQuickClose(true); hmShape=shape;
+    HM_QUICK={ skin:skin, done:done, taps:0, t0:0, a0:HM_RIG.base, end:false, hx:hmHx, hy:hmHy };
+    hmHeat=1; hmProg=0; hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false; hmQuenching=false; hmPts=[];
+    m.classList.add('hm-quick'); hmLayout(); hmPointsDraw(); m.classList.add('show');
+    hmQuickPlace(); hmBreath(true); hmRender(); hmSay(); hmStart(); cheatUi(); }
+/* the hammer is set so its strike lands on the metal (its aim ring's spot on the anvil), and the dragon aims at the metal */
+function hmQuickPlace(){ const sc=document.getElementById('hmScene'), R=HM_RIG, h=document.getElementById('hmHammer'); if(!sc || !HM_QUICK) return;
+    hmHx=sc.offsetWidth*(R.anvil.x-HM_HITS.ring.x)/100; hmHy=sc.offsetHeight*(R.anvil.y-2-HM_HITS.ring.y)/100;
+    if(h){ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px'); }
+    const r=sc.getBoundingClientRect(); if(r.width>=2){ hmAimAt(r.left+r.width*R.anvil.x/100, r.top+r.height*R.anvil.y/100); HM_QUICK.a0=hmAngle; } }
+/* his head sways a little either way while he breathes */
+function hmQuickSway(ts){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q) return; if(!q.t0) q.t0=ts;
+    hmAimDragon(q.a0+C.sway*Math.sin((ts-q.t0)/C.swayMs*2*Math.PI)); }
+/* a tap anywhere: the hammer swings, the metal takes the blow, the shape moves on; the sixth ends it */
+function hmQuickTap(){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q || q.end) return;
+    const now=performance.now(); if(now-hmLastStrike<C.gap) return; hmLastStrike=now;
+    const h=document.getElementById('hmHammer'); if(h){ h.classList.remove('hit'); void h.offsetWidth; h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240); }
+    q.taps++; hmProg=hmQuickProg(q.taps);
+    hmJolt('jolt'); hmImpact(true); hmSay();
+    if(q.taps>=C.orbTaps+C.midTaps){ q.end=true; setTimeout(()=>{ if(HM_QUICK===q) hmQuickEnd(); }, C.endMs); } }
+/* leave quick mode: the hammer's own offset back; keep = the window stays (the full minigame is opening) */
+function hmQuickClose(keep){ const m=document.getElementById('sfHammerModal'), q=HM_QUICK; if(m) m.classList.remove('hm-quick'); if(!q) return null;
+    HM_QUICK=null; hmHx=q.hx; hmHy=q.hy; const h=document.getElementById('hmHammer'); if(h){ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px'); }
+    if(!keep){ if(m) m.classList.remove('show'); hmClear(); cheatUi(); } return q; }
+function hmQuickEnd(){ const q=hmQuickClose(); if(q && q.done) q.done(); }
 function selectShape(shape){ const fo=ftueOrderOpen(); if(fo && !ftueOrderShapeOk(fo, shape)){ ftueFocus(fo); return; }   /* r292: the craft lock - the picker stays open */
     SHAPE_FROM_TUT=false;   /* r144 */
     document.getElementById('sfShapeModal').classList.remove('show'); ftueFocusDone();   /* r292 */
@@ -8168,7 +8209,7 @@ function selectShape(shape){ const fo=ftueOrderOpen(); if(fo && !ftueOrderShapeO
 /* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
 const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword', Katana:'Longsword', Cutlass:'Shortsword', Machete:'Shortsword',
                        Saber:'Longsword', Scimitar:'Longsword', Claymore:'Broadsword' };   /* v3: the new shapes borrow until their mid-blades land */   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
-function openHammer(){
+function openHammer(){ hmQuickClose(true);   /* R121 */
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false;   /* r209 */
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay(); hmSetPoints(0);
@@ -8178,7 +8219,7 @@ function openHammer(){
 }
 // Place everything that is not already registered on the shared canvas.
 /* r207: which blade file this sword ends as - its trait's set (skinOf), its shape */
-function hmBladeFile(){
+function hmBladeFile(){ if(HM_QUICK) return bladeFor(HM_QUICK.skin, hmShape);   /* R121 */
     const ids=(melt && melt.traits) ? melt.traits.map(a=>({ tid:a.t.id })) : [];
     return bladeFor(skinOf({ traits:ids }), hmShape); }
 function hmLayout(){
@@ -8289,7 +8330,7 @@ function cheatUi(){
 }
 /* r88: backing out is not throwing the blade away. The bench is untouched while the minigame runs -
    the metal and its traits are still sitting on the anvil - so closing the panel is the whole job. */
-function hmCancel(){
+function hmCancel(){ if(HM_QUICK){ hmQuickClose(); toast('Crafting cancelled. Nothing was spent.'); return; }   /* R121 */
     document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     toastCut('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
 }
@@ -8377,6 +8418,7 @@ function hmRender(){
 function hmSay(){
     const el=document.getElementById('hmSay'); if(!el) return;
     hmMugState();
+    if(HM_QUICK){ const N=HM_QUICK_CFG.orbTaps+HM_QUICK_CFG.midTaps; el.innerHTML = HM_QUICK.taps>=N ? 'Blade shaped!' : 'Tap anywhere to strike ('+HM_QUICK.taps+'/'+N+')'; return; }   /* R121 */
     el.innerHTML = hmProg>=2 ? 'Blade shaped!'   /* smelter version */
         : hmHeat>=HM_FORGE.workMin ? 'It glows: put the <b>ring</b> on a <b>mark</b>, then <b>tap the hammer</b>'   /* r209 */
         : 'Hold the <b>metal</b>: the dragon turns its head and breathes on it';
@@ -8400,6 +8442,7 @@ function hmTick(ts){
     hmRaf=requestAnimationFrame(hmTick);
     if(TUT_PAUSE){ hmLast=ts; return; }   /* r173: and the stamp moves with it, so dt does not spike on resume */
     const dt=hmLast ? Math.min(0.1,(ts-hmLast)/1000) : 0; hmLast=ts;
+    if(HM_QUICK){ hmQuickSway(ts); hmHeat=1; if(hmShow!==hmProg){ const st=2.5*dt; hmShow = Math.abs(hmProg-hmShow)<=st ? hmProg : hmShow+Math.sign(hmProg-hmShow)*st; } hmRender(); return; }   /* R121 */
     const F=HM_FORGE, was=hmHeat;
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
     hmHeat=Math.max(0, hmHeat-F.heatCool*dt);
@@ -8481,9 +8524,13 @@ function hmOnWork(x,y){ const T=HM_HITS.touch.metal, vis=el=>!!el && parseFloat(
         if(m ? hmMaskHit(m, q.u, q.v, T*m.w/q.px) : (q.u>=0 && q.v>=0 && q.u<=1 && q.v<=1)) return true; }
     return false; }
 function wireHmTouch(){ const sc=document.getElementById('hmScene'); if(!sc) return;
-    sc.addEventListener('pointerdown', e=>{ if(e.target.closest && e.target.closest('#hmMug, button')) return;
+    sc.addEventListener('pointerdown', e=>{ if(HM_QUICK){ if(e.target.closest && e.target.closest('button')) return; e.stopPropagation(); e.preventDefault(); hmQuickTap(); return; }   /* R121 */
+        if(e.target.closest && e.target.closest('#hmMug, button')) return;
         const who=hmPickTarget(hmOnHammer(e.clientX,e.clientY), hmOnWork(e.clientX,e.clientY)); if(!who || !HM_DOWN[who]) return;
         e.stopPropagation(); e.preventDefault(); HM_DOWN[who](e); }, true);
+    /* R121: the quick hammer takes a tap anywhere in its window, around the scene too */
+    const md=document.getElementById('sfHammerModal')||sc;
+    md.addEventListener('pointerdown', e=>{ if(!HM_QUICK || (e.target.closest && e.target.closest('button'))) return; e.preventDefault(); hmQuickTap(); });
     /* a mouse gets the cursor the art asks for (a finger has none) */
     sc.addEventListener('pointermove', e=>{ if(e.buttons || e.pointerType!=='mouse') return;
         sc.style.cursor = hmOnHammer(e.clientX,e.clientY) ? 'grab' : hmOnWork(e.clientX,e.clientY) ? 'pointer' : ''; }); }
@@ -8499,7 +8546,7 @@ function wireHmDragon(){
     sc.addEventListener('pointermove', e=>{ if(live===e.pointerId) hmAimAt(e.clientX,e.clientY); });
     const end=e=>{ if(live!==e.pointerId) return; live=null; if(wrap) wrap.classList.remove('grabbing'); hmBreath(false); };
     sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
-    if(head) head.addEventListener('click', e=>{ e.preventDefault(); dragonTap(e, sc); });
+    if(head) head.addEventListener('click', e=>{ e.preventDefault(); if(HM_QUICK) return; dragonTap(e, sc); });   /* R121 */
 }
 // Drag the hammer. The sprite is a full-canvas layer, so transparent pads carry the pointer events
 // and the layer itself is only translated (--hx/--hy, which the hover animation also reads).
@@ -8526,7 +8573,7 @@ function wireHmHammer(){
     HM_PAINT=paint; paint();
 }
 /* smelter version: the shaped blade lies on the anvil; dragged into the bucket it is quenched and finished (finishBlade) */
-function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
+function smShaped(){ if(HM_QUICK){ hmQuickEnd(); return; }   /* R121: SKIP HAMMER in the quick hammer */ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
     m.classList.remove('show'); hmClear(); cheatUi();
     if(['D45','D46','D78'].includes(SAY_ON)) sayHide();   /* R4: the minigame's lines go with it */
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
