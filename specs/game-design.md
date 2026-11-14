@@ -153,8 +153,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 
 - **The bell** brings one customer at a time (no timer). During the tutorial the stage decides who comes (the scripted
   customers and each part's gameplay customers, §7). After it, `nextCustomer`: a random portrait from 7 (`CUST_POOL`); 80%
-  ask for a trait already discovered (`CUST_DISCOVERED`), 20% for one not yet found, in one of 4 lines (`CUST_ASKS`, "Do you
-  have a <Trait> sword?").
+  ask for a trait already discovered (`CUST_DISCOVERED`), 20% for one not yet found, each with its trait's story (R119, `CUST_STORY`, one
+  line per trait, then "Any shape is fine."; lines in `specs/2026-11-10-ftue-customer-list.md`), falling back to one of 4 asks (`CUST_ASKS`) for a trait
+  with no line. The tutorial's gameplay customers say their own line too (`FTUE.orderLines`).
 - **Orders:** tutorial orders name a trait and may name a shape, a tier, or several items (`orderMatches` checks the trait,
   the shape and the best tier). A sword that does not match is refused with a toast. Several-sword orders are handed over one
   at a time; the last one pays for all (r267).

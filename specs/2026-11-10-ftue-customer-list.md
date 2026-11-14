@@ -26,7 +26,7 @@ page in the craft book. Until R108 the ores came after the previous sale.
 | 3 | **GC7** | Fire Katana. | None. The player buys the fire Katana blueprint (top-up if short). | page:fire (after D92j) |
 | 4 | **TC4** (`woman2`) | "A durable sword. Make sure it is EPIC!" (D92k), any shape. | None. | 2 nickel (after D92l) |
 | 4 | **GC8** (the servant; since R95 right after TC4) | A **Weak** balanced Longsword (D107a). | None. | 1 iron + 1 manganese (once the order has typed; no dragon line) |
-| 4 | **TC5** (`man2`) | "Do you have a sword with the Gale trait?" (D93): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | 2 copper (after D93a); 5 more when the swift ingot is stored |
+| 4 | **TC5** (`man2`) | "... Do you have one? A shortsword should be enough." (D93, R119): a gale Shortsword. | None. On the way, the swift metal is stored (it gives **5 copper**). | 2 copper (after D93a); 5 more when the swift ingot is stored |
 | 4 | **Waiting customer** | Gale Katana **and** fire Claymore (D107c). The dragon will not buy the blueprints (D107d); the player taps COME LATER and the order goes to the ledger. | None at the time. When the player has 750g or more, the dragon guides them back to the order (D107f) and gives its ores (D107g). The market walk (R83) has the player buy the gale Katana. | page:gale + page:fire (with D107g, when called on from the ledger) |
 | 5 | **Bram returns** (`BramD2`) | A swift Dagger, sharper than the last (D111, D111a). | The dragon gives the swift Dagger blueprint's price; the player buys it (D111b, R96). Reward window: **the sharpening wheel** (D48). Bram's gift: **the diary** (D114-D117). | None (the stored swift ingot) |
 | 5 | **GC9** | Gale Longsword. | The dragon gives the gale Longsword blueprint's price; the player buys it (D113a, R96). | page:gale (after D113a) |
@@ -41,3 +41,53 @@ page in the craft book. Until R108 the ores came after the previous sale.
 - **Quests** pay 20g and 20 exp each when claimed; they are not tied to a customer.
 - **Owner questions still open** (HANDOFF.md): D107d says the dragon will not buy the blueprints, but R83 then walks the player
   to buy the gale Katana.
+
+## Order lines (R119, 2026-11-14)
+
+What each customer says when they arrive. Owner: "make up some story for customers that do not have any"; the owner rewrote
+GC3, GC4, GC9 and TC5. The build keeps the tutorial lines in `FTUE.orderLines` (key = the order, as in `FTUE.oreChain`) and
+D93; the random customers' lines in `CUST_STORY`. GC8 (D107a), the waiting customer (D107c), Bram (D21, D111), TC2 (D29),
+TC3 (D63), TC4 (D92k) and Garric (D128) already had a story and are unchanged.
+
+| Key | Customer | Order | Line |
+|---|---|---|---|
+| `p1g0` | GC1 | balanced Longsword | "Did you hear Whitefield was attacked by monsters? I need to learn how to defend myself! Give me a balanced longsword." |
+| `p1g1` | GC2 | balanced Broadsword | "After Whitefield, the captain doubled the watch on the OakHaven walls. I got the night shift. Give me a balanced broadsword." |
+| `p1g2` | GC3 | balanced Katana | "My katana broke while fighting a Gargoyle. My master told me I am worthless without my sword. He is angry at me for breaking it. But I think my powers have just grown so much, the sword couldn't keep up. Hah! A balanced katana please." |
+| `p3g0` | GC4 | durable Shortsword | "I just want a sword that will never break! The blacksmiths in this town are so 'fragile', just like their craft. You are not from here, right? I hope you can do better. Give me a durable shortsword." |
+| `p3g1` | GC5 | fire Longsword | "I hear a band of adventurers is hunting ice drakes in the north. I am joining them! A fire longsword, please." |
+| `p3g2` | GC6 | fire Broadsword | "Frost wolves are already at my farm gate, and they hate fire. Give me a fire broadsword." |
+| `p3g3` | GC7 | fire Katana | "I am a travelling performer. My fire dance needs a blade that really burns. A fire katana, if you can." |
+| `p5g0` | GC9 | gale Longsword | "I need a sword that complements my natural powers. It should be able to fly with me and command the winds! Give me a gale longsword." |
+| D93 | TC5 | gale Shortsword | "I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough." |
+
+**After the tutorial**, a random customer asks for a trait and no shape. They say that trait's line, then "Any shape is
+fine." (one line per trait; a trait with no line falls back to the four random asks, `CUST_ASKS`).
+
+| Trait | Line |
+|---|---|
+| swift | "I carry messages for the queen, and slow riders do not last. A swift sword, please." |
+| balanced | "My son just joined the town guard and holds a sword like a broom. I want a balanced sword for him." |
+| durable | "I keep breaking swords on the training posts. I want a durable sword this time." |
+| flexible | "I fight in the narrow alleys of the port. I need a flexible sword that bends and does not break." |
+| heavy | "I am the best arm-wrestler in OakHaven, and every sword feels like a twig. Make me a heavy one." |
+| celestial | "I serve at the moon temple. The stars told me to come here. A celestial sword." |
+| cloud | "I want to climb the Sky Spire. They say a cloud sword makes you light on your feet." |
+| rainbow | "My daughter asked for a sword with every colour in it. A rainbow sword, please." |
+| luck | "I have a big card game tonight. A luck sword on my belt cannot hurt." |
+| lightning | "Storm giants walk the hills this season. I will fight lightning with lightning. A lightning sword." |
+| noble | "My father wants me knighted by spring. I need a noble sword to stand before the king." |
+| grace | "I perform sword dances at the royal court. Only a grace sword will do." |
+| gale | "Pirates keep raiding the harbour. A gale sword would keep them off my deck." |
+| floral | "My wedding is next week, and my partner wants a sword that blooms. A floral sword, please." |
+| fury | "Orcs burned my farm. I want a fury sword, and I want it angry." |
+| ice | "The desert caravans are cooking us alive. They say an ice blade keeps its bearer cool. I want one." |
+| fire | "Ice drakes were seen near Whitefield again. I need a fire sword." |
+| water | "A fire spirit burned down my mill last week. Give me a water sword." |
+| magma | "The golems in the old quarry are made of stone. Only something hotter than fire will crack them. A magma sword." |
+| mist | "I am a thief... I mean, a quiet traveller. A mist sword would suit me." |
+| poison | "The swamp beasts heal too fast. I need a poison sword to slow them down." |
+| savage | "The beasts of the Black Wood do not fight fair, so neither will I. A savage sword." |
+| blood | "I am a warrior of the red clan. Our blades drink from every fight. A blood sword." |
+| cursed | "I collect strange things. Everyone says a cursed sword is a bad idea, so of course I want one." |
+| dark | "Something hunts in my village at night. I need a dark sword to face it in its own shadows." |

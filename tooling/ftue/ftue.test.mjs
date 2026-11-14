@@ -2017,6 +2017,58 @@ eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', 
     for (; j < s8.length; j++) { if (s8[j] === '{') d++; else if (s8[j] === '}' && --d === 0) break; } return s8.slice(i, j + 1); };
   const A = new Function('CUST_ASKS', 'CUST_ANY', 'orderLabel', fn('custAsk') + '; return custAsk;')([n => 'Do you have a ' + n + '?'], 'Any shape is fine.', (n, sh) => sh ? n + ' ' + sh : n + ' sword');
   eq('R118: no shape - the ask, then Any shape is fine.; a shape - the ask alone', [A('Fire', null), A('Fire', 'Longsword')], ['Do you have a Fire sword? Any shape is fine.', 'Do you have a Fire Longsword?']);
-  eq('R118: the random customers and the tutorial\'s gameplay customers ask through it', [s8.includes("const CUST_ANY='Any shape is fine.';"), s8.includes('custLine(null, custAsk(tr.name, null));'),
-    s8.includes(': custAsk(tr.name, o.shape));')], [true, true, true]); }
+  eq('R118: the random customers and the tutorial\'s gameplay customers ask through it (R119: as the fallback)', [s8.includes("const CUST_ANY='Any shape is fine.';"), s8.includes('custLine(null, custStory(tr.id, tr.name));'),
+    s8.includes(': FTUE.orderLines[\'p\'+FTUE_ST.part+\'g\'+FTUE_ST.gpc] || custAsk(tr.name, o.shape));')], [true, true, true]); }
+/* R119 (owner, 2026-11-14): every customer has a story - specs/2026-11-10-ftue-customer-list.md, "Order lines" */
+{ const s9 = src.replace(/\r\n/g, '\n');
+  eq('R119: the tutorial\'s gameplay customers\' lines, by order', FTUE.orderLines, {
+    p1g0: "Did you hear Whitefield was attacked by monsters? I need to learn how to defend myself! Give me a balanced longsword.",   /* GC1, balanced Longsword */
+    p1g1: "After Whitefield, the captain doubled the watch on the OakHaven walls. I got the night shift. Give me a balanced broadsword.",   /* GC2, balanced Broadsword */
+    p1g2: "My katana broke while fighting a Gargoyle. My master told me I am worthless without my sword. He is angry at me for breaking it. But I think my powers have just grown so much, the sword couldn't keep up. Hah! A balanced katana please.",   /* GC3, balanced Katana */
+    p3g0: "I just want a sword that will never break! The blacksmiths in this town are so 'fragile', just like their craft. You are not from here, right? I hope you can do better. Give me a durable shortsword.",   /* GC4, durable Shortsword */
+    p3g1: "I hear a band of adventurers is hunting ice drakes in the north. I am joining them! A fire longsword, please.",   /* GC5, fire Longsword */
+    p3g2: "Frost wolves are already at my farm gate, and they hate fire. Give me a fire broadsword.",   /* GC6, fire Broadsword */
+    p3g3: "I am a travelling performer. My fire dance needs a blade that really burns. A fire katana, if you can.",   /* GC7, fire Katana */
+    p5g0: "I need a sword that complements my natural powers. It should be able to fly with me and command the winds! Give me a gale longsword.",   /* GC9, gale Longsword */
+  });
+  eq('R119: a line for every gameplay order that had a random ask, and none for GC8 or the waiting customer', Object.keys(FTUE.orderLines).sort(),
+    [1, 3, 5].flatMap(p => FTUE.parts[p].gpc.map((o, i) => 'p' + p + 'g' + i)).sort());
+  eq('R119: TC5 says why, and that a shortsword is enough', s9.includes('    D93: ' + "\"I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough.\""), true);
+  const cs = s9.match(/const CUST_STORY=\{([\s\S]*?)\n\};/); const CS = cs ? new Function('return {' + cs[1] + '};')() : null;
+  eq('R119: one story per trait after the tutorial', CS, {
+    swift: "I carry messages for the queen, and slow riders do not last. A swift sword, please.",
+    balanced: "My son just joined the town guard and holds a sword like a broom. I want a balanced sword for him.",
+    durable: "I keep breaking swords on the training posts. I want a durable sword this time.",
+    flexible: "I fight in the narrow alleys of the port. I need a flexible sword that bends and does not break.",
+    heavy: "I am the best arm-wrestler in OakHaven, and every sword feels like a twig. Make me a heavy one.",
+    celestial: "I serve at the moon temple. The stars told me to come here. A celestial sword.",
+    cloud: "I want to climb the Sky Spire. They say a cloud sword makes you light on your feet.",
+    rainbow: "My daughter asked for a sword with every colour in it. A rainbow sword, please.",
+    luck: "I have a big card game tonight. A luck sword on my belt cannot hurt.",
+    lightning: "Storm giants walk the hills this season. I will fight lightning with lightning. A lightning sword.",
+    noble: "My father wants me knighted by spring. I need a noble sword to stand before the king.",
+    grace: "I perform sword dances at the royal court. Only a grace sword will do.",
+    gale: "Pirates keep raiding the harbour. A gale sword would keep them off my deck.",
+    floral: "My wedding is next week, and my partner wants a sword that blooms. A floral sword, please.",
+    fury: "Orcs burned my farm. I want a fury sword, and I want it angry.",
+    ice: "The desert caravans are cooking us alive. They say an ice blade keeps its bearer cool. I want one.",
+    fire: "Ice drakes were seen near Whitefield again. I need a fire sword.",
+    water: "A fire spirit burned down my mill last week. Give me a water sword.",
+    magma: "The golems in the old quarry are made of stone. Only something hotter than fire will crack them. A magma sword.",
+    mist: "I am a thief... I mean, a quiet traveller. A mist sword would suit me.",
+    poison: "The swamp beasts heal too fast. I need a poison sword to slow them down.",
+    savage: "The beasts of the Black Wood do not fight fair, so neither will I. A savage sword.",
+    blood: "I am a warrior of the red clan. Our blades drink from every fight. A blood sword.",
+    cursed: "I collect strange things. Everyone says a cursed sword is a bad idea, so of course I want one.",
+    dark: "Something hunts in my village at night. I need a dark sword to face it in its own shadows.",
+  });
+  const tb = s9.slice(s9.indexOf('const TRAITS = ['), s9.indexOf('\n];', s9.indexOf('const TRAITS = [')));
+  eq('R119: the story list covers every trait', Object.keys(CS || {}).sort(), [...tb.matchAll(/id:'([a-z]+)'/g)].map(x => x[1]).sort());
+  const fn = name => { const i = s9.indexOf('function ' + name + '('); if (i < 0) return ''; let d = 0, j = s9.indexOf('{', i);
+    for (; j < s9.length; j++) { if (s9[j] === '{') d++; else if (s9[j] === '}' && --d === 0) break; } return s9.slice(i, j + 1); };
+  const st = new Function('CUST_STORY', 'CUST_ANY', 'custAsk', fn('custStory') + '; return custStory;')({ fire: 'Ice drakes. I need a fire sword.' }, 'Any shape is fine.', (n, sh) => 'Do you have a ' + n + ' sword?' + (sh ? '' : ' Any shape is fine.'));
+  eq('R119: a trait with a story says it, then Any shape is fine.; one without falls back to the random ask', [st('fire', 'Fire'), st('mist', 'Mist')],
+    ['Ice drakes. I need a fire sword. Any shape is fine.', 'Do you have a Mist sword? Any shape is fine.']);
+  const all = GCL => Object.values(GCL);
+  eq('R119: the new lines use straight quotes and never say click', all(FTUE.orderLines).concat(all(CS || {}), ["I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough."]).filter(l => /[\u2018\u2019\u201c\u201d\u2014]|click/i.test(l)).length, 0); }
 console.log('[ftue] GREEN / ' + n + ' checks');

@@ -1302,3 +1302,12 @@ yours and come on top.
   owner: TC3 (D63) and TC5 (D93) need a Shortsword but do not say so. Checked in the browser: TC2's and TC4's lines end with it, D128 holds it,
   four free-play customers each said a random ask then "Any shape is fine.", GC1 (a Longsword) did not. Asserted by the FTUE test
   (written first; GREEN at 1074 with R117).
+- **R119 (owner, 2026-11-14): every customer has a story.** "I want to come up with a story for all customers. Currently, none
+  of the game customers have a good story." Drafts shown, the owner rewrote GC3, GC4, GC9 and TC5, then "build, if there are
+  any issues, we fix later". The lines are recorded in `specs/2026-11-10-ftue-customer-list.md` ("Order lines"): the tutorial's
+  eight gameplay customers say their own line (`FTUE.orderLines`, keyed like `FTUE.oreChain`, p<part>g<order>) in place of a
+  random ask; TC5 (D93) says why it wants gale and that a shortsword is enough (this closes the TC5 half of the open
+  Shortsword question); a random customer after the tutorial says its trait's line (`CUST_STORY`, one per trait, 25), then
+  "Any shape is fine." (`custStory`). `CUST_ASKS` stays as the fallback for a trait with no line. Two owner words fixed:
+  "compliments" to "complements" (GC9), curly quotes to straight (TC5). GC8, the waiting customer, Bram, TC2-TC4 and Garric
+  keep their lines.
