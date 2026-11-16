@@ -176,7 +176,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   `specs/2026-11-16-sale-window.md`):** a paid sale opens "Sword Sold!" (a coin, "+Ng", "+N popularity", CLAIM); the gold is already paid,
   the counter holds the old count, and CLAIM flies the coins from the window to it (`flyCoins`), then runs the sale's next
   steps (the tutorial hooks, `ftueGpcSold`, the thank-you, exp). An unpaid sale (Garric refusing) opens none. No "Sold for"
-  toast.
+  toast. It opens with a gold burst (R131, `SALE_FX`: the trait window's burst, gold only, 40 particles and a 200 px ring;
+  `acqBurst(tier, window, table)`).
 - **COME LATER** puts the customer on the waiting list (`FTUE_ST.waiting`); the ledger calls them back. In the tutorial only the
   Part 4 two-sword customer can wait. **DENY** is a placeholder (no action), hidden until the tutorial ends.
 - **The player's reply** (R56, `FTUE.replies`): in the tutorial, after an order line the player taps a reply ("Yes, I can craft

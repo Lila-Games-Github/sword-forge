@@ -30,3 +30,22 @@ the quest claim's coins); the count stays at the old value until they land, then
 - **The coins no longer fly from SELL** (r268); they fly from the window.
 - **The "Sold for 44g" toast is gone** (the window says it); R90's count of the owner's ticked toasts drops from 28 to 27.
 - **A sale that pays nothing** (Garric refusing a grade-1 sword) opens no window: its toast and the steps run at once.
+
+## The gold burst (R131, 2026-11-16)
+
+Owner: "can we have the same, particle explosion effect as when we get for trait discovery. for gold window it should have gold
+color only and smaller burst". The sale window bursts as it opens, with the trait window's burst (R58-R59: a ring, glowing
+sparks and flipping confetti from the window's edge, then a smaller second burst), from its own table `SALE_FX`:
+
+| Value | Trait window (`ACQ_FX`, Fine) | Sale window (`SALE_FX`) |
+| --- | --- | --- |
+| Particles | 70 | 40 (second burst 18) |
+| Speed | 380-820 px/s | 260-560 px/s |
+| Size | 5-10 px | 4-8 px |
+| Life | 0.7-1.3 s | 0.6-1.1 s |
+| Ring | 320 px, 0.55 s, 6 px | 200 px, 0.5 s, 5 px |
+| Colours | the tier's colour, gold, white | deep gold `[232,163,23]`, gold `[255,214,90]`, pale gold `[255,236,160]` (the ring deep gold) |
+| Second burst | 0.35 s later, x0.45 count, x0.6 speed and ring | 0.3 s later, the same factors |
+
+Drag, fall, spin and the colour mix (50% / 35% / 15%) are the trait window's. Visual only; the burst code (`acqBurst`) now takes
+the window and the table.

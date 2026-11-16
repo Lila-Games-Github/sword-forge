@@ -1399,3 +1399,10 @@ yours and come on top.
   holding 1300; CLAIM flew 5 coins from the window's coin, the counter showed 1330 as they landed, the thank-you and +5 exp
   came after; GC1's sale counted the order and rang the bell only after CLAIM; Bram's sale stayed "counter-ready" until CLAIM
   (nothing covered it), then "sold"; no console errors. FTUE GREEN at 1099.
+- **R131 (owner, 2026-11-16): the sale window bursts in gold.** "can we have the same, particle explosion effect as when we get
+  for trait discovery. for gold window it should have gold color only and smaller burst". The trait window's burst (R58-R59),
+  from its own table `SALE_FX`: gold only (deep, plain, pale), 40 particles (70), slower, smaller, a 200 px ring (320).
+  `acqBurst` takes the window and the table. Record: `specs/2026-11-16-sale-window.md` ("The gold burst"). R59's and R130's
+  checks pin the new lines. Checked in the browser (frames stepped by hand): 40 particles, all three golds, a deep gold ring,
+  on the sale window's own canvas, gone after 2 s; the trait window still bursts with 70 in its tier's blue, gold and white; no
+  console errors. Smelter test GREEN at 160.

@@ -941,6 +941,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sale-sub { margin: 0 0 12px; font-size: 13px; color: #6b5536; }
 /* R58: the trait window's burst - a canvas over its dark, behind its box, taps passing through */
 #acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#saleFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }   /* R131: the sale window's burst */
+#sfSaleModal .sf-modal-box { position: relative; z-index: 1; }
 #sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }
 /* R63 (owner, 2026-11-03): "make this popup bigger. increase text size as well" - the window and its text x1.5 */
 #sfAcquireModal .sf-modal-box { max-width: 480px; padding: 24px; }
@@ -3064,6 +3066,12 @@ function acqStep(F, p, dt){ const k=Math.exp(-F.drag*dt); p.vx*=k; p.vy=p.vy*k+F
 function acqLook(k){ k=Math.max(0, Math.min(1, k)); return Math.min(1, k/0.08)*(1-k*k); }
 /* the ring at t s: its radius (easing out, to R; F.ring.r by default) and opacity */
 function acqRing(F, t, R){ const k=Math.max(0, Math.min(1, t/F.ring.time)); return { r:(R||F.ring.r)*(1-(1-k)*(1-k)), a:1-k }; }
+/* R131 (owner, 2026-11-16): "can we have the same, particle explosion effect as when we get for trait discovery. for gold window it
+   should have gold color only and smaller burst" - the sale window's burst: ACQ_FX's shape, gold only, smaller. Record:
+   specs/2026-11-16-sale-window.md (R131) */
+const SALE_FX={ count:40, speed:[260,560], drag:1.8, fall:260, life:[0.6,1.1], size:[4,8], spin:12, mix:[0.5,0.85],
+    ring:{ r:200, time:0.5, width:5 }, tint:{ Gold:[232,163,23] }, gold:[255,214,90], white:[255,236,160], big:{},
+    after:{ delay:0.3, n:0.45, sp:0.6, ring:0.6 } };   /* deep gold, gold, pale gold; no tier sizes; the smaller second burst as R59 */
 /* ACQFX-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -4787,7 +4795,7 @@ function saleShow(amt, n, pop, then){ SALE_AMT=amt; SALE_THEN=then||null;
     document.getElementById('saleTitle').textContent = n>1 ? n+' Swords Sold!' : 'Sword Sold!';
     document.getElementById('saleAmt').textContent='+'+amt+'g';
     const s=document.getElementById('saleSub'); s.textContent = pop ? '+'+pop+' popularity' : ''; s.hidden=!pop;
-    document.getElementById('sfSaleModal').classList.add('show'); }
+    document.getElementById('sfSaleModal').classList.add('show'); acqBurst('Gold', 'sfSaleModal', SALE_FX); }   /* R131: the gold burst */
 function saleClaim(){ const m=document.getElementById('sfSaleModal'); if(!m || !m.classList.contains('show')) return;
     const amt=SALE_AMT, then=SALE_THEN, from=document.getElementById('saleCoin').getBoundingClientRect(); SALE_THEN=null;
     m.classList.remove('show'); if(then) then();
@@ -7345,24 +7353,25 @@ function showAcquire(bt,tier,total,fresh){
     document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }
 /* R58: the burst - one canvas over the window's dark, behind its box; its own frame loop while anything lives. Visual only */
 const ACQ={ cv:null, g:null, d:1, ps:[], rings:[], next:null, clock:0, raf:0, t:0 };
-function acqBurst(tier){ const m=document.getElementById('sfAcquireModal'), box=m && m.querySelector('.sf-modal-box'); if(!box) return;
-    let c=document.getElementById('acqFx'); if(!c){ c=document.createElement('canvas'); c.id='acqFx'; m.insertBefore(c, m.firstChild); }
+function acqBurst(tier, mid, F){ mid=mid||'sfAcquireModal'; F=F||ACQ_FX;   /* R131: any window, any table (the sale window: SALE_FX) */
+    const m=document.getElementById(mid), box=m && m.querySelector('.sf-modal-box'); if(!box) return; const cid=mid==='sfAcquireModal' ? 'acqFx' : 'saleFx';
+    let c=document.getElementById(cid); if(!c){ c=document.createElement('canvas'); c.id=cid; m.insertBefore(c, m.firstChild); }
     const d=Math.min(2, Math.max(1, window.devicePixelRatio||1)); c.width=Math.round(m.clientWidth*d); c.height=Math.round(m.clientHeight*d);
-    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[];
+    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[]; ACQ.F=F;
     const q=m.getBoundingClientRect(), b=box.getBoundingClientRect(), geo={ cx:b.left+b.width/2-q.left, cy:b.top+b.height/2-q.top, hw:b.width/2, hh:b.height/2 };
-    acqWaveSpawn(tier, geo, false); ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;   /* R59: the smaller burst after */
+    acqWaveSpawn(tier, geo, false); ACQ.next={ at:F.after.delay, tier:tier, geo:geo }; ACQ.clock=0;   /* R59: the smaller burst after */
     if(!ACQ.raf){ ACQ.t=0; ACQ.raf=requestAnimationFrame(acqFrame); } }
 /* R59: one burst - its particles round the window and its ring, sized by acqWave */
-function acqWaveSpawn(tier, geo, second){ const w=acqWave(ACQ_FX, tier, second), R=Math.random;
-    for(let i=0; i<w.n; i++) ACQ.ps.push(acqParticle(ACQ_FX, geo.cx, geo.cy, geo.hw, geo.hh, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }, w));
-    ACQ.rings.push({ x:geo.cx, y:geo.cy, t:0, R:w.ring, col:ACQ_FX.tint[tier]||ACQ_FX.tint.Weak }); }
-function acqFrame(now){ const g=ACQ.g, c=ACQ.cv; if(!g || !c.isConnected){ ACQ.raf=0; return; }
+function acqWaveSpawn(tier, geo, second){ const F=ACQ.F||ACQ_FX, w=acqWave(F, tier, second), R=Math.random;   /* R131: the burst's own table */
+    for(let i=0; i<w.n; i++) ACQ.ps.push(acqParticle(F, geo.cx, geo.cy, geo.hw, geo.hh, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }, w));
+    ACQ.rings.push({ x:geo.cx, y:geo.cy, t:0, R:w.ring, col:F.tint[tier]||F.tint.Weak }); }
+function acqFrame(now){ const g=ACQ.g, c=ACQ.cv, F=ACQ.F||ACQ_FX; if(!g || !c.isConnected){ ACQ.raf=0; return; }   /* R131: F, the burst's table */
     const dt=ACQ.t ? Math.min(0.05, (now-ACQ.t)/1000) : 1/60; ACQ.t=now;
     ACQ.clock+=dt; if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }   /* R59 */
-    ACQ.ps=ACQ.ps.filter(p=>acqStep(ACQ_FX, p, dt)); ACQ.rings.forEach(o=>{ o.t+=dt; }); ACQ.rings=ACQ.rings.filter(o=>o.t<=ACQ_FX.ring.time);
+    ACQ.ps=ACQ.ps.filter(p=>acqStep(F, p, dt)); ACQ.rings.forEach(o=>{ o.t+=dt; }); ACQ.rings=ACQ.rings.filter(o=>o.t<=F.ring.time);
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(ACQ.d, 0, 0, ACQ.d, 0, 0);
     g.globalCompositeOperation='lighter'; g.lineCap='round';
-    ACQ.rings.forEach(o=>{ const k=acqRing(ACQ_FX, o.t, o.R); g.globalAlpha=k.a; g.strokeStyle='rgb('+o.col.join(',')+')'; g.lineWidth=1+(ACQ_FX.ring.width-1)*k.a;
+    ACQ.rings.forEach(o=>{ const k=acqRing(F, o.t, o.R); g.globalAlpha=k.a; g.strokeStyle='rgb('+o.col.join(',')+')'; g.lineWidth=1+(F.ring.width-1)*k.a;
         g.beginPath(); g.arc(o.x, o.y, Math.max(0.1, k.r), 0, 2*Math.PI); g.stroke(); });
     ACQ.ps.forEach(p=>{ if(p.kind!=='spark') return; const a=acqLook(p.age/p.life); g.globalAlpha=a; g.strokeStyle='rgb('+p.col.join(',')+')';   /* a glowing streak along its flight */
         g.lineWidth=p.size*0.6; g.beginPath(); g.moveTo(p.x-p.vx*0.035, p.y-p.vy*0.035); g.lineTo(p.x, p.y); g.stroke();

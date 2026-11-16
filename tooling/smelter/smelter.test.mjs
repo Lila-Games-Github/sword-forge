@@ -236,7 +236,7 @@ eq('R47: each wind line drawn twice - a soft edge, then a bright core (R48: one 
 /* R58 (owner, 2026-10-30): the trait window's celebration burst. Record: specs/2026-10-30-trait-discovery-burst.md */
 const acm = src.match(/\/\* ACQFX-PURE-BEGIN \*\/([\s\S]*?)\/\* ACQFX-PURE-END \*\//);
 assert.ok(acm, 'ACQFX-PURE markers not found in ' + HTML);
-const Q = new Function(acm[1] + '; return { ACQ_FX, acqWave, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
+const Q = new Function(acm[1] + '; return { ACQ_FX, SALE_FX: typeof SALE_FX === "undefined" ? null : SALE_FX, acqWave, acqParticle, acqStep, acqLook, acqRing };')(), QF = Q.ACQ_FX;
 eq('R58: the values (record: Values)', QF, { count: 70, speed: [380, 820], drag: 1.8, fall: 260, life: [0.7, 1.3], size: [5, 10], spin: 12, mix: [0.5, 0.85],
   ring: { r: 320, time: 0.55, width: 6 }, tint: { Weak: [210, 210, 210], Fine: [90, 170, 255], Epic: [190, 120, 255] }, gold: [255, 214, 90], white: [255, 250, 232],
   big: { Epic: { n: 1.6, sp: 1.35, ring: 1.3 } }, after: { delay: 0.35, n: 0.45, sp: 0.6, ring: 0.6 } });   /* R59 */
@@ -258,7 +258,18 @@ eq('R59: the second burst - 32 / 0.6 / 192, Epic 50 / 0.81 / 249.6', [wv('Fine',
 const we = Q.acqWave(QF, 'Epic', false), pe = Q.acqParticle(QF, 0, 0, 120, 80, 'Epic', 28, { a: 0, b: 0, c: 0, d: 0.5, e: 0 }, we);
 eq('R59: a burst spreads its own count round the window and scales its speed (Epic particle 28 of 112: straight down at 600 x 1.35)', [r3(pe.x), r3(pe.y), r3(pe.vx), r3(pe.vy)], [0, 80, 0, 810]);
 eq('R59: the ring at its own size', [r3(Q.acqRing(QF, 0.275, 416).r), Q.acqRing(QF, 0.55, 192).r], [312, 192]);
-eq('R59: the second burst comes after the delay, counted in the frames', src.includes('ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;') && src.includes('if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }') && src.includes('if(ACQ.ps.length || ACQ.rings.length || ACQ.next)'), true);
+eq('R59: the second burst comes after the delay, counted in the frames', src.includes('ACQ.next={ at:F.after.delay, tier:tier, geo:geo }; ACQ.clock=0;') && src.includes('if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }') && src.includes('if(ACQ.ps.length || ACQ.rings.length || ACQ.next)'), true);
+/* R131 (owner, 2026-11-16): the sale window's burst, gold only and smaller - specs/2026-11-16-sale-window.md */
+{ const SF = Q.SALE_FX, s8 = src.replace(/\r\n/g, '\n');
+  eq('R131: SALE_FX (the record)', SF, { count: 40, speed: [260, 560], drag: 1.8, fall: 260, life: [0.6, 1.1], size: [4, 8], spin: 12, mix: [0.5, 0.85],
+    ring: { r: 200, time: 0.5, width: 5 }, tint: { Gold: [232, 163, 23] }, gold: [255, 214, 90], white: [255, 236, 160], big: {}, after: { delay: 0.3, n: 0.45, sp: 0.6, ring: 0.6 } });
+  const sw = s => { const w = Q.acqWave(SF, 'Gold', s); return [w.n, r3(w.sp), r3(w.ring)]; };
+  eq('R131: smaller than the trait window\'s - 40 / 1 / 200, then 18 / 0.6 / 120', [sw(false), sw(true)], [[40, 1, 200], [18, 0.6, 120]]);
+  const golds = [SF.tint.Gold, SF.gold, SF.white].map(String), cols = [0, 0.3, 0.6, 0.9].map(c => String(Q.acqParticle(SF, 0, 0, 100, 60, 'Gold', 3, { a: 0, b: 0, c: c, d: 0.5, e: 0.5 }, Q.acqWave(SF, 'Gold', false)).col));
+  eq('R131: every particle is gold - deep, plain or pale (red the strongest channel, blue the weakest)', [cols.every(c => golds.indexOf(c) >= 0), [SF.tint.Gold, SF.gold, SF.white].every(([r, g, b]) => r >= g && g > b)], [true, true]);
+  eq('R131: the sale window bursts as it opens, on its own canvas behind its box', s8.includes("document.getElementById('sfSaleModal').classList.add('show'); acqBurst('Gold', 'sfSaleModal', SALE_FX); }")
+    && s8.includes('#saleFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }') && s8.includes('#sfSaleModal .sf-modal-box { position: relative; z-index: 1; }'), true);
+  eq('R131: one burst code for both windows, each with its table', s8.includes("function acqBurst(tier, mid, F){ mid=mid||'sfAcquireModal'; F=F||ACQ_FX;") && s8.includes('ACQ.F=F;') && s8.includes('const F=ACQ.F||ACQ_FX, w=acqWave(F, tier, second)') && s8.includes('ACQ.ps=ACQ.ps.filter(p=>acqStep(F, p, dt));'), true); }
 /* R63 (owner, 2026-11-03): "make this popup bigger. increase text size as well" */
 eq('R63: the trait window and its text x1.5 (record: R63)', src.replace(/\r\n/g, '\n').includes("#sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }\n/* R63 (owner, 2026-11-03): \"make this popup bigger. increase text size as well\" - the window and its text x1.5 */\n#sfAcquireModal .sf-modal-box { max-width: 480px; padding: 24px; }\n#sfAcquireModal .sf-modal-h { font-size: 24px; }\n#sfAcquireModal .sf-acquire-body .sym { font-size: 84px; margin-bottom: 12px; }\n#sfAcquireModal .sf-acquire-body .tr { font-size: 20px; margin-top: 4px; }\n#sfAcquireModal .sf-acquire-body .cnt { font-size: 16px; margin-top: 9px; }\n#sfAcquireModal .sf-continue { font-size: 18px; padding: 12px 0 3px; margin-top: 15px; }\n"), true);
 /* R64 (owner, 2026-11-03): "make this a circle highlight, and more intense" */

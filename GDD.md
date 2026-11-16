@@ -218,7 +218,7 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 - **A sale** pays the price, reputation +1, popularity, and 5 exp. The customer thanks the player by the sword's tier (5 lines
   each for Epic, Fine, Weak) and leaves after 3 s. A paid sale opens the **sale window** (R130): "Sword Sold!", the gold
   earned with a coin, any popularity, and CLAIM, which flies the coins to the gold counter; the thank-you and the next step
-  follow the claim.
+  follow the claim. The window opens with a gold burst, the trait window's burst in gold only and smaller (R131).
 - **COME LATER** puts a customer on the waiting list; the ledger calls them back when the player is ready.
 - **The player's reply:** in the tutorial the player answers an order ("Yes, I can craft one.") before the dragon speaks.
 
