@@ -172,7 +172,11 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   the shape and the best tier). A sword that does not match is refused with a toast. Several-sword orders are handed over one
   at a time; the last one pays for all (r267).
 - **SELL** pays the price (above), REP +1, popularity and 5 xp. The customer thanks the player with a line chosen by the sword's
-  best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s.
+  best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s. **The sale window (R130, `saleShow`/`saleClaim`,
+  `specs/2026-11-16-sale-window.md`):** a paid sale opens "Sword Sold!" (a coin, "+Ng", "+N popularity", CLAIM); the gold is already paid,
+  the counter holds the old count, and CLAIM flies the coins from the window to it (`flyCoins`), then runs the sale's next
+  steps (the tutorial hooks, `ftueGpcSold`, the thank-you, exp). An unpaid sale (Garric refusing) opens none. No "Sold for"
+  toast.
 - **COME LATER** puts the customer on the waiting list (`FTUE_ST.waiting`); the ledger calls them back. In the tutorial only the
   Part 4 two-sword customer can wait. **DENY** is a placeholder (no action), hidden until the tutorial ends.
 - **The player's reply** (R56, `FTUE.replies`): in the tutorial, after an order line the player taps a reply ("Yes, I can craft

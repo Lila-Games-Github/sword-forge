@@ -933,6 +933,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r199: FTUE - a shape without its blueprint, the reward window, the locked grindstone, build mode */
 .sf-shape.locked { cursor: pointer; }   /* r299: a locked shape is bought from here; only its icon and name are greyed (above) */
 #sfRewardModal .sf-modal-box { max-width: 360px; }
+/* R130: the sale window, in the reward window's style */
+#sfSaleModal .sf-modal-box { max-width: 320px; text-align: center; }
+.sale-gold { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0 6px; }
+.sale-coin { font-size: 52px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+.sale-gold b { font: 700 34px/1 Georgia, serif; color: #2e2010; }
+.sale-sub { margin: 0 0 12px; font-size: 13px; color: #6b5536; }
 /* R58: the trait window's burst - a canvas over its dark, behind its box, taps passing through */
 #acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }
@@ -2584,6 +2590,15 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
     <!-- ===== Shape select ===== -->
     <!-- r199: one window for every FTUE reward -->
+    <!-- R130 (owner, 2026-11-16): the sale window - the gold a sale earned, CLAIM flies it to the gold counter -->
+    <div id="sfSaleModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 id="saleTitle" class="sf-modal-h">Sword Sold!</h3>
+            <div class="sale-gold"><span class="sale-coin" id="saleCoin">🪙</span><b id="saleAmt">+0g</b></div>
+            <p class="sale-sub" id="saleSub" hidden></p>
+            <div class="rwd-ok"><button class="paperBtn wide" type="button" id="saleClaim" onclick="saleClaim()">CLAIM</button></div>
+        </div>
+    </div>
     <div id="sfRewardModal" class="sf-modal">
         <img id="rwDragon" src="assets/forge/dragon.webp" alt="">
         <div class="sf-modal-box">
@@ -4763,6 +4778,20 @@ function updateHud(){
     set('goldVal', GOLD); set('repVal', REP); set('popVal', 'Lv'+POPLV+' '+POP+'/'+POP_CAP);
     updateXpHud();
 }
+/* R130 (owner, 2026-11-16): "on selling a sword, i want a popup window, like the reward windows, showing the gold earned, gold icon
+   and a claim button. clicking this claim button shows the gold flying from the window to the gold tab in the inventory." The gold is
+   already the player's; the window shows it, and CLAIM runs the sale's next steps (then) and flies the coins. Record:
+   specs/2026-11-16-sale-window.md */
+let SALE_THEN=null, SALE_AMT=0;
+function saleShow(amt, n, pop, then){ SALE_AMT=amt; SALE_THEN=then||null;
+    document.getElementById('saleTitle').textContent = n>1 ? n+' Swords Sold!' : 'Sword Sold!';
+    document.getElementById('saleAmt').textContent='+'+amt+'g';
+    const s=document.getElementById('saleSub'); s.textContent = pop ? '+'+pop+' popularity' : ''; s.hidden=!pop;
+    document.getElementById('sfSaleModal').classList.add('show'); }
+function saleClaim(){ const m=document.getElementById('sfSaleModal'); if(!m || !m.classList.contains('show')) return;
+    const amt=SALE_AMT, then=SALE_THEN, from=document.getElementById('saleCoin').getBoundingClientRect(); SALE_THEN=null;
+    m.classList.remove('show'); if(then) then();
+    setGoldShown(GOLD-amt); flyCoins(from, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+amt+'g'); }); }
 function sellCounter(){
     /* r103: this used to open with `if(TUT_BRAM_SOLD) return;`, which locked the counter for the
        rest of the game the moment Bram was served - every later customer the bell brought could be
@@ -4781,7 +4810,7 @@ function sellCounter(){
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
-    const sellR=(document.querySelector('#csPanel .cs-sell')||{ getBoundingClientRect:()=>null }).getBoundingClientRect(), goldWas=GOLD;   /* r268: where the coins start, and the count they leave from */
+    const goldWas=GOLD;   /* r268: the count the coins leave from. R130: they fly from the sale window */
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
@@ -4805,17 +4834,17 @@ function sellCounter(){
     COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;   /* R14: served - no open order while they stay to talk */
     tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
+    const popAll=(POP_GAIN[tier]||0)+heldPop, paidAll=pay+heldG;   /* R130: the sale window's figures */
+    const after=()=>{   /* R130: the sale's next steps - at once for an unpaid sale, else on the sale window's CLAIM */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; counterLayout(); }); }   /* R60: once the line has landed */ }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else { ftueC.got=(ftueC.got||0)+1; ftueGpcSold(); } }   /* v3: TC4 is scripted */   /* r199. r267: an order of several only gets here with its last sword */
     if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
     gainExp(XP_SELL*(held.length+1),'sell');              // r73: counter sales only - the racks pay gold alone. r267: one XP_SELL a sword
-    const popAll=(POP_GAIN[tier]||0)+heldPop;
     if(refused) toastCut('He took it and paid <b>nothing</b>');   /* r132 */
-    else toastCut((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
-    const paidAll=pay+heldG;   /* r268: the coins fly from SELL to the gold panel, as a quest claim's do; the count catches up when they land */
-    if(paidAll>0){ setGoldShown(goldWas); flyCoins(sellR, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+paidAll+'g'); }); }
     if(levelled) setTimeout(()=>toastCut('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
+    };
+    if(paidAll>0){ setGoldShown(goldWas); saleShow(paidAll, held.length+1, popAll, after); } else after();   /* R130: the sale window; the count waits for the coins */
 }
 function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table

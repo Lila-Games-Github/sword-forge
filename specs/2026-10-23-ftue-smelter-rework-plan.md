@@ -1389,3 +1389,13 @@ yours and come on top.
   gone. Open: D17b still mentions the percentage. Record: `specs/2026-11-16-health-gate-and-rows.md` ("R129"). R128's
   row, style and r235 checks now pin no %. Checked in the browser: a 78% / 82% fire Longsword shows the heart with -3g and the
   hammer with +1g, each on its fill, no % anywhere; no console errors. FTUE GREEN at 1094.
+- **R130 (owner, 2026-11-16): the sale window.** "on selling a sword, i want a popup window, like the reward windows, showing
+  the gold earned, gold icon and a claim button. clicking this claim button shows the gold flying from the window to the gold
+  tab in the inventory." A paid counter sale opens "Sword Sold!" (a coin, "+Ng", "+N popularity" when there is some, CLAIM);
+  CLAIM flies the coins from the window to the gold counter (the count waits for them) and only then runs the sale's next
+  steps (tutorial hooks, the customer's reward and next bell, the thank-you, exp). The "Sold for" toast is gone; an unpaid sale
+  opens no window. Record: `specs/2026-11-16-sale-window.md`. R90's ticked toasts are 27 now; r268's checks (the coins from
+  SELL) pin the window. Checked in the browser: a free-play sale showed "Sword Sold!", +30g, +1 popularity, with the counter
+  holding 1300; CLAIM flew 5 coins from the window's coin, the counter showed 1330 as they landed, the thank-you and +5 exp
+  came after; GC1's sale counted the order and rang the bell only after CLAIM; Bram's sale stayed "counter-ready" until CLAIM
+  (nothing covered it), then "sold"; no console errors. FTUE GREEN at 1099.
