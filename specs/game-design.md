@@ -157,7 +157,10 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
     tier) to the level's bar (R133, `POP_LEVELS`: 7 to level 2, 12 to level 3, then 20 = `POP_CAP`) that carries over into the
     next level. While the tutorial runs (`popGoal`, `popStep`): Day 2's first sale (GC4) always reaches level 2, Garric's sale
-    level 3, and any other sale stops one point short; record `specs/2026-11-16-popularity-levels.md`.
+    level 3, and any other sale stops one point short; record `specs/2026-11-16-popularity-levels.md`. A level-up opens the level-up window (R134,
+    `popShow`/`popOk`, `POP_LINES`): "Popularity Up!", the level, its line, "Swords now sell for N% more", OK, the gold burst;
+    after the sale window's CLAIM once the coins land (`POP_UP_MS` 950), at once for an unpaid sale, before the sale's next
+    steps. No level toast.
   - Forging accuracy: x0.8 (0%) to x1.0 (80%) to x1.3 (100%), every percent its own value; no accuracy x1.0 (§5, R92). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
   - Reputation: +1 per counter sale; above 10 every price is x1.2 (below 0 x0.8; nothing lowers it in this build).
   - Example: an Epic Balanced, Good forging, full health, popularity 1, no skills: 24 + 20 = 44g; designed and sharpened, 58g.

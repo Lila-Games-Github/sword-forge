@@ -1419,3 +1419,11 @@ yours and come on top.
   sales with the usual, all-Epic and Weak-heavy tiers: level 2 at GC4, level 3 at Garric each time. Checked in the browser: an
   Epic sale on Day 1 stopped at 6/7, a Weak first sale of Day 2 reached Lv2, Garric's reached Lv3, after the tutorial points
   carry over; the counter shows /7, /12, /20. FTUE GREEN at 1111.
+- **R134 (owner, 2026-11-16): the popularity level-up window.** "I want a similar window popup when popularity goes up." "Popularity
+  Up!", a star and the level, the level's line (levels 2 and 3 the owner's, 4 on drafted), the price bonus, OK, and the gold
+  burst. It follows the sale window's CLAIM (after the coins land) and comes before the sale's next steps; the level toast is
+  gone. Record: `specs/2026-11-16-popularity-levels.md` (R134). R90's ticked toasts are 26; R130's checks pin the new tail.
+  Checked in the browser on GC4 (Day 2's first sale, at 6/7): the sale window showed ⭐×1 and held "Lv1 6/7"; CLAIM, then
+  after the coins "Popularity Up!", Level 2, "People are starting to notice.", "Swords now sell for 10% more", the gold burst
+  on its own canvas, the counter "Lv2 0/12"; OK counted GC4 and brought the thank-you; Garric's level 3 showed its line and
+  21%; no console errors. FTUE GREEN at 1118.

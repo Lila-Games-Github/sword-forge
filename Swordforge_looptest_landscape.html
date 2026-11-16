@@ -933,6 +933,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r199: FTUE - a shape without its blueprint, the reward window, the locked grindstone, build mode */
 .sf-shape.locked { cursor: pointer; }   /* r299: a locked shape is bought from here; only its icon and name are greyed (above) */
 #sfRewardModal .sf-modal-box { max-width: 360px; }
+/* R134: the popularity level-up window, the sale window's look */
+#sfPopModal .sf-modal-box { max-width: 340px; text-align: center; position: relative; z-index: 1; }
+#popFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pop-line { margin: 4px 0 6px; font: italic 600 17px/1.3 Georgia, serif; color: #2e2010; }
+.pop-bonus { margin: 0 0 12px; font-size: 13px; color: #6b5536; }
 /* R130: the sale window, in the reward window's style */
 #sfSaleModal .sf-modal-box { max-width: 320px; text-align: center; }
 .sale-gold { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0 6px; }
@@ -2603,6 +2608,16 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="sale-gold"><span class="sale-coin" id="saleCoin">🪙</span><b id="saleAmt">+0g</b></div>
             <div class="sale-pop" id="salePop" hidden><span class="sale-star" id="saleStar">⭐</span><b id="salePopN">×0</b></div>
             <div class="rwd-ok"><button class="paperBtn wide" type="button" id="saleClaim" onclick="saleClaim()">CLAIM</button></div>
+        </div>
+    </div>
+    <!-- R134 (owner, 2026-11-16): the popularity level-up window -->
+    <div id="sfPopModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 class="sf-modal-h">Popularity Up!</h3>
+            <div class="sale-gold"><span class="sale-coin">⭐</span><b id="popLvTxt">Level 2</b></div>
+            <p class="pop-line" id="popLine"></p>
+            <p class="pop-bonus" id="popBonus"></p>
+            <div class="rwd-ok"><button class="paperBtn wide" type="button" id="popOk" onclick="popOk()">OK</button></div>
         </div>
     </div>
     <div id="sfRewardModal" class="sf-modal">
@@ -4768,6 +4783,13 @@ function popStep(pop, lv, gain, goal){
     if(goal==null){ pop+=gain; let up=false; while(pop>=popNeed(lv)){ pop-=popNeed(lv); lv++; up=true; } return { pop:pop, lv:lv, up:up }; }
     if(goal>lv) return { pop:0, lv:goal, up:true };
     return { pop:Math.min(pop+gain, popNeed(lv)-1), lv:lv, up:false }; }
+/* R134 (owner, 2026-11-16): the level-up window's line for each level (levels 2 and 3 the owner's; the rest drafted, shown to the
+   owner) */
+const POP_LINES={ 2:'People are starting to notice.', 3:'Nearby town folks are talking about your swords.',
+    4:'Travellers stop in OakHaven just to see your blades.', 5:'Your swords are the talk of Whitefield.',
+    6:'Knights ask for your work by name.', 7:'Your name is known in every town on the map.',
+    more:'Bards sing of the blacksmith of OakHaven.' };
+function popLine(lv){ return POP_LINES[lv] || POP_LINES.more; }
 /* POP-LEVELS-END */
 /* this sale's goal: after the tutorial none; Garric's sale level 3; Day 2's first sale level 2; else hold */
 function popGoal(){ if(FTUE_ST.done) return null; if(TUT_GARRIC_STATE==='asked') return 3; if(FTUE_ST.part>=3 && POPLV<2) return 2; return 0; }
@@ -4827,6 +4849,16 @@ function saleClaim(){ const m=document.getElementById('sfSaleModal'); if(!m || !
     m.classList.remove('show'); if(then) then();
     setGoldShown(GOLD-amt); flyCoins(from, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+amt+'g'); });
     if(pop>0){ setPopShown(popWas); flyCoins(sfrom, document.getElementById('popVal'), ()=>setPopShown(popText()), '\u2b50', Math.min(pop, POP_FLY_MAX), 'fly-star'); } }   /* R132: the stars to the popularity counter */
+/* R134 (owner, 2026-11-16): "I want a similar window popup when popularity goes up" - the level, its line, the price bonus, OK;
+   OK runs the sale's next steps. Record: specs/2026-11-16-popularity-levels.md (R134) */
+const POP_UP_MS=950;   /* a paid sale's level-up waits for the coins to land (COIN_MS + 4 x COIN_GAP = 930) */
+let POP_THEN=null;
+function popShow(lv, then){ POP_THEN=then||null;
+    document.getElementById('popLvTxt').textContent='Level '+lv; document.getElementById('popLine').textContent=popLine(lv);
+    document.getElementById('popBonus').textContent='Swords now sell for '+Math.round((popMul()-1)*100)+'% more';
+    document.getElementById('sfPopModal').classList.add('show'); acqBurst('Gold', 'sfPopModal', SALE_FX); }
+function popOk(){ const m=document.getElementById('sfPopModal'); if(!m || !m.classList.contains('show')) return;
+    const then=POP_THEN; POP_THEN=null; m.classList.remove('show'); if(then) then(); }
 function sellCounter(){
     /* r103: this used to open with `if(TUT_BRAM_SOLD) return;`, which locked the counter for the
        rest of the game the moment Bram was served - every later customer the bell brought could be
@@ -4876,9 +4908,9 @@ function sellCounter(){
     if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
     gainExp(XP_SELL*(held.length+1),'sell');              // r73: counter sales only - the racks pay gold alone. r267: one XP_SELL a sword
     if(refused) toastCut('He took it and paid <b>nothing</b>');   /* r132 */
-    if(levelled) setTimeout(()=>toastCut('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
     };
-    if(paidAll>0){ setGoldShown(goldWas); if(popAll) setPopShown(popWas); saleShow(paidAll, held.length+1, popAll, after, popWas); } else after();   /* R130: the sale window; the count waits for the coins. R132: and the stars */
+    const lvUp = levelled ? ()=>popShow(POPLV, after) : null;   /* R134: the level-up window, then the next steps */
+    if(paidAll>0){ setGoldShown(goldWas); if(popAll) setPopShown(popWas); saleShow(paidAll, held.length+1, popAll, lvUp ? ()=>setTimeout(lvUp, POP_UP_MS) : after, popWas); } else (lvUp||after)();   /* R130: the sale window; the count waits for the coins. R132: and the stars. R134: then a level-up */
 }
 function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
@@ -7381,7 +7413,7 @@ function showAcquire(bt,tier,total,fresh){
 /* R58: the burst - one canvas over the window's dark, behind its box; its own frame loop while anything lives. Visual only */
 const ACQ={ cv:null, g:null, d:1, ps:[], rings:[], next:null, clock:0, raf:0, t:0 };
 function acqBurst(tier, mid, F){ mid=mid||'sfAcquireModal'; F=F||ACQ_FX;   /* R131: any window, any table (the sale window: SALE_FX) */
-    const m=document.getElementById(mid), box=m && m.querySelector('.sf-modal-box'); if(!box) return; const cid=mid==='sfAcquireModal' ? 'acqFx' : 'saleFx';
+    const m=document.getElementById(mid), box=m && m.querySelector('.sf-modal-box'); if(!box) return; const cid=mid==='sfAcquireModal' ? 'acqFx' : mid==='sfPopModal' ? 'popFx' : 'saleFx';   /* R134 */
     let c=document.getElementById(cid); if(!c){ c=document.createElement('canvas'); c.id=cid; m.insertBefore(c, m.firstChild); }
     const d=Math.min(2, Math.max(1, window.devicePixelRatio||1)); c.width=Math.round(m.clientWidth*d); c.height=Math.round(m.clientHeight*d);
     ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[]; ACQ.F=F;
