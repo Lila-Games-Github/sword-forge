@@ -1384,3 +1384,8 @@ yours and come on top.
   Masterwork fills `#e8a317`. Checked in the browser: after the tutorial, a 70% / 92% sword shows a green 70% fill with -7g and
   a gold 92% fill with +5g; in part 1 a hazard crossing changed nothing and the window had no Health tab; the fire run's first
   crossing said D69a, turned health on and cost health (100 to 87); no console errors. FTUE GREEN at 1094, hazard at 45.
+- **R129 (owner, 2026-11-16): the crafted window's tabs show no percentage.** "remove the percentage, only show gold value
+  change." The Health and hammer tabs keep the icon, the fill and the gold figure (alone on the right, larger); the % text is
+  gone. Open: D17b still mentions the percentage. Record: `specs/2026-11-16-health-gate-and-rows.md` ("R129"). R128's
+  row, style and r235 checks now pin no %. Checked in the browser: a 78% / 82% fire Longsword shows the heart with -3g and the
+  hammer with +1g, each on its fill, no % anywhere; no console errors. FTUE GREEN at 1094.

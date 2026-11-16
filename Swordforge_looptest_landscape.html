@@ -1058,13 +1058,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cw-stats { display: flex; gap: 14px; margin: 0 0 12px; }
 /* R17 (owner, 2026-10-27): Health and hammering, one row each - the icon and its % on the left, the gold it made or cost on the right */
 #sfCraftModal .cw-stats { flex-direction: column; gap: 8px; }
-#sfCraftModal .cw-row { position: relative; overflow: hidden; justify-content: flex-start; gap: 14px; height: 70px; padding: 0 26px; box-sizing: border-box; }   /* R128: the icon left, the gold and the % right */
+#sfCraftModal .cw-row { position: relative; overflow: hidden; justify-content: flex-start; gap: 14px; height: 70px; padding: 0 26px; box-sizing: border-box; }   /* R128: the icon left, the gold right. R129: no % */
 #sfCraftModal .cw-row[hidden] { display: none; }   /* R128: Health before the hazard lesson */
 .cw-bar { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--f, 0) * 100%); background: var(--c, #e0b545); opacity: .32; pointer-events: none; }   /* R128: the % fills the tab */
-.cw-row > .cw-ic, .cw-row > .cw-eff, .cw-row > .cw-pct { position: relative; }   /* over the fill */
+.cw-row > .cw-ic, .cw-row > .cw-eff { position: relative; }   /* over the fill */
 .cw-ic { font-size: 36px; line-height: 1; display: flex; align-items: center; }   /* R128: whole, centred top to bottom */
-#sfCraftModal .cw-row .cw-eff { margin-left: auto; font-size: 22px; }
-#sfCraftModal .cw-row .cw-pct { font: 700 26px/1 Georgia, serif; min-width: 62px; text-align: right; }
+#sfCraftModal .cw-row .cw-eff { margin-left: auto; font-size: 28px; }   /* R129: the gold alone on the right */
 .cw-eff { font: 700 26px/1.1 Georgia, serif; color: #2e2010; text-align: right; }
 .cw-eff small { display: block; font: 600 14px/1.2 Georgia, serif; color: #6b5634; }
 .cw-up { color: #2e8b3a; }
@@ -2740,8 +2739,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div id="sfCraftArt" class="cr-art"></div>
                 <div class="cw-name" id="cwName"></div>
                 <div class="cw-stats"><!-- R17: Health, then hammering - the icon, its % under it, the gold effect on the right -->
-                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-bar" id="cwHpBar"></span><span class="cw-ic cw-hp" title="Health">❤️</span><span class="cw-eff" id="cwHpEff"></span><span class="cw-pct" id="cwHpPct"></span></div>
-                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-bar" id="cwHmBar"></span><span class="cw-ic cw-hm" title="Forging">🔨</span><span class="cw-eff" id="cwHmEff"></span><span class="cw-pct" id="cwHmPct"></span></div>
+                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-bar" id="cwHpBar"></span><span class="cw-ic cw-hp" title="Health">❤️</span><span class="cw-eff" id="cwHpEff"></span></div>
+                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-bar" id="cwHmBar"></span><span class="cw-ic cw-hm" title="Forging">🔨</span><span class="cw-eff" id="cwHmEff"></span></div>
                 </div>
                 <div class="cw-gold"><span class="cw-coin">🪙</span><b id="cwGold"></b></div>
                 <button class="cw-close" type="button" onclick="closeCraft()">Close</button>
@@ -7863,7 +7862,6 @@ function showCraft(w, n, after){
     const hp=(w.hp!=null ? w.hp : 100)/100, acc=(w.forge!=null ? w.forge : null);
     cwBar('cwHpBar', hp, cwHpCol(hp)); cwBar('cwHmBar', acc!=null ? acc : 0, CW_BAND_COL[w.quality || HM_HITS.unforged] || CW_BAND_COL.Good);   /* R128 */
     document.getElementById('cwHpRow').hidden=!hpOn();   /* R128: no Health before the hazard lesson */
-    document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';   /* r235 */
     const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]);
     document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);   /* R17 */
     document.getElementById('cwGold').textContent=swordPrice(w)+'g'+(n>1 ? ' x'+n : '');

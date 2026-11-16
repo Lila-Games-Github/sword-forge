@@ -46,3 +46,8 @@ Each row (Health, then the hammer) is one tab:
 | Small notes | the band ("Good") and "2 hazards: -1 tier" | none |
 
 A sword never hammered by hand (a quick-hammer or old craft) shows "-" for the hammer and no fill.
+
+**R129 (owner, 2026-11-16): no percentage.** On a picture of the R128 tabs: "remove the percentage, only show gold value
+change." Each tab now shows the icon, the fill and the gold figure (when not zero), alone on the right and larger (28 px);
+no percentage text. The fill still shows the percentage; a sword with no hand hammering has an empty hammer tab. Open: the
+first crafted window's D17b still says "Higher percentage means more money." (new wording asked of the owner).

@@ -60,7 +60,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`. **R128 (`hpOn()`, `specs/2026-11-16-health-gate-and-rows.md`):**
   health is on once the fire run's hazard lesson starts (`FTUE_ST.hpOn`, saved), from part 3, after the tutorial and in free
   play; before that a hazard does nothing (no health, no glow, no tier drop), the marker has no health fill and the crafted
-  window no Health tab. Its rows: the icon left, the gold (when not zero) and the % right, the tab filled to the % (health
+  window no Health tab. Its rows: the icon left, the gold (when not zero) right, no % text (R129), the tab filled to the % (health
   green/amber/red, the hammer by band: Masterwork `#e8a317`, Good `#5aa8ff`, Crude `#ff4a3a`).
 - **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 

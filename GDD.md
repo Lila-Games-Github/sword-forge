@@ -161,8 +161,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
 The hot blade is picked up by its handle (within 24 px of the blade's line) and hangs from the finger as a damped pendulum,
 swinging as it moves. Dipped into the bucket's water (or released over it), it is quenched in smoke and mist and the sword is
 made; released elsewhere it returns to the anvil. The "Sword crafted!" window shows the sword, its coloured name, health,
-forging and gold. Health and forging are one tab each: the icon on the left, the gold it made or cost (when not zero) and
-the percentage on the right, and the tab's background filled to the percentage (R128; no Health tab before the hazard lesson). An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
+forging and gold. Health and forging are one tab each: the icon on the left, the gold it made or cost (when not zero) on
+the right, and the tab's background filled to the percentage (R128; no percentage text since R129; no Health tab before the
+hazard lesson). An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
 first crafted window of the game teaches itself: the hammer row (D17b), then the arrow (D17a), then the ores (D17c).
 
 ### Swing effects
