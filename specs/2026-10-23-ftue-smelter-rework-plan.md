@@ -1433,3 +1433,9 @@ yours and come on top.
   `[12, 12]`: Day 1 earns 11, GC4 makes 12 (level 2), GC5 to Garric 12 more (level 3). Record:
   `specs/2026-11-16-popularity-levels.md` (R135). Checked in the browser with the owner's tiers: 11/12 after TC3, level 2 at
   GC4, 10/12 before Garric, level 3 at Garric, nothing held back; no console errors. FTUE GREEN at 1120.
+- **R136 (owner, 2026-11-16): the requested shape's arrow.** "remove the requested text on top and put an arrow icon pointing
+  down instead. place this icon slightly on the left side of the box." The shape window's "Requested" tag is a down arrow (16 x
+  20 px, the tag's orange `#c9861a` outlined `#6b4210`, an SVG in `.sf-shape.sf-req::after`), on the card's top edge at 30%
+  across (was the centre); the gold ring and the pulse stay. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
+  Checked in the browser: a customer asking for a Shortsword - the arrow on that card's top edge at 30% across, no text; no
+  console errors. FTUE GREEN at 1121.
