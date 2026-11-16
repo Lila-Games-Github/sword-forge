@@ -1330,3 +1330,11 @@ yours and come on top.
   toast (R90's count of the owner's ticked toasts). Checked in the browser: free play (fire Longsword, Broadsword) and GC6 in
   the tutorial; taps on the scene, the HUD strip and the dragon's head all count; the hammer head lands on the metal; Cancel
   spends nothing; SKIP HAMMER makes the sword; no console errors. Hammer test (written first) GREEN at 69.
+- **R122 (owner, 2026-11-16): hammer sounds, placeholders.** "i want to add sound for hammering", then "Make placeholder
+  sounds". The game's first sounds: each strike in the hammer minigame plays the sound of its own grade (Masterwork, Good,
+  Crude), or a dull thud when it counts for nothing (off every mark, cold metal, a finished blade); a quick-hammer tap plays
+  Good. Four synthesised WAV placeholders in `assets/sfx/`, made by `tooling/sfx/make-placeholder-sfx.mjs`; real sounds go
+  over the same file names. Record: `specs/2026-11-16-hammer-sounds.md` (`HM_SFX`). Checked in the browser: all four files
+  load (1.10 s, 0.60 s, 0.35 s, 0.15 s); a cold strike, a miss and a strike on a finished blade asked for the thud, strikes at
+  100%, 70% and 40% for Masterwork, Good and Crude, six quick taps for Good; no console errors. Not checked: how they sound
+  (the preview cannot play audio to anyone). Hammer test (written first) GREEN at 78.

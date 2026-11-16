@@ -165,5 +165,5 @@ Open these functions when the docs are not enough:
 ## 7. The tests as a checklist
 
 `tooling/<suite>/<suite>.test.mjs` read the build and check its tables against the specs: `ftue` (1084 checks, the tutorial),
-`smelter` (146, the loop and effects), `market` (84), `hazard` (40), `hammer` (69, with the quick hammer), `skills` (18), `map` (17). Their check names
+`smelter` (146, the loop and effects), `market` (84), `hazard` (40), `hammer` (78, with the quick hammer and the sounds), `skills` (18), `map` (17). Their check names
 are a list of the rules the Godot version must keep. Run them with Node: `node tooling/ftue/ftue.test.mjs`.

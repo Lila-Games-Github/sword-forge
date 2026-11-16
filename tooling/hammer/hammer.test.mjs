@@ -6,6 +6,7 @@
  * Run: node tooling/hammer/hammer.test.mjs
  */
 import { readFileSync } from 'node:fs';
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const HTML = 'Swordforge_looptest_landscape.html';
@@ -148,4 +149,24 @@ eq('R92: HM_HITS.price is the recorded curve and table', HM_HITS.price, { lo: 0.
   eq('R121: SKIP HAMMER and Cancel', [s3.includes('function smShaped(){ if(HM_QUICK){ hmQuickEnd(); return; }   /* R121: SKIP HAMMER in the quick hammer */'),
     s3.includes("function hmCancel(){ if(HM_QUICK){ hmQuickClose(); toast('Crafting cancelled. Nothing was spent.'); return; }   /* R121 */")], [true, true]);
   eq('R121: the full minigame drops quick mode', s3.includes("function openHammer(){ hmQuickClose(true);   /* R121 */"), true); }
+/* R122 (owner, 2026-11-16): hammer sounds, placeholders - specs/2026-11-16-hammer-sounds.md */
+{ const s4 = src.replace(/\r\n/g, '\n'), b = s4.match(/\/\* HAMMER-SFX-BEGIN \*\/([\s\S]*?)\/\* HAMMER-SFX-END \*\//);
+  eq('R122: the sound block is in the build', !!b, true);
+  const S = b ? new Function(cfg[1] + pure[1] + b[1] + '; return { HM_SFX, hmSfxKey };')() : {};
+  eq('R122: HM_SFX (the record)', S.HM_SFX, { dir: 'assets/sfx/', vol: 0.8, quick: 'Good',
+    files: { Masterwork: 'hammer_masterwork.wav', Good: 'hammer_good.wav', Crude: 'hammer_crude.wav', dull: 'hammer_dull.wav' } });
+  eq('R122: a graded strike plays its own band, the rest the dull thud, a quick tap Good',
+    [['hit', 0.9], ['hit', 0.85], ['hit', 0.7], ['hit', 0.6], ['hit', 0.3], ['miss'], ['cold'], ['done'], ['quick']].map(([k, a]) => S.hmSfxKey(k, a)),
+    ['Masterwork', 'Masterwork', 'Good', 'Good', 'Crude', 'dull', 'dull', 'dull', 'Good']);
+  eq('R122: a sound for every band', HM_HITS.bands.map(x => x.name).every(nm => S.HM_SFX && S.HM_SFX.files[nm]), true);
+  eq('R122: every file is a WAV on disk', Object.values((S.HM_SFX || { files: {} }).files).map(fl => { const p = 'assets/sfx/' + fl;
+    return fs.existsSync(p) && fs.readFileSync(p).subarray(0, 4).toString() === 'RIFF' && fs.readFileSync(p).subarray(8, 12).toString() === 'WAVE'; }), [true, true, true, true]);
+  eq('R122: every strike plays one sound - done, miss, cold, graded', [
+    s4.includes("    if(hmProg>=2){ hmSfx('done'); return; }"),
+    s4.includes("    if(!t){ hmSfx('miss'); hmImpact(false, at); return; }"),
+    s4.includes("    if(hmHeat<HM_FORGE.workMin){ hmSfx('cold'); hmJolt('chill'); hmImpact(false, at); return; }"),
+    s4.includes("    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y }; hmSfx('hit', acc);")], [true, true, true, true]);
+  eq('R122: a quick-hammer tap plays HM_SFX.quick', s4.includes("    q.taps++; hmProg=hmQuickProg(q.taps); hmSfx('quick');"), true);
+  eq('R122: the sounds load when either minigame opens', [s4.includes("    document.getElementById('sfHammerModal').classList.add('show'); hmSfxLoad();"), s4.includes("m.classList.add('show'); hmSfxLoad();")], [true, true]);
+  eq('R122: each strike on its own copy; a blocked sound is ignored', s4.includes('const a=base.cloneNode(); a.volume=HM_SFX.vol; const p=a.play(); if(p && p.catch) p.catch(()=>{});'), true); }
 console.log('[hammer] GREEN / ' + n + ' checks');

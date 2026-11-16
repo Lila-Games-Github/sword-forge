@@ -112,7 +112,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on
   the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into an accuracy percent that sets the price (R92, `hmAccMul`, `HM_HITS.price`): 0-80% a
   curve `0.8 + 0.2 x (e^(4p/80) - 1)/(e^4 - 1)`, 81-100% a row a percent (1.010 ... 1.300, each step bigger). Band names as
-  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
+  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Sounds (R122, `HM_SFX`, `specs/2026-11-16-hammer-sounds.md`): each
+  strike plays its own band's sound, a miss, cold strike or strike on a finished blade the dull thud, a quick-hammer tap Good;
+  placeholder WAVs in `assets/sfx/` (`tooling/sfx/make-placeholder-sfx.mjs`). Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
   `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
   strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
 - **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per

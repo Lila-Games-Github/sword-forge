@@ -149,7 +149,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
   points on the mid-blade. An aim ring under the hammer head shows the band each strike would get (yellow, blue, red).
 - The 6 strikes' accuracy averages into one **accuracy percent**, which sets the price (R92): a steep curve from x0.8 at 0%
   to x1.0 at 80%, then one step a percent, each bigger than the last, to x1.3 at 100% (on a 100g base every percent from 80%
-  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
+  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. Each strike plays
+  the sound of its own band, and a strike that counts for nothing (off the marks, cold metal) a dull thud (R122; placeholder
+  sounds, the game's first). 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
 - Stages drawn: metal sphere, a mid-blade, the sword's own blade. A glow on the blade shows its heat.
 
 ### Quench

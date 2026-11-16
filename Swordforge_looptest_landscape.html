@@ -8061,6 +8061,20 @@ const HM_QUICK_CFG = { orbTaps:3, midTaps:3, sway:4, swayMs:1800, gap:170, endMs
 /* shape progress after t taps, on hmProg's scale (0 orb, 1 mid-blade, 2 blade) */
 function hmQuickProg(t){ const C=HM_QUICK_CFG; return t<=C.orbTaps ? t/C.orbTaps : Math.min(2, 1+(t-C.orbTaps)/C.midTaps); }
 /* HAMMER-QUICK-END */
+/* R122 (owner, 2026-11-16): hammer sounds (placeholders). Design record: specs/2026-11-16-hammer-sounds.md;
+   tooling/hammer/hammer.test.mjs reads this block out of this file. The files are made by tooling/sfx/make-placeholder-sfx.mjs */
+/* HAMMER-SFX-BEGIN */
+const HM_SFX = { dir:'assets/sfx/', vol:0.8, quick:'Good',
+    files:{ Masterwork:'hammer_masterwork.wav', Good:'hammer_good.wav', Crude:'hammer_crude.wav', dull:'hammer_dull.wav' } };
+/* which sound a strike plays: a graded hit its own band; a miss, cold metal or a finished blade the dull thud; a quick tap HM_SFX.quick */
+function hmSfxKey(kind, acc){ return kind==='hit' ? hmBand(acc).name : kind==='quick' ? HM_SFX.quick : 'dull'; }
+/* HAMMER-SFX-END */
+/* one loaded copy per sound; each strike plays a clone, so a fast second strike does not cut the first off. A blocked
+   play (no tap yet, a muted tab) is ignored: nothing waits on a sound */
+const HM_SFX_EL={};
+function hmSfxLoad(){ Object.keys(HM_SFX.files).forEach(k=>{ if(HM_SFX_EL[k]) return; const a=new Audio(HM_SFX.dir+HM_SFX.files[k]); a.preload='auto'; HM_SFX_EL[k]=a; }); }
+function hmSfx(kind, acc){ const k=hmSfxKey(kind, acc); if(!HM_SFX.files[k]) return; hmSfxLoad(); const base=HM_SFX_EL[k];
+    try{ const a=base.cloneNode(); a.volume=HM_SFX.vol; const p=a.play(); if(p && p.catch) p.catch(()=>{}); }catch(e){} }
 /* the mid-blade's alpha, read once per image, so points land on metal and not on transparent canvas */
 const HM_MASKS={};
 function hmMask(src){
@@ -8179,7 +8193,7 @@ function hmQuickOpen(shape, skin, done){
     const m=document.getElementById('sfHammerModal'); hmQuickClose(true); hmShape=shape;
     HM_QUICK={ skin:skin, done:done, taps:0, t0:0, a0:HM_RIG.base, end:false, hx:hmHx, hy:hmHy };
     hmHeat=1; hmProg=0; hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false; hmQuenching=false; hmPts=[];
-    m.classList.add('hm-quick'); hmLayout(); hmPointsDraw(); m.classList.add('show');
+    m.classList.add('hm-quick'); hmLayout(); hmPointsDraw(); m.classList.add('show'); hmSfxLoad();
     hmQuickPlace(); hmBreath(true); hmRender(); hmSay(); hmStart(); cheatUi(); }
 /* the hammer is set so its strike lands on the metal (its aim ring's spot on the anvil), and the dragon aims at the metal */
 function hmQuickPlace(){ const sc=document.getElementById('hmScene'), R=HM_RIG, h=document.getElementById('hmHammer'); if(!sc || !HM_QUICK) return;
@@ -8193,7 +8207,7 @@ function hmQuickSway(ts){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q) return; if(!q
 function hmQuickTap(){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q || q.end) return;
     const now=performance.now(); if(now-hmLastStrike<C.gap) return; hmLastStrike=now;
     const h=document.getElementById('hmHammer'); if(h){ h.classList.remove('hit'); void h.offsetWidth; h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240); }
-    q.taps++; hmProg=hmQuickProg(q.taps);
+    q.taps++; hmProg=hmQuickProg(q.taps); hmSfx('quick');   /* R122 */
     hmJolt('jolt'); hmImpact(true); hmSay();
     if(q.taps>=C.orbTaps+C.midTaps){ q.end=true; setTimeout(()=>{ if(HM_QUICK===q) hmQuickEnd(); }, C.endMs); } }
 /* leave quick mode: the hammer's own offset back; keep = the window stays (the full minigame is opening) */
@@ -8213,7 +8227,7 @@ function openHammer(){ hmQuickClose(true);   /* R121 */
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false;   /* r209 */
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay(); hmSetPoints(0);
-    document.getElementById('sfHammerModal').classList.add('show');
+    document.getElementById('sfHammerModal').classList.add('show'); hmSfxLoad();   /* R122: the sounds */
     if(HM_PAINT) HM_PAINT(); else hmRingPaint();
     hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
@@ -8480,12 +8494,12 @@ function hmStrike(){
     const h=document.getElementById('hmHammer');
     h.classList.remove('hit'); void h.offsetWidth;   // restart the swing even on a fast second blow
     h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240);
-    if(hmProg>=2) return;
+    if(hmProg>=2){ hmSfx('done'); return; }   /* R122 */
     const a=hmRingAt(), t=hmTarget(), at={ x:a.x/a.W*100, y:a.y/a.H*100 };
-    if(!t){ hmImpact(false, at); return; }   /* owner: no penalty outside the points */
-    if(hmHeat<HM_FORGE.workMin){ hmJolt('chill'); hmImpact(false, at); return; }   // too cold to move
+    if(!t){ hmSfx('miss'); hmImpact(false, at); return; }   /* owner: no penalty outside the points */
+    if(hmHeat<HM_FORGE.workMin){ hmSfx('cold'); hmJolt('chill'); hmImpact(false, at); return; }   // too cold to move
     hmSwingOn(false);   /* r181: they have done it */
-    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y };
+    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y }; hmSfx('hit', acc);   /* R122: the strike's own band */
     hmScores.push(acc); t.p.left--;
     hmHeat=Math.max(0, hmHeat-HM_FORGE.strikeBite);
     if(hmProg<1){ hmProg=Math.min(1, hmProg+1/HM_HITS.orbStrikes); if(t.p.left<=0){ hmProg=1; hmSetPoints(1); } else hmPointsDraw(); }
