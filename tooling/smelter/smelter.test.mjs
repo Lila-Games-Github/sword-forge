@@ -275,15 +275,20 @@ eq('R65: the shape window two thirds of the frame, five a row, text x1.5 (record
 { const s6 = src.replace(/\r\n/g, '\n'), dm = s6.match(/\/\* SM-DUST-BEGIN \*\/([\s\S]*?)\/\* SM-DUST-END \*\//);
   eq('R126: the dust block is in the build', !!dm, true);
   const DU = dm ? new Function(dm[1] + '; return { SM_DUST, smDustTint };')() : {};
-  eq('R126: SM_DUST (the record)', DU.SM_DUST, { at: { x: 51, y: 26 }, grey: '#e2d9cc', tint: 0.35, puffs: 8, puffSize: [16, 30], puffDist: [14, 32], puffMs: 600,
+  eq('R126: SM_DUST (the record)', DU.SM_DUST, { at: { x: 51, y: 26 }, grey: '#3e352e', tint: 0.2, puffs: 8, puffSize: [16, 30], puffDist: [14, 32], puffMs: 600,
     specks: 16, speckSize: [2.5, 5], rise: [45, 95], drift: 22, riseMs: [900, 1500], delay: 220 });
-  eq('R126: the colour - light ash moved a third of the way to the ore\'s', [DU.smDustTint('#8a5a33', '#e2d9cc', 0.35), DU.smDustTint('#e2d9cc', '#e2d9cc', 0.35), DU.smDustTint(null, '#e2d9cc', 0.35), DU.smDustTint('#000000', '#ffffff', 0.25)],
-    ['#c3ad96', '#e2d9cc', '#e2d9cc', '#bfbfbf']);
+  eq('R127: the colour - soot brown moved a fifth of the way to the ore\'s', [DU.smDustTint('#8a5a33', '#3e352e', 0.2), DU.smDustTint('#3e352e', '#3e352e', 0.2), DU.smDustTint(null, '#3e352e', 0.2), DU.smDustTint('#000000', '#ffffff', 0.25)],
+    ['#4d3c2f', '#3e352e', '#3e352e', '#bfbfbf']);
   eq('R126: both ways an ore goes in make dust (raw, ground), after it lands', [
     s6.includes("craftStartView(); ensureMelt(); spendOre(oreId); addSegment(oreId,0); smDust(oreId);"),
     s6.includes("const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind); smDust(_o);")], [true, true]);
   eq('R126: a book page filling the smelter makes none', /function addSegment\([^)]*\)\{[^\n]*smDust/.test(s6), false);
   eq('R126: drawn inside the smelter station, at the mouth, gone after the last speck', s6.includes("function smDust(oreId){ const st=document.getElementById('stSmelt'); if(!st) return;") && s6.includes("setTimeout(()=>L.remove(), D.delay+Math.max(D.puffMs, D.riseMs[1])+120); }"), true);
   eq('R126: the puff holds its opacity for its first third, then fades', s6.includes("opacity:.8, offset:.35 },") && s6.includes("{ duration:D.puffMs, easing:'ease-out', fill:'forwards' }"), true);
+  /* R127: every ore's dust stands out on the map: 3:1 or better against the map picture's median, 90th and 98th percentile tones */
+  const lumD = h => { const c = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const crD = (a, b) => { const x = lumD(a), y = lumD(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const oreCols = [...s6.slice(s6.indexOf('const ORES = ['), s6.indexOf('\n];', s6.indexOf('const ORES = ['))).matchAll(/\{ id:'(\w+)',\s*name:'[^']*',\s*color:'(#[0-9a-f]{6})'/g)].map(m => [m[1], m[2]]);
+  eq('R127: every ore\'s dust reads at 3:1 or better on the map\'s yellows', [oreCols.length >= 7, oreCols.filter(([id, c]) => ['#ea9e4f', '#d7be7b', '#f6c366'].some(m => crD(DU.smDustTint(c, DU.SM_DUST.grey, DU.SM_DUST.tint), m) < 3)).map(x => x[0])], [true, []]);
   eq('R126: the styles', s6.includes("/* R126: dust when ore goes into the smelter (SM_DUST) */\n.sm-dust { position: absolute; width: 0; height: 0; z-index: 4; pointer-events: none; }\n.sm-dust i { position: absolute; left: 0; top: 0; border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%); opacity: 0; }\n.sm-dust i.sm-puff { filter: blur(2px); }\n"), true); }
 console.log('[smelter] GREEN / ' + n + ' checks');

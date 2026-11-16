@@ -7018,7 +7018,8 @@ function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT
 /* R126 (owner, 2026-11-16): "I want visual feedback when adding ores to the smelter, some kind of dust particles going up, with a
    puff of dust." Record: specs/2026-11-16-smelter-dust.md; tooling/smelter/smelter.test.mjs reads this block */
 /* SM-DUST-BEGIN */
-const SM_DUST={ at:{ x:51, y:26 }, grey:'#e2d9cc', tint:0.35, puffs:8, puffSize:[16,30], puffDist:[14,32], puffMs:600,
+/* R127 (owner, 2026-11-16): "darken the color of the dust puff, and particle" - soot brown, 3:1 or better on the map's yellows */
+const SM_DUST={ at:{ x:51, y:26 }, grey:'#3e352e', tint:0.2, puffs:8, puffSize:[16,30], puffDist:[14,32], puffMs:600,
     specks:16, speckSize:[2.5,5], rise:[45,95], drift:22, riseMs:[900,1500], delay:220 };
 /* the dust's colour: grey moved t of the way to the ore's colour, channel by channel */
 function smDustTint(ore, grey, t){ const c=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)), a=c(grey), b=c(ore||grey);

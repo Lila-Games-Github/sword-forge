@@ -68,8 +68,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   Record: `specs/2026-10-28-rotated-ore-paths-test.md`. Each ore dropped into the smelter appends its path from the current
   route end (the **X**); ores stack.
 - **Dust (R126, `SM_DUST`, `specs/2026-11-16-smelter-dust.md`):** each ore the player puts in (raw, `addOreDirect`, or ground, `addPrep`) makes a
-  puff of soft clouds at the crucible's mouth and 16 specks that rise and drift, light ash tinted a third of the way toward the
-  ore's colour; a book page filling the smelter makes none.
+  puff of soft clouds at the crucible's mouth and 16 specks that rise and drift, soot brown (`#3e352e`) tinted a fifth of the way
+  toward the ore's colour (R127: 3:1 or better on the map's yellows; R126's light ash blended in); a book page filling the
+  smelter makes none.
 - **Raw vs ground:** a raw ore reaches **50%** of its path; on the grindstone two full turns of the handle (`GRIND_TURNS` **2**)
   grind it fully, **100%** (`tPct = 0.5 + 0.5 x grind`).
 - **Back to the bag:** an ore on the grindstone dropped on the inventory goes back to the bag, whole; its grinding is lost (R21).

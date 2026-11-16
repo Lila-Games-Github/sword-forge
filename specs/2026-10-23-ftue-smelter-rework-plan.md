@@ -1366,3 +1366,9 @@ yours and come on top.
   at 0.35), 2.5-5 px specks, and a puff that holds for its first third. Checked in the browser: raw copper and iron and ground
   manganese each made the dust at the mouth (51%, 26% of the station), gone after 2 s; no console errors. Smelter test
   (written first) GREEN at 154.
+- **R127 (owner, 2026-11-16): darker smelter dust.** "darken the color of the dust puff, and particle. right now it blends with
+  the yellow map". The dust is soot brown (`#3e352e`) moved a fifth of the way toward the ore's colour (was light ash `#e2d9cc`
+  at 0.35, which read at 1.0:1 on the map). Against the map picture's median and lighter tones every ore's dust now reads at
+  3:1 or better. Record: `specs/2026-11-16-smelter-dust.md` ("The colour (R127)"). The map's tones were sampled from
+  `map_base.webp` in the browser; a new check asserts 3:1 for every ore in `ORES`. Checked in the browser: copper's dust
+  `rgb(90, 66, 49)`, a dark smudge over the crucible on the yellow map; no console errors. Smelter test GREEN at 155.

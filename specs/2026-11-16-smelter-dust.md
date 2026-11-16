@@ -19,9 +19,11 @@ same spot, r38). They are drawn inside the station, so they follow it and rise w
 - **The puff:** soft round clouds burst out over the mouth (upward and to the sides), swell and fade: they keep most of
   their opacity for the first third, then fade (R126 first faded them from the start, and the puff was barely seen).
 - **The rising dust:** small specks rise from the mouth, drift a little sideways and fade.
-- **The colour:** light ash (`#e2d9cc`) moved a third of the way toward the ore's own colour (`ORE_BY[id].color`), so copper dust is
-  warmer than iron dust. Light, so it shows over the map behind the crucible (R126 first tried tan `#a89880` at 0.5: it
-  disappeared into the map). `smDustTint(ore, grey, t)` mixes each channel: grey + (ore - grey) x t.
+- **The colour (R127):** soot brown (`#3e352e`) moved a fifth of the way toward the ore's own colour (`ORE_BY[id].color`), so
+  copper dust is warmer than manganese dust. Owner (2026-11-16): "darken the color of the dust puff, and particle. right now it
+  blends with the yellow map". Against the map picture (`assets/map/map_base.webp`, sampled by brightness: median `#ea9e4f`,
+  90th percentile `#d7be7b`, 98th `#f6c366`) every ore's dust reads at 3:1 or better (3.3:1 at the least, nickel on the
+  palest yellow); R126's light ash (`#e2d9cc` at 0.35) read at 1.0:1 and its first tan (`#a89880` at 0.5) also vanished. `smDustTint(ore, grey, t)` mixes each channel: grey + (ore - grey) x t.
 
 Nothing waits on the effect; it removes itself when the last speck has faded.
 
@@ -30,7 +32,7 @@ Nothing waits on the effect; it removes itself when the last speck has faded.
 | Key | Value | Meaning |
 | --- | --- | --- |
 | `at` | `{ x:51, y:26 }` | the crucible's mouth, % of the station |
-| `grey`, `tint` | `#e2d9cc`, 0.35 | the dust colour, and how far it moves toward the ore's colour |
+| `grey`, `tint` | `#3e352e`, 0.2 (R127; was `#e2d9cc`, 0.35) | the dust colour, and how far it moves toward the ore's colour |
 | `puffs` | 8 | clouds in the puff |
 | `puffSize` | `[16, 30]` | a cloud's size, px (random in the range) |
 | `puffDist` | `[14, 32]` | how far a cloud travels, px |
