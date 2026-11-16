@@ -2104,10 +2104,10 @@ eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', 
 { const s3 = src.replace(/\r\n/g, '\n'), pm = s3.match(/\/\* POP-LEVELS-BEGIN \*\/([\s\S]*?)\/\* POP-LEVELS-END \*\//);
   eq('R133: the block is in the build', !!pm, true);
   const PL = pm ? new Function(pm[1] + '; return { POP_LEVELS, popNeed, popStep };')() : null;
-  eq('R133: POP_LEVELS (the record) - 7 to level 2, 12 to level 3, then 20', [PL.POP_LEVELS, [1, 2, 3, 4].map(PL.popNeed)], [{ need: [7, 12], after: 20 }, [7, 12, 20, 20]]);
+  eq('R133-R135: POP_LEVELS (the record) - 12 to level 2 (R135; R133 had 7), 12 to level 3, then 20', [PL.POP_LEVELS, [1, 2, 3, 4].map(PL.popNeed)], [{ need: [12, 12], after: 20 }, [12, 12, 20, 20]]);
   const st = (p, l, g, o) => { const r = PL.popStep(p, l, g, o); return [r.pop, r.lv, r.up]; };
-  eq('R133: after the tutorial - carry over, level by level', [st(6, 1, 1, null), st(5, 1, 1, null), st(11, 2, 2, null), st(19, 3, 1, null), st(6, 1, 15, null)], [[0, 2, true], [6, 1, false], [1, 3, true], [0, 4, true], [2, 3, true]]);
-  eq('R133: a tutorial sale between - one short of the next level at most', [st(6, 1, 2, 0), st(3, 1, 1, 0), st(10, 2, 2, 0)], [[6, 1, false], [4, 1, false], [11, 2, false]]);
+  eq('R133: after the tutorial - carry over, level by level', [st(11, 1, 1, null), st(5, 1, 1, null), st(11, 2, 2, null), st(19, 3, 1, null), st(6, 1, 20, null)], [[0, 2, true], [6, 1, false], [1, 3, true], [0, 4, true], [2, 3, true]]);
+  eq('R133: a tutorial sale between - one short of the next level at most', [st(11, 1, 2, 0), st(3, 1, 1, 0), st(10, 2, 2, 0)], [[11, 1, false], [4, 1, false], [11, 2, false]]);
   eq('R133: a set moment - straight to its level, at 0 points', [st(4, 1, 1, 2), st(8, 2, 1, 3), st(2, 1, 0, 3)], [[0, 2, true], [0, 3, true], [0, 3, true]]);
   /* the tutorial's sales in order: [gain, goal] - Day 1 (6), GC4 (Day 2's first: goal 2), to Garric (goal 3) */
   const run = gains => { let p = 0, l = 1; const ups = []; gains.forEach(([gn, go], i) => { const r = PL.popStep(p, l, gn, go); p = r.pop; l = r.lv; if (r.up) ups.push(i + ':' + l); }); return ups; };
@@ -2115,6 +2115,11 @@ eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', 
   eq('R133: the usual tiers - level 2 at GC4 (sale 7), level 3 at Garric (sale 18)', run(tut([1, 1, 1, 1, 1, 1], 1, [1, 1, 1, 2, 0, 1, 1, 1, 1, 1], 1)), ['6:2', '17:3']);
   eq('R133: Epic everywhere - still only there', run(tut([2, 2, 2, 2, 2, 2], 2, [2, 2, 2, 2, 0, 2, 2, 2, 2, 2], 2)), ['6:2', '17:3']);
   eq('R133: Weak swords - still there', run(tut([0, 1, 0, 1, 0, 1], 0, [0, 1, 0, 2, 0, 0, 1, 0, 1, 0], 0)), ['6:2', '17:3']);
+  /* R135: the owner's tiers - Day 1's balanced swords Epic (2), TC3 fire Fine (1), GC4 1; GC5-GC7 fire 1, TC4 Epic 2, GC8 Weak 0, TC5 1,
+     the waiting customer's two in one sale 2, Bram's return 1, GC9 1, Garric Epic 2 */
+  const owner = [[2, 2, 2, 2, 2, 1], 1, [1, 1, 1, 2, 0, 1, 2, 1, 1], 2], ownerFree = owner[0].concat([owner[1]], owner[2], [owner[3]]).map(g => [g, null]);
+  eq('R135: with the owner\'s tiers the bars fill at GC4 and at Garric by the points alone (no hold needed)', run(ownerFree), ['6:2', '16:3']);
+  eq('R135: and with the tutorial\'s hold the same, nothing thrown away', run(tut(owner[0], owner[1], owner[2], owner[3])), ['6:2', '16:3']);
   eq('R133: this sale\'s goal - none after the tutorial, Garric 3, Day 2\'s first 2, else hold', s3.includes("function popGoal(){ if(FTUE_ST.done) return null; if(TUT_GARRIC_STATE==='asked') return 3; if(FTUE_ST.part>=3 && POPLV<2) return 2; return 0; }"), true);
   eq('R133: a sale adds its points (and its held swords\') once, through popApply', s3.includes('    levelled=popApply((POP_GAIN[tier]||0)+heldPop);   /* R133 */') && !/POP \+= \(POP_GAIN\[tier\]\|\|0\);/.test(s3) && !s3.includes('while(POP >= POP_CAP)'), true);
   eq('R133: the counter shows the level\'s own target', s3.includes("function popText(){ return 'Lv'+POPLV+' '+POP+'/'+popNeed(POPLV); }"), true); }

@@ -4775,7 +4775,7 @@ function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
    sword on day 2. level 3, right after selling garric's sword." Record: specs/2026-11-16-popularity-levels.md; the FTUE test reads
    this block */
 /* POP-LEVELS-BEGIN */
-const POP_LEVELS={ need:[7,12], after:20 };   /* points from level 1 to 2, 2 to 3; then each level as before (POP_CAP) */
+const POP_LEVELS={ need:[12,12], after:20 };   /* points from level 1 to 2, 2 to 3; then each level as before (POP_CAP). R135 (owner): level 2 needs 12 (was 7) */
 function popNeed(lv){ const n=POP_LEVELS.need[lv-1]; return n!=null ? n : POP_LEVELS.after; }
 /* gain points at level lv with pop already; goal: null after the tutorial (carry over, level by level), 0 a tutorial sale
    between (stop one short of the next level), N a tutorial sale that sets level N (start it at 0) */

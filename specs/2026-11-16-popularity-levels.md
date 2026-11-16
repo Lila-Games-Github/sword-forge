@@ -15,7 +15,7 @@ starts at level 1 with 0 points.
 
 | Level | Points to the next | Before R133 |
 | --- | --- | --- |
-| 1 to 2 | **7** | 20 |
+| 1 to 2 | **12** (R135; R133 had 7) | 20 |
 | 2 to 3 | **12** | 20 |
 | 3 on | 20 (`POP_CAP`) | 20 |
 
@@ -65,3 +65,27 @@ shown with R133's question; the owner went on to R132-R133.
 **When:** a sale that raises the level opens it after the sale window's CLAIM, once the coins have landed (`POP_UP_MS` 950 ms),
 or at once for an unpaid sale (Garric refusing). Its OK runs the sale's next steps (the tutorial hooks, the customer, the
 thank-you, exp), so nothing opens over it. It replaces the "Popularity level N" toast (R90's ticked toasts: 26).
+
+## R135: level 2 needs 12 (2026-11-16)
+
+Owner: "i have been getting 2 popularity points for each customer till tc3. i should have 12 points by now, but the popularity
+tab shows 6/7, and it is stuck at 6." then "swords are bound to be epic for balanced, and fine for fire. so after gc4, we should
+have 12 points. raise level 2 point required to 12". R133 counted every sword Fine; in play the guided balanced swords are Epic
+(2 points) and the fire swords Fine (1), so the hold threw points away.
+
+| Sales | Tiers | Points |
+| --- | --- | --- |
+| TC1, GC1-GC3, TC2 (balanced) | Epic | 2 each = 10 |
+| TC3 (fire) | Fine | 1 (Day 1: 11) |
+| **GC4** (durable, Day 2's first) | Fine | 1: **12, level 2** |
+| GC5-GC7 (fire) | Fine | 3 |
+| TC4 (durable, EPIC asked) | Epic | 2 |
+| GC8 (Weak asked) | Weak | 0 |
+| TC5 (gale) | Fine | 1 |
+| the waiting customer (gale Katana + fire Claymore, one sale) | Fine | 2 |
+| Bram's return (swift Dagger) | Fine | 1 |
+| GC9 (gale) | Fine | 1 |
+| **Garric** (balanced, Epic for his best grade) | Epic | 2: **12, level 3** |
+
+So level 1 to 2 needs **12** (was 7); level 2 to 3 stays **12**. With these tiers the bars fill at GC4 and at Garric by the
+points alone, and the tutorial's hold (R133) throws nothing away; it still holds a player whose tiers differ.

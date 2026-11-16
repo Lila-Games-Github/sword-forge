@@ -1427,3 +1427,9 @@ yours and come on top.
   after the coins "Popularity Up!", Level 2, "People are starting to notice.", "Swords now sell for 10% more", the gold burst
   on its own canvas, the counter "Lv2 0/12"; OK counted GC4 and brought the thank-you; Garric's level 3 showed its line and
   21%; no console errors. FTUE GREEN at 1118.
+- **R135 (owner, 2026-11-16): popularity level 2 needs 12.** "swords are bound to be epic for balanced, and fine for fire. so
+  after gc4, we should have 12 points. raise level 2 point required to 12". R133 assumed Fine everywhere and set 7; Day 1's
+  balanced swords are Epic (2 each), so the hold stopped the owner at 6/7 and threw 6 points away. `POP_LEVELS.need` is
+  `[12, 12]`: Day 1 earns 11, GC4 makes 12 (level 2), GC5 to Garric 12 more (level 3). Record:
+  `specs/2026-11-16-popularity-levels.md` (R135). Checked in the browser with the owner's tiers: 11/12 after TC3, level 2 at
+  GC4, 10/12 before Garric, level 3 at Garric, nothing held back; no console errors. FTUE GREEN at 1120.

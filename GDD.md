@@ -200,8 +200,8 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 ```
 
 - **Example:** an Epic Balanced sword, Good forging, full health, popularity 1: 24 + 20 = **44g**; designed and sharpened, **58g**.
-- **Popularity:** each counter sale adds 0 (Weak), 1 (Fine) or 2 (Epic) to the level's bar: 7 points to level 2, 12 to level
-  3, then 20 (R133); a full bar raises the level (every price +10% per level), the rest carries over. In the tutorial the
+- **Popularity:** each counter sale adds 0 (Weak), 1 (Fine) or 2 (Epic) to the level's bar: 12 points to level 2 (R135), 12 to
+  level 3, then 20 (R133); a full bar raises the level (every price +10% per level), the rest carries over. In the tutorial the
   levels come at set moments: level 2 with Day 2's first sale (GC4), level 3 with Garric's; between them the bar stops one
   short. A level-up opens "Popularity Up!" (R134): the level, a line for it ("People are starting to notice.", "Nearby town
   folks are talking about your swords.", ...), the price bonus and OK, with the gold burst; it follows the sale window.

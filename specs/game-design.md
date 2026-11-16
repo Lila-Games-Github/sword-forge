@@ -155,7 +155,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **Price** (`swordBase`, `swordPriceParts`): `floor(raw value x popularity x forging band x health x Trade skill x
   reputation)`, min 1, then **+7g** if sharpened (>= 80) and **+7g** if designed.
   - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
-    tier) to the level's bar (R133, `POP_LEVELS`: 7 to level 2, 12 to level 3, then 20 = `POP_CAP`) that carries over into the
+    tier) to the level's bar (R133, `POP_LEVELS`: 12 to level 2 (R135, was 7), 12 to level 3, then 20 = `POP_CAP`) that carries over into the
     next level. While the tutorial runs (`popGoal`, `popStep`): Day 2's first sale (GC4) always reaches level 2, Garric's sale
     level 3, and any other sale stops one point short; record `specs/2026-11-16-popularity-levels.md`. A level-up opens the level-up window (R134,
     `popShow`/`popOk`, `POP_LINES`): "Popularity Up!", the level, its line, "Swords now sell for N% more", OK, the gold burst;
