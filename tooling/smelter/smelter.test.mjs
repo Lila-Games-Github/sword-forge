@@ -271,4 +271,19 @@ eq('R65: the shape window two thirds of the frame, five a row, text x1.5 (record
   for (let k = 1; k <= 240 * 6; k++) { const t = k * dt, F = S.smFollow(p, v, t < 0.25 ? 1200 * t : 300, dt); p = F.p; v = F.v;
     const P = S.smPendStep(th, om, F.a, 0, L, dt); th = P.th; om = P.om; const d = Math.abs(th * 180 / Math.PI); if (d > peak) peak = d; if (d > 2) settle = t; }
   eq('R98: a standard drag swings the blade at most 62 degrees (was 74) and it is still within 2 degrees after 3 s (was over 6 s)', [peak <= 62, settle <= 3], [true, true]); }
+/* R126 (owner, 2026-11-16): dust when ore goes into the smelter - specs/2026-11-16-smelter-dust.md */
+{ const s6 = src.replace(/\r\n/g, '\n'), dm = s6.match(/\/\* SM-DUST-BEGIN \*\/([\s\S]*?)\/\* SM-DUST-END \*\//);
+  eq('R126: the dust block is in the build', !!dm, true);
+  const DU = dm ? new Function(dm[1] + '; return { SM_DUST, smDustTint };')() : {};
+  eq('R126: SM_DUST (the record)', DU.SM_DUST, { at: { x: 51, y: 26 }, grey: '#e2d9cc', tint: 0.35, puffs: 8, puffSize: [16, 30], puffDist: [14, 32], puffMs: 600,
+    specks: 16, speckSize: [2.5, 5], rise: [45, 95], drift: 22, riseMs: [900, 1500], delay: 220 });
+  eq('R126: the colour - light ash moved a third of the way to the ore\'s', [DU.smDustTint('#8a5a33', '#e2d9cc', 0.35), DU.smDustTint('#e2d9cc', '#e2d9cc', 0.35), DU.smDustTint(null, '#e2d9cc', 0.35), DU.smDustTint('#000000', '#ffffff', 0.25)],
+    ['#c3ad96', '#e2d9cc', '#e2d9cc', '#bfbfbf']);
+  eq('R126: both ways an ore goes in make dust (raw, ground), after it lands', [
+    s6.includes("craftStartView(); ensureMelt(); spendOre(oreId); addSegment(oreId,0); smDust(oreId);"),
+    s6.includes("const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind); smDust(_o);")], [true, true]);
+  eq('R126: a book page filling the smelter makes none', /function addSegment\([^)]*\)\{[^\n]*smDust/.test(s6), false);
+  eq('R126: drawn inside the smelter station, at the mouth, gone after the last speck', s6.includes("function smDust(oreId){ const st=document.getElementById('stSmelt'); if(!st) return;") && s6.includes("setTimeout(()=>L.remove(), D.delay+Math.max(D.puffMs, D.riseMs[1])+120); }"), true);
+  eq('R126: the puff holds its opacity for its first third, then fades', s6.includes("opacity:.8, offset:.35 },") && s6.includes("{ duration:D.puffMs, easing:'ease-out', fill:'forwards' }"), true);
+  eq('R126: the styles', s6.includes("/* R126: dust when ore goes into the smelter (SM_DUST) */\n.sm-dust { position: absolute; width: 0; height: 0; z-index: 4; pointer-events: none; }\n.sm-dust i { position: absolute; left: 0; top: 0; border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%); opacity: 0; }\n.sm-dust i.sm-puff { filter: blur(2px); }\n"), true); }
 console.log('[smelter] GREEN / ' + n + ' checks');

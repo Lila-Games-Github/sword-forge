@@ -67,7 +67,7 @@ The diary (from Bram) has a Travel Log, "People I met" and character sheets, set
 
 | Station | What the player does | Notes |
 |---|---|---|
-| **Smelter** | Drop ores in | Its crown lights while the bellows pump and cools after; the gate layer glows on a trait |
+| **Smelter** | Drop ores in | Each ore put in makes a puff of dust and specks rising from the crucible, tinted toward the ore's colour (R126); its crown lights while the bellows pump and cools after; the gate layer glows on a trait |
 | **Bellows** | Drag the handle up and down | A full stroke (40 px) = 0.2 s of full-speed travel; springs back closed |
 | **Gate** | Tap | Takes the trait under the sword; refuses off a trait |
 | **Ladle** | Drag the bowl to tilt | 0-45 deg; past 4 deg pulls the sword to the map centre, up to 24 px/s; from Part 4 |

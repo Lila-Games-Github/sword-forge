@@ -1358,3 +1358,11 @@ yours and come on top.
   they land. The exp is still given at pickup. Record: `specs/2026-11-16-book-fly.md`. Checked in the browser: five copies of
   the small (green) book on the arc from the map to the skill tree button, the button's glow from about 930 ms for 650 ms,
   the copies cleaned up, +50 exp at pickup; no console errors. Skills test (written first) GREEN at 23.
+- **R126 (owner, 2026-11-16): dust when ore goes into the smelter.** "I want visual feedback when adding ores to the smelter,
+  some kind of dust particles going up, with a puff of dust." Each ore the player puts in (raw or ground) makes a puff of soft
+  clouds at the crucible's mouth and specks of dust that rise and drift, tinted halfway toward the ore's colour. Record:
+  `specs/2026-11-16-smelter-dust.md` (`SM_DUST`). Found in the browser: the first tan dust (`#a89880` at 0.5) vanished into the
+  map behind the crucible, and the puff faded from its first frame (13% opacity at 40% of its time); now light ash (`#e2d9cc`
+  at 0.35), 2.5-5 px specks, and a puff that holds for its first third. Checked in the browser: raw copper and iron and ground
+  manganese each made the dust at the mouth (51%, 26% of the station), gone after 2 s; no console errors. Smelter test
+  (written first) GREEN at 154.
