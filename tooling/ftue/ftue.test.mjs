@@ -1542,12 +1542,12 @@ eq('R60: Bram (D20), TC3 (D59), Bram (D110), Garric (D120) answer once the line 
 /* R61 (owner, 2026-10-30): sword names, tiers, sharpened and customized bold and coloured in the dialogues. Record: specs/2026-10-30-dialogue-sword-names.md */
 const dlm = src.match(/\/\* DLG-PURE-BEGIN \*\/([\s\S]*?)\/\* DLG-PURE-END \*\//);
 assert.ok(dlm, 'DLG-PURE markers not found in ' + HTML);
-const DL = new Function(dlm[1] + '; return { DLG_HL, dlgSplit, dlgMarks };')(), DH = DL.DLG_HL;
+const DL = new Function(dlm[1] + '; return { DLG_HL, DLG_GROUP: typeof DLG_GROUP === "undefined" ? null : DLG_GROUP, dlgSplit, dlgMarks };')(), DH = DL.DLG_HL;
 eq('R61: the colours (record: Colours)', DH, { back: '#f3e7c6',
-  trait: { balanced: '#5f6670', fire: '#bc3824', swift: '#7a641e', gale: '#2b736c', durable: '#806340', flexible: '#487230', heavy: '#4c5560',
-    celestial: '#6656cb', cloud: '#5c6874', rainbow: '#ab3e7e', luck: '#237736', lightning: '#826200', noble: '#8a3fc2', grace: '#96546e',
-    floral: '#aa4470', fury: '#b24419', ice: '#306d92', water: '#2769b2', magma: '#ba3d0e', mist: '#63696f', poison: '#437316',
-    savage: '#965925', blood: '#a3162a', cursed: '#5a3a6e', dark: '#2c2533' },
+  trait: { balanced: '#b23a26', fire: '#c0301a', swift: '#2b7334', gale: '#127466', durable: '#7a5a10', flexible: '#3a3a9c', heavy: '#3e3552',
+           celestial: '#7a6200', cloud: '#1f6b7c', rainbow: '#17704f', luck: '#6b6400', lightning: '#4a7114', noble: '#8a5300', grace: '#836012',
+           floral: '#8c4e08', fury: '#a8231a', ice: '#245ea0', water: '#1f4db0', magma: '#b0440a', mist: '#47509a', poison: '#4a2f6b',
+           savage: '#9c4f14', blood: '#6a1f4c', cursed: '#5b2c7c', dark: '#2c2238' },
   tier: { Epic: '#8e44d9', Fine: '#2b7fd8', Weak: '#4d4d4d' },
   word: { sharpened: '#2f5d7c', customized: '#9a3f8a', customised: '#9a3f8a' },
   shapes: ['sword', 'shortsword', 'longsword', 'broadsword', 'rapier', 'dagger', 'katana', 'claymore', 'cutlass', 'machete', 'saber', 'scimitar'],
@@ -1562,15 +1562,20 @@ const dlLum = h => { const v = parseInt(h.slice(1), 16); return 0.2126 * dlLin(v
 const dlCon = (a, b) => { const x = dlLum(a), y = dlLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 const dlDark = (h, k) => '#' + [16, 8, 0].map(s => Math.round((parseInt(h.slice(1), 16) >> s & 255) * k).toString(16).padStart(2, '0')).join('');
 const dlTags = new Function('return ' + src.match(/ {4}tags: (\{[\s\S]*?\] \})\r?\n\};/)[1])();
-eq('R61: each trait\'s colour is its market tag darkened in 1% steps to 4.5:1 on the parchment', Object.keys(DH.trait).map(k => { let c = dlTags[k][1], f = 1; while (dlCon(c, DH.back) < 4.5) { f = Math.round((f - 0.01) * 100) / 100; c = dlDark(dlTags[k][1], f); } return c; }), Object.values(DH.trait));
+/* R123 (owner, 2026-11-16): the trait colours follow the map's five parts (replaces R61's market-tag rule for the traits) */
+eq('R123: the five parts, as recorded', DL.DLG_GROUP, {'fire': ['fire', 'magma', 'fury', 'savage', 'balanced'], 'air': ['gale', 'swift', 'cloud', 'lightning', 'rainbow'], 'light': ['celestial', 'durable', 'luck', 'noble', 'grace', 'floral'], 'water': ['water', 'ice', 'mist', 'flexible'], 'dark': ['dark', 'cursed', 'poison', 'blood', 'heavy']});
+eq('R123: every trait in exactly one part', Object.values(DL.DLG_GROUP || {}).flat().sort(), Object.keys(DH.trait).sort());
+eq('R123: every trait colour reads at 4.5:1 or better on the parchment', Object.keys(DH.trait).filter(k => dlCon(DH.trait[k], DH.back) < 4.5), []);
+const dlHue = h => { const [r, g, b] = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255), M = Math.max(r, g, b), m = Math.min(r, g, b), d = M - m; if (!d) return 0; let H = M === r ? ((g - b) / d) % 6 : M === g ? (b - r) / d + 2 : (r - g) / d + 4; H *= 60; return H < 0 ? H + 360 : H; };
+eq('R123: each part\'s colours stay in its hue band', Object.entries(DL.DLG_GROUP || {}).flatMap(([g, ks]) => ks.filter(k => { const B = {'fire': [0, 30], 'air': [80, 195], 'light': [28, 62], 'water': [205, 245], 'dark': [255, 335]}[g], h = dlHue(DH.trait[k]); return h < B[0] || h > B[1]; }).map(k => g + ':' + k)), []);
 eq('R61: sharpened and customized read at 4.5:1 or better', Object.values(DH.word).every(c => dlCon(c, DH.back) >= 4.5), true);
 eq('R61: a word splits into its marks and its letters', [DL.dlgSplit("'balanced'"), DL.dlgSplit('Longsword?'), DL.dlgSplit("I'll")], [{ pre: "'", core: 'balanced', post: "'" }, { pre: '', core: 'Longsword', post: '?' }, { pre: '', core: "I'll", post: '' }]);
 const dlRun = s => { const w = s.split(' '), c = DL.dlgMarks(w); return w.map((x, i) => c[i] ? x + '=' + c[i] : null).filter(Boolean); };
-eq('R61: the owner\'s example', dlRun('Epic Balanced Shortsword'), ['Epic=#8e44d9', 'Balanced=#5f6670', 'Shortsword=#5f6670']);
+eq('R61: the owner\'s example', dlRun('Epic Balanced Shortsword'), ['Epic=#8e44d9', 'Balanced=#b23a26', 'Shortsword=#b23a26']);
 eq('R61: a tier in capitals; "Fine," and "a fine blade" stay plain', [dlRun('Make sure it is EPIC! I only want the best.'), dlRun("A gale Longsword? Fine, I'll buy this one too."), dlRun('I hear you make a fine blade. A Fire sword, if you can.')],
-  [['EPIC!=#8e44d9'], ['gale=#2b736c', 'Longsword?=#2b736c'], ['Fire=#bc3824', 'sword,=#bc3824']]);
+  [['EPIC!=#8e44d9'], ['gale=#127466', 'Longsword?=#127466'], ['Fire=#c0301a', 'sword,=#c0301a']]);
 eq('R61: plurals, quotes, two names in a line; a shape or a trait alone stays plain', [dlRun('I need 5 Swift swords.'), dlRun("craft a 'balanced' sword using"), dlRun('a gale katana and a fire claymore'), dlRun('Now pick the Longsword.'), dlRun('We got metal with the swift trait.'), dlRun('Tell me where to FIRE!')],
-  [['Swift=#7a641e', 'swords.=#7a641e'], ["'balanced'=#5f6670", 'sword=#5f6670'], ['gale=#2b736c', 'katana=#2b736c', 'fire=#bc3824', 'claymore=#bc3824'], [], [], []]);
+  [['Swift=#2b7334', 'swords.=#2b7334'], ["'balanced'=#b23a26", 'sword=#b23a26'], ['gale=#127466', 'katana=#127466', 'fire=#c0301a', 'claymore=#c0301a'], [], [], []]);
 eq('R61: a tier before "tier" or "trait"; sharpened and customized anywhere', [dlRun('This alignment will give us a weak trait tier.'), dlRun('a reward if it is Epic tier, customized and sharpened!')], [['weak=#4d4d4d'], ['Epic=#8e44d9', 'customized=#9a3f8a', 'sharpened!=#2f5d7c']]);
 const dlD0 = src.indexOf('const DIALOGUE = {'), dlD = new Function('return (' + src.slice(dlD0 + 17, src.indexOf('\n};', dlD0) + 2) + ')')();
 const dlHits = {}; Object.keys(dlD).forEach(k => { const w = dlD[k].trim().split(/\s+/), c = DL.dlgMarks(w), h = w.filter((x, i) => c[i]); if (h.length) dlHits[k] = h.join(' '); });

@@ -1338,3 +1338,11 @@ yours and come on top.
   load (1.10 s, 0.60 s, 0.35 s, 0.15 s); a cold strike, a miss and a strike on a finished blade asked for the thud, strikes at
   100%, 70% and 40% for Masterwork, Good and Crude, six quick taps for Good; no console errors. Not checked: how they sound
   (the preview cannot play audio to anyone). Hammer test (written first) GREEN at 78.
+- **R123 (owner, 2026-11-16): trait colours by map part.** "I want to unify them based on the group. the groups are fire, air,
+  light, water and dark." The dialogue colour of every trait (`DLG_HL.trait`) now comes from its map part (`DLG_GROUP`): fire
+  red to orange, air green to cyan, light gold to amber, water deep blue to indigo, dark near-black to violet. Every colour
+  still reads at 4.5:1 or better on the parchment, so light is gold rather than bright yellow. Blood and Cursed sit on a border
+  and were placed in dark. Record: `specs/2026-10-30-dialogue-sword-names.md` ("R123"). The R61 check (colour = market tag,
+  darkened) is replaced by four: the parts as recorded, each trait in one part, 4.5:1 or better, each part in its hue band (air
+  widened to 80-195 for Cloud). Checked in the browser: GC9's "gale longsword" in `#127466`, the dragon's "fire Longsword" in
+  `#c0301a`; no console errors. FTUE test GREEN at 1087.

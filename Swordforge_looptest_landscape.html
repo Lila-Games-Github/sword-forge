@@ -10889,14 +10889,18 @@ const TYPE_MS=70;
    and it's shape as well ... Same for 'sharpened' and 'customized'. this is only for the dialogues." Record: specs/2026-10-30-dialogue-sword-names.md */
 /* DLG-PURE-BEGIN */
 const DLG_HL={ back:'#f3e7c6',   /* the dragon's bubble; the customer's parchment is the same tone */
-    trait:{ balanced:'#5f6670', fire:'#bc3824', swift:'#7a641e', gale:'#2b736c', durable:'#806340', flexible:'#487230', heavy:'#4c5560',
-            celestial:'#6656cb', cloud:'#5c6874', rainbow:'#ab3e7e', luck:'#237736', lightning:'#826200', noble:'#8a3fc2', grace:'#96546e',
-            floral:'#aa4470', fury:'#b24419', ice:'#306d92', water:'#2769b2', magma:'#ba3d0e', mist:'#63696f', poison:'#437316',
-            savage:'#965925', blood:'#a3162a', cursed:'#5a3a6e', dark:'#2c2533' },
+    /* R123 (owner, 2026-11-16): each trait in its map part's colours (DLG_GROUP), 4.5:1 or better on the parchment */
+    trait:{ balanced:'#b23a26', fire:'#c0301a', swift:'#2b7334', gale:'#127466', durable:'#7a5a10', flexible:'#3a3a9c', heavy:'#3e3552',
+            celestial:'#7a6200', cloud:'#1f6b7c', rainbow:'#17704f', luck:'#6b6400', lightning:'#4a7114', noble:'#8a5300', grace:'#836012',
+            floral:'#8c4e08', fury:'#a8231a', ice:'#245ea0', water:'#1f4db0', magma:'#b0440a', mist:'#47509a', poison:'#4a2f6b',
+            savage:'#9c4f14', blood:'#6a1f4c', cursed:'#5b2c7c', dark:'#2c2238' },
     tier:{ Epic:'#8e44d9', Fine:'#2b7fd8', Weak:'#4d4d4d' },   /* tierColor's, as the tier window shows them */
     word:{ sharpened:'#2f5d7c', customized:'#9a3f8a', customised:'#9a3f8a' },
     shapes:['sword','shortsword','longsword','broadsword','rapier','dagger','katana','claymore','cutlass','machete','saber','scimitar'],
     tierThen:['tier','trait'] };
+/* R123: the map's five parts (the regions of assets/ui/MAP_parts.webp), which set each trait's colour above. Blood and Cursed
+   sit on a border and were placed in dark. Record: specs/2026-10-30-dialogue-sword-names.md */
+const DLG_GROUP={ fire:['fire','magma','fury','savage','balanced'], air:['gale','swift','cloud','lightning','rainbow'], light:['celestial','durable','luck','noble','grace','floral'], water:['water','ice','mist','flexible'], dark:['dark','cursed','poison','blood','heavy'] };
 /* a word as its leading marks, its letters, its trailing marks: "'balanced'" -> ' balanced ' */
 function dlgSplit(w){ const m=/^([^A-Za-z]*)([A-Za-z](?:[A-Za-z']*[A-Za-z])?)?([\s\S]*)$/.exec(w); return { pre:m[1], core:m[2]||'', post:m[3] }; }
 /* the colour of each word of a line, or null. A sword's name is one or more trait words straight before a shape ("balanced
