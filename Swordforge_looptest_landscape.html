@@ -853,9 +853,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape.sf-req { position: relative; border-color: #e0a52c; background: #fff5d6; opacity: 1;
     animation: sfReqPulse 1.1s ease-in-out infinite; }
 /* R136 (owner, 2026-11-16): "remove the requested text on top and put an arrow icon pointing down instead. place this icon slightly on
-   the left side of the box." A down arrow in the tag's orange, outlined, on the top edge at 30% across */
-.sf-shape.sf-req::after { content: ''; position: absolute; top: -12px; left: 30%; transform: translateX(-50%); width: 16px; height: 20px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M5 1h6v9h4l-7 9-7-9h4z' fill='%23c9861a' stroke='%236b4210' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+   the left side of the box." A down arrow on the top edge at 30% across. R137 (owner): "make the arrow bigger, and green, rotate it
+   slightly so it points to the centre of the box" - 24 x 30, green, turned 19 degrees toward the card's centre (from 30% across on
+   the top edge of a 123 x 136 card: atan(24.6 / 71)) */
+.sf-shape.sf-req::after { content: ''; position: absolute; top: -18px; left: 30%; transform: translateX(-50%) rotate(-19deg); width: 24px; height: 30px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M5 1h6v9h4l-7 9-7-9h4z' fill='%233aa34a' stroke='%231d5e26' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
     filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
 @keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(224,165,44,.0); } 50% { box-shadow: 0 0 10px 3px rgba(224,165,44,.85); } }
 /* R38 (owner, 2026-10-29): the rotary market - the art on a 16:9 stage, a wheel of traits, one blueprint page at a time.

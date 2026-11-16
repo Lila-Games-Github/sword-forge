@@ -1439,3 +1439,9 @@ yours and come on top.
   across (was the centre); the gold ring and the pulse stay. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
   Checked in the browser: a customer asking for a Shortsword - the arrow on that card's top edge at 30% across, no text; no
   console errors. FTUE GREEN at 1121.
+- **R137 (owner, 2026-11-16): the requested shape's arrow, bigger, green, aimed.** "make the arrow bigger, and green, rotate it
+  slightly so it points to the centre of the box". 24 x 30 px (was 16 x 20), green `#3aa34a` outlined `#1d5e26` (was orange),
+  turned 19 degrees anticlockwise: from its spot (30% across, on the top edge of a 123 x 136 shape card) the card's centre lies
+  atan(24.6 / 71) = 19 degrees off straight down. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
+  Checked in the browser: 24 x 30, green, turned -19 degrees, its point toward the Shortsword card's middle; no console
+  errors. All nine suites GREEN (FTUE 1121).

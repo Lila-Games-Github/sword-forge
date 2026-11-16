@@ -1225,7 +1225,8 @@ The owner: guide GC1 to GC3 through the entire crafting process. Pointers only, 
 ## Requested shape and the trait ring (owner, 2026-10-08)
 
 - **The requested shape is highlighted in the shape window, in the whole game:** a gold ring, a pulse and a
-  "Requested" tag (`.sf-req`; R136, 2026-11-16: a down arrow in its place, on the top edge at 30% across), on the shape the waiting customer asked for, when the blade on the bench has that
+  "Requested" tag (`.sf-req`; R136, 2026-11-16: a down arrow in its place, on the top edge at 30% across; R137: 24 x 30 px, green, turned
+  19 degrees to point at the card's centre), on the shape the waiting customer asked for, when the blade on the bench has that
   customer's trait (`custShapeFor(k)`). The scripted customers now carry their shape too: TC3 fire Shortsword,
   TC5 gale Shortsword, Bram a Dagger. Customers with no shape (TC2, TC4, Garric, normal play) highlight nothing.
   The part 1 craft guide uses the same highlight.
