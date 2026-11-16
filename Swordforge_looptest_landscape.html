@@ -955,6 +955,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r200: quest CLAIM, and the coins that carry it to the gold counter (above every window) */
 .qs-claim { font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px; color: #3a2a12; background: linear-gradient(180deg,#ffe38a,#e0b545); border: 2px solid #7a5a1e; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
 .qs-claim:active { transform: translateY(1px); }
+/* R125: a book's exp lands on the skill tree button: its picture glows once */
+#skillBtn.gained .sk-art { animation: skGained .6s ease-out; }
+@keyframes skGained { 0% { filter: none; } 35% { filter: brightness(1.35) drop-shadow(0 0 6px rgba(255,210,90,.95)); } 100% { filter: none; } }
+.fly-coin.fly-book { font-size: 0; width: 22px; height: 22px; }
+.fly-coin.fly-book svg { width: 22px; height: 22px; display: block; }
 .fly-coin { position: fixed; z-index: 100000; font-size: 20px; line-height: 1; pointer-events: none; transform: translate(-50%,-50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
 .gold-pop { position: fixed; z-index: 100001; pointer-events: none; transform: translate(-50%,-100%); font: 700 14px/1 'Cinzel', serif; color: #ffe38a; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,.8); animation: goldPop 1.1s ease-out forwards; }
 @keyframes goldPop { 0% { opacity: 0; margin-top: 4px; } 15% { opacity: 1; } 100% { opacity: 0; margin-top: -26px; } }
@@ -4484,6 +4489,7 @@ function addBook(K,x,y,xpOverride){
 }
 function takeBook(b){
     b.taken=true; gainExp(b.xp,'book');
+    bookFly(b);   /* R125: its icon flies to the skill tree */
     if(b.tut && BOOK_LESSON_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);   /* r73/r112. r224: the book, for its +xp */
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
@@ -4491,6 +4497,14 @@ function takeBook(b){
     t.setAttribute('font-size', b.kind==='large' ? 30 : 23); t.textContent='+'+b.xp;
     pop.appendChild(t); booksG.appendChild(pop); setTimeout(()=>{ if(pop.parentNode) pop.parentNode.removeChild(pop); }, 1250);
 }
+/* R125 (owner, 2026-11-16): "i want the skill book icons to fly to the skill tree tab, on collection the same way as coins fly".
+   The map's book (its kind's tint, the open book) as a small picture, and its flight to #skillBtn. Record: specs/2026-11-16-book-fly.md */
+function bookIconSvg(kind){ const K=BOOK_BY[kind]||BOOK_KINDS[0];
+    return '<svg viewBox="-16 -14 32 28" xmlns="http://www.w3.org/2000/svg"><rect x="-15" y="-13" width="30" height="26" rx="7" fill="'+K.tint+'" opacity="0.9"/>'+
+        '<path d="M-9,-6 C-6,-8 -3,-8 0,-6 C3,-8 6,-8 9,-6 L9,6 C6,4 3,4 0,6 C-3,4 -6,4 -9,6 Z" fill="#e0d0a6" stroke="#5a4022" stroke-width="1.6" stroke-linejoin="round"/>'+
+        '<path d="M0,-6 L0,6" stroke="#5a4022" stroke-width="1.6"/></svg>'; }
+function bookFly(b){ const to=document.getElementById('skillBtn'); if(!to || !b.inner) return;
+    flyCoins(b.inner.getBoundingClientRect(), to, ()=>{ to.classList.remove('gained'); void to.offsetWidth; to.classList.add('gained'); setTimeout(()=>to.classList.remove('gained'), 650); }, bookIconSvg(b.kind)); }
 // Books sit under the fog like everything else, so they are found by travelling — which is the point.
 function checkBooks(p){ if(!melt) return;
     for(const b of books){ if(b.taken) continue;
@@ -6031,12 +6045,12 @@ function claimQuest(id, btn){
         ftueClaimStep(); });
 }
 const COIN_N=5, COIN_MS=650, COIN_GAP=70;
-function flyCoins(fromRect, toEl, done){
+function flyCoins(fromRect, toEl, done, html){   /* R125: html = another picture (a book) */
     const to=toEl ? toEl.getBoundingClientRect() : null;
     if(!fromRect || !to){ if(done) done(); return; }
     const fx=fromRect.left+fromRect.width/2, fy=fromRect.top+fromRect.height/2, tx=to.left+to.width/2, ty=to.top+to.height/2;
     for(let i=0;i<COIN_N;i++){
-        const c=document.createElement('div'); c.className='fly-coin'; c.textContent='\ud83e\ude99';
+        const c=document.createElement('div'); c.className='fly-coin'+(html?' fly-book':''); if(html) c.innerHTML=html; else c.textContent='\ud83e\ude99';
         c.style.left=fx+'px'; c.style.top=fy+'px'; document.body.appendChild(c);
         const jx=(Math.random()-0.5)*40, jy=-30-Math.random()*30;
         try{ c.animate([{ transform:'translate(-50%,-50%) scale(1)', opacity:1 },

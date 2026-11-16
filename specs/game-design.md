@@ -193,7 +193,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 ### Progression: exp, levels and skills
 
 - **XP:** 100 per level, each level 1 skill point. Sources: crafting 5, selling 5, a cave seam worked out 5, map books
-  (small 50, large 75, great tomes 100-200), quests 20.
+  (small 50, large 75, great tomes 100-200), quests 20. A picked book flies to the skill tree button (R125, `bookFly`: five
+  copies of its map icon on the coins' path, `flyCoins`; the button's picture glows on landing; `specs/2026-11-16-book-fly.md`).
 - **Skill tree** (`SKILLS`, 12 node slots, 8 used; record `specs/2026-10-06-skill-tree-trade-ore.md`): Trade (+5% price a
   rank, 20 ranks), Extract (5% a rank: a seam gives +3-4 ore, 5 ranks), Pickaxe (swing 10% faster a rank, 5), Bounty (+1 ore
   per seam a rank, 10), Bulk Craft (craft-book crafts use 10% less ore a rank, 7 ranks at 7 points each), Master (more books in

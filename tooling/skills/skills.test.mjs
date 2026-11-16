@@ -45,4 +45,13 @@ eq('tutorial caves are scripted', src.includes("{ metal:'iron', spot:2, left:3, 
 eq('extraction rolls once per seam, never on scripted seams', src.includes('if(!n.script && !n.rolled){ n.rolled=true;'), true);
 eq('swing interval follows the pickaxe rank', src.includes("setInterval(()=>{ const cur=pickSeam();") && src.includes("}, pickSwingMs(rank('pick')));"), true);
 
+/* R125 (owner, 2026-11-16): books fly to the skill tree - specs/2026-11-16-book-fly.md */
+{ const s5 = src.replace(/\r\n/g, '\n');
+  eq('R125: a picked book flies, after its exp is given', /function takeBook\(b\)\{\n    b\.taken=true; gainExp\(b\.xp,'book'\);\n    bookFly\(b\);/.test(s5), true);
+  eq('R125: the flight is the coins\' own (count, path, timing), to the skill tree button, which glows on landing',
+    s5.includes("function bookFly(b){ const to=document.getElementById('skillBtn'); if(!to || !b.inner) return;\n    flyCoins(b.inner.getBoundingClientRect(), to, ()=>{ to.classList.remove('gained'); void to.offsetWidth; to.classList.add('gained'); setTimeout(()=>to.classList.remove('gained'), 650); }, bookIconSvg(b.kind)); }"), true);
+  eq('R125: flyCoins carries another picture when given one, the coin otherwise',
+    s5.includes("function flyCoins(fromRect, toEl, done, html){") && s5.includes("const c=document.createElement('div'); c.className='fly-coin'+(html?' fly-book':''); if(html) c.innerHTML=html; else c.textContent='\\ud83e\\ude99';"), true);
+  eq('R125: the icon is the map\'s book on its kind\'s tint', s5.includes("function bookIconSvg(kind){ const K=BOOK_BY[kind]||BOOK_KINDS[0];"), true);
+  eq('R125: the styles', s5.includes("/* R125: a book's exp lands on the skill tree button: its picture glows once */\n#skillBtn.gained .sk-art { animation: skGained .6s ease-out; }\n@keyframes skGained { 0% { filter: none; } 35% { filter: brightness(1.35) drop-shadow(0 0 6px rgba(255,210,90,.95)); } 100% { filter: none; } }\n.fly-coin.fly-book { font-size: 0; width: 22px; height: 22px; }\n.fly-coin.fly-book svg { width: 22px; height: 22px; display: block; }\n"), true); }
 console.log('[skills] GREEN / ' + n + ' checks');

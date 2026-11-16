@@ -98,7 +98,8 @@ The dragon sits on the bench; his speech bubble points at him.
   Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free). In a zone
   the sword shakes and its health shows red; out of it, the health's usual colour again (R103). The fire craft's first zone
   (D69) is three times its old size (R103).
-- **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200).
+- **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200). On pickup
+  the book's icon flies to the skill tree button the way coins fly to the gold, and the button glows (R125).
 
 ### Ores and routes
 

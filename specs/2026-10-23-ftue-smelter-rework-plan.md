@@ -1352,3 +1352,9 @@ yours and come on top.
   `specs/2026-10-30-dialogue-sword-names.md` ("Trait icons"). R32's and R61's checks pinned the renderers' lines and now
   pin them with the icons. Checked in the browser: GC9's "🌪️ gale longsword" and the dragon's "🔥 fire Longsword", each icon in
   normal weight and kept with its word; no console errors. FTUE test (written first) GREEN at 1093.
+- **R125 (owner, 2026-11-16): books fly to the skill tree.** "i want the skill book icons to fly to the skill tree tab, on
+  collection the same way as coins fly". On pickup, five copies of the book's map icon fly from the book to the skill tree
+  button with the coins' path and timing (`flyCoins`, now able to carry another picture), and the button's picture glows as
+  they land. The exp is still given at pickup. Record: `specs/2026-11-16-book-fly.md`. Checked in the browser: five copies of
+  the small (green) book on the arc from the map to the skill tree button, the button's glow from about 930 ms for 650 ms,
+  the copies cleaned up, +50 exp at pickup; no console errors. Skills test (written first) GREEN at 23.
