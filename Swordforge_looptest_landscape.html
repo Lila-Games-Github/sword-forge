@@ -850,7 +850,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape .sf-buy.poor { background: #d9d3c6; border-color: #9c9486; color: #7d7568; }   /* r301: the gold cannot cover it */
 .sf-shape .sf-buy { margin-top: 2px; padding: 2px 7px; border-radius: 6px; background: #f6d27a; border: 1px solid #b07a22; color: #5a3410; font: 700 10px/1.2 'Cinzel', serif; letter-spacing: .3px; }
 /* owner, 2026-10-08: the shape the waiting customer asked for - a gold ring, a pulse and a tag */
-.sf-shape.sf-req { position: relative; border-color: #e0a52c; background: #fff5d6; opacity: 1;
+.sf-shape.sf-req { position: relative; border-color: #e8a317; background: #fff5d6; opacity: 1;   /* R138: the deeper gold */
     animation: sfReqPulse 1.1s ease-in-out infinite; }
 /* R136 (owner, 2026-11-16): "remove the requested text on top and put an arrow icon pointing down instead. place this icon slightly on
    the left side of the box." A down arrow on the top edge at 30% across. R137 (owner): "make the arrow bigger, and green, rotate it
@@ -859,7 +859,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape.sf-req::after { content: ''; position: absolute; top: -18px; left: 30%; transform: translateX(-50%) rotate(-19deg); width: 24px; height: 30px;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M5 1h6v9h4l-7 9-7-9h4z' fill='%233aa34a' stroke='%231d5e26' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
     filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
-@keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(224,165,44,.0); } 50% { box-shadow: 0 0 10px 3px rgba(224,165,44,.85); } }
+/* R138 (owner, 2026-11-16): "make the highlight around the box stronger" - a solid 2px gold ring outside the border (a shadow, so the
+   card keeps its size) and a glow that never goes out: 10px at rest, 22px bright at the pulse's peak (was none to 10px) */
+@keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 2px #e8a317, 0 0 10px 3px rgba(232,163,23,.75); } 50% { box-shadow: 0 0 0 2px #f5b62a, 0 0 22px 8px rgba(255,190,40,1); } }
 /* R38 (owner, 2026-10-29): the rotary market - the art on a 16:9 stage, a wheel of traits, one blueprint page at a time.
    Positions are the art's own pixels (1920x1080) as percentages. Record: specs/2026-10-29-rotary-market.md */
 #sfMarketModal { container-type: size; }

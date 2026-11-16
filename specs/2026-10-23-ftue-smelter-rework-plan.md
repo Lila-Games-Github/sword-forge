@@ -1445,3 +1445,8 @@ yours and come on top.
   atan(24.6 / 71) = 19 degrees off straight down. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
   Checked in the browser: 24 x 30, green, turned -19 degrees, its point toward the Shortsword card's middle; no console
   errors. All nine suites GREEN (FTUE 1121).
+- **R138 (owner, 2026-11-16): a stronger highlight on the requested shape.** "make the highlight around the box stronger". The
+  border is the deeper gold `#e8a317`; a solid 2 px gold ring outside it (a shadow, so the card keeps its size); the glow never
+  goes out: 10 px at rest (was none), 22 px and fully bright at the pulse's peak (was 10 px), still 1.1 s a pulse. Record:
+  `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape"). Checked in the browser: at rest the ring and a 10 px glow, at the
+  peak the ring and a 22 px glow, the card still 123 x 136; no console errors. FTUE GREEN at 1122.
