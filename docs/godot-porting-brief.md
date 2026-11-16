@@ -123,7 +123,7 @@ sharpening wheel's two frames (1701 x 1536).
 | `SAY_NO_X`, `SAY_GO_GLOW`, `SAY_GO_MORE`, `SAY_PAUSE_ONE` | Which lines have no close button, a lit OK, or pause the game | rework plan R55-R57 |
 | `SAY_DARK`, `SAY_DARK_CUT`, `STAGE_DARK`, `HM_SAY_DARK` | The dark overlay with cut-outs: per line and per stage | rework plan (R71, R99, R107, R110, R111) |
 | `TUT_SKIP`, `TUT_SKIP_SCREEN`, `CRAFT_REWIND`, `FIRST_SWORD_STAGES` | Per-frame catch-up (the player acted before the guide), and where a refilled craft restarts | ftue v3 rework |
-| `TUT_DRAG_GESTURE`, `DLG_HL`, `DLG_GROUP` | Drag hints; coloured sword names in lines (R123: a trait's colour follows its map part) | `specs/2026-10-30-dialogue-sword-names.md` |
+| `TUT_DRAG_GESTURE`, `DLG_HL`, `DLG_GROUP` | Drag hints; coloured sword names in lines (R123: a trait's colour follows its map part; R124: its icon before it, `dlgIcons`) | `specs/2026-10-30-dialogue-sword-names.md` |
 | `DTOAST` | Game messages said by the dragon (on trial) | `specs/2026-11-05-dragon-toasts.md` |
 | `specs/2026-11-10-ftue-customer-list.md` | Every tutorial customer: request, rewards, ores | (a doc, not a table) |
 
@@ -164,6 +164,6 @@ Open these functions when the docs are not enough:
 
 ## 7. The tests as a checklist
 
-`tooling/<suite>/<suite>.test.mjs` read the build and check its tables against the specs: `ftue` (1087 checks, the tutorial),
+`tooling/<suite>/<suite>.test.mjs` read the build and check its tables against the specs: `ftue` (1093 checks, the tutorial),
 `smelter` (146, the loop and effects), `market` (84), `hazard` (40), `hammer` (78, with the quick hammer and the sounds), `skills` (18), `map` (17). Their check names
 are a list of the rules the Godot version must keep. Run them with Node: `node tooling/ftue/ftue.test.mjs`.

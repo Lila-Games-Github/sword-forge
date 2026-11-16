@@ -1346,3 +1346,9 @@ yours and come on top.
   darkened) is replaced by four: the parts as recorded, each trait in one part, 4.5:1 or better, each part in its hue band (air
   widened to 80-195 for Cloud). Checked in the browser: GC9's "gale longsword" in `#127466`, the dragon's "fire Longsword" in
   `#c0301a`; no console errors. FTUE test GREEN at 1087.
+- **R124 (owner, 2026-11-16): trait icons in the dialogues.** "I also want to show the icon of the traits in the dialogues."
+  Choices: sword names only, the icon before the word. Each trait word of a sword's name (the bold, coloured ones) now shows
+  its map symbol before it ("a 🔥 fire longsword"); a trait word alone stays plain. Record:
+  `specs/2026-10-30-dialogue-sword-names.md` ("Trait icons"). R32's and R61's checks pinned the renderers' lines and now
+  pin them with the icons. Checked in the browser: GC9's "🌪️ gale longsword" and the dragon's "🔥 fire Longsword", each icon in
+  normal weight and kept with its word; no console errors. FTUE test (written first) GREEN at 1093.

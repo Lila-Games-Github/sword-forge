@@ -453,7 +453,7 @@ They are in the internal build only: the external tester copy, `Swordforge_exter
 | The market window | `specs/2026-10-29-rotary-market.md` |
 | Swing effects | `specs/2026-10-30-fire-swing-fx.md` |
 | Trait discovery burst | `specs/2026-10-30-trait-discovery-burst.md` |
-| Coloured sword names (since R123, each trait in its map part's colours: fire, air, light, water, dark) | `specs/2026-10-30-dialogue-sword-names.md` |
+| Coloured sword names (since R123, each trait in its map part's colours: fire, air, light, water, dark; since R124 with the trait's icon before it) | `specs/2026-10-30-dialogue-sword-names.md` |
 | Mobile fit and payload | `specs/2026-09-21-mobile-viewport-fit.md`, `specs/2026-09-21-asset-payload-diet.md` |
 | Art still needed | `specs/2026-10-07-ftue-v3-art-list.md` |
 | Current state, open questions | `HANDOFF.md` |

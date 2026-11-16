@@ -107,6 +107,20 @@ darkened) for the traits; the tiers, sharpened and customized are unchanged.
 | cursed | #5a3a6e | #5a3a6e |
 | dark | #2c2533 | #2c2533 |
 
+## Trait icons (R124, 2026-11-16)
+
+Owner (2026-11-16): "I also want to show the icon of the traits in the dialogues." Choices: sword names only; the icon
+before the word.
+
+- **Which words:** a trait word that is part of a sword's name (it is already bold and coloured: "a fire longsword", "gale
+  katana", "Swift swords", "'balanced' sword"). A trait word alone ("the fire trait", "Gale?") stays plain, as for colour.
+  Tier words, shapes, "sharpened" and "customized" get none.
+- **The icon** is the trait's map symbol (`TRAIT_BY[id].symbol`: 🔥 fire, 🌪️ gale, ⚖️ balanced, and so on), the one the map,
+  the craft book and the blade pips show. It sits before the word, and before any quote mark around it ("🔥 fire longsword",
+  "⚖️ 'balanced' sword"), in normal weight, and never parts from its word at a line break.
+- **Where:** every dialogue renderer (the customer's typed line, the dragon's bubble, a line shown at once), through
+  `dlgIcons(words, marks, sym)` beside `dlgMarks`, and `dlgWordNodes`.
+
 ## What it marks in the scripted lines (asserted)
 
 | Line | Marked |

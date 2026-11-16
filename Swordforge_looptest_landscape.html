@@ -522,6 +522,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* R28: the ring's pull - the down head only, sliding down */
 #dragonSayText .sw, #screenDragonSayText .sw, #shSayText .sw, #ddSayText .sw { opacity: 0; transition: opacity .12s; }
 #dragonSayText .sw.on, #screenDragonSayText .sw.on, #shSayText .sw.on, #ddSayText .sw.on { opacity: 1; }   /* R32: the dragon's line types in */
+.dlg-ig { white-space: nowrap; }   /* R124: a trait's icon and its word never part at a line break */
+.dlg-ic { font-weight: 400; margin-right: .15em; }   /* R124: the trait's map symbol, before its word */
 .dlg-k { font-weight: 700; }   /* R61: a sword's name, a tier, sharpened, customized (DLG_HL gives the colour) */
 #tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }
 #tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }
@@ -10915,14 +10917,21 @@ function dlgMarks(words){ const H=DLG_HL, P=words.map(dlgSplit), lc=P.map(p=>p.c
         if(H.trait[lc[i]]){ let j=i; while(j<words.length && H.trait[lc[j]] && quotes(P[j].post)) j++;
             if(j>i && shape(j)){ for(let k=i;k<j;k++) out[k]=H.trait[lc[k]]; out[j]=H.trait[lc[j-1]]; i=j; } } }
     return out; }
+/* R124 (owner, 2026-11-16): the icon before each trait word of a sword's name (one dlgMarks coloured as a trait), or null.
+   sym(id) gives a trait's symbol (TRAIT_BY in the game). A trait word alone, a tier, a shape, sharpened: none */
+function dlgIcons(words, marks, sym){ return words.map((w,i)=>{ const k=dlgSplit(w).core.toLowerCase();
+    return (marks[i] && DLG_HL.trait[k] && marks[i]===DLG_HL.trait[k]) ? (sym(k)||null) : null; }); }
 /* DLG-PURE-END */
+const dlgSym=id=>TRAIT_BY[id] ? TRAIT_BY[id].symbol : null;   /* R124 */
 /* a word into el: a marked word's letters bold in its colour, the marks round them plain */
-function dlgWordNodes(el, w, c){ if(!c){ el.appendChild(document.createTextNode(w)); return; } const p=dlgSplit(w);
+function dlgWordNodes(el, w, c, ic){ if(ic){ const g=document.createElement('span'); g.className='dlg-ig'; el.appendChild(g); el=g;
+        const s=document.createElement('span'); s.className='dlg-ic'; s.textContent=ic; el.appendChild(s); }   /* R124: the trait's icon first */
+    if(!c){ el.appendChild(document.createTextNode(w)); return; } const p=dlgSplit(w);
     if(p.pre) el.appendChild(document.createTextNode(p.pre)); const b=document.createElement('b'); b.className='dlg-k'; b.style.color=c; b.textContent=p.core; el.appendChild(b);
     if(p.post) el.appendChild(document.createTextNode(p.post)); }
 /* a whole line at once */
-function dlgFill(el, text){ el.textContent=''; const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);
-    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' ')); dlgWordNodes(el, w, cs[i]); }); }
+function dlgFill(el, text){ el.textContent=''; const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws), ics=dlgIcons(ws, cs, dlgSym);
+    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' ')); dlgWordNodes(el, w, cs[i], ics[i]); }); }
 let TYPE_T=null, TYPE_EL=null, TYPE_WORDS=null, TYPE_I=0;
 function typeStop(){ if(TYPE_T){ clearInterval(TYPE_T); TYPE_T=null; } TYPE_EL=null; TYPE_WORDS=null; TYPE_I=0; TYPE_DONE=null; }
 function typeDone(){                                  /* jump to the finished line */
@@ -10939,10 +10948,10 @@ function typeLine(el, text){
     const after=TYPE_DONE;                              /* typeStop clears it, so carry it across */
     typeStop(); TYPE_DONE=after; if(!el) return;
     const words=String(text||'').trim().split(/\s+/);
-    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words);   /* R61 */
+    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words), ics=dlgIcons(words, cols, dlgSym);   /* R61. R124 */
     TYPE_T=setInterval(()=>{
         if(TYPE_I>=TYPE_WORDS.length){ const f=TYPE_DONE; typeStop(); if(f) f(); return; }
-        if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I]); TYPE_I++;
+        if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I], ics[TYPE_I]); TYPE_I++;
         counterLayout();   /* r149: the box grows as it types */
     }, TYPE_MS);
 }
@@ -11681,9 +11690,9 @@ let SAY_TYPE_T=null, SAY_TYPE_EL=null;
 function sayTypeStop(all){ if(SAY_TYPE_T){ clearInterval(SAY_TYPE_T); SAY_TYPE_T=null; }
     if(all && SAY_TYPE_EL) SAY_TYPE_EL.querySelectorAll('.sw').forEach(w=>w.classList.add('on')); SAY_TYPE_EL=null; }
 function sayType(el, text){ sayTypeStop(false); el.textContent='';
-    const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);   /* R61 */
+    const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws), ics=dlgIcons(ws, cs, dlgSym);   /* R61. R124 */
     ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' '));
-        const s=document.createElement('span'); s.className='sw'; dlgWordNodes(s, w, cs[i]); el.appendChild(s); });
+        const s=document.createElement('span'); s.className='sw'; dlgWordNodes(s, w, cs[i], ics[i]); el.appendChild(s); });
     const words=[...el.querySelectorAll('.sw')]; let i=0; SAY_TYPE_EL=el;
     SAY_TYPE_T=setInterval(()=>{ if(i>=words.length){ sayTypeStop(false); return; } words[i++].classList.add('on'); }, TYPE_MS); }
 function say(id){

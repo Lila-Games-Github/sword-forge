@@ -276,7 +276,8 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
   its button moves it on (R57). Customers' lines type in the counter box or the named panel; the player answers with reply
   buttons. Sword names, tiers, "sharpened" and "customized" are bold and coloured (`DLG_HL`, R61); since R123 each trait takes its
   map part's colours (`DLG_GROUP`: fire red to orange, air green to cyan, light gold to amber, water deep blue to indigo, dark
-  near-black to violet), each 4.5:1 or better on the parchment. Pointers: a drag arrow, a
+  near-black to violet), each 4.5:1 or better on the parchment. Since R124 each trait word of a sword's name also shows its map
+  symbol before it ("a 🔥 fire longsword", `dlgIcons`); a trait word alone stays plain. Pointers: a drag arrow, a
   glow or blink on the control, drag gestures, a dark screen with cut-outs, and a ring on a map trait (`tutSpot`, which a
   finished sword clears, R62).
 - **Effects:** swing effects (§5), the trait burst, the smelter's lit states, quench smoke and mist, the bell's swing, hearts
