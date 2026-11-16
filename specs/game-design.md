@@ -173,8 +173,9 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   at a time; the last one pays for all (r267).
 - **SELL** pays the price (above), REP +1, popularity and 5 xp. The customer thanks the player with a line chosen by the sword's
   best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s. **The sale window (R130, `saleShow`/`saleClaim`,
-  `specs/2026-11-16-sale-window.md`):** a paid sale opens "Sword Sold!" (a coin, "+Ng", "+N popularity", CLAIM); the gold is already paid,
-  the counter holds the old count, and CLAIM flies the coins from the window to it (`flyCoins`), then runs the sale's next
+  `specs/2026-11-16-sale-window.md`):** a paid sale opens "Sword Sold!" (a coin, "+Ng", a star "×N" for the popularity, R132, CLAIM); the gold is already paid,
+  the counter holds the old count, and CLAIM flies the coins from the window to it (`flyCoins`) and N stars (at most 5) to the popularity counter, which also
+  waits, then runs the sale's next
   steps (the tutorial hooks, `ftueGpcSold`, the thank-you, exp). An unpaid sale (Garric refusing) opens none. No "Sold for"
   toast. It opens with a gold burst (R131, `SALE_FX`: the trait window's burst, gold only, 40 particles and a 200 px ring;
   `acqBurst(tier, window, table)`).

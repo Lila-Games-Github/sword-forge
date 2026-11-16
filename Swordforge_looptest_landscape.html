@@ -938,7 +938,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sale-gold { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0 6px; }
 .sale-coin { font-size: 52px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 .sale-gold b { font: 700 34px/1 Georgia, serif; color: #2e2010; }
-.sale-sub { margin: 0 0 12px; font-size: 13px; color: #6b5536; }
+.sale-pop { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 12px; }   /* R132: the star and its points */
+.sale-pop[hidden] { display: none; }
+.sale-star { font-size: 30px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.sale-pop b { font: 700 24px/1 Georgia, serif; color: #2e2010; }
+.fly-coin.fly-star { font-size: 20px; }
 /* R58: the trait window's burst - a canvas over its dark, behind its box, taps passing through */
 #acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #saleFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }   /* R131: the sale window's burst */
@@ -2597,7 +2601,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
         <div class="sf-modal-box">
             <h3 id="saleTitle" class="sf-modal-h">Sword Sold!</h3>
             <div class="sale-gold"><span class="sale-coin" id="saleCoin">🪙</span><b id="saleAmt">+0g</b></div>
-            <p class="sale-sub" id="saleSub" hidden></p>
+            <div class="sale-pop" id="salePop" hidden><span class="sale-star" id="saleStar">⭐</span><b id="salePopN">×0</b></div>
             <div class="rwd-ok"><button class="paperBtn wide" type="button" id="saleClaim" onclick="saleClaim()">CLAIM</button></div>
         </div>
     </div>
@@ -4783,23 +4787,30 @@ function sellLabel(){
 }
 function updateHud(){
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-    set('goldVal', GOLD); set('repVal', REP); set('popVal', 'Lv'+POPLV+' '+POP+'/'+POP_CAP);
+    set('goldVal', GOLD); set('repVal', REP); set('popVal', popText());   /* R132 */
     updateXpHud();
 }
 /* R130 (owner, 2026-11-16): "on selling a sword, i want a popup window, like the reward windows, showing the gold earned, gold icon
    and a claim button. clicking this claim button shows the gold flying from the window to the gold tab in the inventory." The gold is
    already the player's; the window shows it, and CLAIM runs the sale's next steps (then) and flies the coins. Record:
    specs/2026-11-16-sale-window.md */
-let SALE_THEN=null, SALE_AMT=0;
-function saleShow(amt, n, pop, then){ SALE_AMT=amt; SALE_THEN=then||null;
+let SALE_THEN=null, SALE_AMT=0, SALE_POP=0, SALE_POPWAS='';
+/* R132 (owner, 2026-11-16): "remove the +2 popularity here, instead star icon x2 popularity points. I want these stars flying to the
+   popularity tab as well." pop = the points, popWas = the popularity counter's text before the sale (it waits for the stars) */
+const POP_FLY_MAX=5;   /* the most stars in one flight */
+function popText(){ return 'Lv'+POPLV+' '+POP+'/'+POP_CAP; }
+function setPopShown(t){ const e=document.getElementById('popVal'); if(e) e.textContent=t; }
+function saleShow(amt, n, pop, then, popWas){ SALE_AMT=amt; SALE_THEN=then||null; SALE_POP=pop||0; SALE_POPWAS=popWas||popText();
     document.getElementById('saleTitle').textContent = n>1 ? n+' Swords Sold!' : 'Sword Sold!';
     document.getElementById('saleAmt').textContent='+'+amt+'g';
-    const s=document.getElementById('saleSub'); s.textContent = pop ? '+'+pop+' popularity' : ''; s.hidden=!pop;
+    document.getElementById('salePopN').textContent='\u00d7'+(pop||0); document.getElementById('salePop').hidden=!pop;   /* R132: the star x its points */
     document.getElementById('sfSaleModal').classList.add('show'); acqBurst('Gold', 'sfSaleModal', SALE_FX); }   /* R131: the gold burst */
 function saleClaim(){ const m=document.getElementById('sfSaleModal'); if(!m || !m.classList.contains('show')) return;
-    const amt=SALE_AMT, then=SALE_THEN, from=document.getElementById('saleCoin').getBoundingClientRect(); SALE_THEN=null;
+    const amt=SALE_AMT, pop=SALE_POP, popWas=SALE_POPWAS, then=SALE_THEN, from=document.getElementById('saleCoin').getBoundingClientRect(),
+        sfrom=document.getElementById('saleStar').getBoundingClientRect(); SALE_THEN=null;
     m.classList.remove('show'); if(then) then();
-    setGoldShown(GOLD-amt); flyCoins(from, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+amt+'g'); }); }
+    setGoldShown(GOLD-amt); flyCoins(from, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+amt+'g'); });
+    if(pop>0){ setPopShown(popWas); flyCoins(sfrom, document.getElementById('popVal'), ()=>setPopShown(popText()), '\u2b50', Math.min(pop, POP_FLY_MAX), 'fly-star'); } }   /* R132: the stars to the popularity counter */
 function sellCounter(){
     /* r103: this used to open with `if(TUT_BRAM_SOLD) return;`, which locked the counter for the
        rest of the game the moment Bram was served - every later customer the bell brought could be
@@ -4818,7 +4829,7 @@ function sellCounter(){
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
-    const goldWas=GOLD;   /* r268: the count the coins leave from. R130: they fly from the sale window */
+    const goldWas=GOLD, popWas=popText();   /* r268: the count the coins leave from. R130: they fly from the sale window. R132: and the stars */
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
@@ -4852,7 +4863,7 @@ function sellCounter(){
     if(refused) toastCut('He took it and paid <b>nothing</b>');   /* r132 */
     if(levelled) setTimeout(()=>toastCut('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
     };
-    if(paidAll>0){ setGoldShown(goldWas); saleShow(paidAll, held.length+1, popAll, after); } else after();   /* R130: the sale window; the count waits for the coins */
+    if(paidAll>0){ setGoldShown(goldWas); if(popAll) setPopShown(popWas); saleShow(paidAll, held.length+1, popAll, after, popWas); } else after();   /* R130: the sale window; the count waits for the coins. R132: and the stars */
 }
 function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
@@ -6090,12 +6101,13 @@ function claimQuest(id, btn){
         ftueClaimStep(); });
 }
 const COIN_N=5, COIN_MS=650, COIN_GAP=70;
-function flyCoins(fromRect, toEl, done, html){   /* R125: html = another picture (a book) */
+function flyCoins(fromRect, toEl, done, html, n, cls){   /* R125: html = another picture (a book). R132: n of them (COIN_N), class cls (fly-book) */
     const to=toEl ? toEl.getBoundingClientRect() : null;
     if(!fromRect || !to){ if(done) done(); return; }
     const fx=fromRect.left+fromRect.width/2, fy=fromRect.top+fromRect.height/2, tx=to.left+to.width/2, ty=to.top+to.height/2;
-    for(let i=0;i<COIN_N;i++){
-        const c=document.createElement('div'); c.className='fly-coin'+(html?' fly-book':''); if(html) c.innerHTML=html; else c.textContent='\ud83e\ude99';
+    const N=n||COIN_N;
+    for(let i=0;i<N;i++){
+        const c=document.createElement('div'); c.className='fly-coin'+(html?' '+(cls||'fly-book'):''); if(html) c.innerHTML=html; else c.textContent='\ud83e\ude99';
         c.style.left=fx+'px'; c.style.top=fy+'px'; document.body.appendChild(c);
         const jx=(Math.random()-0.5)*40, jy=-30-Math.random()*30;
         try{ c.animate([{ transform:'translate(-50%,-50%) scale(1)', opacity:1 },
@@ -6103,7 +6115,7 @@ function flyCoins(fromRect, toEl, done, html){   /* R125: html = another picture
                         { transform:'translate(calc(-50% + '+(tx-fx)+'px), calc(-50% + '+(ty-fy)+'px)) scale(0.7)', opacity:0.9 }],
                        { duration:COIN_MS, delay:i*COIN_GAP, easing:'ease-in', fill:'forwards' }); }catch(e){}
         setTimeout(()=>c.remove(), COIN_MS+i*COIN_GAP+40); }
-    setTimeout(()=>{ if(done) done(); }, COIN_MS+(COIN_N-1)*COIN_GAP);
+    setTimeout(()=>{ if(done) done(); }, COIN_MS+(N-1)*COIN_GAP);
 }
 /* R91 (owner, 2026-11-05): "I want the coins to fly from inventory panel to the gold buttons, when buying any blueprint" - the
    quest claim's coins, the other way: from the gold counter to the buy button. The gold is spent at once; the coins only show it */

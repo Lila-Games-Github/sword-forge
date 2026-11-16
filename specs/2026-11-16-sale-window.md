@@ -49,3 +49,11 @@ sparks and flipping confetti from the window's edge, then a smaller second burst
 
 Drag, fall, spin and the colour mix (50% / 35% / 15%) are the trait window's. Visual only; the burst code (`acqBurst`) now takes
 the window and the table.
+
+## Stars for popularity (R132, 2026-11-16)
+
+Owner: "remove the +2 popularity here, instead star icon x2 popularity points. I want these stars flying to the popularity tab
+as well." The window shows a star and "×2" (the sale's popularity points) in place of "+2 popularity"; none when the sale gave
+none. CLAIM flies the stars, one per point (at most 5, `POP_FLY_MAX`), from the window's star to the popularity counter
+(`#popVal`) beside the coins to the gold, on the coins' path and timing (`flyCoins(..., html, n, cls)`); the counter keeps its
+old text until they land.

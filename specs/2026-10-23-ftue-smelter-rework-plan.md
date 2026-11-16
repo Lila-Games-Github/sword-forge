@@ -1406,3 +1406,8 @@ yours and come on top.
   checks pin the new lines. Checked in the browser (frames stepped by hand): 40 particles, all three golds, a deep gold ring,
   on the sale window's own canvas, gone after 2 s; the trait window still bursts with 70 in its tier's blue, gold and white; no
   console errors. Smelter test GREEN at 160.
+- **R132 (owner, 2026-11-16): stars in the sale window.** "remove the +2 popularity here, instead star icon x2 popularity points.
+  I want these stars flying to the popularity tab as well." A star and "×N" in place of "+N popularity"; CLAIM flies N stars (at
+  most 5) to the popularity counter, which waits for them. Record: `specs/2026-11-16-sale-window.md` ("Stars for popularity").
+  Checked in the browser: an Epic sale showed ⭐×2; the counter held "Lv1 0/20" until CLAIM flew 5 coins and 2 stars, then
+  showed "Lv1 2/20". FTUE GREEN at 1100.
