@@ -4756,6 +4756,22 @@ function swordBestTier(w){
     return w.traits.reduce((best,t)=> (['Weak','Fine','Epic'].indexOf(t.tier) > ['Weak','Fine','Epic'].indexOf(best) ? t.tier : best), 'Weak');
 }
 function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
+/* R133 (owner, 2026-11-16): "Tweak the popularity points required so players reach level 2 popularity right after selling the first
+   sword on day 2. level 3, right after selling garric's sword." Record: specs/2026-11-16-popularity-levels.md; the FTUE test reads
+   this block */
+/* POP-LEVELS-BEGIN */
+const POP_LEVELS={ need:[7,12], after:20 };   /* points from level 1 to 2, 2 to 3; then each level as before (POP_CAP) */
+function popNeed(lv){ const n=POP_LEVELS.need[lv-1]; return n!=null ? n : POP_LEVELS.after; }
+/* gain points at level lv with pop already; goal: null after the tutorial (carry over, level by level), 0 a tutorial sale
+   between (stop one short of the next level), N a tutorial sale that sets level N (start it at 0) */
+function popStep(pop, lv, gain, goal){
+    if(goal==null){ pop+=gain; let up=false; while(pop>=popNeed(lv)){ pop-=popNeed(lv); lv++; up=true; } return { pop:pop, lv:lv, up:up }; }
+    if(goal>lv) return { pop:0, lv:goal, up:true };
+    return { pop:Math.min(pop+gain, popNeed(lv)-1), lv:lv, up:false }; }
+/* POP-LEVELS-END */
+/* this sale's goal: after the tutorial none; Garric's sale level 3; Day 2's first sale level 2; else hold */
+function popGoal(){ if(FTUE_ST.done) return null; if(TUT_GARRIC_STATE==='asked') return 3; if(FTUE_ST.part>=3 && POPLV<2) return 2; return 0; }
+function popApply(gain){ const r=popStep(POP, POPLV, gain, popGoal()); POP=r.pop; POPLV=r.lv; return r.up; }
 // the price a sword fetches right now, with both multipliers applied
 function swordBase(w){
     let g = swordValue(w) * popMul() * hmForgeMul(w) * hazPriceMul(w && w.hp) * tradeMul(rank('trade'));   /* r218: Improved Trading Skills */   /* r215: blade health */   /* r209: the forging grade */
@@ -4798,7 +4814,7 @@ let SALE_THEN=null, SALE_AMT=0, SALE_POP=0, SALE_POPWAS='';
 /* R132 (owner, 2026-11-16): "remove the +2 popularity here, instead star icon x2 popularity points. I want these stars flying to the
    popularity tab as well." pop = the points, popWas = the popularity counter's text before the sale (it waits for the stars) */
 const POP_FLY_MAX=5;   /* the most stars in one flight */
-function popText(){ return 'Lv'+POPLV+' '+POP+'/'+POP_CAP; }
+function popText(){ return 'Lv'+POPLV+' '+POP+'/'+popNeed(POPLV); }
 function setPopShown(t){ const e=document.getElementById('popVal'); if(e) e.textContent=t; }
 function saleShow(amt, n, pop, then, popWas){ SALE_AMT=amt; SALE_THEN=then||null; SALE_POP=pop||0; SALE_POPWAS=popWas||popText();
     document.getElementById('saleTitle').textContent = n>1 ? n+' Swords Sold!' : 'Sword Sold!';
@@ -4836,16 +4852,15 @@ function sellCounter(){
     const pay = refused ? 0 : g;
     SAY_VARS.g=g; SAY_VARS.b=P.sharp;   /* r104: D56 and D57 quote the real numbers. r210: D57 names the sharpening, so {b} is that bonus alone */
     GOLD += pay; REP += 1;   /* r132 */
-    POP += (POP_GAIN[tier]||0);
     if(tier==='Weak' && pay>0) bumpQuest('sellWeak');   /* 2026-10-09 */
     const held=(ftueC && ftueC.held) || [];   /* r267: the order's earlier swords are paid now, with the last */
     let heldG=0, heldPop=0;
-    held.forEach(h=>{ const hg=swordPrice(h), ht=swordBestTier(h); GOLD+=hg; REP+=1; POP+=(POP_GAIN[ht]||0); heldG+=hg; heldPop+=(POP_GAIN[ht]||0);
+    held.forEach(h=>{ const hg=swordPrice(h), ht=swordBestTier(h); GOLD+=hg; REP+=1; heldG+=hg; heldPop+=(POP_GAIN[ht]||0);
         if(ht==='Weak') bumpQuest('sellWeak');
         SALES.push({ shape:h.shape, blade:h.blade, design:Object.assign({}, h.design||{}), traits:h.traits, gold:hg }); });
     if(ftueC) ftueC.held=[];
     let levelled=false;
-    while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
+    levelled=popApply((POP_GAIN[tier]||0)+heldPop);   /* R133 */
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:pay });   /* r132 */
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */

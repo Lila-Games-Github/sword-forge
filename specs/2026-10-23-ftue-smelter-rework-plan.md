@@ -1411,3 +1411,11 @@ yours and come on top.
   most 5) to the popularity counter, which waits for them. Record: `specs/2026-11-16-sale-window.md` ("Stars for popularity").
   Checked in the browser: an Epic sale showed ⭐×2; the counter held "Lv1 0/20" until CLAIM flew 5 coins and 2 stars, then
   showed "Lv1 2/20". FTUE GREEN at 1100.
+- **R133 (owner, 2026-11-16): popularity levels at set moments.** "Tweak the popularity points required so players reach level
+  2 popularity right after selling the first sword on day 2. level 3, right after selling garric's sword." Level 1 to 2 needs 7
+  points, 2 to 3 needs 12, then 20 as before (`POP_LEVELS`): the tutorial's usual tiers fill them at GC4 and at Garric. While
+  the tutorial runs, a sale stops one point short of the next level, Day 2's first sale always reaches level 2 and Garric's
+  always level 3 (`popStep`, `popGoal`). Record: `specs/2026-11-16-popularity-levels.md` (R133). The test runs the tutorial's 18
+  sales with the usual, all-Epic and Weak-heavy tiers: level 2 at GC4, level 3 at Garric each time. Checked in the browser: an
+  Epic sale on Day 1 stopped at 6/7, a Weak first sale of Day 2 reached Lv2, Garric's reached Lv3, after the tutorial points
+  carry over; the counter shows /7, /12, /20. FTUE GREEN at 1111.
