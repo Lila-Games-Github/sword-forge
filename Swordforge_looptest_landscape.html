@@ -1058,8 +1058,13 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cw-stats { display: flex; gap: 14px; margin: 0 0 12px; }
 /* R17 (owner, 2026-10-27): Health and hammering, one row each - the icon and its % on the left, the gold it made or cost on the right */
 #sfCraftModal .cw-stats { flex-direction: column; gap: 8px; }
-#sfCraftModal .cw-row { justify-content: space-between; height: 70px; padding: 0 30px; box-sizing: border-box; }   /* over .cw-box's centring */
-#sfCraftModal .cw-row .cw-fill { font-size: 36px; }
+#sfCraftModal .cw-row { position: relative; overflow: hidden; justify-content: flex-start; gap: 14px; height: 70px; padding: 0 26px; box-sizing: border-box; }   /* R128: the icon left, the gold and the % right */
+#sfCraftModal .cw-row[hidden] { display: none; }   /* R128: Health before the hazard lesson */
+.cw-bar { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--f, 0) * 100%); background: var(--c, #e0b545); opacity: .32; pointer-events: none; }   /* R128: the % fills the tab */
+.cw-row > .cw-ic, .cw-row > .cw-eff, .cw-row > .cw-pct { position: relative; }   /* over the fill */
+.cw-ic { font-size: 36px; line-height: 1; display: flex; align-items: center; }   /* R128: whole, centred top to bottom */
+#sfCraftModal .cw-row .cw-eff { margin-left: auto; font-size: 22px; }
+#sfCraftModal .cw-row .cw-pct { font: 700 26px/1 Georgia, serif; min-width: 62px; text-align: right; }
 .cw-eff { font: 700 26px/1.1 Georgia, serif; color: #2e2010; text-align: right; }
 .cw-eff small { display: block; font: 600 14px/1.2 Georgia, serif; color: #6b5634; }
 .cw-up { color: #2e8b3a; }
@@ -2735,8 +2740,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div id="sfCraftArt" class="cr-art"></div>
                 <div class="cw-name" id="cwName"></div>
                 <div class="cw-stats"><!-- R17: Health, then hammering - the icon, its % under it, the gold effect on the right -->
-                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-stat"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span><span class="cw-pct" id="cwHpPct"></span></span><span class="cw-eff" id="cwHpEff"></span></div>
-                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-stat"><span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span><span class="cw-pct" id="cwHmPct"></span></span><span class="cw-eff" id="cwHmEff"></span></div>
+                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-bar" id="cwHpBar"></span><span class="cw-ic cw-hp" title="Health">❤️</span><span class="cw-eff" id="cwHpEff"></span><span class="cw-pct" id="cwHpPct"></span></div>
+                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-bar" id="cwHmBar"></span><span class="cw-ic cw-hm" title="Forging">🔨</span><span class="cw-eff" id="cwHmEff"></span><span class="cw-pct" id="cwHmPct"></span></div>
                 </div>
                 <div class="cw-gold"><span class="cw-coin">🪙</span><b id="cwGold"></b></div>
                 <button class="cw-close" type="button" onclick="closeCraft()">Close</button>
@@ -7109,17 +7114,24 @@ function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if
 function updateHpPill(){ const g=document.getElementById('swordHpFill'), a=document.getElementById('swordHp'); if(!g || !a) return;
     /* r257 (owner): shown from the start point too - always; with no run the blade is whole, so the disc is full */
     const pct=Math.max(0, Math.min(100, ((melt ? melt.hp : BLADE_HP_MAX)/BLADE_HP_MAX)*100));
-    g.style.display=''; a.style.display = pct>0 ? '' : 'none';
+    g.style.display=hpOn() ? '' : 'none'; a.style.display = pct>0 ? '' : 'none';   /* R128: no health on the marker before the lesson */
     const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));
     a.setAttribute('fill', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }
 function clearHazardFx(){ hazards.forEach(h=>{ if(h.el) h.el.classList.remove('hot'); }); if(swordEl) swordEl.classList.remove('hurt'); }
 // r16: hazards are real. Travelling through one drains blade integrity; at 0 the blade shatters and the run (with its
 // acquired traits) is lost. Damage is applied only while the sword MOVES through a hazard — parking is safe, so furnace
 // work never kills you passively.
+/* R128 (owner, 2026-11-16): "Show the health tab with the heart and all only after the hazard zone tutorial for the fire sword. Disable
+   health before that part." On once the fire run's hazard lesson starts (FTUE_ST.hpOn, saved), from part 3 (it opens when TC3's fire
+   sword is sold), after the tutorial and in free play. Record: specs/2026-11-16-health-gate-and-rows.md */
+function hpFree(){ try{ return !!SM_FREE; }catch(e){ return false; } }   /* SM_FREE is declared further down the script */
+function hpOn(){ return !!(FTUE_ST.hpOn || FTUE_ST.done || FTUE_ST.part>=3 || hpFree()); }
 function checkHazard(p,dt){ if(!melt || !dt) return;
     let inside=null; for(const h of hazards){ const b=h.bb;   // r28: bbox reject, then per-chunk distance
         if(p.x<b[0]||p.x>b[2]||p.y<b[1]||p.y>b[3]) continue;
         if(partsHit(p.x,p.y,h.parts)){ inside=h; break; } }
+    if(inside && !hpOn()) tutHazardStep();   /* R128: the fire run's first crossing starts the lesson, and health with it */
+    if(!hpOn()) inside=null;   /* R128: before the hazard lesson a hazard does nothing: no health, no glow, no tier drop */
     hazards.forEach(h=>{ if(h.el) h.el.classList.toggle('hot', h===inside); });
     if(swordEl) swordEl.classList.toggle('hurt', !!inside);
     if(!inside) return;
@@ -7802,16 +7814,20 @@ function craftArriving(id){ return CRAFT_FLY.indexOf(id)>=0 && (CRAFT_FLYING || 
 function oreTally(list){ const t={}; (list||[]).forEach(o=>{ t[o]=(t[o]||0)+1; }); return t; }
 /* r217 (owner): the Health row shows what the damage cost, in gold and in red. R17 (owner, 2026-10-27): on the card, right of
    the heart and its %; the hammer row beside it shows the gold the forging band made or cost against an unforged sword */
-function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);
-    return (lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }
+function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0;
+    return lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : ''; }   /* R128: no "No loss", no tier note */
 function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged, forge:null }));
-    return (d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }
+    return d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : ''; }   /* R128: no "No change", no band */
 /* owner, 2026-10-09: "Epic Balanced Shortsword"; several traits: "Epic Fire, Fine Swift Longsword" */
 function craftName(w){
     const t=(w.traits||[]).map(a=>{ const id=a.tid || (a.t && a.t.id), bt=TRAIT_BY[id];
         return '<span style="color:'+tierColor(a.tier)+'">'+a.tier+'</span> '+(bt ? bt.name : id); });
     return (t.length ? t.join(', ') : 'Plain')+' '+w.shape; }
 function cwFill(el, f){ if(el) el.style.setProperty('--f', Math.max(0, Math.min(1, f)).toFixed(3)); }
+/* R128: a row's tab fills to its percentage; health by the marker's colours, the hammer by its band's (the aim ring's) */
+const CW_BAND_COL={ Masterwork:'#e8a317', Good:'#5aa8ff', Crude:'#ff4a3a' };
+function cwHpCol(f){ return f*100>60 ? '#5fd35f' : f*100>30 ? '#e8b13a' : '#e2503c'; }
+function cwBar(id, f, c){ const el=document.getElementById(id); if(!el) return; cwFill(el, f); el.style.setProperty('--c', c); }
 function craftDetails(){ const st=document.getElementById('cwStage'), open=!st.classList.contains('open');
     st.classList.toggle('open', open); document.getElementById('cwTab').innerHTML = open ? '&#9664;' : '&#9654;';
     if(open && CW_LESSON==='arrow'){ CW_LESSON='rows'; setTimeout(()=>{ sayQueue('D17c'); cwLessonSay(); }, 380); } }   /* after the slide */
@@ -7845,8 +7861,8 @@ function showCraft(w, n, after){
     if(n>1){ const x=document.createElement('span'); x.className='cr-x'; x.textContent='\u00d7'+n; art.appendChild(x); }
     body.innerHTML=craftName(w);
     const hp=(w.hp!=null ? w.hp : 100)/100, acc=(w.forge!=null ? w.forge : null);
-    cwFill(document.querySelector('#sfCraftModal .cw-hp'), hp);
-    cwFill(document.querySelector('#sfCraftModal .cw-hm'), acc!=null ? acc : 0);
+    cwBar('cwHpBar', hp, cwHpCol(hp)); cwBar('cwHmBar', acc!=null ? acc : 0, CW_BAND_COL[w.quality || HM_HITS.unforged] || CW_BAND_COL.Good);   /* R128 */
+    document.getElementById('cwHpRow').hidden=!hpOn();   /* R128: no Health before the hazard lesson */
     document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';   /* r235 */
     const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]);
     document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);   /* R17 */
@@ -11514,6 +11530,7 @@ function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); 
 const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron'];
 function tutHazardStep(){
     if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;
+    FTUE_ST.hpOn=true; updateHpPill();   /* R128: health starts with the lesson */
     sayQueue('D69a','D69b','D69c');
     tutPause(true);
 }

@@ -1372,3 +1372,15 @@ yours and come on top.
   3:1 or better. Record: `specs/2026-11-16-smelter-dust.md` ("The colour (R127)"). The map's tones were sampled from
   `map_base.webp` in the browser; a new check asserts 3:1 for every ore in `ORES`. Checked in the browser: copper's dust
   `rgb(90, 66, 49)`, a dark smudge over the crucible on the yellow map; no console errors. Smelter test GREEN at 155.
+- **R128 (owner, 2026-11-16): health after the hazard lesson; the crafted window's rows.** "Show the health tab with the heart
+  and all only after the hazard zone tutorial for the fire sword. Disable health before that part." Health is on once the fire
+  run's hazard lesson starts (`FTUE_ST.hpOn`), from part 3, after the tutorial and in free play (`hpOn()`); before that a
+  hazard does nothing (no health, no glow, no tier drop), the sword marker shows no health and the crafted window has no Health
+  row. The rows: the icon whole and centred on the left, the gold figure (when not zero) and the percentage on the right, the
+  tab's background filled to the percentage (health by the marker's colours, the hammer by its band's); "No loss", "No
+  change" and the small notes are gone. Owner choices: hazards do nothing before, keep the gold figure, remove the notes, fill
+  colours by value. Record: `specs/2026-11-16-health-gate-and-rows.md`. The old checks that pinned the rows (R17, r217, r235)
+  now pin the new ones. Found in the browser: the aim ring's light gold (`#ffd36a`) vanished as a fill on the cream tab, so
+  Masterwork fills `#e8a317`. Checked in the browser: after the tutorial, a 70% / 92% sword shows a green 70% fill with -7g and
+  a gold 92% fill with +5g; in part 1 a hazard crossing changed nothing and the window had no Health tab; the fire run's first
+  crossing said D69a, turned health on and cost health (100 to 87); no console errors. FTUE GREEN at 1094, hazard at 45.

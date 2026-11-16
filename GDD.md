@@ -97,7 +97,8 @@ The dragon sits on the bench; his speech bubble points at him.
 - **Hazards:** zones that drain the blade's health (26/s of 100) while the sword moves through them; at 0 the blade shatters.
   Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free). In a zone
   the sword shakes and its health shows red; out of it, the health's usual colour again (R103). The fire craft's first zone
-  (D69) is three times its old size (R103).
+  (D69) is three times its old size (R103). **Health starts with the fire sword's hazard lesson (R128):** before it a
+  hazard does nothing (no health loss, no tier drop) and health is not shown anywhere.
 - **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200). On pickup
   the book's icon flies to the skill tree button the way coins fly to the gold, and the button glows (R125).
 
@@ -160,7 +161,8 @@ A sword can carry several traits (one each); taking a trait it already has can o
 The hot blade is picked up by its handle (within 24 px of the blade's line) and hangs from the finger as a damped pendulum,
 swinging as it moves. Dipped into the bucket's water (or released over it), it is quenched in smoke and mist and the sword is
 made; released elsewhere it returns to the anvil. The "Sword crafted!" window shows the sword, its coloured name, health,
-forging and gold. An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
+forging and gold. Health and forging are one tab each: the icon on the left, the gold it made or cost (when not zero) and
+the percentage on the right, and the tab's background filled to the percentage (R128; no Health tab before the hazard lesson). An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
 first crafted window of the game teaches itself: the hammer row (D17b), then the arrow (D17a), then the ores (D17c).
 
 ### Swing effects

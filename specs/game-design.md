@@ -57,7 +57,11 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   (`HAZ.floor` 0.5 at 0 health); 3+ zones crossed drop every trait one tier, 5+ two (`HAZ.steps`; the first 2 are free).
   In a zone the marker's parts shake (`swordShake`) and the health fill is red; out of it the level colour (green above 60%,
   amber 30-60%, red below 30%) returns. D69's speck in the fire craft is `HAZ.move[1]` at scale 2.25 (R103, was 0.75): the fire
-  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`.
+  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`. **R128 (`hpOn()`, `specs/2026-11-16-health-gate-and-rows.md`):**
+  health is on once the fire run's hazard lesson starts (`FTUE_ST.hpOn`, saved), from part 3, after the tutorial and in free
+  play; before that a hazard does nothing (no health, no glow, no tier drop), the marker has no health fill and the crafted
+  window no Health tab. Its rows: the icon left, the gold (when not zero) and the % right, the tab filled to the % (health
+  green/amber/red, the hammer by band: Masterwork `#e8a317`, Good `#5aa8ff`, Crude `#ff4a3a`).
 - **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 
 ### Ores and routes
