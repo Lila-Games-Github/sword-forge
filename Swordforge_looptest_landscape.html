@@ -678,6 +678,26 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-mark img { display: block; width: 100%; -webkit-user-drag: none; }
 .cb-mark span { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 13px; line-height: 1; }
 .cb-marks-side .cb-mark { width: 5.4%; transform: rotate(90deg); }
+/* R139 (owner, 2026-11-17): the left tab and the trait list (specs/2026-11-17-book-trait-list.md) */
+.cb-marks-side .cb-mark.cb-ttab { width: 5.3%; left: -6.2%; top: 16%; transform: rotate(-90deg); }
+.cb-mark.cb-ttab span { font-size: 9px; font-weight: 700; white-space: nowrap; top: 24%; transform: rotate(90deg); }   /* upright on the sideways tab */
+.cb-book.cb-traits-on > .cb-sword, .cb-book.cb-traits-on > .cb-gear, .cb-book.cb-traits-on > .cb-label, .cb-book.cb-traits-on > .cb-slot,
+.cb-book.cb-traits-on > .cb-empty, .cb-book.cb-traits-on > .cb-erase, .cb-book.cb-traits-on > .cb-cont, .cb-book.cb-traits-on > .cb-craft1 { display: none !important; }
+.cb-traits { position: absolute; left: 4.08%; top: 11.47%; width: 39.5%; height: 84%; }
+.cb-traits[hidden], .cb-tsum[hidden] { display: none; }
+.cb-tgrid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; height: 100%; }
+.cb-tbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; background: #f3ead6;
+    border: 2px solid #cbb98f; border-radius: 8px; font-family: 'Cinzel', serif; color: #4a3623; }
+.cb-tbox .ic { font-size: 22px; line-height: 1; }
+.cb-tbox .nm { font-size: 8px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; }
+.cb-tbox.unknown { background: #e4ddcf; border-color: #b9b0a0; color: #9a9284; }
+.cb-tbox.unknown .ic { font: 700 22px/1 'Cinzel', serif; color: #9a9284; }
+.cb-tbox.has-page { cursor: pointer; }
+.cb-tbox.has-page:hover { border-color: #e0a52c; }
+.cb-tsum { position: absolute; left: 52.85%; top: 30%; width: 42.65%; text-align: center; font-family: 'Cinzel', serif; color: #4a3623; }
+.cb-tsum b { display: block; font-size: 30px; }
+.cb-tsum span { font-size: 12px; }
+.cb-tsum p { font: italic 12px/1.4 Georgia, serif; color: #6b5536; margin: 14px 0 0; }
 /* titles */
 .cb-title { position: absolute; margin: 0; transform: translateX(-50%); white-space: nowrap;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #4a3623; top: 3.6%; }
@@ -2731,6 +2751,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cb-slot cb-flow"   id="cbFlow"   style="left:52.85%; top:11.47%; width:42.65%; height:34.72%;"></div>
             <div class="cb-slot cb-shapes" id="cbShapes" style="left:52.85%; top:48.52%; width:42.65%; height:25.11%;"></div>
             <div class="cb-empty" id="cbEmpty" hidden>No recipes yet &mdash; acquire a trait and it is written down here.</div>
+            <!-- R139 (owner, 2026-11-17): the trait list behind the left tab - every trait in a box, found or not -->
+            <div class="cb-traits" id="cbTraits" hidden><div class="cb-tgrid" id="cbTGrid"></div></div>
+            <div class="cb-tsum" id="cbTSum" hidden></div>
             <button class="cb-btn red  cb-erase"  id="cbErase"  type="button" onclick="cbErase()">ERASE</button>
             <button class="cb-btn wide cb-cont"   id="cbCont"   type="button" onclick="cbContinue()">CONTINUE<br>FROM HERE</button>
             <button class="cb-btn wide cb-craft1" id="cbCraft1" type="button" onclick="cbCraft(1)">CRAFT 1</button>
@@ -7447,6 +7470,20 @@ function acqFrame(now){ const g=ACQ.g, c=ACQ.cv, F=ACQ.F||ACQ_FX; if(!g || !c.is
         g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.scale(1, Math.cos(p.rot*1.7)); g.fillRect(-p.size/2, -p.size/4, p.size, p.size/2); g.restore(); });
     g.globalAlpha=1;
     if(ACQ.ps.length || ACQ.rings.length || ACQ.next) ACQ.raf=requestAnimationFrame(acqFrame); else { ACQ.raf=0; ACQ.t=0; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); } }
+/* R139 (owner, 2026-11-17): the trait list behind the book's left tab. Record: specs/2026-11-17-book-trait-list.md */
+let CB_VIEW=null;   /* 'traits' while the trait list is open; null = the recipe pages */
+/* the recorded page a trait opens: its own page, else the first page that has it among several; null when none */
+function cbTraitPageOf(id, R){ if(R[id]) return id; const k=Object.keys(R).find(k=>(R[k].traits||[]).some(a=>a.tid===id)); return k||null; }
+function traitFound(id){ const t=traits.find(x=>x.trait && x.trait.id===id); return !!(t && t.discovered); }
+function cbTraitsRender(){ const g=document.getElementById('cbTGrid'), s=document.getElementById('cbTSum'); if(!g || !s) return; g.innerHTML='';
+    const n=TRAITS.filter(t=>traitFound(t.id)).length;
+    TRAITS.forEach(t=>{ const on=traitFound(t.id), k=on ? cbTraitPageOf(t.id, RECIPES) : null, d=document.createElement('div');
+        d.className='cb-tbox'+(on ? '' : ' unknown')+(k ? ' has-page' : ''); d.dataset.tid=t.id;
+        d.innerHTML = on ? '<span class="ic">'+t.symbol+'</span><span class="nm">'+t.name+'</span>' : '<span class="ic">?</span>';
+        d.title = on ? t.name+(k ? '' : ' (no page yet)') : 'Not discovered yet';
+        if(k) d.addEventListener('click', ()=>{ CB_VIEW=null; CB_SEL=k; renderRecipe(); });
+        g.appendChild(d); });
+    s.innerHTML='<b>'+n+' / '+TRAITS.length+'</b><span>traits discovered</span><p>Tap a discovered trait to open its page.</p>'; }
 // r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
 // element symbols of each recorded composition.
 const CB_MARK_SLOTS = 10;   // r65: the top row of bookmarks IS the recipe list
@@ -7456,11 +7493,11 @@ function buildBookMarks(){
     top.innerHTML=''; side.innerHTML='';                 // the side row was decorative; recipes live on top
     const ids=Object.keys(RECIPES).slice(0, CB_MARK_SLOTS);
     ids.forEach((k,i)=>{ const list=recipeTraits(RECIPES[k]); if(!list.length) return;
-        const d=document.createElement('div'); d.className='cb-mark rec'+(k===CB_SEL?' is-on':'')+(list.length>1?' multi':'');
+        const d=document.createElement('div'); d.className='cb-mark rec'+(k===CB_SEL && CB_VIEW!=='traits'?' is-on':'')+(list.length>1?' multi':'');
         d.title=list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', ');
         d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>'+list.map(a=>TRAIT_BY[a.tid]?TRAIT_BY[a.tid].symbol:'?').join('')+'</span>';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
-        d.dataset.key=k; d.addEventListener('click', ()=>{ CB_SEL=k; renderRecipe(); ftueBulkStep(); });   /* r201: data-key so a pointer can find a page */
+        d.dataset.key=k; d.addEventListener('click', ()=>{ CB_VIEW=null; CB_SEL=k; renderRecipe(); ftueBulkStep(); });   /* r201: data-key so a pointer can find a page. R139: back from the trait list */
         top.appendChild(d); });
     /* r202: the free pages show too - the same bookmark, left blank, up to the book's page limit */
     const used=top.children.length, cap=Math.min(CB_MARK_SLOTS, recipeCap());
@@ -7469,11 +7506,19 @@ function buildBookMarks(){
         d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt="">';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
         top.appendChild(d); }
+    /* R139: the left tab - the trait list, with the count found */
+    { const t=document.createElement('div'); t.className='cb-mark rec cb-ttab'+(CB_VIEW==='traits' ? ' is-on' : ''); t.title='All traits';
+      t.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>\u2b50 '+TRAITS.filter(x=>traitFound(x.id)).length+'/'+TRAITS.length+'</span>';
+      t.addEventListener('click', ()=>{ CB_VIEW='traits'; renderRecipe(); }); side.appendChild(t); }
 }
 function renderRecipe(){
     const ids=Object.keys(RECIPES);
     if(!ids.length) CB_SEL=null; else if(!CB_SEL || !RECIPES[CB_SEL]) CB_SEL=ids[0];
     buildBookMarks();   /* after CB_SEL is resolved, or the first open highlights nothing */
+    { const tv=CB_VIEW==='traits', bk=document.querySelector('#sfBookModal .cb-book');   /* R139: the trait list */
+      if(bk) bk.classList.toggle('cb-traits-on', tv); document.getElementById('cbTraits').hidden=!tv; document.getElementById('cbTSum').hidden=!tv;
+      if(tv){ document.querySelector('.cb-title-l').textContent='All Traits'; document.querySelector('.cb-title-r').textContent='Discovered'; cbTraitsRender(); return; }
+      document.querySelector('.cb-title-r').textContent='Recorded Composition'; }
     const r=CB_SEL?RECIPES[CB_SEL]:null, list=recipeTraits(r);
     document.getElementById('cbEmpty').hidden=!!r;
     ['cbErase','cbCraft1','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r || (id==='cbCraft1' && ftueCraftLocked()); });   /* r239 */
@@ -7814,7 +7859,7 @@ function coinFly(fromEl, toEl, then){
 }
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
-function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); ftueBookOpened(); }   /* r201. R105 */
+function openBook(){ CB_VIEW=null; renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); ftueBookOpened(); }   /* r201. R105 */
 function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueFocusDone(); ftueBulkStep(); ftueBookClosed(); }   /* r201. r292: D28k goes with the window */
 /* r278 (owner, 2026-10-20): a map trait icon opens this small card on its newest page (CB_SEL), not the book: the icon,
    the page's name and description, CRAFT 1 and CONTINUE FROM HERE (the book's own, for that page), and CRAFT BOOK */

@@ -1450,3 +1450,12 @@ yours and come on top.
   goes out: 10 px at rest (was none), 22 px and fully bright at the pulse's peak (was 10 px), still 1.1 s a pulse. Record:
   `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape"). Checked in the browser: at rest the ring and a 10 px glow, at the
   peak the ring and a 22 px glow, the card still 123 x 136; no console errors. FTUE GREEN at 1122.
+- **R139 (owner, 2026-11-17): the craft book's trait list.** "Add a tab on the left side of the book (just like the top paper
+  marks) rotated. This tab will have a list of all traits, discovered and undiscovered (the same as the shape selection) in
+  boxes." A sideways bookmark on the book's left edge reads "⭐ N/25"; it turns the book to "All Traits": 25 boxes, 5 x 5 in the
+  map's order, a found trait's icon and name (tapping it opens its recorded page, if any), an unfound one a grey "?"; the right
+  page shows the count. Owner choices: tap opens the page, one grid in map order, the tab shows the count. Record:
+  `specs/2026-11-17-book-trait-list.md`. Found in the browser: the tab's text ran bottom to top, so it is turned upright.
+  Checked in the browser (after the tutorial, 5 found): the tab pokes out left and takes a tap; the list shows 25 boxes, Swift,
+  Balanced, Durable, Gale and Fire found; Durable (no page) does nothing, Gale opens the Gale page with its bookmark lit; the book
+  reopens on the recipe pages; no console errors. FTUE GREEN at 1128.
