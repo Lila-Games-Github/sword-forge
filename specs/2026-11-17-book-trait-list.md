@@ -1,7 +1,7 @@
-# The craft book's trait list (R139, 2026-11-17)
+# The craft book's trait list (R139-R140, 2026-11-17)
 
-Build: `Swordforge_looptest_landscape.html`. Tracker: R139 in `specs/2026-10-23-ftue-smelter-rework-plan.md`. Test:
-`node tooling/ftue/ftue.test.mjs` (the R139 checks).
+Build: `Swordforge_looptest_landscape.html`. Tracker: R139 and R140 in `specs/2026-10-23-ftue-smelter-rework-plan.md`. Test:
+`node tooling/ftue/ftue.test.mjs` (the R139 and R140 checks).
 
 Owner (2026-11-17), on a picture of the open craft book: "Add a tab on the left side of the book (just like the top paper marks)
 rotated. This tab will have a list of all traits, discovered and undiscovered (the same as the shape selection) in boxes.
@@ -29,3 +29,17 @@ and the count found.
 - **Right page, titled "Discovered":** the count ("5 / 25", "traits discovered") and "Tap a discovered trait to open its page."
 - While the list is open the recipe page's parts (the sword, the boxes, ERASE, CONTINUE FROM HERE, CRAFT 1) are hidden; CLOSE
   stays.
+
+## R140: both pages, 3 x 4, 24 traits
+
+Owner (2026-11-17), on a picture of the list: "i want the boxes on both pages, 3 column 4 rows on each page, 24 elements only
+for now, remove rainbow".
+
+- **24 traits for now:** the list is `TRAITS` in the map's order with **Rainbow left out** (`CB_TOMIT`, `cbTList()`). Rainbow stays
+  in the game (the map, the dialogue); it is only left out of the list.
+- **Both pages hold boxes, 3 columns x 4 rows each** (`CB_TPAGE` 12): the first 12 on the left page, the next 12 on the right page,
+  in the same box size. The boxes are bigger than R139's 5 x 5 (icon 30 px, name 10 px, gap 8 px).
+- **The count:** the right page's count block and its hint ("Tap a discovered trait to open its page.") are gone; the count
+  moves to the right page's title: **"5 / 24 Discovered"**. The left title stays "All Traits".
+- **The tab** counts the same 24: "⭐ 5/24".
+- Unchanged from R139: a found trait shows its icon and name and opens its page if it has one; an unfound one is a grey "?".

@@ -684,20 +684,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-book.cb-traits-on > .cb-sword, .cb-book.cb-traits-on > .cb-gear, .cb-book.cb-traits-on > .cb-label, .cb-book.cb-traits-on > .cb-slot,
 .cb-book.cb-traits-on > .cb-empty, .cb-book.cb-traits-on > .cb-erase, .cb-book.cb-traits-on > .cb-cont, .cb-book.cb-traits-on > .cb-craft1 { display: none !important; }
 .cb-traits { position: absolute; left: 4.08%; top: 11.47%; width: 39.5%; height: 84%; }
-.cb-traits[hidden], .cb-tsum[hidden] { display: none; }
-.cb-tgrid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px; height: 100%; }
-.cb-tbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; background: #f3ead6;
+.cb-traits[hidden] { display: none; }
+/* R140 (owner, 2026-11-17): boxes on both pages, 3 columns x 4 rows on each */
+.cb-traits-r { left: 54.4%; }
+.cb-tgrid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; height: 100%; }
+.cb-tbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 0; background: #f3ead6;
     border: 2px solid #cbb98f; border-radius: 8px; font-family: 'Cinzel', serif; color: #4a3623; }
-.cb-tbox .ic { font-size: 22px; line-height: 1; }
-.cb-tbox .nm { font-size: 8px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; }
+.cb-tbox .ic { font-size: 30px; line-height: 1; }
+.cb-tbox .nm { font-size: 10px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; }
 .cb-tbox.unknown { background: #e4ddcf; border-color: #b9b0a0; color: #9a9284; }
-.cb-tbox.unknown .ic { font: 700 22px/1 'Cinzel', serif; color: #9a9284; }
+.cb-tbox.unknown .ic { font: 700 30px/1 'Cinzel', serif; color: #9a9284; }
 .cb-tbox.has-page { cursor: pointer; }
 .cb-tbox.has-page:hover { border-color: #e0a52c; }
-.cb-tsum { position: absolute; left: 52.85%; top: 30%; width: 42.65%; text-align: center; font-family: 'Cinzel', serif; color: #4a3623; }
-.cb-tsum b { display: block; font-size: 30px; }
-.cb-tsum span { font-size: 12px; }
-.cb-tsum p { font: italic 12px/1.4 Georgia, serif; color: #6b5536; margin: 14px 0 0; }
 /* titles */
 .cb-title { position: absolute; margin: 0; transform: translateX(-50%); white-space: nowrap;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #4a3623; top: 3.6%; }
@@ -2753,7 +2751,7 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cb-empty" id="cbEmpty" hidden>No recipes yet &mdash; acquire a trait and it is written down here.</div>
             <!-- R139 (owner, 2026-11-17): the trait list behind the left tab - every trait in a box, found or not -->
             <div class="cb-traits" id="cbTraits" hidden><div class="cb-tgrid" id="cbTGrid"></div></div>
-            <div class="cb-tsum" id="cbTSum" hidden></div>
+            <div class="cb-traits cb-traits-r" id="cbTraits2" hidden><div class="cb-tgrid" id="cbTGrid2"></div></div>   <!-- R140: the right page's 12 -->
             <button class="cb-btn red  cb-erase"  id="cbErase"  type="button" onclick="cbErase()">ERASE</button>
             <button class="cb-btn wide cb-cont"   id="cbCont"   type="button" onclick="cbContinue()">CONTINUE<br>FROM HERE</button>
             <button class="cb-btn wide cb-craft1" id="cbCraft1" type="button" onclick="cbCraft(1)">CRAFT 1</button>
@@ -7475,15 +7473,16 @@ let CB_VIEW=null;   /* 'traits' while the trait list is open; null = the recipe 
 /* the recorded page a trait opens: its own page, else the first page that has it among several; null when none */
 function cbTraitPageOf(id, R){ if(R[id]) return id; const k=Object.keys(R).find(k=>(R[k].traits||[]).some(a=>a.tid===id)); return k||null; }
 function traitFound(id){ const t=traits.find(x=>x.trait && x.trait.id===id); return !!(t && t.discovered); }
-function cbTraitsRender(){ const g=document.getElementById('cbTGrid'), s=document.getElementById('cbTSum'); if(!g || !s) return; g.innerHTML='';
-    const n=TRAITS.filter(t=>traitFound(t.id)).length;
-    TRAITS.forEach(t=>{ const on=traitFound(t.id), k=on ? cbTraitPageOf(t.id, RECIPES) : null, d=document.createElement('div');
+/* R140 (owner, 2026-11-17): "3 column 4 rows on each page, 24 elements only for now, remove rainbow" */
+const CB_TOMIT=['rainbow'], CB_TPAGE=12;   /* left out of the list for now; boxes on the left page, the rest on the right */
+function cbTList(){ return TRAITS.filter(t=>!CB_TOMIT.includes(t.id)); }
+function cbTraitsRender(){ const g=document.getElementById('cbTGrid'), g2=document.getElementById('cbTGrid2'); if(!g || !g2) return; g.innerHTML=''; g2.innerHTML='';
+    cbTList().forEach((t, i)=>{ const on=traitFound(t.id), k=on ? cbTraitPageOf(t.id, RECIPES) : null, d=document.createElement('div');
         d.className='cb-tbox'+(on ? '' : ' unknown')+(k ? ' has-page' : ''); d.dataset.tid=t.id;
         d.innerHTML = on ? '<span class="ic">'+t.symbol+'</span><span class="nm">'+t.name+'</span>' : '<span class="ic">?</span>';
         d.title = on ? t.name+(k ? '' : ' (no page yet)') : 'Not discovered yet';
         if(k) d.addEventListener('click', ()=>{ CB_VIEW=null; CB_SEL=k; renderRecipe(); });
-        g.appendChild(d); });
-    s.innerHTML='<b>'+n+' / '+TRAITS.length+'</b><span>traits discovered</span><p>Tap a discovered trait to open its page.</p>'; }
+        (i<CB_TPAGE ? g : g2).appendChild(d); }); }
 // r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
 // element symbols of each recorded composition.
 const CB_MARK_SLOTS = 10;   // r65: the top row of bookmarks IS the recipe list
@@ -7508,7 +7507,7 @@ function buildBookMarks(){
         top.appendChild(d); }
     /* R139: the left tab - the trait list, with the count found */
     { const t=document.createElement('div'); t.className='cb-mark rec cb-ttab'+(CB_VIEW==='traits' ? ' is-on' : ''); t.title='All traits';
-      t.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>\u2b50 '+TRAITS.filter(x=>traitFound(x.id)).length+'/'+TRAITS.length+'</span>';
+      t.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>\u2b50 '+cbTList().filter(x=>traitFound(x.id)).length+'/'+cbTList().length+'</span>';
       t.addEventListener('click', ()=>{ CB_VIEW='traits'; renderRecipe(); }); side.appendChild(t); }
 }
 function renderRecipe(){
@@ -7516,8 +7515,9 @@ function renderRecipe(){
     if(!ids.length) CB_SEL=null; else if(!CB_SEL || !RECIPES[CB_SEL]) CB_SEL=ids[0];
     buildBookMarks();   /* after CB_SEL is resolved, or the first open highlights nothing */
     { const tv=CB_VIEW==='traits', bk=document.querySelector('#sfBookModal .cb-book');   /* R139: the trait list */
-      if(bk) bk.classList.toggle('cb-traits-on', tv); document.getElementById('cbTraits').hidden=!tv; document.getElementById('cbTSum').hidden=!tv;
-      if(tv){ document.querySelector('.cb-title-l').textContent='All Traits'; document.querySelector('.cb-title-r').textContent='Discovered'; cbTraitsRender(); return; }
+      if(bk) bk.classList.toggle('cb-traits-on', tv); document.getElementById('cbTraits').hidden=!tv; document.getElementById('cbTraits2').hidden=!tv;
+      if(tv){ const L=cbTList(); document.querySelector('.cb-title-l').textContent='All Traits';   /* R140: the count moves to the right title */
+        document.querySelector('.cb-title-r').textContent=L.filter(x=>traitFound(x.id)).length+' / '+L.length+' Discovered'; cbTraitsRender(); return; }
       document.querySelector('.cb-title-r').textContent='Recorded Composition'; }
     const r=CB_SEL?RECIPES[CB_SEL]:null, list=recipeTraits(r);
     document.getElementById('cbEmpty').hidden=!!r;

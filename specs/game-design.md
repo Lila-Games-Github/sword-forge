@@ -114,8 +114,8 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 
 ## 5. Forging the blade
 
-- **The craft book's trait list (R139, `CB_VIEW`, `cbTraitsRender`, `specs/2026-11-17-book-trait-list.md`):** the left tab (a sideways bookmark in
-  `#cbMarksSide`, "⭐ N/25") opens "All Traits": 25 boxes, 5 x 5 in `TRAITS` order; a found trait (`traits[].discovered`) shows
+- **The craft book's trait list (R139-R140, `CB_VIEW`, `cbTraitsRender`, `cbTList`, `specs/2026-11-17-book-trait-list.md`):** the left tab (a sideways bookmark in
+  `#cbMarksSide`, "⭐ N/24") opens the list: 24 boxes in `TRAITS` order with Rainbow left out (`CB_TOMIT`, R140), 12 (3 x 4) on each page, the right title the count ("N / 24 Discovered"); a found trait (`traits[].discovered`) shows
   its icon and name and opens its page (`cbTraitPageOf`: its own, else the first that has it), an unfound one a grey "?".
 - **The anvil opens the shaping:** the hot metal lies on the anvil (with at least one trait); a tap on it opens the **shape window** (R82): owned
   shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens

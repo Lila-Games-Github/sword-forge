@@ -290,9 +290,9 @@ swings by itself. Tin and zinc have no seam yet.
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
   shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
 only Update is offered, R100). Its Trait Tier pips show from TC4's pip lesson on (hidden before, R113).
-- **The trait list (R139):** a sideways bookmark on the book's left edge reads "⭐ 5/25" and opens "All Traits": all 25 traits
-  in a 5 x 5 grid in the map's order, a found trait's icon and name (tapping it opens its recorded page), an unfound one a grey
-  "?"; the right page shows the count.
+- **The trait list (R139-R140):** a sideways bookmark on the book's left edge reads "⭐ 5/24" and opens the list: 24 traits for
+  now (Rainbow left out) in the map's order, 12 boxes (3 x 4) on each page, a found trait's icon and name (tapping it opens its
+  recorded page), an unfound one a grey "?"; the left title is "All Traits", the right title the count ("5 / 24 Discovered").
 - **CRAFT 1** makes the page's sword from its ores with no smelter (the page's forging grade). After the shape window comes the
   **quick hammer** (R121): no marks or aim ring, the dragon breathes on the metal by himself, his head swaying, and six taps
   anywhere on the screen (3 on the orb, 3 on the mid-blade) shape the blade, then the crafted window. The taps are not graded;

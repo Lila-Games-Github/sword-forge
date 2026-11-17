@@ -1459,3 +1459,7 @@ yours and come on top.
   Checked in the browser (after the tutorial, 5 found): the tab pokes out left and takes a tap; the list shows 25 boxes, Swift,
   Balanced, Durable, Gale and Fire found; Durable (no page) does nothing, Gale opens the Gale page with its bookmark lit; the book
   reopens on the recipe pages; no console errors. FTUE GREEN at 1128.
+- **R140 (owner, 2026-11-17): the trait list on both pages.** "i want the boxes on both pages, 3 column 4 rows on each page,
+  24 elements only for now, remove rainbow". 24 traits (Rainbow left out of the list, `CB_TOMIT`, still in the game), 12 boxes
+  (3 x 4) on each page, bigger boxes; the count moves to the right title ("5 / 24 Discovered"), the tab reads "⭐ 5/24". Record:
+  `specs/2026-11-17-book-trait-list.md` (R140).
