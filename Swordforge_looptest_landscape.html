@@ -5181,7 +5181,7 @@ function startSwordDrag(w,e){
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
-    designDesk: ()=>{ if(!FTUE_ST.desk){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201 */
+    designDesk: ()=>{ if(!deskOn()){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201. R141: deskOn */
     sharpen:    ()=>{ if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; } if(requireWork()) openSharpen(); },
     work:       ()=>takeWork() };
 function buildScreenProps(name){
@@ -5217,7 +5217,7 @@ function buildScreenProps(name){
             box.appendChild(d);
             return; }                                     /* sized by layoutScreenProps, which knows the box */
         const im=document.createElement('img');
-        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !FTUE_ST.desk) im.classList.add('ftue-lock-prop'); if(p.act==='sharpen' && !FTUE_ST.sharp && !FTUE_ST.done) im.classList.add('ftue-lock-prop');   /* r201 */
+        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !deskOn()) im.classList.add('ftue-lock-prop'); if(p.act==='sharpen' && !FTUE_ST.sharp && !FTUE_ST.done) im.classList.add('ftue-lock-prop');   /* r201 */
         if(p.act) im.dataset.act=p.act;   /* r103 */
         if(p.act){ im.classList.add('hot'); im.title=p.title||'';
             if(p.act==='rack') im.addEventListener('click', ()=>openRacks(p.rack||0));   // r70: this rack, not "the racks"
@@ -5938,7 +5938,7 @@ let DD_FORCE_DEFAULT=false;                                // r65c: set by the r
 function ddWork(){ return DD_FORCE_DEFAULT ? null : WORK; } // what the desk is editing
 function ddSkin(){ return skinOf(ddWork()); }                // ...and whose parts it may show
 function openDesign(){
-    if(!FTUE_ST.desk){ toast('The design desk is locked'); return; }   /* r201: the GPC3 reward opens it */
+    if(!deskOn()){ toast('The design desk is locked'); return; }   /* r201: the GPC3 reward opens it. R141: and the tutorial's end */
     DD_WAS=Object.assign({}, DD_SEL);                      // Cancel puts the selection back
     if(ddWork()) DD_SEL=Object.assign({}, ddWork().design); // r61: edit the sword that is on the table
     DD_SEL=ddCoerce(DD_SEL, ddSkin());                     // r91: never open on a part this sword cannot wear
@@ -7249,6 +7249,9 @@ function clearHazardFx(){ hazards.forEach(h=>{ if(h.el) h.el.classList.remove('h
    sword is sold), after the tutorial and in free play. Record: specs/2026-11-16-health-gate-and-rows.md */
 function hpFree(){ try{ return !!SM_FREE; }catch(e){ return false; } }   /* SM_FREE is declared further down the script */
 function hpOn(){ return !!(FTUE_ST.hpOn || FTUE_ST.done || FTUE_ST.part>=3 || hpFree()); }
+/* R141 (owner, 2026-11-18): "design desk should be available in game after tutorial" - Garric's reward (D130b) opens it in the
+   tutorial; after the tutorial it is open however the game got there (the GAME jump, free play, an older save). specs/2026-11-18-desk-after-tutorial.md */
+function deskOn(){ return !!(FTUE_ST.desk || FTUE_ST.done); }
 function checkHazard(p,dt){ if(!melt || !dt) return;
     let inside=null; for(const h of hazards){ const b=h.bb;   // r28: bbox reject, then per-chunk distance
         if(p.x<b[0]||p.x>b[2]||p.y<b[1]||p.y>b[3]) continue;

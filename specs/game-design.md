@@ -140,7 +140,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   on dragged swords and on the blade held at the forge.
 - **The made sword** goes to the Swords tab with its shape, traits and tiers, hammer grade, health and hazards crossed; the
   "Sword crafted!" window shows it (the first one teaches its rows, D17b-D17a-D17c).
-- **Design desk** (basement, unlocked in Part 6): the sword's trait set of grips, guards and pommels (`DD_SETS`: balanced,
+- **Design desk** (basement, unlocked in Part 6 by Garric's reward, and open after the tutorial however the game got there: `deskOn()`, R141): the sword's trait set of grips, guards and pommels (`DD_SETS`: balanced,
   flame, swift, gale, ice, water; Durable and the other traits use balanced). `FTUE.startParts` 3 of each, plus Garric's 6
   bonus balanced parts at grade 3. DONE marks the sword designed (+7g). The parts chosen do not change the price.
 - **Sharpening wheel** (basement, unlocked in Part 5): drag the sword along the spinning stone; sharpness 0-100 (`SH_GAIN`

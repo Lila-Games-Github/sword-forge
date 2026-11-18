@@ -2154,4 +2154,10 @@ eq('R117: the tree picture blinks on the tabs\' curve, lit with their colours', 
   eq('R140: 12 to a page, 3 x 4', r ? [r[1], r[1] * 2 === r[0].length] : null, [12, true]);
   eq('R140: Rainbow stays in the game', real.some(t => t.id === 'rainbow') && real.length === 25, true);
   eq('R140: no count block left', !s9.includes('cbTSum') && !s9.includes('cb-tsum'), true); }
+/* R141 (owner, 2026-11-18): the design desk after the tutorial - specs/2026-11-18-desk-after-tutorial.md */
+{ const s9 = src.replace(/\r\n/g, '\n'), i = s9.indexOf('function deskOn('), dk = i < 0 ? null : new Function('FTUE_ST', s9.slice(i, s9.indexOf('\n', i)) + '; return deskOn();');
+  eq('R141: locked in the tutorial, open after Garric\'s reward or once the tutorial is done', dk ? [dk({ desk: false, done: false }), dk({ desk: true, done: false }), dk({ desk: false, done: true })] : null, [false, true, true]);
+  eq('R141: the rule', s9.includes('function hpOn(){ return !!(FTUE_ST.hpOn || FTUE_ST.done || FTUE_ST.part>=3 || hpFree()); }\n/* R141 (owner, 2026-11-18): "design desk should be available in game after tutorial" - Garric\'s reward (D130b) opens it in the\n   tutorial; after the tutorial it is open however the game got there (the GAME jump, free play, an older save). specs/2026-11-18-desk-after-tutorial.md */\nfunction deskOn(){ return !!(FTUE_ST.desk || FTUE_ST.done); }\n'), true);
+  eq('R141: every desk gate reads deskOn (the prop\'s tap, its locked look, openDesign)', s9.includes('    designDesk: ()=>{ if(!deskOn()){ toast(\'The design desk is locked\'); return; } if(requireWork()) openDesign(); },   /* r201. R141: deskOn */') && s9.includes('if(p.act===\'designDesk\' && !deskOn()) im.classList.add(\'ftue-lock-prop\');') && s9.includes('    if(!deskOn()){ toast(\'The design desk is locked\'); return; }   /* r201: the GPC3 reward opens it. R141: and the tutorial\'s end */'), true);
+  eq('R141: no gate reads the flag alone', /!FTUE_ST\.desk\b/.test(s9), false); }
 console.log('[ftue] GREEN / ' + n + ' checks');

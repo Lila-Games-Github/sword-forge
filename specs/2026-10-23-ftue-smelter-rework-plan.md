@@ -1463,3 +1463,6 @@ yours and come on top.
   24 elements only for now, remove rainbow". 24 traits (Rainbow left out of the list, `CB_TOMIT`, still in the game), 12 boxes
   (3 x 4) on each page, bigger boxes; the count moves to the right title ("5 / 24 Discovered"), the tab reads "⭐ 5/24". Record:
   `specs/2026-11-17-book-trait-list.md` (R140).
+- **R141 (owner, 2026-11-18): the design desk after the tutorial.** "design desk should be available in game after tutorial".
+  The GAME jump and free play never got Garric's unlock, so the desk stayed locked. `deskOn()` (`FTUE_ST.desk || FTUE_ST.done`)
+  now gates the basement prop, its locked look and `openDesign()`. Record: `specs/2026-11-18-desk-after-tutorial.md`.

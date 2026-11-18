@@ -179,7 +179,7 @@ Any sword dragged in the game hangs from its grip and swings. By trait:
 
 ### Finishing (the basement)
 
-- **Design desk** (from Part 6): choose a grip, guard and pommel from the sword's trait set (balanced, fire, swift and gale have
+- **Design desk** (from Part 6; always open after the tutorial, R141): choose a grip, guard and pommel from the sword's trait set (balanced, fire, swift and gale have
   their own sets; durable and the rest use balanced). 3 of each to start; Garric's grade-3 gift adds 6 balanced parts.
   A designed sword sells for +7g; the parts chosen are looks only.
 - **Sharpening wheel** (from Part 5): drag the sword along the spinning stone to fill sharpness 0-100; the green band is
