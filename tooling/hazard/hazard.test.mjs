@@ -77,7 +77,15 @@ eq('PART 2-3 jumps leave the hazard lines unsaid', src.includes('TUT_SAIDBOOK=tr
 /* 2026-10-09: the new craft window - Health and the gold lost (in red) on its details paper */
 /* R17 (owner, 2026-10-27): the Health row is on the card - the heart, its % under it, the gold lost on the right */
 eq('craft window row is Health, gold lost in red', src.includes('<div class="cw-box cw-row" id="cwHpRow">') && src.includes("document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w);"), true);
-eq('the row shows the gold lost', src.includes("return (lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : 'No loss')"), true);
+eq('the row shows the gold lost (R128: nothing when none)', src.includes("return lost>0 ? '<span class=\"cr-lost\">-'+lost+'g</span>' : ''; }"), true);
+/* R128 (owner, 2026-11-16): health starts with the fire run's hazard lesson - specs/2026-11-16-health-gate-and-rows.md */
+{ const s7 = src.replace(/\r\n/g, '\n');
+  const hpOnSrc = (s7.match(/function hpOn\(\)\{[^\n]*/) || [''])[0], hpOn = new Function('FTUE_ST', 'hpFree', hpOnSrc + '; return hpOn();');
+  eq('R128: health is on with the lesson, from part 3, after the tutorial, in free play - and off before', [hpOn({ part: 2 }, () => false), hpOn({ part: 2, hpOn: true }, () => false), hpOn({ part: 3 }, () => false), hpOn({ part: 1, done: true }, () => false), hpOn({ part: 1 }, () => true)], [false, true, true, true, true]);
+  eq('R128: free play read safely (SM_FREE is declared later)', s7.includes('function hpFree(){ try{ return !!SM_FREE; }catch(e){ return false; } }'), true);
+  eq('R128: before it a hazard does nothing - the fire run\'s first crossing starts the lesson first', s7.includes('        if(partsHit(p.x,p.y,h.parts)){ inside=h; break; } }\n    if(inside && !hpOn()) tutHazardStep();   /* R128: the fire run\'s first crossing starts the lesson, and health with it */\n    if(!hpOn()) inside=null;   /* R128: before the hazard lesson a hazard does nothing: no health, no glow, no tier drop */\n'), true);
+  eq('R128: the lesson turns health on (saved in FTUE_ST)', s7.includes('    if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;\n    FTUE_ST.hpOn=true; updateHpPill();   /* R128: health starts with the lesson */\n'), true);
+  eq('R128: no health fill on the sword marker before it', s7.includes('    const pct=Math.max(0, Math.min(100, ((melt ? melt.hp : BLADE_HP_MAX)/BLADE_HP_MAX)*100));\n    g.style.display=hpOn() ? \'\' : \'none\'; a.style.display = pct>0 ? \'\' : \'none\';   /* R128: no health on the marker before the lesson */'), true); }
 eq('gold lost = full-health base minus base', src.includes("const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0"), true);
 eq('no "integrity" left in what the player reads', ['title="Blade integrity', 'it is losing integrity', "row('Integrity'"].every(t => !src.includes(t)), true);
 /* R103 (owner, 2026-11-11): in a zone the sword shakes and its health shows red; out of it, the level colour again */

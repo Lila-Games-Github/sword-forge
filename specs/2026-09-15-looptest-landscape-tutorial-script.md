@@ -620,7 +620,7 @@ Each entry: the id, who speaks, the line; under it, when it appears. "Only if" m
 
 #### TC5: the gale sword
 
-6. **D93** TC5: "Do you have a sword with the Gale trait?"
+6. **D93** TC5: "I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough." (R119: why, and the shape)
    *When: the bell.*
 
 7. **D93a** Dragon: "Gale? We have never made that. Let's try copper and see where the path goes."
@@ -1858,7 +1858,9 @@ it again; the run only moves on once a point has actually been spent.*
 *Trigger: closing the skill tree after spending. The counter exit blinks.*
 
 **D93** — Customer (`man2`)
-> "Do you have a sword with the Gale trait?"
+> "I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough."
+
+*R119 (owner, 2026-11-14): was "Do you have a sword with the Gale trait?"; the sailor's story and the shape added.*
 
 *Trigger: ringing the bell, which blinks on arrival at the counter.*
 

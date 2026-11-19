@@ -57,7 +57,11 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   (`HAZ.floor` 0.5 at 0 health); 3+ zones crossed drop every trait one tier, 5+ two (`HAZ.steps`; the first 2 are free).
   In a zone the marker's parts shake (`swordShake`) and the health fill is red; out of it the level colour (green above 60%,
   amber 30-60%, red below 30%) returns. D69's speck in the fire craft is `HAZ.move[1]` at scale 2.25 (R103, was 0.75): the fire
-  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`.
+  run loses about 14 health there (was 4). Record: `specs/2026-10-01-hazard-integrity.md`. **R128 (`hpOn()`, `specs/2026-11-16-health-gate-and-rows.md`):**
+  health is on once the fire run's hazard lesson starts (`FTUE_ST.hpOn`, saved), from part 3, after the tutorial and in free
+  play; before that a hazard does nothing (no health, no glow, no tier drop), the marker has no health fill and the crafted
+  window no Health tab. Its rows: the icon left, the gold (when not zero) right, no % text (R129), the tab filled to the % (health
+  green/amber/red, the hammer by band: Masterwork `#e8a317`, Good `#5aa8ff`, Crude `#ff4a3a`).
 - **Books:** XP pickups collected by travelling near them (small 50 xp, large 75, great tomes 100-200; §6).
 
 ### Ores and routes
@@ -67,6 +71,10 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   manganese's 30 deg clockwise (`ORES` `rot`); Balanced and Fire sit at the new ends (`FTUE.balancedAt`, `FTUE.fireAt`).
   Record: `specs/2026-10-28-rotated-ore-paths-test.md`. Each ore dropped into the smelter appends its path from the current
   route end (the **X**); ores stack.
+- **Dust (R126, `SM_DUST`, `specs/2026-11-16-smelter-dust.md`):** each ore the player puts in (raw, `addOreDirect`, or ground, `addPrep`) makes a
+  puff of soft clouds at the crucible's mouth and 16 specks that rise and drift, soot brown (`#3e352e`) tinted a fifth of the way
+  toward the ore's colour (R127: 3:1 or better on the map's yellows; R126's light ash blended in); a book page filling the
+  smelter makes none.
 - **Raw vs ground:** a raw ore reaches **50%** of its path; on the grindstone two full turns of the handle (`GRIND_TURNS` **2**)
   grind it fully, **100%** (`tPct = 0.5 + 0.5 x grind`).
 - **Back to the bag:** an ore on the grindstone dropped on the inventory goes back to the bag, whole; its grinding is lost (R21).
@@ -100,17 +108,24 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **More traits:** drag the hot metal back into the smelter, add ore if needed, pump and open the gate again. The blade's
   traits show as pips in the craft frame (5 slots; a tier-N trait fills N).
 - **Craft book:** each trait set's page records the route that reached it (ores, grinds, tier, hammer grade); **CRAFT 1** makes
-  the page's sword straight away from its ores (no smelter, no minigame; §8).
+  the page's sword from its ores with no smelter (§8), through the quick hammer (R121, `HM_QUICK_CFG`, `specs/2026-11-14-quick-hammer.md`):
+  the shape window, then six ungraded taps anywhere (3 orb, 3 mid-blade) while the dragon breathes by himself (head swaying
+  ±4 degrees), then the crafted window; the page's forging grade, ore spent at the end (Cancel spends nothing).
 
 ## 5. Forging the blade
 
+- **The craft book's trait list (R139-R140, `CB_VIEW`, `cbTraitsRender`, `cbTList`, `specs/2026-11-17-book-trait-list.md`):** the left tab (a sideways bookmark in
+  `#cbMarksSide`, "⭐ N/24") opens the list: 24 boxes in `TRAITS` order with Rainbow left out (`CB_TOMIT`, R140), 12 (3 x 4) on each page, the right title the count ("N / 24 Discovered"); a found trait (`traits[].discovered`) shows
+  its icon and name and opens its page (`cbTraitPageOf`: its own, else the first that has it), an unfound one a grey "?".
 - **The anvil opens the shaping:** the hot metal lies on the anvil (with at least one trait); a tap on it opens the **shape window** (R82): owned
   shapes, and locked ones with their blueprint price and a BUY (the market's prices and checks, §6). A tap on the metal reopens
   it. A stored metal (ingot) dropped on the anvil lands there with the heat it was stored with (R18).
 - **The hammering minigame:** the dragon heats the metal (hold on it), the hammer strikes **hit points** (`HM_HITS`: 1 point on
   the orb for 3 strikes, then 3 random points on the mid-blade), graded by aim into an accuracy percent that sets the price (R92, `hmAccMul`, `HM_HITS.price`): 0-80% a
   curve `0.8 + 0.2 x (e^(4p/80) - 1)/(e^4 - 1)`, 81-100% a row a percent (1.010 ... 1.300, each step bigger). Band names as
-  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
+  labels only: **Masterwork** (>= 0.85), **Good** (>= 0.60), **Crude**. Sounds (R122, `HM_SFX`, `specs/2026-11-16-hammer-sounds.md`): each
+  strike plays its own band's sound, a miss, cold strike or strike on a finished blade the dull thud, a quick-hammer tap Good;
+  placeholder WAVs in `assets/sfx/` (`tooling/sfx/make-placeholder-sfx.mjs`). Record: `specs/2026-10-01-hammer-hit-points.md`. Stages: metal sphere,
   `balanced_<shape>_midblade`, the sword's own blade (`bladeFor`). **No mug:** `SMELT.shapedHold` **700** ms after the last
   strike the minigame closes and the finished blade lies on the anvil, glowing hot. SKIP HAMMER grades it Good.
 - **Quench:** pressed within `SMELT.bladeGrab` **24** px of its line, the blade is picked up by its handle (the tang, stored per
@@ -125,7 +140,7 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   on dragged swords and on the blade held at the forge.
 - **The made sword** goes to the Swords tab with its shape, traits and tiers, hammer grade, health and hazards crossed; the
   "Sword crafted!" window shows it (the first one teaches its rows, D17b-D17a-D17c).
-- **Design desk** (basement, unlocked in Part 6): the sword's trait set of grips, guards and pommels (`DD_SETS`: balanced,
+- **Design desk** (basement, unlocked in Part 6 by Garric's reward, and open after the tutorial however the game got there: `deskOn()`, R141): the sword's trait set of grips, guards and pommels (`DD_SETS`: balanced,
   flame, swift, gale, ice, water; Durable and the other traits use balanced). `FTUE.startParts` 3 of each, plus Garric's 6
   bonus balanced parts at grade 3. DONE marks the sword designed (+7g). The parts chosen do not change the price.
 - **Sharpening wheel** (basement, unlocked in Part 5): drag the sword along the spinning stone; sharpness 0-100 (`SH_GAIN`
@@ -143,7 +158,12 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 - **Price** (`swordBase`, `swordPriceParts`): `floor(raw value x popularity x forging band x health x Trade skill x
   reputation)`, min 1, then **+7g** if sharpened (>= 80) and **+7g** if designed.
   - Popularity: `1.10^(level-1)` (`POP_STEP`); each counter sale adds `POP_GAIN` (Weak 0, Fine 1, Epic 2, by the sword's best
-    tier) to a 20-point bar (`POP_CAP`) that carries over into the next level.
+    tier) to the level's bar (R133, `POP_LEVELS`: 12 to level 2 (R135, was 7), 12 to level 3, then 20 = `POP_CAP`) that carries over into the
+    next level. While the tutorial runs (`popGoal`, `popStep`): Day 2's first sale (GC4) always reaches level 2, Garric's sale
+    level 3, and any other sale stops one point short; record `specs/2026-11-16-popularity-levels.md`. A level-up opens the level-up window (R134,
+    `popShow`/`popOk`, `POP_LINES`): "Popularity Up!", the level, its line, "Swords now sell for N% more", OK, the gold burst;
+    after the sale window's CLAIM once the coins land (`POP_UP_MS` 950), at once for an unpaid sale, before the sale's next
+    steps. No level toast.
   - Forging accuracy: x0.8 (0%) to x1.0 (80%) to x1.3 (100%), every percent its own value; no accuracy x1.0 (§5, R92). Health: `0.5 + 0.5 x hp/100` (`hazPriceMul`). Trade skill: `1 + 0.05 x rank`.
   - Reputation: +1 per counter sale; above 10 every price is x1.2 (below 0 x0.8; nothing lowers it in this build).
   - Example: an Epic Balanced, Good forging, full health, popularity 1, no skills: 24 + 20 = 44g; designed and sharpened, 58g.
@@ -153,13 +173,20 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
 
 - **The bell** brings one customer at a time (no timer). During the tutorial the stage decides who comes (the scripted
   customers and each part's gameplay customers, §7). After it, `nextCustomer`: a random portrait from 7 (`CUST_POOL`); 80%
-  ask for a trait already discovered (`CUST_DISCOVERED`), 20% for one not yet found, in one of 4 lines (`CUST_ASKS`, "Do you
-  have a <Trait> sword?").
+  ask for a trait already discovered (`CUST_DISCOVERED`), 20% for one not yet found, each with its trait's story (R119, `CUST_STORY`, one
+  line per trait, then "Any shape is fine."; lines in `specs/2026-11-10-ftue-customer-list.md`), falling back to one of 4 asks (`CUST_ASKS`) for a trait
+  with no line. The tutorial's gameplay customers say their own line too (`FTUE.orderLines`).
 - **Orders:** tutorial orders name a trait and may name a shape, a tier, or several items (`orderMatches` checks the trait,
   the shape and the best tier). A sword that does not match is refused with a toast. Several-sword orders are handed over one
   at a time; the last one pays for all (r267).
 - **SELL** pays the price (above), REP +1, popularity and 5 xp. The customer thanks the player with a line chosen by the sword's
-  best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s.
+  best tier (`CUST_THANKS`, 5 each) and stays `CUST_BYE_MS` 3.2 s. **The sale window (R130, `saleShow`/`saleClaim`,
+  `specs/2026-11-16-sale-window.md`):** a paid sale opens "Sword Sold!" (a coin, "+Ng", a star "×N" for the popularity, R132, CLAIM); the gold is already paid,
+  the counter holds the old count, and CLAIM flies the coins from the window to it (`flyCoins`) and N stars (at most 5) to the popularity counter, which also
+  waits, then runs the sale's next
+  steps (the tutorial hooks, `ftueGpcSold`, the thank-you, exp). An unpaid sale (Garric refusing) opens none. No "Sold for"
+  toast. It opens with a gold burst (R131, `SALE_FX`: the trait window's burst, gold only, 40 particles and a 200 px ring;
+  `acqBurst(tier, window, table)`).
 - **COME LATER** puts the customer on the waiting list (`FTUE_ST.waiting`); the ledger calls them back. In the tutorial only the
   Part 4 two-sword customer can wait. **DENY** is a placeholder (no action), hidden until the tutorial ends.
 - **The player's reply** (R56, `FTUE.replies`): in the tutorial, after an order line the player taps a reply ("Yes, I can craft
@@ -181,12 +208,15 @@ bucket, optionally decorated and sharpened, and sold at the counter or from the 
   buys it (R96, `ftueDeposit`; until R96 he unlocked it himself). Only owned
   shapes can be forged. A purchase (market or shape window) flies the quest claim's coins (`flyCoins`: 5 coins, 650 ms,
   70 ms apart) from the gold counter to the buy button, and the counter pops "-<price>g"; the gold is spent at once (R91,
-  `buyCoins`).
+  `buyCoins`). The gold counter is the inventory panel's (`#goldVal`): the market has none of its own (R120); while the market
+  is the only window open, the rail rises over its backdrop (z 1001, no taps) with everything but the gold dimmed
+  (brightness .45, the card by an inset shadow), and every dragon coin lands there.
 
 ### Progression: exp, levels and skills
 
 - **XP:** 100 per level, each level 1 skill point. Sources: crafting 5, selling 5, a cave seam worked out 5, map books
-  (small 50, large 75, great tomes 100-200), quests 20.
+  (small 50, large 75, great tomes 100-200), quests 20. A picked book flies to the skill tree button (R125, `bookFly`: five
+  copies of its map icon on the coins' path, `flyCoins`; the button's picture glows on landing; `specs/2026-11-16-book-fly.md`).
 - **Skill tree** (`SKILLS`, 12 node slots, 8 used; record `specs/2026-10-06-skill-tree-trade-ore.md`): Trade (+5% price a
   rank, 20 ranks), Extract (5% a rank: a seam gives +3-4 ore, 5 ranks), Pickaxe (swing 10% faster a rank, 5), Bounty (+1 ore
   per seam a rank, 10), Bulk Craft (craft-book crafts use 10% less ore a rank, 7 ranks at 7 points each), Master (more books in
@@ -267,7 +297,10 @@ plain (the banner only, no pay); else grade 2 (10g, the banner). After D140 (`FT
 - **Dialogue:** the dragon's lines type word by word (R32) in a bubble by him (the bench on the forge, the screen bubble
   elsewhere, an icon bubble in the basement windows). OK goes on, X closes; a tap on the bubble only finishes the typing - only
   its button moves it on (R57). Customers' lines type in the counter box or the named panel; the player answers with reply
-  buttons. Sword names, tiers, "sharpened" and "customized" are bold and coloured (`DLG_HL`, R61). Pointers: a drag arrow, a
+  buttons. Sword names, tiers, "sharpened" and "customized" are bold and coloured (`DLG_HL`, R61); since R123 each trait takes its
+  map part's colours (`DLG_GROUP`: fire red to orange, air green to cyan, light gold to amber, water deep blue to indigo, dark
+  near-black to violet), each 4.5:1 or better on the parchment. Since R124 each trait word of a sword's name also shows its map
+  symbol before it ("a 🔥 fire longsword", `dlgIcons`); a trait word alone stays plain. Pointers: a drag arrow, a
   glow or blink on the control, drag gestures, a dark screen with cut-outs, and a ring on a map trait (`tutSpot`, which a
   finished sword clears, R62).
 - **Effects:** swing effects (§5), the trait burst, the smelter's lit states, quench smoke and mist, the bell's swing, hearts

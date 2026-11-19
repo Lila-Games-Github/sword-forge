@@ -43,7 +43,7 @@ bucket by its handle.
 9. **Finish (optional)** - decorate it at the design desk, sharpen it on the wheel (each +7g).
 10. **Sell** - at the counter to the customer's order, or leave it on a shop rack.
 
-The unit of play is one sword for one customer. The craft book lets a known sword be made in one tap, so the loop shifts from
+The unit of play is one sword for one customer. The craft book lets a known sword be made in a few taps (the quick hammer, R121), so the loop shifts from
 discovery to supply as the game goes on.
 
 ## 3. Characters and story
@@ -67,7 +67,7 @@ The diary (from Bram) has a Travel Log, "People I met" and character sheets, set
 
 | Station | What the player does | Notes |
 |---|---|---|
-| **Smelter** | Drop ores in | Its crown lights while the bellows pump and cools after; the gate layer glows on a trait |
+| **Smelter** | Drop ores in | Each ore put in makes a puff of dark dust and specks rising from the crucible, tinted toward the ore's colour (R126, darker since R127 so it shows on the yellow map); its crown lights while the bellows pump and cools after; the gate layer glows on a trait |
 | **Bellows** | Drag the handle up and down | A full stroke (40 px) = 0.2 s of full-speed travel; springs back closed |
 | **Gate** | Tap | Takes the trait under the sword; refuses off a trait |
 | **Ladle** | Drag the bowl to tilt | 0-45 deg; past 4 deg pulls the sword to the map centre, up to 24 px/s; from Part 4 |
@@ -97,8 +97,10 @@ The dragon sits on the bench; his speech bubble points at him.
 - **Hazards:** zones that drain the blade's health (26/s of 100) while the sword moves through them; at 0 the blade shatters.
   Health lowers the price (to half at 0); crossing 3+ zones drops every trait a tier, 5+ two (the first 2 are free). In a zone
   the sword shakes and its health shows red; out of it, the health's usual colour again (R103). The fire craft's first zone
-  (D69) is three times its old size (R103).
-- **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200).
+  (D69) is three times its old size (R103). **Health starts with the fire sword's hazard lesson (R128):** before it a
+  hazard does nothing (no health loss, no tier drop) and health is not shown anywhere.
+- **Books:** exp pickups on the map, collected by travelling near them (small 50, large 75, great tomes 100-200). On pickup
+  the book's icon flies to the skill tree button the way coins fly to the gold, and the button glows (R125).
 
 ### Ores and routes
 
@@ -149,7 +151,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
   points on the mid-blade. An aim ring under the hammer head shows the band each strike would get (yellow, blue, red).
 - The 6 strikes' accuracy averages into one **accuracy percent**, which sets the price (R92): a steep curve from x0.8 at 0%
   to x1.0 at 80%, then one step a percent, each bigger than the last, to x1.3 at 100% (on a 100g base every percent from 80%
-  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
+  adds gold). The band names stay as labels: **Masterwork** (>= 85%), **Good** (>= 60%), **Crude**. Each strike plays
+  the sound of its own band, and a strike that counts for nothing (off the marks, cold metal) a dull thud (R122; placeholder
+  sounds, the game's first). 700 ms after the last strike the minigame closes; the blade lies hot on the anvil.
 - Stages drawn: metal sphere, a mid-blade, the sword's own blade. A glow on the blade shows its heat.
 
 ### Quench
@@ -157,7 +161,9 @@ A sword can carry several traits (one each); taking a trait it already has can o
 The hot blade is picked up by its handle (within 24 px of the blade's line) and hangs from the finger as a damped pendulum,
 swinging as it moves. Dipped into the bucket's water (or released over it), it is quenched in smoke and mist and the sword is
 made; released elsewhere it returns to the anvil. The "Sword crafted!" window shows the sword, its coloured name, health,
-forging and gold. An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
+forging and gold. Health and forging are one tab each: the icon on the left, the gold it made or cost (when not zero) on
+the right, and the tab's background filled to the percentage (R128; no percentage text since R129; no Health tab before the
+hazard lesson). An arrow tab at its side slides out a paper that lists the ores used (tap it again to slide it back). The
 first crafted window of the game teaches itself: the hammer row (D17b), then the arrow (D17a), then the ores (D17c).
 
 ### Swing effects
@@ -173,7 +179,7 @@ Any sword dragged in the game hangs from its grip and swings. By trait:
 
 ### Finishing (the basement)
 
-- **Design desk** (from Part 6): choose a grip, guard and pommel from the sword's trait set (balanced, fire, swift and gale have
+- **Design desk** (from Part 6; always open after the tutorial, R141): choose a grip, guard and pommel from the sword's trait set (balanced, fire, swift and gale have
   their own sets; durable and the rest use balanced). 3 of each to start; Garric's grade-3 gift adds 6 balanced parts.
   A designed sword sells for +7g; the parts chosen are looks only.
 - **Sharpening wheel** (from Part 5): drag the sword along the spinning stone to fill sharpness 0-100; the green band is
@@ -194,8 +200,11 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 ```
 
 - **Example:** an Epic Balanced sword, Good forging, full health, popularity 1: 24 + 20 = **44g**; designed and sharpened, **58g**.
-- **Popularity:** each counter sale adds 0 (Weak), 1 (Fine) or 2 (Epic) to a 20-point bar; a full bar raises the level (every
-  price +10% per level), the rest carries over.
+- **Popularity:** each counter sale adds 0 (Weak), 1 (Fine) or 2 (Epic) to the level's bar: 12 points to level 2 (R135), 12 to
+  level 3, then 20 (R133); a full bar raises the level (every price +10% per level), the rest carries over. In the tutorial the
+  levels come at set moments: level 2 with Day 2's first sale (GC4), level 3 with Garric's; between them the bar stops one
+  short. A level-up opens "Popularity Up!" (R134): the level, a line for it ("People are starting to notice.", "Nearby town
+  folks are talking about your swords.", ...), the price bonus and OK, with the gold burst; it follows the sale window.
 - **Reputation:** +1 per counter sale.
 
 ### Customers and the counter
@@ -203,13 +212,17 @@ price = floor( trait values + tier bonuses     (5 for a sword with no trait)
 - The **bell** calls one customer at a time. The counter has SELL, COME LATER and DENY (DENY is a placeholder), a shelf with the
   craft book, the ledger scroll and the rotary market.
 - **Tutorial customers** (scripted) and **gameplay customers** (each part's orders) name a trait and may name a shape, a tier,
-  or two swords; an order that names no shape says "Any shape is fine." (R118: TC2, TC4, Garric and every free-play customer). A
+  or two swords; an order that names no shape says "Any shape is fine." (R118: TC2, TC4, Garric and every free-play customer).
+  Every customer tells a short story with the order (R119: the Whitefield attack runs through part 1). A
   sword that does not match is refused. A two-sword order is handed over one sword at a time and paid at the
   end.
-- **Free-play customers:** a random face from 7; 80% ask for a trait already found, 20% for one still in the fog ("Do you have a
-  Fire sword? Any shape is fine.").
+- **Free-play customers:** a random face from 7; 80% ask for a trait already found, 20% for one still in the fog. Each trait has
+  its own short story (R119), for example "Ice drakes were seen near Whitefield again. I need a fire sword. Any shape is fine."
 - **A sale** pays the price, reputation +1, popularity, and 5 exp. The customer thanks the player by the sword's tier (5 lines
-  each for Epic, Fine, Weak) and leaves after 3 s.
+  each for Epic, Fine, Weak) and leaves after 3 s. A paid sale opens the **sale window** (R130): "Sword Sold!", the gold
+  earned with a coin, a star with the popularity points ("×2", R132), and CLAIM, which flies the coins to the gold counter
+  and the stars to the popularity counter; the thank-you and the next step
+  follow the claim. The window opens with a gold burst, the trait window's burst in gold only and smaller (R131).
 - **COME LATER** puts a customer on the waiting list; the ledger calls them back when the player is ready.
 - **The player's reply:** in the tutorial the player answers an order ("Yes, I can craft one.") before the dragon speaks.
 
@@ -220,7 +233,8 @@ is free, owned, closed ("Play more to unlock"), unknown (trait not found), too d
 the shape window. In the tutorial only the current order's blueprints can be bought (the others show greyed, R112), and the dragon pays for some: his coins fly to the
 gold counter with the price ("+<price>g"), then the player buys it (R96). Buying
 one (in either place) flies coins from the gold counter to the buy button, the same coins as a quest claim, and the counter
-shows "-<price>g" (R91).
+shows "-<price>g" (R91). The market has no gold count of its own: while it is open, the inventory panel's gold stays
+lit over the dark backdrop and the rest of the panel is dimmed (R120).
 
 ### The shop
 
@@ -276,7 +290,13 @@ swings by itself. Tin and zinc have no seam yet.
 - A page per trait set: the ores and grinds that reached it, its tier and forging grade, its description, sword art and the
   shapes owned. The first discovery records itself; after that, the inkpot either updates the page or records a new one (during the tutorial
 only Update is offered, R100). Its Trait Tier pips show from TC4's pip lesson on (hidden before, R113).
-- **CRAFT 1** makes the page's sword from its ores straight away (no smelter, no minigame; the page's forging grade).
+- **The trait list (R139-R140):** a sideways bookmark on the book's left edge reads "⭐ 5/24" and opens the list: 24 traits for
+  now (Rainbow left out) in the map's order, 12 boxes (3 x 4) on each page, a found trait's icon and name (tapping it opens its
+  recorded page), an unfound one a grey "?"; the left title is "All Traits", the right title the count ("5 / 24 Discovered").
+- **CRAFT 1** makes the page's sword from its ores with no smelter (the page's forging grade). After the shape window comes the
+  **quick hammer** (R121): no marks or aim ring, the dragon breathes on the metal by himself, his head swaying, and six taps
+  anywhere on the screen (3 on the orb, 3 on the mid-blade) shape the blade, then the crafted window. The taps are not graded;
+  ore is spent at the end, so Cancel costs nothing. The trait card's CRAFT 1 is the same.
 - Pages: 3 to start, +5 from TC2's reward.
 
 ## 9. The tutorial (FTUE)
@@ -446,7 +466,7 @@ They are in the internal build only: the external tester copy, `Swordforge_exter
 | The market window | `specs/2026-10-29-rotary-market.md` |
 | Swing effects | `specs/2026-10-30-fire-swing-fx.md` |
 | Trait discovery burst | `specs/2026-10-30-trait-discovery-burst.md` |
-| Coloured sword names | `specs/2026-10-30-dialogue-sword-names.md` |
+| Coloured sword names (since R123, each trait in its map part's colours: fire, air, light, water, dark; since R124 with the trait's icon before it) | `specs/2026-10-30-dialogue-sword-names.md` |
 | Mobile fit and payload | `specs/2026-09-21-mobile-viewport-fit.md`, `specs/2026-09-21-asset-payload-diet.md` |
 | Art still needed | `specs/2026-10-07-ftue-v3-art-list.md` |
 | Current state, open questions | `HANDOFF.md` |

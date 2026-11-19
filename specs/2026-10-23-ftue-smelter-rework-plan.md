@@ -1302,3 +1302,167 @@ yours and come on top.
   owner: TC3 (D63) and TC5 (D93) need a Shortsword but do not say so. Checked in the browser: TC2's and TC4's lines end with it, D128 holds it,
   four free-play customers each said a random ask then "Any shape is fine.", GC1 (a Longsword) did not. Asserted by the FTUE test
   (written first; GREEN at 1074 with R117).
+- **R119 (owner, 2026-11-14): every customer has a story.** "I want to come up with a story for all customers. Currently, none
+  of the game customers have a good story." Drafts shown, the owner rewrote GC3, GC4, GC9 and TC5, then "build, if there are
+  any issues, we fix later". The lines are recorded in `specs/2026-11-10-ftue-customer-list.md` ("Order lines"): the tutorial's
+  eight gameplay customers say their own line (`FTUE.orderLines`, keyed like `FTUE.oreChain`, p<part>g<order>) in place of a
+  random ask; TC5 (D93) says why it wants gale and that a shortsword is enough (this closes the TC5 half of the open
+  Shortsword question); a random customer after the tutorial says its trait's line (`CUST_STORY`, one per trait, 25), then
+  "Any shape is fine." (`custStory`). `CUST_ASKS` stays as the fallback for a trait with no line. Two owner words fixed:
+  "compliments" to "complements" (GC9), curly quotes to straight (TC5). GC8, the waiting customer, Bram, TC2-TC4 and Garric
+  keep their lines.
+- **R120 (owner, 2026-11-14): the market shows the panel's gold, not its own.** "for market, we have a separate gold tab,
+  remove that and make the gold on the inventory panel visible instead". The market's gold count (`.mk-gold`, `#mkGold`) is
+  gone. While the market is the only window open, the rail rises over the market's backdrop (z 1001 over 1000) and takes no
+  taps; everything on it but the gold pill is dimmed as the backdrop would (brightness .45 = 55% black), so the gold reads as
+  lit. The dragon's coins (the top-up, D28h; the gift, D28ca; the marketWatch deposit) land on the panel's gold (`#goldVal`).
+  Record: `specs/2026-10-29-rotary-market.md` (the Gold and Top-up rows). In the browser the card's own cream background
+  stayed bright around the dimmed pills, so it is darkened too (an inset shadow, under the pills). Checked in the browser: the
+  rail at z 1001 with only the gold lit; a tap on the gold still reaches the market (it closed, as before); the top-up's and the
+  gift's coins fly to `#goldVal`; no console errors. FTUE test (written first) GREEN at 1084.
+- **R121 (owner, 2026-11-14): a quick hammer for book crafts.** "when crafting from the craft book, I want the hammering
+  minigame to be there, But this direct craft hammering minigame will be different." CRAFT 1 (the craft book and the trait card)
+  now opens a quick hammer after the shape window: no hit points or aim ring, the dragon breathes by himself with his head
+  swaying, and six taps anywhere (3 orb, 3 mid-blade) shape the blade; then the crafted window as before. The sword keeps the
+  page's recorded quality; ore is spent when the sword is made, so Cancel spends nothing. Owner choices: page quality, both
+  buttons, 3+3. Record: `specs/2026-11-14-quick-hammer.md` (`HM_QUICK_CFG`). Found in the browser: the open craft book covered
+  the hammer (same z, later in the page), so the quick hammer takes z 1010 like the shape window; the cancel toast is a plain
+  toast (R90's count of the owner's ticked toasts). Checked in the browser: free play (fire Longsword, Broadsword) and GC6 in
+  the tutorial; taps on the scene, the HUD strip and the dragon's head all count; the hammer head lands on the metal; Cancel
+  spends nothing; SKIP HAMMER makes the sword; no console errors. Hammer test (written first) GREEN at 69.
+- **R122 (owner, 2026-11-16): hammer sounds, placeholders.** "i want to add sound for hammering", then "Make placeholder
+  sounds". The game's first sounds: each strike in the hammer minigame plays the sound of its own grade (Masterwork, Good,
+  Crude), or a dull thud when it counts for nothing (off every mark, cold metal, a finished blade); a quick-hammer tap plays
+  Good. Four synthesised WAV placeholders in `assets/sfx/`, made by `tooling/sfx/make-placeholder-sfx.mjs`; real sounds go
+  over the same file names. Record: `specs/2026-11-16-hammer-sounds.md` (`HM_SFX`). Checked in the browser: all four files
+  load (1.10 s, 0.60 s, 0.35 s, 0.15 s); a cold strike, a miss and a strike on a finished blade asked for the thud, strikes at
+  100%, 70% and 40% for Masterwork, Good and Crude, six quick taps for Good; no console errors. Not checked: how they sound
+  (the preview cannot play audio to anyone). Hammer test (written first) GREEN at 78.
+- **R123 (owner, 2026-11-16): trait colours by map part.** "I want to unify them based on the group. the groups are fire, air,
+  light, water and dark." The dialogue colour of every trait (`DLG_HL.trait`) now comes from its map part (`DLG_GROUP`): fire
+  red to orange, air green to cyan, light gold to amber, water deep blue to indigo, dark near-black to violet. Every colour
+  still reads at 4.5:1 or better on the parchment, so light is gold rather than bright yellow. Blood and Cursed sit on a border
+  and were placed in dark. Record: `specs/2026-10-30-dialogue-sword-names.md` ("R123"). The R61 check (colour = market tag,
+  darkened) is replaced by four: the parts as recorded, each trait in one part, 4.5:1 or better, each part in its hue band (air
+  widened to 80-195 for Cloud). Checked in the browser: GC9's "gale longsword" in `#127466`, the dragon's "fire Longsword" in
+  `#c0301a`; no console errors. FTUE test GREEN at 1087.
+- **R124 (owner, 2026-11-16): trait icons in the dialogues.** "I also want to show the icon of the traits in the dialogues."
+  Choices: sword names only, the icon before the word. Each trait word of a sword's name (the bold, coloured ones) now shows
+  its map symbol before it ("a 🔥 fire longsword"); a trait word alone stays plain. Record:
+  `specs/2026-10-30-dialogue-sword-names.md` ("Trait icons"). R32's and R61's checks pinned the renderers' lines and now
+  pin them with the icons. Checked in the browser: GC9's "🌪️ gale longsword" and the dragon's "🔥 fire Longsword", each icon in
+  normal weight and kept with its word; no console errors. FTUE test (written first) GREEN at 1093.
+- **R125 (owner, 2026-11-16): books fly to the skill tree.** "i want the skill book icons to fly to the skill tree tab, on
+  collection the same way as coins fly". On pickup, five copies of the book's map icon fly from the book to the skill tree
+  button with the coins' path and timing (`flyCoins`, now able to carry another picture), and the button's picture glows as
+  they land. The exp is still given at pickup. Record: `specs/2026-11-16-book-fly.md`. Checked in the browser: five copies of
+  the small (green) book on the arc from the map to the skill tree button, the button's glow from about 930 ms for 650 ms,
+  the copies cleaned up, +50 exp at pickup; no console errors. Skills test (written first) GREEN at 23.
+- **R126 (owner, 2026-11-16): dust when ore goes into the smelter.** "I want visual feedback when adding ores to the smelter,
+  some kind of dust particles going up, with a puff of dust." Each ore the player puts in (raw or ground) makes a puff of soft
+  clouds at the crucible's mouth and specks of dust that rise and drift, tinted halfway toward the ore's colour. Record:
+  `specs/2026-11-16-smelter-dust.md` (`SM_DUST`). Found in the browser: the first tan dust (`#a89880` at 0.5) vanished into the
+  map behind the crucible, and the puff faded from its first frame (13% opacity at 40% of its time); now light ash (`#e2d9cc`
+  at 0.35), 2.5-5 px specks, and a puff that holds for its first third. Checked in the browser: raw copper and iron and ground
+  manganese each made the dust at the mouth (51%, 26% of the station), gone after 2 s; no console errors. Smelter test
+  (written first) GREEN at 154.
+- **R127 (owner, 2026-11-16): darker smelter dust.** "darken the color of the dust puff, and particle. right now it blends with
+  the yellow map". The dust is soot brown (`#3e352e`) moved a fifth of the way toward the ore's colour (was light ash `#e2d9cc`
+  at 0.35, which read at 1.0:1 on the map). Against the map picture's median and lighter tones every ore's dust now reads at
+  3:1 or better. Record: `specs/2026-11-16-smelter-dust.md` ("The colour (R127)"). The map's tones were sampled from
+  `map_base.webp` in the browser; a new check asserts 3:1 for every ore in `ORES`. Checked in the browser: copper's dust
+  `rgb(90, 66, 49)`, a dark smudge over the crucible on the yellow map; no console errors. Smelter test GREEN at 155.
+- **R128 (owner, 2026-11-16): health after the hazard lesson; the crafted window's rows.** "Show the health tab with the heart
+  and all only after the hazard zone tutorial for the fire sword. Disable health before that part." Health is on once the fire
+  run's hazard lesson starts (`FTUE_ST.hpOn`), from part 3, after the tutorial and in free play (`hpOn()`); before that a
+  hazard does nothing (no health, no glow, no tier drop), the sword marker shows no health and the crafted window has no Health
+  row. The rows: the icon whole and centred on the left, the gold figure (when not zero) and the percentage on the right, the
+  tab's background filled to the percentage (health by the marker's colours, the hammer by its band's); "No loss", "No
+  change" and the small notes are gone. Owner choices: hazards do nothing before, keep the gold figure, remove the notes, fill
+  colours by value. Record: `specs/2026-11-16-health-gate-and-rows.md`. The old checks that pinned the rows (R17, r217, r235)
+  now pin the new ones. Found in the browser: the aim ring's light gold (`#ffd36a`) vanished as a fill on the cream tab, so
+  Masterwork fills `#e8a317`. Checked in the browser: after the tutorial, a 70% / 92% sword shows a green 70% fill with -7g and
+  a gold 92% fill with +5g; in part 1 a hazard crossing changed nothing and the window had no Health tab; the fire run's first
+  crossing said D69a, turned health on and cost health (100 to 87); no console errors. FTUE GREEN at 1094, hazard at 45.
+- **R129 (owner, 2026-11-16): the crafted window's tabs show no percentage.** "remove the percentage, only show gold value
+  change." The Health and hammer tabs keep the icon, the fill and the gold figure (alone on the right, larger); the % text is
+  gone. Open: D17b still mentions the percentage. Record: `specs/2026-11-16-health-gate-and-rows.md` ("R129"). R128's
+  row, style and r235 checks now pin no %. Checked in the browser: a 78% / 82% fire Longsword shows the heart with -3g and the
+  hammer with +1g, each on its fill, no % anywhere; no console errors. FTUE GREEN at 1094.
+- **R130 (owner, 2026-11-16): the sale window.** "on selling a sword, i want a popup window, like the reward windows, showing
+  the gold earned, gold icon and a claim button. clicking this claim button shows the gold flying from the window to the gold
+  tab in the inventory." A paid counter sale opens "Sword Sold!" (a coin, "+Ng", "+N popularity" when there is some, CLAIM);
+  CLAIM flies the coins from the window to the gold counter (the count waits for them) and only then runs the sale's next
+  steps (tutorial hooks, the customer's reward and next bell, the thank-you, exp). The "Sold for" toast is gone; an unpaid sale
+  opens no window. Record: `specs/2026-11-16-sale-window.md`. R90's ticked toasts are 27 now; r268's checks (the coins from
+  SELL) pin the window. Checked in the browser: a free-play sale showed "Sword Sold!", +30g, +1 popularity, with the counter
+  holding 1300; CLAIM flew 5 coins from the window's coin, the counter showed 1330 as they landed, the thank-you and +5 exp
+  came after; GC1's sale counted the order and rang the bell only after CLAIM; Bram's sale stayed "counter-ready" until CLAIM
+  (nothing covered it), then "sold"; no console errors. FTUE GREEN at 1099.
+- **R131 (owner, 2026-11-16): the sale window bursts in gold.** "can we have the same, particle explosion effect as when we get
+  for trait discovery. for gold window it should have gold color only and smaller burst". The trait window's burst (R58-R59),
+  from its own table `SALE_FX`: gold only (deep, plain, pale), 40 particles (70), slower, smaller, a 200 px ring (320).
+  `acqBurst` takes the window and the table. Record: `specs/2026-11-16-sale-window.md` ("The gold burst"). R59's and R130's
+  checks pin the new lines. Checked in the browser (frames stepped by hand): 40 particles, all three golds, a deep gold ring,
+  on the sale window's own canvas, gone after 2 s; the trait window still bursts with 70 in its tier's blue, gold and white; no
+  console errors. Smelter test GREEN at 160.
+- **R132 (owner, 2026-11-16): stars in the sale window.** "remove the +2 popularity here, instead star icon x2 popularity points.
+  I want these stars flying to the popularity tab as well." A star and "×N" in place of "+N popularity"; CLAIM flies N stars (at
+  most 5) to the popularity counter, which waits for them. Record: `specs/2026-11-16-sale-window.md` ("Stars for popularity").
+  Checked in the browser: an Epic sale showed ⭐×2; the counter held "Lv1 0/20" until CLAIM flew 5 coins and 2 stars, then
+  showed "Lv1 2/20". FTUE GREEN at 1100.
+- **R133 (owner, 2026-11-16): popularity levels at set moments.** "Tweak the popularity points required so players reach level
+  2 popularity right after selling the first sword on day 2. level 3, right after selling garric's sword." Level 1 to 2 needs 7
+  points, 2 to 3 needs 12, then 20 as before (`POP_LEVELS`): the tutorial's usual tiers fill them at GC4 and at Garric. While
+  the tutorial runs, a sale stops one point short of the next level, Day 2's first sale always reaches level 2 and Garric's
+  always level 3 (`popStep`, `popGoal`). Record: `specs/2026-11-16-popularity-levels.md` (R133). The test runs the tutorial's 18
+  sales with the usual, all-Epic and Weak-heavy tiers: level 2 at GC4, level 3 at Garric each time. Checked in the browser: an
+  Epic sale on Day 1 stopped at 6/7, a Weak first sale of Day 2 reached Lv2, Garric's reached Lv3, after the tutorial points
+  carry over; the counter shows /7, /12, /20. FTUE GREEN at 1111.
+- **R134 (owner, 2026-11-16): the popularity level-up window.** "I want a similar window popup when popularity goes up." "Popularity
+  Up!", a star and the level, the level's line (levels 2 and 3 the owner's, 4 on drafted), the price bonus, OK, and the gold
+  burst. It follows the sale window's CLAIM (after the coins land) and comes before the sale's next steps; the level toast is
+  gone. Record: `specs/2026-11-16-popularity-levels.md` (R134). R90's ticked toasts are 26; R130's checks pin the new tail.
+  Checked in the browser on GC4 (Day 2's first sale, at 6/7): the sale window showed ⭐×1 and held "Lv1 6/7"; CLAIM, then
+  after the coins "Popularity Up!", Level 2, "People are starting to notice.", "Swords now sell for 10% more", the gold burst
+  on its own canvas, the counter "Lv2 0/12"; OK counted GC4 and brought the thank-you; Garric's level 3 showed its line and
+  21%; no console errors. FTUE GREEN at 1118.
+- **R135 (owner, 2026-11-16): popularity level 2 needs 12.** "swords are bound to be epic for balanced, and fine for fire. so
+  after gc4, we should have 12 points. raise level 2 point required to 12". R133 assumed Fine everywhere and set 7; Day 1's
+  balanced swords are Epic (2 each), so the hold stopped the owner at 6/7 and threw 6 points away. `POP_LEVELS.need` is
+  `[12, 12]`: Day 1 earns 11, GC4 makes 12 (level 2), GC5 to Garric 12 more (level 3). Record:
+  `specs/2026-11-16-popularity-levels.md` (R135). Checked in the browser with the owner's tiers: 11/12 after TC3, level 2 at
+  GC4, 10/12 before Garric, level 3 at Garric, nothing held back; no console errors. FTUE GREEN at 1120.
+- **R136 (owner, 2026-11-16): the requested shape's arrow.** "remove the requested text on top and put an arrow icon pointing
+  down instead. place this icon slightly on the left side of the box." The shape window's "Requested" tag is a down arrow (16 x
+  20 px, the tag's orange `#c9861a` outlined `#6b4210`, an SVG in `.sf-shape.sf-req::after`), on the card's top edge at 30%
+  across (was the centre); the gold ring and the pulse stay. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
+  Checked in the browser: a customer asking for a Shortsword - the arrow on that card's top edge at 30% across, no text; no
+  console errors. FTUE GREEN at 1121.
+- **R137 (owner, 2026-11-16): the requested shape's arrow, bigger, green, aimed.** "make the arrow bigger, and green, rotate it
+  slightly so it points to the centre of the box". 24 x 30 px (was 16 x 20), green `#3aa34a` outlined `#1d5e26` (was orange),
+  turned 19 degrees anticlockwise: from its spot (30% across, on the top edge of a 123 x 136 shape card) the card's centre lies
+  atan(24.6 / 71) = 19 degrees off straight down. Record: `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape").
+  Checked in the browser: 24 x 30, green, turned -19 degrees, its point toward the Shortsword card's middle; no console
+  errors. All nine suites GREEN (FTUE 1121).
+- **R138 (owner, 2026-11-16): a stronger highlight on the requested shape.** "make the highlight around the box stronger". The
+  border is the deeper gold `#e8a317`; a solid 2 px gold ring outside it (a shadow, so the card keeps its size); the glow never
+  goes out: 10 px at rest (was none), 22 px and fully bright at the pulse's peak (was 10 px), still 1.1 s a pulse. Record:
+  `specs/2026-10-07-ftue-v3-rework.md` ("Requested shape"). Checked in the browser: at rest the ring and a 10 px glow, at the
+  peak the ring and a 22 px glow, the card still 123 x 136; no console errors. FTUE GREEN at 1122.
+- **R139 (owner, 2026-11-17): the craft book's trait list.** "Add a tab on the left side of the book (just like the top paper
+  marks) rotated. This tab will have a list of all traits, discovered and undiscovered (the same as the shape selection) in
+  boxes." A sideways bookmark on the book's left edge reads "⭐ N/25"; it turns the book to "All Traits": 25 boxes, 5 x 5 in the
+  map's order, a found trait's icon and name (tapping it opens its recorded page, if any), an unfound one a grey "?"; the right
+  page shows the count. Owner choices: tap opens the page, one grid in map order, the tab shows the count. Record:
+  `specs/2026-11-17-book-trait-list.md`. Found in the browser: the tab's text ran bottom to top, so it is turned upright.
+  Checked in the browser (after the tutorial, 5 found): the tab pokes out left and takes a tap; the list shows 25 boxes, Swift,
+  Balanced, Durable, Gale and Fire found; Durable (no page) does nothing, Gale opens the Gale page with its bookmark lit; the book
+  reopens on the recipe pages; no console errors. FTUE GREEN at 1128.
+- **R140 (owner, 2026-11-17): the trait list on both pages.** "i want the boxes on both pages, 3 column 4 rows on each page,
+  24 elements only for now, remove rainbow". 24 traits (Rainbow left out of the list, `CB_TOMIT`, still in the game), 12 boxes
+  (3 x 4) on each page, bigger boxes; the count moves to the right title ("5 / 24 Discovered"), the tab reads "⭐ 5/24". Record:
+  `specs/2026-11-17-book-trait-list.md` (R140).
+- **R141 (owner, 2026-11-18): the design desk after the tutorial.** "design desk should be available in game after tutorial".
+  The GAME jump and free play never got Garric's unlock, so the desk stayed locked. `deskOn()` (`FTUE_ST.desk || FTUE_ST.done`)
+  now gates the basement prop, its locked look and `openDesign()`. Record: `specs/2026-11-18-desk-after-tutorial.md`.

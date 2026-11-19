@@ -206,6 +206,10 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #furnaceSmoke { position: absolute; left: 34%; bottom: 74%; width: 34%; z-index: 2; opacity: 0;
     pointer-events: none; transform-origin: bottom center; animation: none;
     filter: none; }   /* .station img casts a drop-shadow; smoke must not */
+/* R126: dust when ore goes into the smelter (SM_DUST) */
+.sm-dust { position: absolute; width: 0; height: 0; z-index: 4; pointer-events: none; }
+.sm-dust i { position: absolute; left: 0; top: 0; border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%); opacity: 0; }
+.sm-dust i.sm-puff { filter: blur(2px); }
 #furnaceSmoke.on { animation: smokeRise 2.2s ease-in-out infinite; }
 @keyframes smokeRise { 0% { opacity: 0; transform: translateY(14px) scale(.8); } 35% { opacity: .6; } 100% { opacity: 0; transform: translateY(-26px) scale(1.25); } }
 /* r263 (owner): the two white idle-nudge arrow images are gone - the nudges use the guide's own pointers */
@@ -522,6 +526,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* R28: the ring's pull - the down head only, sliding down */
 #dragonSayText .sw, #screenDragonSayText .sw, #shSayText .sw, #ddSayText .sw { opacity: 0; transition: opacity .12s; }
 #dragonSayText .sw.on, #screenDragonSayText .sw.on, #shSayText .sw.on, #ddSayText .sw.on { opacity: 1; }   /* R32: the dragon's line types in */
+.dlg-ig { white-space: nowrap; }   /* R124: a trait's icon and its word never part at a line break */
+.dlg-ic { font-weight: 400; margin-right: .15em; }   /* R124: the trait's map symbol, before its word */
 .dlg-k { font-weight: 700; }   /* R61: a sword's name, a tier, sharpened, customized (DLG_HL gives the colour) */
 #tutDrag.down { animation: tutDragDown 1.2s ease-in-out infinite; }
 #tutDrag.down .g-up { display: none; } #tutDrag.down .g-down { display: inline; }
@@ -672,6 +678,24 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cb-mark img { display: block; width: 100%; -webkit-user-drag: none; }
 .cb-mark span { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 13px; line-height: 1; }
 .cb-marks-side .cb-mark { width: 5.4%; transform: rotate(90deg); }
+/* R139 (owner, 2026-11-17): the left tab and the trait list (specs/2026-11-17-book-trait-list.md) */
+.cb-marks-side .cb-mark.cb-ttab { width: 5.3%; left: -6.2%; top: 16%; transform: rotate(-90deg); }
+.cb-mark.cb-ttab span { font-size: 9px; font-weight: 700; white-space: nowrap; top: 24%; transform: rotate(90deg); }   /* upright on the sideways tab */
+.cb-book.cb-traits-on > .cb-sword, .cb-book.cb-traits-on > .cb-gear, .cb-book.cb-traits-on > .cb-label, .cb-book.cb-traits-on > .cb-slot,
+.cb-book.cb-traits-on > .cb-empty, .cb-book.cb-traits-on > .cb-erase, .cb-book.cb-traits-on > .cb-cont, .cb-book.cb-traits-on > .cb-craft1 { display: none !important; }
+.cb-traits { position: absolute; left: 4.08%; top: 11.47%; width: 39.5%; height: 84%; }
+.cb-traits[hidden] { display: none; }
+/* R140 (owner, 2026-11-17): boxes on both pages, 3 columns x 4 rows on each */
+.cb-traits-r { left: 54.4%; }
+.cb-tgrid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; height: 100%; }
+.cb-tbox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 0; background: #f3ead6;
+    border: 2px solid #cbb98f; border-radius: 8px; font-family: 'Cinzel', serif; color: #4a3623; }
+.cb-tbox .ic { font-size: 30px; line-height: 1; }
+.cb-tbox .nm { font-size: 10px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; }
+.cb-tbox.unknown { background: #e4ddcf; border-color: #b9b0a0; color: #9a9284; }
+.cb-tbox.unknown .ic { font: 700 30px/1 'Cinzel', serif; color: #9a9284; }
+.cb-tbox.has-page { cursor: pointer; }
+.cb-tbox.has-page:hover { border-color: #e0a52c; }
 /* titles */
 .cb-title { position: absolute; margin: 0; transform: translateX(-50%); white-space: nowrap;
     font-family: 'Cinzel', serif; font-weight: 700; font-size: 15px; color: #4a3623; top: 3.6%; }
@@ -844,11 +868,18 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .sf-shape .sf-buy.poor { background: #d9d3c6; border-color: #9c9486; color: #7d7568; }   /* r301: the gold cannot cover it */
 .sf-shape .sf-buy { margin-top: 2px; padding: 2px 7px; border-radius: 6px; background: #f6d27a; border: 1px solid #b07a22; color: #5a3410; font: 700 10px/1.2 'Cinzel', serif; letter-spacing: .3px; }
 /* owner, 2026-10-08: the shape the waiting customer asked for - a gold ring, a pulse and a tag */
-.sf-shape.sf-req { position: relative; border-color: #e0a52c; background: #fff5d6; opacity: 1;
+.sf-shape.sf-req { position: relative; border-color: #e8a317; background: #fff5d6; opacity: 1;   /* R138: the deeper gold */
     animation: sfReqPulse 1.1s ease-in-out infinite; }
-.sf-shape.sf-req::after { content: 'Requested'; position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
-    font: 700 7px/1 'Cinzel', serif; letter-spacing: .4px; color: #fff; background: #c9861a; padding: 2px 4px; border-radius: 4px; }
-@keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(224,165,44,.0); } 50% { box-shadow: 0 0 10px 3px rgba(224,165,44,.85); } }
+/* R136 (owner, 2026-11-16): "remove the requested text on top and put an arrow icon pointing down instead. place this icon slightly on
+   the left side of the box." A down arrow on the top edge at 30% across. R137 (owner): "make the arrow bigger, and green, rotate it
+   slightly so it points to the centre of the box" - 24 x 30, green, turned 19 degrees toward the card's centre (from 30% across on
+   the top edge of a 123 x 136 card: atan(24.6 / 71)) */
+.sf-shape.sf-req::after { content: ''; position: absolute; top: -18px; left: 30%; transform: translateX(-50%) rotate(-19deg); width: 24px; height: 30px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M5 1h6v9h4l-7 9-7-9h4z' fill='%233aa34a' stroke='%231d5e26' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
+/* R138 (owner, 2026-11-16): "make the highlight around the box stronger" - a solid 2px gold ring outside the border (a shadow, so the
+   card keeps its size) and a glow that never goes out: 10px at rest, 22px bright at the pulse's peak (was none to 10px) */
+@keyframes sfReqPulse { 0%,100% { box-shadow: 0 0 0 2px #e8a317, 0 0 10px 3px rgba(232,163,23,.75); } 50% { box-shadow: 0 0 0 2px #f5b62a, 0 0 22px 8px rgba(255,190,40,1); } }
 /* R38 (owner, 2026-10-29): the rotary market - the art on a 16:9 stage, a wheel of traits, one blueprint page at a time.
    Positions are the art's own pixels (1920x1080) as percentages. Record: specs/2026-10-29-rotary-market.md */
 #sfMarketModal { container-type: size; }
@@ -883,8 +914,14 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .mk-close { position: absolute; left: 59.4%; top: 3.9%; width: 3.4cqw; height: 3.4cqw; transform: translate(-50%,-50%); border-radius: 50%; box-sizing: border-box;
     border: .2cqw solid #6a5636; background: #e8dcc0; color: #4a3623; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .mk-close svg { width: 55%; height: 55%; }
-.mk-gold { position: absolute; left: 62.5%; top: 1.6%; padding: .4cqw 1cqw; border-radius: 1cqw; background: rgba(20,14,7,.85); border: .15cqw solid #c8a84b;
-    font: 700 1.5cqw/1 'Cinzel', serif; color: #ffe08a; white-space: nowrap; }
+/* R120 (owner, 2026-11-14): the market has no gold count of its own; while it is the only window open, the rail rises over
+   its backdrop (z 1000) and everything on it but the gold is dimmed as the backdrop would (55% black = brightness .45).
+   The rail takes no taps then, so a tap there still reaches the backdrop (mkOutside). */
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail { z-index: 1001; pointer-events: none; }
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail > :not(#statPanel),
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) #skillBtn,
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) .statPill:not(:first-child) { filter: brightness(.45); }
+#frame.landscape:has(#sfMarketModal.show):not(:has(.sf-modal.show:not(#sfMarketModal))) > #rail > #statPanel { box-shadow: inset 0 0 0 999px rgba(0,0,0,.55), 0 3px 7px rgba(0,0,0,.55); }   /* its card too, under the pills */
 /* v3: the dragon speaks INSIDE the market window - on the counter screen his bubble lives in #screenLayer,
    whose stacking context keeps it under any modal, whatever its own z-index. R38: top right, off the paper */
 /* R84 (owner, 2026-11-05): "make this dialogue look the same as the rest of the dragon's dialogues" - #dragonSay's box, name and text */
@@ -921,8 +958,25 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r199: FTUE - a shape without its blueprint, the reward window, the locked grindstone, build mode */
 .sf-shape.locked { cursor: pointer; }   /* r299: a locked shape is bought from here; only its icon and name are greyed (above) */
 #sfRewardModal .sf-modal-box { max-width: 360px; }
+/* R134: the popularity level-up window, the sale window's look */
+#sfPopModal .sf-modal-box { max-width: 340px; text-align: center; position: relative; z-index: 1; }
+#popFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pop-line { margin: 4px 0 6px; font: italic 600 17px/1.3 Georgia, serif; color: #2e2010; }
+.pop-bonus { margin: 0 0 12px; font-size: 13px; color: #6b5536; }
+/* R130: the sale window, in the reward window's style */
+#sfSaleModal .sf-modal-box { max-width: 320px; text-align: center; }
+.sale-gold { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0 6px; }
+.sale-coin { font-size: 52px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+.sale-gold b { font: 700 34px/1 Georgia, serif; color: #2e2010; }
+.sale-pop { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 12px; }   /* R132: the star and its points */
+.sale-pop[hidden] { display: none; }
+.sale-star { font-size: 30px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.sale-pop b { font: 700 24px/1 Georgia, serif; color: #2e2010; }
+.fly-coin.fly-star { font-size: 20px; }
 /* R58: the trait window's burst - a canvas over its dark, behind its box, taps passing through */
 #acqFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#saleFx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }   /* R131: the sale window's burst */
+#sfSaleModal .sf-modal-box { position: relative; z-index: 1; }
 #sfAcquireModal .sf-modal-box { position: relative; z-index: 1; }
 /* R63 (owner, 2026-11-03): "make this popup bigger. increase text size as well" - the window and its text x1.5 */
 #sfAcquireModal .sf-modal-box { max-width: 480px; padding: 24px; }
@@ -947,6 +1001,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 /* r200: quest CLAIM, and the coins that carry it to the gold counter (above every window) */
 .qs-claim { font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px; color: #3a2a12; background: linear-gradient(180deg,#ffe38a,#e0b545); border: 2px solid #7a5a1e; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
 .qs-claim:active { transform: translateY(1px); }
+/* R125: a book's exp lands on the skill tree button: its picture glows once */
+#skillBtn.gained .sk-art { animation: skGained .6s ease-out; }
+@keyframes skGained { 0% { filter: none; } 35% { filter: brightness(1.35) drop-shadow(0 0 6px rgba(255,210,90,.95)); } 100% { filter: none; } }
+.fly-coin.fly-book { font-size: 0; width: 22px; height: 22px; }
+.fly-coin.fly-book svg { width: 22px; height: 22px; display: block; }
 .fly-coin { position: fixed; z-index: 100000; font-size: 20px; line-height: 1; pointer-events: none; transform: translate(-50%,-50%); filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
 .gold-pop { position: fixed; z-index: 100001; pointer-events: none; transform: translate(-50%,-100%); font: 700 14px/1 'Cinzel', serif; color: #ffe38a; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,.8); animation: goldPop 1.1s ease-out forwards; }
 @keyframes goldPop { 0% { opacity: 0; margin-top: 4px; } 15% { opacity: 1; } 100% { opacity: 0; margin-top: -26px; } }
@@ -1041,8 +1100,12 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 .cw-stats { display: flex; gap: 14px; margin: 0 0 12px; }
 /* R17 (owner, 2026-10-27): Health and hammering, one row each - the icon and its % on the left, the gold it made or cost on the right */
 #sfCraftModal .cw-stats { flex-direction: column; gap: 8px; }
-#sfCraftModal .cw-row { justify-content: space-between; height: 70px; padding: 0 30px; box-sizing: border-box; }   /* over .cw-box's centring */
-#sfCraftModal .cw-row .cw-fill { font-size: 36px; }
+#sfCraftModal .cw-row { position: relative; overflow: hidden; justify-content: flex-start; gap: 14px; height: 70px; padding: 0 26px; box-sizing: border-box; }   /* R128: the icon left, the gold right. R129: no % */
+#sfCraftModal .cw-row[hidden] { display: none; }   /* R128: Health before the hazard lesson */
+.cw-bar { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--f, 0) * 100%); background: var(--c, #e0b545); opacity: .32; pointer-events: none; }   /* R128: the % fills the tab */
+.cw-row > .cw-ic, .cw-row > .cw-eff { position: relative; }   /* over the fill */
+.cw-ic { font-size: 36px; line-height: 1; display: flex; align-items: center; }   /* R128: whole, centred top to bottom */
+#sfCraftModal .cw-row .cw-eff { margin-left: auto; font-size: 28px; }   /* R129: the gold alone on the right */
 .cw-eff { font: 700 26px/1.1 Georgia, serif; color: #2e2010; text-align: right; }
 .cw-eff small { display: block; font: 600 14px/1.2 Georgia, serif; color: #6b5634; }
 .cw-up { color: #2e8b3a; }
@@ -1147,6 +1210,11 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 #hmHammer { z-index: 4; transform-origin: 92.7% 59.5%;   /* butt of the handle — rotating here swings the HEAD */
     transform: translate(var(--hx,0px), var(--hy,0px)); filter: drop-shadow(0 26px 18px rgba(0,0,0,.5)); animation: hmHover 2.8s ease-in-out infinite; }
 #hmHammer.dragging { animation: none; }
+/* R121 (owner, 2026-11-14): the quick hammer (book crafts) - no marks, no aim, nothing to drag; a tap anywhere strikes */
+#sfHammerModal.hm-quick #hmPoints, #sfHammerModal.hm-quick #hmRing, #sfHammerModal.hm-quick #hmSwing, #sfHammerModal.hm-quick #hmGrip,
+#sfHammerModal.hm-quick #hmAimPad, #sfHammerModal.hm-quick #hmStrikePad, #sfHammerModal.hm-quick #hmMug { display: none !important; }
+#sfHammerModal.hm-quick, #sfHammerModal.hm-quick .hm-scene { cursor: pointer; }
+#sfHammerModal.hm-quick { z-index: 1010; }   /* over the craft book it is opened from, as the shape window is */
 #hmHammer.striking { filter: drop-shadow(0 16px 12px rgba(0,0,0,.6)) drop-shadow(0 0 16px rgba(255,200,90,.95)); }
 #hmHammer.hit { filter: drop-shadow(0 10px 8px rgba(0,0,0,.65)) drop-shadow(0 0 30px rgba(255,235,170,1));
     animation: hmSwing .24s cubic-bezier(.2,.8,.35,1) both; }
@@ -2558,6 +2626,25 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
 
     <!-- ===== Shape select ===== -->
     <!-- r199: one window for every FTUE reward -->
+    <!-- R130 (owner, 2026-11-16): the sale window - the gold a sale earned, CLAIM flies it to the gold counter -->
+    <div id="sfSaleModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 id="saleTitle" class="sf-modal-h">Sword Sold!</h3>
+            <div class="sale-gold"><span class="sale-coin" id="saleCoin">🪙</span><b id="saleAmt">+0g</b></div>
+            <div class="sale-pop" id="salePop" hidden><span class="sale-star" id="saleStar">⭐</span><b id="salePopN">×0</b></div>
+            <div class="rwd-ok"><button class="paperBtn wide" type="button" id="saleClaim" onclick="saleClaim()">CLAIM</button></div>
+        </div>
+    </div>
+    <!-- R134 (owner, 2026-11-16): the popularity level-up window -->
+    <div id="sfPopModal" class="sf-modal">
+        <div class="sf-modal-box">
+            <h3 class="sf-modal-h">Popularity Up!</h3>
+            <div class="sale-gold"><span class="sale-coin">⭐</span><b id="popLvTxt">Level 2</b></div>
+            <p class="pop-line" id="popLine"></p>
+            <p class="pop-bonus" id="popBonus"></p>
+            <div class="rwd-ok"><button class="paperBtn wide" type="button" id="popOk" onclick="popOk()">OK</button></div>
+        </div>
+    </div>
     <div id="sfRewardModal" class="sf-modal">
         <img id="rwDragon" src="assets/forge/dragon.webp" alt="">
         <div class="sf-modal-box">
@@ -2573,7 +2660,6 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="mk-paper" id="mkPaper"><div class="mk-pages" id="mkPage"></div></div>
             <div class="mk-wheel" id="mkWheel"></div>
             <button class="mk-close" id="mkClose" type="button" title="Close" onclick="closeMarket()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"/></svg></button>
-            <span class="mk-gold">🪙 <b id="mkGold">0</b></span>
             <div class="mk-say" id="mkSay" hidden><span class="who">DRAGON</span><p></p></div>
         </div>
     </div>
@@ -2663,6 +2749,9 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
             <div class="cb-slot cb-flow"   id="cbFlow"   style="left:52.85%; top:11.47%; width:42.65%; height:34.72%;"></div>
             <div class="cb-slot cb-shapes" id="cbShapes" style="left:52.85%; top:48.52%; width:42.65%; height:25.11%;"></div>
             <div class="cb-empty" id="cbEmpty" hidden>No recipes yet &mdash; acquire a trait and it is written down here.</div>
+            <!-- R139 (owner, 2026-11-17): the trait list behind the left tab - every trait in a box, found or not -->
+            <div class="cb-traits" id="cbTraits" hidden><div class="cb-tgrid" id="cbTGrid"></div></div>
+            <div class="cb-traits cb-traits-r" id="cbTraits2" hidden><div class="cb-tgrid" id="cbTGrid2"></div></div>   <!-- R140: the right page's 12 -->
             <button class="cb-btn red  cb-erase"  id="cbErase"  type="button" onclick="cbErase()">ERASE</button>
             <button class="cb-btn wide cb-cont"   id="cbCont"   type="button" onclick="cbContinue()">CONTINUE<br>FROM HERE</button>
             <button class="cb-btn wide cb-craft1" id="cbCraft1" type="button" onclick="cbCraft(1)">CRAFT 1</button>
@@ -2714,8 +2803,8 @@ body { font-family: Arial, sans-serif; background: #2b2b2b; min-height: 100vh; d
                 <div id="sfCraftArt" class="cr-art"></div>
                 <div class="cw-name" id="cwName"></div>
                 <div class="cw-stats"><!-- R17: Health, then hammering - the icon, its % under it, the gold effect on the right -->
-                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-stat"><span class="cw-fill cw-hp" title="Health"><span class="bg">❤️</span><span class="fg">❤️</span></span><span class="cw-pct" id="cwHpPct"></span></span><span class="cw-eff" id="cwHpEff"></span></div>
-                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-stat"><span class="cw-fill cw-hm" title="Forging"><span class="bg">🔨</span><span class="fg">🔨</span></span><span class="cw-pct" id="cwHmPct"></span></span><span class="cw-eff" id="cwHmEff"></span></div>
+                    <div class="cw-box cw-row" id="cwHpRow"><span class="cw-bar" id="cwHpBar"></span><span class="cw-ic cw-hp" title="Health">❤️</span><span class="cw-eff" id="cwHpEff"></span></div>
+                    <div class="cw-box cw-row" id="cwFgRow"><span class="cw-bar" id="cwHmBar"></span><span class="cw-ic cw-hm" title="Forging">🔨</span><span class="cw-eff" id="cwHmEff"></span></div>
                 </div>
                 <div class="cw-gold"><span class="cw-coin">🪙</span><b id="cwGold"></b></div>
                 <button class="cw-close" type="button" onclick="closeCraft()">Close</button>
@@ -2831,6 +2920,18 @@ const FTUE = {
        for ('p<part>g<order>' for the gameplay customers), given when the dragon's line for that order closes (was: after the
        previous sale). No row: TC1 (the starting bag), TC3 and GC4 (the caves), the waiting customer, Bram's Dagger (the stored
        ingot). A row's say wins over a random oreLines line; gc9 comes with D107g at the ledger. */
+    /* R119 (owner, 2026-11-14): what each gameplay customer says, keyed like oreChain (p<part>g<order>).
+       Record: specs/2026-11-10-ftue-customer-list.md, "Order lines". GC8 and the waiting customer say D107a / D107c. */
+    orderLines: {
+        p1g0: "Did you hear Whitefield was attacked by monsters? I need to learn how to defend myself! Give me a balanced longsword.",   /* GC1, balanced Longsword */
+        p1g1: "After Whitefield, the captain doubled the watch on the OakHaven walls. I got the night shift. Give me a balanced broadsword.",   /* GC2, balanced Broadsword */
+        p1g2: "My katana broke while fighting a Gargoyle. My master told me I am worthless without my sword. He is angry at me for breaking it. But I think my powers have just grown so much, the sword couldn't keep up. Hah! A balanced katana please.",   /* GC3, balanced Katana */
+        p3g0: "I just want a sword that will never break! The blacksmiths in this town are so 'fragile', just like their craft. You are not from here, right? I hope you can do better. Give me a durable shortsword.",   /* GC4, durable Shortsword */
+        p3g1: "I hear a band of adventurers is hunting ice drakes in the north. I am joining them! A fire longsword, please.",   /* GC5, fire Longsword */
+        p3g2: "Frost wolves are already at my farm gate, and they hate fire. Give me a fire broadsword.",   /* GC6, fire Broadsword */
+        p3g3: "I am a travelling performer. My fire dance needs a blade that really burns. A fire katana, if you can.",   /* GC7, fire Katana */
+        p5g0: "I need a sword that complements my natural powers. It should be able to fly with me and command the winds! Give me a gale longsword.",   /* GC9, gale Longsword */
+    },
     oreChain: {
         p1g0:     { give:{ iron:2, manganese:2 } },   /* GC1, after D28b */
         p1g1:     { give:{ iron:2, manganese:2 } },   /* GC2, after D28e */
@@ -3012,6 +3113,12 @@ function acqStep(F, p, dt){ const k=Math.exp(-F.drag*dt); p.vx*=k; p.vy=p.vy*k+F
 function acqLook(k){ k=Math.max(0, Math.min(1, k)); return Math.min(1, k/0.08)*(1-k*k); }
 /* the ring at t s: its radius (easing out, to R; F.ring.r by default) and opacity */
 function acqRing(F, t, R){ const k=Math.max(0, Math.min(1, t/F.ring.time)); return { r:(R||F.ring.r)*(1-(1-k)*(1-k)), a:1-k }; }
+/* R131 (owner, 2026-11-16): "can we have the same, particle explosion effect as when we get for trait discovery. for gold window it
+   should have gold color only and smaller burst" - the sale window's burst: ACQ_FX's shape, gold only, smaller. Record:
+   specs/2026-11-16-sale-window.md (R131) */
+const SALE_FX={ count:40, speed:[260,560], drag:1.8, fall:260, life:[0.6,1.1], size:[4,8], spin:12, mix:[0.5,0.85],
+    ring:{ r:200, time:0.5, width:5 }, tint:{ Gold:[232,163,23] }, gold:[255,214,90], white:[255,236,160], big:{},
+    after:{ delay:0.3, n:0.45, sp:0.6, ring:0.6 } };   /* deep gold, gold, pale gold; no tier sizes; the smaller second burst as R59 */
 /* ACQFX-PURE-END */
 // ============================================================
 //  v3 shared systems: the MARKET (blueprints per trait and shape), shaped orders, Durable.
@@ -3878,7 +3985,7 @@ function ftueGpcArrive(){
         if(o.market) SAY_THEN={ id:lines[lines.length-1], fn:()=>ftueOrderGo(o) };   /* r300: closing the order's lines starts the craft guide */
         sayQueue.apply(null, lines); }); });
     custLine(null, o.lesson==='weak' ? DIALOGUE.D107a : o.lesson==='later' ? DIALOGUE.D107c : o.qty>1 ? 'I need '+o.qty+' '+tr.name+' swords. Can you make them all?'
-                           : custAsk(tr.name, o.shape));
+                           : FTUE.orderLines['p'+FTUE_ST.part+'g'+FTUE_ST.gpc] || custAsk(tr.name, o.shape));   /* R119 */
     if(o.qty>1) setTimeout(ftueBulkStep, 0);
 }
 /* r267 (owner, 2026-10-16): an order of several swords (GPC3's five, the two-sword request) is sold one sword at a time.
@@ -4460,6 +4567,7 @@ function addBook(K,x,y,xpOverride){
 }
 function takeBook(b){
     b.taken=true; gainExp(b.xp,'book');
+    bookFly(b);   /* R125: its icon flies to the skill tree */
     if(b.tut && BOOK_LESSON_STAGES.indexOf(TUT_STAGE)>=0) tutBookStep(b);   /* r73/r112. r224: the book, for its +xp */
     b.inner.classList.add('gone'); setTimeout(()=>{ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); }, 480);
     const pop=document.createElementNS(NS,'g'); pop.setAttribute('transform','translate('+b.x+','+(b.y-16)+')');
@@ -4467,6 +4575,14 @@ function takeBook(b){
     t.setAttribute('font-size', b.kind==='large' ? 30 : 23); t.textContent='+'+b.xp;
     pop.appendChild(t); booksG.appendChild(pop); setTimeout(()=>{ if(pop.parentNode) pop.parentNode.removeChild(pop); }, 1250);
 }
+/* R125 (owner, 2026-11-16): "i want the skill book icons to fly to the skill tree tab, on collection the same way as coins fly".
+   The map's book (its kind's tint, the open book) as a small picture, and its flight to #skillBtn. Record: specs/2026-11-16-book-fly.md */
+function bookIconSvg(kind){ const K=BOOK_BY[kind]||BOOK_KINDS[0];
+    return '<svg viewBox="-16 -14 32 28" xmlns="http://www.w3.org/2000/svg"><rect x="-15" y="-13" width="30" height="26" rx="7" fill="'+K.tint+'" opacity="0.9"/>'+
+        '<path d="M-9,-6 C-6,-8 -3,-8 0,-6 C3,-8 6,-8 9,-6 L9,6 C6,4 3,4 0,6 C-3,4 -6,4 -9,6 Z" fill="#e0d0a6" stroke="#5a4022" stroke-width="1.6" stroke-linejoin="round"/>'+
+        '<path d="M0,-6 L0,6" stroke="#5a4022" stroke-width="1.6"/></svg>'; }
+function bookFly(b){ const to=document.getElementById('skillBtn'); if(!to || !b.inner) return;
+    flyCoins(b.inner.getBoundingClientRect(), to, ()=>{ to.classList.remove('gained'); void to.offsetWidth; to.classList.add('gained'); setTimeout(()=>to.classList.remove('gained'), 650); }, bookIconSvg(b.kind)); }
 // Books sit under the fog like everything else, so they are found by travelling — which is the point.
 function checkBooks(p){ if(!melt) return;
     for(const b of books){ if(b.taken) continue;
@@ -4683,6 +4799,29 @@ function swordBestTier(w){
     return w.traits.reduce((best,t)=> (['Weak','Fine','Epic'].indexOf(t.tier) > ['Weak','Fine','Epic'].indexOf(best) ? t.tier : best), 'Weak');
 }
 function popMul(){ return Math.pow(POP_STEP, POPLV-1); }
+/* R133 (owner, 2026-11-16): "Tweak the popularity points required so players reach level 2 popularity right after selling the first
+   sword on day 2. level 3, right after selling garric's sword." Record: specs/2026-11-16-popularity-levels.md; the FTUE test reads
+   this block */
+/* POP-LEVELS-BEGIN */
+const POP_LEVELS={ need:[12,12], after:20 };   /* points from level 1 to 2, 2 to 3; then each level as before (POP_CAP). R135 (owner): level 2 needs 12 (was 7) */
+function popNeed(lv){ const n=POP_LEVELS.need[lv-1]; return n!=null ? n : POP_LEVELS.after; }
+/* gain points at level lv with pop already; goal: null after the tutorial (carry over, level by level), 0 a tutorial sale
+   between (stop one short of the next level), N a tutorial sale that sets level N (start it at 0) */
+function popStep(pop, lv, gain, goal){
+    if(goal==null){ pop+=gain; let up=false; while(pop>=popNeed(lv)){ pop-=popNeed(lv); lv++; up=true; } return { pop:pop, lv:lv, up:up }; }
+    if(goal>lv) return { pop:0, lv:goal, up:true };
+    return { pop:Math.min(pop+gain, popNeed(lv)-1), lv:lv, up:false }; }
+/* R134 (owner, 2026-11-16): the level-up window's line for each level (levels 2 and 3 the owner's; the rest drafted, shown to the
+   owner) */
+const POP_LINES={ 2:'People are starting to notice.', 3:'Nearby town folks are talking about your swords.',
+    4:'Travellers stop in OakHaven just to see your blades.', 5:'Your swords are the talk of Whitefield.',
+    6:'Knights ask for your work by name.', 7:'Your name is known in every town on the map.',
+    more:'Bards sing of the blacksmith of OakHaven.' };
+function popLine(lv){ return POP_LINES[lv] || POP_LINES.more; }
+/* POP-LEVELS-END */
+/* this sale's goal: after the tutorial none; Garric's sale level 3; Day 2's first sale level 2; else hold */
+function popGoal(){ if(FTUE_ST.done) return null; if(TUT_GARRIC_STATE==='asked') return 3; if(FTUE_ST.part>=3 && POPLV<2) return 2; return 0; }
+function popApply(gain){ const r=popStep(POP, POPLV, gain, popGoal()); POP=r.pop; POPLV=r.lv; return r.up; }
 // the price a sword fetches right now, with both multipliers applied
 function swordBase(w){
     let g = swordValue(w) * popMul() * hmForgeMul(w) * hazPriceMul(w && w.hp) * tradeMul(rank('trade'));   /* r218: Improved Trading Skills */   /* r215: blade health */   /* r209: the forging grade */
@@ -4714,9 +4853,40 @@ function sellLabel(){
 }
 function updateHud(){
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
-    set('goldVal', GOLD); set('repVal', REP); set('popVal', 'Lv'+POPLV+' '+POP+'/'+POP_CAP);
+    set('goldVal', GOLD); set('repVal', REP); set('popVal', popText());   /* R132 */
     updateXpHud();
 }
+/* R130 (owner, 2026-11-16): "on selling a sword, i want a popup window, like the reward windows, showing the gold earned, gold icon
+   and a claim button. clicking this claim button shows the gold flying from the window to the gold tab in the inventory." The gold is
+   already the player's; the window shows it, and CLAIM runs the sale's next steps (then) and flies the coins. Record:
+   specs/2026-11-16-sale-window.md */
+let SALE_THEN=null, SALE_AMT=0, SALE_POP=0, SALE_POPWAS='';
+/* R132 (owner, 2026-11-16): "remove the +2 popularity here, instead star icon x2 popularity points. I want these stars flying to the
+   popularity tab as well." pop = the points, popWas = the popularity counter's text before the sale (it waits for the stars) */
+const POP_FLY_MAX=5;   /* the most stars in one flight */
+function popText(){ return 'Lv'+POPLV+' '+POP+'/'+popNeed(POPLV); }
+function setPopShown(t){ const e=document.getElementById('popVal'); if(e) e.textContent=t; }
+function saleShow(amt, n, pop, then, popWas){ SALE_AMT=amt; SALE_THEN=then||null; SALE_POP=pop||0; SALE_POPWAS=popWas||popText();
+    document.getElementById('saleTitle').textContent = n>1 ? n+' Swords Sold!' : 'Sword Sold!';
+    document.getElementById('saleAmt').textContent='+'+amt+'g';
+    document.getElementById('salePopN').textContent='\u00d7'+(pop||0); document.getElementById('salePop').hidden=!pop;   /* R132: the star x its points */
+    document.getElementById('sfSaleModal').classList.add('show'); acqBurst('Gold', 'sfSaleModal', SALE_FX); }   /* R131: the gold burst */
+function saleClaim(){ const m=document.getElementById('sfSaleModal'); if(!m || !m.classList.contains('show')) return;
+    const amt=SALE_AMT, pop=SALE_POP, popWas=SALE_POPWAS, then=SALE_THEN, from=document.getElementById('saleCoin').getBoundingClientRect(),
+        sfrom=document.getElementById('saleStar').getBoundingClientRect(); SALE_THEN=null;
+    m.classList.remove('show'); if(then) then();
+    setGoldShown(GOLD-amt); flyCoins(from, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+amt+'g'); });
+    if(pop>0){ setPopShown(popWas); flyCoins(sfrom, document.getElementById('popVal'), ()=>setPopShown(popText()), '\u2b50', Math.min(pop, POP_FLY_MAX), 'fly-star'); } }   /* R132: the stars to the popularity counter */
+/* R134 (owner, 2026-11-16): "I want a similar window popup when popularity goes up" - the level, its line, the price bonus, OK;
+   OK runs the sale's next steps. Record: specs/2026-11-16-popularity-levels.md (R134) */
+const POP_UP_MS=950;   /* a paid sale's level-up waits for the coins to land (COIN_MS + 4 x COIN_GAP = 930) */
+let POP_THEN=null;
+function popShow(lv, then){ POP_THEN=then||null;
+    document.getElementById('popLvTxt').textContent='Level '+lv; document.getElementById('popLine').textContent=popLine(lv);
+    document.getElementById('popBonus').textContent='Swords now sell for '+Math.round((popMul()-1)*100)+'% more';
+    document.getElementById('sfPopModal').classList.add('show'); acqBurst('Gold', 'sfPopModal', SALE_FX); }
+function popOk(){ const m=document.getElementById('sfPopModal'); if(!m || !m.classList.contains('show')) return;
+    const then=POP_THEN; POP_THEN=null; m.classList.remove('show'); if(then) then(); }
 function sellCounter(){
     /* r103: this used to open with `if(TUT_BRAM_SOLD) return;`, which locked the counter for the
        rest of the game the moment Bram was served - every later customer the bell brought could be
@@ -4735,23 +4905,22 @@ function sellCounter(){
     /* r214 (owner): Garric only - a sword short of his best grade asks first; "Yes" comes back here */
     if(TUT_GARRIC_STATE==='asked' && !GARRIC_SELL_OK && garricGrade(COUNTER)!==3){ garricSellAsk(COUNTER); return; }
     GARRIC_SELL_OK=false;
-    const sellR=(document.querySelector('#csPanel .cs-sell')||{ getBoundingClientRect:()=>null }).getBoundingClientRect(), goldWas=GOLD;   /* r268: where the coins start, and the count they leave from */
+    const goldWas=GOLD, popWas=popText();   /* r268: the count the coins leave from. R130: they fly from the sale window. R132: and the stars */
     const w=COUNTER, P=swordPriceParts(w), g=P.total, tier=swordBestTier(w);
     GARRIC_SOLD_W = (TUT_GARRIC_STATE==='asked') ? w : null;   /* r131: the hooks run after COUNTER is cleared */
     const refused = (TUT_GARRIC_STATE==='asked' && garricGrade(w)===1);   /* r132 */
     const pay = refused ? 0 : g;
     SAY_VARS.g=g; SAY_VARS.b=P.sharp;   /* r104: D56 and D57 quote the real numbers. r210: D57 names the sharpening, so {b} is that bonus alone */
     GOLD += pay; REP += 1;   /* r132 */
-    POP += (POP_GAIN[tier]||0);
     if(tier==='Weak' && pay>0) bumpQuest('sellWeak');   /* 2026-10-09 */
     const held=(ftueC && ftueC.held) || [];   /* r267: the order's earlier swords are paid now, with the last */
     let heldG=0, heldPop=0;
-    held.forEach(h=>{ const hg=swordPrice(h), ht=swordBestTier(h); GOLD+=hg; REP+=1; POP+=(POP_GAIN[ht]||0); heldG+=hg; heldPop+=(POP_GAIN[ht]||0);
+    held.forEach(h=>{ const hg=swordPrice(h), ht=swordBestTier(h); GOLD+=hg; REP+=1; heldG+=hg; heldPop+=(POP_GAIN[ht]||0);
         if(ht==='Weak') bumpQuest('sellWeak');
         SALES.push({ shape:h.shape, blade:h.blade, design:Object.assign({}, h.design||{}), traits:h.traits, gold:hg }); });
     if(ftueC) ftueC.held=[];
     let levelled=false;
-    while(POP >= POP_CAP){ POP -= POP_CAP; POPLV++; levelled=true; }   // overflow carries into the next level
+    levelled=popApply((POP_GAIN[tier]||0)+heldPop);   /* R133 */
     SALES.push({ shape:w.shape, blade:w.blade, design:Object.assign({},w.design), traits:w.traits, gold:pay });   /* r132 */
     const scriptedBye = (TUT_STAGE==='sell2' || TUT_STAGE==='sell3' || TUT_STAGE==='d2-gale-sell2' || TUT_STAGE==='bram2-sell2'
                       || TUT_GARRIC_STATE==='asked');   /* ...r127/r131: he stays to judge it */
@@ -4759,17 +4928,17 @@ function sellCounter(){
     COUNTER=null; if(!scriptedBye) CUSTOMER=null; else if(CUSTOMER) CUSTOMER.paid=true;   /* R14: served - no open order while they stay to talk */
     tutSellLit(false);   /* r184: sold - it is done asking */
     refreshCounter(); counterUi(); updateHud(); buildLedger();   /* r96/r98: served, so the counter empties and the bell can call the next */
+    const popAll=(POP_GAIN[tier]||0)+heldPop, paidAll=pay+heldG;   /* R130: the sale window's figures */
+    const after=()=>{   /* R130: the sale's next steps - at once for an unpaid sale, else on the sale window's CLAIM */
     if(TUT_BRAM_STATE==='counter-ready'){ TUT_BRAM_SOLD=true; TUT_BRAM_STATE='sold'; sayHide(); tutArrow(null,null);   /* r148: clears the blink too */   /* r98: 'tap the sell button' has been done */ const bl=document.getElementById('bramLine'); if(bl) custLine(bl, DIALOGUE.D25); const se=document.querySelector('#csPanel .cs-sell'), de=document.querySelector('#csPanel .cs-deny'), re=document.querySelector('#csPanel > .cs-resp'); if(se) se.style.display='none'; if(de) de.style.display='none'; if(re){ re.style.display='none'; re.onclick=null; typeAlso(()=>{ re.textContent='Take care'; re.style.display='flex'; re.onclick=takeCare; counterLayout(); }); }   /* R60: once the line has landed */ }
     tutSold2(); tutSold3(); tutGaleSold(); tutBram2Sold(); tutGarricSold();   /* r103/r118/r126/r127/r131 */
     if(ftueC){ if(ftueC.waiting){} else if(ftueC.tc4) ftueTc4Sold();   /* 2026-10-09: a called-back customer is outside the part's list */ else { ftueC.got=(ftueC.got||0)+1; ftueGpcSold(); } }   /* v3: TC4 is scripted */   /* r199. r267: an order of several only gets here with its last sword */
     if(byeC && !CUSTOMER) custBye(byeC.portrait, custThanksLine(tier, byeC.tier));   /* r252 */
     gainExp(XP_SELL*(held.length+1),'sell');              // r73: counter sales only - the racks pay gold alone. r267: one XP_SELL a sword
-    const popAll=(POP_GAIN[tier]||0)+heldPop;
     if(refused) toastCut('He took it and paid <b>nothing</b>');   /* r132 */
-    else toastCut((held.length ? 'Sold '+(held.length+1)+' swords for <b>'+(g+heldG)+'g</b>' : 'Sold for <b>'+g+'g</b>') + (popAll ? ' &middot; +'+popAll+' popularity' : ''));
-    const paidAll=pay+heldG;   /* r268: the coins fly from SELL to the gold panel, as a quest claim's do; the count catches up when they land */
-    if(paidAll>0){ setGoldShown(goldWas); flyCoins(sellR, document.getElementById('goldVal'), ()=>{ updateHud(); goldPop('+'+paidAll+'g'); }); }
-    if(levelled) setTimeout(()=>toastCut('&#11088; Popularity level '+POPLV+' &mdash; swords now fetch '+Math.round((popMul()-1)*100)+'% more', 2600), 2000);
+    };
+    const lvUp = levelled ? ()=>popShow(POPLV, after) : null;   /* R134: the level-up window, then the next steps */
+    if(paidAll>0){ setGoldShown(goldWas); if(popAll) setPopShown(popWas); saleShow(paidAll, held.length+1, popAll, lvUp ? ()=>setTimeout(lvUp, POP_UP_MS) : after, popWas); } else (lvUp||after)();   /* R130: the sale window; the count waits for the coins. R132: and the stars. R134: then a level-up */
 }
 function placeCounter(sw){
     if(COUNTER) INV.swords.push(COUNTER);                 // same swap rule as the workstation table
@@ -5012,7 +5181,7 @@ function startSwordDrag(w,e){
     document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 const PROP_ACTS = { rack: ()=>openRacks(), bell: ()=>ringBell(),
-    designDesk: ()=>{ if(!FTUE_ST.desk){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201 */
+    designDesk: ()=>{ if(!deskOn()){ toast('The design desk is locked'); return; } if(requireWork()) openDesign(); },   /* r201. R141: deskOn */
     sharpen:    ()=>{ if(!FTUE_ST.sharp && !FTUE_ST.done){ toast('The sharpening wheel is locked'); return; } if(requireWork()) openSharpen(); },
     work:       ()=>takeWork() };
 function buildScreenProps(name){
@@ -5048,7 +5217,7 @@ function buildScreenProps(name){
             box.appendChild(d);
             return; }                                     /* sized by layoutScreenProps, which knows the box */
         const im=document.createElement('img');
-        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !FTUE_ST.desk) im.classList.add('ftue-lock-prop'); if(p.act==='sharpen' && !FTUE_ST.sharp && !FTUE_ST.done) im.classList.add('ftue-lock-prop');   /* r201 */
+        im._prop=p; im.src=p.src; im.alt=''; if(p.act==='designDesk' && !deskOn()) im.classList.add('ftue-lock-prop'); if(p.act==='sharpen' && !FTUE_ST.sharp && !FTUE_ST.done) im.classList.add('ftue-lock-prop');   /* r201 */
         if(p.act) im.dataset.act=p.act;   /* r103 */
         if(p.act){ im.classList.add('hot'); im.title=p.title||'';
             if(p.act==='rack') im.addEventListener('click', ()=>openRacks(p.rack||0));   // r70: this rack, not "the racks"
@@ -5769,7 +5938,7 @@ let DD_FORCE_DEFAULT=false;                                // r65c: set by the r
 function ddWork(){ return DD_FORCE_DEFAULT ? null : WORK; } // what the desk is editing
 function ddSkin(){ return skinOf(ddWork()); }                // ...and whose parts it may show
 function openDesign(){
-    if(!FTUE_ST.desk){ toast('The design desk is locked'); return; }   /* r201: the GPC3 reward opens it */
+    if(!deskOn()){ toast('The design desk is locked'); return; }   /* r201: the GPC3 reward opens it. R141: and the tutorial's end */
     DD_WAS=Object.assign({}, DD_SEL);                      // Cancel puts the selection back
     if(ddWork()) DD_SEL=Object.assign({}, ddWork().design); // r61: edit the sword that is on the table
     DD_SEL=ddCoerce(DD_SEL, ddSkin());                     // r91: never open on a part this sword cannot wear
@@ -6007,12 +6176,13 @@ function claimQuest(id, btn){
         ftueClaimStep(); });
 }
 const COIN_N=5, COIN_MS=650, COIN_GAP=70;
-function flyCoins(fromRect, toEl, done){
+function flyCoins(fromRect, toEl, done, html, n, cls){   /* R125: html = another picture (a book). R132: n of them (COIN_N), class cls (fly-book) */
     const to=toEl ? toEl.getBoundingClientRect() : null;
     if(!fromRect || !to){ if(done) done(); return; }
     const fx=fromRect.left+fromRect.width/2, fy=fromRect.top+fromRect.height/2, tx=to.left+to.width/2, ty=to.top+to.height/2;
-    for(let i=0;i<COIN_N;i++){
-        const c=document.createElement('div'); c.className='fly-coin'; c.textContent='\ud83e\ude99';
+    const N=n||COIN_N;
+    for(let i=0;i<N;i++){
+        const c=document.createElement('div'); c.className='fly-coin'+(html?' '+(cls||'fly-book'):''); if(html) c.innerHTML=html; else c.textContent='\ud83e\ude99';
         c.style.left=fx+'px'; c.style.top=fy+'px'; document.body.appendChild(c);
         const jx=(Math.random()-0.5)*40, jy=-30-Math.random()*30;
         try{ c.animate([{ transform:'translate(-50%,-50%) scale(1)', opacity:1 },
@@ -6020,7 +6190,7 @@ function flyCoins(fromRect, toEl, done){
                         { transform:'translate(calc(-50% + '+(tx-fx)+'px), calc(-50% + '+(ty-fy)+'px)) scale(0.7)', opacity:0.9 }],
                        { duration:COIN_MS, delay:i*COIN_GAP, easing:'ease-in', fill:'forwards' }); }catch(e){}
         setTimeout(()=>c.remove(), COIN_MS+i*COIN_GAP+40); }
-    setTimeout(()=>{ if(done) done(); }, COIN_MS+(COIN_N-1)*COIN_GAP);
+    setTimeout(()=>{ if(done) done(); }, COIN_MS+(N-1)*COIN_GAP);
 }
 /* R91 (owner, 2026-11-05): "I want the coins to fly from inventory panel to the gold buttons, when buying any blueprint" - the
    quest claim's coins, the other way: from the gold counter to the buy button. The gold is spent at once; the coins only show it */
@@ -6973,11 +7143,38 @@ function fireOreWanted(){
 }
 function fullGrindOnly(){ return String(TUT_STAGE).indexOf('regrind')===0 || TUT_STAGE==='fire-grind' || TUT_STAGE==='p3-dur-grind' || TUT_STAGE==='p4-weak-grind'
     || TUT_STAGE==='d2-copper' || TUT_STAGE==='d2-gale1' || TUT_STAGE==='d2-gale2' || TUT_STAGE==='fire-mang' || TUT_STAGE==='fire-iron'; }   /* r111/r123/r125 */
+/* R126 (owner, 2026-11-16): "I want visual feedback when adding ores to the smelter, some kind of dust particles going up, with a
+   puff of dust." Record: specs/2026-11-16-smelter-dust.md; tooling/smelter/smelter.test.mjs reads this block */
+/* SM-DUST-BEGIN */
+/* R127 (owner, 2026-11-16): "darken the color of the dust puff, and particle" - soot brown, 3:1 or better on the map's yellows */
+const SM_DUST={ at:{ x:51, y:26 }, grey:'#3e352e', tint:0.2, puffs:8, puffSize:[16,30], puffDist:[14,32], puffMs:600,
+    specks:16, speckSize:[2.5,5], rise:[45,95], drift:22, riseMs:[900,1500], delay:220 };
+/* the dust's colour: grey moved t of the way to the ore's colour, channel by channel */
+function smDustTint(ore, grey, t){ const c=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)), a=c(grey), b=c(ore||grey);
+    return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*t).toString(16).padStart(2,'0')).join(''); }
+/* SM-DUST-END */
+/* a puff of soft clouds over the crucible's mouth, then specks of dust rising, all in the ore's dust colour */
+function smDust(oreId){ const st=document.getElementById('stSmelt'); if(!st) return;
+    const D=SM_DUST, o=ORE_BY[oreId], col=smDustTint(o && o.color, D.grey, D.tint), rr=(a,b)=>a+Math.random()*(b-a);
+    const L=document.createElement('div'); L.className='sm-dust'; L.style.left=D.at.x+'%'; L.style.top=D.at.y+'%'; st.appendChild(L);
+    const add=(cls, sz)=>{ const p=document.createElement('i'); p.className=cls; p.style.width=p.style.height=sz.toFixed(1)+'px'; p.style.background=col; L.appendChild(p); return p; };
+    for(let i=0;i<D.puffs;i++){ const a=(-180+Math.random()*180)*Math.PI/180, d=rr(D.puffDist[0], D.puffDist[1]), p=add('sm-puff', rr(D.puffSize[0], D.puffSize[1]));
+        p.style.background='radial-gradient(circle, '+col+' 0%, '+col+'cc 45%, '+col+'00 72%)';
+        try{ p.animate([ { transform:'translate(-50%,-50%) scale(.4)', opacity:.9 },
+                         { transform:'translate(calc(-50% + '+(Math.cos(a)*d*0.55).toFixed(1)+'px), calc(-50% + '+(Math.sin(a)*d*0.45-3).toFixed(1)+'px)) scale(1.05)', opacity:.8, offset:.35 },
+                         { transform:'translate(calc(-50% + '+(Math.cos(a)*d).toFixed(1)+'px), calc(-50% + '+(Math.sin(a)*d*0.8-6).toFixed(1)+'px)) scale(1.4)', opacity:0 } ],
+                       { duration:D.puffMs, easing:'ease-out', fill:'forwards' }); }catch(e){} }
+    for(let i=0;i<D.specks;i++){ const p=add('sm-speck', rr(D.speckSize[0], D.speckSize[1])), x0=rr(-10,10), up=rr(D.rise[0], D.rise[1]), dx=rr(-D.drift, D.drift);
+        try{ p.animate([ { transform:'translate(calc(-50% + '+x0.toFixed(1)+'px), -50%)', opacity:0 },
+                         { transform:'translate(calc(-50% + '+(x0+dx*0.35).toFixed(1)+'px), calc(-50% - '+(up*0.3).toFixed(1)+'px))', opacity:.9, offset:.25 },
+                         { transform:'translate(calc(-50% + '+(x0+dx).toFixed(1)+'px), calc(-50% - '+up.toFixed(1)+'px))', opacity:0 } ],
+                       { duration:rr(D.riseMs[0], D.riseMs[1]), delay:Math.random()*D.delay, easing:'ease-out', fill:'forwards' }); }catch(e){} }
+    setTimeout(()=>L.remove(), D.delay+Math.max(D.puffMs, D.riseMs[1])+120); }
 function addPrep(){ if(!prep) return;
     const _fireStage = TUT_STAGE;   /* r111: which half of the fire craft this ore belongs to */
     if(fullGrindOnly() && prep.grind<0.999){ toast('Grind it all the way first: <b>hold the handle and turn the grindstone</b>'); return; }
     if(rawOnly() && prep.grind>0.001){ toast('This one goes in <b>unground</b>'); return; }   /* r125 */
-    const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
+    const _o=prep.ore, _g=prep.grind; ensureMelt(); addSegment(prep.ore,prep.grind); smDust(_o);   /* r101: startPrep already spent it */ prep=null; tutSmeltCheck(_o,_g);
     if(_fireStage==='p3-dur-grind') ftueDurableSmelted();   /* v3 part 3 */
     if(_fireStage==='p4-weak-grind') ftueWeakSmelted();     /* v3 part 4 */
     if(_fireStage==='fire-grind') tutFireSmelted(); else if(_fireStage==='fire-mang') tutFireSmelted2(); else if(_fireStage==='fire-iron') tutFireIronIn();   /* R24 */   /* r111 */
@@ -6993,7 +7190,7 @@ function addOreDirect(oreId){ if(!oreLeft(oreId)) return;
     if(fireOreWanted()!==null && !rawOnly()){ toast('Not straight in: grind it first'); return; }   /* r111/r125 */
     if(rawOnly() && fireOreWanted()===false){ toast('That is everything for now: <b>heat the smelter</b>'); return; }
     if(ftueFirstCap(oreId)) return;   /* r199 */
-    craftStartView(); ensureMelt(); spendOre(oreId); addSegment(oreId,0); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
+    craftStartView(); ensureMelt(); spendOre(oreId); addSegment(oreId,0); smDust(oreId); orbEl.style.display='none'; ftueCheckMix(); setTimeout(tutTc2RawCheck, 0);   /* r199. v3: TC2's raw ores */ if(ftueOreCap(oreId)!=null && INV_TAB===0) buildShelf();   /* r200: spendOre rebuilt it before this ore was in the smelter */
     if(String(_galeStage).indexOf('d2-gale')===0) setTimeout(tutGaleSmelted,0);   /* r125 */ hint('Melting… drag the <b>bellows</b> up and down to move the sword, and <b>tap the gate</b> on a trait. Add more ore to stack the route.'); }
 /* R34 (owner, 2026-10-29): the smelter's lit states. anchor_furnace is the lit furnace (the pour running); three layers on its
    canvas lie over it: the crown cold (#fo-top), the gate cold (#fo-gateOff), the gate glowing (#fo-gateOn). Off with no metal,
@@ -7040,17 +7237,27 @@ function clearTraitHighlight(){ const r=document.getElementById('alignRing'); if
 function updateHpPill(){ const g=document.getElementById('swordHpFill'), a=document.getElementById('swordHp'); if(!g || !a) return;
     /* r257 (owner): shown from the start point too - always; with no run the blade is whole, so the disc is full */
     const pct=Math.max(0, Math.min(100, ((melt ? melt.hp : BLADE_HP_MAX)/BLADE_HP_MAX)*100));
-    g.style.display=''; a.style.display = pct>0 ? '' : 'none';
+    g.style.display=hpOn() ? '' : 'none'; a.style.display = pct>0 ? '' : 'none';   /* R128: no health on the marker before the lesson */
     const D=34.5, h=D*pct/100; a.setAttribute('y', (17.25-h).toFixed(2)); a.setAttribute('height', h.toFixed(2));
     a.setAttribute('fill', pct>60?'#5fd35f':(pct>30?'#e8b13a':'#e2503c')); }
 function clearHazardFx(){ hazards.forEach(h=>{ if(h.el) h.el.classList.remove('hot'); }); if(swordEl) swordEl.classList.remove('hurt'); }
 // r16: hazards are real. Travelling through one drains blade integrity; at 0 the blade shatters and the run (with its
 // acquired traits) is lost. Damage is applied only while the sword MOVES through a hazard — parking is safe, so furnace
 // work never kills you passively.
+/* R128 (owner, 2026-11-16): "Show the health tab with the heart and all only after the hazard zone tutorial for the fire sword. Disable
+   health before that part." On once the fire run's hazard lesson starts (FTUE_ST.hpOn, saved), from part 3 (it opens when TC3's fire
+   sword is sold), after the tutorial and in free play. Record: specs/2026-11-16-health-gate-and-rows.md */
+function hpFree(){ try{ return !!SM_FREE; }catch(e){ return false; } }   /* SM_FREE is declared further down the script */
+function hpOn(){ return !!(FTUE_ST.hpOn || FTUE_ST.done || FTUE_ST.part>=3 || hpFree()); }
+/* R141 (owner, 2026-11-18): "design desk should be available in game after tutorial" - Garric's reward (D130b) opens it in the
+   tutorial; after the tutorial it is open however the game got there (the GAME jump, free play, an older save). specs/2026-11-18-desk-after-tutorial.md */
+function deskOn(){ return !!(FTUE_ST.desk || FTUE_ST.done); }
 function checkHazard(p,dt){ if(!melt || !dt) return;
     let inside=null; for(const h of hazards){ const b=h.bb;   // r28: bbox reject, then per-chunk distance
         if(p.x<b[0]||p.x>b[2]||p.y<b[1]||p.y>b[3]) continue;
         if(partsHit(p.x,p.y,h.parts)){ inside=h; break; } }
+    if(inside && !hpOn()) tutHazardStep();   /* R128: the fire run's first crossing starts the lesson, and health with it */
+    if(!hpOn()) inside=null;   /* R128: before the hazard lesson a hazard does nothing: no health, no glow, no tier drop */
     hazards.forEach(h=>{ if(h.el) h.el.classList.toggle('hot', h===inside); });
     if(swordEl) swordEl.classList.toggle('hurt', !!inside);
     if(!inside) return;
@@ -7236,24 +7443,25 @@ function showAcquire(bt,tier,total,fresh){
     document.getElementById('sfAcquireModal').classList.add('show'); acqBurst(tier); }
 /* R58: the burst - one canvas over the window's dark, behind its box; its own frame loop while anything lives. Visual only */
 const ACQ={ cv:null, g:null, d:1, ps:[], rings:[], next:null, clock:0, raf:0, t:0 };
-function acqBurst(tier){ const m=document.getElementById('sfAcquireModal'), box=m && m.querySelector('.sf-modal-box'); if(!box) return;
-    let c=document.getElementById('acqFx'); if(!c){ c=document.createElement('canvas'); c.id='acqFx'; m.insertBefore(c, m.firstChild); }
+function acqBurst(tier, mid, F){ mid=mid||'sfAcquireModal'; F=F||ACQ_FX;   /* R131: any window, any table (the sale window: SALE_FX) */
+    const m=document.getElementById(mid), box=m && m.querySelector('.sf-modal-box'); if(!box) return; const cid=mid==='sfAcquireModal' ? 'acqFx' : mid==='sfPopModal' ? 'popFx' : 'saleFx';   /* R134 */
+    let c=document.getElementById(cid); if(!c){ c=document.createElement('canvas'); c.id=cid; m.insertBefore(c, m.firstChild); }
     const d=Math.min(2, Math.max(1, window.devicePixelRatio||1)); c.width=Math.round(m.clientWidth*d); c.height=Math.round(m.clientHeight*d);
-    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[];
+    ACQ.cv=c; ACQ.g=c.getContext('2d'); ACQ.d=d; ACQ.ps=[]; ACQ.rings=[]; ACQ.F=F;
     const q=m.getBoundingClientRect(), b=box.getBoundingClientRect(), geo={ cx:b.left+b.width/2-q.left, cy:b.top+b.height/2-q.top, hw:b.width/2, hh:b.height/2 };
-    acqWaveSpawn(tier, geo, false); ACQ.next={ at:ACQ_FX.after.delay, tier:tier, geo:geo }; ACQ.clock=0;   /* R59: the smaller burst after */
+    acqWaveSpawn(tier, geo, false); ACQ.next={ at:F.after.delay, tier:tier, geo:geo }; ACQ.clock=0;   /* R59: the smaller burst after */
     if(!ACQ.raf){ ACQ.t=0; ACQ.raf=requestAnimationFrame(acqFrame); } }
 /* R59: one burst - its particles round the window and its ring, sized by acqWave */
-function acqWaveSpawn(tier, geo, second){ const w=acqWave(ACQ_FX, tier, second), R=Math.random;
-    for(let i=0; i<w.n; i++) ACQ.ps.push(acqParticle(ACQ_FX, geo.cx, geo.cy, geo.hw, geo.hh, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }, w));
-    ACQ.rings.push({ x:geo.cx, y:geo.cy, t:0, R:w.ring, col:ACQ_FX.tint[tier]||ACQ_FX.tint.Weak }); }
-function acqFrame(now){ const g=ACQ.g, c=ACQ.cv; if(!g || !c.isConnected){ ACQ.raf=0; return; }
+function acqWaveSpawn(tier, geo, second){ const F=ACQ.F||ACQ_FX, w=acqWave(F, tier, second), R=Math.random;   /* R131: the burst's own table */
+    for(let i=0; i<w.n; i++) ACQ.ps.push(acqParticle(F, geo.cx, geo.cy, geo.hw, geo.hh, tier, i, { a:R(), b:R(), c:R(), d:R(), e:R() }, w));
+    ACQ.rings.push({ x:geo.cx, y:geo.cy, t:0, R:w.ring, col:F.tint[tier]||F.tint.Weak }); }
+function acqFrame(now){ const g=ACQ.g, c=ACQ.cv, F=ACQ.F||ACQ_FX; if(!g || !c.isConnected){ ACQ.raf=0; return; }   /* R131: F, the burst's table */
     const dt=ACQ.t ? Math.min(0.05, (now-ACQ.t)/1000) : 1/60; ACQ.t=now;
     ACQ.clock+=dt; if(ACQ.next && ACQ.clock>=ACQ.next.at){ acqWaveSpawn(ACQ.next.tier, ACQ.next.geo, true); ACQ.next=null; }   /* R59 */
-    ACQ.ps=ACQ.ps.filter(p=>acqStep(ACQ_FX, p, dt)); ACQ.rings.forEach(o=>{ o.t+=dt; }); ACQ.rings=ACQ.rings.filter(o=>o.t<=ACQ_FX.ring.time);
+    ACQ.ps=ACQ.ps.filter(p=>acqStep(F, p, dt)); ACQ.rings.forEach(o=>{ o.t+=dt; }); ACQ.rings=ACQ.rings.filter(o=>o.t<=F.ring.time);
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(ACQ.d, 0, 0, ACQ.d, 0, 0);
     g.globalCompositeOperation='lighter'; g.lineCap='round';
-    ACQ.rings.forEach(o=>{ const k=acqRing(ACQ_FX, o.t, o.R); g.globalAlpha=k.a; g.strokeStyle='rgb('+o.col.join(',')+')'; g.lineWidth=1+(ACQ_FX.ring.width-1)*k.a;
+    ACQ.rings.forEach(o=>{ const k=acqRing(F, o.t, o.R); g.globalAlpha=k.a; g.strokeStyle='rgb('+o.col.join(',')+')'; g.lineWidth=1+(F.ring.width-1)*k.a;
         g.beginPath(); g.arc(o.x, o.y, Math.max(0.1, k.r), 0, 2*Math.PI); g.stroke(); });
     ACQ.ps.forEach(p=>{ if(p.kind!=='spark') return; const a=acqLook(p.age/p.life); g.globalAlpha=a; g.strokeStyle='rgb('+p.col.join(',')+')';   /* a glowing streak along its flight */
         g.lineWidth=p.size*0.6; g.beginPath(); g.moveTo(p.x-p.vx*0.035, p.y-p.vy*0.035); g.lineTo(p.x, p.y); g.stroke();
@@ -7263,6 +7471,21 @@ function acqFrame(now){ const g=ACQ.g, c=ACQ.cv; if(!g || !c.isConnected){ ACQ.r
         g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.scale(1, Math.cos(p.rot*1.7)); g.fillRect(-p.size/2, -p.size/4, p.size, p.size/2); g.restore(); });
     g.globalAlpha=1;
     if(ACQ.ps.length || ACQ.rings.length || ACQ.next) ACQ.raf=requestAnimationFrame(acqFrame); else { ACQ.raf=0; ACQ.t=0; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); } }
+/* R139 (owner, 2026-11-17): the trait list behind the book's left tab. Record: specs/2026-11-17-book-trait-list.md */
+let CB_VIEW=null;   /* 'traits' while the trait list is open; null = the recipe pages */
+/* the recorded page a trait opens: its own page, else the first page that has it among several; null when none */
+function cbTraitPageOf(id, R){ if(R[id]) return id; const k=Object.keys(R).find(k=>(R[k].traits||[]).some(a=>a.tid===id)); return k||null; }
+function traitFound(id){ const t=traits.find(x=>x.trait && x.trait.id===id); return !!(t && t.discovered); }
+/* R140 (owner, 2026-11-17): "3 column 4 rows on each page, 24 elements only for now, remove rainbow" */
+const CB_TOMIT=['rainbow'], CB_TPAGE=12;   /* left out of the list for now; boxes on the left page, the rest on the right */
+function cbTList(){ return TRAITS.filter(t=>!CB_TOMIT.includes(t.id)); }
+function cbTraitsRender(){ const g=document.getElementById('cbTGrid'), g2=document.getElementById('cbTGrid2'); if(!g || !g2) return; g.innerHTML=''; g2.innerHTML='';
+    cbTList().forEach((t, i)=>{ const on=traitFound(t.id), k=on ? cbTraitPageOf(t.id, RECIPES) : null, d=document.createElement('div');
+        d.className='cb-tbox'+(on ? '' : ' unknown')+(k ? ' has-page' : ''); d.dataset.tid=t.id;
+        d.innerHTML = on ? '<span class="ic">'+t.symbol+'</span><span class="nm">'+t.name+'</span>' : '<span class="ic">?</span>';
+        d.title = on ? t.name+(k ? '' : ' (no page yet)') : 'Not discovered yet';
+        if(k) d.addEventListener('click', ()=>{ CB_VIEW=null; CB_SEL=k; renderRecipe(); });
+        (i<CB_TPAGE ? g : g2).appendChild(d); }); }
 // r41 — the tabs down the top and right edges. Icons are placeholders: the real set will be the
 // element symbols of each recorded composition.
 const CB_MARK_SLOTS = 10;   // r65: the top row of bookmarks IS the recipe list
@@ -7272,11 +7495,11 @@ function buildBookMarks(){
     top.innerHTML=''; side.innerHTML='';                 // the side row was decorative; recipes live on top
     const ids=Object.keys(RECIPES).slice(0, CB_MARK_SLOTS);
     ids.forEach((k,i)=>{ const list=recipeTraits(RECIPES[k]); if(!list.length) return;
-        const d=document.createElement('div'); d.className='cb-mark rec'+(k===CB_SEL?' is-on':'')+(list.length>1?' multi':'');
+        const d=document.createElement('div'); d.className='cb-mark rec'+(k===CB_SEL && CB_VIEW!=='traits'?' is-on':'')+(list.length>1?' multi':'');
         d.title=list.map(a=>(TRAIT_BY[a.tid]?TRAIT_BY[a.tid].name:a.tid)+' \u2014 '+a.tier).join(', ');
         d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>'+list.map(a=>TRAIT_BY[a.tid]?TRAIT_BY[a.tid].symbol:'?').join('')+'</span>';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
-        d.dataset.key=k; d.addEventListener('click', ()=>{ CB_SEL=k; renderRecipe(); ftueBulkStep(); });   /* r201: data-key so a pointer can find a page */
+        d.dataset.key=k; d.addEventListener('click', ()=>{ CB_VIEW=null; CB_SEL=k; renderRecipe(); ftueBulkStep(); });   /* r201: data-key so a pointer can find a page. R139: back from the trait list */
         top.appendChild(d); });
     /* r202: the free pages show too - the same bookmark, left blank, up to the book's page limit */
     const used=top.children.length, cap=Math.min(CB_MARK_SLOTS, recipeCap());
@@ -7285,11 +7508,20 @@ function buildBookMarks(){
         d.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt="">';
         d.style.left=(i*7.31).toFixed(2)+'%'; d.style.top='-8.37%';
         top.appendChild(d); }
+    /* R139: the left tab - the trait list, with the count found */
+    { const t=document.createElement('div'); t.className='cb-mark rec cb-ttab'+(CB_VIEW==='traits' ? ' is-on' : ''); t.title='All traits';
+      t.innerHTML='<img src="assets/ui/bookmark_paper.webp" alt=""><span>\u2b50 '+cbTList().filter(x=>traitFound(x.id)).length+'/'+cbTList().length+'</span>';
+      t.addEventListener('click', ()=>{ CB_VIEW='traits'; renderRecipe(); }); side.appendChild(t); }
 }
 function renderRecipe(){
     const ids=Object.keys(RECIPES);
     if(!ids.length) CB_SEL=null; else if(!CB_SEL || !RECIPES[CB_SEL]) CB_SEL=ids[0];
     buildBookMarks();   /* after CB_SEL is resolved, or the first open highlights nothing */
+    { const tv=CB_VIEW==='traits', bk=document.querySelector('#sfBookModal .cb-book');   /* R139: the trait list */
+      if(bk) bk.classList.toggle('cb-traits-on', tv); document.getElementById('cbTraits').hidden=!tv; document.getElementById('cbTraits2').hidden=!tv;
+      if(tv){ const L=cbTList(); document.querySelector('.cb-title-l').textContent='All Traits';   /* R140: the count moves to the right title */
+        document.querySelector('.cb-title-r').textContent=L.filter(x=>traitFound(x.id)).length+' / '+L.length+' Discovered'; cbTraitsRender(); return; }
+      document.querySelector('.cb-title-r').textContent='Recorded Composition'; }
     const r=CB_SEL?RECIPES[CB_SEL]:null, list=recipeTraits(r);
     document.getElementById('cbEmpty').hidden=!!r;
     ['cbErase','cbCraft1','cbCont'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=!r || (id==='cbCraft1' && ftueCraftLocked()); });   /* r239 */
@@ -7348,7 +7580,7 @@ function cbCraft(n){
     const rSkin=skinOf({traits:traits});                   /* r91: the batch wears the recipe's trait */
     const need=bulkNeed(ores,n);                           // r74: Bulk Craft discounts the whole batch
     if(!canAffordTally(need)){ toast('Not enough ore for <b>'+n+'</b> \u2014 needs '+tallyText(need)); return; }
-    SHAPE_CB=(shape)=>{ SHAPE_CB=null;
+    SHAPE_CB=(shape)=>{ SHAPE_CB=null; hmQuickOpen(shape, rSkin, ()=>{   /* R121: the quick hammer first */
         spendTally(need);
         for(let i=0;i<n;i++){
             INV.swords.push({ id:INV_SEQ++, shape:shape, blade:bladeFor(rSkin, shape),
@@ -7360,7 +7592,7 @@ function cbCraft(n){
         tutSpotOn(null); invTab(2); renderRecipe();   /* R62: and a sword made from the book */
         CRAFT_ORE=(n===1) ? ftueSwordKey({}) : null;   /* r291: the ore chain */
         showCraft(INV.swords[INV.swords.length-1], n);                 // r90: same window, n blades in flight
-    };
+    }); };
     openShapeSelect();
 }
 function cbContinue(){
@@ -7482,8 +7714,7 @@ function mkFill(pg){ const p=mkCur(), known=traitKnown(p.trait), st=marketRow(p.
     B.innerHTML=mkBuyFace(gift ? 'gift' : st, pr);
     B.title=(known ? TRAIT_BY[p.trait].name : '?')+' '+p.shape+(pr ? ' - '+pr+'g' : '');
     const S=pg.querySelector('.mk-stamp'), w=mkStamp(st); S.textContent=w; S.hidden=!w; }
-function renderMarket(){ mkWheelBuild(); mkWheelDraw(); const pg=mkPageEl(); if(pg) mkFill(pg);
-    const gv=document.getElementById('mkGold'); if(gv) gv.textContent=GOLD; }
+function renderMarket(){ mkWheelBuild(); mkWheelDraw(); const pg=mkPageEl(); if(pg) mkFill(pg); }   /* R120: the gold is the panel's (updateHud) */
 /* turn to page i: the old page leaves the way the swipe went (dir 1 up, -1 down), the new one comes in; the wheel follows its trait */
 function mkSetPage(i, dir, noSpin){ const N=mkPages().length, n=MARKET.traits.length; i=mkWrap(i, N); if(i===MK.page) return mkPageEl();
     MK.page=i; const old=mkCurPg();
@@ -7564,7 +7795,7 @@ function ftueLaterAt(){ FTUE_LATER_TAG=null; tutExit(null);
     if(FTUE_LATER==='find'){ FTUE_LATER='buy'; MK_LOCK=true; const pr=marketPrice('gale','Katana'); SAY_VARS.p=pr;
         const lit=()=>{ if(FTUE_LATER!=='buy') return; sayOver('D107cb'); ftueLaterCells(true); };
         if(GOLD>=pr){ lit(); return; }
-        sayOver(FTUE.marketShort); setTimeout(()=>{ const g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, pr); updateHud(); renderMarket(); lit(); }; if(g) coinFly(dragonEl(), g, go); else go(); }, 900); return; }
+        sayOver(FTUE.marketShort); setTimeout(()=>{ const g=document.getElementById('goldVal'), go=()=>{ GOLD=Math.max(GOLD, pr); updateHud(); renderMarket(); lit(); }; if(g) coinFly(dragonEl(), g, go); else go(); }, 900); return; }
     if(FTUE_LATER==='find2'){ FTUE_LATER='close'; MK_LOCK=true; SAY_VARS.p=marketPrice('fire','Claymore'); ftueLaterCells(false); sayOver('D107cd'); tutExit('#mkClose'); } }
 function ftueLaterBought(k, sh){ if(FTUE_LATER!=='buy' || k+':'+sh!==FTUE_LATER_KEYS[0]) return false;
     FTUE_LATER='find2'; MK_LOCK=false; ftueLaterCells(false); sayOver('D107cc'); setTimeout(ftueLaterSync, 0); return true; }
@@ -7575,7 +7806,7 @@ function ftueMarketOpened(){
     const o=m.o; tutExit(null);
     if(o.market.by==='dragon'){
         m.step='gift'; m.mk=true; mkShow(o.trait+':'+o.shape); sayOver(FTUE.marketWatch);
-        setTimeout(()=>ftueDeposit(m, document.getElementById('mkGold') || document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);
+        setTimeout(()=>ftueDeposit(m, document.getElementById('goldVal'), ()=>{ renderMarket(); mkShow(o.trait+':'+o.shape); sayOver('D28ca'); tutExit(mkCellOf(o)); }), 900);
         return; }
     m.step='buy'; m.mk=true;   /* R38: the page stays put (mkLocked) */
     mkShow(o.trait+':'+o.shape);
@@ -7584,7 +7815,7 @@ function ftueMarketOpened(){
 }
 /* D12: the dragon's coins land on the gold, which comes up to the price */
 function ftueMarketTopUp(){
-    const m=FTUE_MK, g=document.getElementById('mkGold'), go=()=>{ GOLD=Math.max(GOLD, marketPrice(m.o.trait, m.o.shape)); updateHud(); renderMarket(); mkShow(m.o.trait+':'+m.o.shape);
+    const m=FTUE_MK, g=document.getElementById('goldVal'), go=()=>{ GOLD=Math.max(GOLD, marketPrice(m.o.trait, m.o.shape)); updateHud(); renderMarket(); mkShow(m.o.trait+':'+m.o.shape);
         if(m && m.step==='buy') tutExit(mkCellOf(m.o)); };
     if(g) coinFly(dragonEl(), g, go); else go(); }
 function ftueMarketBought(k, sh){ if(ftueLaterBought(k, sh)) return;   /* R83 */
@@ -7631,7 +7862,7 @@ function coinFly(fromEl, toEl, then){
 }
 function openSkills(){ buildSkillNodes(); document.getElementById('sfSkillModal').classList.add('show'); updateXpHud(); tutDay2SkillOpen(); }   /* r122 */
 function closeSkills(){ document.getElementById('sfSkillModal').classList.remove('show'); tutDay2SkillClosed(); }   /* r122 */
-function openBook(){ renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); ftueBookOpened(); }   /* r201. R105 */
+function openBook(){ CB_VIEW=null; renderRecipe(); document.getElementById('sfBookModal').classList.add('show'); ftueBulkStep(); ftueBookOpened(); }   /* r201. R105 */
 function closeBook(){ document.getElementById('sfBookModal').classList.remove('show'); ftueFocusDone(); ftueBulkStep(); ftueBookClosed(); }   /* r201. r292: D28k goes with the window */
 /* r278 (owner, 2026-10-20): a map trait icon opens this small card on its newest page (CB_SEL), not the book: the icon,
    the page's name and description, CRAFT 1 and CONTINUE FROM HERE (the book's own, for that page), and CRAFT BOOK */
@@ -7734,16 +7965,20 @@ function craftArriving(id){ return CRAFT_FLY.indexOf(id)>=0 && (CRAFT_FLYING || 
 function oreTally(list){ const t={}; (list||[]).forEach(o=>{ t[o]=(t[o]||0)+1; }); return t; }
 /* r217 (owner): the Health row shows what the damage cost, in gold and in red. R17 (owner, 2026-10-27): on the card, right of
    the heart and its %; the hammer row beside it shows the gold the forging band made or cost against an unforged sword */
-function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0, tiers=hazTierDrop(w.haz);
-    return (lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : 'No loss')+(tiers ? '<small>'+w.haz+' hazards: -'+tiers+' tier</small>' : ''); }
+function cwHpEffHtml(w){ const lost=w.hp!=null ? swordBase(Object.assign({}, w, { hp:100 })) - swordBase(w) : 0;
+    return lost>0 ? '<span class="cr-lost">-'+lost+'g</span>' : ''; }   /* R128: no "No loss", no tier note */
 function cwHmEffHtml(w){ const d=swordBase(w) - swordBase(Object.assign({}, w, { quality:HM_HITS.unforged, forge:null }));
-    return (d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : 'No change')+'<small>'+(w.quality || HM_HITS.unforged)+'</small>'; }
+    return d>0 ? '<span class="cw-up">+'+d+'g</span>' : d<0 ? '<span class="cr-lost">'+d+'g</span>' : ''; }   /* R128: no "No change", no band */
 /* owner, 2026-10-09: "Epic Balanced Shortsword"; several traits: "Epic Fire, Fine Swift Longsword" */
 function craftName(w){
     const t=(w.traits||[]).map(a=>{ const id=a.tid || (a.t && a.t.id), bt=TRAIT_BY[id];
         return '<span style="color:'+tierColor(a.tier)+'">'+a.tier+'</span> '+(bt ? bt.name : id); });
     return (t.length ? t.join(', ') : 'Plain')+' '+w.shape; }
 function cwFill(el, f){ if(el) el.style.setProperty('--f', Math.max(0, Math.min(1, f)).toFixed(3)); }
+/* R128: a row's tab fills to its percentage; health by the marker's colours, the hammer by its band's (the aim ring's) */
+const CW_BAND_COL={ Masterwork:'#e8a317', Good:'#5aa8ff', Crude:'#ff4a3a' };
+function cwHpCol(f){ return f*100>60 ? '#5fd35f' : f*100>30 ? '#e8b13a' : '#e2503c'; }
+function cwBar(id, f, c){ const el=document.getElementById(id); if(!el) return; cwFill(el, f); el.style.setProperty('--c', c); }
 function craftDetails(){ const st=document.getElementById('cwStage'), open=!st.classList.contains('open');
     st.classList.toggle('open', open); document.getElementById('cwTab').innerHTML = open ? '&#9664;' : '&#9654;';
     if(open && CW_LESSON==='arrow'){ CW_LESSON='rows'; setTimeout(()=>{ sayQueue('D17c'); cwLessonSay(); }, 380); } }   /* after the slide */
@@ -7777,9 +8012,8 @@ function showCraft(w, n, after){
     if(n>1){ const x=document.createElement('span'); x.className='cr-x'; x.textContent='\u00d7'+n; art.appendChild(x); }
     body.innerHTML=craftName(w);
     const hp=(w.hp!=null ? w.hp : 100)/100, acc=(w.forge!=null ? w.forge : null);
-    cwFill(document.querySelector('#sfCraftModal .cw-hp'), hp);
-    cwFill(document.querySelector('#sfCraftModal .cw-hm'), acc!=null ? acc : 0);
-    document.getElementById('cwHpPct').textContent=Math.round(hp*100)+'%'; document.getElementById('cwHmPct').textContent=acc!=null ? Math.round(acc*100)+'%' : '-';   /* r235 */
+    cwBar('cwHpBar', hp, cwHpCol(hp)); cwBar('cwHmBar', acc!=null ? acc : 0, CW_BAND_COL[w.quality || HM_HITS.unforged] || CW_BAND_COL.Good);   /* R128 */
+    document.getElementById('cwHpRow').hidden=!hpOn();   /* R128: no Health before the hazard lesson */
     const tally=oreTally(w.ores||[]), ids=Object.keys(tally).sort((a,b)=>tally[b]-tally[a]);
     document.getElementById('cwHpEff').innerHTML=cwHpEffHtml(w); document.getElementById('cwHmEff').innerHTML=cwHmEffHtml(w);   /* R17 */
     document.getElementById('cwGold').textContent=swordPrice(w)+'g'+(n>1 ? ' x'+n : '');
@@ -8033,6 +8267,27 @@ function hmMaskHit(m, u, v, r){ const X=u*m.w, Y=v*m.h, s=Math.max(1, r/3);
 /* r277: the hammer is drawn over the metal, so it wins a press that is on both */
 function hmPickTarget(onHammer, onWork){ return onHammer ? 'hammer' : onWork ? 'work' : null; }
 /* HAMMER-PURE-END */
+/* R121 (owner, 2026-11-14): the quick hammer for book crafts. Design record: specs/2026-11-14-quick-hammer.md;
+   tooling/hammer/hammer.test.mjs reads this block out of this file. */
+/* HAMMER-QUICK-BEGIN */
+const HM_QUICK_CFG = { orbTaps:3, midTaps:3, sway:4, swayMs:1800, gap:170, endMs:700 };
+/* shape progress after t taps, on hmProg's scale (0 orb, 1 mid-blade, 2 blade) */
+function hmQuickProg(t){ const C=HM_QUICK_CFG; return t<=C.orbTaps ? t/C.orbTaps : Math.min(2, 1+(t-C.orbTaps)/C.midTaps); }
+/* HAMMER-QUICK-END */
+/* R122 (owner, 2026-11-16): hammer sounds (placeholders). Design record: specs/2026-11-16-hammer-sounds.md;
+   tooling/hammer/hammer.test.mjs reads this block out of this file. The files are made by tooling/sfx/make-placeholder-sfx.mjs */
+/* HAMMER-SFX-BEGIN */
+const HM_SFX = { dir:'assets/sfx/', vol:0.8, quick:'Good',
+    files:{ Masterwork:'hammer_masterwork.wav', Good:'hammer_good.wav', Crude:'hammer_crude.wav', dull:'hammer_dull.wav' } };
+/* which sound a strike plays: a graded hit its own band; a miss, cold metal or a finished blade the dull thud; a quick tap HM_SFX.quick */
+function hmSfxKey(kind, acc){ return kind==='hit' ? hmBand(acc).name : kind==='quick' ? HM_SFX.quick : 'dull'; }
+/* HAMMER-SFX-END */
+/* one loaded copy per sound; each strike plays a clone, so a fast second strike does not cut the first off. A blocked
+   play (no tap yet, a muted tab) is ignored: nothing waits on a sound */
+const HM_SFX_EL={};
+function hmSfxLoad(){ Object.keys(HM_SFX.files).forEach(k=>{ if(HM_SFX_EL[k]) return; const a=new Audio(HM_SFX.dir+HM_SFX.files[k]); a.preload='auto'; HM_SFX_EL[k]=a; }); }
+function hmSfx(kind, acc){ const k=hmSfxKey(kind, acc); if(!HM_SFX.files[k]) return; hmSfxLoad(); const base=HM_SFX_EL[k];
+    try{ const a=base.cloneNode(); a.volume=HM_SFX.vol; const p=a.play(); if(p && p.catch) p.catch(()=>{}); }catch(e){} }
 /* the mid-blade's alpha, read once per image, so points land on metal and not on transparent canvas */
 const HM_MASKS={};
 function hmMask(src){
@@ -8144,6 +8399,35 @@ function hmSwingOn(on){
     svg.classList.add('on');
 }
 function hmClear(){ hmBreath(false); hmStop(); hmSwingOn(false); tutGlow('#hmOrb', false); }   /* r181 */
+/* R121: the quick hammer. HM_QUICK = { skin, done, taps, t0, a0, end, hx, hy } while it is open: the recipe's blade set, what
+   makes the sword, the taps so far, the sway's start and centre angle, the hammer's own offset to give back */
+let HM_QUICK=null;
+function hmQuickOpen(shape, skin, done){
+    const m=document.getElementById('sfHammerModal'); hmQuickClose(true); hmShape=shape;
+    HM_QUICK={ skin:skin, done:done, taps:0, t0:0, a0:HM_RIG.base, end:false, hx:hmHx, hy:hmHy };
+    hmHeat=1; hmProg=0; hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false; hmQuenching=false; hmPts=[];
+    m.classList.add('hm-quick'); hmLayout(); hmPointsDraw(); m.classList.add('show'); hmSfxLoad();
+    hmQuickPlace(); hmBreath(true); hmRender(); hmSay(); hmStart(); cheatUi(); }
+/* the hammer is set so its strike lands on the metal (its aim ring's spot on the anvil), and the dragon aims at the metal */
+function hmQuickPlace(){ const sc=document.getElementById('hmScene'), R=HM_RIG, h=document.getElementById('hmHammer'); if(!sc || !HM_QUICK) return;
+    hmHx=sc.offsetWidth*(R.anvil.x-HM_HITS.ring.x)/100; hmHy=sc.offsetHeight*(R.anvil.y-2-HM_HITS.ring.y)/100;
+    if(h){ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px'); }
+    const r=sc.getBoundingClientRect(); if(r.width>=2){ hmAimAt(r.left+r.width*R.anvil.x/100, r.top+r.height*R.anvil.y/100); HM_QUICK.a0=hmAngle; } }
+/* his head sways a little either way while he breathes */
+function hmQuickSway(ts){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q) return; if(!q.t0) q.t0=ts;
+    hmAimDragon(q.a0+C.sway*Math.sin((ts-q.t0)/C.swayMs*2*Math.PI)); }
+/* a tap anywhere: the hammer swings, the metal takes the blow, the shape moves on; the sixth ends it */
+function hmQuickTap(){ const q=HM_QUICK, C=HM_QUICK_CFG; if(!q || q.end) return;
+    const now=performance.now(); if(now-hmLastStrike<C.gap) return; hmLastStrike=now;
+    const h=document.getElementById('hmHammer'); if(h){ h.classList.remove('hit'); void h.offsetWidth; h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240); }
+    q.taps++; hmProg=hmQuickProg(q.taps); hmSfx('quick');   /* R122 */
+    hmJolt('jolt'); hmImpact(true); hmSay();
+    if(q.taps>=C.orbTaps+C.midTaps){ q.end=true; setTimeout(()=>{ if(HM_QUICK===q) hmQuickEnd(); }, C.endMs); } }
+/* leave quick mode: the hammer's own offset back; keep = the window stays (the full minigame is opening) */
+function hmQuickClose(keep){ const m=document.getElementById('sfHammerModal'), q=HM_QUICK; if(m) m.classList.remove('hm-quick'); if(!q) return null;
+    HM_QUICK=null; hmHx=q.hx; hmHy=q.hy; const h=document.getElementById('hmHammer'); if(h){ h.style.setProperty('--hx',hmHx+'px'); h.style.setProperty('--hy',hmHy+'px'); }
+    if(!keep){ if(m) m.classList.remove('show'); hmClear(); cheatUi(); } return q; }
+function hmQuickEnd(){ const q=hmQuickClose(); if(q && q.done) q.done(); }
 function selectShape(shape){ const fo=ftueOrderOpen(); if(fo && !ftueOrderShapeOk(fo, shape)){ ftueFocus(fo); return; }   /* r292: the craft lock - the picker stays open */
     SHAPE_FROM_TUT=false;   /* r144 */
     document.getElementById('sfShapeModal').classList.remove('show'); ftueFocusDone();   /* r292 */
@@ -8152,17 +8436,17 @@ function selectShape(shape){ const fo=ftueOrderOpen(); if(fo && !ftueOrderShapeO
 /* r204: the Rapier has no half-shaped art yet (owner's art list), so the hammer shows the Longsword's */
 const HM_MID_ALIAS = { Rapier:'Longsword', Dagger:'Shortsword', Katana:'Longsword', Cutlass:'Shortsword', Machete:'Shortsword',
                        Saber:'Longsword', Scimitar:'Longsword', Claymore:'Broadsword' };   /* v3: the new shapes borrow until their mid-blades land */   /* r208: no dagger mid-blade either; the Shortsword's is the nearest */
-function openHammer(){
+function openHammer(){ hmQuickClose(true);   /* R121 */
     hmHeat=0; hmProg=0; hmAngle=HM_RIG.base; hmBreath(false); hmQuenching=false; HM_WASHOT=false;
     hmShow=0; hmScores=[]; HM_QUAL=null; hmSwingWant=false;   /* r209 */
     hmLayout(); homeHmMug(); hmMugState(); hmRender(); hmSay(); hmSetPoints(0);
-    document.getElementById('sfHammerModal').classList.add('show');
+    document.getElementById('sfHammerModal').classList.add('show'); hmSfxLoad();   /* R122: the sounds */
     if(HM_PAINT) HM_PAINT(); else hmRingPaint();
     hmStart(); tutHmStep(); cheatUi();   /* r165 */
 }
 // Place everything that is not already registered on the shared canvas.
 /* r207: which blade file this sword ends as - its trait's set (skinOf), its shape */
-function hmBladeFile(){
+function hmBladeFile(){ if(HM_QUICK) return bladeFor(HM_QUICK.skin, hmShape);   /* R121 */
     const ids=(melt && melt.traits) ? melt.traits.map(a=>({ tid:a.t.id })) : [];
     return bladeFor(skinOf({ traits:ids }), hmShape); }
 function hmLayout(){
@@ -8273,7 +8557,7 @@ function cheatUi(){
 }
 /* r88: backing out is not throwing the blade away. The bench is untouched while the minigame runs -
    the metal and its traits are still sitting on the anvil - so closing the panel is the whole job. */
-function hmCancel(){
+function hmCancel(){ if(HM_QUICK){ hmQuickClose(); toast('Crafting cancelled. Nothing was spent.'); return; }   /* R121 */
     document.getElementById('sfHammerModal').classList.remove('show'); hmClear(); cheatUi();   /* r165 */
     toastCut('Shaping cancelled — the metal is still on the <b>anvil</b>. Tap it to pick a shape again.', 2600);
 }
@@ -8361,6 +8645,7 @@ function hmRender(){
 function hmSay(){
     const el=document.getElementById('hmSay'); if(!el) return;
     hmMugState();
+    if(HM_QUICK){ const N=HM_QUICK_CFG.orbTaps+HM_QUICK_CFG.midTaps; el.innerHTML = HM_QUICK.taps>=N ? 'Blade shaped!' : 'Tap anywhere to strike ('+HM_QUICK.taps+'/'+N+')'; return; }   /* R121 */
     el.innerHTML = hmProg>=2 ? 'Blade shaped!'   /* smelter version */
         : hmHeat>=HM_FORGE.workMin ? 'It glows: put the <b>ring</b> on a <b>mark</b>, then <b>tap the hammer</b>'   /* r209 */
         : 'Hold the <b>metal</b>: the dragon turns its head and breathes on it';
@@ -8384,6 +8669,7 @@ function hmTick(ts){
     hmRaf=requestAnimationFrame(hmTick);
     if(TUT_PAUSE){ hmLast=ts; return; }   /* r173: and the stamp moves with it, so dt does not spike on resume */
     const dt=hmLast ? Math.min(0.1,(ts-hmLast)/1000) : 0; hmLast=ts;
+    if(HM_QUICK){ hmQuickSway(ts); hmHeat=1; if(hmShow!==hmProg){ const st=2.5*dt; hmShow = Math.abs(hmProg-hmShow)<=st ? hmProg : hmShow+Math.sign(hmProg-hmShow)*st; } hmRender(); return; }   /* R121 */
     const F=HM_FORGE, was=hmHeat;
     if(hmFireOnWork()) hmHeat=Math.min(1, hmHeat+F.heatGain*dt);
     hmHeat=Math.max(0, hmHeat-F.heatCool*dt);
@@ -8421,12 +8707,12 @@ function hmStrike(){
     const h=document.getElementById('hmHammer');
     h.classList.remove('hit'); void h.offsetWidth;   // restart the swing even on a fast second blow
     h.classList.add('hit'); setTimeout(()=>h.classList.remove('hit'),240);
-    if(hmProg>=2) return;
+    if(hmProg>=2){ hmSfx('done'); return; }   /* R122 */
     const a=hmRingAt(), t=hmTarget(), at={ x:a.x/a.W*100, y:a.y/a.H*100 };
-    if(!t){ hmImpact(false, at); return; }   /* owner: no penalty outside the points */
-    if(hmHeat<HM_FORGE.workMin){ hmJolt('chill'); hmImpact(false, at); return; }   // too cold to move
+    if(!t){ hmSfx('miss'); hmImpact(false, at); return; }   /* owner: no penalty outside the points */
+    if(hmHeat<HM_FORGE.workMin){ hmSfx('cold'); hmJolt('chill'); hmImpact(false, at); return; }   // too cold to move
     hmSwingOn(false);   /* r181: they have done it */
-    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y };
+    const acc=hmGrade(t.d, t.D), P={ x:t.p.x, y:t.p.y }; hmSfx('hit', acc);   /* R122: the strike's own band */
     hmScores.push(acc); t.p.left--;
     hmHeat=Math.max(0, hmHeat-HM_FORGE.strikeBite);
     if(hmProg<1){ hmProg=Math.min(1, hmProg+1/HM_HITS.orbStrikes); if(t.p.left<=0){ hmProg=1; hmSetPoints(1); } else hmPointsDraw(); }
@@ -8465,9 +8751,13 @@ function hmOnWork(x,y){ const T=HM_HITS.touch.metal, vis=el=>!!el && parseFloat(
         if(m ? hmMaskHit(m, q.u, q.v, T*m.w/q.px) : (q.u>=0 && q.v>=0 && q.u<=1 && q.v<=1)) return true; }
     return false; }
 function wireHmTouch(){ const sc=document.getElementById('hmScene'); if(!sc) return;
-    sc.addEventListener('pointerdown', e=>{ if(e.target.closest && e.target.closest('#hmMug, button')) return;
+    sc.addEventListener('pointerdown', e=>{ if(HM_QUICK){ if(e.target.closest && e.target.closest('button')) return; e.stopPropagation(); e.preventDefault(); hmQuickTap(); return; }   /* R121 */
+        if(e.target.closest && e.target.closest('#hmMug, button')) return;
         const who=hmPickTarget(hmOnHammer(e.clientX,e.clientY), hmOnWork(e.clientX,e.clientY)); if(!who || !HM_DOWN[who]) return;
         e.stopPropagation(); e.preventDefault(); HM_DOWN[who](e); }, true);
+    /* R121: the quick hammer takes a tap anywhere in its window, around the scene too */
+    const md=document.getElementById('sfHammerModal')||sc;
+    md.addEventListener('pointerdown', e=>{ if(!HM_QUICK || (e.target.closest && e.target.closest('button'))) return; e.preventDefault(); hmQuickTap(); });
     /* a mouse gets the cursor the art asks for (a finger has none) */
     sc.addEventListener('pointermove', e=>{ if(e.buttons || e.pointerType!=='mouse') return;
         sc.style.cursor = hmOnHammer(e.clientX,e.clientY) ? 'grab' : hmOnWork(e.clientX,e.clientY) ? 'pointer' : ''; }); }
@@ -8483,7 +8773,7 @@ function wireHmDragon(){
     sc.addEventListener('pointermove', e=>{ if(live===e.pointerId) hmAimAt(e.clientX,e.clientY); });
     const end=e=>{ if(live!==e.pointerId) return; live=null; if(wrap) wrap.classList.remove('grabbing'); hmBreath(false); };
     sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
-    if(head) head.addEventListener('click', e=>{ e.preventDefault(); dragonTap(e, sc); });
+    if(head) head.addEventListener('click', e=>{ e.preventDefault(); if(HM_QUICK) return; dragonTap(e, sc); });   /* R121 */
 }
 // Drag the hammer. The sprite is a full-canvas layer, so transparent pads carry the pointer events
 // and the layer itself is only translated (--hx/--hy, which the hover animation also reads).
@@ -8510,7 +8800,7 @@ function wireHmHammer(){
     HM_PAINT=paint; paint();
 }
 /* smelter version: the shaped blade lies on the anvil; dragged into the bucket it is quenched and finished (finishBlade) */
-function smShaped(){ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
+function smShaped(){ if(HM_QUICK){ hmQuickEnd(); return; }   /* R121: SKIP HAMMER in the quick hammer */ const m=document.getElementById('sfHammerModal'); if(!m || !m.classList.contains('show') || !melt) return;
     m.classList.remove('show'); hmClear(); cheatUi();
     if(['D45','D46','D78'].includes(SAY_ON)) sayHide();   /* R4: the minigame's lines go with it */
     SM_BLADE_FILE=hmBladeFile(); melt.stage='shaped'; orbEl.style.display='none';
@@ -9338,7 +9628,7 @@ const DIALOGUE = {
     D92l: "Okay, time to learn how to craft the best tier sword!",
     D92m: "Let's go to the forge.",   /* r245 (owner): GC5's map route, off the forge */
     D92n: "Tap on the trait to open the craft book directly.",   /* r245: on the forge, everything dark but the trait. r246: tap, not click (owner) */
-    D93: "Do you have a sword with the Gale trait?",
+    D93: "I am a sailor, and storms keep tearing our sails. They say a blade with the Gale trait can tame the wind. Do you have one? A shortsword should be enough.",   /* R119 (owner, 2026-11-14): why, and the shape */
     D93a: "Gale? We have never made that. Let's try copper and see where the path goes.",   /* r213 */
     D94: "We should go and gather ores. Go back to the cave.",
     D94b: "Gather everything.",   /* r164: said on arrival, replacing D94 once the walk is done */
@@ -10812,14 +11102,18 @@ const TYPE_MS=70;
    and it's shape as well ... Same for 'sharpened' and 'customized'. this is only for the dialogues." Record: specs/2026-10-30-dialogue-sword-names.md */
 /* DLG-PURE-BEGIN */
 const DLG_HL={ back:'#f3e7c6',   /* the dragon's bubble; the customer's parchment is the same tone */
-    trait:{ balanced:'#5f6670', fire:'#bc3824', swift:'#7a641e', gale:'#2b736c', durable:'#806340', flexible:'#487230', heavy:'#4c5560',
-            celestial:'#6656cb', cloud:'#5c6874', rainbow:'#ab3e7e', luck:'#237736', lightning:'#826200', noble:'#8a3fc2', grace:'#96546e',
-            floral:'#aa4470', fury:'#b24419', ice:'#306d92', water:'#2769b2', magma:'#ba3d0e', mist:'#63696f', poison:'#437316',
-            savage:'#965925', blood:'#a3162a', cursed:'#5a3a6e', dark:'#2c2533' },
+    /* R123 (owner, 2026-11-16): each trait in its map part's colours (DLG_GROUP), 4.5:1 or better on the parchment */
+    trait:{ balanced:'#b23a26', fire:'#c0301a', swift:'#2b7334', gale:'#127466', durable:'#7a5a10', flexible:'#3a3a9c', heavy:'#3e3552',
+            celestial:'#7a6200', cloud:'#1f6b7c', rainbow:'#17704f', luck:'#6b6400', lightning:'#4a7114', noble:'#8a5300', grace:'#836012',
+            floral:'#8c4e08', fury:'#a8231a', ice:'#245ea0', water:'#1f4db0', magma:'#b0440a', mist:'#47509a', poison:'#4a2f6b',
+            savage:'#9c4f14', blood:'#6a1f4c', cursed:'#5b2c7c', dark:'#2c2238' },
     tier:{ Epic:'#8e44d9', Fine:'#2b7fd8', Weak:'#4d4d4d' },   /* tierColor's, as the tier window shows them */
     word:{ sharpened:'#2f5d7c', customized:'#9a3f8a', customised:'#9a3f8a' },
     shapes:['sword','shortsword','longsword','broadsword','rapier','dagger','katana','claymore','cutlass','machete','saber','scimitar'],
     tierThen:['tier','trait'] };
+/* R123: the map's five parts (the regions of assets/ui/MAP_parts.webp), which set each trait's colour above. Blood and Cursed
+   sit on a border and were placed in dark. Record: specs/2026-10-30-dialogue-sword-names.md */
+const DLG_GROUP={ fire:['fire','magma','fury','savage','balanced'], air:['gale','swift','cloud','lightning','rainbow'], light:['celestial','durable','luck','noble','grace','floral'], water:['water','ice','mist','flexible'], dark:['dark','cursed','poison','blood','heavy'] };
 /* a word as its leading marks, its letters, its trailing marks: "'balanced'" -> ' balanced ' */
 function dlgSplit(w){ const m=/^([^A-Za-z]*)([A-Za-z](?:[A-Za-z']*[A-Za-z])?)?([\s\S]*)$/.exec(w); return { pre:m[1], core:m[2]||'', post:m[3] }; }
 /* the colour of each word of a line, or null. A sword's name is one or more trait words straight before a shape ("balanced
@@ -10834,14 +11128,21 @@ function dlgMarks(words){ const H=DLG_HL, P=words.map(dlgSplit), lc=P.map(p=>p.c
         if(H.trait[lc[i]]){ let j=i; while(j<words.length && H.trait[lc[j]] && quotes(P[j].post)) j++;
             if(j>i && shape(j)){ for(let k=i;k<j;k++) out[k]=H.trait[lc[k]]; out[j]=H.trait[lc[j-1]]; i=j; } } }
     return out; }
+/* R124 (owner, 2026-11-16): the icon before each trait word of a sword's name (one dlgMarks coloured as a trait), or null.
+   sym(id) gives a trait's symbol (TRAIT_BY in the game). A trait word alone, a tier, a shape, sharpened: none */
+function dlgIcons(words, marks, sym){ return words.map((w,i)=>{ const k=dlgSplit(w).core.toLowerCase();
+    return (marks[i] && DLG_HL.trait[k] && marks[i]===DLG_HL.trait[k]) ? (sym(k)||null) : null; }); }
 /* DLG-PURE-END */
+const dlgSym=id=>TRAIT_BY[id] ? TRAIT_BY[id].symbol : null;   /* R124 */
 /* a word into el: a marked word's letters bold in its colour, the marks round them plain */
-function dlgWordNodes(el, w, c){ if(!c){ el.appendChild(document.createTextNode(w)); return; } const p=dlgSplit(w);
+function dlgWordNodes(el, w, c, ic){ if(ic){ const g=document.createElement('span'); g.className='dlg-ig'; el.appendChild(g); el=g;
+        const s=document.createElement('span'); s.className='dlg-ic'; s.textContent=ic; el.appendChild(s); }   /* R124: the trait's icon first */
+    if(!c){ el.appendChild(document.createTextNode(w)); return; } const p=dlgSplit(w);
     if(p.pre) el.appendChild(document.createTextNode(p.pre)); const b=document.createElement('b'); b.className='dlg-k'; b.style.color=c; b.textContent=p.core; el.appendChild(b);
     if(p.post) el.appendChild(document.createTextNode(p.post)); }
 /* a whole line at once */
-function dlgFill(el, text){ el.textContent=''; const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);
-    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' ')); dlgWordNodes(el, w, cs[i]); }); }
+function dlgFill(el, text){ el.textContent=''; const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws), ics=dlgIcons(ws, cs, dlgSym);
+    ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' ')); dlgWordNodes(el, w, cs[i], ics[i]); }); }
 let TYPE_T=null, TYPE_EL=null, TYPE_WORDS=null, TYPE_I=0;
 function typeStop(){ if(TYPE_T){ clearInterval(TYPE_T); TYPE_T=null; } TYPE_EL=null; TYPE_WORDS=null; TYPE_I=0; TYPE_DONE=null; }
 function typeDone(){                                  /* jump to the finished line */
@@ -10858,10 +11159,10 @@ function typeLine(el, text){
     const after=TYPE_DONE;                              /* typeStop clears it, so carry it across */
     typeStop(); TYPE_DONE=after; if(!el) return;
     const words=String(text||'').trim().split(/\s+/);
-    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words);   /* R61 */
+    TYPE_EL=el; TYPE_WORDS=words; TYPE_I=0; el.textContent=''; const cols=dlgMarks(words), ics=dlgIcons(words, cols, dlgSym);   /* R61. R124 */
     TYPE_T=setInterval(()=>{
         if(TYPE_I>=TYPE_WORDS.length){ const f=TYPE_DONE; typeStop(); if(f) f(); return; }
-        if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I]); TYPE_I++;
+        if(TYPE_I) TYPE_EL.appendChild(document.createTextNode(' ')); dlgWordNodes(TYPE_EL, TYPE_WORDS[TYPE_I], cols[TYPE_I], ics[TYPE_I]); TYPE_I++;
         counterLayout();   /* r149: the box grows as it types */
     }, TYPE_MS);
 }
@@ -10934,6 +11235,36 @@ const CUST_ASKS=[ n=>'Do you have a '+n+'?',
 /* R118 (owner, 2026-11-13): an order that names no shape says so */
 const CUST_ANY='Any shape is fine.';
 function custAsk(name, shape){ return CUST_ASKS[Math.floor(Math.random()*CUST_ASKS.length)](orderLabel(name, shape))+(shape ? '' : ' '+CUST_ANY); }
+/* R119 (owner, 2026-11-14): a random customer after the tutorial tells its story - one line per trait
+   (record: specs/2026-11-10-ftue-customer-list.md, "Order lines"); a trait with no line falls back to the random ask */
+const CUST_STORY={
+    swift: "I carry messages for the queen, and slow riders do not last. A swift sword, please.",
+    balanced: "My son just joined the town guard and holds a sword like a broom. I want a balanced sword for him.",
+    durable: "I keep breaking swords on the training posts. I want a durable sword this time.",
+    flexible: "I fight in the narrow alleys of the port. I need a flexible sword that bends and does not break.",
+    heavy: "I am the best arm-wrestler in OakHaven, and every sword feels like a twig. Make me a heavy one.",
+    celestial: "I serve at the moon temple. The stars told me to come here. A celestial sword.",
+    cloud: "I want to climb the Sky Spire. They say a cloud sword makes you light on your feet.",
+    rainbow: "My daughter asked for a sword with every colour in it. A rainbow sword, please.",
+    luck: "I have a big card game tonight. A luck sword on my belt cannot hurt.",
+    lightning: "Storm giants walk the hills this season. I will fight lightning with lightning. A lightning sword.",
+    noble: "My father wants me knighted by spring. I need a noble sword to stand before the king.",
+    grace: "I perform sword dances at the royal court. Only a grace sword will do.",
+    gale: "Pirates keep raiding the harbour. A gale sword would keep them off my deck.",
+    floral: "My wedding is next week, and my partner wants a sword that blooms. A floral sword, please.",
+    fury: "Orcs burned my farm. I want a fury sword, and I want it angry.",
+    ice: "The desert caravans are cooking us alive. They say an ice blade keeps its bearer cool. I want one.",
+    fire: "Ice drakes were seen near Whitefield again. I need a fire sword.",
+    water: "A fire spirit burned down my mill last week. Give me a water sword.",
+    magma: "The golems in the old quarry are made of stone. Only something hotter than fire will crack them. A magma sword.",
+    mist: "I am a thief... I mean, a quiet traveller. A mist sword would suit me.",
+    poison: "The swamp beasts heal too fast. I need a poison sword to slow them down.",
+    savage: "The beasts of the Black Wood do not fight fair, so neither will I. A savage sword.",
+    blood: "I am a warrior of the red clan. Our blades drink from every fight. A blood sword.",
+    cursed: "I collect strange things. Everyone says a cursed sword is a bad idea, so of course I want one.",
+    dark: "Something hunts in my village at night. I need a dark sword to face it in its own shadows.",
+};
+function custStory(tid, name){ return CUST_STORY[tid] ? CUST_STORY[tid]+' '+CUST_ANY : custAsk(name, null); }
 function bellEl(){ return document.querySelector('#screenProps img[data-act="bell"]'); }
 function bellShow(on){ BELL_ON=!!on; if(SF_SCREEN==='customer') buildScreenProps('customer'); }
 function bellFx(){
@@ -11037,7 +11368,7 @@ function nextCustomer(){
     const who=CUST_POOL[Math.floor(Math.random()*CUST_POOL.length)];
     CUSTOMER={ portrait:'assets/customer/'+who+'.webp', tid:tr.id, name:tr.name };
     buildScreenProps('customer'); counterUi();
-    custLine(null, custAsk(tr.name, null));   /* R118 */
+    custLine(null, custStory(tr.id, tr.name));   /* R118. R119: its story */
     return true;
 }
 function ringBell(){
@@ -11349,6 +11680,7 @@ function tutDipDone(){ if(!TUT_DIP) return; TUT_DIP=false; tutArrow(null,null); 
 const TUT_FIRE_BUILD = ['fire-grind','fire-heat1','fire-spot','fire-reheat','fire-mang','fire-heat2','fire-iron'];
 function tutHazardStep(){
     if(TUT_SAIDHAZ || TUT_FIRE_BUILD.indexOf(TUT_STAGE)<0) return; TUT_SAIDHAZ=true;
+    FTUE_ST.hpOn=true; updateHpPill();   /* R128: health starts with the lesson */
     sayQueue('D69a','D69b','D69c');
     tutPause(true);
 }
@@ -11570,9 +11902,9 @@ let SAY_TYPE_T=null, SAY_TYPE_EL=null;
 function sayTypeStop(all){ if(SAY_TYPE_T){ clearInterval(SAY_TYPE_T); SAY_TYPE_T=null; }
     if(all && SAY_TYPE_EL) SAY_TYPE_EL.querySelectorAll('.sw').forEach(w=>w.classList.add('on')); SAY_TYPE_EL=null; }
 function sayType(el, text){ sayTypeStop(false); el.textContent='';
-    const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws);   /* R61 */
+    const ws=String(text||'').trim().split(/\s+/), cs=dlgMarks(ws), ics=dlgIcons(ws, cs, dlgSym);   /* R61. R124 */
     ws.forEach((w,i)=>{ if(i) el.appendChild(document.createTextNode(' '));
-        const s=document.createElement('span'); s.className='sw'; dlgWordNodes(s, w, cs[i]); el.appendChild(s); });
+        const s=document.createElement('span'); s.className='sw'; dlgWordNodes(s, w, cs[i], ics[i]); el.appendChild(s); });
     const words=[...el.querySelectorAll('.sw')]; let i=0; SAY_TYPE_EL=el;
     SAY_TYPE_T=setInterval(()=>{ if(i>=words.length){ sayTypeStop(false); return; } words[i++].classList.add('on'); }, TYPE_MS); }
 function say(id){
